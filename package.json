@@ -1,0 +1,45 @@
+{
+  "name": "iobroker.aura",
+  "version": "0.0.1",
+  "description": "Modern visualization dashboard for ioBroker",
+  "main": "lib/main.js",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hdering/iobroker.aura"
+  },
+  "bugs": {
+    "url": "https://github.com/hdering/iobroker.aura/issues"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:adapter": "tsc && cross-env VITE_BASE=/aura/ vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@iobroker/adapter-core": "^3.2.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/react-grid-layout": "^1.3.5",
+    "@types/socket.io-client": "^1.4.36",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "cross-env": "^10.1.0",
+    "lucide-react": "^1.7.0",
+    "postcss": "^8.4.39",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-grid-layout": "^1.4.4",
+    "react-router-dom": "^7.14.0",
+    "recharts": "^2.12.7",
+    "socket.io-client": "^2.5.0",
+    "tailwindcss": "^3.4.6",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.4",
+    "vitest": "^2.0.3",
+    "zustand": "^4.5.4"
+  }
+}

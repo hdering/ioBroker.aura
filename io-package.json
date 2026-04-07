@@ -1,0 +1,41 @@
+{
+  "common": {
+    "name": "aura",
+    "version": "0.0.1",
+    "title": "Aura",
+    "titleLang": {
+      "en": "Aura Dashboard",
+      "de": "Aura Dashboard"
+    },
+    "desc": {
+      "en": "Modern visualization dashboard for ioBroker",
+      "de": "Modernes Visualisierungs-Dashboard für ioBroker"
+    },
+    "type": "visualization",
+    "license": "MIT",
+    "mode": "daemon",
+    "allowInit": true,
+    "webExtension": "www/",
+    "noIntro": true,
+    "singleton": true,
+    "authors": ["Aura"],
+    "keywords": ["visualization", "dashboard"]
+  },
+  "native": {},
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "name": "If adapter connected to ioBroker",
+        "type": "boolean",
+        "role": "indicator.connected",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    }
+  ]
+}

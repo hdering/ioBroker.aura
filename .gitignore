@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.local
+
+# ioBroker local data (not part of the adapter)
+iobroker-data/
+
+# Dev-only files
+.iobroker-url
+.claude/
+CLAUDE_CODE_BRIEFING.md
+compose.yml
+
+# OS
+.DS_Store
+Thumbs.db
