@@ -1,6 +1,6 @@
 {
   "name": "iobroker.aura",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Modern visualization dashboard for ioBroker",
   "main": "lib/main.js",
   "license": "MIT",
@@ -15,7 +15,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "build:adapter": "tsc && cross-env VITE_BASE=/aura/ vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "node scripts/postinstall.js"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.2.2",
