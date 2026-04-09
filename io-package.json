@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.2.8",
+    "version": "0.2.9",
     "title": "Aura Visualisierung",
     "titleLang": {
       "en": "Aura Visualisation",

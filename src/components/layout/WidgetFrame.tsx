@@ -356,7 +356,7 @@ function CenteredModal({
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className={`relative flex flex-col rounded-xl shadow-2xl ${wide ? 'w-[640px]' : 'w-[480px]'} max-h-[85vh]`}
+        className={`relative flex flex-col rounded-xl shadow-2xl w-[90vw] ${wide ? 'max-w-5xl' : 'max-w-3xl'} max-h-[85vh]`}
         style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
         onMouseDown={(e) => e.stopPropagation()}
       >
