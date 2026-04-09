@@ -1,26 +1,158 @@
-import { useState } from 'react';
-import { RefreshCw, Search, Check, X, Plus } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { RefreshCw, Search, Check, X, Plus, ChevronDown } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
-import { discoverDatapoints } from '../widgets/AutoListWidget';
+import { discoverDatapoints, loadFilterOptions } from '../widgets/AutoListWidget';
 import type { AutoListOptions, AutoListEntry, DiscoveredDp } from '../widgets/AutoListWidget';
+
+// ── MultiSelect dropdown ───────────────────────────────────────────────────────
+
+function MultiSelect({
+  label,
+  options,
+  selected,
+  onChange,
+  loading,
+}: {
+  label: string;
+  options: string[];
+  selected: string[];
+  onChange: (v: string[]) => void;
+  loading?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const filtered = options.filter(o => o.toLowerCase().includes(search.toLowerCase()));
+  const toggle = (v: string) =>
+    onChange(selected.includes(v) ? selected.filter(s => s !== v) : [...selected, v]);
+
+  return (
+    <div ref={ref} className="relative">
+      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{label}</label>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between text-xs rounded-lg px-2.5 py-2 focus:outline-none text-left"
+        style={{
+          background: 'var(--app-bg)',
+          color: selected.length ? 'var(--text-primary)' : 'var(--text-secondary)',
+          border: '1px solid var(--app-border)',
+        }}
+      >
+        <span className="truncate flex-1 min-w-0">
+          {loading ? 'Lade…' : selected.length === 0 ? 'Alle' : selected.join(', ')}
+        </span>
+        <ChevronDown size={11} className={`shrink-0 ml-1 transition-transform ${open ? 'rotate-180' : ''}`}
+          style={{ color: 'var(--text-secondary)' }} />
+      </button>
+
+      {open && (
+        <div className="absolute z-50 left-0 right-0 mt-1 rounded-lg shadow-2xl overflow-hidden"
+          style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
+          {options.length > 8 && (
+            <div className="p-1.5" style={{ borderBottom: '1px solid var(--app-border)' }}>
+              <input
+                autoFocus
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Suchen…"
+                className="w-full text-xs px-2 py-1 rounded focus:outline-none"
+                style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: 'none' }}
+              />
+            </div>
+          )}
+          <div className="max-h-44 overflow-y-auto">
+            {filtered.length === 0 && (
+              <p className="text-[10px] p-2 text-center" style={{ color: 'var(--text-secondary)' }}>
+                Keine Ergebnisse
+              </p>
+            )}
+            {filtered.map(opt => {
+              const on = selected.includes(opt);
+              return (
+                <label key={opt}
+                  className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer hover:opacity-90"
+                  style={{ background: on ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent' }}>
+                  <div className="w-3.5 h-3.5 rounded shrink-0 flex items-center justify-center"
+                    style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}>
+                    {on && <Check size={9} color="#fff" />}
+                  </div>
+                  <input type="checkbox" className="sr-only" checked={on} onChange={() => toggle(opt)} />
+                  <span className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>{opt}</span>
+                </label>
+              );
+            })}
+          </div>
+          {selected.length > 0 && (
+            <div className="p-1.5" style={{ borderTop: '1px solid var(--app-border)' }}>
+              <button type="button" onClick={() => onChange([])}
+                className="text-[10px] hover:opacity-70 w-full text-center"
+                style={{ color: 'var(--text-secondary)' }}>
+                Auswahl aufheben
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main config panel ──────────────────────────────────────────────────────────
 
 interface Props {
   config: WidgetConfig;
   onConfigChange: (config: WidgetConfig) => void;
 }
 
+function toArr(csv?: string): string[] {
+  return csv ? csv.split(',').map(s => s.trim()).filter(Boolean) : [];
+}
+function toCsv(arr: string[]): string | undefined {
+  return arr.length ? arr.join(', ') : undefined;
+}
+
 export function AutoListConfig({ config, onConfigChange }: Props) {
   const opts = (config.options ?? { entries: [] }) as unknown as AutoListOptions;
 
-  const [manualId, setManualId] = useState('');
-  const [roles, setRoles] = useState(opts.filterRoles ?? '');
+  // Filter options loaded from ioBroker
+  const [availRoles, setAvailRoles] = useState<string[]>([]);
+  const [availRooms, setAvailRooms] = useState<string[]>([]);
+  const [availFuncs, setAvailFuncs] = useState<string[]>([]);
+  const [optLoading, setOptLoading] = useState(true);
+
+  useEffect(() => {
+    loadFilterOptions().then(({ roles, rooms, funcs }) => {
+      setAvailRoles(roles);
+      setAvailRooms(rooms);
+      setAvailFuncs(funcs);
+      setOptLoading(false);
+    });
+  }, []);
+
+  // Selected filter values (arrays internally, csv in opts)
+  const [selRoles, setSelRoles] = useState<string[]>(toArr(opts.filterRoles));
+  const [selRooms, setSelRooms] = useState<string[]>(toArr(opts.filterRooms));
+  const [selFuncs, setSelFuncs] = useState<string[]>(toArr(opts.filterFuncs));
   const [idPat, setIdPat] = useState(opts.filterIdPattern ?? '');
-  const [rooms, setRooms] = useState(opts.filterRooms ?? '');
-  const [funcs, setFuncs] = useState(opts.filterFuncs ?? '');
+
+  // Search state
   const [results, setResults] = useState<DiscoveredDp[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set((opts.entries ?? []).map(e => e.id)));
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+
+  // Manual add
+  const [manualId, setManualId] = useState('');
 
   const setOpts = (patch: Partial<AutoListOptions>) =>
     onConfigChange({ ...config, options: { ...opts, ...patch } });
@@ -29,7 +161,10 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
     setLoading(true);
     try {
       const found = await discoverDatapoints({
-        filterRoles: roles, filterIdPattern: idPat, filterRooms: rooms, filterFuncs: funcs,
+        filterRoles: toCsv(selRoles),
+        filterIdPattern: idPat || undefined,
+        filterRooms: toCsv(selRooms),
+        filterFuncs: toCsv(selFuncs),
       });
       setResults(found);
       setSearched(true);
@@ -43,20 +178,20 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
     }
   };
 
-  const toggle = (id: string) =>
-    setSelected(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
-
   const apply = () => {
     const existing = new Map((opts.entries ?? []).map(e => [e.id, e]));
     const entries: AutoListEntry[] = [...selected].map(id => existing.get(id) ?? { id });
     setOpts({
       entries,
-      filterRoles: roles || undefined,
+      filterRoles: toCsv(selRoles),
       filterIdPattern: idPat || undefined,
-      filterRooms: rooms || undefined,
-      filterFuncs: funcs || undefined,
+      filterRooms: toCsv(selRooms),
+      filterFuncs: toCsv(selFuncs),
     });
   };
+
+  const toggle = (id: string) =>
+    setSelected(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
 
   const removeEntry = (id: string) =>
     setOpts({ entries: (opts.entries ?? []).filter(e => e.id !== id) });
@@ -68,34 +203,24 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
     setManualId('');
   };
 
-  const iCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
   const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' } as React.CSSProperties;
-  const canSearch = !!(roles || idPat || rooms || funcs);
+  const iCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
+  const canSearch = selRoles.length > 0 || selRooms.length > 0 || selFuncs.length > 0 || !!idPat;
 
   return (
     <>
       {/* ── Filters ── */}
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Rollen</label>
-          <input className={iCls} style={iSty} placeholder="switch, level" value={roles}
-            onChange={e => setRoles(e.target.value)} onKeyDown={e => e.key === 'Enter' && canSearch && search()} />
-        </div>
-        <div>
-          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>ID enthält</label>
-          <input className={iCls} style={iSty} placeholder="hm-rpc, shelly" value={idPat}
-            onChange={e => setIdPat(e.target.value)} onKeyDown={e => e.key === 'Enter' && canSearch && search()} />
-        </div>
-        <div>
-          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Raum</label>
-          <input className={iCls} style={iSty} placeholder="Wohnzimmer" value={rooms}
-            onChange={e => setRooms(e.target.value)} onKeyDown={e => e.key === 'Enter' && canSearch && search()} />
-        </div>
-        <div>
-          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Funktion</label>
-          <input className={iCls} style={iSty} placeholder="Beleuchtung" value={funcs}
-            onChange={e => setFuncs(e.target.value)} onKeyDown={e => e.key === 'Enter' && canSearch && search()} />
-        </div>
+      <MultiSelect label="Rollen" options={availRoles} selected={selRoles}
+        onChange={setSelRoles} loading={optLoading} />
+      <MultiSelect label="Raum" options={availRooms} selected={selRooms}
+        onChange={setSelRooms} loading={optLoading} />
+      <MultiSelect label="Funktion" options={availFuncs} selected={selFuncs}
+        onChange={setSelFuncs} loading={optLoading} />
+      <div>
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>ID enthält</label>
+        <input className={iCls} style={iSty} placeholder="z.B. hm-rpc, shelly" value={idPat}
+          onChange={e => setIdPat(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && canSearch && search()} />
       </div>
 
       <button
@@ -127,13 +252,12 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                 onClick={() => setSelected(new Set())}>Keine</button>
             </div>
           </div>
-
           <div className="space-y-0.5 max-h-44 overflow-y-auto -mx-1 px-1">
             {results.map(dp => (
               <label key={dp.id}
                 className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:opacity-90"
                 style={{ background: selected.has(dp.id) ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent' }}>
-                <div className="w-3.5 h-3.5 rounded flex items-center justify-center shrink-0"
+                <div className="w-3.5 h-3.5 rounded shrink-0 flex items-center justify-center"
                   style={{ background: selected.has(dp.id) ? 'var(--accent)' : 'var(--app-border)' }}>
                   {selected.has(dp.id) && <Check size={9} color="#fff" />}
                 </div>
@@ -148,7 +272,6 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
               </label>
             ))}
           </div>
-
           <button
             onClick={apply}
             disabled={selected.size === 0}
@@ -184,7 +307,6 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
             ))}
           </div>
         )}
-        {/* Manual add by ID */}
         <div className="flex gap-1">
           <input
             value={manualId}
@@ -203,10 +325,11 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
       </div>
 
       {/* ── Settings ── */}
+      <div style={{ height: 1, background: 'var(--app-border)' }} />
       <div>
         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Auto-Sync (Minuten)</label>
         <input type="number" min={1} className={iCls} style={iSty}
-          value={(opts.syncIntervalMin ?? 5)}
+          value={opts.syncIntervalMin ?? 5}
           onChange={e => setOpts({ syncIntervalMin: Number(e.target.value) })} />
       </div>
       <div className="flex items-center justify-between">

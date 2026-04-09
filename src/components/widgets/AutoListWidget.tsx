@@ -41,6 +41,37 @@ function resolveName(name: string | Record<string, string> | undefined, fallback
   return name.de ?? name.en ?? Object.values(name)[0] ?? fallback;
 }
 
+export async function loadFilterOptions(): Promise<{
+  roles: string[];
+  rooms: string[];
+  funcs: string[];
+}> {
+  const [stateResult, enumResult] = await Promise.all([
+    getObjectViewDirect('state'),
+    getObjectViewDirect('enum', 'enum.', 'enum.\u9999'),
+  ]);
+
+  const rolesSet = new Set<string>();
+  for (const { value: obj } of stateResult.rows) {
+    if (obj?.common?.role) rolesSet.add(obj.common.role);
+  }
+
+  const rooms: string[] = [];
+  const funcs: string[] = [];
+  for (const { value: obj } of enumResult.rows) {
+    if (!obj) continue;
+    const label = resolveName(obj.common?.name, obj._id.split('.').pop() ?? obj._id);
+    if (obj._id.startsWith('enum.rooms.')) rooms.push(label);
+    else if (obj._id.startsWith('enum.functions.')) funcs.push(label);
+  }
+
+  return {
+    roles: Array.from(rolesSet).sort(),
+    rooms: rooms.sort(),
+    funcs: funcs.sort(),
+  };
+}
+
 export async function discoverDatapoints(
   opts: Pick<AutoListOptions, 'filterRoles' | 'filterIdPattern' | 'filterRooms' | 'filterFuncs'>,
 ): Promise<DiscoveredDp[]> {
