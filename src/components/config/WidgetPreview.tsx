@@ -1,5 +1,6 @@
-import { Zap, Thermometer, TrendingUp, SlidersHorizontal, BarChart2, List, Clock, CalendarDays, Heading2, Layers2, Cloud, Gauge, Camera } from 'lucide-react';
+import { CalendarDays, Camera, Zap } from 'lucide-react';
 import type { WidgetType, WidgetLayout } from '../../types';
+import { WIDGET_BY_TYPE } from '../../widgetRegistry';
 
 interface WidgetPreviewProps {
   type: WidgetType;
@@ -7,43 +8,14 @@ interface WidgetPreviewProps {
   title?: string;
 }
 
-const ICON: Record<WidgetType, React.ReactElement> = {
-  switch:     <Zap size={13} />,
-  value:      <TrendingUp size={13} />,
-  dimmer:     <SlidersHorizontal size={13} />,
-  thermostat: <Thermometer size={13} />,
-  chart:      <BarChart2 size={13} />,
-  list:       <List size={13} />,
-  clock:      <Clock size={13} />,
-  calendar:   <CalendarDays size={13} />,
-  header:     <Heading2 size={13} />,
-  group:      <Layers2  size={13} />,
-  echart:     <BarChart2 size={13} />,
-  evcc:       <Zap size={13} />,
-  weather:    <Cloud size={13} />,
-  gauge:      <Gauge size={13} />,
-  camera:     <Camera size={13} />,
-  autolist:   <List size={13} />,
-};
+// Derived from central registry
+const ICON = Object.fromEntries(
+  Object.entries(WIDGET_BY_TYPE).map(([t, m]) => [t, <m.Icon key={t} size={13} />]),
+) as Record<WidgetType, React.ReactElement>;
 
-const MOCK: Record<WidgetType, { t: string; v: string; u?: string; sub?: string }> = {
-  switch:     { t: 'Wohnzimmer', v: 'AN' },
-  value:      { t: 'Temperatur',  v: '21.5', u: '°C' },
-  dimmer:     { t: 'Licht',       v: '75',   u: '%' },
-  thermostat: { t: 'Heizung',     v: '21.0', sub: 'Ist: 19.5°' },
-  chart:      { t: 'Verbrauch',   v: '245',  u: 'W' },
-  list:       { t: 'Alle Geräte', v: '' },
-  clock:      { t: 'Uhrzeit',     v: '12:34' },
-  calendar:   { t: 'Kalender',    v: '3' },
-  header:     { t: 'Abschnitt',   v: '' },
-  group:      { t: 'Gruppe',      v: '' },
-  echart:     { t: 'EChart',      v: '' },
-  evcc:       { t: 'evcc',        v: '' },
-  weather:    { t: 'Wetter',      v: '18°', sub: '⛅ Bewölkt' },
-  gauge:      { t: 'Gauge',       v: '72',  u: 'kW' },
-  camera:     { t: 'Kamera',      v: '' },
-  autolist:   { t: 'Auto-Liste',  v: '' },
-};
+const MOCK = Object.fromEntries(
+  Object.entries(WIDGET_BY_TYPE).map(([t, m]) => [t, m.mock]),
+) as Record<WidgetType, { t: string; v: string; u?: string; sub?: string }>;
 
 function Toggle({ on }: { on?: boolean }) {
   return (

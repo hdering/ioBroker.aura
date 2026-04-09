@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import {
-  Zap, TrendingUp, SlidersHorizontal, Thermometer, BarChart2, List, Clock,
-  CalendarDays, Heading2, Layers2, ChevronDown, ChevronRight, Copy, Trash2, Pencil,
+  ChevronDown, ChevronRight, Copy, Trash2, Pencil,
   Plus, Database, X, Check, Search,
 } from 'lucide-react';
 import { useDashboardStore, useActiveLayout, type Tab } from '../../store/dashboardStore';
@@ -10,31 +9,18 @@ import { useIoBrokerDevices } from '../../hooks/useIoBrokerDevices';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
 import { WidgetPreview } from '../../components/config/WidgetPreview';
 import type { WidgetConfig, WidgetType, WidgetLayout } from '../../types';
+import { WIDGET_REGISTRY, WIDGET_BY_TYPE } from '../../widgetRegistry';
 
-// ── Meta ─────────────────────────────────────────────────────────────────────
+// ── Meta (derived from central registry) ─────────────────────────────────────
 
-const TYPE_META: Record<WidgetType, { label: string; icon: React.ReactElement; color: string }> = {
-  switch:     { label: 'Schalter',        icon: <Zap size={15} />,              color: '#22c55e' },
-  value:      { label: 'Wert-Anzeige',    icon: <TrendingUp size={15} />,       color: '#3b82f6' },
-  dimmer:     { label: 'Dimmer',          icon: <SlidersHorizontal size={15} />, color: '#f59e0b' },
-  thermostat: { label: 'Thermostat',      icon: <Thermometer size={15} />,      color: '#ef4444' },
-  chart:      { label: 'Diagramm',        icon: <BarChart2 size={15} />,        color: '#8b5cf6' },
-  list:       { label: 'Gruppenliste',    icon: <List size={15} />,             color: '#06b6d4' },
-  clock:      { label: 'Uhrzeit',         icon: <Clock size={15} />,            color: '#64748b' },
-  calendar:   { label: 'Kalender',        icon: <CalendarDays size={15} />,     color: '#ec4899' },
-  header:     { label: 'Abschnittstitel', icon: <Heading2 size={15} />,         color: '#94a3b8' },
-  group:      { label: 'Gruppe',          icon: <Layers2  size={15} />,         color: '#a78bfa' },
-  echart:     { label: 'EChart',          icon: <BarChart2 size={15} />,        color: '#10b981' },
-  evcc:       { label: 'evcc',            icon: <Zap size={15} />,              color: '#6366f1' },
-  weather:    { label: 'Wetter',          icon: <TrendingUp size={15} />,       color: '#0ea5e9' },
-  gauge:      { label: 'Gauge',           icon: <TrendingUp size={15} />,       color: '#f97316' },
-  camera:     { label: 'Kamera',          icon: <TrendingUp size={15} />,       color: '#6b7280' },
-  autolist:   { label: 'Auto-Liste',      icon: <List size={15} />,             color: '#14b8a6' },
-};
+const TYPE_META = Object.fromEntries(
+  WIDGET_REGISTRY.map(({ type, label, Icon, color }) => [
+    type,
+    { label, icon: <Icon size={15} />, color },
+  ]),
+) as Record<WidgetType, { label: string; icon: React.ReactElement; color: string }>;
 
-const TYPE_ORDER: WidgetType[] = [
-  'thermostat', 'switch', 'dimmer', 'value', 'chart', 'echart', 'list', 'autolist', 'clock', 'calendar', 'header', 'group', 'evcc', 'weather', 'gauge', 'camera',
-];
+const TYPE_ORDER: WidgetType[] = WIDGET_REGISTRY.map((m) => m.type);
 
 const LAYOUTS: { id: WidgetLayout; label: string }[] = [
   { id: 'default', label: 'Standard' },
@@ -550,19 +536,10 @@ function TypeSection({
 
 // ── New Widget Dialog ─────────────────────────────────────────────────────────
 
-const WIDGET_DEFS: { type: WidgetType; label: string; defaultW: number; defaultH: number }[] = [
-  { type: 'switch', label: 'Schalter', defaultW: 2, defaultH: 2 },
-  { type: 'value', label: 'Wert-Anzeige', defaultW: 3, defaultH: 2 },
-  { type: 'dimmer', label: 'Dimmer', defaultW: 3, defaultH: 2 },
-  { type: 'thermostat', label: 'Thermostat', defaultW: 3, defaultH: 3 },
-  { type: 'chart', label: 'Diagramm', defaultW: 4, defaultH: 3 },
-  { type: 'list', label: 'Gruppenliste', defaultW: 3, defaultH: 4 },
-  { type: 'clock', label: 'Uhrzeit', defaultW: 2, defaultH: 2 },
-  { type: 'calendar', label: 'Kalender', defaultW: 4, defaultH: 4 },
-  { type: 'header', label: 'Abschnittstitel', defaultW: 12, defaultH: 1 },
-  { type: 'group',    label: 'Gruppe',          defaultW: 4,  defaultH: 4 },
-  { type: 'autolist', label: 'Auto-Liste',      defaultW: 3,  defaultH: 5 },
-];
+// Derived from central registry – no manual maintenance needed
+const WIDGET_DEFS = WIDGET_REGISTRY.map(({ type, label, defaultW, defaultH }) => ({
+  type, label, defaultW, defaultH,
+}));
 
 function NewWidgetDialog({
   tabs,
@@ -584,14 +561,14 @@ function NewWidgetDialog({
   const [showPicker, setShowPicker] = useState(false);
 
   const def = WIDGET_DEFS.find((w) => w.type === type)!;
-  const isClock = type === 'clock';
+  const addMode = WIDGET_BY_TYPE[type].addMode;
   const isCalendar = type === 'calendar';
-  const isHeader = type === 'header';
-  const isList = type === 'list';
-  const isAutoList = type === 'autolist';
-  const isGroup = type === 'group';
-  const noDatapoint = isClock || isCalendar || isHeader || isAutoList || isGroup;
-  const canAdd = noDatapoint ? !isCalendar : isList ? !!groupId : !!datapoint.trim();
+  const isList = addMode === 'group';
+  const noDatapoint = addMode !== 'datapoint';
+  const canAdd = addMode === 'datapoint' ? !!datapoint.trim()
+               : addMode === 'group'     ? !!groupId
+               : addMode === 'wizard-only' ? false
+               : true;
 
   const handleAdd = () => {
     if (!canAdd || !targetTabId) return;
@@ -654,7 +631,7 @@ function NewWidgetDialog({
             className={inputCls} style={inputStyle} />
         </div>
 
-        {!noDatapoint && !isList && (
+        {addMode === 'datapoint' && (
           <div>
             <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>Datenpunkt-ID *</label>
             <div className="flex gap-1.5">

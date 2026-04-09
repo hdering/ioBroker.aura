@@ -5,6 +5,7 @@ import type { WidgetConfig, WidgetLayout, WidgetCondition } from '../../types';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
 import { getObjectDirect } from '../../hooks/useIoBroker';
+import { WIDGET_REGISTRY } from '../../widgetRegistry';
 import { detectHistoryAdapters, RANGE_LABELS, type ChartTimeRange, type DetectedAdapter } from '../../hooks/useChartHistory';
 import { useConditionStyle, notifyHiddenState, cleanupHiddenState } from '../../hooks/useConditionStyle';
 import { SwitchWidget } from '../widgets/SwitchWidget';
@@ -702,20 +703,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
                   style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
                 >
-                  <option value="switch">Schalter</option>
-                  <option value="value">Wert-Anzeige</option>
-                  <option value="dimmer">Dimmer</option>
-                  <option value="thermostat">Thermostat</option>
-                  <option value="chart">Diagramm</option>
-                  <option value="list">Gruppenliste</option>
-                  <option value="calendar">Kalender</option>
-                  <option value="header">Abschnittstitel</option>
-                  <option value="group">Gruppe</option>
-                  <option value="echart">EChart</option>
-                  <option value="evcc">evcc</option>
-                  <option value="weather">Wetter</option>
-                  <option value="gauge">Gauge</option>
-                  <option value="camera">Kamera</option>
+                  {WIDGET_REGISTRY.map((m) => (
+                    <option key={m.type} value={m.type}>{m.label}</option>
+                  ))}
                 </select>
               </div>
 

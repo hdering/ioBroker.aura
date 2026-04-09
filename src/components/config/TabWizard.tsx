@@ -9,27 +9,14 @@ import { useDatapointList } from '../../hooks/useDatapointList';
 import { useConfigStore } from '../../store/configStore';
 import { detectWidgets, detectHomepage, type HomepageCategory } from '../../utils/widgetDetection';
 import { generateLayouts } from '../../utils/layoutGenerator';
+import { WIDGET_BY_TYPE } from '../../widgetRegistry';
 
 // ── mini grid preview ──────────────────────────────────────────────────────
 
-const TYPE_COLOR: Record<WidgetType, string> = {
-  switch:     '#3b82f6',
-  value:      '#22c55e',
-  dimmer:     '#f59e0b',
-  thermostat: '#ef4444',
-  chart:      '#8b5cf6',
-  list:       '#06b6d4',
-  clock:      '#ec4899',
-  calendar:   '#f97316',
-  header:     '#94a3b8',
-  group:      '#a78bfa',
-  echart:     '#10b981',
-  evcc:       '#6366f1',
-  weather:    '#0ea5e9',
-  gauge:      '#f97316',
-  camera:     '#6b7280',
-  autolist:   '#14b8a6',
-};
+// Derived from central registry
+const TYPE_COLOR = Object.fromEntries(
+  Object.entries(WIDGET_BY_TYPE).map(([t, m]) => [t, m.color]),
+) as Record<WidgetType, string>;
 
 // Distinct group colors for the preview
 const GROUP_COLORS = [
@@ -103,11 +90,10 @@ const SUGGESTIONS = [
 
 // ── type label ─────────────────────────────────────────────────────────────
 
-const TYPE_LABEL: Record<WidgetType, string> = {
-  switch: 'Schalter', value: 'Wert', dimmer: 'Dimmer',
-  thermostat: 'Thermostat', chart: 'Diagramm', list: 'Liste',
-  clock: 'Uhr', calendar: 'Kalender', header: 'Abschnitt', group: 'Gruppe', echart: 'EChart', evcc: 'evcc', weather: 'Wetter', gauge: 'Gauge', camera: 'Kamera', autolist: 'Auto-Liste',
-};
+// Derived from central registry
+const TYPE_LABEL = Object.fromEntries(
+  Object.entries(WIDGET_BY_TYPE).map(([t, m]) => [t, m.shortLabel]),
+) as Record<WidgetType, string>;
 
 // ── main wizard ────────────────────────────────────────────────────────────
 

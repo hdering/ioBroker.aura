@@ -2,10 +2,12 @@ import { useState, useMemo } from 'react';
 import { useIoBrokerDevices, type Device, type DeviceState } from '../../hooks/useIoBrokerDevices';
 import type { WidgetConfig, WidgetType } from '../../types';
 import { WidgetPreview } from './WidgetPreview';
+import { WIDGET_BY_TYPE } from '../../widgetRegistry';
 
-const WIDGET_LABELS: Record<WidgetType, string> = {
-  switch: 'Schalter', value: 'Wert', dimmer: 'Dimmer', thermostat: 'Thermostat', chart: 'Diagramm', list: 'Gruppenliste', clock: 'Uhrzeit', calendar: 'Kalender', header: 'Abschnittstitel', group: 'Gruppe', echart: 'EChart', evcc: 'evcc', weather: 'Wetter', gauge: 'Gauge', camera: 'Kamera', autolist: 'Auto-Liste',
-};
+// Derived from central registry
+const WIDGET_LABELS = Object.fromEntries(
+  Object.entries(WIDGET_BY_TYPE).map(([t, m]) => [t, m.label]),
+) as Record<WidgetType, string>;
 
 interface Selection {
   state: DeviceState;
