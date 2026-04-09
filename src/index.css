@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ensure full-height flex layout works on all mobile browsers */
+html, body, #root {
+  height: 100%;
+}
+
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.25; }

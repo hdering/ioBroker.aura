@@ -36,7 +36,9 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
 
   // ── container width measurement ────────────────────────────────────────
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth : 0,
+  );
 
   useEffect(() => {
     const el = containerRef.current;

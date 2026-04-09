@@ -100,7 +100,7 @@ export default function App() {
   const layoutUrlBase = layoutSlug ? `/view/${layoutSlug}` : '';
 
   return (
-    <div data-aura-app="frontend" className="min-h-screen flex flex-col" style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}>
+    <div data-aura-app="frontend" className="h-full flex flex-col" style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}>
       {frontend.showHeader && (
         <header className="flex items-center justify-between px-4 sm:px-6 py-4 shrink-0"
           style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)' }}>
