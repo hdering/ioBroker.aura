@@ -36,6 +36,12 @@ export function revertAll(rehydrateFns: Array<() => void>): void {
 export const managedStorage: StateStorage = {
   getItem: (name) => localStorage.getItem(name),
   setItem: (name, value) => {
+    // If the serialized value is identical to what's already in localStorage
+    // (e.g. during store hydration / default-field merges), don't mark as dirty.
+    if (localStorage.getItem(name) === value) {
+      pending.delete(name);
+      return;
+    }
     pending.set(name, value);
     notify();
   },

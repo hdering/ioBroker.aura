@@ -1,6 +1,7 @@
 import { Activity, TrendingUp, Hash } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
+import { contentPositionClass, titlePositionStyle, titleTextAlign } from '../../utils/widgetUtils';
 
 export function ValueWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
@@ -49,7 +50,7 @@ export function ValueWidget({ config }: WidgetProps) {
   if (layout === 'minimal') {
     return (
       <div className="flex flex-col items-center justify-center h-full">
-        <span className="font-black text-center leading-none" style={{ color: 'var(--accent)', fontSize: 'clamp(2rem, 4vw, 3.5rem)' }}>{displayValue}</span>
+        <span className="font-black text-center leading-none" style={{ color: 'var(--accent)', fontSize: 'calc(clamp(2rem, 4vw, 3.5rem) * var(--font-scale, 1))' }}>{displayValue}</span>
         {unit && <span className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
         <span className="text-xs mt-2 truncate max-w-full" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>
       </div>
@@ -57,11 +58,16 @@ export function ValueWidget({ config }: WidgetProps) {
   }
 
   // --- DEFAULT ---
+  const posClass = contentPositionClass(config.options?.contentPosition as string | undefined);
+  const titlePos = config.options?.titlePosition as string | undefined;
+  const titleStyle = titlePositionStyle(titlePos);
+  const titleAlign = titleTextAlign(titlePos);
+
   return (
-    <div className="flex flex-col h-full justify-between">
-      <div className="flex items-center gap-2">
-        <TrendingUp size={14} style={{ color: 'var(--text-secondary)' }} />
-        <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
+    <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
+      <div className="flex items-center gap-2" style={titleStyle}>
+        <TrendingUp size={14} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+        <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{config.title}</p>
       </div>
       <div className="flex items-end gap-1.5">
         <span className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{displayValue}</span>

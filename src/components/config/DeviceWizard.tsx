@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
 import { useIoBrokerDevices, type Device, type DeviceState } from '../../hooks/useIoBrokerDevices';
 import type { WidgetConfig, WidgetType } from '../../types';
+import { WidgetPreview } from './WidgetPreview';
 
 const WIDGET_LABELS: Record<WidgetType, string> = {
-  switch: 'Schalter', value: 'Wert', dimmer: 'Dimmer', thermostat: 'Thermostat', chart: 'Diagramm', list: 'Gruppenliste',
+  switch: 'Schalter', value: 'Wert', dimmer: 'Dimmer', thermostat: 'Thermostat', chart: 'Diagramm', list: 'Gruppenliste', clock: 'Uhrzeit', calendar: 'Kalender', header: 'Abschnittstitel', group: 'Gruppe', echart: 'EChart', evcc: 'evcc', weather: 'Wetter', gauge: 'Gauge', camera: 'Kamera',
 };
 
 interface Selection {
@@ -167,14 +168,17 @@ export function DeviceWizard({ onAdd, onClose }: DeviceWizardProps) {
                             </div>
                           </div>
                           {sel && (
-                            <div className="px-4 pb-3 pt-1 space-y-2" style={{ background: 'var(--accent)08', borderTop: '1px solid var(--app-border)' }}
+                            <div className="px-4 pb-3 pt-2 flex gap-3 items-start" style={{ background: 'var(--accent)08', borderTop: '1px solid var(--app-border)' }}
                               onClick={(e) => e.stopPropagation()}>
-                              <input value={sel.title} onChange={(e) => updateSel(state.id, { title: e.target.value })}
-                                placeholder="Titel" className="w-full text-xs rounded px-2 py-1.5 focus:outline-none" style={inputStyle} />
-                              {sel.widgetType === 'thermostat' && (
-                                <input value={sel.actualDatapoint ?? ''} onChange={(e) => updateSel(state.id, { actualDatapoint: e.target.value })}
-                                  placeholder="Ist-Temperatur Datenpunkt (optional)" className="w-full text-xs rounded px-2 py-1.5 focus:outline-none" style={inputStyle} />
-                              )}
+                              <div className="flex-1 space-y-2 min-w-0">
+                                <input value={sel.title} onChange={(e) => updateSel(state.id, { title: e.target.value })}
+                                  placeholder="Titel" className="w-full text-xs rounded px-2 py-1.5 focus:outline-none" style={inputStyle} />
+                                {sel.widgetType === 'thermostat' && (
+                                  <input value={sel.actualDatapoint ?? ''} onChange={(e) => updateSel(state.id, { actualDatapoint: e.target.value })}
+                                    placeholder="Ist-Temperatur Datenpunkt (optional)" className="w-full text-xs rounded px-2 py-1.5 focus:outline-none" style={inputStyle} />
+                                )}
+                              </div>
+                              <WidgetPreview type={sel.widgetType} title={sel.title} />
                             </div>
                           )}
                         </div>

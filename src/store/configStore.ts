@@ -7,6 +7,10 @@ export interface FrontendSettings {
   showHeader: boolean;
   headerTitle: string;
   showConnectionBadge: boolean;
+  gridRowHeight: number;
+  wizardMaxDatapoints: number;
+  fontScale: number;
+  mobileBreakpoint: number;
 }
 
 interface ConfigState {
@@ -19,6 +23,10 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
   showHeader: true,
   headerTitle: 'Aura',
   showConnectionBadge: true,
+  gridRowHeight: 80,
+  wizardMaxDatapoints: 500,
+  fontScale: 1,
+  mobileBreakpoint: 600,
 };
 
 export const useConfigStore = create<ConfigState>()(

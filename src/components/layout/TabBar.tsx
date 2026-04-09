@@ -1,15 +1,29 @@
 import { useState, useRef, useEffect } from 'react';
-import { useDashboardStore } from '../../store/dashboardStore';
+import { useNavigate } from 'react-router-dom';
+import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
+import type { Tab } from '../../store/dashboardStore';
 
 interface TabBarProps {
   readonly?: boolean;
+  /** Override tabs for frontend readonly view (specific layout by slug) */
+  viewTabs?: Tab[];
+  viewActiveTabId?: string;
+  onViewTabClick?: (tab: Tab) => void;
+  /** Prefix for tab URLs, e.g. "/view/bedroom" */
+  layoutUrlBase?: string;
 }
 
-export function TabBar({ readonly = false }: TabBarProps) {
-  const { tabs, activeTabId, setActiveTab, addTab, removeTab, renameTab } = useDashboardStore();
+export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabClick, layoutUrlBase = '' }: TabBarProps) {
+  const activeLayout = useActiveLayout();
+  const { setActiveTab, addTab, removeTab, renameTab } = useDashboardStore();
+
+  // In readonly frontend view, use provided override; otherwise use active editor layout
+  const tabs = viewTabs ?? activeLayout.tabs;
+  const activeTabId = viewActiveTabId ?? activeLayout.activeTabId;
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (editingId && inputRef.current) { inputRef.current.focus(); inputRef.current.select(); }
@@ -20,7 +34,20 @@ export function TabBar({ readonly = false }: TabBarProps) {
     setEditingId(null);
   };
 
-  // Nur anzeigen wenn mehr als ein Tab
+  const handleTabClick = (tabId: string) => {
+    if (readonly) {
+      const tab = tabs.find((t) => t.id === tabId);
+      if (!tab) return;
+      if (onViewTabClick) {
+        onViewTabClick(tab);
+      } else {
+        navigate(`${layoutUrlBase}/tab/${tab.slug ?? tab.id}`);
+      }
+    } else {
+      setActiveTab(tabId);
+    }
+  };
+
   if (tabs.length <= 1 && readonly) return null;
 
   return (
@@ -32,7 +59,7 @@ export function TabBar({ readonly = false }: TabBarProps) {
           <div key={tab.id}
             className="group flex items-center gap-1.5 px-3 py-2.5 text-sm cursor-pointer border-b-2 transition-colors whitespace-nowrap"
             style={{ borderBottomColor: isActive ? 'var(--accent)' : 'transparent', color: isActive ? 'var(--accent)' : 'var(--text-secondary)' }}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabClick(tab.id)}
           >
             {!readonly && editingId === tab.id ? (
               <input ref={inputRef} value={editingName}

@@ -13,10 +13,14 @@ import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminTheme } from './pages/admin/AdminTheme';
 import { AdminSettings } from './pages/admin/AdminSettings';
 import { AdminEditor } from './pages/admin/AdminEditor';
-import { AdminEndpoints } from './pages/admin/AdminEndpoints';
+import { AdminWidgets } from './pages/admin/AdminWidgets';
+import { AdminLayouts } from './pages/admin/AdminLayouts';
 
 const router = createHashRouter([
   { path: '/', element: <App /> },
+  { path: '/tab/:tabSlug', element: <App /> },
+  { path: '/view/:layoutSlug', element: <App /> },
+  { path: '/view/:layoutSlug/tab/:tabSlug', element: <App /> },
   { path: '/admin/login', element: <AdminLogin /> },
   {
     path: '/admin',
@@ -24,8 +28,9 @@ const router = createHashRouter([
     children: [
       { index: true, element: <AdminDashboard /> },
       { path: 'editor', element: <AdminEditor /> },
-      { path: 'endpoints', element: <AdminEndpoints /> },
       { path: 'theme', element: <AdminTheme /> },
+      { path: 'widgets', element: <AdminWidgets /> },
+      { path: 'layouts', element: <AdminLayouts /> },
       { path: 'settings', element: <AdminSettings /> },
     ],
   },

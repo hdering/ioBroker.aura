@@ -61,6 +61,50 @@ function ioBrokerDevPlugin(): Plugin {
         req.pipe(proxyReq, { end: true });
       });
 
+      // Server-side iCal proxy – avoids CORS restrictions in the browser
+      server.middlewares.use('/proxy/ical', (req, res) => {
+        const rawUrl = new URL(req.url ?? '', 'http://localhost').searchParams.get('url');
+        if (!rawUrl) { res.writeHead(400); res.end('Missing url parameter'); return; }
+        try {
+          const target = new URL(rawUrl);
+          const lib = target.protocol === 'https:' ? https : http;
+          const options: http.RequestOptions = {
+            hostname: target.hostname,
+            port: target.port || (target.protocol === 'https:' ? 443 : 80),
+            path: target.pathname + target.search,
+            method: 'GET',
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (ioBroker-Aura)',
+              'Accept': 'text/calendar, */*',
+            },
+          };
+          const proxyReq = lib.request(options, (proxyRes) => {
+            // Follow single redirect
+            if ((proxyRes.statusCode === 301 || proxyRes.statusCode === 302) && proxyRes.headers.location) {
+              const redir = new URL(proxyRes.headers.location);
+              const rLib = redir.protocol === 'https:' ? https : http;
+              rLib.get(proxyRes.headers.location, { headers: options.headers }, (rRes) => {
+                res.writeHead(rRes.statusCode ?? 200, {
+                  'Content-Type': rRes.headers['content-type'] ?? 'text/calendar; charset=utf-8',
+                  'Access-Control-Allow-Origin': '*',
+                });
+                rRes.pipe(res, { end: true });
+              }).on('error', (e) => { res.writeHead(502); res.end(e.message); });
+              return;
+            }
+            res.writeHead(proxyRes.statusCode ?? 200, {
+              'Content-Type': proxyRes.headers['content-type'] ?? 'text/calendar; charset=utf-8',
+              'Access-Control-Allow-Origin': '*',
+            });
+            proxyRes.pipe(res, { end: true });
+          });
+          proxyReq.on('error', (e) => { if (!res.headersSent) { res.writeHead(502); res.end(e.message); } });
+          proxyReq.end();
+        } catch {
+          res.writeHead(400); res.end('Invalid URL');
+        }
+      });
+
       // Endpoint to update the proxy target at runtime
       server.middlewares.use('/api/dev/set-iobroker-url', (req, res) => {
         if (req.method !== 'POST') { res.writeHead(405); res.end(); return; }

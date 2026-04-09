@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ioBrokerState, ObjectViewResult } from '../types';
-import { useConnectionStore } from '../store/connectionStore';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore – socket.io-client v2 hat kein ESM-Export; Vite handhabt CJS-Interop
@@ -44,7 +43,7 @@ function createSocket(url: string): IoBrokerSocket {
   return s;
 }
 
-function getSocket(): IoBrokerSocket {
+export function getSocket(): IoBrokerSocket {
   if (!socket) socket = createSocket(currentUrl);
   return socket;
 }
@@ -77,14 +76,6 @@ export async function reconnectSocket(newUrl: string): Promise<void> {
 
 export function useIoBroker() {
   const [connected, setConnected] = useState(() => getSocket().connected);
-  const storedUrl = useConnectionStore((s) => s.ioBrokerUrl);
-
-  // In dev mode, re-notify the Vite proxy when the stored URL changes
-  useEffect(() => {
-    if (import.meta.env.DEV) reconnectSocket(storedUrl);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storedUrl]);
-
   useEffect(() => {
     setConnected(getSocket().connected);
     connectionListeners.add(setConnected);
@@ -136,4 +127,75 @@ export function useIoBroker() {
   );
 
   return { connected, subscribe, setState, getState, getObjectView };
+}
+
+// ── Object metadata ───────────────────────────────────────────────────────────
+export interface ioBrokerObject {
+  _id: string;
+  type: string;
+  common: {
+    name: string | Record<string, string>;
+    type?: string;
+    unit?: string;
+    custom?: Record<string, { enabled?: boolean; [key: string]: unknown }>;
+  };
+}
+
+export function getObjectDirect(id: string): Promise<ioBrokerObject | null> {
+  return new Promise((resolve) => {
+    getSocket().emit('getObject', id, (_err: unknown, obj: ioBrokerObject | null) =>
+      resolve(obj ?? null),
+    );
+  });
+}
+
+// ── History adapter ────────────────────────────────────────────────────────────
+export interface HistoryEntry { ts: number; val: number | boolean | string | null; ack?: boolean; q?: number; }
+
+export function getHistoryDirect(
+  id: string,
+  opts: {
+    instance: string;
+    start: number;
+    end?: number;
+    step?: number;
+    count?: number;
+    aggregate?: 'none' | 'average' | 'min' | 'max' | 'minmax' | 'total' | 'count' | 'first' | 'last';
+  },
+): Promise<HistoryEntry[]> {
+  return new Promise((resolve) => {
+    getSocket().emit(
+      'getHistory',
+      id,
+      {
+        instance: opts.instance,
+        start: opts.start,
+        end: opts.end ?? Date.now(),
+        count: opts.count ?? 1000,
+        step: opts.step ?? null,
+        aggregate: opts.aggregate ?? 'average',
+        from: false,
+        ack: false,
+        q: false,
+        addID: false,
+        ignoreNull: false,
+      },
+      (_err: unknown, result: HistoryEntry[] | undefined) => resolve(result ?? []),
+    );
+  });
+}
+
+// Standalone-Funktion – kein Hook, kein Reconnect-Seiteneffekt
+export function getObjectViewDirect(
+  type: 'state' | 'channel' | 'device' | 'enum',
+  startkey = '',
+  endkey = '\u9999',
+): Promise<ObjectViewResult> {
+  return new Promise((resolve) => {
+    getSocket().emit(
+      'getObjectView', 'system', type,
+      { startkey, endkey },
+      (_err: unknown, result: ObjectViewResult) => resolve(result ?? { rows: [] }),
+    );
+  });
 }

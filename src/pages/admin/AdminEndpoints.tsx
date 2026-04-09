@@ -3,12 +3,13 @@ import { Plus, Trash2, Edit3, Check, X, Search, ChevronDown, ChevronRight } from
 import { useGroupStore, type DatapointGroup, type GroupDatapoint } from '../../store/groupStore';
 import { useIoBrokerDevices } from '../../hooks/useIoBrokerDevices';
 
-// ── Datenpunkt-Picker ───────────────────────────────────────────────────────
-function DatapointPicker({ onAdd, onClose }: { onAdd: (dp: GroupDatapoint) => void; onClose: () => void }) {
+// ── Datenpunkt-Picker (Mehrfachauswahl) ────────────────────────────────────
+function DatapointPicker({ onAdd, onClose }: { onAdd: (dps: GroupDatapoint[]) => void; onClose: () => void }) {
   const { devices, loading, loaded, load } = useIoBrokerDevices();
   const [search, setSearch] = useState('');
   const [adapter, setAdapter] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const adapters = useMemo(() => Array.from(new Set(devices.map((d) => d.adapter))).sort(), [devices]);
   const filtered = useMemo(() => devices.filter((d) => {
@@ -17,13 +18,44 @@ function DatapointPicker({ onAdd, onClose }: { onAdd: (dp: GroupDatapoint) => vo
     return true;
   }), [devices, search, adapter]);
 
+  const toggle = (stateId: string) =>
+    setSelected((prev) => { const next = new Set(prev); next.has(stateId) ? next.delete(stateId) : next.add(stateId); return next; });
+
+  const toggleDevice = (deviceId: string) => {
+    const device = devices.find((d) => d.id === deviceId);
+    if (!device) return;
+    const allSelected = device.states.every((s) => selected.has(s.id));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      device.states.forEach((s) => allSelected ? next.delete(s.id) : next.add(s.id));
+      return next;
+    });
+  };
+
+  const handleAdd = () => {
+    const result: GroupDatapoint[] = [];
+    for (const device of devices) {
+      for (const state of device.states) {
+        if (!selected.has(state.id)) continue;
+        result.push({
+          id: state.id,
+          label: `${device.name} – ${state.id.split('.').pop()}`,
+          type: state.obj.common.type === 'boolean' ? 'boolean' : state.obj.common.type === 'number' ? 'number' : 'string',
+          unit: state.unit,
+          writable: state.obj.common.write !== false,
+        });
+      }
+    }
+    onAdd(result);
+    onClose();
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
       <div className="rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl"
-        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
-        onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--app-border)' }}>
-          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Datenpunkt wählen</h3>
+        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--app-border)' }}>
+          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Datenpunkte wählen</h3>
           <button onClick={onClose} style={{ color: 'var(--text-secondary)' }}><X size={18} /></button>
         </div>
 
@@ -36,48 +68,66 @@ function DatapointPicker({ onAdd, onClose }: { onAdd: (dp: GroupDatapoint) => vo
           </div>
         ) : (
           <>
-            <div className="flex gap-2 px-5 py-3 border-b" style={{ borderColor: 'var(--app-border)' }}>
+            <div className="flex gap-2 px-5 py-3" style={{ borderBottom: '1px solid var(--app-border)' }}>
               <div className="flex-1 flex items-center gap-2 rounded-lg px-3 py-1.5" style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
                 <Search size={14} style={{ color: 'var(--text-secondary)' }} />
-                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Suchen…" className="flex-1 text-sm bg-transparent focus:outline-none" style={{ color: 'var(--text-primary)' }} />
+                <input autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Suchen…" className="flex-1 text-sm bg-transparent focus:outline-none" style={{ color: 'var(--text-primary)' }} />
               </div>
               <select value={adapter} onChange={(e) => setAdapter(e.target.value)} className="text-sm rounded-lg px-2 py-1.5" style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
                 <option value="">Alle</option>
                 {adapters.map((a) => <option key={a} value={a}>{a}</option>)}
               </select>
             </div>
+
             <div className="flex-1 overflow-y-auto px-5 py-3 space-y-1">
-              {filtered.map((device) => (
-                <div key={device.id} className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-                  <button className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:opacity-80"
-                    style={{ background: 'var(--app-bg)' }}
-                    onClick={() => setExpanded(expanded === device.id ? null : device.id)}>
-                    {expanded === device.id ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{device.name}</span>
-                      <span className="text-xs ml-2" style={{ color: 'var(--text-secondary)' }}>{device.states.length} DP</span>
+              {filtered.map((device) => {
+                const deviceSelected = device.states.filter((s) => selected.has(s.id)).length;
+                const allChecked = deviceSelected === device.states.length;
+                return (
+                  <div key={device.id} className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+                    <div className="flex items-center gap-2 px-3 py-2.5" style={{ background: 'var(--app-bg)' }}>
+                      <input type="checkbox" checked={allChecked} ref={(el) => { if (el) el.indeterminate = deviceSelected > 0 && !allChecked; }}
+                        onChange={() => toggleDevice(device.id)}
+                        className="w-4 h-4 shrink-0 cursor-pointer" style={{ accentColor: 'var(--accent)' }} />
+                      <button className="flex-1 flex items-center gap-2 text-left hover:opacity-80 min-w-0"
+                        onClick={() => setExpanded(expanded === device.id ? null : device.id)}>
+                        {expanded === device.id ? <ChevronDown size={14} style={{ flexShrink: 0 }} /> : <ChevronRight size={14} style={{ flexShrink: 0 }} />}
+                        <span className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{device.name}</span>
+                        <span className="text-xs ml-1 shrink-0" style={{ color: deviceSelected > 0 ? 'var(--accent)' : 'var(--text-secondary)' }}>
+                          {deviceSelected > 0 ? `${deviceSelected}/` : ''}{device.states.length} DP
+                        </span>
+                      </button>
                     </div>
-                  </button>
-                  {expanded === device.id && device.states.map((state) => (
-                    <button key={state.id}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-left hover:opacity-80 border-t"
-                      style={{ borderColor: 'var(--app-border)', background: 'var(--app-surface)' }}
-                      onClick={() => {
-                        onAdd({
-                          id: state.id,
-                          label: `${device.name} – ${state.id.split('.').pop()}`,
-                          type: state.obj.common.type === 'boolean' ? 'boolean' : state.obj.common.type === 'number' ? 'number' : 'string',
-                          unit: state.unit,
-                          writable: state.obj.common.write !== false,
-                        });
-                        onClose();
-                      }}>
-                      <span className="text-xs font-mono flex-1 truncate" style={{ color: 'var(--text-secondary)' }}>{state.id}</span>
-                      {state.unit && <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{state.unit}</span>}
-                    </button>
-                  ))}
-                </div>
-              ))}
+                    {expanded === device.id && device.states.map((state) => (
+                      <label key={state.id}
+                        className="flex items-center gap-3 px-4 py-2 cursor-pointer hover:opacity-80"
+                        style={{ borderTop: '1px solid var(--app-border)', background: selected.has(state.id) ? 'color-mix(in srgb, var(--accent) 8%, transparent)' : 'var(--app-surface)' }}>
+                        <input type="checkbox" checked={selected.has(state.id)} onChange={() => toggle(state.id)}
+                          className="w-4 h-4 shrink-0" style={{ accentColor: 'var(--accent)' }} />
+                        <span className="text-xs font-mono flex-1 truncate" style={{ color: 'var(--text-primary)' }}>{state.id}</span>
+                        {state.unit && <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>{state.unit}</span>}
+                      </label>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center justify-between px-5 py-3" style={{ borderTop: '1px solid var(--app-border)' }}>
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                {selected.size === 0 ? 'Nichts ausgewählt' : `${selected.size} ausgewählt`}
+              </span>
+              <div className="flex gap-2">
+                <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:opacity-80"
+                  style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                  Abbruch
+                </button>
+                <button onClick={handleAdd} disabled={selected.size === 0}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80 disabled:opacity-30"
+                  style={{ background: 'var(--accent)' }}>
+                  Hinzufügen {selected.size > 0 && `(${selected.size})`}
+                </button>
+              </div>
             </div>
           </>
         )}
@@ -90,8 +140,9 @@ function DatapointPicker({ onAdd, onClose }: { onAdd: (dp: GroupDatapoint) => vo
 function GroupEditor({ group }: { group: DatapointGroup }) {
   const { removeDatapoint, updateDatapoint, addDatapoint } = useGroupStore();
   const [showPicker, setShowPicker] = useState(false);
-  const [editingLabel, setEditingLabel] = useState<string | null>(null);
-  const [labelValue, setLabelValue] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const inputStyle = { background: 'var(--app-surface)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
 
   return (
     <div>
@@ -109,31 +160,101 @@ function GroupEditor({ group }: { group: DatapointGroup }) {
       ) : (
         <div className="space-y-1">
           {group.datapoints.map((dp) => (
-            <div key={dp.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
-              style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
-              <div className="flex-1 min-w-0">
-                {editingLabel === dp.id ? (
-                  <div className="flex items-center gap-1">
-                    <input autoFocus value={labelValue} onChange={(e) => setLabelValue(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { updateDatapoint(group.id, dp.id, { label: labelValue }); setEditingLabel(null); } if (e.key === 'Escape') setEditingLabel(null); }}
-                      className="flex-1 text-sm rounded px-2 py-0.5 focus:outline-none"
-                      style={{ background: 'var(--app-surface)', color: 'var(--text-primary)', border: '1px solid var(--accent)' }} />
-                    <button onClick={() => { updateDatapoint(group.id, dp.id, { label: labelValue }); setEditingLabel(null); }} style={{ color: 'var(--accent-green)' }}><Check size={13} /></button>
-                  </div>
-                ) : (
+            <div key={dp.id} className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+              {/* Kompakt-Zeile */}
+              <div className="flex items-center gap-3 px-3 py-2.5" style={{ background: 'var(--app-bg)' }}>
+                <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{dp.label}</p>
-                )}
-                <p className="text-xs font-mono truncate" style={{ color: 'var(--text-secondary)' }}>{dp.id}</p>
+                  <p className="text-xs font-mono truncate" style={{ color: 'var(--text-secondary)' }}>{dp.id}</p>
+                </div>
+                <span className="text-xs px-1.5 py-0.5 rounded shrink-0"
+                  style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)' }}>
+                  {dp.type === 'boolean' ? (dp.writable ? 'Schalter' : 'Bool') : dp.type === 'number' ? `Zahl${dp.unit ? ` · ${dp.unit}` : ''}` : 'Text'}
+                </span>
+                <button onClick={() => setEditingId(editingId === dp.id ? null : dp.id)}
+                  className="hover:opacity-70 shrink-0"
+                  style={{ color: editingId === dp.id ? 'var(--accent)' : 'var(--text-secondary)' }}>
+                  <Edit3 size={13} />
+                </button>
+                <button onClick={() => removeDatapoint(group.id, dp.id)} className="hover:opacity-70 shrink-0" style={{ color: 'var(--accent-red)' }}>
+                  <Trash2 size={13} />
+                </button>
               </div>
-              <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)' }}>{dp.type}{dp.unit ? ` · ${dp.unit}` : ''}</span>
-              <button onClick={() => { setEditingLabel(dp.id); setLabelValue(dp.label); }} className="hover:opacity-70" style={{ color: 'var(--text-secondary)' }}><Edit3 size={13} /></button>
-              <button onClick={() => removeDatapoint(group.id, dp.id)} className="hover:opacity-70" style={{ color: 'var(--accent-red)' }}><Trash2 size={13} /></button>
+
+              {/* Bearbeitungsformular */}
+              {editingId === dp.id && (
+                <div className="px-3 py-3 space-y-2.5" style={{ background: 'var(--app-surface)', borderTop: '1px solid var(--app-border)' }}>
+                  {/* Label */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>Bezeichnung</label>
+                    <input
+                      type="text"
+                      defaultValue={dp.label}
+                      onBlur={(e) => updateDatapoint(group.id, dp.id, { label: e.target.value || dp.label })}
+                      className="flex-1 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
+                      style={inputStyle}
+                    />
+                  </div>
+
+                  {/* Typ */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>Typ</label>
+                    <select
+                      value={dp.type}
+                      onChange={(e) => updateDatapoint(group.id, dp.id, { type: e.target.value as GroupDatapoint['type'] })}
+                      className="flex-1 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
+                      style={inputStyle}
+                    >
+                      <option value="boolean">Boolean (Schalter / Anzeige)</option>
+                      <option value="number">Zahl (Wert)</option>
+                      <option value="string">Text</option>
+                    </select>
+                  </div>
+
+                  {/* Einheit (nur bei Zahl) */}
+                  {dp.type === 'number' && (
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>Einheit</label>
+                      <input
+                        type="text"
+                        defaultValue={dp.unit ?? ''}
+                        onBlur={(e) => updateDatapoint(group.id, dp.id, { unit: e.target.value || undefined })}
+                        placeholder="z.B. °C, %, W"
+                        className="flex-1 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
+                        style={inputStyle}
+                      />
+                    </div>
+                  )}
+
+                  {/* Schreibbar */}
+                  {(dp.type === 'boolean' || dp.type === 'number') && (
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                        {dp.type === 'boolean' ? 'Als Schalter' : 'Schreibbar'}
+                      </label>
+                      <button
+                        onClick={() => updateDatapoint(group.id, dp.id, { writable: !dp.writable })}
+                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                        style={{ background: dp.writable ? 'var(--accent)' : 'var(--app-border)' }}
+                      >
+                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                          style={{ left: dp.writable ? '18px' : '2px' }} />
+                      </button>
+                      <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                        {dp.writable
+                          ? dp.type === 'boolean' ? 'Toggle-Schalter' : 'Wert kann gesetzt werden'
+                          : 'Nur Anzeige'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {showPicker && <DatapointPicker onAdd={(dp) => addDatapoint(group.id, dp)} onClose={() => setShowPicker(false)} />}
+      {showPicker && <DatapointPicker onAdd={(dps) => dps.forEach((dp) => addDatapoint(group.id, dp))} onClose={() => setShowPicker(false)} />}
     </div>
   );
 }

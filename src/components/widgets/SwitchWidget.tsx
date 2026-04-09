@@ -2,6 +2,7 @@ import { Power, Lightbulb, ToggleRight } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
+import { contentPositionClass, titlePositionStyle, titleTextAlign } from '../../utils/widgetUtils';
 
 export function SwitchWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
@@ -70,11 +71,16 @@ export function SwitchWidget({ config }: WidgetProps) {
   }
 
   // --- DEFAULT ---
+  const posClass = contentPositionClass(config.options?.contentPosition as string | undefined);
+  const titlePos = config.options?.titlePosition as string | undefined;
+  const titleStyle = titlePositionStyle(titlePos);
+  const titleAlign = titleTextAlign(titlePos);
+
   return (
-    <div className="flex flex-col h-full justify-between">
-      <div className="flex items-center gap-2">
-        <Power size={14} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)' }} />
-        <p className="text-tx-secondary text-xs truncate flex-1">{config.title}</p>
+    <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
+      <div className="flex items-center gap-2" style={titleStyle}>
+        <Power size={14} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} />
+        <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{config.title}</p>
       </div>
       <div className="flex items-center justify-between">
         <span className="text-2xl font-bold" style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)' }}>

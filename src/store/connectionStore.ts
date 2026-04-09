@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { invalidateDatapointCache } from '../hooks/useDatapointList';
+import { reconnectSocket } from '../hooks/useIoBroker';
 
 interface ConnectionState {
   ioBrokerUrl: string;
@@ -12,8 +14,12 @@ export const useConnectionStore = create<ConnectionState>()(
   persist(
     (set) => ({
       ioBrokerUrl: DEFAULT_IOBROKER_URL,
-      setIoBrokerUrl: (url) => set({ ioBrokerUrl: url }),
+      setIoBrokerUrl: (url) => {
+        invalidateDatapointCache();
+        reconnectSocket(url);
+        set({ ioBrokerUrl: url });
+      },
     }),
-    { name: 'aura-connection' }, // uses localStorage directly — not managed storage
+    { name: 'aura-connection' }, // uses localStorage directly – not managed storage
   ),
 );

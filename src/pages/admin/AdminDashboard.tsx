@@ -1,7 +1,7 @@
-import { useDashboardStore } from '../../store/dashboardStore';
-import { useConfigStore } from '../../store/configStore';
+import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useIoBroker } from '../../hooks/useIoBroker';
-import { Layers, Wifi, WifiOff, Layout, Hash } from 'lucide-react';
+import { Layers, Wifi, WifiOff, Layout, Hash, Navigation, Copy, Check } from 'lucide-react';
+import { useState } from 'react';
 
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) {
   return (
@@ -17,77 +17,41 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: s
   );
 }
 
-export function AdminDashboard() {
-  const { tabs } = useDashboardStore();
-  const { frontend, updateFrontend } = useConfigStore();
-  const { connected } = useIoBroker();
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <button onClick={copy} className="hover:opacity-70 shrink-0" title="Kopieren">
+      {copied ? <Check size={12} style={{ color: 'var(--accent-green)' }} /> : <Copy size={12} style={{ color: 'var(--text-secondary)' }} />}
+    </button>
+  );
+}
 
-  const totalWidgets = tabs.reduce((sum, t) => sum + t.widgets.length, 0);
+export function AdminDashboard() {
+  const { layouts } = useDashboardStore();
+  const activeLayout = useActiveLayout();
+  const tabs = activeLayout.tabs;
+  const totalTabsAll = layouts.reduce((acc, l) => acc + l.tabs.length, 0);
+  const totalWidgetsAll = layouts.reduce((acc, l) => acc + l.tabs.reduce((a, t) => a + t.widgets.length, 0), 0);
+  const { connected } = useIoBroker();
 
   return (
     <div className="p-8 space-y-8">
       <div>
         <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Übersicht</h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Admin-Bereich – Konfiguration und Überwachung</p>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Status und Statistiken</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Tabs" value={tabs.length} icon={Layers} color="var(--accent)" />
-        <StatCard label="Widgets gesamt" value={totalWidgets} icon={Layout} color="var(--accent-green)" />
+        <StatCard label="Layouts" value={layouts.length} icon={Layers} color="var(--accent)" />
+        <StatCard label="Tabs gesamt" value={totalTabsAll} icon={Layout} color="var(--accent-green)" />
+        <StatCard label="Widgets gesamt" value={totalWidgetsAll} icon={Hash} color="var(--accent-yellow)" />
         <StatCard label="ioBroker" value={connected ? 'Verbunden' : 'Getrennt'} icon={connected ? Wifi : WifiOff} color={connected ? 'var(--accent-green)' : 'var(--accent-red)'} />
-        <StatCard label="Gruppen" value={tabs.reduce((s, t) => s + t.widgets.filter(w => w.type === 'list').length, 0)} icon={Hash} color="var(--accent-yellow)" />
-      </div>
-
-      {/* Frontend-Einstellungen */}
-      <div className="rounded-xl p-6 space-y-5" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
-        <h2 className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>Frontend-Vorgaben</h2>
-
-        <div className="space-y-4">
-          {/* Header an/aus */}
-          <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'var(--app-border)' }}>
-            <div>
-              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Header anzeigen</p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>Titelleiste im Frontend ein- oder ausblenden</p>
-            </div>
-            <button
-              onClick={() => updateFrontend({ showHeader: !frontend.showHeader })}
-              className="relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none shrink-0"
-              style={{ background: frontend.showHeader ? 'var(--accent-green)' : 'var(--app-border)' }}
-            >
-              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${frontend.showHeader ? 'translate-x-5' : 'translate-x-0'}`} />
-            </button>
-          </div>
-
-          {/* Nur sichtbar wenn Header aktiv */}
-          {frontend.showHeader && (
-            <>
-              <div>
-                <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Dashboard-Titel</label>
-                <input
-                  value={frontend.headerTitle}
-                  onChange={(e) => updateFrontend({ headerTitle: e.target.value })}
-                  className="mt-2 w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none"
-                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
-                />
-              </div>
-
-              <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'var(--app-border)' }}>
-                <div>
-                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Verbindungsstatus anzeigen</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>ioBroker-Verbindungsanzeige im Header</p>
-                </div>
-                <button
-                  onClick={() => updateFrontend({ showConnectionBadge: !frontend.showConnectionBadge })}
-                  className="relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none shrink-0"
-                  style={{ background: frontend.showConnectionBadge ? 'var(--accent-green)' : 'var(--app-border)' }}
-                >
-                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${frontend.showConnectionBadge ? 'translate-x-5' : 'translate-x-0'}`} />
-                </button>
-              </div>
-            </>
-          )}
-        </div>
       </div>
 
       {/* Tab-Übersicht */}
@@ -96,12 +60,79 @@ export function AdminDashboard() {
         <div className="space-y-2">
           {tabs.map((tab) => (
             <div key={tab.id} className="flex items-center justify-between px-4 py-3 rounded-lg" style={{ background: 'var(--app-bg)' }}>
-              <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{tab.name}</span>
+              <div>
+                <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{tab.name}</span>
+                <p className="text-xs font-mono mt-0.5" style={{ color: 'var(--text-secondary)' }}>#/tab/{tab.slug ?? tab.id}</p>
+              </div>
               <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--accent)22', color: 'var(--accent)' }}>
                 {tab.widgets.length} Widgets
               </span>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* AURA acronym */}
+      <div className="rounded-xl p-5" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-secondary)' }}>Was bedeutet AURA?</p>
+        <div className="flex flex-col gap-1.5">
+          {([
+            ['A', 'daptive', 'Passt sich flexibel an Geräte, Räume und Layouts an'],
+            ['U', 'nified', 'Alle Datenpunkte und Räume in einer einheitlichen Oberfläche'],
+            ['R', 'oom', 'Raumbasierte Organisation – jedes Tablet sein eigenes Layout'],
+            ['A', 'utomation', 'ioBroker-Automatisierungen live steuern und visualisieren'],
+          ] as [string, string, string][]).map(([letter, rest, desc]) => (
+            <div key={letter + rest} className="flex items-baseline gap-2">
+              <span className="text-lg font-bold w-4 shrink-0" style={{ color: 'var(--accent)' }}>{letter}</span>
+              <span className="text-sm font-medium w-24 shrink-0" style={{ color: 'var(--text-primary)' }}>{rest}</span>
+              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{desc}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Navigation via ioBroker */}
+      <div className="rounded-xl p-6 space-y-4" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
+        <div className="flex items-center gap-2">
+          <Navigation size={18} style={{ color: 'var(--accent)' }} />
+          <h2 className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>Tablet-Navigation via ioBroker</h2>
+        </div>
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+          Setze den folgenden Datenpunkt aus einem ioBroker-Skript oder einer Automatisierung,
+          um das Tablet auf einen bestimmten Tab oder eine externe URL zu navigieren.
+          Der Datenpunkt wird nach der Navigation automatisch zurückgesetzt.
+        </p>
+
+        <div className="rounded-lg px-4 py-3" style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
+          <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Datenpunkt</p>
+          <div className="flex items-center gap-2">
+            <code className="text-sm font-mono flex-1" style={{ color: 'var(--accent)' }}>aura.0.navigate.url</code>
+            <CopyButton text="aura.0.navigate.url" />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Tab-Slugs (Wert für den Datenpunkt)</p>
+          <div className="space-y-1.5">
+            {tabs.map((tab) => {
+              const slug = tab.slug ?? tab.id;
+              return (
+                <div key={tab.id} className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ background: 'var(--app-bg)' }}>
+                  <span className="text-sm flex-1" style={{ color: 'var(--text-primary)' }}>{tab.name}</span>
+                  <div className="flex items-center gap-1.5">
+                    <code className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>{slug}</code>
+                    <CopyButton text={slug} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="rounded-lg px-4 py-3 space-y-1" style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
+          <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Beispiel (JavaScript-Skript)</p>
+          <pre className="text-xs font-mono overflow-x-auto" style={{ color: 'var(--text-primary)' }}>{`setState('aura.0.navigate.url', '${tabs[0]?.slug ?? 'dashboard'}');`}</pre>
+          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Für externe URLs die vollständige URL angeben (https://…).</p>
         </div>
       </div>
     </div>

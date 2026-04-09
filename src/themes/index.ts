@@ -139,3 +139,30 @@ export const DEFAULT_THEME_ID = 'dark';
 export function getTheme(id: string): Theme {
   return THEMES.find((t) => t.id === id) ?? THEMES[0];
 }
+
+/**
+ * Dedicated dark theme for the admin backend.
+ * NOT included in THEMES (not shown in the frontend theme picker).
+ * Tuned for UI clarity: higher contrast layers, visible borders, readable secondary text.
+ */
+export const ADMIN_DARK_THEME: Theme = {
+  id: 'admin-dark',
+  name: 'Admin Dark',
+  dark: true,
+  vars: {
+    '--app-bg':               '#0f1623',   // deep navy — clear base layer
+    '--app-surface':          '#182032',   // distinctly lighter — cards/panels
+    '--app-border':           '#2d3f58',   // visible borders at every layer
+    '--widget-bg':            '#182032',
+    '--widget-border':        '#2d3f58',
+    '--widget-border-width':  '1px',
+    '--widget-radius':        '0.75rem',
+    '--widget-shadow':        '0 1px 6px rgba(0,0,0,0.4)',
+    '--text-primary':         '#dce8f6',   // soft blue-white, low glare
+    '--text-secondary':       '#7a96b5',   // clearly visible, not washed out
+    '--accent':               '#5aaeff',   // brighter accent for dark bg
+    '--accent-green':         '#3dd87a',
+    '--accent-yellow':        '#f5bf45',
+    '--accent-red':           '#f46e6e',
+  },
+};

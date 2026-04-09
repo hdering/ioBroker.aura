@@ -18,7 +18,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^3.2.2"
+    "@iobroker/adapter-core": "^3.2.2",
+    "echarts": "^6.0.0",
+    "echarts-for-react": "^3.0.6",
+    "ical.js": "^2.2.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",

@@ -2,6 +2,24 @@ import { useThemeStore } from '../../store/themeStore';
 import { useConfigStore } from '../../store/configStore';
 import { THEMES, getTheme, type ThemeVars } from '../../themes';
 
+// Tailwind text-* defaults (rem) used for preview labels
+const FONT_LEVELS = [
+  { label: 'Wert / Uhr',    cls: 'text-3xl', rem: 1.875 },
+  { label: 'Überschrift',   cls: 'text-xl',  rem: 1.25  },
+  { label: 'Subheading',    cls: 'text-lg',  rem: 1.125 },
+  { label: 'Fließtext',     cls: 'text-sm',  rem: 0.875 },
+  { label: 'Klein / Label', cls: 'text-xs',  rem: 0.75  },
+] as const;
+
+const FONT_SCALE_PRESETS = [
+  { label: 'XS', value: 0.8  },
+  { label: 'S',  value: 0.9  },
+  { label: 'M',  value: 1.0  },
+  { label: 'L',  value: 1.15 },
+  { label: 'XL', value: 1.3  },
+  { label: 'XXL',value: 1.5  },
+];
+
 const VAR_GROUPS: { label: string; keys: (keyof ThemeVars)[] }[] = [
   { label: 'App', keys: ['--app-bg', '--app-surface', '--app-border'] },
   { label: 'Widget-Karte', keys: ['--widget-bg', '--widget-border', '--widget-border-width', '--widget-radius', '--widget-shadow'] },
@@ -23,6 +41,7 @@ export function AdminTheme() {
   const { themeId, customVars, setTheme, setCustomVar, resetCustom } = useThemeStore();
   const { frontend, updateFrontend } = useConfigStore();
   const activeTheme = getTheme(themeId);
+  const fontScale = frontend.fontScale ?? 1;
 
   return (
     <div className="p-8 space-y-8">
@@ -106,6 +125,84 @@ export function AdminTheme() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Typografie */}
+      <div className="rounded-xl p-6 space-y-5" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
+        <div>
+          <h2 className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>Typografie</h2>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+            Skaliert alle Textgrößen im Frontend proportional. Die Admin-Oberfläche bleibt unverändert.
+          </p>
+        </div>
+
+        {/* Scale slider */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Schriftgröße</p>
+            <span className="text-sm font-mono font-bold px-2.5 py-1 rounded-lg"
+              style={{ background: 'var(--app-bg)', color: 'var(--accent)', border: '1px solid var(--app-border)' }}>
+              {Math.round(fontScale * 100)} %
+            </span>
+          </div>
+          <input
+            type="range" min={0.7} max={1.6} step={0.05}
+            value={fontScale}
+            onChange={(e) => updateFrontend({ fontScale: Number(e.target.value) })}
+            className="w-full accent-[var(--accent)] mb-3"
+          />
+          <div className="flex gap-2 flex-wrap">
+            {FONT_SCALE_PRESETS.map(({ label, value }) => {
+              const active = Math.abs(fontScale - value) < 0.01;
+              return (
+                <button key={value} onClick={() => updateFrontend({ fontScale: value })}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80"
+                  style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
+                  {label} · {Math.round(value * 100)}%
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Size reference table */}
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
+            Größen-Referenz bei {Math.round(fontScale * 100)} %
+          </p>
+          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+            {FONT_LEVELS.map(({ label, cls, rem }, i) => {
+              const px = Math.round(rem * fontScale * 16);
+              const remScaled = (rem * fontScale).toFixed(3).replace(/\.?0+$/, '');
+              return (
+                <div key={cls}
+                  className="flex items-center gap-4 px-4 py-2.5"
+                  style={{ background: i % 2 === 0 ? 'var(--app-bg)' : 'var(--app-surface)', borderBottom: i < FONT_LEVELS.length - 1 ? '1px solid var(--app-border)' : undefined }}>
+                  <span className="w-32 shrink-0 text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
+                    {cls}
+                  </span>
+                  <span className="w-28 shrink-0 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    {label}
+                  </span>
+                  <span className="w-28 shrink-0 text-xs font-mono" style={{ color: 'var(--accent)' }}>
+                    {remScaled}rem · {px}px
+                  </span>
+                  <span style={{ fontSize: `${rem * fontScale}rem`, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+                    Beispiel
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {fontScale !== 1 && (
+          <button onClick={() => updateFrontend({ fontScale: 1 })}
+            className="text-xs hover:opacity-70"
+            style={{ color: 'var(--text-secondary)' }}>
+            Zurücksetzen (100 %)
+          </button>
+        )}
       </div>
 
       {/* Custom CSS */}
