@@ -29,7 +29,8 @@ export type WidgetType =
   | 'evcc'
   | 'weather'
   | 'gauge'
-  | 'camera';
+  | 'camera'
+  | 'autolist';
 
 export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda';
 

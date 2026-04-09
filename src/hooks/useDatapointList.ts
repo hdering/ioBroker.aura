@@ -13,9 +13,16 @@ export interface DatapointEntry {
 
 // Module-level cache – survives component mount/unmount
 let cache: DatapointEntry[] | null = null;
+let cacheTime = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 export function invalidateDatapointCache() {
   cache = null;
+  cacheTime = 0;
+}
+
+export function isCacheStale(): boolean {
+  return cache === null || Date.now() - cacheTime > CACHE_TTL_MS;
 }
 
 /** Synchronous name lookup from the in-memory cache. Returns null if not loaded yet. */
@@ -79,6 +86,7 @@ export function useDatapointList() {
     try {
       const entries = await loadAll();
       cache = entries;
+      cacheTime = Date.now();
       setDatapoints(entries);
     } finally {
       setLoading(false);

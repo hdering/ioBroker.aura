@@ -26,6 +26,7 @@ import { EvccConfig } from '../widgets/EvccWidget';
 import { WeatherWidget } from '../widgets/WeatherWidget';
 import { GaugeWidget } from '../widgets/GaugeWidget';
 import { CameraWidget } from '../widgets/CameraWidget';
+import { AutoListWidget } from '../widgets/AutoListWidget';
 
 // Stable empty array – avoids creating a new reference on every render when no conditions are set
 const NO_CONDITIONS: WidgetCondition[] = [];
@@ -48,6 +49,7 @@ function getWidgetMap() {
     weather:    WeatherWidget,
     gauge:      GaugeWidget,
     camera:     CameraWidget,
+    autolist:   AutoListWidget,
   } as const;
 }
 
@@ -1011,6 +1013,48 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   </>
                 );
               })()}
+              {/* ── AutoList config ── */}
+              {config.type === 'autolist' && (() => {
+                const o   = config.options ?? {};
+                const set = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const aCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
+                const aSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                return (
+                  <>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Rollen-Filter (kommagetrennt)</label>
+                      <input className={aCls} style={aSty} placeholder="z.B. switch, indicator.working" value={(o.roles as string) ?? ''} onChange={(e) => set({ roles: e.target.value || undefined })} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>ID-Filter (Teilstring)</label>
+                      <input className={aCls} style={aSty} placeholder="z.B. hm-rpc, shelly" value={(o.idPattern as string) ?? ''} onChange={(e) => set({ idPattern: e.target.value || undefined })} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Raum-Filter (kommagetrennt)</label>
+                      <input className={aCls} style={aSty} placeholder="z.B. Wohnzimmer, Küche" value={(o.rooms as string) ?? ''} onChange={(e) => set({ rooms: e.target.value || undefined })} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Funktions-Filter (kommagetrennt)</label>
+                      <input className={aCls} style={aSty} placeholder="z.B. Beleuchtung, Steckdosen" value={(o.funcs as string) ?? ''} onChange={(e) => set({ funcs: e.target.value || undefined })} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Auto-Sync Intervall (Minuten)</label>
+                      <input type="number" min={1} className={aCls} style={aSty} value={(o.syncIntervalMin as number) ?? 5} onChange={(e) => set({ syncIntervalMin: Number(e.target.value) })} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Raum anzeigen</label>
+                      <button onClick={() => set({ showRoom: !(o.showRoom ?? false) })}
+                        className="relative w-9 h-5 rounded-full transition-colors"
+                        style={{ background: (o.showRoom ?? false) ? 'var(--accent)' : 'var(--app-border)' }}>
+                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                          style={{ left: (o.showRoom ?? false) ? '18px' : '2px' }} />
+                      </button>
+                    </div>
+                  </>
+                );
+              })()}
+
               {config.type === 'thermostat' && (() => {
                 const o = config.options ?? {};
                 const setO = (patch: Record<string, unknown>) =>

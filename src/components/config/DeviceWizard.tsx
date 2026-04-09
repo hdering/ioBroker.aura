@@ -4,7 +4,7 @@ import type { WidgetConfig, WidgetType } from '../../types';
 import { WidgetPreview } from './WidgetPreview';
 
 const WIDGET_LABELS: Record<WidgetType, string> = {
-  switch: 'Schalter', value: 'Wert', dimmer: 'Dimmer', thermostat: 'Thermostat', chart: 'Diagramm', list: 'Gruppenliste', clock: 'Uhrzeit', calendar: 'Kalender', header: 'Abschnittstitel', group: 'Gruppe', echart: 'EChart', evcc: 'evcc', weather: 'Wetter', gauge: 'Gauge', camera: 'Kamera',
+  switch: 'Schalter', value: 'Wert', dimmer: 'Dimmer', thermostat: 'Thermostat', chart: 'Diagramm', list: 'Gruppenliste', clock: 'Uhrzeit', calendar: 'Kalender', header: 'Abschnittstitel', group: 'Gruppe', echart: 'EChart', evcc: 'evcc', weather: 'Wetter', gauge: 'Gauge', camera: 'Kamera', autolist: 'Auto-Liste',
 };
 
 interface Selection {

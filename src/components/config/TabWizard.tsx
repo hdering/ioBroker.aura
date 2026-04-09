@@ -28,6 +28,7 @@ const TYPE_COLOR: Record<WidgetType, string> = {
   weather:    '#0ea5e9',
   gauge:      '#f97316',
   camera:     '#6b7280',
+  autolist:   '#14b8a6',
 };
 
 // Distinct group colors for the preview
@@ -105,7 +106,7 @@ const SUGGESTIONS = [
 const TYPE_LABEL: Record<WidgetType, string> = {
   switch: 'Schalter', value: 'Wert', dimmer: 'Dimmer',
   thermostat: 'Thermostat', chart: 'Diagramm', list: 'Liste',
-  clock: 'Uhr', calendar: 'Kalender', header: 'Abschnitt', group: 'Gruppe', echart: 'EChart', evcc: 'evcc', weather: 'Wetter', gauge: 'Gauge', camera: 'Kamera',
+  clock: 'Uhr', calendar: 'Kalender', header: 'Abschnitt', group: 'Gruppe', echart: 'EChart', evcc: 'evcc', weather: 'Wetter', gauge: 'Gauge', camera: 'Kamera', autolist: 'Auto-Liste',
 };
 
 // ── main wizard ────────────────────────────────────────────────────────────

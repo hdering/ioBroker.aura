@@ -23,6 +23,7 @@ const ICON: Record<WidgetType, React.ReactElement> = {
   weather:    <Cloud size={13} />,
   gauge:      <Gauge size={13} />,
   camera:     <Camera size={13} />,
+  autolist:   <List size={13} />,
 };
 
 const MOCK: Record<WidgetType, { t: string; v: string; u?: string; sub?: string }> = {
@@ -41,6 +42,7 @@ const MOCK: Record<WidgetType, { t: string; v: string; u?: string; sub?: string 
   weather:    { t: 'Wetter',      v: '18°', sub: '⛅ Bewölkt' },
   gauge:      { t: 'Gauge',       v: '72',  u: 'kW' },
   camera:     { t: 'Kamera',      v: '' },
+  autolist:   { t: 'Auto-Liste',  v: '' },
 };
 
 function Toggle({ on }: { on?: boolean }) {

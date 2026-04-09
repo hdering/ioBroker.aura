@@ -29,10 +29,11 @@ const TYPE_META: Record<WidgetType, { label: string; icon: React.ReactElement; c
   weather:    { label: 'Wetter',          icon: <TrendingUp size={15} />,       color: '#0ea5e9' },
   gauge:      { label: 'Gauge',           icon: <TrendingUp size={15} />,       color: '#f97316' },
   camera:     { label: 'Kamera',          icon: <TrendingUp size={15} />,       color: '#6b7280' },
+  autolist:   { label: 'Auto-Liste',      icon: <List size={15} />,             color: '#14b8a6' },
 };
 
 const TYPE_ORDER: WidgetType[] = [
-  'thermostat', 'switch', 'dimmer', 'value', 'chart', 'echart', 'list', 'clock', 'calendar', 'header', 'group', 'evcc', 'weather', 'gauge', 'camera',
+  'thermostat', 'switch', 'dimmer', 'value', 'chart', 'echart', 'list', 'autolist', 'clock', 'calendar', 'header', 'group', 'evcc', 'weather', 'gauge', 'camera',
 ];
 
 const LAYOUTS: { id: WidgetLayout; label: string }[] = [
@@ -559,7 +560,8 @@ const WIDGET_DEFS: { type: WidgetType; label: string; defaultW: number; defaultH
   { type: 'clock', label: 'Uhrzeit', defaultW: 2, defaultH: 2 },
   { type: 'calendar', label: 'Kalender', defaultW: 4, defaultH: 4 },
   { type: 'header', label: 'Abschnittstitel', defaultW: 12, defaultH: 1 },
-  { type: 'group',  label: 'Gruppe',          defaultW: 4,  defaultH: 4 },
+  { type: 'group',    label: 'Gruppe',          defaultW: 4,  defaultH: 4 },
+  { type: 'autolist', label: 'Auto-Liste',      defaultW: 3,  defaultH: 5 },
 ];
 
 function NewWidgetDialog({
