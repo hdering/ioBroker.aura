@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2 } from 'lucide-react';
 import type { WidgetConfig, WidgetCondition } from '../../types';
 import { DatapointPicker } from '../config/DatapointPicker';
@@ -332,6 +333,8 @@ function CenteredModal({
   wide?: boolean;
   children: React.ReactNode;
 }) {
+  const portalTarget = usePortalTarget();
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handler);
@@ -362,7 +365,7 @@ function CenteredModal({
         </div>
       </div>
     </div>,
-    document.body,
+    portalTarget,
   );
 }
 
@@ -385,6 +388,7 @@ function PortalDropdown({
   onClose: () => void;
   children: React.ReactNode;
 }) {
+  const portalTarget = usePortalTarget();
   const panelRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
 
@@ -446,7 +450,7 @@ function PortalDropdown({
     >
       {children}
     </div>,
-    document.body,
+    portalTarget,
   );
 }
 

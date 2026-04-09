@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { PortalTargetContext } from '../../contexts/PortalTargetContext';
 import { Navigate, Outlet, NavLink } from 'react-router-dom';
 import { LayoutDashboard, Palette, Settings, LogOut, PenSquare, Save, Undo2, Layers, Layers2, Sun, Moon, ExternalLink } from 'lucide-react';
 import { useAuthStore, logout } from '../../store/authStore';
@@ -64,9 +65,12 @@ export function AdminLayout() {
     Object.entries(adminTheme.vars).map(([k, v]) => [k, v])
   ) as React.CSSProperties;
 
+  const [portalTarget, setPortalTarget] = useState<HTMLDivElement | null>(null);
+
   if (!sessionActive) return <Navigate to="/admin/login" replace />;
 
   return (
+    <PortalTargetContext.Provider value={portalTarget}>
     <div className="min-h-screen flex" style={{
       ...adminVars,
       colorScheme: adminTheme.dark ? 'dark' : 'light',
@@ -159,6 +163,9 @@ export function AdminLayout() {
           <Outlet />
         </main>
       </div>
+      {/* Portal target: inside admin container so portals inherit admin theme CSS vars */}
+      <div ref={setPortalTarget} />
     </div>
+    </PortalTargetContext.Provider>
   );
 }
