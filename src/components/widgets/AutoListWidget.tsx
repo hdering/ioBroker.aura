@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { RefreshCw, X } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
-import { getObjectViewDirect, useIoBroker } from '../../hooks/useIoBroker';
+import { getObjectViewDirect, getObjectDirect, useIoBroker } from '../../hooks/useIoBroker';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface AutoListEntry {
   id: string;
-  label?: string;
+  label?: string;   // human-readable name, stored on discovery
+  rooms?: string[]; // room membership, stored on discovery
 }
 
 export interface AutoListOptions {
@@ -136,6 +137,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
   const entries: AutoListEntry[] = opts.entries ?? [];
   const { subscribe, setState, getState } = useIoBroker();
   const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
+  const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
   const [syncing, setSyncing] = useState(false);
   const syncMs = (opts.syncIntervalMin ?? 5) * 60_000;
 
@@ -154,6 +156,14 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const unsubs = entries.map(e =>
       subscribe(e.id, s => setStates(prev => ({ ...prev, [e.id]: s })))
     );
+    // Resolve names for entries that have no stored label
+    entries.filter(e => !e.label).forEach(async (e) => {
+      const obj = await getObjectDirect(e.id);
+      if (obj?.common?.name) {
+        const name = resolveName(obj.common.name as string | Record<string, string>, e.id.split('.').pop() ?? e.id);
+        setResolvedNames(prev => ({ ...prev, [e.id]: name }));
+      }
+    });
     return () => unsubs.forEach(u => u());
   }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -210,7 +220,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
             const state = states[entry.id] ?? null;
             const val = state?.val;
             const isNumber = typeof val === 'number';
-            const label = entry.label || entry.id.split('.').pop() || entry.id;
+            const label = entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id;
+            const roomLabel = entry.rooms?.join(', ');
 
             return (
               <div key={entry.id} className="flex items-center gap-2 px-3 py-2"
@@ -223,9 +234,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>{label}</div>
-                  {opts.showRoom && (
-                    <div className="text-[10px] truncate font-mono" style={{ color: 'var(--text-secondary)' }}>
-                      {entry.id}
+                  {opts.showRoom && (roomLabel || entry.id) && (
+                    <div className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
+                      {roomLabel || entry.id}
                     </div>
                   )}
                 </div>

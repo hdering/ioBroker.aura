@@ -693,7 +693,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
       {/* Edit Dropdown Portal */}
       {openPanel === 'edit' && menuBtnRef.current && (
         <PortalDropdown anchorRef={menuBtnRef as React.RefObject<HTMLElement>} onClose={() => openPanelFor(null)}>
-          <div className={`p-3 ${config.type === 'calendar' ? 'w-80' : config.type === 'thermostat' ? 'w-72' : config.type === 'echart' ? 'w-[560px]' : config.type === 'evcc' ? 'w-80' : config.type === 'autolist' ? 'w-80' : config.type === 'gauge' || config.type === 'weather' || config.type === 'camera' ? 'w-72' : 'w-64'}`} onMouseDown={(e) => e.stopPropagation()}>
+          <div className={`p-3 ${config.type === 'calendar' ? 'w-80' : config.type === 'thermostat' ? 'w-72' : config.type === 'echart' ? 'w-[560px]' : config.type === 'evcc' ? 'w-80' : config.type === 'autolist' ? 'w-[460px]' : config.type === 'gauge' || config.type === 'weather' || config.type === 'camera' ? 'w-72' : 'w-64'}`} onMouseDown={(e) => e.stopPropagation()}>
             <p className="text-xs font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Widget bearbeiten</p>
             <div className="space-y-2.5">
               <div>

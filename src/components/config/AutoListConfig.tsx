@@ -37,11 +37,11 @@ function MultiSelect({
 
   return (
     <div ref={ref} className="relative">
-      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{label}</label>
+      <label className="text-xs mb-1 block" style={{ color: 'var(--text-secondary)' }}>{label}</label>
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between text-xs rounded-lg px-2.5 py-2 focus:outline-none text-left"
+        className="w-full flex items-center justify-between text-xs rounded-lg px-3 py-2.5 focus:outline-none text-left"
         style={{
           background: 'var(--app-bg)',
           color: selected.length ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -70,7 +70,7 @@ function MultiSelect({
               />
             </div>
           )}
-          <div className="max-h-44 overflow-y-auto">
+          <div className="max-h-56 overflow-y-auto">
             {filtered.length === 0 && (
               <p className="text-[10px] p-2 text-center" style={{ color: 'var(--text-secondary)' }}>
                 Keine Ergebnisse
@@ -80,14 +80,14 @@ function MultiSelect({
               const on = selected.includes(opt);
               return (
                 <label key={opt}
-                  className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer hover:opacity-90"
+                  className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:opacity-90"
                   style={{ background: on ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent' }}>
                   <div className="w-3.5 h-3.5 rounded shrink-0 flex items-center justify-center"
                     style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}>
                     {on && <Check size={9} color="#fff" />}
                   </div>
                   <input type="checkbox" className="sr-only" checked={on} onChange={() => toggle(opt)} />
-                  <span className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>{opt}</span>
+                  <span className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>{opt}</span>
                 </label>
               );
             })}
@@ -180,7 +180,16 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
 
   const apply = () => {
     const existing = new Map((opts.entries ?? []).map(e => [e.id, e]));
-    const entries: AutoListEntry[] = [...selected].map(id => existing.get(id) ?? { id });
+    const discovered = new Map(results.map(d => [d.id, d]));
+    const entries: AutoListEntry[] = [...selected].map(id => {
+      const ex = existing.get(id);
+      const dp = discovered.get(id);
+      return {
+        id,
+        label: ex?.label ?? dp?.name,   // prefer existing custom label, fallback to discovered name
+        rooms: dp?.rooms ?? ex?.rooms,
+      };
+    });
     setOpts({
       entries,
       filterRoles: toCsv(selRoles),
@@ -252,10 +261,10 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                 onClick={() => setSelected(new Set())}>Keine</button>
             </div>
           </div>
-          <div className="space-y-0.5 max-h-44 overflow-y-auto -mx-1 px-1">
+          <div className="space-y-0.5 max-h-56 overflow-y-auto -mx-1 px-1">
             {results.map(dp => (
               <label key={dp.id}
-                className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:opacity-90"
+                className="flex items-center gap-2 px-2.5 py-2 rounded cursor-pointer hover:opacity-90"
                 style={{ background: selected.has(dp.id) ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent' }}>
                 <div className="w-3.5 h-3.5 rounded shrink-0 flex items-center justify-center"
                   style={{ background: selected.has(dp.id) ? 'var(--accent)' : 'var(--app-border)' }}>
@@ -264,8 +273,8 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                 <input type="checkbox" className="sr-only" checked={selected.has(dp.id)}
                   onChange={() => toggle(dp.id)} />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>{dp.name}</div>
-                  <div className="text-[9px] truncate font-mono" style={{ color: 'var(--text-secondary)' }}>
+                  <div className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>{dp.name}</div>
+                  <div className="text-[10px] truncate font-mono" style={{ color: 'var(--text-secondary)' }}>
                     {dp.id}{dp.rooms.length > 0 ? ` · ${dp.rooms[0]}` : ''}
                   </div>
                 </div>
@@ -292,7 +301,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
           Aktuelle Einträge {(opts.entries ?? []).length > 0 && `(${opts.entries.length})`}
         </label>
         {(opts.entries ?? []).length > 0 && (
-          <div className="space-y-0.5 max-h-32 overflow-y-auto mb-1.5">
+          <div className="space-y-0.5 max-h-40 overflow-y-auto mb-1.5">
             {opts.entries.map(e => (
               <div key={e.id} className="flex items-center gap-1.5 px-2 py-1 rounded"
                 style={{ background: 'var(--app-bg)' }}>
