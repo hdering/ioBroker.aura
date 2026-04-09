@@ -166,11 +166,11 @@ export function AdminSettings() {
   const [pinMsg, setPinMsg] = useState('');
   const [showReset, setShowReset] = useState(false);
 
-  const handlePinChange = async (e: React.FormEvent) => {
+  const handlePinChange = (e: React.FormEvent) => {
     e.preventDefault();
     if (newPin.length < 4) { setPinMsg('Mindestens 4 Zeichen'); return; }
     if (newPin !== confirm) { setPinMsg('PINs stimmen nicht überein'); return; }
-    await setupPin(newPin);
+    setupPin(newPin);
     setPinMsg('PIN erfolgreich geändert');
     setNewPin(''); setConfirm('');
     setTimeout(() => setPinMsg(''), 3000);

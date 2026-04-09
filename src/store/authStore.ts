@@ -1,9 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-async function sha256(text: string): Promise<string> {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+// Simple FNV-1a hash – works over plain HTTP (no crypto.subtle needed).
+// Sufficient for local PIN protection; not intended for cryptographic security.
+function hashPin(text: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, '0');
 }
 
 interface AuthState {
@@ -25,17 +31,15 @@ export const useAuthStore = create<AuthState>()(
   ),
 );
 
-export async function loginWithPin(pin: string): Promise<boolean> {
+export function loginWithPin(pin: string): boolean {
   const { pinHash, setSession } = useAuthStore.getState();
   if (!pinHash) return false;
-  const hash = await sha256(pin);
-  if (hash === pinHash) { setSession(true); return true; }
+  if (hashPin(pin) === pinHash) { setSession(true); return true; }
   return false;
 }
 
-export async function setupPin(pin: string): Promise<void> {
-  const hash = await sha256(pin);
-  useAuthStore.getState().setPinHash(hash);
+export function setupPin(pin: string): void {
+  useAuthStore.getState().setPinHash(hashPin(pin));
   useAuthStore.getState().setSession(true);
 }
 

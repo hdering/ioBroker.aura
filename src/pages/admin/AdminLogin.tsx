@@ -21,10 +21,10 @@ export function AdminLogin() {
     setLoading(true);
     if (isFirstTime) {
       if (pin !== confirm) { setError('PINs stimmen nicht überein'); setLoading(false); return; }
-      await setupPin(pin);
+      setupPin(pin);
       navigate('/admin');
     } else {
-      const ok = await loginWithPin(pin);
+      const ok = loginWithPin(pin);
       if (ok) navigate('/admin');
       else { setError('Falscher PIN'); setLoading(false); }
     }
