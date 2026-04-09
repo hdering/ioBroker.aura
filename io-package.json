@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "title": "Aura",
     "titleLang": {
       "en": "Aura Dashboard",
@@ -19,6 +19,7 @@
     "noIntro": true,
     "singleton": true,
     "adminUI": { "config": "none" },
+    "localLink": "",
     "localLinks": {
       "_default": "%protocol%://%ip%:8082/aura/"
     },
