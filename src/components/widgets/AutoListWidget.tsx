@@ -7,8 +7,11 @@ import { getObjectViewDirect, getObjectDirect, useIoBroker } from '../../hooks/u
 
 export interface AutoListEntry {
   id: string;
-  label?: string;   // human-readable name, stored on discovery
-  rooms?: string[]; // room membership, stored on discovery
+  label?: string;      // human-readable name (stored on discovery or manual edit)
+  rooms?: string[];    // room membership (stored on discovery)
+  unit?: string;       // display unit, e.g. "°C", "%", "W"
+  trueLabel?: string;  // text shown for true / 1, e.g. "AN", "Auf"
+  falseLabel?: string; // text shown for false / 0, e.g. "AUS", "Zu"
 }
 
 export interface AutoListOptions {
@@ -36,17 +39,13 @@ function isDimmerRole(role?: string) {
   return r.includes('level') || r.includes('dimmer') || r.includes('brightness');
 }
 
-function resolveName(name: string | Record<string, string> | undefined, fallback: string): string {
+export function resolveName(name: string | Record<string, string> | undefined, fallback: string): string {
   if (!name) return fallback;
   if (typeof name === 'string') return name;
   return name.de ?? name.en ?? Object.values(name)[0] ?? fallback;
 }
 
-export async function loadFilterOptions(): Promise<{
-  roles: string[];
-  rooms: string[];
-  funcs: string[];
-}> {
+export async function loadFilterOptions(): Promise<{ roles: string[]; rooms: string[]; funcs: string[] }> {
   const [stateResult, enumResult] = await Promise.all([
     getObjectViewDirect('state'),
     getObjectViewDirect('enum', 'enum.', 'enum.\u9999'),
@@ -66,11 +65,7 @@ export async function loadFilterOptions(): Promise<{
     else if (obj._id.startsWith('enum.functions.')) funcs.push(label);
   }
 
-  return {
-    roles: Array.from(rolesSet).sort(),
-    rooms: rooms.sort(),
-    funcs: funcs.sort(),
-  };
+  return { roles: Array.from(rolesSet).sort(), rooms: rooms.sort(), funcs: funcs.sort() };
 }
 
 export async function discoverDatapoints(
@@ -130,6 +125,64 @@ export async function discoverDatapoints(
     }));
 }
 
+// ── Value display ─────────────────────────────────────────────────────────────
+
+function EntryValue({ entry, val, setState }: {
+  entry: AutoListEntry;
+  val: ioBrokerState['val'];
+  setState: (id: string, v: boolean | number | string) => void;
+}) {
+  const hasLabels = !!(entry.trueLabel || entry.falseLabel);
+  const isBool = typeof val === 'boolean';
+  // Treat 0/1 as boolean when labels are configured
+  const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1) && hasLabels);
+
+  if (isBoolLike) {
+    const on = val === true || val === 1;
+    const toggle = () => setState(entry.id, isBool ? !on : on ? 0 : 1);
+
+    if (hasLabels) {
+      return (
+        <button onClick={toggle}
+          className="shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium transition-colors"
+          style={{
+            background: on ? 'var(--accent)' : 'var(--app-border)',
+            color: on ? '#fff' : 'var(--text-secondary)',
+          }}>
+          {on ? (entry.trueLabel || 'AN') : (entry.falseLabel || 'AUS')}
+        </button>
+      );
+    }
+    return (
+      <button onClick={toggle}
+        className="shrink-0 relative w-9 h-[18px] rounded-full transition-colors"
+        style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}>
+        <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
+          style={{ left: on ? 'calc(100% - 16px)' : '2px' }} />
+      </button>
+    );
+  }
+
+  if (typeof val === 'number' && isDimmerRole(entry.id)) {
+    return (
+      <div className="shrink-0 flex items-center gap-1.5">
+        <input type="range" min={0} max={100} value={val}
+          onChange={e => setState(entry.id, Number(e.target.value))}
+          className="w-20 h-1" style={{ accentColor: 'var(--accent)' }} />
+        <span className="text-[10px] w-8 text-right tabular-nums" style={{ color: 'var(--text-secondary)' }}>
+          {Math.round(val)}{entry.unit ?? '%'}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <span className="shrink-0 text-xs font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
+      {val != null ? `${String(val)}${entry.unit ? ' ' + entry.unit : ''}` : '–'}
+    </span>
+  );
+}
+
 // ── Main Widget ───────────────────────────────────────────────────────────────
 
 export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps) {
@@ -145,7 +198,6 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     onConfigChange({ ...config, options: { ...opts, ...patch } });
   }, [config, opts, onConfigChange]);
 
-  // Subscribe to all stored entries
   const entryKey = entries.map(e => e.id).join(',');
   const prevKey = useRef('');
   useEffect(() => {
@@ -156,7 +208,6 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const unsubs = entries.map(e =>
       subscribe(e.id, s => setStates(prev => ({ ...prev, [e.id]: s })))
     );
-    // Resolve names for entries that have no stored label
     entries.filter(e => !e.label).forEach(async (e) => {
       const obj = await getObjectDirect(e.id);
       if (obj?.common?.name) {
@@ -167,7 +218,6 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     return () => unsubs.forEach(u => u());
   }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Background auto-sync
   const runSync = useCallback(async () => {
     const hasFilter = opts.filterRoles || opts.filterIdPattern || opts.filterRooms || opts.filterFuncs;
     if (!hasFilter) return;
@@ -175,7 +225,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     try {
       const found = await discoverDatapoints(opts);
       const existingIds = new Set(entries.map(e => e.id));
-      const newEntries = found.filter(d => !existingIds.has(d.id)).map(d => ({ id: d.id }));
+      const newEntries = found.filter(d => !existingIds.has(d.id)).map(d => ({ id: d.id, label: d.name, rooms: d.rooms }));
       if (newEntries.length > 0) saveOpts({ entries: [...entries, ...newEntries] });
     } finally {
       setSyncing(false);
@@ -191,7 +241,6 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="shrink-0 px-3 py-1.5 flex items-center justify-between"
         style={{ borderBottom: '1px solid var(--widget-border)' }}>
         <span className="text-xs font-semibold truncate" style={{ color: 'var(--text-secondary)' }}>
@@ -204,22 +253,18 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         </button>
       </div>
 
-      {/* Empty state */}
       {entries.length === 0 && (
         <div className="flex-1 flex items-center justify-center p-4">
           <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
-            Noch keine Datenpunkte konfiguriert.{editMode ? '\nBearbeiten → Datenpunkte suchen.' : ''}
+            Noch keine Datenpunkte konfiguriert.{editMode ? ' Bearbeiten → Datenpunkte suchen.' : ''}
           </p>
         </div>
       )}
 
-      {/* List */}
       {entries.length > 0 && (
         <div className="flex-1 overflow-auto min-h-0">
           {entries.map(entry => {
             const state = states[entry.id] ?? null;
-            const val = state?.val;
-            const isNumber = typeof val === 'number';
             const label = entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id;
             const roomLabel = entry.rooms?.join(', ');
 
@@ -240,38 +285,12 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     </div>
                   )}
                 </div>
-
-                {typeof val === 'boolean' && (
-                  <button onClick={() => setState(entry.id, !val)}
-                    className="shrink-0 relative w-9 h-[18px] rounded-full transition-colors"
-                    style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}>
-                    <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
-                      style={{ left: val ? 'calc(100% - 16px)' : '2px' }} />
-                  </button>
-                )}
-
-                {isNumber && isDimmerRole(entry.id) && (
-                  <div className="shrink-0 flex items-center gap-1.5">
-                    <input type="range" min={0} max={100} value={val as number}
-                      onChange={e => setState(entry.id, Number(e.target.value))}
-                      className="w-20 h-1" style={{ accentColor: 'var(--accent)' }} />
-                    <span className="text-[10px] w-8 text-right tabular-nums" style={{ color: 'var(--text-secondary)' }}>
-                      {Math.round(val as number)}%
-                    </span>
-                  </div>
-                )}
-
-                {!isNumber && typeof val !== 'boolean' && (
-                  <span className="shrink-0 text-xs font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                    {val != null ? String(val) : '–'}
-                  </span>
-                )}
+                <EntryValue entry={entry} val={state?.val ?? null} setState={setState} />
               </div>
             );
           })}
         </div>
       )}
-
     </div>
   );
 }

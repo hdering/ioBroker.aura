@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { RefreshCw, Search, Check, X, Plus, ChevronDown } from 'lucide-react';
+import { RefreshCw, Search, Check, X, Plus, ChevronDown, Settings2, ChevronRight } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import { discoverDatapoints, loadFilterOptions } from '../widgets/AutoListWidget';
 import type { AutoListOptions, AutoListEntry, DiscoveredDp } from '../widgets/AutoListWidget';
@@ -107,6 +107,80 @@ function MultiSelect({
   );
 }
 
+// ── Per-entry config row ───────────────────────────────────────────────────────
+
+function EntryConfigRow({
+  entry,
+  onUpdate,
+  onRemove,
+}: {
+  entry: AutoListEntry;
+  onUpdate: (patch: Partial<AutoListEntry>) => void;
+  onRemove: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' } as React.CSSProperties;
+  const iCls = 'w-full text-[10px] rounded px-2 py-1 focus:outline-none font-mono';
+
+  return (
+    <div className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+      {/* Header row */}
+      <div className="flex items-center gap-1.5 px-2 py-1.5" style={{ background: 'var(--app-bg)' }}>
+        <button onClick={() => setExpanded(e => !e)} className="shrink-0 hover:opacity-70 transition-transform"
+          style={{ color: 'var(--text-secondary)', transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+          <ChevronRight size={11} />
+        </button>
+        <span className="flex-1 text-[10px] truncate font-mono" style={{ color: 'var(--text-primary)' }}>
+          {entry.label || entry.id.split('.').pop() || entry.id}
+        </span>
+        <button onClick={() => setExpanded(e => !e)} className="shrink-0 hover:opacity-70 p-0.5"
+          style={{ color: 'var(--text-secondary)' }} title="Einstellungen">
+          <Settings2 size={10} />
+        </button>
+        <button onClick={onRemove} className="shrink-0 hover:opacity-70"
+          style={{ color: 'var(--text-secondary)' }}>
+          <X size={11} />
+        </button>
+      </div>
+
+      {/* Expanded config */}
+      {expanded && (
+        <div className="px-2.5 pb-2.5 pt-1 space-y-1.5" style={{ borderTop: '1px solid var(--app-border)', background: 'var(--app-surface)' }}>
+          <div className="text-[9px] font-mono truncate mb-1" style={{ color: 'var(--text-secondary)' }}>{entry.id}</div>
+          <div className="grid grid-cols-2 gap-1.5">
+            <div>
+              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Bezeichnung</label>
+              <input className={iCls} style={iSty} placeholder="Automatisch"
+                value={entry.label ?? ''}
+                onChange={e => onUpdate({ label: e.target.value || undefined })} />
+            </div>
+            <div>
+              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Einheit</label>
+              <input className={iCls} style={iSty} placeholder="z.B. °C, %, W"
+                value={entry.unit ?? ''}
+                onChange={e => onUpdate({ unit: e.target.value || undefined })} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            <div>
+              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Text für AN / true / 1</label>
+              <input className={iCls} style={iSty} placeholder="AN"
+                value={entry.trueLabel ?? ''}
+                onChange={e => onUpdate({ trueLabel: e.target.value || undefined })} />
+            </div>
+            <div>
+              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Text für AUS / false / 0</label>
+              <input className={iCls} style={iSty} placeholder="AUS"
+                value={entry.falseLabel ?? ''}
+                onChange={e => onUpdate({ falseLabel: e.target.value || undefined })} />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main config panel ──────────────────────────────────────────────────────────
 
 interface Props {
@@ -186,8 +260,11 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
       const dp = discovered.get(id);
       return {
         id,
-        label: ex?.label ?? dp?.name,   // prefer existing custom label, fallback to discovered name
+        label: ex?.label ?? dp?.name,
         rooms: dp?.rooms ?? ex?.rooms,
+        unit: ex?.unit,
+        trueLabel: ex?.trueLabel,
+        falseLabel: ex?.falseLabel,
       };
     });
     setOpts({
@@ -204,6 +281,9 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
 
   const removeEntry = (id: string) =>
     setOpts({ entries: (opts.entries ?? []).filter(e => e.id !== id) });
+
+  const updateEntry = (id: string, patch: Partial<AutoListEntry>) =>
+    setOpts({ entries: (opts.entries ?? []).map(e => e.id === id ? { ...e, ...patch } : e) });
 
   const addManual = () => {
     const id = manualId.trim();
@@ -297,22 +377,18 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
 
       {/* ── Current entries ── */}
       <div>
-        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-          Aktuelle Einträge {(opts.entries ?? []).length > 0 && `(${opts.entries.length})`}
+        <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
+          Datenpunkte {(opts.entries ?? []).length > 0 && `(${opts.entries.length})`}
         </label>
         {(opts.entries ?? []).length > 0 && (
-          <div className="space-y-0.5 max-h-40 overflow-y-auto mb-1.5">
+          <div className="space-y-1 max-h-72 overflow-y-auto mb-1.5">
             {opts.entries.map(e => (
-              <div key={e.id} className="flex items-center gap-1.5 px-2 py-1 rounded"
-                style={{ background: 'var(--app-bg)' }}>
-                <span className="flex-1 text-[10px] truncate font-mono" style={{ color: 'var(--text-primary)' }}>
-                  {e.label || e.id.split('.').pop() || e.id}
-                </span>
-                <button onClick={() => removeEntry(e.id)} className="shrink-0 hover:opacity-70"
-                  style={{ color: 'var(--text-secondary)' }}>
-                  <X size={11} />
-                </button>
-              </div>
+              <EntryConfigRow
+                key={e.id}
+                entry={e}
+                onUpdate={patch => updateEntry(e.id, patch)}
+                onRemove={() => removeEntry(e.id)}
+              />
             ))}
           </div>
         )}
