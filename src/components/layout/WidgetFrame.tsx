@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { LayoutGrid, X, Palette, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2 } from 'lucide-react';
+import { LayoutGrid, X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2 } from 'lucide-react';
 import type { WidgetConfig, WidgetLayout, WidgetCondition } from '../../types';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
@@ -330,6 +330,53 @@ function releasePanel(widgetId: string) {
   }
 }
 
+// ── Centered modal (edit / conditions) ───────────────────────────────────────
+
+function CenteredModal({
+  title,
+  onClose,
+  wide,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  wide?: boolean;
+  children: React.ReactNode;
+}) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-6"
+      style={{ background: 'rgba(0,0,0,0.45)' }}
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className={`relative flex flex-col rounded-xl shadow-2xl ${wide ? 'w-[640px]' : 'w-[480px]'} max-h-[85vh]`}
+        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-4 py-3 shrink-0"
+          style={{ borderBottom: '1px solid var(--app-border)' }}>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{title}</p>
+          <button onClick={onClose} className="hover:opacity-70 transition-opacity"
+            style={{ color: 'var(--text-secondary)' }}>
+            <X size={15} />
+          </button>
+        </div>
+        <div className="overflow-y-auto flex-1 p-4 space-y-2.5">
+          {children}
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface WidgetFrameProps {
@@ -415,7 +462,7 @@ function PortalDropdown({
 }
 
 export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: WidgetFrameProps) {
-  const [openPanel, setOpenPanel] = useState<'menu' | 'layout' | 'style' | 'edit' | 'conditions' | null>(null);
+  const [openPanel, setOpenPanel] = useState<'menu' | 'layout' | 'edit' | 'conditions' | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Stable reference: never create a new [] on every render (would cause infinite effect loop)
@@ -569,19 +616,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               </button>
             )}
 
-            {/* Stil */}
-            <button
-              onClick={() => { openPanelFor('style'); setConfirmDelete(false); }}
-              className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              <Palette size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-              Stil
-              {overrides && Object.keys(overrides).length > 0 && (
-                <span className="ml-auto text-[11px]" style={{ color: 'var(--accent)' }}>angepasst</span>
-              )}
-            </button>
-
             {/* Bedingungen */}
             <button
               onClick={() => { openPanelFor('conditions'); setConfirmDelete(false); }}
@@ -690,12 +724,52 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
         </PortalDropdown>
       )}
 
-      {/* Edit Dropdown Portal */}
-      {openPanel === 'edit' && menuBtnRef.current && (
-        <PortalDropdown anchorRef={menuBtnRef as React.RefObject<HTMLElement>} onClose={() => openPanelFor(null)}>
-          <div className={`p-3 ${config.type === 'calendar' ? 'w-80' : config.type === 'thermostat' ? 'w-72' : config.type === 'echart' ? 'w-[560px]' : config.type === 'evcc' ? 'w-80' : config.type === 'autolist' ? 'w-[600px]' : config.type === 'gauge' || config.type === 'weather' || config.type === 'camera' ? 'w-72' : 'w-64'}`} onMouseDown={(e) => e.stopPropagation()}>
-            <p className="text-xs font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Widget bearbeiten</p>
-            <div className="space-y-2.5">
+      {/* Edit Modal */}
+      {openPanel === 'edit' && (
+        <CenteredModal
+          title="Widget bearbeiten"
+          wide={config.type === 'echart' || config.type === 'autolist'}
+          onClose={() => openPanelFor(null)}
+        >
+          {/* ── Stil ── */}
+          <div>
+            <p className="text-[11px] font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>Stil</p>
+            <div className="space-y-2">
+              {STYLE_FIELDS.map(({ key, label, type }) => (
+                <div key={key} className="flex items-center gap-2">
+                  <label className="text-xs w-28 shrink-0" style={{ color: 'var(--text-secondary)' }}>{label}</label>
+                  {type === 'color' ? (
+                    <div className="flex gap-1 flex-1">
+                      <input type="color" value={overrides?.[key] ?? '#3b82f6'}
+                        onChange={(e) => onConfigChange({ ...config, options: { ...config.options, styleOverride: { ...overrides, [key]: e.target.value } } })}
+                        className="w-7 h-6 rounded cursor-pointer border-0 p-0 shrink-0" />
+                      <input type="text" value={overrides?.[key] ?? ''}
+                        onChange={(e) => { const val = e.target.value; const next = { ...overrides, [key]: val }; if (!val) delete next[key]; onConfigChange({ ...config, options: { ...config.options, styleOverride: Object.keys(next).length ? next : undefined } }); }}
+                        placeholder="auto"
+                        className="flex-1 text-xs rounded px-1.5 py-1 min-w-0 focus:outline-none"
+                        style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
+                    </div>
+                  ) : (
+                    <input type="text" value={overrides?.[key] ?? ''}
+                      onChange={(e) => { const val = e.target.value; const next = { ...overrides, [key]: val }; if (!val) delete next[key]; onConfigChange({ ...config, options: { ...config.options, styleOverride: Object.keys(next).length ? next : undefined } }); }}
+                      placeholder="auto"
+                      className="flex-1 text-xs rounded px-1.5 py-1 focus:outline-none"
+                      style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
+                  )}
+                </div>
+              ))}
+            </div>
+            {overrides && Object.keys(overrides).length > 0 && (
+              <button
+                onClick={() => { const { styleOverride: _, ...rest } = config.options ?? {}; onConfigChange({ ...config, options: rest }); }}
+                className="w-full mt-2 py-1.5 text-xs rounded-md hover:opacity-80"
+                style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                Zurücksetzen
+              </button>
+            )}
+          </div>
+          <div className="h-px" style={{ background: 'var(--app-border)' }} />
+          <div className="space-y-2.5">
               <div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Widget-Typ</label>
                 <select
@@ -1091,9 +1165,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   </>
                 );
               })()}
-            </div>
           </div>
-        </PortalDropdown>
+        </CenteredModal>
       )}
 
       {/* Datapoint Picker Modal */}
@@ -1111,58 +1184,16 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
         />
       )}
 
-      {/* Style Dropdown Portal */}
-      {openPanel === 'style' && menuBtnRef.current && (
-        <PortalDropdown anchorRef={menuBtnRef as React.RefObject<HTMLElement>} onClose={() => openPanelFor(null)}>
-          <div className="p-3 w-72" onMouseDown={(e) => e.stopPropagation()}>
-            <p className="text-xs font-semibold mb-2.5" style={{ color: 'var(--text-primary)' }}>Widget-Stil</p>
-            <div className="space-y-2">
-              {STYLE_FIELDS.map(({ key, label, type }) => (
-                <div key={key} className="flex items-center gap-2">
-                  <label className="text-xs w-24 shrink-0" style={{ color: 'var(--text-secondary)' }}>{label}</label>
-                  {type === 'color' ? (
-                    <div className="flex gap-1 flex-1">
-                      <input type="color" value={overrides?.[key] ?? '#3b82f6'}
-                        onChange={(e) => onConfigChange({ ...config, options: { ...config.options, styleOverride: { ...overrides, [key]: e.target.value } } })}
-                        className="w-7 h-6 rounded cursor-pointer border-0 p-0 shrink-0" />
-                      <input type="text" value={overrides?.[key] ?? ''}
-                        onChange={(e) => { const val = e.target.value; const next = { ...overrides, [key]: val }; if (!val) delete next[key]; onConfigChange({ ...config, options: { ...config.options, styleOverride: Object.keys(next).length ? next : undefined } }); }}
-                        placeholder="auto"
-                        className="flex-1 text-xs rounded px-1.5 py-1 min-w-0 focus:outline-none"
-                        style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
-                    </div>
-                  ) : (
-                    <input type="text" value={overrides?.[key] ?? ''}
-                      onChange={(e) => { const val = e.target.value; const next = { ...overrides, [key]: val }; if (!val) delete next[key]; onConfigChange({ ...config, options: { ...config.options, styleOverride: Object.keys(next).length ? next : undefined } }); }}
-                      placeholder="auto"
-                      className="flex-1 text-xs rounded px-1.5 py-1 focus:outline-none"
-                      style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
-                  )}
-                </div>
-              ))}
-            </div>
-            {overrides && Object.keys(overrides).length > 0 && (
-              <button
-                onClick={() => { const { styleOverride: _, ...rest } = config.options ?? {}; onConfigChange({ ...config, options: rest }); }}
-                className="w-full mt-3 py-1.5 text-xs rounded-md hover:opacity-80"
-                style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                Zurücksetzen
-              </button>
-            )}
-          </div>
-        </PortalDropdown>
-      )}
-
-      {/* Conditions Dropdown Portal */}
-      {openPanel === 'conditions' && menuBtnRef.current && (
-        <PortalDropdown anchorRef={menuBtnRef as React.RefObject<HTMLElement>} onClose={() => openPanelFor(null)}>
+      {/* Conditions Modal */}
+      {openPanel === 'conditions' && (
+        <CenteredModal title="Bedingungen" onClose={() => openPanelFor(null)}>
           <ConditionEditor
             conditions={conditions}
             onChange={(next) =>
               onConfigChange({ ...config, options: { ...config.options, conditions: next } })
             }
           />
-        </PortalDropdown>
+        </CenteredModal>
       )}
     </div>
   );
