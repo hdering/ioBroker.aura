@@ -170,7 +170,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
       });
 
     return (
-      <div ref={containerRef} className="flex-1 overflow-auto p-2">
+      <div ref={containerRef} className="flex-1 min-h-0 overflow-auto p-2">
         {/* Reflow-hidden widgets rendered off-screen */}
         <div style={{ position: 'fixed', top: -9999, left: -9999, width: 1, height: 1, overflow: 'hidden', pointerEvents: 'none', opacity: 0 }}>
           {widgets.filter((w) => reflowHiddenIds.has(w.id)).map((w) => (
@@ -200,7 +200,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
   }
 
   return (
-    <div ref={containerRef} className="flex-1 overflow-auto p-2 sm:p-4" style={editMode && rglWidth > containerWidth ? { overflowX: 'auto' } : undefined}>
+    <div ref={containerRef} className="flex-1 min-h-0 overflow-auto p-2 sm:p-4" style={editMode && rglWidth > containerWidth ? { overflowX: 'auto' } : undefined}>
       {rglWidth > 0 && (
         <>
           {/* Reflow-hidden widgets: rendered off-screen so conditions keep evaluating */}
