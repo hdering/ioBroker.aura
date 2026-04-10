@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
-import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Download } from 'lucide-react';
+import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Download, ArrowRightLeft } from 'lucide-react';
 import { exportWidget } from '../../utils/widgetExportImport';
+import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import type { WidgetConfig, WidgetCondition } from '../../types';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
@@ -458,6 +459,10 @@ function PortalDropdown({
 export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: WidgetFrameProps) {
   const [openPanel, setOpenPanel] = useState<'menu' | 'edit' | 'conditions' | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showMoveMenu, setShowMoveMenu] = useState(false);
+  const { addWidgetToTab } = useDashboardStore();
+  const { tabs, activeTabId } = useActiveLayout();
+  const otherTabs = tabs.filter((t) => t.id !== activeTabId);
 
   // Stable reference: never create a new [] on every render (would cause infinite effect loop)
   const conditions = (config.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
@@ -482,6 +487,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
   const openPanelFor = (panel: typeof openPanel) => {
     if (panel === null) {
       setOpenPanel(null);
+      setShowMoveMenu(false);
       releasePanel(config.id);
     } else {
       claimPanel(config.id, () => setOpenPanel(null));
@@ -585,7 +591,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
       {/* Options Menu Dropdown */}
       {openPanel === 'menu' && menuBtnRef.current && (
         <PortalDropdown anchorRef={menuBtnRef as React.RefObject<HTMLElement>} onClose={() => openPanelFor(null)}>
-          <div className="p-1 flex flex-col gap-0.5 min-w-[170px]" onMouseLeave={() => openPanelFor(null)}>
+          <div className="p-1 flex flex-col gap-0.5 min-w-[170px]">
             {/* Bearbeiten */}
             <button
               onClick={() => { openPanelFor('edit'); setConfirmDelete(false); }}
@@ -620,6 +626,39 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               <Download size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
               Exportieren
             </button>
+
+            {/* Verschieben */}
+            {otherTabs.length > 0 && (
+              <>
+                <button
+                  onClick={() => setShowMoveMenu((v) => !v)}
+                  className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  <ArrowRightLeft size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                  Verschieben
+                  <ChevronDown size={11} className="ml-auto transition-transform" style={{ color: 'var(--text-secondary)', transform: showMoveMenu ? 'rotate(180deg)' : 'none' }} />
+                </button>
+                {showMoveMenu && (
+                  <div className="mx-1 mb-0.5 rounded-md overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+                    {otherTabs.map((tab) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => {
+                          addWidgetToTab(tab.id, { ...config, gridPos: { ...config.gridPos, y: Infinity } });
+                          onRemove(config.id);
+                          openPanelFor(null);
+                        }}
+                        className="w-full text-left px-3 py-1.5 text-xs hover:opacity-80 transition-opacity"
+                        style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', display: 'block', borderBottom: '1px solid var(--app-border)' }}
+                      >
+                        {tab.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
 
             <div className="h-px my-0.5 mx-1" style={{ background: 'var(--app-border)' }} />
 
