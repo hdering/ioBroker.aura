@@ -81,7 +81,8 @@ export function AdminLayout() {
         <div className="px-5 py-5 border-b shrink-0 flex items-center justify-between" style={{ borderColor: 'var(--app-border)' }}>
           <div title="Adaptive Unified Room Automation">
             <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: 'var(--text-secondary)' }}>Aura</p>
-            <p className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Admin</p>
+            <p className="font-bold text-lg leading-none" style={{ color: 'var(--text-primary)' }}>Admin</p>
+            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>v{__APP_VERSION__}</p>
           </div>
           <button
             onClick={() => setAdminTheme(adminTheme.dark ? 'light' : 'dark')}
