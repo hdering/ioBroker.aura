@@ -44,7 +44,13 @@ function createSocket(url: string): IoBrokerSocket {
 
   s.on('connect', () => {
     connectionListeners.forEach((fn) => fn(true));
-    subscribers.forEach((_, id) => s.emit('subscribe', id));
+    // Re-subscribe and fetch current state for all active subscriptions
+    subscribers.forEach((callbacks, id) => {
+      s.emit('subscribe', id);
+      s.emit('getState', id, (_err: unknown, state: unknown) => {
+        if (state) callbacks.forEach((fn) => fn(state as ioBrokerState));
+      });
+    });
   });
   s.on('disconnect', () => connectionListeners.forEach((fn) => fn(false)));
   s.on('stateChange', (...args: unknown[]) => {

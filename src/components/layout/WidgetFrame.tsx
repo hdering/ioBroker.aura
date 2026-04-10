@@ -580,13 +580,29 @@ function WeatherConfigSection({ o, set }: WeatherConfigSectionProps) {
   );
 }
 
-function formatLastChange(lc: number): string {
-  const d = new Date(lc);
-  const now = new Date();
-  const isToday = d.toDateString() === now.toDateString();
-  const time = d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-  if (isToday) return time;
-  return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}. ${time}`;
+function formatLastChange(ts: number): string {
+  const diffSec = Math.round((Date.now() - ts) / 1000);
+
+  if (diffSec < 10)  return 'vor weniger als 10 Sek. aktualisiert';
+  if (diffSec < 20)  return 'vor weniger als 20 Sek. aktualisiert';
+  if (diffSec < 30)  return 'vor weniger als 30 Sek. aktualisiert';
+  if (diffSec < 45)  return 'vor einer halben Minute';
+  if (diffSec < 90)  return 'vor weniger als 1 Minute';
+
+  const diffMin = Math.round(diffSec / 60);
+  if (diffMin < 45)  return `vor ${diffMin === 1 ? 'einer' : `etwa ${diffMin}`} Minute${diffMin === 1 ? '' : 'n'}`;
+
+  const diffHour = Math.round(diffSec / 3_600);
+  if (diffHour < 24) return `vor ${diffHour === 1 ? 'etwa einer' : `etwa ${diffHour}`} Stunde${diffHour === 1 ? '' : 'n'}`;
+
+  const diffDay = Math.round(diffSec / 86_400);
+  if (diffDay < 30)  return `vor ${diffDay === 1 ? 'etwa einem' : diffDay} Tag${diffDay === 1 ? '' : 'en'}`;
+
+  const diffMonth = Math.round(diffDay / 30);
+  if (diffMonth < 12) return `vor ${diffMonth === 1 ? 'etwa einem' : diffMonth} Monat${diffMonth === 1 ? '' : 'en'}`;
+
+  const diffYear = Math.round(diffDay / 365);
+  return `vor ${diffYear === 1 ? 'etwa einem' : diffYear} Jahr${diffYear === 1 ? '' : 'en'}`;
 }
 
 export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: WidgetFrameProps) {
@@ -642,21 +658,27 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
   const showLastChange = !!(config.options?.showLastChange);
   const lastChangePos  = (config.options?.lastChangePosition as string | undefined) ?? 'left';
   const [lastChangedTs, setLastChangedTs] = useState<number>(0);
+  const [, forceRedraw] = useState(0);
 
   useEffect(() => {
     const id = config.datapoint;
     if (!id) return;
 
-    // Fetch initial value immediately (no hook dependency on "connected")
     getStateDirect(id).then((s) => {
       if (s) setLastChangedTs(s.lc > 0 ? s.lc : s.ts);
     });
 
-    // Subscribe to live updates
     return subscribeStateDirect(id, (s) => {
       setLastChangedTs(s.lc > 0 ? s.lc : s.ts);
     });
   }, [config.datapoint]);
+
+  // Periodically redraw the relative-time string
+  useEffect(() => {
+    if (!showLastChange || lastChangedTs === 0) return;
+    const iv = setInterval(() => forceRedraw((n) => n + 1), 10_000);
+    return () => clearInterval(iv);
+  }, [showLastChange, lastChangedTs]);
 
   const cssOverride = Object.fromEntries(
     Object.entries({
