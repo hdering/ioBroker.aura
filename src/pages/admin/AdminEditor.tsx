@@ -470,15 +470,6 @@ export function AdminEditor() {
                       </button>
                     )}
                   </div>
-                  {/* Slug anzeigen (nur lesend) */}
-                  <span
-                    className="text-[9px] font-mono px-1 truncate max-w-[120px] cursor-pointer hover:opacity-70"
-                    style={{ color: 'var(--text-secondary)' }}
-                    title="Tab-Einstellungen öffnen"
-                    onClick={() => openTabSettings(tab.id)}
-                  >
-                    /tab/{tab.slug ?? tab.id}
-                  </span>
                 </div>
               )}
             </div>
