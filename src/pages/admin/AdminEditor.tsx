@@ -1,6 +1,8 @@
-import { useState, useMemo } from 'react';
-import { Plus, Trash2, Edit3, Check, Cpu, PenLine, Database, Wand2, Smartphone, GripVertical, Upload } from 'lucide-react';
+import { useState, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { Plus, Trash2, Edit3, Check, Cpu, PenLine, Database, Wand2, Smartphone, GripVertical, Upload, Settings, X } from 'lucide-react';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
+import { ICON_PICKER_ENTRIES, WIDGET_ICON_MAP } from '../../utils/widgetIconMap';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { useGroupStore } from '../../store/groupStore';
 import { Dashboard } from '../../components/layout/Dashboard';
@@ -338,7 +340,7 @@ function MobileOrderPanel({ layoutId, tabId }: { layoutId: string; tabId: string
 }
 
 export function AdminEditor() {
-  const { layouts, activeLayoutId, setActiveLayout, addWidget, addTab, setActiveTab, renameTab, removeTab, setTabSlug } = useDashboardStore();
+  const { layouts, activeLayoutId, setActiveLayout, addWidget, addTab, setActiveTab, renameTab, removeTab, setTabSlug, updateTab } = useDashboardStore();
   const activeLayout = layouts.find((l) => l.id === activeLayoutId) ?? layouts[0];
   const tabs = activeLayout.tabs;
   const activeTabId = activeLayout.activeTabId;
@@ -351,6 +353,19 @@ export function AdminEditor() {
   const [renamingValue, setRenamingValue] = useState('');
   const [slugEditId, setSlugEditId] = useState<string | null>(null);
   const [slugEditValue, setSlugEditValue] = useState('');
+  const [settingsTabId, setSettingsTabId] = useState<string | null>(null);
+  const [panelPos, setPanelPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const settingsBtnRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  const openTabSettings = (tabId: string) => {
+    const btn = settingsBtnRefs.current.get(tabId);
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    setPanelPos({ top: rect.bottom + 6, left: rect.left });
+    setSettingsTabId((prev) => (prev === tabId ? null : tabId));
+  };
+
+  const settingsTab = tabs.find((t) => t.id === settingsTabId);
 
   return (
     <div className="flex flex-col h-screen">
@@ -430,9 +445,21 @@ export function AdminEditor() {
                 <div className="flex flex-col gap-0.5">
                   <div className="flex items-center gap-1 rounded-lg px-2 py-1"
                     style={{ background: isActive ? 'var(--accent)22' : 'var(--app-surface)', border: `1px solid ${isActive ? 'var(--accent)' : 'var(--app-border)'}` }}>
+                    {/* Tab icon */}
+                    {tab.icon && WIDGET_ICON_MAP[tab.icon] && (() => {
+                      const TabIcon = WIDGET_ICON_MAP[tab.icon!];
+                      return <TabIcon size={11} style={{ color: isActive ? 'var(--accent)' : 'var(--text-secondary)', flexShrink: 0 }} />;
+                    })()}
                     <button onClick={() => setActiveTab(tab.id)}
                       className="text-xs font-medium" style={{ color: isActive ? 'var(--accent)' : 'var(--text-secondary)' }}>
-                      {tab.name}
+                      {!tab.hideLabel ? tab.name : (tab.icon ? '' : tab.name)}
+                    </button>
+                    <button
+                      ref={(el) => { if (el) settingsBtnRefs.current.set(tab.id, el); else settingsBtnRefs.current.delete(tab.id); }}
+                      onClick={() => openTabSettings(tab.id)}
+                      className="p-0.5 rounded hover:opacity-70"
+                      style={{ color: settingsTabId === tab.id ? 'var(--accent)' : 'var(--text-secondary)' }}>
+                      <Settings size={11} />
                     </button>
                     <button onClick={() => { setRenamingId(tab.id); setRenamingValue(tab.name); }}
                       className="p-0.5 rounded hover:opacity-70" style={{ color: 'var(--text-secondary)' }}>
@@ -509,13 +536,83 @@ export function AdminEditor() {
           tabs={tabs}
           onAdd={(widget, tabId) => {
             if (tabId && tabId !== activeTabId) {
-              // Switch to that tab first, then add
               useDashboardStore.getState().setActiveTab(tabId);
             }
             addWidget(widget);
           }}
           onClose={() => setShowImport(false)}
         />
+      )}
+
+      {/* Tab settings portal */}
+      {settingsTabId && settingsTab && createPortal(
+        <>
+          <div className="fixed inset-0 z-[998]" onClick={() => setSettingsTabId(null)} />
+          <div
+            className="fixed z-[999] rounded-xl shadow-2xl p-3 space-y-3 w-64"
+            style={{ top: panelPos.top, left: panelPos.left, background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Tab-Einstellungen</span>
+              <button onClick={() => setSettingsTabId(null)} className="w-5 h-5 flex items-center justify-center rounded hover:opacity-70">
+                <X size={12} style={{ color: 'var(--text-secondary)' }} />
+              </button>
+            </div>
+            {/* Name */}
+            <div>
+              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Name</label>
+              <input
+                type="text"
+                value={settingsTab.name}
+                onChange={(e) => updateTab(settingsTabId, { name: e.target.value })}
+                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+              />
+            </div>
+            {/* Hide label */}
+            <div className="flex items-center justify-between">
+              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Beschriftung ausblenden</label>
+              <button
+                onClick={() => updateTab(settingsTabId, { hideLabel: !settingsTab.hideLabel })}
+                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                style={{ background: settingsTab.hideLabel ? 'var(--accent)' : 'var(--app-border)' }}
+              >
+                <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                  style={{ left: settingsTab.hideLabel ? '18px' : '2px' }} />
+              </button>
+            </div>
+            {/* Icon picker */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon</label>
+                {settingsTab.icon && (
+                  <button onClick={() => updateTab(settingsTabId, { icon: undefined })}
+                    className="text-[10px] hover:opacity-70" style={{ color: 'var(--text-secondary)' }}>
+                    Entfernen
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {ICON_PICKER_ENTRIES.map(([name, Icon]) => {
+                  const selected = settingsTab.icon === name;
+                  return (
+                    <button key={name} title={name}
+                      onClick={() => updateTab(settingsTabId, { icon: selected ? undefined : name })}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
+                      style={{
+                        background: selected ? 'var(--accent)' : 'var(--app-bg)',
+                        color:      selected ? '#fff' : 'var(--text-secondary)',
+                        border:     `1px solid ${selected ? 'var(--accent)' : 'var(--app-border)'}`,
+                      }}>
+                      <Icon size={13} />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </>,
+        document.body,
       )}
     </div>
   );
