@@ -45,6 +45,7 @@ function makeChild(type: WidgetType, existing: WidgetConfig[]): WidgetConfig {
 
 export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const children = (config.options?.children as WidgetConfig[] | undefined) ?? [];
+  const transparent = !!(config.options?.transparent);
   const cellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);
   const [showTypePicker, setShowTypePicker] = useState(false);
 
@@ -81,7 +82,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
       {config.title && (
         <div
           className="shrink-0 px-3 py-1.5 text-xs font-semibold truncate"
-          style={{ color: 'var(--text-secondary)', borderBottom: '1px solid var(--widget-border)' }}
+          style={{ color: 'var(--text-secondary)', borderBottom: transparent ? 'none' : '1px solid var(--widget-border)' }}
         >
           {config.title}
         </div>
@@ -133,7 +134,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
       {/* Add-widget bar (edit mode only) */}
       {editMode && (
-        <div className="nodrag shrink-0 px-2 pb-2 pt-1" style={{ borderTop: '1px solid var(--widget-border)' }}>
+        <div className="nodrag shrink-0 px-2 pb-2 pt-1" style={{ borderTop: transparent ? 'none' : '1px solid var(--widget-border)' }}>
           {showTypePicker ? (
             <div className="flex flex-wrap items-center gap-1">
               {CHILD_TYPES.map(({ type, label }) => (

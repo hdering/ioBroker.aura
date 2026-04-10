@@ -524,13 +524,15 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
 
   const isHeader = config.type === 'header';
   const isGroup  = config.type === 'group';
+  const isTransparentGroup = isGroup && !!(config.options?.transparent);
 
   return (
     <div
-      style={isHeader ? {
+      style={isHeader || isTransparentGroup ? {
         background: 'transparent',
         borderRadius: 0,
         boxShadow: 'none',
+        backdropFilter: 'none',
         borderWidth: 0,
         ...cssOverride,
         // non-reflow hide: keep space but invisible
@@ -936,17 +938,45 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                 const range      = max - min;
                 const gCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
                 const gSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                const dynamicMax = !!(o.dynamicMax);
                 return (
                   <>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Bogenbreite</label>
+                      <input type="number" min={1} max={30} value={(o.strokeWidth as number) ?? 12}
+                        onChange={(e) => set({ strokeWidth: Number(e.target.value) })} className={gCls} style={gSty} />
+                    </div>
                     <div className="flex gap-2">
                       <div className="flex-1">
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Min</label>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Min (statisch)</label>
                         <input type="number" value={min} onChange={(e) => set({ minValue: Number(e.target.value) })} className={gCls} style={gSty} />
                       </div>
                       <div className="flex-1">
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Max</label>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Max (statisch)</label>
                         <input type="number" value={max} onChange={(e) => set({ maxValue: Number(e.target.value) })} className={gCls} style={gSty} />
                       </div>
+                    </div>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Min-Datenpunkt (dynamisch)</label>
+                      <input type="text" value={(o.minDatapoint as string) ?? ''} onChange={(e) => set({ minDatapoint: e.target.value || undefined })}
+                        placeholder="z.B. javascript.0.minWert" className={gCls} style={gSty} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Max-Datenpunkt (dynamisch)</label>
+                      <input type="text" value={(o.maxDatapoint as string) ?? ''} onChange={(e) => set({ maxDatapoint: e.target.value || undefined })}
+                        placeholder="z.B. javascript.0.maxWert" className={gCls} style={gSty} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>Dynamisches Maximum</label>
+                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Max automatisch auf aktuellen Wert ausweiten</p>
+                      </div>
+                      <button onClick={() => set({ dynamicMax: !dynamicMax })}
+                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                        style={{ background: dynamicMax ? 'var(--accent)' : 'var(--app-border)' }}>
+                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                          style={{ left: dynamicMax ? '18px' : '2px' }} />
+                      </button>
                     </div>
                     <div>
                       <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Einheit</label>
@@ -989,6 +1019,30 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                       </button>
                     </div>
                   </>
+                );
+              })()}
+
+              {/* ── Group config ── */}
+              {config.type === 'group' && (() => {
+                const o   = config.options ?? {};
+                const set = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const transparent = !!(o.transparent);
+                return (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>Transparenz-Modus</label>
+                      <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        Hintergrund, Rahmen und Schatten entfernen
+                      </p>
+                    </div>
+                    <button onClick={() => set({ transparent: !transparent })}
+                      className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                      style={{ background: transparent ? 'var(--accent)' : 'var(--app-border)' }}>
+                      <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                        style={{ left: transparent ? '18px' : '2px' }} />
+                    </button>
+                  </div>
                 );
               })()}
 

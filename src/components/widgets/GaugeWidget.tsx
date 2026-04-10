@@ -14,6 +14,7 @@ function describeArc(cx: number, cy: number, r: number, startAngle: number, endA
 }
 
 function valueToAngle(value: number, min: number, max: number): number {
+  if (max <= min) return -180;
   const clamped = Math.max(min, Math.min(max, value));
   return -180 + ((clamped - min) / (max - min)) * 180;
 }
@@ -24,6 +25,7 @@ interface GaugeSVGProps {
   max: number;
   unit: string;
   decimals: number;
+  strokeWidth: number;
   colorZones: boolean;
   greenMax: number;
   yellowMax: number;
@@ -32,10 +34,9 @@ interface GaugeSVGProps {
 }
 
 function GaugeSVG({
-  value, min, max, unit, decimals, colorZones, greenMax, yellowMax, showMinMax, scale = 1,
+  value, min, max, unit, decimals, strokeWidth, colorZones, greenMax, yellowMax, showMinMax, scale = 1,
 }: GaugeSVGProps) {
   const cx = 100, cy = 100, r = 80;
-  const strokeW = 12;
 
   const greenAngle  = valueToAngle(greenMax,  min, max);
   const yellowAngle = valueToAngle(yellowMax, min, max);
@@ -44,9 +45,9 @@ function GaugeSVG({
   // Determine needle/value color
   let valueColor = 'var(--accent)';
   if (colorZones) {
-    if (value <= greenMax)  valueColor = '#10b981';
+    if (value <= greenMax)       valueColor = '#10b981';
     else if (value <= yellowMax) valueColor = '#f59e0b';
-    else valueColor = '#ef4444';
+    else                         valueColor = '#ef4444';
   }
 
   // Needle endpoint
@@ -69,18 +70,18 @@ function GaugeSVG({
         d={describeArc(cx, cy, r, -180, 0)}
         fill="none"
         stroke="var(--app-border)"
-        strokeWidth={strokeW}
+        strokeWidth={strokeWidth}
         strokeLinecap="round"
       />
 
       {/* Color zone arcs */}
       {colorZones ? (
         <>
-          <path d={describeArc(cx, cy, r, -180, greenAngle)}  fill="none" stroke="#10b981" strokeWidth={strokeW} strokeLinecap="round" />
-          <path d={describeArc(cx, cy, r, greenAngle, yellowAngle)} fill="none" stroke="#f59e0b" strokeWidth={strokeW} strokeLinecap="round" />
-          <path d={describeArc(cx, cy, r, yellowAngle, 0)}    fill="none" stroke="#ef4444" strokeWidth={strokeW} strokeLinecap="round" />
+          <path d={describeArc(cx, cy, r, -180, greenAngle)}          fill="none" stroke="#10b981" strokeWidth={strokeWidth} strokeLinecap="round" />
+          <path d={describeArc(cx, cy, r, greenAngle, yellowAngle)}   fill="none" stroke="#f59e0b" strokeWidth={strokeWidth} strokeLinecap="round" />
+          <path d={describeArc(cx, cy, r, yellowAngle, 0)}            fill="none" stroke="#ef4444" strokeWidth={strokeWidth} strokeLinecap="round" />
           {/* Value overlay */}
-          <path d={describeArc(cx, cy, r, -180, valAngle)} fill="none" stroke={valueColor} strokeWidth={strokeW + 2} strokeLinecap="round" opacity="0.4" />
+          <path d={describeArc(cx, cy, r, -180, valAngle)} fill="none" stroke={valueColor} strokeWidth={strokeWidth + 2} strokeLinecap="round" opacity="0.4" />
         </>
       ) : (
         /* Single value arc */
@@ -88,17 +89,15 @@ function GaugeSVG({
           d={describeArc(cx, cy, r, -180, valAngle)}
           fill="none"
           stroke="var(--accent)"
-          strokeWidth={strokeW}
+          strokeWidth={strokeWidth}
           strokeLinecap="round"
         />
       )}
 
       {/* Needle */}
       <line
-        x1={cx}
-        y1={cy}
-        x2={needle.x}
-        y2={needle.y}
+        x1={cx} y1={cy}
+        x2={needle.x} y2={needle.y}
         stroke={valueColor}
         strokeWidth={2.5}
         strokeLinecap="round"
@@ -107,14 +106,7 @@ function GaugeSVG({
       <circle cx={cx} cy={cy} r={5} fill={valueColor} />
 
       {/* Value text */}
-      <text
-        x={cx}
-        y={cy + 18}
-        textAnchor="middle"
-        fontSize={22}
-        fontWeight="bold"
-        fill="var(--text-primary)"
-      >
+      <text x={cx} y={cy + 18} textAnchor="middle" fontSize={22} fontWeight="bold" fill="var(--text-primary)">
         {displayVal}{unit && <tspan fontSize={13} fill="var(--text-secondary)" dx={2}>{unit}</tspan>}
       </text>
 
@@ -134,25 +126,51 @@ function GaugeSVG({
 }
 
 export function GaugeWidget({ config }: WidgetProps) {
-  const { value } = useDatapoint(config.datapoint);
-  const opts      = config.options ?? {};
-  const layout    = config.layout ?? 'default';
+  const { value }    = useDatapoint(config.datapoint);
+  const opts         = config.options ?? {};
+  const layout       = config.layout ?? 'default';
 
-  const min        = (opts.minValue    as number)  ?? 0;
-  const max        = (opts.maxValue    as number)  ?? 100;
-  const unit       = (opts.unit        as string)  ?? '';
-  const decimals   = (opts.decimals    as number)  ?? 1;
-  const colorZones = (opts.colorZones  as boolean) ?? false;
-  const range      = max - min;
-  const greenMax   = (opts.greenMax    as number)  ?? min + range * 0.33;
-  const yellowMax  = (opts.yellowMax   as number)  ?? min + range * 0.66;
-  const showMinMax = (opts.showMinMax  as boolean) ?? true;
+  // Dynamic min/max: optional datapoint IDs
+  const minDp        = (opts.minDatapoint as string) ?? '';
+  const maxDp        = (opts.maxDatapoint as string) ?? '';
+  const { value: minDpVal } = useDatapoint(minDp);
+  const { value: maxDpVal } = useDatapoint(maxDp);
+
+  const staticMin    = (opts.minValue    as number) ?? 0;
+  const staticMax    = (opts.maxValue    as number) ?? 100;
+
+  // Resolve min/max: datapoint overrides static value if set and valid
+  const resolvedMin  = minDp && minDpVal !== undefined && minDpVal !== null
+    ? parseFloat(String(minDpVal)) : staticMin;
+  const resolvedMax  = maxDp && maxDpVal !== undefined && maxDpVal !== null
+    ? parseFloat(String(maxDpVal)) : staticMax;
+
+  // Dynamic max: automatically expand to current value if it exceeds resolvedMax
+  const unit         = (opts.unit        as string)  ?? '';
+  const decimals     = (opts.decimals    as number)  ?? 1;
+  const strokeWidth  = (opts.strokeWidth as number)  ?? 12;
+  const colorZones   = (opts.colorZones  as boolean) ?? false;
+  const showMinMax   = (opts.showMinMax  as boolean) ?? true;
 
   const numVal = typeof value === 'number' ? value : parseFloat(String(value ?? 0));
+  const safeVal = isNaN(numVal) ? resolvedMin : numVal;
+
+  // If dynamicMax is on, expand max to fit the current value
+  const dynamicMaxEnabled = !!(opts.dynamicMax);
+  const effectiveMax = dynamicMaxEnabled
+    ? Math.max(resolvedMax, safeVal)
+    : resolvedMax;
+  const effectiveMin = resolvedMin;
+
+  const range      = effectiveMax - effectiveMin;
+  const greenMax   = (opts.greenMax  as number) ?? effectiveMin + range * 0.33;
+  const yellowMax  = (opts.yellowMax as number) ?? effectiveMin + range * 0.66;
 
   const gaugeProps: GaugeSVGProps = {
-    value: isNaN(numVal) ? min : numVal,
-    min, max, unit, decimals, colorZones, greenMax, yellowMax, showMinMax,
+    value: safeVal,
+    min: effectiveMin,
+    max: effectiveMax,
+    unit, decimals, strokeWidth, colorZones, greenMax, yellowMax, showMinMax,
   };
 
   // ---------- MINIMAL ----------
