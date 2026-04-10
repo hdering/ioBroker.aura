@@ -1,6 +1,6 @@
 {
   "name": "iobroker.aura",
-  "version": "0.3.27",
+  "version": "0.3.28",
   "description": "Modern visualization dashboard for ioBroker",
   "main": "lib/main.js",
   "license": "MIT",

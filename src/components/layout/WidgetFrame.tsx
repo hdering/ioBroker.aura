@@ -6,6 +6,7 @@ import { exportWidget } from '../../utils/widgetExportImport';
 import { ICON_PICKER_ENTRIES } from '../../utils/widgetIconMap';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import type { WidgetConfig, WidgetCondition } from '../../types';
+import { useDatapoint } from '../../hooks/useDatapoint';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
 import { getObjectDirect } from '../../hooks/useIoBroker';
@@ -580,6 +581,15 @@ function WeatherConfigSection({ o, set }: WeatherConfigSectionProps) {
   );
 }
 
+function formatLastChange(lc: number): string {
+  const d = new Date(lc);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const time = d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  if (isToday) return time;
+  return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}. ${time}`;
+}
+
 export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: WidgetFrameProps) {
   const [openPanel, setOpenPanel] = useState<'menu' | 'edit' | 'conditions' | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -628,6 +638,11 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
   const Widget = getWidgetMap()[config.type];
   const currentLayout = config.layout ?? 'default';
   const overrides = config.options?.styleOverride as Record<string, string> | undefined;
+
+  // Last-change timestamp overlay
+  const { state: dpState } = useDatapoint(config.datapoint ?? '');
+  const showLastChange = !!(config.options?.showLastChange);
+  const lastChangePos  = (config.options?.lastChangePosition as string | undefined) ?? 'left';
 
   const cssOverride = Object.fromEntries(
     Object.entries({
@@ -722,6 +737,25 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
         editMode={editMode}
         onConfigChange={onConfigChange}
       />
+
+      {/* Last-change timestamp overlay */}
+      {!editMode && showLastChange && dpState?.lc && (() => {
+        const text = formatLastChange(dpState.lc);
+        const posStyle: React.CSSProperties =
+          lastChangePos === 'center'
+            ? { position: 'absolute', bottom: 6, left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap' }
+            : lastChangePos === 'right'
+              ? { position: 'absolute', bottom: 6, right: 8 }
+              : { position: 'absolute', bottom: 6, left: 8 };
+        return (
+          <div
+            className="nodrag pointer-events-none text-[9px] opacity-50"
+            style={{ ...posStyle, color: 'var(--text-secondary)' }}
+          >
+            {text}
+          </div>
+        );
+      })()}
 
       {/* Options Menu Dropdown */}
       {openPanel === 'menu' && menuBtnRef.current && (
@@ -873,6 +907,40 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   style={{ left: config.options?.hideTitle ? '18px' : '2px' }} />
               </button>
             </div>
+            <div className="flex items-center justify-between">
+              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Letzte Änderung anzeigen</label>
+              <button
+                onClick={() => onConfigChange({ ...config, options: { ...(config.options ?? {}), showLastChange: !showLastChange } })}
+                className="relative w-9 h-5 rounded-full transition-colors"
+                style={{ background: showLastChange ? 'var(--accent)' : 'var(--app-border)' }}
+              >
+                <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                  style={{ left: showLastChange ? '18px' : '2px' }} />
+              </button>
+            </div>
+            {showLastChange && (
+              <div className="flex items-center gap-2">
+                <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>Position</label>
+                <div className="flex gap-1">
+                  {(['left', 'center', 'right'] as const).map((p) => {
+                    const labels: Record<string, string> = { left: 'Links', center: 'Mitte', right: 'Rechts' };
+                    const active = lastChangePos === p;
+                    return (
+                      <button key={p}
+                        onClick={() => onConfigChange({ ...config, options: { ...(config.options ?? {}), lastChangePosition: p } })}
+                        className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                        style={{
+                          background: active ? 'var(--accent)' : 'var(--app-bg)',
+                          color:      active ? '#fff' : 'var(--text-secondary)',
+                          border:     `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                        }}>
+                        {labels[p]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="h-px" style={{ background: 'var(--app-border)' }} />
