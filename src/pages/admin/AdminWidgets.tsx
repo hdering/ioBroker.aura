@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import {
   ChevronDown, ChevronRight, Copy, Trash2, Pencil,
   Plus, Database, X, Check, Search, RotateCcw,
+  ArrowRightLeft, Download, Upload,
 } from 'lucide-react';
 import { useDashboardStore, useActiveLayout, type Tab } from '../../store/dashboardStore';
 import { useGroupStore, type DatapointGroup, type GroupDatapoint } from '../../store/groupStore';
@@ -40,6 +41,17 @@ const inputStyle: React.CSSProperties = {
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
 interface WidgetEntry { config: WidgetConfig; tab: Tab }
+
+function exportWidget(config: WidgetConfig) {
+  const json = JSON.stringify(config, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `aura-widget-${config.type}-${(config.title || config.id).replace(/[^a-z0-9]/gi, '_')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 // ── Inline edit form ──────────────────────────────────────────────────────────
 
@@ -316,12 +328,14 @@ function WidgetRow({
   onUpdate,
   onDelete,
   onCopy,
+  onMove,
 }: {
   entry: WidgetEntry;
   tabs: Tab[];
   onUpdate: (config: WidgetConfig) => void;
   onDelete: () => void;
   onCopy: (targetTabId: string) => void;
+  onMove: (targetTabId: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -390,22 +404,32 @@ function WidgetRow({
             {editing ? 'Schließen' : 'Bearbeiten'}
           </button>
 
-          {/* Copy */}
+          {/* Export */}
+          <button
+            onClick={() => exportWidget(entry.config)}
+            className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+            style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+            title="Exportieren"
+          >
+            <Download size={13} />
+          </button>
+
+          {/* Copy / Move */}
           <div className="relative">
             <button
               onClick={() => { setShowCopy(!showCopy); setConfirmDelete(false); }}
               className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
               style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-              title="Kopieren"
+              title="Kopieren / Verschieben"
             >
               <Copy size={13} />
             </button>
             {showCopy && (
               <div
-                className="absolute right-0 top-full mt-1 rounded-lg shadow-xl z-20 p-2 space-y-1.5 min-w-[180px]"
+                className="absolute right-0 top-full mt-1 rounded-lg shadow-xl z-20 p-2 space-y-1.5 min-w-[190px]"
                 style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
               >
-                <p className="text-[11px] font-medium px-1" style={{ color: 'var(--text-secondary)' }}>Kopieren nach Tab:</p>
+                <p className="text-[11px] font-medium px-1" style={{ color: 'var(--text-secondary)' }}>Ziel-Tab:</p>
                 <select
                   value={copyTarget}
                   onChange={(e) => setCopyTarget(e.target.value)}
@@ -414,13 +438,22 @@ function WidgetRow({
                 >
                   {tabs.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
-                <button
-                  onClick={() => { onCopy(copyTarget); setShowCopy(false); }}
-                  className="w-full py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-80"
-                  style={{ background: 'var(--accent)' }}
-                >
-                  Kopieren
-                </button>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    onClick={() => { onCopy(copyTarget); setShowCopy(false); }}
+                    className="flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-80"
+                    style={{ background: 'var(--accent)' }}
+                  >
+                    <Copy size={11} /> Kopieren
+                  </button>
+                  <button
+                    onClick={() => { onMove(copyTarget); setShowCopy(false); }}
+                    className="flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-80"
+                    style={{ background: '#8b5cf6' }}
+                  >
+                    <ArrowRightLeft size={11} /> Verschieben
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -474,6 +507,7 @@ function TypeSection({
   onUpdate,
   onDelete,
   onCopy,
+  onMove,
   defaultOpen,
 }: {
   type: WidgetType;
@@ -482,6 +516,7 @@ function TypeSection({
   onUpdate: (tabId: string, widgetId: string, config: WidgetConfig) => void;
   onDelete: (tabId: string, widgetId: string) => void;
   onCopy: (entry: WidgetEntry, targetTabId: string) => void;
+  onMove: (entry: WidgetEntry, targetTabId: string) => void;
   defaultOpen: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -522,6 +557,7 @@ function TypeSection({
               onUpdate={(config) => onUpdate(entry.tab.id, entry.config.id, config)}
               onDelete={() => onDelete(entry.tab.id, entry.config.id)}
               onCopy={(targetTabId) => onCopy(entry, targetTabId)}
+              onMove={(targetTabId) => onMove(entry, targetTabId)}
             />
           ))}
           {entries.length === 0 && (
@@ -935,6 +971,177 @@ function GroupEditor({ group }: { group: DatapointGroup }) {
   );
 }
 
+// ── Import Widget Dialog ──────────────────────────────────────────────────────
+
+function ImportWidgetDialog({
+  tabs,
+  onAdd,
+  onClose,
+}: {
+  tabs: Tab[];
+  onAdd: (tabId: string, widget: WidgetConfig) => void;
+  onClose: () => void;
+}) {
+  const [jsonText, setJsonText] = useState('');
+  const [parsed, setParsed] = useState<WidgetConfig | null>(null);
+  const [parseError, setParseError] = useState('');
+  const [targetTabId, setTargetTabId] = useState(tabs[0]?.id ?? '');
+  const [datapoint, setDatapoint] = useState('');
+  const [showPicker, setShowPicker] = useState(false);
+
+  const tryParse = (text: string) => {
+    setJsonText(text);
+    try {
+      const obj = JSON.parse(text);
+      if (!obj.type || typeof obj.type !== 'string') throw new Error('Kein gültiges Widget (Feld "type" fehlt)');
+      setParsed(obj as WidgetConfig);
+      setDatapoint(obj.datapoint ?? '');
+      setParseError('');
+    } catch (e) {
+      setParsed(null);
+      setParseError((e as Error).message);
+    }
+  };
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => tryParse(ev.target?.result as string);
+    reader.readAsText(file);
+  };
+
+  const handleAdd = () => {
+    if (!parsed || !targetTabId) return;
+    onAdd(targetTabId, {
+      ...parsed,
+      id: `${parsed.type}-${Date.now()}`,
+      datapoint: datapoint.trim(),
+      gridPos: { ...parsed.gridPos, x: 0, y: Infinity },
+    });
+    onClose();
+  };
+
+  const meta = parsed ? WIDGET_BY_TYPE[parsed.type as WidgetType] : null;
+  const needsDatapoint = meta?.addMode === 'datapoint';
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div
+        className="rounded-xl w-full max-w-md shadow-2xl p-6 space-y-4"
+        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Widget importieren</h2>
+          <button onClick={onClose} className="hover:opacity-60" style={{ color: 'var(--text-secondary)' }}>
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* File upload */}
+        <div>
+          <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>JSON-Datei laden</label>
+          <input type="file" accept=".json,application/json" onChange={handleFile}
+            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+            style={inputStyle} />
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px" style={{ background: 'var(--app-border)' }} />
+          <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>oder</span>
+          <div className="flex-1 h-px" style={{ background: 'var(--app-border)' }} />
+        </div>
+
+        {/* Paste JSON */}
+        <div>
+          <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>JSON einfügen</label>
+          <textarea value={jsonText} onChange={(e) => tryParse(e.target.value)}
+            rows={5} placeholder={'{\n  "type": "value",\n  "title": "Temperatur",\n  ...\n}'}
+            className="w-full text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none resize-none"
+            style={inputStyle} />
+          {parseError && jsonText.length > 0 && (
+            <p className="text-[10px] mt-1" style={{ color: 'var(--accent-red)' }}>{parseError}</p>
+          )}
+        </div>
+
+        {parsed && (
+          <>
+            {/* Parsed widget info */}
+            <div className="flex items-center gap-2 rounded-lg px-3 py-2.5"
+              style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
+              {meta && (
+                <span className="w-6 h-6 rounded flex items-center justify-center shrink-0"
+                  style={{ background: meta.color + '22', color: meta.color }}>
+                  <meta.Icon size={13} />
+                </span>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+                  {meta?.label ?? parsed.type} — {parsed.title || <em>Kein Titel</em>}
+                </p>
+                <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                  {parsed.gridPos.w}×{parsed.gridPos.h} · {parsed.layout ?? 'default'}
+                </p>
+              </div>
+            </div>
+
+            {/* Datapoint override */}
+            {needsDatapoint && (
+              <div>
+                <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
+                  Datenpunkt-ID <span style={{ color: 'var(--accent-red)' }}>*</span>
+                </label>
+                <div className="flex gap-1.5">
+                  <input value={datapoint} onChange={(e) => setDatapoint(e.target.value)}
+                    placeholder="z.B. hm-rpc.0.ABC123.STATE"
+                    className="flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0"
+                    style={inputStyle} />
+                  <button onClick={() => setShowPicker(true)}
+                    className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                    style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                    <Database size={13} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Target tab */}
+            <div>
+              <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Ziel-Tab</label>
+              <select value={targetTabId} onChange={(e) => setTargetTabId(e.target.value)}
+                className={inputCls} style={inputStyle}>
+                {tabs.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-1">
+              <button onClick={onClose}
+                className="px-4 py-2 text-sm rounded-lg hover:opacity-80"
+                style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                Abbrechen
+              </button>
+              <button onClick={handleAdd} disabled={needsDatapoint && !datapoint.trim()}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-80 disabled:opacity-30"
+                style={{ background: 'var(--accent)' }}>
+                <Upload size={13} /> Importieren
+              </button>
+            </div>
+          </>
+        )}
+
+        {showPicker && (
+          <DatapointPicker
+            currentValue={datapoint}
+            onSelect={(id) => setDatapoint(id)}
+            onClose={() => setShowPicker(false)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Default Sizes Dialog ──────────────────────────────────────────────────────
 
 function DefaultSizesDialog({ onClose }: { onClose: () => void }) {
@@ -1165,6 +1372,7 @@ export function AdminWidgets() {
   const tabs = useActiveLayout().tabs;
   const [showCreate, setShowCreate] = useState(false);
   const [showSizes, setShowSizes] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [search, setSearch] = useState('');
 
   // Flatten all widgets with their tab
@@ -1206,6 +1414,15 @@ export function AdminWidgets() {
     });
   };
 
+  const handleMove = (entry: WidgetEntry, targetTabId: string) => {
+    if (targetTabId === entry.tab.id) return;
+    addWidgetToTab(targetTabId, {
+      ...entry.config,
+      gridPos: { ...entry.config.gridPos, y: Infinity },
+    });
+    removeWidgetInTab(entry.tab.id, entry.config.id);
+  };
+
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       {/* Header */}
@@ -1223,6 +1440,13 @@ export function AdminWidgets() {
             style={{ background: 'var(--app-surface)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
           >
             <RotateCcw size={15} /> Standard-Größen
+          </button>
+          <button
+            onClick={() => setShowImport(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl hover:opacity-80"
+            style={{ background: 'var(--app-surface)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+          >
+            <Upload size={15} /> Importieren
           </button>
           <button
             onClick={() => setShowCreate(true)}
@@ -1287,6 +1511,7 @@ export function AdminWidgets() {
               onUpdate={(tabId, widgetId, config) => updateWidgetInTab(tabId, widgetId, config)}
               onDelete={(tabId, widgetId) => removeWidgetInTab(tabId, widgetId)}
               onCopy={handleCopy}
+              onMove={handleMove}
               defaultOpen={i === 0}
             />
           ))}
@@ -1306,6 +1531,14 @@ export function AdminWidgets() {
           tabs={tabs}
           onAdd={(tabId, widget) => addWidgetToTab(tabId, widget)}
           onClose={() => setShowCreate(false)}
+        />
+      )}
+
+      {showImport && (
+        <ImportWidgetDialog
+          tabs={tabs}
+          onAdd={(tabId, widget) => addWidgetToTab(tabId, widget)}
+          onClose={() => setShowImport(false)}
         />
       )}
 
