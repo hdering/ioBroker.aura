@@ -8,12 +8,8 @@ import { TabWizard } from '../../components/config/TabWizard';
 import { WidgetPreview } from '../../components/config/WidgetPreview';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
 import type { WidgetConfig, WidgetType, WidgetLayout } from '../../types';
-import { WIDGET_REGISTRY, WIDGET_BY_TYPE } from '../../widgetRegistry';
-
-// Derived from central registry – add new widgets only in widgetRegistry.tsx
-const WIDGET_TYPES = WIDGET_REGISTRY.map(({ type, label, defaultW, defaultH }) => ({
-  type, label, defaultW, defaultH,
-}));
+import { WIDGET_REGISTRY, WIDGET_BY_TYPE, getEffectiveSize } from '../../widgetRegistry';
+import { useConfigStore } from '../../store/configStore';
 
 const LAYOUTS: { id: WidgetLayout; label: string }[] = [
   { id: 'default', label: 'Standard' },
@@ -27,6 +23,7 @@ const CALENDAR_LAYOUTS: { id: WidgetLayout; label: string }[] = [
 ];
 
 function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => void; onClose: () => void }) {
+  const widgetDefaults = useConfigStore((s) => s.widgetDefaults);
   const [type, setType] = useState<WidgetType>('value');
   const [layout, setLayout] = useState<WidgetLayout>('default');
   const [title, setTitle] = useState('');
@@ -39,7 +36,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
   const [calColor, setCalColor] = useState('#3b82f6');
   const { groups } = useGroupStore();
 
-  const def = WIDGET_TYPES.find((w) => w.type === type)!;
+  const def = WIDGET_REGISTRY.find((w) => w.type === type)!;
   const addMode = WIDGET_BY_TYPE[type].addMode;
   const isList = addMode === 'group';
   const isCalendar = type === 'calendar';
@@ -62,7 +59,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
       layout,
       title: title || (isList && selectedGroup ? selectedGroup.name : def.label),
       datapoint: noDatapointNeeded ? '' : isList ? groupId : datapoint.trim(),
-      gridPos: { x: 0, y: Infinity, w: def.defaultW, h: def.defaultH },
+      gridPos: { x: 0, y: Infinity, ...getEffectiveSize(type, widgetDefaults) },
       options: isCalendar
         ? {
             calendars: [{ id: Date.now().toString(), url: icalUrl.trim(), name: calName.trim() || 'Kalender', color: calColor, showName: true }],
@@ -98,7 +95,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
               <select value={type} onChange={(e) => { setType(e.target.value as WidgetType); setGroupId(''); setDatapoint(''); }}
                 className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
                 style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
-                {WIDGET_TYPES.map((w) => <option key={w.type} value={w.type}>{w.label}</option>)}
+                {WIDGET_REGISTRY.map((w) => <option key={w.type} value={w.type}>{w.label}</option>)}
               </select>
             </div>
 

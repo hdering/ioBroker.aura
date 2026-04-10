@@ -178,3 +178,16 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
 export const WIDGET_BY_TYPE = Object.fromEntries(
   WIDGET_REGISTRY.map((m) => [m.type, m]),
 ) as Record<WidgetType, WidgetMeta>;
+
+/**
+ * Returns the effective default size for a widget type.
+ * Checks user overrides first, falls back to registry defaults.
+ */
+export function getEffectiveSize(
+  type: string,
+  overrides: Record<string, { w: number; h: number }>,
+): { w: number; h: number } {
+  if (overrides[type]) return overrides[type];
+  const meta = WIDGET_BY_TYPE[type as WidgetType];
+  return meta ? { w: meta.defaultW, h: meta.defaultH } : { w: 2, h: 2 };
+}

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import {
   ChevronDown, ChevronRight, Copy, Trash2, Pencil,
-  Plus, Database, X, Check, Search,
+  Plus, Database, X, Check, Search, RotateCcw,
 } from 'lucide-react';
 import { useDashboardStore, useActiveLayout, type Tab } from '../../store/dashboardStore';
 import { useGroupStore, type DatapointGroup, type GroupDatapoint } from '../../store/groupStore';
@@ -9,7 +9,8 @@ import { useIoBrokerDevices } from '../../hooks/useIoBrokerDevices';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
 import { WidgetPreview } from '../../components/config/WidgetPreview';
 import type { WidgetConfig, WidgetType, WidgetLayout } from '../../types';
-import { WIDGET_REGISTRY, WIDGET_BY_TYPE } from '../../widgetRegistry';
+import { WIDGET_REGISTRY, WIDGET_BY_TYPE, getEffectiveSize } from '../../widgetRegistry';
+import { useConfigStore } from '../../store/configStore';
 
 // ── Meta (derived from central registry) ─────────────────────────────────────
 
@@ -536,11 +537,6 @@ function TypeSection({
 
 // ── New Widget Dialog ─────────────────────────────────────────────────────────
 
-// Derived from central registry – no manual maintenance needed
-const WIDGET_DEFS = WIDGET_REGISTRY.map(({ type, label, defaultW, defaultH }) => ({
-  type, label, defaultW, defaultH,
-}));
-
 function NewWidgetDialog({
   tabs,
   onAdd,
@@ -551,6 +547,7 @@ function NewWidgetDialog({
   onClose: () => void;
 }) {
   const { groups } = useGroupStore();
+  const widgetDefaults = useConfigStore((s) => s.widgetDefaults);
   const [type, setType] = useState<WidgetType>('value');
   const [layout, setLayout] = useState<WidgetLayout>('default');
   const [title, setTitle] = useState('');
@@ -560,7 +557,7 @@ function NewWidgetDialog({
   const [targetTabId, setTargetTabId] = useState(tabs[0]?.id ?? '');
   const [showPicker, setShowPicker] = useState(false);
 
-  const def = WIDGET_DEFS.find((w) => w.type === type)!;
+  const def = WIDGET_REGISTRY.find((w) => w.type === type)!;
   const addMode = WIDGET_BY_TYPE[type].addMode;
   const isCalendar = type === 'calendar';
   const isList = addMode === 'group';
@@ -579,7 +576,7 @@ function NewWidgetDialog({
       layout,
       title: title || (isList && selectedGroup ? selectedGroup.name : def.label),
       datapoint: noDatapoint ? '' : isList ? groupId : datapoint.trim(),
-      gridPos: { x: 0, y: Infinity, w: def.defaultW, h: def.defaultH },
+      gridPos: { x: 0, y: Infinity, ...getEffectiveSize(type, widgetDefaults) },
       options: unit ? { unit } : {},
     });
     onClose();
@@ -612,7 +609,7 @@ function NewWidgetDialog({
             <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>Typ</label>
             <select value={type} onChange={(e) => { setType(e.target.value as WidgetType); setDatapoint(''); setGroupId(''); }}
               className={inputCls} style={inputStyle}>
-              {WIDGET_DEFS.map((w) => <option key={w.type} value={w.type}>{w.label}</option>)}
+              {WIDGET_REGISTRY.map((w) => <option key={w.type} value={w.type}>{w.label}</option>)}
             </select>
           </div>
           <div>
@@ -938,6 +935,88 @@ function GroupEditor({ group }: { group: DatapointGroup }) {
   );
 }
 
+// ── Default Sizes Section ─────────────────────────────────────────────────────
+
+function DefaultSizesSection() {
+  const { widgetDefaults, setWidgetDefault, resetWidgetDefault } = useConfigStore();
+  const [open, setOpen] = useState(true);
+
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:opacity-80 transition-opacity"
+        style={{ background: 'var(--app-surface)' }}
+      >
+        <span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+          style={{ background: '#8b5cf622', color: '#8b5cf6' }}>
+          <RotateCcw size={15} />
+        </span>
+        <span className="font-semibold text-sm flex-1" style={{ color: 'var(--text-primary)' }}>
+          Standard-Größen
+        </span>
+        <span style={{ color: 'var(--text-secondary)' }}>
+          {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        </span>
+      </button>
+
+      {open && (
+        <div className="p-4" style={{ background: 'var(--app-bg)' }}>
+          <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
+            Lege die Standard-Größe (Breite × Höhe in Grid-Einheiten) für jeden Widget-Typ fest.
+            Wird beim Erstellen eines neuen Widgets verwendet.
+          </p>
+          <div className="space-y-2">
+            {WIDGET_REGISTRY.map((meta) => {
+              const override = widgetDefaults[meta.type];
+              const w = override?.w ?? meta.defaultW;
+              const h = override?.h ?? meta.defaultH;
+              const isOverridden = !!override;
+              return (
+                <div key={meta.type}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5"
+                  style={{ background: 'var(--app-surface)', border: `1px solid ${isOverridden ? meta.color + '44' : 'var(--app-border)'}` }}
+                >
+                  <span className="w-6 h-6 rounded flex items-center justify-center shrink-0"
+                    style={{ background: meta.color + '22', color: meta.color }}>
+                    <meta.Icon size={13} />
+                  </span>
+                  <span className="flex-1 text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                    {meta.label}
+                  </span>
+                  <span className="text-[10px] mr-1 shrink-0" style={{ color: 'var(--text-secondary)' }}>B</span>
+                  <input
+                    type="number" min={1} max={20} value={w}
+                    onChange={(e) => setWidgetDefault(meta.type, Number(e.target.value) || 1, h)}
+                    className="w-12 text-center text-xs rounded-lg px-1 py-1 focus:outline-none"
+                    style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                  />
+                  <span className="text-[10px] mx-1 shrink-0" style={{ color: 'var(--text-secondary)' }}>H</span>
+                  <input
+                    type="number" min={1} max={20} value={h}
+                    onChange={(e) => setWidgetDefault(meta.type, w, Number(e.target.value) || 1)}
+                    className="w-12 text-center text-xs rounded-lg px-1 py-1 focus:outline-none"
+                    style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                  />
+                  <button
+                    onClick={() => resetWidgetDefault(meta.type)}
+                    disabled={!isOverridden}
+                    title="Auf Standard zurücksetzen"
+                    className="ml-1 hover:opacity-70 disabled:opacity-20 shrink-0"
+                    style={{ color: 'var(--accent-red)' }}
+                  >
+                    <RotateCcw size={13} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Groups Section ────────────────────────────────────────────────────────────
 
 function GroupsSection() {
@@ -1198,6 +1277,9 @@ export function AdminWidgets() {
           ))}
         </div>
       )}
+
+      {/* Default sizes section */}
+      <DefaultSizesSection />
 
       {/* Groups section */}
       <div>
