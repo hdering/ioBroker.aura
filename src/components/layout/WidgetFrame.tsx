@@ -904,6 +904,25 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                 </select>
               </div>
 
+              {/* Layout-Auswahl (alle Typen außer header, der seinen eigenen Stil-Selector hat) */}
+              {config.type !== 'header' && (
+                <div>
+                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Layout</label>
+                  <select
+                    value={config.layout ?? 'default'}
+                    onChange={(e) => onConfigChange({ ...config, layout: e.target.value as WidgetConfig['layout'] })}
+                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                    style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                  >
+                    <option value="default">Standard</option>
+                    <option value="card">Karte</option>
+                    <option value="compact">Kompakt</option>
+                    <option value="minimal">Minimal</option>
+                    {config.type === 'calendar' && <option value="agenda">Agenda</option>}
+                  </select>
+                </div>
+              )}
+
               {/* Header-spezifische Felder */}
               {config.type === 'header' && (() => {
                 const o = config.options ?? {};
