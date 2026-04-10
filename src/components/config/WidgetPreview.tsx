@@ -332,8 +332,8 @@ function MockContent({ type, layout, title }: { type: WidgetType; layout: Widget
   );
 }
 
-export function WidgetPreview({ type, layout = 'default', title }: WidgetPreviewProps) {
-  const SCALE = 0.62;
+export function WidgetPreview({ type, layout = 'default', title, scale: scaleProp }: WidgetPreviewProps & { scale?: number }) {
+  const SCALE = scaleProp ?? 0.62;
   const INNER_W = 200;
   const INNER_H = 140;
 

@@ -908,26 +908,41 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               </div>
 
               {/* Layout-Auswahl mit Live-Vorschau */}
-              {config.type !== 'header' && (
-                <div className="flex items-end gap-2">
-                  <div className="flex-1 min-w-0">
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Layout</label>
-                    <select
-                      value={config.layout ?? 'default'}
-                      onChange={(e) => onConfigChange({ ...config, layout: e.target.value as WidgetConfig['layout'] })}
-                      className="w-full text-[11px] rounded-lg px-2 py-1.5 focus:outline-none"
-                      style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
-                    >
-                      <option value="default">Standard</option>
-                      <option value="card">Karte</option>
-                      <option value="compact">Kompakt</option>
-                      <option value="minimal">Minimal</option>
-                      {config.type === 'calendar' && <option value="agenda">Agenda</option>}
-                    </select>
+              {config.type !== 'header' && (() => {
+                const activeLayout = config.layout ?? 'default';
+                const layouts: { value: string; label: string }[] = [
+                  { value: 'default',  label: 'Standard' },
+                  { value: 'card',     label: 'Karte' },
+                  { value: 'compact',  label: 'Kompakt' },
+                  { value: 'minimal',  label: 'Minimal' },
+                  ...(config.type === 'calendar' ? [{ value: 'agenda', label: 'Agenda' }] : []),
+                ];
+                return (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <label className="text-[11px] shrink-0 mr-0.5" style={{ color: 'var(--text-secondary)' }}>Layout</label>
+                      {layouts.map(({ value, label }) => {
+                        const active = activeLayout === value;
+                        return (
+                          <button
+                            key={value}
+                            onClick={() => onConfigChange({ ...config, layout: value as WidgetConfig['layout'] })}
+                            className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                            style={{
+                              background: active ? 'var(--accent)' : 'var(--app-bg)',
+                              color:      active ? '#fff' : 'var(--text-secondary)',
+                              border:     `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                            }}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <WidgetPreview type={config.type} layout={config.layout} title={config.title} scale={1.1} />
                   </div>
-                  <WidgetPreview type={config.type} layout={config.layout} title={config.title} />
-                </div>
-              )}
+                );
+              })()}
 
               {/* Header-spezifische Felder */}
               {config.type === 'header' && (() => {
