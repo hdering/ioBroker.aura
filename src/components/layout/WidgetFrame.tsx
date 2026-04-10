@@ -528,6 +528,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
         background: 'var(--widget-bg)',
         borderRadius: 'var(--widget-radius)',
         boxShadow: 'var(--widget-shadow)',
+        backdropFilter: 'var(--widget-backdrop)',
         borderWidth: 'var(--widget-border-width)',
         borderStyle: 'solid',
         borderColor: 'var(--widget-border)',

@@ -9,6 +9,7 @@ export interface ThemeVars {
   '--widget-border-width': string;
   '--widget-radius': string;
   '--widget-shadow': string;
+  '--widget-backdrop': string;  // backdrop-filter for glassmorphism; 'none' for all other themes
   // Text
   '--text-primary': string;
   '--text-secondary': string;
@@ -40,6 +41,7 @@ export const THEMES: Theme[] = [
       '--widget-border-width': '1px',
       '--widget-radius': '0.75rem',
       '--widget-shadow': 'none',
+      '--widget-backdrop': 'none',
       '--text-primary': '#ffffff',
       '--text-secondary': '#9ca3af',
       '--accent': '#3b82f6',
@@ -61,6 +63,7 @@ export const THEMES: Theme[] = [
       '--widget-border-width': '1px',
       '--widget-radius': '0.75rem',
       '--widget-shadow': '0 1px 3px rgba(0,0,0,0.08)',
+      '--widget-backdrop': 'none',
       '--text-primary': '#111827',
       '--text-secondary': '#6b7280',
       '--accent': '#3b82f6',
@@ -82,6 +85,7 @@ export const THEMES: Theme[] = [
       '--widget-border-width': '0px',
       '--widget-radius': '1.25rem',
       '--widget-shadow': '0 2px 12px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.06)',
+      '--widget-backdrop': 'none',
       '--text-primary': '#1a1a2e',
       '--text-secondary': '#718096',
       '--accent': '#03a9f4',
@@ -103,6 +107,7 @@ export const THEMES: Theme[] = [
       '--widget-border-width': '1px',
       '--widget-radius': '0.5rem',
       '--widget-shadow': 'none',
+      '--widget-backdrop': 'none',
       '--text-primary': '#ffffff',
       '--text-secondary': '#555555',
       '--accent': '#00e5ff',
@@ -124,6 +129,7 @@ export const THEMES: Theme[] = [
       '--widget-border-width': '1px',
       '--widget-radius': '1rem',
       '--widget-shadow': '0 4px 24px rgba(0,0,0,0.4)',
+      '--widget-backdrop': 'none',
       '--text-primary': '#f1f5f9',
       '--text-secondary': '#94a3b8',
       '--accent': '#818cf8',
@@ -148,6 +154,7 @@ export const THEMES: Theme[] = [
       '--widget-border-width': '0px',
       '--widget-radius':       '0.75rem',   // MD3 medium shape = 12dp
       '--widget-shadow':       '0 1px 2px rgba(0,0,0,0.3), 0 1px 3px 1px rgba(0,0,0,0.15)', // elevation 1
+      '--widget-backdrop':     'none',
       '--text-primary':        '#1C1B1F',   // MD3 on-background
       '--text-secondary':      '#49454F',   // MD3 on-surface-variant
       '--accent':              '#6750A4',   // MD3 primary
@@ -169,12 +176,38 @@ export const THEMES: Theme[] = [
       '--widget-border-width': '0px',
       '--widget-radius':       '0.75rem',
       '--widget-shadow':       'none',      // MD3 dark: tonal elevation, no shadows
+      '--widget-backdrop':     'none',
       '--text-primary':        '#E6E1E5',   // MD3 on-background dark
       '--text-secondary':      '#CAC4D0',   // MD3 on-surface-variant dark
       '--accent':              '#D0BCFF',   // MD3 primary dark
       '--accent-green':        '#B6CCB0',   // MD3-aligned green dark
       '--accent-yellow':       '#F9C642',   // MD3-aligned amber dark
       '--accent-red':          '#F2B8B5',   // MD3 error dark
+    },
+  },
+  // ── Frosted Glass ─────────────────────────────────────────────────────────
+  // True glassmorphism: semi-transparent widget cards with backdrop-filter blur
+  // on a deep indigo gradient background.
+  {
+    id: 'frosted-glass',
+    name: 'Frosted Glass',
+    dark: true,
+    vars: {
+      '--app-bg':              'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+      '--app-surface':         'rgba(255,255,255,0.06)',
+      '--app-border':          'rgba(255,255,255,0.12)',
+      '--widget-bg':           'rgba(255,255,255,0.08)',
+      '--widget-border':       'rgba(255,255,255,0.18)',
+      '--widget-border-width': '1px',
+      '--widget-radius':       '1rem',
+      '--widget-shadow':       '0 8px 32px rgba(0,0,0,0.4)',
+      '--widget-backdrop':     'blur(16px) saturate(180%)',
+      '--text-primary':        '#f1f5f9',
+      '--text-secondary':      '#94a3b8',
+      '--accent':              '#818cf8',
+      '--accent-green':        '#34d399',
+      '--accent-yellow':       '#fbbf24',
+      '--accent-red':          '#f87171',
     },
   },
 ];
@@ -203,6 +236,7 @@ export const ADMIN_DARK_THEME: Theme = {
     '--widget-border-width':  '1px',
     '--widget-radius':        '0.75rem',
     '--widget-shadow':        '0 1px 6px rgba(0,0,0,0.4)',
+    '--widget-backdrop':      'none',
     '--text-primary':         '#dce8f6',   // soft blue-white, low glare
     '--text-secondary':       '#7a96b5',   // clearly visible, not washed out
     '--accent':               '#5aaeff',   // brighter accent for dark bg
