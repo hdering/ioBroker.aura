@@ -351,8 +351,6 @@ export function AdminEditor() {
   const [showMobileOrder, setShowMobileOrder] = useState(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renamingValue, setRenamingValue] = useState('');
-  const [slugEditId, setSlugEditId] = useState<string | null>(null);
-  const [slugEditValue, setSlugEditValue] = useState('');
   const [settingsTabId, setSettingsTabId] = useState<string | null>(null);
   const [panelPos, setPanelPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const settingsBtnRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -472,26 +470,15 @@ export function AdminEditor() {
                       </button>
                     )}
                   </div>
-                  {/* Slug display / edit */}
-                  {slugEditId === tab.id ? (
-                    <div className="flex items-center gap-1 px-1">
-                      <span className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>/tab/</span>
-                      <input autoFocus value={slugEditValue}
-                        onChange={(e) => setSlugEditValue(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                        onBlur={() => { if (slugEditValue.trim()) setTabSlug(tab.id, slugEditValue.trim()); setSlugEditId(null); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { if (slugEditValue.trim()) setTabSlug(tab.id, slugEditValue.trim()); setSlugEditId(null); } if (e.key === 'Escape') setSlugEditId(null); }}
-                        className="w-20 text-[9px] font-mono rounded px-1 py-0.5 focus:outline-none"
-                        style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--accent)' }} />
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => { setSlugEditId(tab.id); setSlugEditValue(tab.slug ?? tab.id); }}
-                      className="text-[9px] font-mono px-1 text-left hover:opacity-70 truncate max-w-[120px]"
-                      style={{ color: 'var(--text-secondary)' }}
-                      title="URL-Slug bearbeiten">
-                      /tab/{tab.slug ?? tab.id}
-                    </button>
-                  )}
+                  {/* Slug anzeigen (nur lesend) */}
+                  <span
+                    className="text-[9px] font-mono px-1 truncate max-w-[120px] cursor-pointer hover:opacity-70"
+                    style={{ color: 'var(--text-secondary)' }}
+                    title="Tab-Einstellungen öffnen"
+                    onClick={() => openTabSettings(tab.id)}
+                  >
+                    /tab/{tab.slug ?? tab.id}
+                  </span>
                 </div>
               )}
             </div>
@@ -568,6 +555,23 @@ export function AdminEditor() {
                 className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
                 style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
               />
+            </div>
+            {/* URL-Slug */}
+            <div>
+              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>URL-Slug</label>
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] font-mono shrink-0" style={{ color: 'var(--text-secondary)' }}>/tab/</span>
+                <input
+                  type="text"
+                  value={settingsTab.slug ?? settingsTab.id}
+                  onChange={(e) => {
+                    const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                    if (val) setTabSlug(settingsTabId, val);
+                  }}
+                  className="flex-1 text-xs font-mono rounded-lg px-2.5 py-2 focus:outline-none"
+                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                />
+              </div>
             </div>
             {/* Hide label */}
             <div className="flex items-center justify-between">
