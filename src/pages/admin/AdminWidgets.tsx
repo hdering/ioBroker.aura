@@ -650,7 +650,7 @@ function NewWidgetDialog({
       title: title || (isList && selectedGroup ? selectedGroup.name : def.label),
       datapoint: noDatapoint ? '' : isList ? groupId : datapoint.trim(),
       gridPos: { x: 0, y: Infinity, ...getEffectiveSize(type, widgetDefaults) },
-      options: unit ? { unit } : {},
+      options: { icon: def.iconName, ...(unit ? { unit } : {}) },
     });
     onClose();
   };

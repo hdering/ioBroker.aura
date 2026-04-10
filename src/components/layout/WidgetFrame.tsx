@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Download, ArrowRightLeft } from 'lucide-react';
 import { exportWidget } from '../../utils/widgetExportImport';
+import { ICON_PICKER_ENTRIES } from '../../utils/widgetIconMap';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import type { WidgetConfig, WidgetCondition } from '../../types';
 import { DatapointPicker } from '../config/DatapointPicker';
@@ -957,6 +958,31 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
                     style={{ left: config.options?.hideTitle ? '18px' : '2px' }} />
                 </button>
+              </div>
+
+              {/* ── Icon picker ── */}
+              <div>
+                <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Icon</label>
+                <div className="flex flex-wrap gap-1">
+                  {ICON_PICKER_ENTRIES.map(([name, Icon]) => {
+                    const selected = (config.options?.icon ?? '') === name;
+                    return (
+                      <button
+                        key={name}
+                        title={name}
+                        onClick={() => onConfigChange({ ...config, options: { ...(config.options ?? {}), icon: name } })}
+                        className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
+                        style={{
+                          background: selected ? 'var(--accent)' : 'var(--app-bg)',
+                          color:      selected ? '#fff' : 'var(--text-secondary)',
+                          border:     `1px solid ${selected ? 'var(--accent)' : 'var(--app-border)'}`,
+                        }}
+                      >
+                        <Icon size={13} />
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               {config.type === 'clock' && (() => {
                 const o = config.options ?? {};

@@ -2,12 +2,14 @@ import { Sun, SunDim } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 export function DimmerWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
   const { setState } = useIoBroker();
   const level = typeof value === 'number' ? Math.round(value) : 0;
   const layout = config.layout ?? 'default';
+  const CompactIcon = getWidgetIcon(config.options?.icon as string | undefined, SunDim);
 
   const slider = (
     <input type="range" min={0} max={100} value={level}
@@ -36,7 +38,7 @@ export function DimmerWidget({ config }: WidgetProps) {
   if (layout === 'compact') {
     return (
       <div className="flex items-center gap-3 h-full">
-        <SunDim size={16} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }} />
+        <CompactIcon size={16} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }} />
         <div className="flex-1 space-y-1">
           <div className="flex justify-between">
             <span className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>

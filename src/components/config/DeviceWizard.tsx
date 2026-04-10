@@ -70,6 +70,7 @@ export function DeviceWizard({ onAdd, onClose }: DeviceWizardProps) {
       datapoint: sel.state.id,
       gridPos: { x: (i * 2) % 12, y: Infinity, w: sel.widgetType === 'chart' ? 4 : 2, h: sel.widgetType === 'chart' ? 3 : 2 },
       options: {
+        icon: WIDGET_BY_TYPE[sel.widgetType].iconName,
         ...(sel.state.unit ? { unit: sel.state.unit } : {}),
         ...(sel.actualDatapoint ? { actualDatapoint: sel.actualDatapoint } : {}),
       },

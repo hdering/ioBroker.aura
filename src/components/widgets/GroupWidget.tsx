@@ -3,6 +3,7 @@ import ReactGridLayout from 'react-grid-layout';
 import { Plus, X } from 'lucide-react';
 import type { WidgetProps, WidgetConfig, WidgetType } from '../../types';
 import { useConfigStore } from '../../store/configStore';
+import { WIDGET_BY_TYPE } from '../../widgetRegistry';
 // WidgetFrame is imported here — circular dep is safe because GroupWidget only
 // uses WidgetFrame inside its render function, never at module-init time.
 import { WidgetFrame } from '../layout/WidgetFrame';
@@ -40,6 +41,7 @@ function makeChild(type: WidgetType, existing: WidgetConfig[]): WidgetConfig {
     title: 'Widget',
     datapoint: '',
     gridPos: { x: 0, y: maxY, w, h },
+    options: { icon: WIDGET_BY_TYPE[type]?.iconName },
   };
 }
 

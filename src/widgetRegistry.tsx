@@ -31,6 +31,8 @@ export interface WidgetMeta {
   shortLabel: string;
   /** Lucide icon component – render at any size */
   Icon: LucideIcon;
+  /** String name of Icon (used to store/restore icon from config.options.icon) */
+  iconName: string;
   /** Accent color for UI elements */
   color: string;
   /** Default grid width (columns) */
@@ -47,7 +49,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'switch',
     label: 'Schalter',      shortLabel: 'Schalter',
-    Icon: Zap,              color: '#22c55e',
+    Icon: Zap,              iconName: 'Zap',        color: '#22c55e',
     defaultW: 2,            defaultH: 2,
     addMode: 'datapoint',
     mock: { t: 'Wohnzimmer', v: 'AN' },
@@ -55,7 +57,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'value',
     label: 'Wert-Anzeige',  shortLabel: 'Wert',
-    Icon: TrendingUp,       color: '#3b82f6',
+    Icon: TrendingUp,       iconName: 'TrendingUp', color: '#3b82f6',
     defaultW: 3,            defaultH: 2,
     addMode: 'datapoint',
     mock: { t: 'Temperatur', v: '21.5', u: '°C' },
@@ -63,7 +65,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'dimmer',
     label: 'Dimmer',        shortLabel: 'Dimmer',
-    Icon: SlidersHorizontal, color: '#f59e0b',
+    Icon: SlidersHorizontal, iconName: 'SlidersHorizontal', color: '#f59e0b',
     defaultW: 3,            defaultH: 2,
     addMode: 'datapoint',
     mock: { t: 'Licht', v: '75', u: '%' },
@@ -71,7 +73,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'thermostat',
     label: 'Thermostat',    shortLabel: 'Thermostat',
-    Icon: Thermometer,      color: '#ef4444',
+    Icon: Thermometer,      iconName: 'Thermometer', color: '#ef4444',
     defaultW: 3,            defaultH: 3,
     addMode: 'datapoint',
     mock: { t: 'Heizung', v: '21.0', sub: 'Ist: 19.5°' },
@@ -79,7 +81,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'chart',
     label: 'Diagramm (einfach)', shortLabel: 'Diagramm',
-    Icon: BarChart2,        color: '#8b5cf6',
+    Icon: BarChart2,        iconName: 'BarChart2',  color: '#8b5cf6',
     defaultW: 4,            defaultH: 3,
     addMode: 'datapoint',
     mock: { t: 'Verbrauch', v: '245', u: 'W' },
@@ -87,7 +89,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'echart',
     label: 'Diagramm (erweitert (echarts))', shortLabel: 'EChart',
-    Icon: BarChart2,        color: '#10b981',
+    Icon: BarChart2,        iconName: 'BarChart2',  color: '#10b981',
     defaultW: 4,            defaultH: 3,
     addMode: 'datapoint',
     mock: { t: 'EChart', v: '' },
@@ -95,7 +97,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'gauge',
     label: 'Gauge',         shortLabel: 'Gauge',
-    Icon: Gauge,            color: '#f97316',
+    Icon: Gauge,            iconName: 'Gauge',      color: '#f97316',
     defaultW: 2,            defaultH: 3,
     addMode: 'datapoint',
     mock: { t: 'Gauge', v: '72', u: 'kW' },
@@ -103,7 +105,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'list',
     label: 'Gruppenliste',  shortLabel: 'Liste',
-    Icon: List,             color: '#06b6d4',
+    Icon: List,             iconName: 'List',       color: '#06b6d4',
     defaultW: 3,            defaultH: 4,
     addMode: 'group',
     mock: { t: 'Alle Geräte', v: '' },
@@ -111,7 +113,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'autolist',
     label: 'Auto-Liste',    shortLabel: 'Auto-Liste',
-    Icon: List,             color: '#14b8a6',
+    Icon: List,             iconName: 'List',       color: '#14b8a6',
     defaultW: 3,            defaultH: 5,
     addMode: 'free',
     mock: { t: 'Auto-Liste', v: '' },
@@ -119,7 +121,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'clock',
     label: 'Uhrzeit',       shortLabel: 'Uhr',
-    Icon: Clock,            color: '#ec4899',
+    Icon: Clock,            iconName: 'Clock',      color: '#ec4899',
     defaultW: 2,            defaultH: 2,
     addMode: 'free',
     mock: { t: 'Uhrzeit', v: '12:34' },
@@ -127,7 +129,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'calendar',
     label: 'Kalender',      shortLabel: 'Kalender',
-    Icon: CalendarDays,     color: '#f97316',
+    Icon: CalendarDays,     iconName: 'CalendarDays', color: '#f97316',
     defaultW: 4,            defaultH: 4,
     addMode: 'wizard-only',
     mock: { t: 'Kalender', v: '3' },
@@ -135,7 +137,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'weather',
     label: 'Wetter',        shortLabel: 'Wetter',
-    Icon: Cloud,            color: '#0ea5e9',
+    Icon: Cloud,            iconName: 'Cloud',      color: '#0ea5e9',
     defaultW: 3,            defaultH: 3,
     addMode: 'free',
     mock: { t: 'Wetter', v: '18°', sub: '⛅ Bewölkt' },
@@ -143,7 +145,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'evcc',
     label: 'evcc',          shortLabel: 'evcc',
-    Icon: Zap,              color: '#6366f1',
+    Icon: Zap,              iconName: 'Zap',        color: '#6366f1',
     defaultW: 4,            defaultH: 4,
     addMode: 'free',
     mock: { t: 'evcc', v: '' },
@@ -151,7 +153,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'camera',
     label: 'Kamera',        shortLabel: 'Kamera',
-    Icon: Camera,           color: '#6b7280',
+    Icon: Camera,           iconName: 'Camera',     color: '#6b7280',
     defaultW: 3,            defaultH: 3,
     addMode: 'free',
     mock: { t: 'Kamera', v: '' },
@@ -159,7 +161,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'header',
     label: 'Abschnittstitel', shortLabel: 'Abschnitt',
-    Icon: Heading2,         color: '#94a3b8',
+    Icon: Heading2,         iconName: 'Heading2',   color: '#94a3b8',
     defaultW: 12,           defaultH: 1,
     addMode: 'free',
     mock: { t: 'Abschnitt', v: '' },
@@ -167,7 +169,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   {
     type: 'group',
     label: 'Gruppe',        shortLabel: 'Gruppe',
-    Icon: Layers2,          color: '#a78bfa',
+    Icon: Layers2,          iconName: 'Layers2',    color: '#a78bfa',
     defaultW: 4,            defaultH: 4,
     addMode: 'free',
     mock: { t: 'Gruppe', v: '' },

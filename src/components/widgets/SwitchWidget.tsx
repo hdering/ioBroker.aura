@@ -3,6 +3,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
 import { contentPositionClass, titlePositionStyle, titleTextAlign } from '../../utils/widgetUtils';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 export function SwitchWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
@@ -10,6 +11,7 @@ export function SwitchWidget({ config }: WidgetProps) {
   const isOn = Boolean(value);
   const layout = config.layout ?? 'default';
   const toggle = () => setState(config.datapoint, !isOn);
+  const CompactIcon = getWidgetIcon(config.options?.icon as string | undefined, Power);
 
   // --- CARD: Vollflächige farbige Karte mit großem Icon ---
   if (layout === 'card') {
@@ -39,7 +41,7 @@ export function SwitchWidget({ config }: WidgetProps) {
   if (layout === 'compact') {
     return (
       <div className="flex items-center gap-3 h-full">
-        <Power size={18} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} />
+        <CompactIcon size={18} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} />
         <span className="flex-1 text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{config.title}</span>
         <button onClick={toggle}
           className="relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"

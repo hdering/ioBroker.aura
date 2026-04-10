@@ -2,11 +2,15 @@ import { Activity, TrendingUp, Hash } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 import { contentPositionClass, titlePositionStyle, titleTextAlign } from '../../utils/widgetUtils';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 export function ValueWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
-  const unit = config.options?.unit as string | undefined;
-  const layout = config.layout ?? 'default';
+  const unit      = config.options?.unit as string | undefined;
+  const layout    = config.layout ?? 'default';
+  const CardIcon    = getWidgetIcon(config.options?.icon as string | undefined, Activity);
+  const CompactIcon = getWidgetIcon(config.options?.icon as string | undefined, Hash);
+  const DefaultIcon = getWidgetIcon(config.options?.icon as string | undefined, TrendingUp);
 
   const displayValue = value === null ? '–'
     : typeof value === 'number' ? value.toLocaleString('de-DE')
@@ -19,7 +23,7 @@ export function ValueWidget({ config }: WidgetProps) {
         <div className="w-1 rounded-full self-stretch" style={{ background: 'var(--accent)' }} />
         <div className="flex flex-col justify-between flex-1">
           <div className="flex items-center gap-2">
-            <Activity size={14} style={{ color: 'var(--accent)' }} />
+            <CardIcon size={14} style={{ color: 'var(--accent)' }} />
             <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
           </div>
           <div>
@@ -36,7 +40,7 @@ export function ValueWidget({ config }: WidgetProps) {
     return (
       <div className="flex items-center justify-between h-full gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <Hash size={14} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+          <CompactIcon size={14} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
           <span className="text-sm truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>
         </div>
         <span className="text-xl font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>
@@ -66,7 +70,7 @@ export function ValueWidget({ config }: WidgetProps) {
   return (
     <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
       <div className="flex items-center gap-2" style={titleStyle}>
-        <TrendingUp size={14} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+        <DefaultIcon size={14} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
         <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{config.title}</p>
       </div>
       <div className="flex items-end gap-1.5">

@@ -61,22 +61,25 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
       title: title || (isList && selectedGroup ? selectedGroup.name : def.label),
       datapoint: noDatapointNeeded ? '' : isList ? groupId : datapoint.trim(),
       gridPos: { x: 0, y: Infinity, ...getEffectiveSize(type, widgetDefaults) },
-      options: isCalendar
-        ? {
-            calendars: [{ id: Date.now().toString(), url: icalUrl.trim(), name: calName.trim() || 'Kalender', color: calColor, showName: true }],
-            refreshInterval: 30, daysAhead: 14, maxEvents: 5,
-          }
-        : isEvcc
-          ? { evccPrefix: 'evcc.0', loadpointCount: 1, showBattery: true }
-          : isEchart
-            ? { echartSeries: [], echartShowLegend: true }
-            : isWeather
-              ? { latitude: 48.1, longitude: 11.6, locationName: '', refreshMinutes: 30, showForecast: true }
-              : isCamera
-                ? { streamUrl: '', refreshInterval: 5, fitMode: 'cover', showTitle: true }
-                : type === 'gauge'
-                  ? { minValue: 0, maxValue: 100, unit: '', decimals: 1, showMinMax: true, colorZones: false }
-                  : unit ? { unit } : {},
+      options: {
+        icon: def.iconName,
+        ...(isCalendar
+          ? {
+              calendars: [{ id: Date.now().toString(), url: icalUrl.trim(), name: calName.trim() || 'Kalender', color: calColor, showName: true }],
+              refreshInterval: 30, daysAhead: 14, maxEvents: 5,
+            }
+          : isEvcc
+            ? { evccPrefix: 'evcc.0', loadpointCount: 1, showBattery: true }
+            : isEchart
+              ? { echartSeries: [], echartShowLegend: true }
+              : isWeather
+                ? { latitude: 48.1, longitude: 11.6, locationName: '', refreshMinutes: 30, showForecast: true }
+                : isCamera
+                  ? { streamUrl: '', refreshInterval: 5, fitMode: 'cover', showTitle: true }
+                  : type === 'gauge'
+                    ? { minValue: 0, maxValue: 100, unit: '', decimals: 1, showMinMax: true, colorZones: false }
+                    : unit ? { unit } : {}),
+      },
     });
     onClose();
   };
