@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ChevronDown, ChevronRight, Copy, Trash2, Pencil,
   Plus, Database, X, Check, Search, RotateCcw,
@@ -334,6 +335,19 @@ function WidgetRow({
   const [showCopy, setShowCopy] = useState(false);
   const [copyTarget, setCopyTarget] = useState(tabs[0]?.id ?? '');
   const [draft, setDraft] = useState<WidgetConfig>(entry.config);
+  const copyBtnRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null);
+
+  useEffect(() => {
+    if (!showCopy) return;
+    const btn = copyBtnRef.current;
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    const onClose = () => setShowCopy(false);
+    window.addEventListener('click', onClose, { capture: true, once: true });
+    return () => window.removeEventListener('click', onClose, { capture: true });
+  }, [showCopy]);
 
   const handleSave = (c: WidgetConfig) => {
     setDraft(c);
@@ -407,48 +421,56 @@ function WidgetRow({
           </button>
 
           {/* Copy / Move */}
-          <div className="relative">
-            <button
-              onClick={() => { setShowCopy(!showCopy); setConfirmDelete(false); }}
-              className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
-              style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-              title="Kopieren / Verschieben"
+          <button
+            ref={copyBtnRef}
+            onClick={(e) => { e.stopPropagation(); setShowCopy((v) => !v); setConfirmDelete(false); }}
+            className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+            style={{ background: showCopy ? 'var(--accent)' : 'var(--app-surface)', color: showCopy ? '#fff' : 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+            title="Kopieren / Verschieben"
+          >
+            <Copy size={13} />
+          </button>
+          {showCopy && dropdownPos && createPortal(
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="rounded-lg shadow-2xl p-2 space-y-1.5 min-w-[200px]"
+              style={{
+                position: 'fixed',
+                top: dropdownPos.top,
+                right: dropdownPos.right,
+                zIndex: 9999,
+                background: 'var(--app-surface)',
+                border: '1px solid var(--app-border)',
+              }}
             >
-              <Copy size={13} />
-            </button>
-            {showCopy && (
-              <div
-                className="absolute right-0 top-full mt-1 rounded-lg shadow-xl z-20 p-2 space-y-1.5 min-w-[190px]"
-                style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+              <p className="text-[11px] font-medium px-1" style={{ color: 'var(--text-secondary)' }}>Ziel-Tab:</p>
+              <select
+                value={copyTarget}
+                onChange={(e) => setCopyTarget(e.target.value)}
+                className="w-full text-xs rounded px-2 py-1.5 focus:outline-none"
+                style={inputStyle}
               >
-                <p className="text-[11px] font-medium px-1" style={{ color: 'var(--text-secondary)' }}>Ziel-Tab:</p>
-                <select
-                  value={copyTarget}
-                  onChange={(e) => setCopyTarget(e.target.value)}
-                  className="w-full text-xs rounded px-2 py-1.5 focus:outline-none"
-                  style={inputStyle}
+                {tabs.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  onClick={() => { onCopy(copyTarget); setShowCopy(false); }}
+                  className="flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-80"
+                  style={{ background: 'var(--accent)' }}
                 >
-                  {tabs.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
-                <div className="grid grid-cols-2 gap-1.5">
-                  <button
-                    onClick={() => { onCopy(copyTarget); setShowCopy(false); }}
-                    className="flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-80"
-                    style={{ background: 'var(--accent)' }}
-                  >
-                    <Copy size={11} /> Kopieren
-                  </button>
-                  <button
-                    onClick={() => { onMove(copyTarget); setShowCopy(false); }}
-                    className="flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-80"
-                    style={{ background: '#8b5cf6' }}
-                  >
-                    <ArrowRightLeft size={11} /> Verschieben
-                  </button>
-                </div>
+                  <Copy size={11} /> Kopieren
+                </button>
+                <button
+                  onClick={() => { onMove(copyTarget); setShowCopy(false); }}
+                  className="flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-80"
+                  style={{ background: '#8b5cf6' }}
+                >
+                  <ArrowRightLeft size={11} /> Verschieben
+                </button>
               </div>
-            )}
-          </div>
+            </div>,
+            document.body,
+          )}
 
           {/* Delete */}
           {confirmDelete ? (
