@@ -9,7 +9,7 @@ import type { WidgetConfig, WidgetCondition } from '../../types';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
 import { getObjectDirect } from '../../hooks/useIoBroker';
-import { WIDGET_REGISTRY, WIDGET_BY_TYPE } from '../../widgetRegistry';
+import { WIDGET_REGISTRY } from '../../widgetRegistry';
 import { AutoListConfig } from '../config/AutoListConfig';
 import { WidgetPreview } from '../config/WidgetPreview';
 import { detectHistoryAdapters, RANGE_LABELS, type ChartTimeRange, type DetectedAdapter } from '../../hooks/useChartHistory';
@@ -891,20 +891,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
           </div>
           <div className="h-px" style={{ background: 'var(--app-border)' }} />
 
-          {/* ── Live preview ── */}
-          <div className="flex items-center gap-3 px-1">
-            <WidgetPreview type={config.type} layout={config.layout} title={config.title} />
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
-                {config.title || WIDGET_BY_TYPE[config.type]?.label}
-              </p>
-              <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                {WIDGET_BY_TYPE[config.type]?.label}
-                {config.layout && config.layout !== 'default' ? ` · ${config.layout}` : ''}
-              </p>
-            </div>
-          </div>
-
           <div className="h-px" style={{ background: 'var(--app-border)' }} />
           <div className="space-y-2.5">
               <div>
@@ -921,22 +907,25 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                 </select>
               </div>
 
-              {/* Layout-Auswahl (alle Typen außer header, der seinen eigenen Stil-Selector hat) */}
+              {/* Layout-Auswahl mit Live-Vorschau */}
               {config.type !== 'header' && (
-                <div>
-                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Layout</label>
-                  <select
-                    value={config.layout ?? 'default'}
-                    onChange={(e) => onConfigChange({ ...config, layout: e.target.value as WidgetConfig['layout'] })}
-                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                    style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
-                  >
-                    <option value="default">Standard</option>
-                    <option value="card">Karte</option>
-                    <option value="compact">Kompakt</option>
-                    <option value="minimal">Minimal</option>
-                    {config.type === 'calendar' && <option value="agenda">Agenda</option>}
-                  </select>
+                <div className="flex items-end gap-2">
+                  <div className="flex-1 min-w-0">
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Layout</label>
+                    <select
+                      value={config.layout ?? 'default'}
+                      onChange={(e) => onConfigChange({ ...config, layout: e.target.value as WidgetConfig['layout'] })}
+                      className="w-full text-[11px] rounded-lg px-2 py-1.5 focus:outline-none"
+                      style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                    >
+                      <option value="default">Standard</option>
+                      <option value="card">Karte</option>
+                      <option value="compact">Kompakt</option>
+                      <option value="minimal">Minimal</option>
+                      {config.type === 'calendar' && <option value="agenda">Agenda</option>}
+                    </select>
+                  </div>
+                  <WidgetPreview type={config.type} layout={config.layout} title={config.title} />
                 </div>
               )}
 
