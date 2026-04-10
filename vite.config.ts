@@ -2,8 +2,6 @@ import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import fs from 'fs';
 import path from 'path';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
 import http from 'http';
 import https from 'https';
 
@@ -135,9 +133,6 @@ const base = process.env.VITE_BASE ?? '/';
 
 export default defineConfig({
   base,
-  define: {
-    __APP_VERSION__: JSON.stringify(pkg.version),
-  },
   plugins: [react(), ioBrokerDevPlugin()],
   server: {
     host: '0.0.0.0',

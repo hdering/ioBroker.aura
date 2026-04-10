@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { version as appVersion } from '../../../package.json';
 import { PortalTargetContext } from '../../contexts/PortalTargetContext';
 import { Navigate, Outlet, NavLink } from 'react-router-dom';
 import { LayoutDashboard, Palette, Settings, LogOut, PenSquare, Save, Undo2, Layers, Layers2, Sun, Moon, ExternalLink } from 'lucide-react';
@@ -82,7 +83,7 @@ export function AdminLayout() {
           <div title="Adaptive Unified Room Automation">
             <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: 'var(--text-secondary)' }}>Aura</p>
             <p className="font-bold text-lg leading-none" style={{ color: 'var(--text-primary)' }}>Admin</p>
-            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>v{__APP_VERSION__}</p>
+            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>v{appVersion}</p>
           </div>
           <button
             onClick={() => setAdminTheme(adminTheme.dark ? 'light' : 'dark')}
