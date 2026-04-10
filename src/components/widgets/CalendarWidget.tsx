@@ -151,6 +151,29 @@ function isUpcoming(event: CalEvent, daysAhead: number): boolean {
   return end >= now && event.start <= cutoff;
 }
 
+/**
+ * Returns semantic flags and CSS class names for an event row.
+ *
+ * CSS hooks:
+ *   .aura-cal-event              — every event row
+ *   .aura-cal-event-today        — event that starts today
+ *   .aura-cal-event-next         — the very next upcoming event (index 0)
+ *
+ * HTML data attribute:
+ *   data-calendar-event="upcoming|today|next|today,next"
+ */
+function eventMeta(ev: CalEventTagged, index: number) {
+  const today = isToday(ev.start);
+  const next  = index === 0;
+  const states = [today && 'today', next && 'next'].filter(Boolean) as string[];
+  return {
+    isToday:   today,
+    isNext:    next,
+    dataAttr:  states.length ? states.join(',') : 'upcoming',
+    className: ['aura-cal-event', today && 'aura-cal-event-today', next && 'aura-cal-event-next'].filter(Boolean).join(' '),
+  };
+}
+
 // ── shared sub-components ──────────────────────────────────────────────────
 
 function Spinner({ loading }: { loading: boolean }) {
@@ -281,8 +304,12 @@ export function CalendarWidget({ config }: WidgetProps) {
   if (layout === 'compact') {
     const next = visibleEvents[0];
     const color = next?.sourceColor ?? 'var(--accent)';
+    const meta = next ? eventMeta(next, 0) : null;
     return (
-      <div className="flex items-center gap-2.5 h-full">
+      <div
+        className={`flex items-center gap-2.5 h-full${meta ? ` ${meta.className}` : ''}`}
+        data-calendar-event={meta?.dataAttr}
+      >
         <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
           style={{ background: color + '22' }}>
           <CalendarDays size={16} style={{ color }} />
@@ -307,6 +334,7 @@ export function CalendarWidget({ config }: WidgetProps) {
   if (layout === 'card') {
     const next = visibleEvents[0];
     const color = next?.sourceColor ?? 'var(--accent)';
+    const meta = next ? eventMeta(next, 0) : null;
     return (
       <div className="flex flex-col h-full justify-between">
         <div className="flex items-center justify-between shrink-0">
@@ -314,7 +342,10 @@ export function CalendarWidget({ config }: WidgetProps) {
           <button onClick={fetchEvents} className="hover:opacity-70 shrink-0"><Spinner loading={loading} /></button>
         </div>
         {next ? (
-          <div>
+          <div
+            className={meta?.className}
+            data-calendar-event={meta?.dataAttr}
+          >
             {next.showSourceName && (
               <p className="text-[9px] mb-0.5" style={{ color: next.sourceColor }}>{next.sourceName}</p>
             )}
@@ -355,26 +386,46 @@ export function CalendarWidget({ config }: WidgetProps) {
           </div>
         ) : (
           <div className="flex-1 overflow-hidden flex flex-col gap-0.5 min-h-0">
-            {visibleEvents.map((ev) => (
-              <div key={ev.uid} className="flex items-center gap-2 min-h-0 shrink-0 py-0.5">
-                {/* calendar color bar */}
-                <div className="w-1 self-stretch rounded-full shrink-0" style={{ background: ev.sourceColor }} />
-                {/* calendar name */}
-                {ev.showSourceName && (
-                  <span className="text-[9px] font-medium shrink-0 w-14 truncate" style={{ color: ev.sourceColor }}>
-                    {ev.sourceName}
-                  </span>
-                )}
-                {/* event title */}
-                <p className="flex-1 text-[11px] font-medium truncate min-w-0" style={{ color: 'var(--text-primary)' }}>
-                  {ev.summary}
-                </p>
-                {/* date/time */}
-                <p className="text-[10px] shrink-0 tabular-nums" style={{ color: isToday(ev.start) ? ev.sourceColor : 'var(--text-secondary)' }}>
-                  {formatEventDate(ev)}
-                </p>
-              </div>
-            ))}
+            {visibleEvents.map((ev, idx) => {
+              const meta = eventMeta(ev, idx);
+              return (
+                <div
+                  key={ev.uid}
+                  className={`${meta.className} flex items-center gap-2 min-h-0 shrink-0 py-0.5 rounded px-1 -mx-1 transition-colors`}
+                  data-calendar-event={meta.dataAttr}
+                  style={meta.isToday || meta.isNext ? { background: ev.sourceColor + '18' } : undefined}
+                >
+                  {/* calendar color bar — thicker for next event */}
+                  <div
+                    className="self-stretch rounded-full shrink-0 transition-all"
+                    style={{ width: meta.isNext ? 3 : 2, background: ev.sourceColor }}
+                  />
+                  {/* calendar name */}
+                  {ev.showSourceName && (
+                    <span className="text-[9px] font-medium shrink-0 w-14 truncate" style={{ color: ev.sourceColor }}>
+                      {ev.sourceName}
+                    </span>
+                  )}
+                  {/* event title */}
+                  <p
+                    className="flex-1 text-[11px] truncate min-w-0"
+                    style={{
+                      color: 'var(--text-primary)',
+                      fontWeight: meta.isNext ? 700 : 500,
+                    }}
+                  >
+                    {ev.summary}
+                  </p>
+                  {/* date/time */}
+                  <p
+                    className="text-[10px] shrink-0 tabular-nums"
+                    style={{ color: meta.isToday ? ev.sourceColor : 'var(--text-secondary)', fontWeight: meta.isNext ? 600 : 400 }}
+                  >
+                    {formatEventDate(ev)}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         )}
         {lastUpdated && (
@@ -406,26 +457,52 @@ export function CalendarWidget({ config }: WidgetProps) {
         </div>
       ) : (
         <div className="flex-1 overflow-hidden flex flex-col gap-1 min-h-0">
-          {visibleEvents.map((ev) => (
-            <div key={ev.uid} className="flex items-start gap-2 min-h-0 shrink-0">
-              <div className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ background: ev.sourceColor }} />
-              <div className="flex-1 min-w-0">
-                {ev.showSourceName && sources.length > 1 && (
-                  <p className="text-[9px]" style={{ color: ev.sourceColor }}>{ev.sourceName}</p>
+          {visibleEvents.map((ev, idx) => {
+            const meta = eventMeta(ev, idx);
+            return (
+              <div
+                key={ev.uid}
+                className={`${meta.className} flex items-start gap-2 min-h-0 shrink-0 rounded-lg px-1.5 py-0.5 -mx-1.5 transition-colors`}
+                data-calendar-event={meta.dataAttr}
+                style={meta.isToday || meta.isNext ? { background: ev.sourceColor + '18' } : undefined}
+              >
+                {/* color indicator dot — larger/solid ring for next event */}
+                {meta.isNext ? (
+                  <div className="mt-1.5 shrink-0 w-2 h-2 rounded-full"
+                    style={{
+                      background: ev.sourceColor,
+                      boxShadow: `0 0 0 1.5px var(--app-surface), 0 0 0 3px ${ev.sourceColor}`,
+                    }}
+                  />
+                ) : (
+                  <div className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ background: ev.sourceColor }} />
                 )}
-                <p className="text-[11px] font-medium leading-tight truncate" style={{ color: 'var(--text-primary)' }}>{ev.summary}</p>
-                <p className="text-[10px]" style={{ color: isToday(ev.start) ? ev.sourceColor : 'var(--text-secondary)' }}>
-                  {formatEventDate(ev)}
-                </p>
-                {ev.location && (
-                  <div className="flex items-center gap-0.5">
-                    <MapPin size={8} style={{ color: 'var(--text-secondary)' }} />
-                    <p className="text-[9px] truncate" style={{ color: 'var(--text-secondary)' }}>{ev.location}</p>
-                  </div>
-                )}
+                <div className="flex-1 min-w-0">
+                  {ev.showSourceName && sources.length > 1 && (
+                    <p className="text-[9px]" style={{ color: ev.sourceColor }}>{ev.sourceName}</p>
+                  )}
+                  <p
+                    className="text-[11px] leading-tight truncate"
+                    style={{ color: 'var(--text-primary)', fontWeight: meta.isNext ? 700 : 500 }}
+                  >
+                    {ev.summary}
+                  </p>
+                  <p
+                    className="text-[10px]"
+                    style={{ color: meta.isToday ? ev.sourceColor : 'var(--text-secondary)', fontWeight: meta.isToday ? 500 : 400 }}
+                  >
+                    {formatEventDate(ev)}
+                  </p>
+                  {ev.location && (
+                    <div className="flex items-center gap-0.5">
+                      <MapPin size={8} style={{ color: 'var(--text-secondary)' }} />
+                      <p className="text-[9px] truncate" style={{ color: 'var(--text-secondary)' }}>{ev.location}</p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
