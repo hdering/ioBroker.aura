@@ -96,6 +96,10 @@ interface DashboardState {
   updateWidgetInTab: (tabId: string, widgetId: string, config: Partial<WidgetConfig>) => void;
   updateLayouts: (widgets: WidgetConfig[]) => void;
 
+  /** Cross-layout variants – operate on an explicit layoutId */
+  addWidgetToLayoutTab: (layoutId: string, tabId: string, widget: WidgetConfig) => void;
+  removeWidgetFromLayoutTab: (layoutId: string, tabId: string, widgetId: string) => void;
+
   setEditMode: (editMode: boolean) => void;
 }
 
@@ -235,6 +239,24 @@ export const useDashboardStore = create<DashboardState>()(
             ),
           })) })
         ),
+
+      addWidgetToLayoutTab: (layoutId, tabId, widget) =>
+        set((s) => ({
+          layouts: patchLayout(s.layouts, layoutId, (l) => ({
+            ...l, tabs: l.tabs.map((t) =>
+              t.id === tabId ? { ...t, widgets: [...t.widgets, widget] } : t,
+            ),
+          })),
+        })),
+
+      removeWidgetFromLayoutTab: (layoutId, tabId, widgetId) =>
+        set((s) => ({
+          layouts: patchLayout(s.layouts, layoutId, (l) => ({
+            ...l, tabs: l.tabs.map((t) =>
+              t.id === tabId ? { ...t, widgets: t.widgets.filter((w) => w.id !== widgetId) } : t,
+            ),
+          })),
+        })),
 
       updateWidget: (id, config) =>
         set((s) =>

@@ -315,6 +315,8 @@ function InlineEditForm({
 
 // ── Widget Row ────────────────────────────────────────────────────────────────
 
+type TabTarget = { layoutId: string; tabId: string };
+
 function WidgetRow({
   entry,
   tabs,
@@ -327,16 +329,22 @@ function WidgetRow({
   tabs: Tab[];
   onUpdate: (config: WidgetConfig) => void;
   onDelete: () => void;
-  onCopy: (targetTabId: string) => void;
-  onMove: (targetTabId: string) => void;
+  onCopy: (target: TabTarget) => void;
+  onMove: (target: TabTarget) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showCopy, setShowCopy] = useState(false);
-  const [copyTarget, setCopyTarget] = useState(tabs[0]?.id ?? '');
   const [draft, setDraft] = useState<WidgetConfig>(entry.config);
   const copyBtnRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null);
+  const { layouts } = useDashboardStore();
+  // Default target: first tab of first layout (excluding source)
+  const firstTarget = layouts.flatMap((l) => l.tabs.map((t) => ({ layoutId: l.id, tabId: t.id }))).find(
+    (x) => !(x.layoutId === entry.tab.id || x.tabId === entry.tab.id),
+  ) ?? { layoutId: layouts[0]?.id ?? '', tabId: tabs[0]?.id ?? '' };
+  const [copyTarget, setCopyTarget] = useState<TabTarget>(firstTarget);
 
   useEffect(() => {
     if (!showCopy) return;
@@ -344,9 +352,13 @@ function WidgetRow({
     if (!btn) return;
     const rect = btn.getBoundingClientRect();
     setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
-    const onClose = () => setShowCopy(false);
-    window.addEventListener('click', onClose, { capture: true, once: true });
-    return () => window.removeEventListener('click', onClose, { capture: true });
+    const onClose = (e: MouseEvent) => {
+      if (dropdownRef.current?.contains(e.target as Node)) return;
+      if (copyBtnRef.current?.contains(e.target as Node)) return;
+      setShowCopy(false);
+    };
+    window.addEventListener('mousedown', onClose);
+    return () => window.removeEventListener('mousedown', onClose);
   }, [showCopy]);
 
   const handleSave = (c: WidgetConfig) => {
@@ -432,8 +444,8 @@ function WidgetRow({
           </button>
           {showCopy && dropdownPos && createPortal(
             <div
-              onClick={(e) => e.stopPropagation()}
-              className="rounded-lg shadow-2xl p-2 space-y-1.5 min-w-[200px]"
+              ref={dropdownRef}
+              className="rounded-lg shadow-2xl p-2 space-y-1.5 min-w-[210px]"
               style={{
                 position: 'fixed',
                 top: dropdownPos.top,
@@ -443,14 +455,23 @@ function WidgetRow({
                 border: '1px solid var(--app-border)',
               }}
             >
-              <p className="text-[11px] font-medium px-1" style={{ color: 'var(--text-secondary)' }}>Ziel-Tab:</p>
+              <p className="text-[11px] font-medium px-1" style={{ color: 'var(--text-secondary)' }}>Ziel:</p>
               <select
-                value={copyTarget}
-                onChange={(e) => setCopyTarget(e.target.value)}
+                value={`${copyTarget.layoutId}::${copyTarget.tabId}`}
+                onChange={(e) => {
+                  const [layoutId, tabId] = e.target.value.split('::');
+                  setCopyTarget({ layoutId, tabId });
+                }}
                 className="w-full text-xs rounded px-2 py-1.5 focus:outline-none"
                 style={inputStyle}
               >
-                {tabs.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                {layouts.map((layout) => (
+                  <optgroup key={layout.id} label={layout.name}>
+                    {layout.tabs.map((t) => (
+                      <option key={t.id} value={`${layout.id}::${t.id}`}>{t.name}</option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
               <div className="grid grid-cols-2 gap-1.5">
                 <button
@@ -529,8 +550,8 @@ function TypeSection({
   tabs: Tab[];
   onUpdate: (tabId: string, widgetId: string, config: WidgetConfig) => void;
   onDelete: (tabId: string, widgetId: string) => void;
-  onCopy: (entry: WidgetEntry, targetTabId: string) => void;
-  onMove: (entry: WidgetEntry, targetTabId: string) => void;
+  onCopy: (entry: WidgetEntry, target: TabTarget) => void;
+  onMove: (entry: WidgetEntry, target: TabTarget) => void;
   defaultOpen: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -570,8 +591,8 @@ function TypeSection({
               tabs={tabs}
               onUpdate={(config) => onUpdate(entry.tab.id, entry.config.id, config)}
               onDelete={() => onDelete(entry.tab.id, entry.config.id)}
-              onCopy={(targetTabId) => onCopy(entry, targetTabId)}
-              onMove={(targetTabId) => onMove(entry, targetTabId)}
+              onCopy={(target) => onCopy(entry, target)}
+              onMove={(target) => onMove(entry, target)}
             />
           ))}
           {entries.length === 0 && (
@@ -1212,7 +1233,7 @@ function GroupsSection() {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export function AdminWidgets() {
-  const { addWidgetToTab, updateWidgetInTab, removeWidgetInTab } = useDashboardStore();
+  const { addWidgetToTab, updateWidgetInTab, removeWidgetInTab, addWidgetToLayoutTab, removeWidgetFromLayoutTab, activeLayoutId } = useDashboardStore();
   const tabs = useActiveLayout().tabs;
   const [showCreate, setShowCreate] = useState(false);
   const [showSizes, setShowSizes] = useState(false);
@@ -1250,21 +1271,21 @@ export function AdminWidgets() {
 
   const activeTypes = TYPE_ORDER.filter((t) => (byType.get(t)?.length ?? 0) > 0);
 
-  const handleCopy = (entry: WidgetEntry, targetTabId: string) => {
-    addWidgetToTab(targetTabId, {
+  const handleCopy = (entry: WidgetEntry, target: TabTarget) => {
+    addWidgetToLayoutTab(target.layoutId, target.tabId, {
       ...entry.config,
       id: `${entry.config.type}-copy-${Date.now()}`,
       gridPos: { ...entry.config.gridPos, y: Infinity },
     });
   };
 
-  const handleMove = (entry: WidgetEntry, targetTabId: string) => {
-    if (targetTabId === entry.tab.id) return;
-    addWidgetToTab(targetTabId, {
+  const handleMove = (entry: WidgetEntry, target: TabTarget) => {
+    if (target.tabId === entry.tab.id && target.layoutId === activeLayoutId) return;
+    addWidgetToLayoutTab(target.layoutId, target.tabId, {
       ...entry.config,
       gridPos: { ...entry.config.gridPos, y: Infinity },
     });
-    removeWidgetInTab(entry.tab.id, entry.config.id);
+    removeWidgetFromLayoutTab(activeLayoutId, entry.tab.id, entry.config.id);
   };
 
   return (
