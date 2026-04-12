@@ -194,7 +194,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
                   className="w-24 text-sm rounded px-1.5 py-0.5 focus:outline-none"
                   style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--accent)' }} />
               ) : (
-                !tab.hideLabel && (
+                (!readonly || !tab.hideLabel) && (
                   <span onDoubleClick={(e) => { if (!readonly) { e.stopPropagation(); setEditingId(tab.id); setEditingName(tab.name); } }}>
                     {tab.name}
                   </span>
