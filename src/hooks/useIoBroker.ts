@@ -232,6 +232,11 @@ export function getStateDirect(id: string): Promise<ioBrokerState | null> {
   });
 }
 
+/** Set a state value without a React hook. */
+export function setStateDirect(id: string, val: boolean | number | string): void {
+  getSocket().emit('setState', id, { val, ack: false });
+}
+
 // Standalone-Funktion – kein Hook, kein Reconnect-Seiteneffekt
 export function getObjectViewDirect(
   type: 'state' | 'channel' | 'device' | 'enum',

@@ -6,7 +6,7 @@ import { LayoutDashboard, Palette, Settings, LogOut, PenSquare, Save, Undo2, Lay
 import { useAuthStore, logout } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
 import { getTheme, ADMIN_DARK_THEME } from '../../themes';
-import { isDirty, saveAll, revertAll, subscribeDirty } from '../../store/persistManager';
+import { isDirty, saveAll, revertAll, subscribeDirty, saveToIoBroker } from '../../store/persistManager';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useGroupStore } from '../../store/groupStore';
 import { useConfigStore } from '../../store/configStore';
@@ -17,7 +17,7 @@ function useSaveState() {
 
   useEffect(() => subscribeDirty(() => setDirty(isDirty())), []);
 
-  const save = () => saveAll();
+  const save = () => { saveAll(); saveToIoBroker(); };
   const revert = () =>
     revertAll([
       () => useDashboardStore.persist.rehydrate(),

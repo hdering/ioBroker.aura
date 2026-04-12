@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sun, Moon } from 'lucide-react';
-import { useIoBroker } from './hooks/useIoBroker';
+import { useIoBroker, getStateDirect } from './hooks/useIoBroker';
 import { useConfigStore } from './store/configStore';
 import { useDashboardStore, useLayoutBySlug } from './store/dashboardStore';
 import { useThemeStore } from './store/themeStore';
@@ -10,6 +10,9 @@ import { useGroupStore } from './store/groupStore';
 import { Dashboard } from './components/layout/Dashboard';
 import { TabBar } from './components/layout/TabBar';
 import type { Tab } from './store/dashboardStore';
+
+const IOBROKER_CONFIG_KEY = 'aura.0.config.dashboard';
+const SYNC_STORE_KEYS = ['aura-dashboard', 'aura-theme', 'aura-groups', 'aura-config'] as const;
 
 const STORE_REHYDRATORS: Record<string, () => void> = {
   'aura-dashboard': () => useDashboardStore.persist.rehydrate(),
@@ -36,7 +39,7 @@ export default function App() {
   const { frontend } = useConfigStore();
   const { themeId, setTheme } = useThemeStore();
   const currentTheme = getTheme(themeId);
-  const { subscribe, setState } = useIoBroker();
+  const { connected, subscribe, setState } = useIoBroker();
   const styleRef = useRef<HTMLStyleElement | null>(null);
 
   // Determine which layout to display based on URL slug
@@ -70,6 +73,38 @@ export default function App() {
     }
     styleRef.current.textContent = frontend.customCSS;
   }, [frontend.customCSS]);
+
+  // ── Load config from ioBroker on first connect ─────────────────────────────
+  // localStorage is browser-local; ioBroker holds the authoritative config so
+  // any browser (Firefox, Edge, mobile) gets the same dashboard as Chrome.
+  const ioBrokerConfigLoaded = useRef(false);
+  useEffect(() => {
+    if (!connected || ioBrokerConfigLoaded.current) return;
+    ioBrokerConfigLoaded.current = true;
+
+    getStateDirect(IOBROKER_CONFIG_KEY).then((state) => {
+      if (!state?.val) return;
+      const raw = String(state.val);
+      if (raw === '{"widgets":[]}' || raw === '{}') return; // factory default – nothing to load
+      try {
+        const remote = JSON.parse(raw) as Record<string, string | null>;
+        let changed = false;
+        SYNC_STORE_KEYS.forEach((key) => {
+          const remoteVal = remote[key];
+          if (remoteVal && remoteVal !== localStorage.getItem(key)) {
+            localStorage.setItem(key, remoteVal);
+            changed = true;
+          }
+        });
+        if (changed) {
+          useDashboardStore.persist.rehydrate();
+          useThemeStore.persist.rehydrate();
+          useGroupStore.persist.rehydrate();
+          useConfigStore.persist.rehydrate();
+        }
+      } catch { /* ignore malformed JSON */ }
+    });
+  }, [connected]);
 
   // Activate tab when URL slug changes
   useEffect(() => {
