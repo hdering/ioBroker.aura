@@ -50,6 +50,12 @@ export const en: Record<TranslationKey, string> = {
   'settings.language.de':      'German',
   'settings.language.en':      'English',
 
+  'settings.client.title':  'This Device',
+  'settings.client.hint':   'Each client gets a unique ID. Use aura.0.clients.{id}.navigate.url to control this device individually.',
+  'settings.client.name':   'Device Name',
+  'settings.client.namePh': 'e.g. Kitchen Tablet, Living Room TV…',
+  'settings.client.id':     'ioBroker Datapoint',
+
   'settings.frontend.title':          'Frontend',
   'settings.frontend.showHeader':     'Show Header',
   'settings.frontend.dashboardTitle': 'Dashboard Title',

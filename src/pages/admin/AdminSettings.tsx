@@ -4,7 +4,7 @@ import { useActiveLayout } from '../../store/dashboardStore';
 import { useConnectionStore } from '../../store/connectionStore';
 import { useConfigStore } from '../../store/configStore';
 import { reconnectSocket } from '../../hooks/useIoBroker';
-import { Eye, EyeOff, AlertTriangle, Lock, Unlock, RefreshCw } from 'lucide-react';
+import { Eye, EyeOff, AlertTriangle, Lock, Unlock, RefreshCw, Tablet } from 'lucide-react';
 import { useT } from '../../i18n';
 
 async function sha256(text: string): Promise<string> {
@@ -74,6 +74,60 @@ function SliderSetting({
         })}
       </div>
     </div>
+  );
+}
+
+// ── Client / device settings ──────────────────────────────────────────────────
+
+function ClientSettings() {
+  const t = useT();
+  const { clientId, clientName, setClientName } = useConnectionStore();
+  const [nameInput, setNameInput] = useState(clientName);
+  const [saved, setSaved] = useState(false);
+
+  const save = () => {
+    setClientName(nameInput.trim());
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  return (
+    <Card title={t('settings.client.title')}>
+      <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('settings.client.hint')}</p>
+      <div className="space-y-3">
+        <div>
+          <label className="text-xs font-medium block mb-1" style={{ color: 'var(--text-secondary)' }}>
+            {t('settings.client.name')}
+          </label>
+          <div className="flex gap-2">
+            <input
+              value={nameInput}
+              onChange={(e) => { setNameInput(e.target.value); setSaved(false); }}
+              placeholder={t('settings.client.namePh')}
+              className="flex-1 text-sm rounded-lg px-3 py-2 focus:outline-none"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+            />
+            <button
+              onClick={save}
+              disabled={nameInput.trim() === clientName}
+              className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80 disabled:opacity-40"
+              style={{ background: saved ? 'var(--accent-green)' : 'var(--accent)' }}
+            >
+              {saved ? '✓' : t('common.save')}
+            </button>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
+          <Tablet size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+          <div className="min-w-0">
+            <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{t('settings.client.id')}</p>
+            <p className="text-xs font-mono truncate" style={{ color: 'var(--text-primary)' }}>
+              aura.0.clients.<span style={{ color: 'var(--accent)' }}>{clientId}</span>.navigate.url
+            </p>
+          </div>
+        </div>
+      </div>
+    </Card>
   );
 }
 
@@ -340,6 +394,9 @@ export function AdminSettings() {
           </div>
         </Card>
       </div>
+
+      {/* Client / Gerät */}
+      <ClientSettings />
 
       {/* Experten */}
       <ExpertSettings />

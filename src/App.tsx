@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sun, Moon } from 'lucide-react';
-import { useIoBroker, getStateDirect } from './hooks/useIoBroker';
+import { useIoBroker, getStateDirect, setStateDirect, setObjectDirect } from './hooks/useIoBroker';
+import { useConnectionStore } from './store/connectionStore';
 import { useConfigStore } from './store/configStore';
 import { useDashboardStore, useLayoutBySlug } from './store/dashboardStore';
 import { useThemeStore } from './store/themeStore';
@@ -39,7 +40,8 @@ export default function App() {
   const { frontend } = useConfigStore();
   const { themeId, setTheme } = useThemeStore();
   const currentTheme = getTheme(themeId);
-  const { connected, subscribe, setState } = useIoBroker();
+  const { connected, subscribe } = useIoBroker();
+  const { clientId, clientName } = useConnectionStore();
   const styleRef = useRef<HTMLStyleElement | null>(null);
 
   // Determine which layout to display based on URL slug
@@ -114,23 +116,69 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabSlug, layout?.id]);
 
-  // Subscribe to ioBroker navigate datapoint
+  // Shared navigate handler used by both global and per-client subscriptions
+  const handleNavigate = useCallback((val: string, clearId: string) => {
+    if (!val) return;
+    if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('//')) {
+      window.location.href = val;
+    } else {
+      const tab = tabs.find((t) => (t.slug ?? t.id) === val);
+      if (tab) setActiveTabId(tab.id);
+    }
+    setStateDirect(clearId, '');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabs]);
+
+  // Subscribe to global navigate datapoint (affects all clients)
   useEffect(() => {
     return subscribe('aura.0.navigate.url', (state) => {
-      const val = String(state.val ?? '').trim();
-      if (!val) return;
-
-      if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('//')) {
-        window.location.href = val;
-      } else {
-        const tab = tabs.find((t) => (t.slug ?? t.id) === val);
-        if (tab) setActiveTabId(tab.id);
-      }
-
-      setState('aura.0.navigate.url', '');
+      handleNavigate(String(state.val ?? '').trim(), 'aura.0.navigate.url');
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subscribe, setState, layout?.id]);
+  }, [subscribe, layout?.id, handleNavigate]);
+
+  // Register this client in ioBroker on connect and subscribe to per-client navigate
+  useEffect(() => {
+    if (!connected) return;
+    const prefix = `aura.0.clients.${clientId}`;
+    const displayName = clientName || navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Aura Client';
+
+    // Ensure objects exist (idempotent)
+    setObjectDirect(prefix, {
+      type: 'channel',
+      common: { name: displayName },
+      native: {},
+    });
+    setObjectDirect(`${prefix}.navigate.url`, {
+      type: 'state',
+      common: { name: 'Navigate', type: 'string', role: 'url', read: true, write: true, def: '' },
+      native: {},
+    });
+    setObjectDirect(`${prefix}.info.name`, {
+      type: 'state',
+      common: { name: 'Client Name', type: 'string', role: 'text', read: true, write: true, def: displayName },
+      native: {},
+    });
+    setObjectDirect(`${prefix}.info.lastSeen`, {
+      type: 'state',
+      common: { name: 'Last Seen', type: 'number', role: 'date', read: true, write: false, def: 0 },
+      native: {},
+    });
+
+    // Update live info
+    setStateDirect(`${prefix}.info.name`, displayName);
+    setStateDirect(`${prefix}.info.lastSeen`, Date.now());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connected, clientId, clientName]);
+
+  // Subscribe to per-client navigate datapoint
+  useEffect(() => {
+    const dpId = `aura.0.clients.${clientId}.navigate.url`;
+    return subscribe(dpId, (state) => {
+      handleNavigate(String(state.val ?? '').trim(), dpId);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subscribe, clientId, layout?.id, handleNavigate]);
 
   const layoutUrlBase = layoutSlug ? `/view/${layoutSlug}` : '';
 

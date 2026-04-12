@@ -3,9 +3,16 @@ import { persist } from 'zustand/middleware';
 import { invalidateDatapointCache } from '../hooks/useDatapointList';
 import { reconnectSocket } from '../hooks/useIoBroker';
 
+function generateClientId(): string {
+  return crypto.randomUUID().replace(/-/g, '');
+}
+
 interface ConnectionState {
   ioBrokerUrl: string;
+  clientId: string;
+  clientName: string;
   setIoBrokerUrl: (url: string) => void;
+  setClientName: (name: string) => void;
 }
 
 // In production use same host as the page but socketio port 8084.
@@ -18,11 +25,14 @@ export const useConnectionStore = create<ConnectionState>()(
   persist(
     (set) => ({
       ioBrokerUrl: DEFAULT_IOBROKER_URL,
+      clientId: generateClientId(),
+      clientName: '',
       setIoBrokerUrl: (url) => {
         invalidateDatapointCache();
         reconnectSocket(url);
         set({ ioBrokerUrl: url });
       },
+      setClientName: (name) => set({ clientName: name }),
     }),
     { name: 'aura-connection' }, // uses localStorage directly – not managed storage
   ),

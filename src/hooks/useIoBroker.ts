@@ -237,6 +237,11 @@ export function setStateDirect(id: string, val: boolean | number | string): void
   getSocket().emit('setState', id, { val, ack: false });
 }
 
+/** Create or update an ioBroker object definition without a React hook. */
+export function setObjectDirect(id: string, obj: object): void {
+  getSocket().emit('setObject', id, obj, () => { /* ignore result */ });
+}
+
 // Standalone-Funktion – kein Hook, kein Reconnect-Seiteneffekt
 export function getObjectViewDirect(
   type: 'state' | 'channel' | 'device' | 'enum',

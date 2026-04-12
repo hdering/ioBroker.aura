@@ -48,6 +48,12 @@ export const de = {
   'settings.language.de':      'Deutsch',
   'settings.language.en':      'Englisch',
 
+  'settings.client.title':  'Dieses Gerät',
+  'settings.client.hint':   'Jeder Client bekommt eine eindeutige ID. Über aura.0.clients.{id}.navigate.url lässt sich dieses Gerät individuell steuern.',
+  'settings.client.name':   'Gerätename',
+  'settings.client.namePh': 'z.B. Küche Tablet, Wohnzimmer TV…',
+  'settings.client.id':     'ioBroker-Datenpunkt',
+
   'settings.frontend.title':          'Frontend',
   'settings.frontend.showHeader':     'Header anzeigen',
   'settings.frontend.dashboardTitle': 'Dashboard-Titel',
