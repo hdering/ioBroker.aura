@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useT, t } from '../../i18n';
-import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Download, ArrowRightLeft } from 'lucide-react';
+import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Download, ArrowRightLeft, Copy } from 'lucide-react';
 import { exportWidget } from '../../utils/widgetExportImport';
 import { ICON_PICKER_ENTRIES } from '../../utils/widgetIconMap';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
@@ -614,6 +614,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
   const [openPanel, setOpenPanel] = useState<'menu' | 'edit' | 'conditions' | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showMoveMenu, setShowMoveMenu] = useState(false);
+  const [showCopyMenu, setShowCopyMenu] = useState(false);
   const { addWidgetToLayoutTab, removeWidgetFromLayoutTab, layouts, activeLayoutId } = useDashboardStore();
   const { activeTabId } = useActiveLayout();
   // All layout→tab combos except the current tab
@@ -647,6 +648,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
     if (panel === null) {
       setOpenPanel(null);
       setShowMoveMenu(false);
+      setShowCopyMenu(false);
       releasePanel(config.id);
     } else {
       claimPanel(config.id, () => setOpenPanel(null));
@@ -836,6 +838,83 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               <Download size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
               {t('wf.menu.export')}
             </button>
+
+            {/* Kopieren */}
+            <button
+              onClick={() => {
+                if (moveTargets.length === 0) {
+                  // No other tabs – duplicate directly on same tab
+                  addWidgetToLayoutTab(activeLayoutId, activeTabId, {
+                    ...config,
+                    id: `${config.type}-${Date.now()}`,
+                    gridPos: { ...config.gridPos, y: Infinity },
+                  });
+                  openPanelFor(null);
+                } else {
+                  setShowCopyMenu((v) => !v);
+                  setShowMoveMenu(false);
+                }
+              }}
+              className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              <Copy size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+              {t('wf.menu.copy')}
+              {moveTargets.length > 0 && (
+                <ChevronDown size={11} className="ml-auto transition-transform" style={{ color: 'var(--text-secondary)', transform: showCopyMenu ? 'rotate(180deg)' : 'none' }} />
+              )}
+            </button>
+            {showCopyMenu && moveTargets.length > 0 && (
+              <div className="mx-1 mb-0.5 rounded-md overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+                {/* Same tab: duplicate */}
+                <button
+                  onClick={() => {
+                    addWidgetToLayoutTab(activeLayoutId, activeTabId, {
+                      ...config,
+                      id: `${config.type}-${Date.now()}`,
+                      gridPos: { ...config.gridPos, y: Infinity },
+                    });
+                    openPanelFor(null);
+                  }}
+                  className="w-full text-left px-3 py-1.5 text-xs hover:opacity-80 transition-opacity"
+                  style={{ background: 'var(--app-bg)', color: 'var(--accent)', display: 'block', borderBottom: '1px solid var(--app-border)', fontWeight: 500 }}
+                >
+                  {t('wf.menu.copyHere')}
+                </button>
+                {/* Other tabs */}
+                {layouts.map((layout) => {
+                  const targets = moveTargets.filter((m) => m.layoutId === layout.id);
+                  if (targets.length === 0) return null;
+                  return (
+                    <div key={layout.id}>
+                      {layouts.length > 1 && (
+                        <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
+                          style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', borderBottom: '1px solid var(--app-border)' }}>
+                          {layout.name}
+                        </p>
+                      )}
+                      {targets.map((m) => (
+                        <button
+                          key={m.tabId}
+                          onClick={() => {
+                            addWidgetToLayoutTab(m.layoutId, m.tabId, {
+                              ...config,
+                              id: `${config.type}-${Date.now()}`,
+                              gridPos: { ...config.gridPos, y: Infinity },
+                            });
+                            openPanelFor(null);
+                          }}
+                          className="w-full text-left px-3 py-1.5 text-xs hover:opacity-80 transition-opacity"
+                          style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', display: 'block', borderBottom: '1px solid var(--app-border)' }}
+                        >
+                          {m.tabName}
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Verschieben */}
             {moveTargets.length > 0 && (

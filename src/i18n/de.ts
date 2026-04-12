@@ -299,6 +299,8 @@ export const de = {
   'wf.menu.edit':       'Bearbeiten',
   'wf.menu.conditions': 'Bedingungen',
   'wf.menu.export':     'Exportieren',
+  'wf.menu.copy':       'Kopieren',
+  'wf.menu.copyHere':   'Hier duplizieren',
   'wf.menu.move':       'Verschieben',
   'wf.menu.delete':     'Löschen',
   'wf.menu.confirm':    'Bestätigen',

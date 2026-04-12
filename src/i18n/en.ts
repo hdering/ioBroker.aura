@@ -301,6 +301,8 @@ export const en: Record<TranslationKey, string> = {
   'wf.menu.edit':       'Edit',
   'wf.menu.conditions': 'Conditions',
   'wf.menu.export':     'Export',
+  'wf.menu.copy':       'Copy',
+  'wf.menu.copyHere':   'Duplicate here',
   'wf.menu.move':       'Move',
   'wf.menu.delete':     'Delete',
   'wf.menu.confirm':    'Confirm',
