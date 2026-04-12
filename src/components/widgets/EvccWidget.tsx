@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Sun, Home, Zap, Battery, Car, Plug, PlugZap } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
+import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps, WidgetConfig, ioBrokerState } from '../../types';
 import { useT } from '../../i18n';
 
@@ -623,7 +624,22 @@ export function EvccWidget({ config }: WidgetProps) {
     return Array.from({ length: loadpointCount }, (_, i) => i);
   })();
 
-  const { site, loadpoints } = useEvccData(prefix, loadpointCount);
+  // Optional override datapoints for battery (when evcc doesn't control the battery)
+  const batterySocDp    = (o.batterySocDatapoint    as string) ?? '';
+  const batteryPowerDp  = (o.batteryPowerDatapoint  as string) ?? '';
+  const { value: extSoc }   = useDatapoint(batterySocDp);
+  const { value: extPower } = useDatapoint(batteryPowerDp);
+
+  const { site: rawSite, loadpoints } = useEvccData(prefix, loadpointCount);
+
+  // Merge override values into site
+  const site: SiteState = {
+    ...rawSite,
+    ...(batterySocDp && extSoc !== undefined && extSoc !== null
+      ? { batterySoc: parseFloat(String(extSoc)) } : {}),
+    ...(batteryPowerDp && extPower !== undefined && extPower !== null
+      ? { batteryPower: parseFloat(String(extPower)) } : {}),
+  };
 
   if (!connected) {
     return (
@@ -790,6 +806,31 @@ export function EvccConfig({
             style={{ left: showBattery ? '18px' : '2px' }} />
         </button>
       </div>
+
+      {showBattery && (
+        <>
+          <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+              Batterie SoC – eigener Datenpunkt <span style={{ opacity: 0.6 }}>(optional, wenn EVCC Batterie nicht kennt)</span>
+            </label>
+            <input type="text"
+              value={(o.batterySocDatapoint as string) ?? ''}
+              onChange={(e) => set({ batterySocDatapoint: e.target.value || undefined })}
+              placeholder="z.B. sma.0.battery.soc"
+              className={inputCls + ' font-mono'} style={inputSty} />
+          </div>
+          <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+              Batterie Leistung – eigener Datenpunkt <span style={{ opacity: 0.6 }}>(Watt, negativ = laden)</span>
+            </label>
+            <input type="text"
+              value={(o.batteryPowerDatapoint as string) ?? ''}
+              onChange={(e) => set({ batteryPowerDatapoint: e.target.value || undefined })}
+              placeholder="z.B. sma.0.battery.power"
+              className={inputCls + ' font-mono'} style={inputSty} />
+          </div>
+        </>
+      )}
     </>
   );
 }
