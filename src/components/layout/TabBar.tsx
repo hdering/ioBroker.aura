@@ -89,6 +89,8 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
               top: panelPos.top,
               left: panelPos.left,
               background: 'var(--app-surface)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
               border: '1px solid var(--app-border)',
             }}
           >

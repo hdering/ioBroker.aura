@@ -531,7 +531,7 @@ export function AdminEditor() {
           <div className="fixed inset-0 z-[998]" onClick={() => setSettingsTabId(null)} />
           <div
             className="fixed z-[999] rounded-xl shadow-2xl p-3 space-y-3 w-64 overflow-y-auto"
-            style={{ top: panelPos.top, left: panelPos.left, maxHeight: `calc(100vh - ${panelPos.top + 12}px)`, background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+            style={{ top: panelPos.top, left: panelPos.left, maxHeight: `calc(100vh - ${panelPos.top + 12}px)`, background: 'var(--app-surface)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--app-border)' }}
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{t('editor.tabMgmt.settings')}</span>
