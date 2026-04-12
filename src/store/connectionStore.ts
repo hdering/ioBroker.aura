@@ -4,7 +4,10 @@ import { invalidateDatapointCache } from '../hooks/useDatapointList';
 import { reconnectSocket } from '../hooks/useIoBroker';
 
 function generateClientId(): string {
-  return crypto.randomUUID().replace(/-/g, '');
+  // crypto.randomUUID() requires HTTPS – use getRandomValues() which works on HTTP too
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 interface ConnectionState {
