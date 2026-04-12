@@ -5,6 +5,7 @@ import { Settings, X } from 'lucide-react';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import type { Tab } from '../../store/dashboardStore';
 import { ICON_PICKER_ENTRIES, WIDGET_ICON_MAP } from '../../utils/widgetIconMap';
+import { useT } from '../../i18n';
 
 interface TabBarProps {
   readonly?: boolean;
@@ -20,6 +21,7 @@ const iCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
 const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
 
 export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabClick, layoutUrlBase = '' }: TabBarProps) {
+  const t = useT();
   const activeLayout = useActiveLayout();
   const { setActiveTab, addTab, removeTab, renameTab, updateTab, editMode } = useDashboardStore();
 
@@ -92,7 +94,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
           >
             {/* Header */}
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Tab-Einstellungen</span>
+              <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{t('tabBar.settings')}</span>
               <button onClick={() => setSettingsTabId(null)} className="w-5 h-5 flex items-center justify-center rounded hover:opacity-70">
                 <X size={12} style={{ color: 'var(--text-secondary)' }} />
               </button>
@@ -100,7 +102,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
 
             {/* Name */}
             <div>
-              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Name</label>
+              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('tabBar.name')}</label>
               <input
                 type="text"
                 value={settingsTab.name}
@@ -112,7 +114,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
 
             {/* Hide label */}
             <div className="flex items-center justify-between">
-              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Beschriftung ausblenden</label>
+              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('tabBar.hideLabel')}</label>
               <button
                 onClick={() => updateTab(settingsTabId, { hideLabel: !settingsTab.hideLabel })}
                 className="relative w-9 h-5 rounded-full transition-colors shrink-0"
@@ -126,14 +128,14 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
             {/* Icon picker */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon</label>
+                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('tabBar.icon')}</label>
                 {settingsTab.icon && (
                   <button
                     onClick={() => updateTab(settingsTabId, { icon: undefined })}
                     className="text-[10px] hover:opacity-70"
                     style={{ color: 'var(--text-secondary)' }}
                   >
-                    Entfernen
+                    {t('tabBar.remove')}
                   </button>
                 )}
               </div>
@@ -224,7 +226,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
           <button onClick={() => addTab(`Tab ${tabs.length + 1}`)}
             className="px-3 py-2.5 text-sm transition-colors whitespace-nowrap hover:opacity-80"
             style={{ color: 'var(--text-secondary)' }}>
-            + Tab
+            {t('tabBar.addTab')}
           </button>
         )}
       </div>

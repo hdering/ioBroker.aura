@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import { loginWithPin, setupPin, useAuthStore } from '../../store/authStore';
+import { useT } from '../../i18n';
 
 export function AdminLogin() {
+  const t = useT();
   const { pinHash } = useAuthStore();
   const isFirstTime = !pinHash;
   const [pin, setPin] = useState('');
@@ -16,17 +18,17 @@ export function AdminLogin() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (pin.length < 4) { setError('Mindestens 4 Zeichen'); return; }
+    if (pin.length < 4) { setError(t('login.tooShort')); return; }
 
     setLoading(true);
     if (isFirstTime) {
-      if (pin !== confirm) { setError('PINs stimmen nicht überein'); setLoading(false); return; }
+      if (pin !== confirm) { setError(t('login.mismatch')); setLoading(false); return; }
       setupPin(pin);
       navigate('/admin');
     } else {
       const ok = loginWithPin(pin);
       if (ok) navigate('/admin');
-      else { setError('Falscher PIN'); setLoading(false); }
+      else { setError(t('login.wrong')); setLoading(false); }
     }
   };
 
@@ -39,10 +41,10 @@ export function AdminLogin() {
               <Lock size={28} style={{ color: 'var(--accent)' }} />
             </div>
             <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-              {isFirstTime ? 'Admin einrichten' : 'Admin-Bereich'}
+              {isFirstTime ? t('login.setup.title') : t('login.title')}
             </h1>
             <p className="text-sm mt-1 text-center" style={{ color: 'var(--text-secondary)' }}>
-              {isFirstTime ? 'Lege einen PIN für den Admin-Bereich fest' : 'PIN eingeben um fortzufahren'}
+              {isFirstTime ? t('login.setup.subtitle') : t('login.subtitle')}
             </p>
           </div>
 
@@ -52,7 +54,7 @@ export function AdminLogin() {
                 type={show ? 'text' : 'password'}
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
-                placeholder={isFirstTime ? 'Neuer PIN (min. 4 Zeichen)' : 'PIN'}
+                placeholder={isFirstTime ? t('login.newPin') : t('login.pin')}
                 autoFocus
                 className="w-full rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none"
                 style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
@@ -68,7 +70,7 @@ export function AdminLogin() {
                 type={show ? 'text' : 'password'}
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                placeholder="PIN bestätigen"
+                placeholder={t('login.pinConfirm')}
                 className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none"
                 style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
               />
@@ -82,13 +84,13 @@ export function AdminLogin() {
               className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-80 disabled:opacity-50"
               style={{ background: 'var(--accent)' }}
             >
-              {loading ? '…' : isFirstTime ? 'PIN setzen & einloggen' : 'Einloggen'}
+              {loading ? '…' : isFirstTime ? t('login.setPin') : t('login.login')}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <a href="/" className="text-xs hover:opacity-80" style={{ color: 'var(--text-secondary)' }}>
-              ← Zurück zum Dashboard
+              ← {t('login.back')}
             </a>
           </div>
         </div>

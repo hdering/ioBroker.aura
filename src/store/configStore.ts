@@ -11,6 +11,7 @@ export interface FrontendSettings {
   wizardMaxDatapoints: number;
   fontScale: number;
   mobileBreakpoint: number;
+  language: 'de' | 'en';
 }
 
 interface ConfigState {
@@ -31,6 +32,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
   wizardMaxDatapoints: 500,
   fontScale: 1,
   mobileBreakpoint: 600,
+  language: 'de',
 };
 
 export const useConfigStore = create<ConfigState>()(

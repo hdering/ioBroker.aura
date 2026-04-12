@@ -10,6 +10,7 @@ import { isDirty, saveAll, revertAll, subscribeDirty } from '../../store/persist
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useGroupStore } from '../../store/groupStore';
 import { useConfigStore } from '../../store/configStore';
+import { useT } from '../../i18n';
 
 function useSaveState() {
   const [dirty, setDirty] = useState(isDirty);
@@ -28,15 +29,6 @@ function useSaveState() {
   return { dirty, save, revert };
 }
 
-const NAV = [
-  { to: '/admin', label: 'Übersicht', icon: LayoutDashboard, end: true },
-  { to: '/admin/editor', label: 'Dashboard-Editor', icon: PenSquare },
-  { to: '/admin/layouts', label: 'Layouts', icon: Layers2 },
-  { to: '/admin/widgets', label: 'Widgets', icon: Layers },
-  { to: '/admin/theme', label: 'Theme & CSS', icon: Palette },
-  { to: '/admin/settings', label: 'Einstellungen', icon: Settings },
-];
-
 function useFrontendUrl(): string {
   const activeLayout = useActiveLayout();
   const { layouts } = useDashboardStore();
@@ -45,7 +37,6 @@ function useFrontendUrl(): string {
   const tabSlug = activeTab?.slug ?? activeTab?.id ?? '';
 
   if (isFirst) {
-    // Default layout — use legacy short URL
     return tabSlug && activeLayout.tabs.length > 1 ? `#/tab/${tabSlug}` : '#/';
   }
   return tabSlug && activeLayout.tabs.length > 1
@@ -54,19 +45,27 @@ function useFrontendUrl(): string {
 }
 
 export function AdminLayout() {
+  const t = useT();
   const { sessionActive } = useAuthStore();
   const { dirty, save, revert } = useSaveState();
   const { adminThemeId, setAdminTheme } = useThemeStore();
   const frontendUrl = useFrontendUrl();
 
-  // Use dedicated admin dark theme (higher contrast than the frontend dark theme)
   const adminTheme = adminThemeId === 'dark' ? ADMIN_DARK_THEME : getTheme(adminThemeId);
-  // Scope all CSS custom properties to the admin container
   const adminVars = Object.fromEntries(
     Object.entries(adminTheme.vars).map(([k, v]) => [k, v])
   ) as React.CSSProperties;
 
   const [portalTarget, setPortalTarget] = useState<HTMLDivElement | null>(null);
+
+  const NAV = [
+    { to: '/admin', label: t('admin.nav.overview'), icon: LayoutDashboard, end: true },
+    { to: '/admin/editor', label: t('admin.nav.editor'), icon: PenSquare },
+    { to: '/admin/layouts', label: t('admin.nav.layouts'), icon: Layers2 },
+    { to: '/admin/widgets', label: t('admin.nav.widgets'), icon: Layers },
+    { to: '/admin/theme', label: t('admin.nav.theme'), icon: Palette },
+    { to: '/admin/settings', label: t('admin.nav.settings'), icon: Settings },
+  ];
 
   if (!sessionActive) return <Navigate to="/admin/login" replace />;
 
@@ -89,7 +88,7 @@ export function AdminLayout() {
             onClick={() => setAdminTheme(adminTheme.dark ? 'light' : 'dark')}
             className="w-8 h-8 flex items-center justify-center rounded-lg hover:opacity-80 transition-opacity"
             style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-            title={adminTheme.dark ? 'Hell-Modus' : 'Dunkel-Modus'}
+            title={adminTheme.dark ? t('admin.nav.lightMode') : t('admin.nav.darkMode')}
           >
             {adminTheme.dark ? <Sun size={15} /> : <Moon size={15} />}
           </button>
@@ -116,12 +115,12 @@ export function AdminLayout() {
           <a href={frontendUrl} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium opacity-60 hover:opacity-100 transition-opacity"
             style={{ color: 'var(--text-primary)' }}>
-            <ExternalLink size={17} /> Frontend öffnen
+            <ExternalLink size={17} /> {t('admin.nav.openFrontend')}
           </a>
           <button onClick={logout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium opacity-60 hover:opacity-100 transition-opacity"
             style={{ color: 'var(--accent-red)' }}>
-            <LogOut size={17} /> Abmelden
+            <LogOut size={17} /> {t('admin.nav.logout')}
           </button>
         </div>
       </aside>
@@ -139,25 +138,25 @@ export function AdminLayout() {
           {dirty ? (
             <>
               <span className="text-xs mr-auto" style={{ color: 'var(--accent)' }}>
-                Ungespeicherte Änderungen
+                {t('admin.save.unsaved')}
               </span>
               <button
                 onClick={revert}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
                 style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
               >
-                <Undo2 size={13} /> Rückgängig
+                <Undo2 size={13} /> {t('admin.save.undo')}
               </button>
               <button
                 onClick={save}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-80 transition-opacity"
                 style={{ background: 'var(--accent)' }}
               >
-                <Save size={13} /> Speichern
+                <Save size={13} /> {t('admin.save.save')}
               </button>
             </>
           ) : (
-            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>Alle Änderungen gespeichert</span>
+            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('admin.save.saved')}</span>
           )}
         </div>
 

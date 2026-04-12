@@ -3,6 +3,7 @@ import { useIoBrokerDevices, type Device, type DeviceState } from '../../hooks/u
 import type { WidgetConfig, WidgetType } from '../../types';
 import { WidgetPreview } from './WidgetPreview';
 import { WIDGET_BY_TYPE } from '../../widgetRegistry';
+import { useT } from '../../i18n';
 
 // Derived from central registry
 const WIDGET_LABELS = Object.fromEntries(
@@ -29,6 +30,7 @@ const inputStyle = {
 } as React.CSSProperties;
 
 export function DeviceWizard({ onAdd, onClose }: DeviceWizardProps) {
+  const t = useT();
   const { devices, loading, loaded, load } = useIoBrokerDevices();
   const [search, setSearch] = useState('');
   const [selectedAdapter, setSelectedAdapter] = useState('');
@@ -87,7 +89,7 @@ export function DeviceWizard({ onAdd, onClose }: DeviceWizardProps) {
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--app-border)' }}>
-          <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Geräte aus ioBroker</h2>
+          <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>{t('wizard.device.title')}</h2>
           <button onClick={onClose} className="hover:opacity-60" style={{ color: 'var(--text-secondary)' }}>✕</button>
         </div>
 
@@ -96,13 +98,13 @@ export function DeviceWizard({ onAdd, onClose }: DeviceWizardProps) {
             {loading ? (
               <>
                 <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Lade Geräte…</p>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('wizard.device.loading')}</p>
               </>
             ) : (
               <>
-                <p style={{ color: 'var(--text-secondary)' }}>Alle verfügbaren Geräte und Datenpunkte laden</p>
+                <p style={{ color: 'var(--text-secondary)' }}>{t('wizard.device.hint')}</p>
                 <button onClick={load} className="px-6 py-2 text-white rounded-lg font-medium hover:opacity-80" style={{ background: 'var(--accent)' }}>
-                  Geräte laden
+                  {t('wizard.device.load')}
                 </button>
               </>
             )}
@@ -111,15 +113,15 @@ export function DeviceWizard({ onAdd, onClose }: DeviceWizardProps) {
           <>
             {/* Filter */}
             <div className="flex gap-3 px-6 py-3" style={{ borderBottom: '1px solid var(--app-border)' }}>
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Suchen…"
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('wizard.device.search')}
                 className="flex-1 rounded-lg px-3 py-1.5 text-sm focus:outline-none"
                 style={{ ...inputStyle, outlineColor: 'var(--accent)' }} />
               <select value={selectedAdapter} onChange={(e) => setSelectedAdapter(e.target.value)}
                 className="rounded-lg px-3 py-1.5 text-sm" style={inputStyle}>
-                <option value="">Alle Adapter</option>
+                <option value="">{t('wizard.device.allAdapters')}</option>
                 {adapters.map((a) => <option key={a} value={a}>{a}</option>)}
               </select>
-              <span className="text-sm self-center whitespace-nowrap" style={{ color: 'var(--text-secondary)' }}>{filtered.length} Geräte</span>
+              <span className="text-sm self-center whitespace-nowrap" style={{ color: 'var(--text-secondary)' }}>{filtered.length} {t('wizard.device.devices')}</span>
             </div>
 
             {/* Liste */}
@@ -178,7 +180,7 @@ export function DeviceWizard({ onAdd, onClose }: DeviceWizardProps) {
                                   placeholder="Titel" className="w-full text-xs rounded px-2 py-1.5 focus:outline-none" style={inputStyle} />
                                 {sel.widgetType === 'thermostat' && (
                                   <input value={sel.actualDatapoint ?? ''} onChange={(e) => updateSel(state.id, { actualDatapoint: e.target.value })}
-                                    placeholder="Ist-Temperatur Datenpunkt (optional)" className="w-full text-xs rounded px-2 py-1.5 focus:outline-none" style={inputStyle} />
+                                    placeholder={t('wizard.device.tempDp')} className="w-full text-xs rounded px-2 py-1.5 focus:outline-none" style={inputStyle} />
                                 )}
                               </div>
                               <WidgetPreview type={sel.widgetType} title={sel.title} />
@@ -195,17 +197,17 @@ export function DeviceWizard({ onAdd, onClose }: DeviceWizardProps) {
             {/* Footer */}
             <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: '1px solid var(--app-border)' }}>
               <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                {selections.size === 0 ? 'Keine ausgewählt' : `${selections.size} Widget${selections.size !== 1 ? 's' : ''}`}
+                {selections.size === 0 ? t('wizard.device.noneSelected') : `${selections.size} ${selections.size !== 1 ? t('wizard.device.widgets') : t('wizard.device.widget')}`}
               </span>
               <div className="flex gap-2">
                 <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg hover:opacity-80"
                   style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                  Abbruch
+                  {t('wizard.device.cancel')}
                 </button>
                 <button onClick={handleAdd} disabled={selections.size === 0}
                   className="px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-80 disabled:opacity-30"
                   style={{ background: 'var(--accent)' }}>
-                  Zum Dashboard hinzufügen
+                  {t('wizard.device.add')}
                 </button>
               </div>
             </div>

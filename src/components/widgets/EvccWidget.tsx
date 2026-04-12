@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Sun, Home, Zap, Battery, Car, Plug, PlugZap } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps, WidgetConfig, ioBrokerState } from '../../types';
+import { useT } from '../../i18n';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -148,6 +149,7 @@ function useEvccData(prefix: string, loadpointCount: number) {
 // ── EnergyFlowRow ─────────────────────────────────────────────────────────────
 
 function EnergyFlowRow({ site, showBattery, compact }: { site: SiteState; showBattery: boolean; compact: boolean }) {
+  const t = useT();
   const gridImport = site.gridPower > 0;
   const gridExport = site.gridPower < 0;
   const gridColor = gridImport ? '#ef4444' : gridExport ? '#10b981' : 'var(--text-secondary)';
@@ -194,7 +196,7 @@ function EnergyFlowRow({ site, showBattery, compact }: { site: SiteState; showBa
           <span className="text-xs font-semibold whitespace-nowrap" style={{ color: '#f59e0b' }}>
             {fmtKW(site.pvPower)}
           </span>
-          <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Solar</span>
+          <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{t('evcc.solar')}</span>
         </div>
 
         {/* arrow solar→home */}
@@ -209,7 +211,7 @@ function EnergyFlowRow({ site, showBattery, compact }: { site: SiteState; showBa
           <span className="text-xs font-semibold whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
             {fmtKW(site.homePower)}
           </span>
-          <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Haus</span>
+          <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{t('evcc.house')}</span>
         </div>
 
         {/* arrow home↔grid */}
@@ -234,7 +236,7 @@ function EnergyFlowRow({ site, showBattery, compact }: { site: SiteState; showBa
             {fmtKW(Math.abs(site.gridPower))}
           </span>
           <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-            {gridImport ? 'Bezug' : gridExport ? 'Einspsg.' : 'Netz'}
+            {gridImport ? t('evcc.grid') : gridExport ? t('evcc.feedIn') : t('evcc.gridLabel')}
           </span>
         </div>
       </div>
@@ -299,6 +301,7 @@ function LoadpointCard({
   prefix: string;
   compact: boolean;
 }) {
+  const t = useT();
   const { setState } = useIoBroker();
 
   const setMode = (modeKey: string) => {
@@ -309,8 +312,8 @@ function LoadpointCard({
     setState(`${prefix}.loadpoint.${idx + 1}.control.limitSoc`, v);
   };
 
-  const lpTitle = lp.title || `Ladepunkt ${idx + 1}`;
-  const vehicleName = lp.vehicleTitle || 'Fahrzeug';
+  const lpTitle = lp.title || t('evcc.loadpoint', { n: idx + 1 });
+  const vehicleName = lp.vehicleTitle || t('evcc.vehicle');
 
   if (compact) {
     return (
@@ -361,7 +364,7 @@ function LoadpointCard({
               className="inline-block w-2 h-2 rounded-full animate-pulse"
               style={{ background: '#6366f1' }}
             />
-            Laden
+            {t('evcc.charging')}
           </span>
         )}
 
@@ -383,12 +386,12 @@ function LoadpointCard({
               {lp.vehicleRange > 0 && <span>· {Math.round(lp.vehicleRange)} km</span>}
             </div>
             <div className="flex items-center gap-1">
-              <span>Ziel:</span>
+              <span>{t('evcc.targetSoc')}</span>
               <button
                 className="font-semibold hover:opacity-80 transition-opacity"
                 style={{ color: '#6366f1' }}
                 onClick={() => setLimitSoc(Math.min(100, lp.effectiveLimitSoc + 10))}
-                title="Ziel-SoC anpassen"
+                title={t('evcc.adjustTarget')}
               >
                 {fmtSoc(lp.effectiveLimitSoc)}
               </button>
@@ -418,7 +421,7 @@ function LoadpointCard({
           )}
           {lp.planActive && lp.effectivePlanTime && (
             <span style={{ color: '#f59e0b' }}>
-              📅 {new Date(lp.effectivePlanTime).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+              📅 {new Date(lp.effectivePlanTime).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
         </div>
@@ -452,6 +455,7 @@ function LoadpointCard({
 // ── EvccWidget ────────────────────────────────────────────────────────────────
 
 export function EvccWidget({ config }: WidgetProps) {
+  const t = useT();
   const { connected } = useIoBroker();
   const o = config.options ?? {};
   const prefix = (o.evccPrefix as string | undefined) ?? 'evcc.0';
@@ -467,7 +471,7 @@ export function EvccWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-2" style={{ color: 'var(--text-secondary)' }}>
         <Zap size={24} strokeWidth={1.5} />
-        <span className="text-xs">Keine Verbindung</span>
+        <span className="text-xs">{t('evcc.noConnection')}</span>
       </div>
     );
   }
@@ -512,6 +516,7 @@ export function EvccConfig({
   config: WidgetConfig;
   onConfigChange: (c: WidgetConfig) => void;
 }) {
+  const t = useT();
   const o = config.options ?? {};
   const set = (patch: Record<string, unknown>) =>
     onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -530,7 +535,7 @@ export function EvccConfig({
   return (
     <>
       <div>
-        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>evcc Präfix</label>
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('evcc.prefix')}</label>
         <input
           type="text"
           value={prefix}
@@ -542,7 +547,7 @@ export function EvccConfig({
       </div>
 
       <div>
-        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Ladepunkte</label>
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('evcc.loadpoints')}</label>
         <div className="flex gap-1">
           {[1, 2, 3, 4].map((n) => (
             <button
@@ -562,7 +567,7 @@ export function EvccConfig({
       </div>
 
       <div className="flex items-center justify-between">
-        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Batterie anzeigen</label>
+        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('evcc.showBattery')}</label>
         <button
           onClick={() => set({ showBattery: !showBattery })}
           className="relative w-9 h-5 rounded-full transition-colors"

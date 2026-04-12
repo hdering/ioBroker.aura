@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { RefreshCw, Search, X } from 'lucide-react';
 import { useDatapointList } from '../../hooks/useDatapointList';
+import { useT } from '../../i18n';
 
 interface DatapointPickerProps {
   currentValue: string;
@@ -12,6 +13,7 @@ interface DatapointPickerProps {
 const MAX_DISPLAY = 250;
 
 export function DatapointPicker({ currentValue, onSelect, onClose }: DatapointPickerProps) {
+  const t = useT();
   const { datapoints, loading, loaded, load } = useDatapointList();
   const [search, setSearch] = useState('');
   const [adapter, setAdapter] = useState('');
@@ -37,8 +39,8 @@ export function DatapointPicker({ currentValue, onSelect, onClose }: DatapointPi
 
   const shown = filtered.slice(0, MAX_DISPLAY);
   const countLabel = filtered.length > MAX_DISPLAY
-    ? `${MAX_DISPLAY} von ${filtered.length} angezeigt`
-    : `${filtered.length} Datenpunkte`;
+    ? t('dp.picker.showing', { max: MAX_DISPLAY, count: filtered.length })
+    : t('dp.picker.count', { count: filtered.length });
 
   return createPortal(
     <div
@@ -59,7 +61,7 @@ export function DatapointPicker({ currentValue, onSelect, onClose }: DatapointPi
           style={{ borderBottom: '1px solid var(--app-border)' }}
         >
           <h2 className="font-bold flex-1 text-sm" style={{ color: 'var(--text-primary)' }}>
-            Datenpunkt wählen
+            {t('dp.picker.title')}
           </h2>
           <button
             onClick={() => load(true)}
@@ -68,7 +70,7 @@ export function DatapointPicker({ currentValue, onSelect, onClose }: DatapointPi
             style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
           >
             <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
-            Aktualisieren
+            {t('dp.picker.refresh')}
           </button>
           <button onClick={onClose} className="hover:opacity-60 transition-opacity" style={{ color: 'var(--text-secondary)' }}>
             <X size={18} />
@@ -86,7 +88,7 @@ export function DatapointPicker({ currentValue, onSelect, onClose }: DatapointPi
               autoFocus
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="ID oder Name suchen…"
+              placeholder={t('dp.picker.search')}
               className="flex-1 text-sm bg-transparent focus:outline-none"
               style={{ color: 'var(--text-primary)' }}
             />
@@ -103,7 +105,7 @@ export function DatapointPicker({ currentValue, onSelect, onClose }: DatapointPi
               className="rounded-lg px-3 py-2 text-sm focus:outline-none"
               style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
             >
-              <option value="">Alle Adapter</option>
+              <option value="">{t('dp.picker.allAdapters')}</option>
               {adapters.map((a) => (
                 <option key={a} value={a}>{a}</option>
               ))}
@@ -126,11 +128,11 @@ export function DatapointPicker({ currentValue, onSelect, onClose }: DatapointPi
                 className="w-5 h-5 border-2 rounded-full animate-spin"
                 style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }}
               />
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Lade Datenpunkte…</p>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('dp.picker.loading')}</p>
             </div>
           ) : shown.length === 0 ? (
             <div className="flex items-center justify-center py-12">
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Keine Ergebnisse</p>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('dp.picker.noResults')}</p>
             </div>
           ) : (
             shown.map((dp) => {

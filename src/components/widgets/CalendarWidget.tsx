@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { RefreshCw, CalendarDays, MapPin, AlertCircle } from 'lucide-react';
 import type { WidgetProps } from '../../types';
 import { getSocket } from '../../hooks/useIoBroker';
+import { useT } from '../../i18n';
 
 // ── CalendarSource ─────────────────────────────────────────────────────────
 
@@ -118,9 +119,6 @@ async function fetchIcalText(url: string): Promise<string> {
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
-const WEEKDAYS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-const MONTHS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
-
 function pad(n: number) { return String(n).padStart(2, '0'); }
 
 function isToday(d: Date) {
@@ -132,15 +130,18 @@ function isTomorrow(d: Date) {
   return d.getFullYear() === tm.getFullYear() && d.getMonth() === tm.getMonth() && d.getDate() === tm.getDate();
 }
 
-function formatEventDate(event: CalEvent): string {
+type TFn = ReturnType<typeof useT>;
+
+function formatEventDate(event: CalEvent, t: TFn): string {
   const d = event.start;
-  if (isToday(d)) return event.allDay ? 'Heute' : `Heute, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  if (isTomorrow(d)) return event.allDay ? 'Morgen' : `Morgen, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  if (isToday(d)) return event.allDay ? t('calendar.today') : t('calendar.todayAt', { time });
+  if (isTomorrow(d)) return event.allDay ? t('calendar.tomorrow') : t('calendar.tomorrowAt', { time });
   const day = d.getDate();
-  const month = MONTHS[d.getMonth()];
-  const weekday = WEEKDAYS[d.getDay()];
+  const month = t(`cal.month.${d.getMonth()}` as Parameters<TFn>[0]);
+  const weekday = t(`cal.day.${d.getDay()}` as Parameters<TFn>[0]);
   if (event.allDay) return `${weekday}, ${day}. ${month}`;
-  return `${weekday}, ${day}. ${month}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${weekday}, ${day}. ${month}, ${time}`;
 }
 
 function isUpcoming(event: CalEvent, daysAhead: number): boolean {
@@ -189,6 +190,7 @@ function Spinner({ loading }: { loading: boolean }) {
 // ── widget ─────────────────────────────────────────────────────────────────
 
 export function CalendarWidget({ config }: WidgetProps) {
+  const t = useT();
   const options = config.options ?? {};
   const refreshInterval = (options.refreshInterval as number) ?? 30;
   const maxEvents = (options.maxEvents as number) ?? 5;
@@ -267,7 +269,7 @@ export function CalendarWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-2 text-center">
         <CalendarDays size={22} style={{ color: 'var(--text-secondary)', opacity: 0.5 }} />
-        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Kalender konfigurieren</p>
+        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('calendar.configure')}</p>
       </div>
     );
   }
@@ -295,7 +297,7 @@ export function CalendarWidget({ config }: WidgetProps) {
         <p className="text-3xl font-black tabular-nums leading-none" style={{ color: 'var(--accent)' }}>
           {loading ? '…' : visibleEvents.length}
         </p>
-        <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Termine</p>
+        <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{t('calendar.events')}</p>
       </div>
     );
   }
@@ -316,13 +318,13 @@ export function CalendarWidget({ config }: WidgetProps) {
         </div>
         <div className="flex-1 min-w-0">
           {loading && !next
-            ? <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Lädt…</p>
+            ? <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('calendar.loading')}</p>
             : next ? (
               <>
                 <p className="text-[11px] font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{next.summary}</p>
-                <p className="text-[10px]" style={{ color }}>{formatEventDate(next)}</p>
+                <p className="text-[10px]" style={{ color }}>{formatEventDate(next, t)}</p>
               </>
-            ) : <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Keine Termine</p>
+            ) : <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('calendar.noEvents')}</p>
           }
         </div>
         <button onClick={fetchEvents} className="hover:opacity-70 shrink-0"><Spinner loading={loading} /></button>
@@ -350,7 +352,7 @@ export function CalendarWidget({ config }: WidgetProps) {
               <p className="text-[9px] mb-0.5" style={{ color: next.sourceColor }}>{next.sourceName}</p>
             )}
             <p className="text-xl font-bold leading-tight" style={{ color }}>{next.summary}</p>
-            <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>{formatEventDate(next)}</p>
+            <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>{formatEventDate(next, t)}</p>
             {next.location && (
               <div className="flex items-center gap-1 mt-1">
                 <MapPin size={10} style={{ color: 'var(--text-secondary)' }} />
@@ -358,11 +360,11 @@ export function CalendarWidget({ config }: WidgetProps) {
               </div>
             )}
             {visibleEvents.length > 1 && (
-              <p className="text-[10px] mt-1.5" style={{ color: 'var(--text-secondary)' }}>+{visibleEvents.length - 1} weitere</p>
+              <p className="text-[10px] mt-1.5" style={{ color: 'var(--text-secondary)' }}>{t('calendar.more', { count: visibleEvents.length - 1 })}</p>
             )}
           </div>
         ) : (
-          <p className="text-lg font-bold" style={{ color: 'var(--text-secondary)' }}>Keine Termine</p>
+          <p className="text-lg font-bold" style={{ color: 'var(--text-secondary)' }}>{t('calendar.noEvents')}</p>
         )}
       </div>
     );
@@ -378,11 +380,11 @@ export function CalendarWidget({ config }: WidgetProps) {
         </div>
         {loading && events.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Lädt…</p>
+            <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('calendar.loading')}</p>
           </div>
         ) : visibleEvents.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Keine Termine</p>
+            <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('calendar.noEvents')}</p>
           </div>
         ) : (
           <div className="flex-1 overflow-hidden flex flex-col gap-0.5 min-h-0">
@@ -421,7 +423,7 @@ export function CalendarWidget({ config }: WidgetProps) {
                     className="text-[10px] shrink-0 tabular-nums"
                     style={{ color: meta.isToday ? ev.sourceColor : 'var(--text-secondary)', fontWeight: meta.isNext ? 600 : 400 }}
                   >
-                    {formatEventDate(ev)}
+                    {formatEventDate(ev, t)}
                   </p>
                 </div>
               );
@@ -442,7 +444,7 @@ export function CalendarWidget({ config }: WidgetProps) {
     <div className="flex flex-col h-full gap-1.5 overflow-hidden">
       <div className="flex items-center justify-between shrink-0">
         <p className="text-[11px] font-medium truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
-        <button onClick={fetchEvents} className="hover:opacity-70 shrink-0" title="Aktualisieren">
+        <button onClick={fetchEvents} className="hover:opacity-70 shrink-0">
           <Spinner loading={loading} />
         </button>
       </div>
@@ -453,7 +455,7 @@ export function CalendarWidget({ config }: WidgetProps) {
         </div>
       ) : visibleEvents.length === 0 ? (
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Keine Termine in den nächsten {daysAhead} Tagen</p>
+          <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('calendar.noDays', { days: daysAhead })}</p>
         </div>
       ) : (
         <div className="flex-1 overflow-hidden flex flex-col gap-1 min-h-0">
@@ -491,7 +493,7 @@ export function CalendarWidget({ config }: WidgetProps) {
                     className="text-[10px]"
                     style={{ color: meta.isToday ? ev.sourceColor : 'var(--text-secondary)', fontWeight: meta.isToday ? 500 : 400 }}
                   >
-                    {formatEventDate(ev)}
+                    {formatEventDate(ev, t)}
                   </p>
                   {ev.location && (
                     <div className="flex items-center gap-0.5">
@@ -508,7 +510,7 @@ export function CalendarWidget({ config }: WidgetProps) {
 
       {lastUpdated && (
         <p className="text-[9px] shrink-0" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-          Aktualisiert: {pad(lastUpdated.getHours())}:{pad(lastUpdated.getMinutes())}
+          {t('calendar.updated', { time: `${pad(lastUpdated.getHours())}:${pad(lastUpdated.getMinutes())}` })}
         </p>
       )}
     </div>

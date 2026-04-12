@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Loader } from 'lucide-react';
 import type { WidgetProps } from '../../types';
+import { useT } from '../../i18n';
 
 interface WeatherData {
   current: {
@@ -18,25 +19,29 @@ interface WeatherData {
   };
 }
 
-function getWeatherInfo(code: number): { desc: string; emoji: string } {
-  if (code === 0)                  return { desc: 'Sonnig',        emoji: '☀️' };
-  if (code === 1)                  return { desc: 'Leicht bewölkt',emoji: '🌤️' };
-  if (code === 2)                  return { desc: 'Bewölkt',       emoji: '⛅' };
-  if (code === 3)                  return { desc: 'Bedeckt',       emoji: '☁️' };
-  if (code === 45 || code === 48)  return { desc: 'Nebel',         emoji: '🌫️' };
-  if (code >= 51 && code <= 55)    return { desc: 'Nieselregen',   emoji: '🌦️' };
-  if (code >= 61 && code <= 65)    return { desc: 'Regen',         emoji: '🌧️' };
-  if (code >= 71 && code <= 75)    return { desc: 'Schnee',        emoji: '❄️' };
-  if (code >= 80 && code <= 82)    return { desc: 'Schauer',       emoji: '🌦️' };
-  if (code === 95)                 return { desc: 'Gewitter',      emoji: '⛈️' };
-  return { desc: 'Unbekannt', emoji: '🌡️' };
+type TFn = (key: Parameters<ReturnType<typeof useT>>[0], vars?: Record<string, string | number>) => string;
+
+function getWeatherInfo(code: number, t: TFn): { desc: string; emoji: string } {
+  if (code === 0)                  return { desc: t('weather.sunny'),        emoji: '☀️' };
+  if (code === 1)                  return { desc: t('weather.partlyCloudy'), emoji: '🌤️' };
+  if (code === 2)                  return { desc: t('weather.cloudy'),       emoji: '⛅' };
+  if (code === 3)                  return { desc: t('weather.overcast'),     emoji: '☁️' };
+  if (code === 45 || code === 48)  return { desc: t('weather.fog'),          emoji: '🌫️' };
+  if (code >= 51 && code <= 55)    return { desc: t('weather.drizzle'),      emoji: '🌦️' };
+  if (code >= 61 && code <= 65)    return { desc: t('weather.rain'),         emoji: '🌧️' };
+  if (code >= 71 && code <= 75)    return { desc: t('weather.snow'),         emoji: '❄️' };
+  if (code >= 80 && code <= 82)    return { desc: t('weather.showers'),      emoji: '🌦️' };
+  if (code === 95)                 return { desc: t('weather.thunderstorm'), emoji: '⛈️' };
+  return { desc: t('weather.unknown'), emoji: '🌡️' };
 }
 
-function dayName(dateStr: string, short = true): string {
-  return new Date(dateStr).toLocaleDateString('de-DE', { weekday: short ? 'short' : 'long' });
+function dayName(dateStr: string, t: TFn): string {
+  const day = new Date(dateStr).getDay();
+  return t(`cal.day.${day}` as Parameters<TFn>[0]);
 }
 
 export function WeatherWidget({ config }: WidgetProps) {
+  const t = useT();
   const opts          = config.options ?? {};
   const lat           = (opts.latitude as number)       ?? 48.1;
   const lon           = (opts.longitude as number)      ?? 11.6;
@@ -89,13 +94,13 @@ export function WeatherWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-2" style={{ color: 'var(--text-secondary)' }}>
         <span className="text-2xl">🌡️</span>
-        <span className="text-xs">Wetterdaten nicht verfügbar</span>
+        <span className="text-xs">{t('weather.noData')}</span>
       </div>
     );
   }
 
   const cur  = data.current;
-  const info = getWeatherInfo(cur.weather_code);
+  const info = getWeatherInfo(cur.weather_code, t);
   const temp = `${Math.round(cur.temperature_2m)}°C`;
   const feel = `${Math.round(cur.apparent_temperature)}°`;
 
@@ -136,8 +141,8 @@ export function WeatherWidget({ config }: WidgetProps) {
   const fcItems: { day: string; info: ReturnType<typeof getWeatherInfo>; max: number; min: number; isToday: boolean }[] = [];
   for (let i = startIdx; i < data.daily.time.length && fcItems.length < forecastDays; i++) {
     fcItems.push({
-      day:     i === 0 ? 'Heute' : dayName(data.daily.time[i]),
-      info:    getWeatherInfo(data.daily.weather_code[i]),
+      day:     i === 0 ? t('weather.today') : dayName(data.daily.time[i], t),
+      info:    getWeatherInfo(data.daily.weather_code[i], t),
       max:     Math.round(data.daily.temperature_2m_max[i]),
       min:     Math.round(data.daily.temperature_2m_min[i]),
       isToday: i === 0,
@@ -166,10 +171,10 @@ export function WeatherWidget({ config }: WidgetProps) {
             </span>
           </div>
           <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-            💧 {cur.relative_humidity_2m}% Luftfeuchtigkeit
+            💧 {cur.relative_humidity_2m}% {t('weather.humidity')}
           </div>
           <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-            Gefühlt {feel} · 💨 {Math.round(cur.wind_speed_10m)} km/h
+            {t('weather.feelsLike', { feel, wind: Math.round(cur.wind_speed_10m) })}
             {locationName ? ` · ${locationName}` : ''}
             {error && <span className="ml-1" style={{ color: 'var(--accent-red, #ef4444)' }}>!</span>}
           </div>

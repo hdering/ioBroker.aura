@@ -10,6 +10,7 @@ import { useConfigStore } from '../../store/configStore';
 import { detectWidgets, detectHomepage, type HomepageCategory } from '../../utils/widgetDetection';
 import { generateLayouts } from '../../utils/layoutGenerator';
 import { WIDGET_BY_TYPE } from '../../widgetRegistry';
+import { useT } from '../../i18n';
 
 // ── mini grid preview ──────────────────────────────────────────────────────
 
@@ -78,14 +79,14 @@ function MiniGridPreview({
 
 // ── topic suggestions ──────────────────────────────────────────────────────
 
-const SUGGESTIONS = [
-  { label: 'Licht',      icon: <Lightbulb size={14} /> },
-  { label: 'Heizung',    icon: <Thermometer size={14} /> },
-  { label: 'Energie',    icon: <Zap size={14} /> },
-  { label: 'Klima',      icon: <Wind size={14} /> },
-  { label: 'Rolläden',   icon: <Blinds size={14} /> },
-  { label: 'Steckdosen', icon: <Power size={14} /> },
-  { label: 'Sicherheit', icon: <ShieldCheck size={14} /> },
+const SUGGESTION_KEYS = [
+  { key: 'wizard.tab.topicLight'    as const, icon: <Lightbulb size={14} /> },
+  { key: 'wizard.tab.topicHeating'  as const, icon: <Thermometer size={14} /> },
+  { key: 'wizard.tab.topicEnergy'   as const, icon: <Zap size={14} /> },
+  { key: 'wizard.tab.topicClimate'  as const, icon: <Wind size={14} /> },
+  { key: 'wizard.tab.topicBlinds'   as const, icon: <Blinds size={14} /> },
+  { key: 'wizard.tab.topicSockets'  as const, icon: <Power size={14} /> },
+  { key: 'wizard.tab.topicSecurity' as const, icon: <ShieldCheck size={14} /> },
 ];
 
 // ── type label ─────────────────────────────────────────────────────────────
@@ -106,6 +107,12 @@ interface TabWizardProps {
 }
 
 export function TabWizard({ onAdd, onClose }: TabWizardProps) {
+  const t = useT();
+  const SUGGESTIONS = useMemo(
+    () => SUGGESTION_KEYS.map((s) => ({ label: t(s.key), icon: s.icon })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t],
+  );
   const [step, setStep] = useState<Step>('mode');
   const [mode, setMode] = useState<Mode>('topic');
   const [topic, setTopic] = useState('');
@@ -162,8 +169,8 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
   }, [hasRooms, hasFuncs, groupBy]);
 
   const groupKeyOf = (w: typeof activeWidgets[number]) => {
-    if (groupBy === 'room') return w.datapoint.rooms[0] ?? 'Sonstige';
-    if (groupBy === 'func') return w.datapoint.funcs[0] ?? 'Sonstige';
+    if (groupBy === 'room') return w.datapoint.rooms[0] ?? t('wizard.tab.noData');
+    if (groupBy === 'func') return w.datapoint.funcs[0] ?? t('wizard.tab.noData');
     return '';
   };
 
@@ -187,7 +194,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
   }, [detectedGroups]);
 
   const groupMapper = groupBy !== 'none' && detectedGroups.size >= 2
-    ? (id: string) => idToGroup.get(id) ?? 'Sonstige'
+    ? (id: string) => idToGroup.get(id) ?? t('wizard.tab.noData')
     : undefined;
 
   const layouts = useMemo(
@@ -228,7 +235,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
 
   const handleCreate = () => {
     if (!currentLayout || activeWidgets.length === 0) return;
-    const name = tabName.trim() || (mode === 'homepage' ? 'Startseite' : topic);
+    const name = tabName.trim() || (mode === 'homepage' ? t('wizard.tab.homeDefault') : topic);
     const ts = Date.now();
     const widgets = currentLayout.widgets.map((w, i) => ({ ...w, id: `wiz-${ts}-${i}` }));
     onAdd(name, widgets);
@@ -312,21 +319,21 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
           {step === 'mode' && (
             <div className="space-y-4">
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                Wähle, wie du den neuen Tab erstellen möchtest.
+                {t('wizard.tab.selectMethod')}
               </p>
               <div className="grid grid-cols-2 gap-4">
                 {([
                   {
                     key: 'topic' as Mode,
                     icon: <Layers size={28} style={{ color: 'var(--accent)', marginBottom: 8 }} />,
-                    label: 'Nach Thema',
-                    desc: 'Suche nach „Licht", „Heizung" o.ä. und wähle passende Datenpunkte aus.',
+                    label: t('wizard.tab.byTopic'),
+                    desc: t('wizard.tab.byTopicHint'),
                   },
                   {
                     key: 'homepage' as Mode,
                     icon: <Home size={28} style={{ color: 'var(--accent-green)', marginBottom: 8 }} />,
-                    label: 'Startseite',
-                    desc: 'Automatische Übersicht mit Uhrzeit, Temperatur, Licht und weiteren relevanten Werten.',
+                    label: t('wizard.tab.home'),
+                    desc: t('wizard.tab.homeHint'),
                   },
                 ] as const).map((opt) => (
                   <button
@@ -351,19 +358,19 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
           {step === 'topic-input' && (
             <div className="space-y-5">
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                Was soll auf diesem Tab angezeigt werden?
+                {t('wizard.tab.whatToShow')}
               </p>
               <input
                 autoFocus
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && canNext) goNext(); }}
-                placeholder="z.B. Licht, Heizung, Energie …"
+                placeholder={t('wizard.tab.topicPh')}
                 className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none"
                 style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
               />
               <div>
-                <p className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>Vorschläge</p>
+                <p className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>{t('wizard.tab.suggestions')}</p>
                 <div className="flex flex-wrap gap-2">
                   {SUGGESTIONS.map((s) => (
                     <button
@@ -384,10 +391,10 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
               {topic && (
                 <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                   {dpLoading
-                    ? 'Datenpunkte werden geladen…'
+                    ? t('wizard.tab.loadingDp')
                     : topicWidgets.length > 0
-                      ? `${topicWidgets.length} passende Datenpunkte gefunden`
-                      : 'Keine passenden Datenpunkte – versuche ein anderes Stichwort'}
+                      ? t('wizard.tab.foundDp', { count: topicWidgets.length })
+                      : t('wizard.tab.noDp')}
                 </p>
               )}
             </div>
@@ -398,11 +405,11 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                  {topicWidgets.length} Datenpunkte gefunden
+                  {t('wizard.tab.foundDp', { count: topicWidgets.length })}
                 </p>
                 <div className="flex items-center gap-2">
                   <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    {activeWidgets.length} ausgewählt
+                    {activeWidgets.length} {t('wizard.tab.selected')}
                   </span>
                   <button
                     onClick={() => {
@@ -412,7 +419,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
                     className="text-xs px-2 py-0.5 rounded hover:opacity-80"
                     style={{ color: 'var(--accent)', border: '1px solid var(--accent)' }}
                   >
-                    {activeWidgets.length === topicWidgets.length ? 'Alle ab' : 'Alle an'}
+                    {activeWidgets.length === topicWidgets.length ? t('wizard.tab.allFrom') : t('wizard.tab.allOn')}
                   </button>
                 </div>
               </div>
@@ -423,7 +430,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Filtern…"
+                  placeholder={t('wizard.tab.filter')}
                   className="flex-1 text-xs bg-transparent focus:outline-none"
                   style={{ color: 'var(--text-primary)' }}
                 />
@@ -466,7 +473,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
                   );
                 })}
                 {filteredWidgets.length === 0 && (
-                  <p className="text-xs text-center py-6" style={{ color: 'var(--text-secondary)' }}>Keine Ergebnisse</p>
+                  <p className="text-xs text-center py-6" style={{ color: 'var(--text-secondary)' }}>{t('wizard.tab.noResults')}</p>
                 )}
               </div>
             </div>
@@ -476,15 +483,15 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
           {step === 'grouping' && (
             <div className="space-y-4">
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                Sollen die {activeWidgets.length} Widgets nach Raum oder Funktion gruppiert werden?
+                {t('wizard.tab.grouping', { count: activeWidgets.length })}
               </p>
 
               {/* GroupBy selector */}
               <div className="grid grid-cols-3 gap-2">
                 {([
-                  { key: 'none' as const, label: 'Kein', desc: 'Alle Widgets aneinandergereiht', disabled: false },
-                  { key: 'room', label: 'Raum',     desc: 'Nach ioBroker-Räumen', disabled: !hasRooms },
-                  { key: 'func', label: 'Funktion', desc: 'Nach ioBroker-Funktionen', disabled: !hasFuncs },
+                  { key: 'none' as const, label: t('wizard.tab.groupNone'), desc: t('wizard.tab.groupNoneHint'), disabled: false },
+                  { key: 'room', label: t('wizard.tab.groupRoom'), desc: t('wizard.tab.groupRoomHint'), disabled: !hasRooms },
+                  { key: 'func', label: t('wizard.tab.groupFunc'), desc: t('wizard.tab.groupFuncHint'), disabled: !hasFuncs },
                 ] as const).map((opt) => (
                   <button
                     key={opt.key}
@@ -501,7 +508,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
                       {opt.label}
                     </p>
                     <p className="text-[10px] leading-tight" style={{ color: 'var(--text-secondary)' }}>
-                      {opt.disabled ? 'Keine Daten vorhanden' : opt.desc}
+                      {opt.disabled ? t('wizard.tab.noData') : opt.desc}
                     </p>
                   </button>
                 ))}
@@ -519,7 +526,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
                           style={{ background: GROUP_COLORS[gi % GROUP_COLORS.length] }} />
                         <p className="flex-1 text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{label}</p>
                         <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                          {widgets.length} Widget{widgets.length !== 1 ? 's' : ''}
+                          {widgets.length} {widgets.length !== 1 ? t('wizard.tab.widgets') : t('wizard.tab.widget')}
                         </span>
                       </div>
                       <div className="px-4 py-2 flex flex-wrap gap-1.5" style={{ background: 'var(--app-surface)' }}>
@@ -542,8 +549,8 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
             <div className="space-y-3">
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                 {dpLoading
-                  ? 'Datenpunkte werden ausgelesen…'
-                  : `${homeWidgets.length} relevante Datenpunkte für die Startseite gefunden.`}
+                  ? t('wizard.tab.readingDp')
+                  : t('wizard.tab.foundHomeDp', { count: homeWidgets.length })}
               </p>
               <div className="space-y-3 max-h-72 overflow-y-auto">
                 {(homeSections as HomepageCategory[]).map((sec) => (
@@ -583,7 +590,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
                 ))}
                 {!dpLoading && homeSections.length === 0 && (
                   <p className="text-xs text-center py-6" style={{ color: 'var(--text-secondary)' }}>
-                    Keine relevanten Datenpunkte gefunden. Stelle sicher, dass ioBroker-Adapter verbunden sind.
+                    {t('wizard.tab.noHomeDp')}
                   </p>
                 )}
               </div>
@@ -594,20 +601,20 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
           {step === 'layout' && (
             <div className="space-y-5">
               <div>
-                <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>Tab-Name</label>
+                <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>{t('wizard.tab.tabName')}</label>
                 <input
                   autoFocus
                   value={tabName}
                   onChange={(e) => setTabName(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && canCreate) handleCreate(); }}
-                  placeholder={mode === 'homepage' ? 'Startseite' : topic}
+                  placeholder={mode === 'homepage' ? t('wizard.tab.homeDefault') : topic}
                   className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none"
                   style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
                 />
               </div>
 
               <div>
-                <p className="text-xs font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>Layout wählen</p>
+                <p className="text-xs font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>{t('wizard.tab.selectLayout')}</p>
                 <div className="grid grid-cols-3 gap-3">
                   {layouts.map((variant) => (
                     <button
@@ -637,8 +644,8 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
               </div>
 
               <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                {activeWidgets.length} Widgets
-                {groupBy !== 'none' && detectedGroups.size >= 2 && ` · ${detectedGroups.size} Gruppen (${groupBy === 'room' ? 'Räume' : 'Funktionen'})`}
+                {activeWidgets.length} {t('wizard.tab.widgets')}
+                {groupBy !== 'none' && detectedGroups.size >= 2 && ` · ${detectedGroups.size} ${t('wizard.tab.groups')} (${groupBy === 'room' ? t('wizard.tab.rooms') : t('wizard.tab.functions')})`}
               </p>
             </div>
           )}
@@ -652,7 +659,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm hover:opacity-80"
             style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
           >
-            {step === 'mode' ? <><X size={14} /> Abbrechen</> : <><ChevronLeft size={14} /> Zurück</>}
+            {step === 'mode' ? <><X size={14} /> {t('wizard.tab.cancel')}</> : <><ChevronLeft size={14} /> {t('wizard.tab.back')}</>}
           </button>
 
           {step !== 'layout' ? (
@@ -662,7 +669,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
               className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-80 disabled:opacity-30"
               style={{ background: 'var(--accent)' }}
             >
-              Weiter <ChevronRight size={14} />
+              {t('wizard.tab.next')} <ChevronRight size={14} />
             </button>
           ) : (
             <button
@@ -671,7 +678,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
               className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-80 disabled:opacity-30"
               style={{ background: 'var(--accent-green)' }}
             >
-              <Check size={14} /> Tab erstellen
+              <Check size={14} /> {t('wizard.tab.create')}
             </button>
           )}
         </div>

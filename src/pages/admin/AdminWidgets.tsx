@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
+import { useT } from '../../i18n';
 import {
   ChevronDown, ChevronRight, Copy, Trash2, Pencil,
   Plus, Database, X, Check, Search, RotateCcw,
@@ -28,12 +29,6 @@ const TYPE_META = Object.fromEntries(
 
 const TYPE_ORDER: WidgetType[] = WIDGET_REGISTRY.map((m) => m.type);
 
-const LAYOUTS: { id: WidgetLayout; label: string }[] = [
-  { id: 'default', label: 'Standard' },
-  { id: 'card', label: 'Karte' },
-  { id: 'compact', label: 'Kompakt' },
-  { id: 'minimal', label: 'Minimal' },
-];
 
 const inputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
 const inputStyle: React.CSSProperties = {
@@ -58,6 +53,7 @@ function InlineEditForm({
   onChange: (c: WidgetConfig) => void;
   onClose: () => void;
 }) {
+  const t = useT();
   const { groups } = useGroupStore();
   const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actual' | null>(null);
 
@@ -81,7 +77,7 @@ function InlineEditForm({
         {/* Left column */}
         <div className="space-y-3">
           <div>
-            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Titel</label>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('editor.tabMgmt.name')}</label>
             <input
               type="text"
               value={config.title}
@@ -99,16 +95,18 @@ function InlineEditForm({
               className={inputCls}
               style={inputStyle}
             >
-              {[...LAYOUTS, ...(isCalendar ? [{ id: 'agenda' as WidgetLayout, label: 'Agenda' }] : [])].map((l) => (
-                <option key={l.id} value={l.id}>{l.label}</option>
-              ))}
+              <option value="default">{t('editor.layouts.standard')}</option>
+              <option value="card">{t('editor.layouts.card')}</option>
+              <option value="compact">{t('editor.layouts.compact')}</option>
+              <option value="minimal">{t('editor.layouts.minimal')}</option>
+              {isCalendar && <option value="agenda">{t('editor.layouts.agenda')}</option>}
             </select>
           </div>
 
           {needsDatapoint && !isList && (
             <div>
               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                Datenpunkt-ID
+                {t('wf.edit.datapointId')}
               </label>
               <div className="flex gap-1">
                 <input
@@ -122,7 +120,7 @@ function InlineEditForm({
                   onClick={() => setPickerTarget('datapoint')}
                   className="px-2 rounded-lg hover:opacity-80 shrink-0"
                   style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-                  title="Aus ioBroker wählen"
+                  title={t('wf.edit.fromIoBroker')}
                 >
                   <Database size={13} />
                 </button>
@@ -132,14 +130,14 @@ function InlineEditForm({
 
           {isList && (
             <div>
-              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Gruppe</label>
+              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.group')}</label>
               <select
                 value={config.datapoint}
                 onChange={(e) => onChange({ ...config, datapoint: e.target.value })}
                 className={inputCls}
                 style={inputStyle}
               >
-                <option value="">– Gruppe wählen –</option>
+                <option value="">{t('editor.manual.selectGroup')}</option>
                 {groups.map((g) => (
                   <option key={g.id} value={g.id}>{g.name}</option>
                 ))}
@@ -149,7 +147,7 @@ function InlineEditForm({
 
           {(config.type === 'value' || config.type === 'chart') && (
             <div>
-              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Einheit</label>
+              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.unit')}</label>
               <input
                 type="text"
                 value={(o.unit as string) ?? ''}
@@ -163,7 +161,7 @@ function InlineEditForm({
 
           {isHeader && (
             <div>
-              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Untertitel</label>
+              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.header.subtitle')}</label>
               <input
                 type="text"
                 value={(o.subtitle as string) ?? ''}
@@ -181,7 +179,7 @@ function InlineEditForm({
           {isThermostat && (
             <>
               <div className="flex items-center justify-between">
-                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Anklickbar</label>
+                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.thermo.clickable')}</label>
                 <button
                   onClick={() => setO({ clickable: !(o.clickable ?? true) })}
                   className="relative w-9 h-5 rounded-full transition-colors"
@@ -192,7 +190,7 @@ function InlineEditForm({
                 </button>
               </div>
               <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Ist-Temp. Datenpunkt</label>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.thermo.actualDp')}</label>
                 <div className="flex gap-1">
                   <input
                     type="text"
@@ -213,14 +211,14 @@ function InlineEditForm({
               </div>
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Min °C</label>
+                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.thermo.minTemp')}</label>
                   <input type="number" min={0} max={30}
                     value={(o.minTemp as number) ?? 10}
                     onChange={(e) => setO({ minTemp: Number(e.target.value) })}
                     className={inputCls} style={inputStyle} />
                 </div>
                 <div className="flex-1">
-                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Max °C</label>
+                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.thermo.maxTemp')}</label>
                   <input type="number" min={10} max={40}
                     value={(o.maxTemp as number) ?? 30}
                     onChange={(e) => setO({ maxTemp: Number(e.target.value) })}
@@ -228,7 +226,7 @@ function InlineEditForm({
                 </div>
               </div>
               <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Schrittweite</label>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.thermo.step')}</label>
                 <select value={(o.step as number) ?? 0.5} onChange={(e) => setO({ step: Number(e.target.value) })}
                   className={inputCls} style={inputStyle}>
                   <option value={0.5}>0,5 °C</option>
@@ -237,7 +235,7 @@ function InlineEditForm({
                 </select>
               </div>
               <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Schnellwahl</label>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.thermo.presets')}</label>
                 <input
                   type="text"
                   value={((o.presets as number[]) ?? [18, 20, 22, 24]).join(', ')}
@@ -256,17 +254,17 @@ function InlineEditForm({
           {isClock && (
             <>
               <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Anzeige</label>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.clock.display')}</label>
                 <select value={(o.display as string) ?? 'time'}
                   onChange={(e) => setO({ display: e.target.value })}
                   className={inputCls} style={inputStyle}>
-                  <option value="time">Nur Uhrzeit</option>
-                  <option value="datetime">Uhrzeit + Datum</option>
-                  <option value="date">Nur Datum</option>
+                  <option value="time">{t('wf.clock.timeOnly')}</option>
+                  <option value="datetime">{t('wf.clock.datetime')}</option>
+                  <option value="date">{t('wf.clock.dateOnly')}</option>
                 </select>
               </div>
               <div className="flex items-center justify-between">
-                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Sekunden</label>
+                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.clock.showSeconds')}</label>
                 <button
                   onClick={() => setO({ showSeconds: !o.showSeconds })}
                   className="relative w-9 h-5 rounded-full transition-colors"
@@ -291,12 +289,12 @@ function InlineEditForm({
         <button onClick={onClose}
           className="px-3 py-1.5 text-xs rounded-lg hover:opacity-80"
           style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-          Abbrechen
+          {t('wizard.tab.cancel')}
         </button>
         <button onClick={onClose}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-80"
           style={{ background: 'var(--accent)' }}>
-          <Check size={12} /> Übernehmen
+          <Check size={12} /> {t('common.ok')}
         </button>
       </div>
 
@@ -333,6 +331,7 @@ function WidgetRow({
   onCopy: (target: TabTarget) => void;
   onMove: (target: TabTarget) => void;
 }) {
+  const t = useT();
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showCopy, setShowCopy] = useState(false);
@@ -392,7 +391,7 @@ function WidgetRow({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             <p className="font-medium text-sm truncate" style={{ color: 'var(--text-primary)' }}>
-              {entry.config.title || <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>Kein Titel</span>}
+              {entry.config.title || <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>{t('widgets.noTitle')}</span>}
             </p>
             <span
               className="px-2 py-0.5 text-[10px] rounded-full shrink-0"
@@ -421,7 +420,7 @@ function WidgetRow({
             }}
           >
             <Pencil size={12} />
-            {editing ? 'Schließen' : 'Bearbeiten'}
+            {editing ? t('widgets.close') : t('widgets.edit')}
           </button>
 
           {/* Export */}
@@ -429,7 +428,7 @@ function WidgetRow({
             onClick={() => exportWidget(entry.config)}
             className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
             style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-            title="Exportieren"
+            title={t('common.export')}
           >
             <Download size={13} />
           </button>
@@ -440,7 +439,7 @@ function WidgetRow({
             onClick={(e) => { e.stopPropagation(); setShowCopy((v) => !v); setConfirmDelete(false); }}
             className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
             style={{ background: showCopy ? 'var(--accent)' : 'var(--app-surface)', color: showCopy ? '#fff' : 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-            title="Kopieren / Verschieben"
+            title={`${t('common.duplicate')} / ${t('common.move')}`}
           >
             <Copy size={13} />
           </button>
@@ -457,7 +456,7 @@ function WidgetRow({
                 border: '1px solid var(--app-border)',
               }}
             >
-              <p className="text-[11px] font-medium px-1" style={{ color: 'var(--text-secondary)' }}>Ziel:</p>
+              <p className="text-[11px] font-medium px-1" style={{ color: 'var(--text-secondary)' }}>{t('widgets.copyTarget')}</p>
               <select
                 value={`${copyTarget.layoutId}::${copyTarget.tabId}`}
                 onChange={(e) => {
@@ -481,14 +480,14 @@ function WidgetRow({
                   className="flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-80"
                   style={{ background: 'var(--accent)' }}
                 >
-                  <Copy size={11} /> Kopieren
+                  <Copy size={11} /> {t('common.duplicate')}
                 </button>
                 <button
                   onClick={() => { onMove(copyTarget); setShowCopy(false); }}
                   className="flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-80"
                   style={{ background: '#8b5cf6' }}
                 >
-                  <ArrowRightLeft size={11} /> Verschieben
+                  <ArrowRightLeft size={11} /> {t('common.move')}
                 </button>
               </div>
             </div>,
@@ -501,7 +500,7 @@ function WidgetRow({
               <button onClick={onDelete}
                 className="px-2 h-7 text-xs text-white rounded-lg hover:opacity-80"
                 style={{ background: 'var(--accent-red)' }}>
-                Löschen
+                {t('common.delete')}
               </button>
               <button onClick={() => setConfirmDelete(false)}
                 className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
@@ -514,7 +513,7 @@ function WidgetRow({
               onClick={() => { setConfirmDelete(true); setShowCopy(false); }}
               className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
               style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-              title="Löschen"
+              title={t('common.delete')}
             >
               <Trash2 size={13} />
             </button>
@@ -556,6 +555,7 @@ function TypeSection({
   onMove: (entry: WidgetEntry, target: TabTarget) => void;
   defaultOpen: boolean;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(defaultOpen);
   const meta = TYPE_META[type];
 
@@ -599,7 +599,7 @@ function TypeSection({
           ))}
           {entries.length === 0 && (
             <p className="text-xs text-center py-4" style={{ color: 'var(--text-secondary)' }}>
-              Keine Widgets dieses Typs
+              {t('widgets.noneSelected')}
             </p>
           )}
         </div>
@@ -619,6 +619,7 @@ function NewWidgetDialog({
   onAdd: (tabId: string, widget: WidgetConfig) => void;
   onClose: () => void;
 }) {
+  const t = useT();
   const { groups } = useGroupStore();
   const widgetDefaults = useConfigStore((s) => s.widgetDefaults);
   const [type, setType] = useState<WidgetType>('value');
@@ -663,14 +664,14 @@ function NewWidgetDialog({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Neues Widget</h2>
+          <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>{t('editor.manual.title')}</h2>
           <button onClick={onClose} className="hover:opacity-60" style={{ color: 'var(--text-secondary)' }}>
             <X size={18} />
           </button>
         </div>
 
         <div>
-          <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>Ziel-Tab</label>
+          <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('widgets.targetTab')}</label>
           <select value={targetTabId} onChange={(e) => setTargetTabId(e.target.value)}
             className={inputCls} style={inputStyle}>
             {tabs.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -679,23 +680,26 @@ function NewWidgetDialog({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>Typ</label>
+            <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.type')}</label>
             <select value={type} onChange={(e) => { setType(e.target.value as WidgetType); setDatapoint(''); setGroupId(''); }}
               className={inputCls} style={inputStyle}>
               {WIDGET_REGISTRY.map((w) => <option key={w.type} value={w.type}>{w.label}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>Layout</label>
+            <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.layout')}</label>
             <select value={layout} onChange={(e) => setLayout(e.target.value as WidgetLayout)}
               className={inputCls} style={inputStyle}>
-              {LAYOUTS.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}
+              <option value="default">{t('editor.layouts.standard')}</option>
+              <option value="card">{t('editor.layouts.card')}</option>
+              <option value="compact">{t('editor.layouts.compact')}</option>
+              <option value="minimal">{t('editor.layouts.minimal')}</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>Titel</label>
+          <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('editor.tabMgmt.name')}</label>
           <input value={title} onChange={(e) => setTitle(e.target.value)}
             placeholder={def.label}
             className={inputCls} style={inputStyle} />
@@ -703,7 +707,7 @@ function NewWidgetDialog({
 
         {addMode === 'datapoint' && (
           <div>
-            <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>Datenpunkt-ID *</label>
+            <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.datapointId')}</label>
             <div className="flex gap-1.5">
               <input value={datapoint} onChange={(e) => setDatapoint(e.target.value)}
                 placeholder="z.B. hm-rpc.0.ABC123.STATE"
@@ -720,10 +724,10 @@ function NewWidgetDialog({
 
         {isList && (
           <div>
-            <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>Gruppe *</label>
+            <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.group')}</label>
             <select value={groupId} onChange={(e) => setGroupId(e.target.value)}
               className={inputCls} style={inputStyle}>
-              <option value="">– Gruppe wählen –</option>
+              <option value="">{t('editor.manual.selectGroup')}</option>
               {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
             </select>
           </div>
@@ -731,15 +735,15 @@ function NewWidgetDialog({
 
         {isCalendar && (
           <p className="text-xs py-2 px-3 rounded-lg" style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-            Kalender-Widget bitte über den Dashboard-Editor erstellen (iCal-URL erforderlich).
+            {t('widgets.calendarHint')}
           </p>
         )}
 
         {(type === 'value' || type === 'chart') && (
           <div>
-            <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>Einheit (optional)</label>
+            <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.unit')}</label>
             <input value={unit} onChange={(e) => setUnit(e.target.value)}
-              placeholder="z.B. °C, %, W"
+              placeholder={t('endpoints.dp.unitPh')}
               className={inputCls} style={inputStyle} />
           </div>
         )}
@@ -748,12 +752,12 @@ function NewWidgetDialog({
           <button onClick={onClose}
             className="px-4 py-2 text-sm rounded-lg hover:opacity-80"
             style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-            Abbrechen
+            {t('editor.manual.cancel')}
           </button>
           <button onClick={handleAdd} disabled={!canAdd || isCalendar}
             className="px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-80 disabled:opacity-30"
             style={{ background: 'var(--accent)' }}>
-            Hinzufügen
+            {t('editor.manual.add')}
           </button>
         </div>
 
@@ -772,6 +776,7 @@ function NewWidgetDialog({
 // ── Multi-select Datapoint Picker ────────────────────────────────────────────
 
 function MultiDatapointPicker({ onAdd, onClose }: { onAdd: (dps: GroupDatapoint[]) => void; onClose: () => void }) {
+  const t = useT();
   const { devices, loading, loaded, load } = useIoBrokerDevices();
   const [search, setSearch] = useState('');
   const [adapter, setAdapter] = useState('');
@@ -822,15 +827,15 @@ function MultiDatapointPicker({ onAdd, onClose }: { onAdd: (dps: GroupDatapoint[
       <div className="rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl"
         style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--app-border)' }}>
-          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Datenpunkte wählen</h3>
+          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{t('endpoints.picker.title')}</h3>
           <button onClick={onClose} style={{ color: 'var(--text-secondary)' }}><X size={18} /></button>
         </div>
 
         {!loaded ? (
           <div className="flex flex-col items-center justify-center flex-1 gap-4 py-12">
             {loading
-              ? <><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} /><p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Lade…</p></>
-              : <button onClick={load} className="px-5 py-2 rounded-lg text-white text-sm hover:opacity-80" style={{ background: 'var(--accent)' }}>Geräte aus ioBroker laden</button>
+              ? <><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} /><p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('common.loading')}</p></>
+              : <button onClick={load} className="px-5 py-2 rounded-lg text-white text-sm hover:opacity-80" style={{ background: 'var(--accent)' }}>{t('endpoints.picker.load')}</button>
             }
           </div>
         ) : (
@@ -838,10 +843,10 @@ function MultiDatapointPicker({ onAdd, onClose }: { onAdd: (dps: GroupDatapoint[
             <div className="flex gap-2 px-5 py-3" style={{ borderBottom: '1px solid var(--app-border)' }}>
               <div className="flex-1 flex items-center gap-2 rounded-lg px-3 py-1.5" style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
                 <Search size={14} style={{ color: 'var(--text-secondary)' }} />
-                <input autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Suchen…" className="flex-1 text-sm bg-transparent focus:outline-none" style={{ color: 'var(--text-primary)' }} />
+                <input autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('common.search')} className="flex-1 text-sm bg-transparent focus:outline-none" style={{ color: 'var(--text-primary)' }} />
               </div>
               <select value={adapter} onChange={(e) => setAdapter(e.target.value)} className="text-sm rounded-lg px-2 py-1.5" style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
-                <option value="">Alle</option>
+                <option value="">{t('common.all')}</option>
                 {adapters.map((a) => <option key={a} value={a}>{a}</option>)}
               </select>
             </div>
@@ -882,17 +887,17 @@ function MultiDatapointPicker({ onAdd, onClose }: { onAdd: (dps: GroupDatapoint[
 
             <div className="flex items-center justify-between px-5 py-3" style={{ borderTop: '1px solid var(--app-border)' }}>
               <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                {selected.size === 0 ? 'Nichts ausgewählt' : `${selected.size} ausgewählt`}
+                {selected.size === 0 ? t('endpoints.picker.none') : t('endpoints.picker.selected', { count: String(selected.size) })}
               </span>
               <div className="flex gap-2">
                 <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:opacity-80"
                   style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                  Abbruch
+                  {t('endpoints.picker.cancel')}
                 </button>
                 <button onClick={handleAdd} disabled={selected.size === 0}
                   className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80 disabled:opacity-30"
                   style={{ background: 'var(--accent)' }}>
-                  Hinzufügen {selected.size > 0 && `(${selected.size})`}
+                  {t('endpoints.picker.add')} {selected.size > 0 && `(${selected.size})`}
                 </button>
               </div>
             </div>
@@ -909,21 +914,22 @@ function GroupEditor({ group }: { group: DatapointGroup }) {
   const { removeDatapoint, updateDatapoint, addDatapoint } = useGroupStore();
   const [showPicker, setShowPicker] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const t = useT();
 
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{group.datapoints.length} Datenpunkte</span>
+        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.dp.count', { count: group.datapoints.length })}</span>
         <button onClick={() => setShowPicker(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-80"
           style={{ background: 'var(--accent)' }}>
-          <Plus size={12} /> Datenpunkt hinzufügen
+          <Plus size={12} /> {t('endpoints.dp.add')}
         </button>
       </div>
 
       {group.datapoints.length === 0 ? (
         <p className="text-xs text-center py-6" style={{ color: 'var(--text-secondary)' }}>
-          Noch keine Datenpunkte – füge welche hinzu.
+          {t('endpoints.dp.empty')}
         </p>
       ) : (
         <div className="space-y-1">
@@ -936,7 +942,7 @@ function GroupEditor({ group }: { group: DatapointGroup }) {
                 </div>
                 <span className="text-[10px] px-1.5 py-0.5 rounded shrink-0"
                   style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)' }}>
-                  {dp.type === 'boolean' ? (dp.writable ? 'Schalter' : 'Bool') : dp.type === 'number' ? `Zahl${dp.unit ? ` · ${dp.unit}` : ''}` : 'Text'}
+                  {dp.type === 'boolean' ? (dp.writable ? t('endpoints.dp.typeSwitch') : t('endpoints.dp.typeBool')) : dp.type === 'number' ? `${t('endpoints.dp.typeNum')}${dp.unit ? ` · ${dp.unit}` : ''}` : t('endpoints.dp.typeText')}
                 </span>
                 <button onClick={() => setEditingId(editingId === dp.id ? null : dp.id)}
                   className="hover:opacity-70 shrink-0"
@@ -951,34 +957,34 @@ function GroupEditor({ group }: { group: DatapointGroup }) {
               {editingId === dp.id && (
                 <div className="px-3 py-3 space-y-2" style={{ background: 'var(--app-surface)', borderTop: '1px solid var(--app-border)' }}>
                   <div className="flex items-center gap-2">
-                    <label className="text-[11px] w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>Bezeichnung</label>
+                    <label className="text-[11px] w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.dp.label')}</label>
                     <input type="text" defaultValue={dp.label}
                       onBlur={(e) => updateDatapoint(group.id, dp.id, { label: e.target.value || dp.label })}
                       className="flex-1 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none" style={inputStyle} />
                   </div>
                   <div className="flex items-center gap-2">
-                    <label className="text-[11px] w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>Typ</label>
+                    <label className="text-[11px] w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.dp.type')}</label>
                     <select value={dp.type}
                       onChange={(e) => updateDatapoint(group.id, dp.id, { type: e.target.value as GroupDatapoint['type'] })}
                       className="flex-1 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none" style={inputStyle}>
-                      <option value="boolean">Boolean (Schalter / Anzeige)</option>
-                      <option value="number">Zahl (Wert)</option>
-                      <option value="string">Text</option>
+                      <option value="boolean">{t('endpoints.dp.typeBoolean')}</option>
+                      <option value="number">{t('endpoints.dp.typeNumber')}</option>
+                      <option value="string">{t('endpoints.dp.typeText')}</option>
                     </select>
                   </div>
                   {dp.type === 'number' && (
                     <div className="flex items-center gap-2">
-                      <label className="text-[11px] w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>Einheit</label>
+                      <label className="text-[11px] w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.dp.unit')}</label>
                       <input type="text" defaultValue={dp.unit ?? ''}
                         onBlur={(e) => updateDatapoint(group.id, dp.id, { unit: e.target.value || undefined })}
-                        placeholder="z.B. °C, %, W"
+                        placeholder={t('endpoints.dp.unitPh')}
                         className="flex-1 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none" style={inputStyle} />
                     </div>
                   )}
                   {(dp.type === 'boolean' || dp.type === 'number') && (
                     <div className="flex items-center gap-2">
                       <label className="text-[11px] w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                        {dp.type === 'boolean' ? 'Als Schalter' : 'Schreibbar'}
+                        {dp.type === 'boolean' ? t('endpoints.dp.asSwitch') : t('endpoints.dp.writable')}
                       </label>
                       <button onClick={() => updateDatapoint(group.id, dp.id, { writable: !dp.writable })}
                         className="relative w-9 h-5 rounded-full transition-colors shrink-0"
@@ -987,7 +993,7 @@ function GroupEditor({ group }: { group: DatapointGroup }) {
                           style={{ left: dp.writable ? '18px' : '2px' }} />
                       </button>
                       <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {dp.writable ? (dp.type === 'boolean' ? 'Toggle-Schalter' : 'Wert kann gesetzt werden') : 'Nur Anzeige'}
+                        {dp.writable ? (dp.type === 'boolean' ? t('endpoints.dp.toggle') : t('endpoints.dp.settable')) : t('endpoints.dp.readOnly')}
                       </span>
                     </div>
                   )}
@@ -1012,6 +1018,7 @@ function GroupEditor({ group }: { group: DatapointGroup }) {
 // ── Default Sizes Dialog ──────────────────────────────────────────────────────
 
 function DefaultSizesDialog({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const { widgetDefaults, setWidgetDefault, resetWidgetDefault } = useConfigStore();
 
   return (
@@ -1025,9 +1032,9 @@ function DefaultSizesDialog({ onClose }: { onClose: () => void }) {
         <div className="flex items-center justify-between px-6 py-4 shrink-0"
           style={{ borderBottom: '1px solid var(--app-border)' }}>
           <div>
-            <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Standard-Größen</h2>
+            <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>{t('widgets.defaultSizes')}</h2>
             <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-              Breite × Höhe in Grid-Einheiten beim Erstellen neuer Widgets
+              {t('widgets.defaultSizesHint')}
             </p>
           </div>
           <button onClick={onClose} className="hover:opacity-60 ml-4 shrink-0" style={{ color: 'var(--text-secondary)' }}>
@@ -1071,7 +1078,7 @@ function DefaultSizesDialog({ onClose }: { onClose: () => void }) {
                 <button
                   onClick={() => resetWidgetDefault(meta.type)}
                   disabled={!isOverridden}
-                  title="Auf Standard zurücksetzen"
+                  title={t('widgets.resetDefault')}
                   className="ml-1 hover:opacity-70 disabled:opacity-20 shrink-0"
                   style={{ color: 'var(--accent-red)' }}
                 >
@@ -1088,7 +1095,7 @@ function DefaultSizesDialog({ onClose }: { onClose: () => void }) {
           <button onClick={onClose}
             className="px-4 py-2 text-sm rounded-lg hover:opacity-80"
             style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-            Schließen
+            {t('common.close')}
           </button>
         </div>
       </div>
@@ -1106,6 +1113,7 @@ function GroupsSection() {
   const [showNew, setShowNew] = useState(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const t = useT();
 
   const handleAdd = () => {
     if (!newName.trim()) return;
@@ -1128,7 +1136,7 @@ function GroupsSection() {
           <Database size={15} />
         </span>
         <span className="font-semibold text-sm flex-1" style={{ color: 'var(--text-primary)' }}>
-          Gruppen & Datenpunkte
+          {t('widgets.groupsSection')}
         </span>
         <span className="px-2.5 py-0.5 text-xs font-medium rounded-full"
           style={{ background: '#06b6d422', color: '#06b6d4' }}>
@@ -1140,7 +1148,7 @@ function GroupsSection() {
           style={{ background: 'var(--accent)' }}
           role="button"
         >
-          <Plus size={12} /> Neue Gruppe
+          <Plus size={12} /> {t('widgets.newGroup')}
         </span>
         <span style={{ color: 'var(--text-secondary)' }}>
           {sectionOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
@@ -1154,14 +1162,14 @@ function GroupsSection() {
               <input autoFocus value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setShowNew(false); }}
-                placeholder="Gruppenname, z.B. Alle Lichter"
+                placeholder={t('widgets.groupPlaceholder')}
                 className="flex-1 rounded-lg px-3 py-2 text-sm focus:outline-none"
                 style={inputStyle}
               />
               <button onClick={handleAdd} disabled={!newName.trim()}
                 className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80 disabled:opacity-30"
                 style={{ background: 'var(--accent)' }}>
-                Erstellen
+                {t('common.create')}
               </button>
               <button onClick={() => setShowNew(false)} className="hover:opacity-70" style={{ color: 'var(--text-secondary)' }}>
                 <X size={16} />
@@ -1171,7 +1179,7 @@ function GroupsSection() {
 
           {groups.length === 0 ? (
             <p className="text-xs text-center py-8" style={{ color: 'var(--text-secondary)' }}>
-              Noch keine Gruppen – erstelle eine, um Datenpunkte zusammenzufassen.
+              {t('widgets.noGroupsHint')}
             </p>
           ) : (
             groups.map((group) => (
@@ -1235,6 +1243,7 @@ function GroupsSection() {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export function AdminWidgets() {
+  const t = useT();
   const { addWidgetToTab, updateWidgetInTab, removeWidgetInTab, addWidgetToLayoutTab, removeWidgetFromLayoutTab, activeLayoutId } = useDashboardStore();
   const tabs = useActiveLayout().tabs;
   const [showCreate, setShowCreate] = useState(false);
@@ -1271,7 +1280,7 @@ export function AdminWidgets() {
     return map;
   }, [filteredEntries]);
 
-  const activeTypes = TYPE_ORDER.filter((t) => (byType.get(t)?.length ?? 0) > 0);
+  const activeTypes = TYPE_ORDER.filter((tp) => (byType.get(tp)?.length ?? 0) > 0);
 
   const handleCopy = (entry: WidgetEntry, target: TabTarget) => {
     addWidgetToLayoutTab(target.layoutId, target.tabId, {
@@ -1295,9 +1304,9 @@ export function AdminWidgets() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Widget-Verwaltung</h1>
+          <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('widgets.title')}</h1>
           <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-            {allEntries.length} Widget{allEntries.length !== 1 ? 's' : ''} auf {tabs.length} Tab{tabs.length !== 1 ? 's' : ''}
+            {t('widgets.subtitle', { widgets: allEntries.length, tabs: tabs.length })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -1306,21 +1315,21 @@ export function AdminWidgets() {
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl hover:opacity-80"
             style={{ background: 'var(--app-surface)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
           >
-            <RotateCcw size={15} /> Standard-Größen
+            <RotateCcw size={15} /> {t('widgets.defaultSizes')}
           </button>
           <button
             onClick={() => setShowImport(true)}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl hover:opacity-80"
             style={{ background: 'var(--app-surface)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
           >
-            <Upload size={15} /> Importieren
+            <Upload size={15} /> {t('widgets.import')}
           </button>
           <button
             onClick={() => setShowCreate(true)}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-xl hover:opacity-80"
             style={{ background: 'var(--accent)' }}
           >
-            <Plus size={15} /> Neues Widget
+            <Plus size={15} /> {t('editor.manual.title')}
           </button>
         </div>
       </div>
@@ -1329,14 +1338,14 @@ export function AdminWidgets() {
       <input
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Widgets suchen (Name, Datenpunkt, Tab, Typ)…"
+        placeholder={t('widgets.search')}
         className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none"
         style={inputStyle}
       />
 
       {/* Summary chips */}
       <div className="flex flex-wrap gap-2">
-        {TYPE_ORDER.filter((t) => (byType.get(t)?.length ?? 0) > 0).map((type) => {
+        {TYPE_ORDER.filter((tp) => (byType.get(tp)?.length ?? 0) > 0).map((type) => {
           const meta = TYPE_META[type];
           const count = byType.get(type)?.length ?? 0;
           return (
@@ -1353,19 +1362,19 @@ export function AdminWidgets() {
       {/* Sections */}
       {allEntries.length === 0 ? (
         <div className="text-center py-16 rounded-xl" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
-          <p className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Keine Widgets vorhanden</p>
-          <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>Erstelle Widgets im Dashboard-Editor oder hier.</p>
+          <p className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>{t('widgets.noWidgets')}</p>
+          <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>{t('widgets.noWidgetsHint')}</p>
           <button
             onClick={() => setShowCreate(true)}
             className="px-4 py-2 text-sm font-medium text-white rounded-xl hover:opacity-80"
             style={{ background: 'var(--accent)' }}
           >
-            Erstes Widget erstellen
+            {t('widgets.createFirst')}
           </button>
         </div>
       ) : filteredEntries.length === 0 ? (
         <p className="text-center py-12 text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Keine Widgets gefunden für „{search}"
+          {t('widgets.noResults', { search })}
         </p>
       ) : (
         <div className="space-y-3">
@@ -1388,7 +1397,7 @@ export function AdminWidgets() {
       {/* Groups section */}
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest mb-3 px-1" style={{ color: 'var(--text-secondary)' }}>
-          Gruppen
+          {t('widgets.groups')}
         </p>
         <GroupsSection />
       </div>

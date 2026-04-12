@@ -2,9 +2,11 @@ import { useState, useMemo } from 'react';
 import { Plus, Trash2, Edit3, Check, X, Search, ChevronDown, ChevronRight } from 'lucide-react';
 import { useGroupStore, type DatapointGroup, type GroupDatapoint } from '../../store/groupStore';
 import { useIoBrokerDevices } from '../../hooks/useIoBrokerDevices';
+import { useT } from '../../i18n';
 
 // ── Datenpunkt-Picker (Mehrfachauswahl) ────────────────────────────────────
 function DatapointPicker({ onAdd, onClose }: { onAdd: (dps: GroupDatapoint[]) => void; onClose: () => void }) {
+  const t = useT();
   const { devices, loading, loaded, load } = useIoBrokerDevices();
   const [search, setSearch] = useState('');
   const [adapter, setAdapter] = useState('');
@@ -55,15 +57,15 @@ function DatapointPicker({ onAdd, onClose }: { onAdd: (dps: GroupDatapoint[]) =>
       <div className="rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl"
         style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--app-border)' }}>
-          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Datenpunkte wählen</h3>
+          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{t('endpoints.picker.title')}</h3>
           <button onClick={onClose} style={{ color: 'var(--text-secondary)' }}><X size={18} /></button>
         </div>
 
         {!loaded ? (
           <div className="flex flex-col items-center justify-center flex-1 gap-4 py-12">
             {loading
-              ? <><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} /><p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Lade…</p></>
-              : <button onClick={load} className="px-5 py-2 rounded-lg text-white text-sm hover:opacity-80" style={{ background: 'var(--accent)' }}>Geräte aus ioBroker laden</button>
+              ? <><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} /><p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.picker.loading')}</p></>
+              : <button onClick={load} className="px-5 py-2 rounded-lg text-white text-sm hover:opacity-80" style={{ background: 'var(--accent)' }}>{t('endpoints.picker.load')}</button>
             }
           </div>
         ) : (
@@ -71,10 +73,10 @@ function DatapointPicker({ onAdd, onClose }: { onAdd: (dps: GroupDatapoint[]) =>
             <div className="flex gap-2 px-5 py-3" style={{ borderBottom: '1px solid var(--app-border)' }}>
               <div className="flex-1 flex items-center gap-2 rounded-lg px-3 py-1.5" style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
                 <Search size={14} style={{ color: 'var(--text-secondary)' }} />
-                <input autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Suchen…" className="flex-1 text-sm bg-transparent focus:outline-none" style={{ color: 'var(--text-primary)' }} />
+                <input autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('endpoints.picker.search')} className="flex-1 text-sm bg-transparent focus:outline-none" style={{ color: 'var(--text-primary)' }} />
               </div>
               <select value={adapter} onChange={(e) => setAdapter(e.target.value)} className="text-sm rounded-lg px-2 py-1.5" style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
-                <option value="">Alle</option>
+                <option value="">{t('endpoints.picker.all')}</option>
                 {adapters.map((a) => <option key={a} value={a}>{a}</option>)}
               </select>
             </div>
@@ -115,17 +117,17 @@ function DatapointPicker({ onAdd, onClose }: { onAdd: (dps: GroupDatapoint[]) =>
 
             <div className="flex items-center justify-between px-5 py-3" style={{ borderTop: '1px solid var(--app-border)' }}>
               <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                {selected.size === 0 ? 'Nichts ausgewählt' : `${selected.size} ausgewählt`}
+                {selected.size === 0 ? t('endpoints.picker.none') : t('endpoints.picker.selected', { count: String(selected.size) })}
               </span>
               <div className="flex gap-2">
                 <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:opacity-80"
                   style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                  Abbruch
+                  {t('endpoints.picker.cancel')}
                 </button>
                 <button onClick={handleAdd} disabled={selected.size === 0}
                   className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80 disabled:opacity-30"
                   style={{ background: 'var(--accent)' }}>
-                  Hinzufügen {selected.size > 0 && `(${selected.size})`}
+                  {t('endpoints.picker.add')} {selected.size > 0 && `(${selected.size})`}
                 </button>
               </div>
             </div>
@@ -138,6 +140,7 @@ function DatapointPicker({ onAdd, onClose }: { onAdd: (dps: GroupDatapoint[]) =>
 
 // ── Gruppe bearbeiten ───────────────────────────────────────────────────────
 function GroupEditor({ group }: { group: DatapointGroup }) {
+  const t = useT();
   const { removeDatapoint, updateDatapoint, addDatapoint } = useGroupStore();
   const [showPicker, setShowPicker] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -147,16 +150,16 @@ function GroupEditor({ group }: { group: DatapointGroup }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{group.datapoints.length} Datenpunkte</span>
+        <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.dp.count', { count: String(group.datapoints.length) })}</span>
         <button onClick={() => setShowPicker(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-80"
           style={{ background: 'var(--accent)' }}>
-          <Plus size={13} /> Datenpunkt hinzufügen
+          <Plus size={13} /> {t('endpoints.dp.add')}
         </button>
       </div>
 
       {group.datapoints.length === 0 ? (
-        <p className="text-sm text-center py-8" style={{ color: 'var(--text-secondary)' }}>Noch keine Datenpunkte – füge welche hinzu.</p>
+        <p className="text-sm text-center py-8" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.dp.empty')}</p>
       ) : (
         <div className="space-y-1">
           {group.datapoints.map((dp) => (
@@ -169,7 +172,11 @@ function GroupEditor({ group }: { group: DatapointGroup }) {
                 </div>
                 <span className="text-xs px-1.5 py-0.5 rounded shrink-0"
                   style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)' }}>
-                  {dp.type === 'boolean' ? (dp.writable ? 'Schalter' : 'Bool') : dp.type === 'number' ? `Zahl${dp.unit ? ` · ${dp.unit}` : ''}` : 'Text'}
+                  {dp.type === 'boolean'
+                    ? (dp.writable ? t('endpoints.dp.typeSwitch') : t('endpoints.dp.typeBool'))
+                    : dp.type === 'number'
+                      ? `${t('endpoints.dp.typeNum')}${dp.unit ? ` · ${dp.unit}` : ''}`
+                      : 'Text'}
                 </span>
                 <button onClick={() => setEditingId(editingId === dp.id ? null : dp.id)}
                   className="hover:opacity-70 shrink-0"
@@ -186,7 +193,7 @@ function GroupEditor({ group }: { group: DatapointGroup }) {
                 <div className="px-3 py-3 space-y-2.5" style={{ background: 'var(--app-surface)', borderTop: '1px solid var(--app-border)' }}>
                   {/* Label */}
                   <div className="flex items-center gap-2">
-                    <label className="text-xs w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>Bezeichnung</label>
+                    <label className="text-xs w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.dp.label')}</label>
                     <input
                       type="text"
                       defaultValue={dp.label}
@@ -198,28 +205,28 @@ function GroupEditor({ group }: { group: DatapointGroup }) {
 
                   {/* Typ */}
                   <div className="flex items-center gap-2">
-                    <label className="text-xs w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>Typ</label>
+                    <label className="text-xs w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.dp.type')}</label>
                     <select
                       value={dp.type}
                       onChange={(e) => updateDatapoint(group.id, dp.id, { type: e.target.value as GroupDatapoint['type'] })}
                       className="flex-1 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
                       style={inputStyle}
                     >
-                      <option value="boolean">Boolean (Schalter / Anzeige)</option>
-                      <option value="number">Zahl (Wert)</option>
-                      <option value="string">Text</option>
+                      <option value="boolean">{t('endpoints.dp.typeBoolean')}</option>
+                      <option value="number">{t('endpoints.dp.typeNumber')}</option>
+                      <option value="string">{t('endpoints.dp.typeText')}</option>
                     </select>
                   </div>
 
                   {/* Einheit (nur bei Zahl) */}
                   {dp.type === 'number' && (
                     <div className="flex items-center gap-2">
-                      <label className="text-xs w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>Einheit</label>
+                      <label className="text-xs w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.dp.unit')}</label>
                       <input
                         type="text"
                         defaultValue={dp.unit ?? ''}
                         onBlur={(e) => updateDatapoint(group.id, dp.id, { unit: e.target.value || undefined })}
-                        placeholder="z.B. °C, %, W"
+                        placeholder={t('endpoints.dp.unitPh')}
                         className="flex-1 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
                         style={inputStyle}
                       />
@@ -230,7 +237,7 @@ function GroupEditor({ group }: { group: DatapointGroup }) {
                   {(dp.type === 'boolean' || dp.type === 'number') && (
                     <div className="flex items-center gap-2">
                       <label className="text-xs w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                        {dp.type === 'boolean' ? 'Als Schalter' : 'Schreibbar'}
+                        {dp.type === 'boolean' ? t('endpoints.dp.asSwitch') : t('endpoints.dp.writable')}
                       </label>
                       <button
                         onClick={() => updateDatapoint(group.id, dp.id, { writable: !dp.writable })}
@@ -242,8 +249,8 @@ function GroupEditor({ group }: { group: DatapointGroup }) {
                       </button>
                       <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                         {dp.writable
-                          ? dp.type === 'boolean' ? 'Toggle-Schalter' : 'Wert kann gesetzt werden'
-                          : 'Nur Anzeige'}
+                          ? dp.type === 'boolean' ? t('endpoints.dp.toggle') : t('endpoints.dp.settable')
+                          : t('endpoints.dp.readOnly')}
                       </span>
                     </div>
                   )}
@@ -261,6 +268,7 @@ function GroupEditor({ group }: { group: DatapointGroup }) {
 
 // ── Hauptseite ──────────────────────────────────────────────────────────────
 export function AdminEndpoints() {
+  const t = useT();
   const { groups, addGroup, removeGroup, renameGroup } = useGroupStore();
   const [expanded, setExpanded] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
@@ -277,9 +285,9 @@ export function AdminEndpoints() {
   return (
     <div className="p-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Endpunkte & Gruppen</h1>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('endpoints.title')}</h1>
         <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-          Fasse Datenpunkte in Gruppen zusammen – z.B. „Alle Lichter". Gruppen können als Listen-Widget ins Dashboard eingefügt werden.
+          {t('endpoints.subtitle')}
         </p>
       </div>
 
@@ -287,21 +295,21 @@ export function AdminEndpoints() {
       <div className="flex gap-2">
         <input value={newName} onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
-          placeholder="Neue Gruppe (z.B. Alle Lichter)"
+          placeholder={t('endpoints.newGroup')}
           className="flex-1 rounded-xl px-4 py-2.5 text-sm focus:outline-none"
           style={{ background: 'var(--app-surface)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
         <button onClick={handleAdd} disabled={!newName.trim()}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white hover:opacity-80 disabled:opacity-30"
           style={{ background: 'var(--accent)' }}>
-          <Plus size={15} /> Erstellen
+          <Plus size={15} /> {t('endpoints.createGroup')}
         </button>
       </div>
 
       {/* Gruppen-Liste */}
       {groups.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 rounded-xl" style={{ border: '2px dashed var(--app-border)' }}>
-          <p className="text-lg font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Noch keine Gruppen</p>
-          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Erstelle eine Gruppe und füge Datenpunkte hinzu</p>
+          <p className="text-lg font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.noGroups')}</p>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.noGroupsHint')}</p>
         </div>
       ) : (
         <div className="space-y-3">

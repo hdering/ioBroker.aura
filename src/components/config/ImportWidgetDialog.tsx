@@ -3,6 +3,7 @@ import { X, Database, Upload } from 'lucide-react';
 import type { WidgetConfig, WidgetType } from '../../types';
 import { WIDGET_BY_TYPE } from '../../widgetRegistry';
 import { DatapointPicker } from './DatapointPicker';
+import { useT } from '../../i18n';
 
 const inputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
 const inputStyle: React.CSSProperties = {
@@ -21,6 +22,7 @@ export function ImportWidgetDialog({
   onClose: () => void;
   tabs?: { id: string; name: string }[];
 }) {
+  const t = useT();
   const [jsonText, setJsonText] = useState('');
   const [parsed, setParsed] = useState<WidgetConfig | null>(null);
   const [parseError, setParseError] = useState('');
@@ -32,7 +34,7 @@ export function ImportWidgetDialog({
     setJsonText(text);
     try {
       const obj = JSON.parse(text);
-      if (!obj.type || typeof obj.type !== 'string') throw new Error('Kein gültiges Widget (Feld "type" fehlt)');
+      if (!obj.type || typeof obj.type !== 'string') throw new Error(t('import.invalidWidget'));
       setParsed(obj as WidgetConfig);
       setDatapoint(obj.datapoint ?? '');
       setParseError('');
@@ -75,7 +77,7 @@ export function ImportWidgetDialog({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Widget importieren</h2>
+          <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>{t('import.title')}</h2>
           <button onClick={onClose} className="hover:opacity-60" style={{ color: 'var(--text-secondary)' }}>
             <X size={18} />
           </button>
@@ -83,7 +85,7 @@ export function ImportWidgetDialog({
 
         {/* File upload */}
         <div>
-          <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>JSON-Datei laden</label>
+          <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>{t('import.fileLabel')}</label>
           <input type="file" accept=".json,application/json" onChange={handleFile}
             className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
             style={inputStyle} />
@@ -91,13 +93,13 @@ export function ImportWidgetDialog({
 
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px" style={{ background: 'var(--app-border)' }} />
-          <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>oder</span>
+          <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('import.or')}</span>
           <div className="flex-1 h-px" style={{ background: 'var(--app-border)' }} />
         </div>
 
         {/* Paste JSON */}
         <div>
-          <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>JSON einfügen</label>
+          <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>{t('import.pasteJson')}</label>
           <textarea value={jsonText} onChange={(e) => tryParse(e.target.value)}
             rows={5} placeholder={'{\n  "type": "value",\n  "title": "Temperatur",\n  ...\n}'}
             className="w-full text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none resize-none"
@@ -120,7 +122,7 @@ export function ImportWidgetDialog({
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
-                  {meta?.label ?? parsed.type} — {parsed.title || <em>Kein Titel</em>}
+                  {meta?.label ?? parsed.type} — {parsed.title || <em>{t('widgets.noTitle')}</em>}
                 </p>
                 <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
                   {parsed.gridPos.w}×{parsed.gridPos.h} · {parsed.layout ?? 'default'}
@@ -132,7 +134,7 @@ export function ImportWidgetDialog({
             {needsDatapoint && (
               <div>
                 <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
-                  Datenpunkt-ID <span style={{ color: 'var(--accent-red)' }}>*</span>
+                  {t('editor.manual.datapointId')} <span style={{ color: 'var(--accent-red)' }}>*</span>
                 </label>
                 <div className="flex gap-1.5">
                   <input value={datapoint} onChange={(e) => setDatapoint(e.target.value)}
@@ -151,7 +153,7 @@ export function ImportWidgetDialog({
             {/* Target tab (optional) */}
             {tabs && tabs.length > 0 && (
               <div>
-                <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Ziel-Tab</label>
+                <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>{t('widgets.targetTab')}</label>
                 <select value={targetTabId} onChange={(e) => setTargetTabId(e.target.value)}
                   className={inputCls} style={inputStyle}>
                   {tabs.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -163,12 +165,12 @@ export function ImportWidgetDialog({
               <button onClick={onClose}
                 className="px-4 py-2 text-sm rounded-lg hover:opacity-80"
                 style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                Abbrechen
+                {t('common.cancel')}
               </button>
               <button onClick={handleAdd} disabled={needsDatapoint && !datapoint.trim()}
                 className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-80 disabled:opacity-30"
                 style={{ background: 'var(--accent)' }}>
-                <Upload size={13} /> Importieren
+                <Upload size={13} /> {t('widgets.import')}
               </button>
             </div>
           </>

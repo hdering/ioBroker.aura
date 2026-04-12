@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
+import { useT, t } from '../../i18n';
 import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Download, ArrowRightLeft } from 'lucide-react';
 import { exportWidget } from '../../utils/widgetExportImport';
 import { ICON_PICKER_ENTRIES } from '../../utils/widgetIconMap';
@@ -70,6 +71,7 @@ const inputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
 const inputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
 
 function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; onConfigChange: (c: WidgetConfig) => void }) {
+  const t = useT();
   const o = config.options ?? {};
   const sources = getSources(o);
   const [adding, setAdding] = useState(false);
@@ -113,7 +115,7 @@ function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; o
                 value={src.color}
                 onChange={(e) => updateSource(src.id, { color: e.target.value })}
                 className="w-5 h-5 rounded cursor-pointer border-0 p-0 shrink-0"
-                title="Farbe ändern"
+                title={t('wf.cal.changeColor')}
               />
               <input
                 type="text"
@@ -121,13 +123,13 @@ function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; o
                 onChange={(e) => updateSource(src.id, { name: e.target.value })}
                 className="flex-1 text-xs rounded px-2 py-1 focus:outline-none min-w-0"
                 style={inputStyle}
-                placeholder="Kalender-Name"
+                placeholder={t('wf.cal.calName')}
               />
               <button
                 onClick={() => updateSource(src.id, { showName: !src.showName })}
                 className="relative w-7 h-4 rounded-full transition-colors shrink-0"
                 style={{ background: src.showName ? src.color : 'var(--app-border)' }}
-                title="Name anzeigen"
+                title={t('wf.cal.showName')}
               >
                 <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
                   style={{ left: src.showName ? '14px' : '2px' }} />
@@ -148,7 +150,7 @@ function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; o
             type="url"
             value={newUrl}
             onChange={(e) => setNewUrl(e.target.value)}
-            placeholder="iCal-URL…"
+            placeholder={t('wf.cal.calUrl')}
             autoFocus
             className={inputCls + ' font-mono'}
             style={inputStyle}
@@ -164,7 +166,7 @@ function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; o
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Name (optional)"
+              placeholder={t('wf.cal.calName')}
               className={inputCls}
               style={inputStyle}
             />
@@ -173,7 +175,7 @@ function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; o
             <button onClick={confirmAdd} disabled={!newUrl.trim()}
               className="flex-1 py-1.5 text-xs rounded-lg text-white hover:opacity-80 disabled:opacity-30"
               style={{ background: 'var(--accent)' }}>
-              Hinzufügen
+              {t('wf.cal.add')}
             </button>
             <button onClick={() => { setAdding(false); setNewUrl(''); setNewName(''); }}
               className="px-3 py-1.5 text-xs rounded-lg hover:opacity-80"
@@ -186,7 +188,7 @@ function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; o
         <button onClick={() => setAdding(true)}
           className="w-full flex items-center justify-center gap-1.5 py-2 text-xs rounded-lg hover:opacity-80"
           style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px dashed var(--app-border)' }}>
-          <Plus size={12} /> Kalender hinzufügen
+          <Plus size={12} /> {t('wf.cal.addCalendar')}
         </button>
       )}
 
@@ -195,19 +197,19 @@ function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; o
 
       {/* global settings */}
       <div>
-        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Aktualisierungsintervall</label>
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.cal.refreshInterval')}</label>
         <select value={(o.refreshInterval as number) ?? 30} onChange={(e) => setOpts({ refreshInterval: Number(e.target.value) })}
           className={inputCls} style={inputStyle}>
           {REFRESH_OPTIONS.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
         </select>
       </div>
       <div>
-        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Tage im Voraus</label>
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.cal.daysAhead')}</label>
         <input type="number" min={1} max={365} value={(o.daysAhead as number) ?? 14}
           onChange={(e) => setOpts({ daysAhead: Number(e.target.value) })} className={inputCls} style={inputStyle} />
       </div>
       <div>
-        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Max. Einträge</label>
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.cal.maxEntries')}</label>
         <input type="number" min={1} max={20} value={(o.maxEvents as number) ?? 5}
           onChange={(e) => setOpts({ maxEvents: Number(e.target.value) })} className={inputCls} style={inputStyle} />
       </div>
@@ -215,18 +217,19 @@ function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; o
   );
 }
 
-const STYLE_FIELDS: { key: string; label: string; type: 'color' | 'text' }[] = [
-  { key: 'bg', label: 'Hintergrund', type: 'color' },
-  { key: 'accent', label: 'Akzentfarbe', type: 'color' },
-  { key: 'textPrimary', label: 'Text', type: 'color' },
-  { key: 'textSecondary', label: 'Text sekundär', type: 'color' },
-  { key: 'radius', label: 'Eckenradius', type: 'text' },
+const STYLE_FIELDS: { key: string; labelKey: string; type: 'color' | 'text' }[] = [
+  { key: 'bg', labelKey: 'wf.edit.style.bg', type: 'color' },
+  { key: 'accent', labelKey: 'wf.edit.style.accent', type: 'color' },
+  { key: 'textPrimary', labelKey: 'wf.edit.style.text', type: 'color' },
+  { key: 'textSecondary', labelKey: 'wf.edit.style.textSec', type: 'color' },
+  { key: 'radius', labelKey: 'wf.edit.style.radius', type: 'text' },
 ];
 
 // ── ChartHistoryConfig ────────────────────────────────────────────────────────
 const CHART_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
 function ChartHistoryConfig({ config, onConfigChange }: { config: WidgetConfig; onConfigChange: (c: WidgetConfig) => void }) {
+  const t = useT();
   const [adapters, setAdapters] = useState<DetectedAdapter[]>([]);
   const [checking, setChecking] = useState(false);
   const dp = config.datapoint;
@@ -249,27 +252,27 @@ function ChartHistoryConfig({ config, onConfigChange }: { config: WidgetConfig; 
   return (
     <>
       <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
-      <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Verlaufsdaten</p>
+      <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>{t('wf.history.title')}</p>
 
       {/* Adapter-Auswahl */}
       {checking && (
-        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Prüfe Adapter…</p>
+        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.history.checking')}</p>
       )}
       {!checking && adapters.length === 0 && (
         <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-          Kein History-Adapter aktiv für diesen Datenpunkt.
+          {t('wf.history.noAdapter')}
         </p>
       )}
       {!checking && adapters.length > 0 && (
         <div>
-          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Adapter-Instanz</label>
+          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.history.instance')}</label>
           <select
             value={selectedInstance ?? ''}
             onChange={(e) => set({ historyInstance: e.target.value || undefined })}
             className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
             style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
           >
-            <option value="">– Live-Daten (kein Verlauf) –</option>
+            <option value="">{t('wf.history.liveData')}</option>
             {adapters.map((a) => (
               <option key={a.instance} value={a.instance}>{a.label}</option>
             ))}
@@ -280,7 +283,7 @@ function ChartHistoryConfig({ config, onConfigChange }: { config: WidgetConfig; 
       {/* Zeitraum */}
       {selectedInstance && (
         <div>
-          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Zeitraum</label>
+          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.history.timeRange')}</label>
           <div className="flex gap-1 flex-wrap">
             {CHART_RANGES.map((r) => (
               <button
@@ -464,6 +467,7 @@ interface WeatherConfigSectionProps {
   set: (patch: Record<string, unknown>) => void;
 }
 function WeatherConfigSection({ o, set }: WeatherConfigSectionProps) {
+  const t = useT();
   const [addressInput, setAddressInput] = useState('');
   const [geocoding,    setGeocoding]    = useState(false);
   const [geoError,     setGeoError]     = useState('');
@@ -489,10 +493,10 @@ function WeatherConfigSection({ o, set }: WeatherConfigSectionProps) {
         });
         setAddressInput('');
       } else {
-        setGeoError('Kein Ort gefunden');
+        setGeoError(t('wf.weather.notFound'));
       }
     } catch {
-      setGeoError('Fehler bei der Suche');
+      setGeoError(t('wf.weather.searchError'));
     } finally {
       setGeocoding(false);
     }
@@ -504,14 +508,14 @@ function WeatherConfigSection({ o, set }: WeatherConfigSectionProps) {
   return (
     <>
       <div>
-        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Standort suchen</label>
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.locationSearch')}</label>
         <div className="flex gap-1.5">
           <input
             type="text"
             value={addressInput}
             onChange={(e) => setAddressInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); geocodeAddress(); } }}
-            placeholder="Stadt oder Adresse eingeben"
+            placeholder={t('wf.weather.cityPlaceholder')}
             className={iCls + ' flex-1'}
             style={iSty}
           />
@@ -521,36 +525,36 @@ function WeatherConfigSection({ o, set }: WeatherConfigSectionProps) {
             className="text-xs px-2.5 rounded-lg shrink-0"
             style={{ background: 'var(--accent)', color: '#fff', opacity: (geocoding || !addressInput.trim()) ? 0.5 : 1 }}
           >
-            {geocoding ? '…' : 'Suchen'}
+            {geocoding ? t('wf.weather.searching') : t('wf.weather.search')}
           </button>
         </div>
         {geoError && <p className="text-[10px] mt-1" style={{ color: '#ef4444' }}>{geoError}</p>}
       </div>
       <div className="flex gap-2">
         <div className="flex-1">
-          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Breitengrad</label>
+          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.latitude')}</label>
           <input type="number" step={0.0001} value={(o.latitude as number) ?? 48.1}
             onChange={(e) => set({ latitude: Number(e.target.value) })} className={iCls} style={iSty} />
         </div>
         <div className="flex-1">
-          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Längengrad</label>
+          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.longitude')}</label>
           <input type="number" step={0.0001} value={(o.longitude as number) ?? 11.6}
             onChange={(e) => set({ longitude: Number(e.target.value) })} className={iCls} style={iSty} />
         </div>
       </div>
       <div>
-        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Standortname</label>
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.locationName')}</label>
         <input type="text" value={(o.locationName as string) ?? ''}
           onChange={(e) => set({ locationName: e.target.value || undefined })}
-          placeholder="z.B. München" className={iCls} style={iSty} />
+          placeholder={t('wf.weather.locationPh')} className={iCls} style={iSty} />
       </div>
       <div>
-        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Aktualisierung (Min.)</label>
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.refreshMin')}</label>
         <input type="number" min={5} max={1440} value={(o.refreshMinutes as number) ?? 30}
           onChange={(e) => set({ refreshMinutes: Number(e.target.value) })} className={iCls} style={iSty} />
       </div>
       <div className="flex items-center justify-between">
-        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Vorhersage anzeigen</label>
+        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.showForecast')}</label>
         <button onClick={() => set({ showForecast: !showForecast })}
           className="relative w-9 h-5 rounded-full transition-colors"
           style={{ background: showForecast ? 'var(--accent)' : 'var(--app-border)' }}>
@@ -561,12 +565,12 @@ function WeatherConfigSection({ o, set }: WeatherConfigSectionProps) {
       {showForecast && (
         <>
           <div>
-            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Vorhersagetage</label>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.forecastDays')}</label>
             <input type="number" min={1} max={7} value={(o.forecastDays as number) ?? 5}
               onChange={(e) => set({ forecastDays: Number(e.target.value) })} className={iCls} style={iSty} />
           </div>
           <div className="flex items-center justify-between">
-            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Heutigen Tag anzeigen</label>
+            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.showToday')}</label>
             <button onClick={() => set({ showToday: !showToday })}
               className="relative w-9 h-5 rounded-full transition-colors"
               style={{ background: showToday ? 'var(--accent)' : 'var(--app-border)' }}>
@@ -583,29 +587,30 @@ function WeatherConfigSection({ o, set }: WeatherConfigSectionProps) {
 function formatLastChange(ts: number): string {
   const diffSec = Math.round((Date.now() - ts) / 1000);
 
-  if (diffSec < 10)  return 'vor weniger als 10 Sek. aktualisiert';
-  if (diffSec < 20)  return 'vor weniger als 20 Sek. aktualisiert';
-  if (diffSec < 30)  return 'vor weniger als 30 Sek. aktualisiert';
-  if (diffSec < 45)  return 'vor einer halben Minute';
-  if (diffSec < 90)  return 'vor weniger als 1 Minute';
+  if (diffSec < 10)  return t('lc.lessThan10s');
+  if (diffSec < 20)  return t('lc.lessThan20s');
+  if (diffSec < 30)  return t('lc.lessThan30s');
+  if (diffSec < 45)  return t('lc.halfMinute');
+  if (diffSec < 90)  return t('lc.lessThan1Min');
 
   const diffMin = Math.round(diffSec / 60);
-  if (diffMin < 45)  return `vor ${diffMin === 1 ? 'einer' : `etwa ${diffMin}`} Minute${diffMin === 1 ? '' : 'n'}`;
+  if (diffMin < 45)  return diffMin === 1 ? t('lc.1Min') : t('lc.nMin', { n: diffMin });
 
   const diffHour = Math.round(diffSec / 3_600);
-  if (diffHour < 24) return `vor ${diffHour === 1 ? 'etwa einer' : `etwa ${diffHour}`} Stunde${diffHour === 1 ? '' : 'n'}`;
+  if (diffHour < 24) return diffHour === 1 ? t('lc.1Hour') : t('lc.nHours', { n: diffHour });
 
   const diffDay = Math.round(diffSec / 86_400);
-  if (diffDay < 30)  return `vor ${diffDay === 1 ? 'etwa einem' : diffDay} Tag${diffDay === 1 ? '' : 'en'}`;
+  if (diffDay < 30)  return diffDay === 1 ? t('lc.1Day') : t('lc.nDays', { n: diffDay });
 
   const diffMonth = Math.round(diffDay / 30);
-  if (diffMonth < 12) return `vor ${diffMonth === 1 ? 'etwa einem' : diffMonth} Monat${diffMonth === 1 ? '' : 'en'}`;
+  if (diffMonth < 12) return diffMonth === 1 ? t('lc.1Month') : t('lc.nMonths', { n: diffMonth });
 
   const diffYear = Math.round(diffDay / 365);
-  return `vor ${diffYear === 1 ? 'etwa einem' : diffYear} Jahr${diffYear === 1 ? '' : 'en'}`;
+  return diffYear === 1 ? t('lc.1Year') : t('lc.nYears', { n: diffYear });
 }
 
 export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: WidgetFrameProps) {
+  const t = useT();
   const [openPanel, setOpenPanel] = useState<'menu' | 'edit' | 'conditions' | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showMoveMenu, setShowMoveMenu] = useState(false);
@@ -732,7 +737,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
           <div className="flex items-center gap-1 px-1.5 py-1 rounded-md text-[11px] font-medium opacity-70"
             style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
             <EyeOff size={11} />
-            Versteckt
+            {t('wf.menu.hidden')}
           </div>
         </div>
       )}
@@ -752,7 +757,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               color: openPanel ? '#fff' : 'var(--text-secondary)',
               border: '1px solid var(--app-border)',
             }}
-            title="Widget-Optionen"
+            title={t('wf.menu.options')}
           >
             <ChevronDown size={13} />
             {conditions.length > 0 && !openPanel && (
@@ -804,7 +809,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               style={{ color: 'var(--text-primary)' }}
             >
               <Pencil size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-              Bearbeiten
+              {t('wf.menu.edit')}
             </button>
 
             {/* Bedingungen */}
@@ -814,7 +819,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               style={{ color: 'var(--text-primary)' }}
             >
               <Sparkles size={13} style={{ color: conditions.length > 0 ? 'var(--accent)' : 'var(--text-secondary)', flexShrink: 0 }} />
-              Bedingungen
+              {t('wf.menu.conditions')}
               {conditions.length > 0 && (
                 <span className="ml-auto text-[11px] px-1.5 py-0.5 rounded-full" style={{ background: 'var(--accent)22', color: 'var(--accent)' }}>
                   {conditions.length}
@@ -829,7 +834,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               style={{ color: 'var(--text-primary)' }}
             >
               <Download size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-              Exportieren
+              {t('wf.menu.export')}
             </button>
 
             {/* Verschieben */}
@@ -841,7 +846,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   style={{ color: 'var(--text-primary)' }}
                 >
                   <ArrowRightLeft size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-                  Verschieben
+                  {t('wf.menu.move')}
                   <ChevronDown size={11} className="ml-auto transition-transform" style={{ color: 'var(--text-secondary)', transform: showMoveMenu ? 'rotate(180deg)' : 'none' }} />
                 </button>
                 {showMoveMenu && (
@@ -889,7 +894,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   className="flex-1 text-xs py-1.5 rounded-md text-white hover:opacity-80"
                   style={{ background: 'var(--accent-red)' }}
                 >
-                  Bestätigen
+                  {t('wf.menu.confirm')}
                 </button>
                 <button
                   onClick={() => setConfirmDelete(false)}
@@ -906,7 +911,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                 style={{ color: 'var(--accent-red, #ef4444)' }}
               >
                 <X size={13} style={{ flexShrink: 0 }} />
-                Löschen
+                {t('wf.menu.delete')}
               </button>
             )}
           </div>
@@ -916,14 +921,14 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
       {/* Edit Modal */}
       {openPanel === 'edit' && (
         <CenteredModal
-          title="Widget bearbeiten"
+          title={t('wf.edit.title')}
           wide={config.type === 'echart' || config.type === 'autolist'}
           onClose={() => openPanelFor(null)}
         >
           {/* ─── 1. Name / Titel ──────────────────────────────────────────── */}
           <div className="space-y-2.5">
             <div>
-              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Name</label>
+              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
               <input
                 type="text"
                 value={config.title}
@@ -933,7 +938,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               />
             </div>
             <div className="flex items-center justify-between">
-              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Name ausblenden</label>
+              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.hideName')}</label>
               <button
                 onClick={() => onConfigChange({ ...config, options: { ...(config.options ?? {}), hideTitle: !(config.options?.hideTitle) } })}
                 className="relative w-9 h-5 rounded-full transition-colors"
@@ -944,7 +949,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               </button>
             </div>
             <div className="flex items-center justify-between">
-              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Letzte Änderung anzeigen</label>
+              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.showLastChange')}</label>
               <button
                 onClick={() => onConfigChange({ ...config, options: { ...(config.options ?? {}), showLastChange: !showLastChange } })}
                 className="relative w-9 h-5 rounded-full transition-colors"
@@ -956,10 +961,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
             </div>
             {showLastChange && (
               <div className="flex items-center gap-2">
-                <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>Position</label>
+                <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.position')}</label>
                 <div className="flex gap-1">
                   {(['left', 'center', 'right'] as const).map((p) => {
-                    const labels: Record<string, string> = { left: 'Links', center: 'Mitte', right: 'Rechts' };
+                    const labels: Record<string, string> = { left: t('wf.edit.posLeft'), center: t('wf.edit.posCenter'), right: t('wf.edit.posRight') };
                     const active = lastChangePos === p;
                     return (
                       <button key={p}
@@ -984,7 +989,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
           {/* ─── 2. Stil (eingeklappt) ─────────────────────────────────────── */}
           <details className="group">
             <summary className="flex items-center justify-between cursor-pointer list-none select-none">
-              <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Stil</span>
+              <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.style')}</span>
               <div className="flex items-center gap-2">
                 {overrides && Object.keys(overrides).length > 0 && (
                   <button
@@ -992,16 +997,16 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                     className="text-[10px] hover:opacity-70"
                     style={{ color: 'var(--text-secondary)' }}
                   >
-                    Zurücksetzen
+                    {t('wf.edit.styleReset')}
                   </button>
                 )}
                 <ChevronDown size={13} className="transition-transform group-open:rotate-180" style={{ color: 'var(--text-secondary)' }} />
               </div>
             </summary>
             <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-2.5">
-              {STYLE_FIELDS.map(({ key, label, type }) => (
+              {STYLE_FIELDS.map(({ key, labelKey, type }) => (
                 <div key={key}>
-                  <label className="text-[10px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>{label}</label>
+                  <label className="text-[10px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>{t(labelKey as Parameters<typeof t>[0])}</label>
                   {type === 'color' ? (
                     <div className="flex gap-1">
                       <input type="color" value={overrides?.[key] ?? '#3b82f6'}
@@ -1030,7 +1035,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
           {/* ─── 3. Widget-Typ · Layout · Icon ─────────────────────────────── */}
           <div className="space-y-2.5">
             <div>
-              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Widget-Typ</label>
+              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.widgetType')}</label>
               <select
                 value={config.type}
                 onChange={(e) => onConfigChange({ ...config, type: e.target.value as WidgetConfig['type'] })}
@@ -1047,16 +1052,16 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
             {config.type !== 'header' && (() => {
               const activeLayout = config.layout ?? 'default';
               const layouts: { value: string; label: string }[] = [
-                { value: 'default', label: 'Standard' },
-                { value: 'card',    label: 'Karte' },
-                { value: 'compact', label: 'Kompakt' },
-                { value: 'minimal', label: 'Minimal' },
-                ...(config.type === 'calendar' ? [{ value: 'agenda', label: 'Agenda' }] : []),
+                { value: 'default', label: t('wf.edit.layout.standard') },
+                { value: 'card',    label: t('wf.edit.layout.card') },
+                { value: 'compact', label: t('wf.edit.layout.compact') },
+                { value: 'minimal', label: t('wf.edit.layout.minimal') },
+                ...(config.type === 'calendar' ? [{ value: 'agenda', label: t('wf.edit.layout.agenda') }] : []),
               ];
               return (
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-1 flex-wrap">
-                    <label className="text-[11px] shrink-0 mr-0.5" style={{ color: 'var(--text-secondary)' }}>Layout</label>
+                    <label className="text-[11px] shrink-0 mr-0.5" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.layout')}</label>
                     {layouts.map(({ value, label }) => {
                       const active = activeLayout === value;
                       return (
@@ -1088,7 +1093,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               return (
                 <>
                   <div>
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Untertitel (optional)</label>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.header.subtitle')}</label>
                     <input
                       type="text"
                       value={(o.subtitle as string) ?? ''}
@@ -1099,16 +1104,16 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Stil</label>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.header.style')}</label>
                     <select
                       value={config.layout ?? 'default'}
                       onChange={(e) => onConfigChange({ ...config, layout: e.target.value as WidgetConfig['layout'] })}
                       className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
                       style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
                     >
-                      <option value="default">Standard (Akzentlinie + Titel)</option>
-                      <option value="compact">Kompakt (Linie links)</option>
-                      <option value="minimal">Minimal (Trennlinie + Text)</option>
+                      <option value="default">{t('wf.edit.header.default')}</option>
+                      <option value="compact">{t('wf.edit.header.compact')}</option>
+                      <option value="minimal">{t('wf.edit.header.minimal')}</option>
                     </select>
                   </div>
                 </>
@@ -1117,7 +1122,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
 
             {/* Icon picker */}
             <div>
-              <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Icon</label>
+              <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.icon')}</label>
               <div className="flex flex-wrap gap-1">
                 {ICON_PICKER_ENTRIES.map(([name, Icon]) => {
                   const selected = (config.options?.icon ?? '') === name;
@@ -1155,16 +1160,16 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                 return (
                   <>
                     <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Anzeige</label>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.clock.display')}</label>
                       <select value={display} onChange={(e) => set({ display: e.target.value })} className={inputCls} style={inputStyle}>
-                        <option value="time">Nur Uhrzeit</option>
-                        <option value="datetime">Uhrzeit + Datum</option>
-                        <option value="date">Nur Datum</option>
+                        <option value="time">{t('wf.clock.timeOnly')}</option>
+                        <option value="datetime">{t('wf.clock.datetime')}</option>
+                        <option value="date">{t('wf.clock.dateOnly')}</option>
                       </select>
                     </div>
                     {display !== 'date' && (
                       <div className="flex items-center justify-between">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Sekunden anzeigen</label>
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.clock.showSeconds')}</label>
                         <button
                           onClick={() => set({ showSeconds: !o.showSeconds })}
                           className="relative w-9 h-5 rounded-full transition-colors"
@@ -1177,15 +1182,15 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                     )}
                     {display !== 'time' && (
                       <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Datumsformat</label>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.clock.dateFormat')}</label>
                         <select value={(o.dateLength as string) ?? 'short'} onChange={(e) => set({ dateLength: e.target.value })} className={inputCls} style={inputStyle}>
-                          <option value="short">Kurz (07.04.2026)</option>
-                          <option value="long">Lang (Montag, 7. April 2026)</option>
+                          <option value="short">{t('wf.clock.short')}</option>
+                          <option value="long">{t('wf.clock.long')}</option>
                         </select>
                       </div>
                     )}
                     <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Eigenes Format</label>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.clock.customFormat')}</label>
                       <input
                         type="text"
                         value={(o.customFormat as string) ?? ''}
@@ -1208,7 +1213,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
 
               {config.type !== 'list' && config.type !== 'clock' && config.type !== 'calendar' && config.type !== 'header' && config.type !== 'group' && config.type !== 'evcc' && config.type !== 'echart' && config.type !== 'weather' && config.type !== 'camera' && config.type !== 'autolist' && (
                 <div>
-                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Datenpunkt-ID</label>
+                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.datapointId')}</label>
                   <div className="flex gap-1">
                     <input
                       type="text"
@@ -1221,7 +1226,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                       onClick={() => setPickerTarget('datapoint')}
                       className="px-2 rounded-lg hover:opacity-80 shrink-0"
                       style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-                      title="Aus ioBroker wählen"
+                      title={t('wf.edit.fromIoBroker')}
                     >
                       <Database size={13} />
                     </button>
@@ -1230,7 +1235,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               )}
               {(config.type === 'value' || config.type === 'chart') && (
                 <div>
-                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Einheit</label>
+                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.unit')}</label>
                   <input
                     type="text"
                     value={(config.options?.unit as string) ?? ''}
@@ -1266,7 +1271,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                 return (
                   <>
                     <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Bogenbreite</label>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.gauge.strokeWidth')}</label>
                       <input type="number" min={1} max={30} value={(o.strokeWidth as number) ?? 12}
                         onChange={(e) => set({ strokeWidth: Number(e.target.value) })} className={gCls} style={gSty} />
                     </div>

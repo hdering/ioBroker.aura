@@ -7,20 +7,12 @@ import { WIDGET_BY_TYPE } from '../../widgetRegistry';
 // WidgetFrame is imported here — circular dep is safe because GroupWidget only
 // uses WidgetFrame inside its render function, never at module-init time.
 import { WidgetFrame } from '../layout/WidgetFrame';
+import { useT } from '../../i18n';
 
 const CHILD_MARGIN = 6;
 
-const CHILD_TYPES: { type: WidgetType; label: string }[] = [
-  { type: 'switch',    label: 'Schalter' },
-  { type: 'value',     label: 'Wert' },
-  { type: 'dimmer',    label: 'Dimmer' },
-  { type: 'thermostat',label: 'Thermostat' },
-  { type: 'chart',     label: 'Diagramm' },
-  { type: 'list',      label: 'Liste' },
-  { type: 'clock',     label: 'Uhr' },
-  { type: 'calendar',  label: 'Kalender' },
-  { type: 'header',    label: 'Überschrift' },
-  { type: 'group',     label: 'Gruppe' },
+const CHILD_TYPE_LIST: WidgetType[] = [
+  'switch', 'value', 'dimmer', 'thermostat', 'chart', 'list', 'clock', 'calendar', 'header', 'group',
 ];
 
 const DEFAULT_SIZE: Partial<Record<WidgetType, { w: number; h: number }>> = {
@@ -46,6 +38,7 @@ function makeChild(type: WidgetType, existing: WidgetConfig[]): WidgetConfig {
 }
 
 export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
+  const t = useT();
   const children = (config.options?.children as WidgetConfig[] | undefined) ?? [];
   const transparent = !!(config.options?.transparent);
   const cellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);
@@ -139,14 +132,14 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         <div className="nodrag shrink-0 px-2 pb-2 pt-1" style={{ borderTop: transparent ? 'none' : '1px solid var(--widget-border)' }}>
           {showTypePicker ? (
             <div className="flex flex-wrap items-center gap-1">
-              {CHILD_TYPES.map(({ type, label }) => (
+              {CHILD_TYPE_LIST.map((type) => (
                 <button
                   key={type}
                   onClick={() => { setChildren([...children, makeChild(type, children)]); setShowTypePicker(false); }}
                   className="text-[10px] px-2 py-1 rounded-lg hover:opacity-80"
                   style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
                 >
-                  {label}
+                  {t(`widget.${type}` as never)}
                 </button>
               ))}
               <button
@@ -163,7 +156,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
               className="flex items-center gap-1 text-[10px] hover:opacity-80 px-2 py-1 rounded-lg"
               style={{ color: 'var(--accent)', background: 'var(--app-surface)', border: '1px dashed var(--accent)55' }}
             >
-              <Plus size={11} /> Widget hinzufügen
+              <Plus size={11} /> {t('group.addWidget')}
             </button>
           )}
         </div>

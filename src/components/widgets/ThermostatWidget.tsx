@@ -5,6 +5,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { lookupDatapointName } from '../../hooks/useDatapointList';
 import type { WidgetProps, WidgetConfig } from '../../types';
+import { useT } from '../../i18n';
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -21,6 +22,7 @@ function clamp(v: number, min: number, max: number, step: number) {
 // ── detail popup ───────────────────────────────────────────────────────────
 
 function ThermostatDetail({ config, onClose }: { config: WidgetConfig; onClose: () => void }) {
+  const t = useT();
   const { value: rawTarget } = useDatapoint(config.datapoint);
   const actualDpId = (config.options?.actualDatapoint as string) || '';
   const { value: rawActual } = useDatapoint(actualDpId);
@@ -63,19 +65,19 @@ function ThermostatDetail({ config, onClose }: { config: WidgetConfig; onClose: 
             {isHeating && (
               <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
                 style={{ background: 'var(--accent-red)22', color: 'var(--accent-red)' }}>
-                <Flame size={10} /> Heizt
+                <Flame size={10} /> {t('thermo.heating')}
               </span>
             )}
             {isCooling && (
               <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
                 style={{ background: 'var(--accent)22', color: 'var(--accent)' }}>
-                <Snowflake size={10} /> Kühlt
+                <Snowflake size={10} /> {t('thermo.cooling')}
               </span>
             )}
             {!isHeating && !isCooling && actual !== null && (
               <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
                 style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}>
-                <Wind size={10} /> Standby
+                <Wind size={10} /> {t('thermo.standby')}
               </span>
             )}
             <button onClick={onClose} className="hover:opacity-60 ml-1" style={{ color: 'var(--text-secondary)' }}>
@@ -160,6 +162,7 @@ function ThermostatDetail({ config, onClose }: { config: WidgetConfig; onClose: 
 // ── main widget ────────────────────────────────────────────────────────────
 
 export function ThermostatWidget({ config, editMode }: WidgetProps) {
+  const t = useT();
   const [showDetail, setShowDetail] = useState(false);
 
   const actualDpId = (config.options?.actualDatapoint as string) || '';
@@ -223,10 +226,10 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
               <p className="font-black leading-none" style={{ fontSize: 'calc(3.5rem * var(--font-scale, 1))', color: accentColor }}>
                 {target.toFixed(1)}
               </p>
-              <p className="text-base font-light mt-0.5" style={{ color: 'var(--text-secondary)' }}>°C Soll</p>
+              <p className="text-base font-light mt-0.5" style={{ color: 'var(--text-secondary)' }}>{t('thermo.setPoint')}</p>
               {actual !== null && (
                 <p className="text-sm mt-1.5 font-medium" style={{ color: 'var(--text-secondary)' }}>
-                  Ist: <span style={{ color: 'var(--text-primary)' }}>{actual.toFixed(1)}°C</span>
+                  {t('thermo.actual')}: <span style={{ color: 'var(--text-primary)' }}>{actual.toFixed(1)}°C</span>
                 </p>
               )}
             </div>
@@ -288,7 +291,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
             {target.toFixed(1)}°
           </span>
           {actual !== null && (
-            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>Ist {actual.toFixed(1)}°</span>
+            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('thermo.actual')} {actual.toFixed(1)}°</span>
           )}
           <div className="flex gap-2 mt-1" onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setTemp(target - step)}
@@ -323,10 +326,10 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
             <p className="font-black leading-none" style={{ fontSize: 'calc(2.8rem * var(--font-scale, 1))', color: accentColor }}>
               {target.toFixed(1)}
             </p>
-            <p className="text-sm font-light" style={{ color: 'var(--text-secondary)' }}>°C Soll</p>
+            <p className="text-sm font-light" style={{ color: 'var(--text-secondary)' }}>{t('thermo.setPoint')}</p>
             {actual !== null && (
               <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                Ist: <span style={{ color: 'var(--text-primary)' }}>{actual.toFixed(1)}°C</span>
+                {t('thermo.actual')}: <span style={{ color: 'var(--text-primary)' }}>{actual.toFixed(1)}°C</span>
               </p>
             )}
           </div>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Pencil, Copy, Trash2, Check, X, ExternalLink, LayoutDashboard } from 'lucide-react';
 import { useDashboardStore } from '../../store/dashboardStore';
 import type { DashboardLayout } from '../../store/dashboardStore';
+import { useT } from '../../i18n';
 
 function layoutUrl(layout: DashboardLayout, isFirst: boolean): string {
   return isFirst ? '#/' : `#/view/${layout.slug}`;
@@ -22,6 +23,7 @@ function LayoutRow({
   isOnly: boolean;
   isFirst: boolean;
 }) {
+  const t = useT();
   const { renameLayout, setLayoutSlug, duplicateLayout, removeLayout, setActiveLayout } = useDashboardStore();
   const navigate = useNavigate();
 
@@ -33,7 +35,7 @@ function LayoutRow({
   const [dupName, setDupName] = useState(`${layout.name} (Kopie)`);
   const [showDup, setShowDup] = useState(false);
 
-  const widgetCount = layout.tabs.reduce((n, t) => n + t.widgets.length, 0);
+  const widgetCount = layout.tabs.reduce((n, tab) => n + tab.widgets.length, 0);
   const hash = layoutUrl(layout, isFirst);
 
   const commitName = () => {
@@ -136,7 +138,7 @@ function LayoutRow({
             rel="noopener noreferrer"
             className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
             style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-            title="Im Frontend öffnen"
+            title={t('layouts.open')}
           >
             <ExternalLink size={13} />
           </a>
@@ -145,13 +147,13 @@ function LayoutRow({
             className="flex items-center gap-1.5 px-2.5 h-7 rounded-lg text-xs font-medium hover:opacity-80"
             style={{ background: 'var(--accent)', color: '#fff' }}
           >
-            <Pencil size={12} /> Bearbeiten
+            <Pencil size={12} /> {t('layouts.edit')}
           </button>
           <button
             onClick={() => setShowDup(!showDup)}
             className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
             style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-            title="Duplizieren"
+            title={t('common.duplicate')}
           >
             <Copy size={13} />
           </button>
@@ -160,7 +162,7 @@ function LayoutRow({
               <>
                 <button onClick={() => removeLayout(layout.id)}
                   className="px-2 h-7 text-xs text-white rounded-lg hover:opacity-80"
-                  style={{ background: 'var(--accent-red)' }}>Löschen</button>
+                  style={{ background: 'var(--accent-red)' }}>{t('common.delete')}</button>
                 <button onClick={() => setConfirmDelete(false)}
                   className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
                   style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
@@ -172,7 +174,7 @@ function LayoutRow({
                 onClick={() => setConfirmDelete(true)}
                 className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
                 style={{ background: 'var(--app-bg)', color: 'var(--accent-red)', border: '1px solid var(--app-border)' }}
-                title="Layout löschen"
+                title={t('layouts.delete')}
               >
                 <Trash2 size={13} />
               </button>
@@ -184,7 +186,7 @@ function LayoutRow({
       {/* Duplicate panel */}
       {showDup && (
         <div className="flex items-center gap-2 px-4 py-2.5" style={{ background: 'var(--app-bg)', borderTop: '1px solid var(--app-border)' }}>
-          <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>Name der Kopie:</span>
+          <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('layouts.duplicateName')}</span>
           <input
             value={dupName}
             onChange={(e) => setDupName(e.target.value)}
@@ -197,7 +199,7 @@ function LayoutRow({
             className="px-3 py-2 rounded-xl text-xs font-medium text-white hover:opacity-80 shrink-0"
             style={{ background: 'var(--accent)' }}
           >
-            Duplizieren
+            {t('layouts.duplicate')}
           </button>
           <button onClick={() => setShowDup(false)} className="hover:opacity-70 shrink-0" style={{ color: 'var(--text-secondary)' }}>
             <X size={14} />
@@ -221,12 +223,13 @@ function LayoutRow({
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export function AdminLayouts() {
+  const t = useT();
   const { layouts, addLayout } = useDashboardStore();
   const [newName, setNewName] = useState('');
   const [showNew, setShowNew] = useState(false);
 
   const handleCreate = () => {
-    const name = newName.trim() || 'Neues Layout';
+    const name = newName.trim() || t('layouts.newLayout');
     addLayout(name);
     setNewName('');
     setShowNew(false);
@@ -237,9 +240,9 @@ export function AdminLayouts() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Layouts</h1>
+          <h1 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{t('layouts.title')}</h1>
           <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-            Jedes Layout hat eigene Tabs und Widgets — ideal für verschiedene Tablets oder Räume.
+            {t('layouts.subtitle')}
           </p>
         </div>
         <button
@@ -247,7 +250,7 @@ export function AdminLayouts() {
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white hover:opacity-80"
           style={{ background: 'var(--accent)' }}
         >
-          <Plus size={14} /> Neues Layout
+          <Plus size={14} /> {t('layouts.newLayout')}
         </button>
       </div>
 
@@ -259,14 +262,14 @@ export function AdminLayouts() {
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') setShowNew(false); }}
-            placeholder="Layout-Name, z.B. Schlafzimmer-Tablet"
+            placeholder={t('layouts.placeholder')}
             className={`${inputCls} flex-1`}
             style={inputStyle}
           />
           <button onClick={handleCreate}
             className="px-4 py-2 rounded-xl text-sm font-medium text-white hover:opacity-80 shrink-0"
             style={{ background: 'var(--accent)' }}>
-            Erstellen
+            {t('layouts.create')}
           </button>
           <button onClick={() => setShowNew(false)} className="hover:opacity-70 shrink-0" style={{ color: 'var(--text-secondary)' }}>
             <X size={16} />
@@ -283,10 +286,10 @@ export function AdminLayouts() {
 
       {/* URL reference */}
       <div className="rounded-xl p-4 text-xs space-y-1" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', color: 'var(--text-secondary)' }}>
-        <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>URL-Schema</p>
-        <p><span className="font-mono" style={{ color: 'var(--accent)' }}>#/</span> — Standard-Layout (erstes Layout)</p>
-        <p><span className="font-mono" style={{ color: 'var(--accent)' }}>#/view/:slug</span> — Bestimmtes Layout</p>
-        <p><span className="font-mono" style={{ color: 'var(--accent)' }}>#/view/:slug/tab/:tabSlug</span> — Bestimmtes Layout + Tab</p>
+        <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{t('layouts.urlSchema')}</p>
+        <p><span className="font-mono" style={{ color: 'var(--accent)' }}>#/</span> — {t('layouts.default')}</p>
+        <p><span className="font-mono" style={{ color: 'var(--accent)' }}>#/view/:slug</span> — {t('layouts.specific')}</p>
+        <p><span className="font-mono" style={{ color: 'var(--accent)' }}>#/view/:slug/tab/:tabSlug</span> — {t('layouts.specificTab')}</p>
       </div>
     </div>
   );

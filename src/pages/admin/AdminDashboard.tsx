@@ -2,6 +2,7 @@ import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { Layers, Wifi, WifiOff, Layout, Hash, Navigation, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
+import { useT } from '../../i18n';
 
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) {
   return (
@@ -18,6 +19,7 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: s
 }
 
 function CopyButton({ text }: { text: string }) {
+  const t = useT();
   const [copied, setCopied] = useState(false);
   const copy = () => {
     navigator.clipboard.writeText(text);
@@ -25,38 +27,39 @@ function CopyButton({ text }: { text: string }) {
     setTimeout(() => setCopied(false), 1500);
   };
   return (
-    <button onClick={copy} className="hover:opacity-70 shrink-0" title="Kopieren">
+    <button onClick={copy} className="hover:opacity-70 shrink-0" title={t('dashboard.nav.copy')}>
       {copied ? <Check size={12} style={{ color: 'var(--accent-green)' }} /> : <Copy size={12} style={{ color: 'var(--text-secondary)' }} />}
     </button>
   );
 }
 
 export function AdminDashboard() {
+  const t = useT();
   const { layouts } = useDashboardStore();
   const activeLayout = useActiveLayout();
   const tabs = activeLayout.tabs;
   const totalTabsAll = layouts.reduce((acc, l) => acc + l.tabs.length, 0);
-  const totalWidgetsAll = layouts.reduce((acc, l) => acc + l.tabs.reduce((a, t) => a + t.widgets.length, 0), 0);
+  const totalWidgetsAll = layouts.reduce((acc, l) => acc + l.tabs.reduce((a, tab) => a + tab.widgets.length, 0), 0);
   const { connected } = useIoBroker();
 
   return (
     <div className="p-8 space-y-8">
       <div>
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Übersicht</h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Status und Statistiken</p>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('dashboard.title')}</h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.subtitle')}</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Layouts" value={layouts.length} icon={Layers} color="var(--accent)" />
-        <StatCard label="Tabs gesamt" value={totalTabsAll} icon={Layout} color="var(--accent-green)" />
-        <StatCard label="Widgets gesamt" value={totalWidgetsAll} icon={Hash} color="var(--accent-yellow)" />
-        <StatCard label="ioBroker" value={connected ? 'Verbunden' : 'Getrennt'} icon={connected ? Wifi : WifiOff} color={connected ? 'var(--accent-green)' : 'var(--accent-red)'} />
+        <StatCard label={t('dashboard.stats.layouts')} value={layouts.length} icon={Layers} color="var(--accent)" />
+        <StatCard label={t('dashboard.stats.tabs')} value={totalTabsAll} icon={Layout} color="var(--accent-green)" />
+        <StatCard label={t('dashboard.stats.widgets')} value={totalWidgetsAll} icon={Hash} color="var(--accent-yellow)" />
+        <StatCard label="ioBroker" value={connected ? t('dashboard.stats.connected') : t('dashboard.stats.disconnected')} icon={connected ? Wifi : WifiOff} color={connected ? 'var(--accent-green)' : 'var(--accent-red)'} />
       </div>
 
       {/* Tab-Übersicht */}
       <div className="rounded-xl p-6" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
-        <h2 className="font-semibold text-lg mb-4" style={{ color: 'var(--text-primary)' }}>Tabs & Widgets</h2>
+        <h2 className="font-semibold text-lg mb-4" style={{ color: 'var(--text-primary)' }}>{t('dashboard.tabs.title')}</h2>
         <div className="space-y-2">
           {tabs.map((tab) => (
             <div key={tab.id} className="flex items-center justify-between px-4 py-3 rounded-lg" style={{ background: 'var(--app-bg)' }}>
@@ -65,7 +68,7 @@ export function AdminDashboard() {
                 <p className="text-xs font-mono mt-0.5" style={{ color: 'var(--text-secondary)' }}>#/tab/{tab.slug ?? tab.id}</p>
               </div>
               <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--accent)22', color: 'var(--accent)' }}>
-                {tab.widgets.length} Widgets
+                {tab.widgets.length} {t('dashboard.tabs.widgets')}
               </span>
             </div>
           ))}
@@ -74,13 +77,13 @@ export function AdminDashboard() {
 
       {/* AURA acronym */}
       <div className="rounded-xl p-5" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
-        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-secondary)' }}>Was bedeutet AURA?</p>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.aura.title')}</p>
         <div className="flex flex-col gap-1.5">
           {([
-            ['A', 'daptive', 'Passt sich flexibel an Geräte, Räume und Layouts an'],
-            ['U', 'nified', 'Alle Datenpunkte und Räume in einer einheitlichen Oberfläche'],
-            ['R', 'oom', 'Raumbasierte Organisation – jedes Tablet sein eigenes Layout'],
-            ['A', 'utomation', 'ioBroker-Automatisierungen live steuern und visualisieren'],
+            ['A', 'daptive', t('dashboard.aura.adaptive')],
+            ['U', 'nified', t('dashboard.aura.unified')],
+            ['R', 'oom', t('dashboard.aura.room')],
+            ['A', 'utomation', t('dashboard.aura.automation')],
           ] as [string, string, string][]).map(([letter, rest, desc]) => (
             <div key={letter + rest} className="flex items-baseline gap-2">
               <span className="text-lg font-bold w-4 shrink-0" style={{ color: 'var(--accent)' }}>{letter}</span>
@@ -95,16 +98,14 @@ export function AdminDashboard() {
       <div className="rounded-xl p-6 space-y-4" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
         <div className="flex items-center gap-2">
           <Navigation size={18} style={{ color: 'var(--accent)' }} />
-          <h2 className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>Tablet-Navigation via ioBroker</h2>
+          <h2 className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>{t('dashboard.nav.title')}</h2>
         </div>
         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Setze den folgenden Datenpunkt aus einem ioBroker-Skript oder einer Automatisierung,
-          um das Tablet auf einen bestimmten Tab oder eine externe URL zu navigieren.
-          Der Datenpunkt wird nach der Navigation automatisch zurückgesetzt.
+          {t('dashboard.nav.description')}
         </p>
 
         <div className="rounded-lg px-4 py-3" style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
-          <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Datenpunkt</p>
+          <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.nav.datapoint')}</p>
           <div className="flex items-center gap-2">
             <code className="text-sm font-mono flex-1" style={{ color: 'var(--accent)' }}>aura.0.navigate.url</code>
             <CopyButton text="aura.0.navigate.url" />
@@ -112,7 +113,7 @@ export function AdminDashboard() {
         </div>
 
         <div>
-          <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Tab-Slugs (Wert für den Datenpunkt)</p>
+          <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.nav.tabSlugs')}</p>
           <div className="space-y-1.5">
             {tabs.map((tab) => {
               const slug = tab.slug ?? tab.id;
@@ -130,9 +131,9 @@ export function AdminDashboard() {
         </div>
 
         <div className="rounded-lg px-4 py-3 space-y-1" style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
-          <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Beispiel (JavaScript-Skript)</p>
+          <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.nav.example')}</p>
           <pre className="text-xs font-mono overflow-x-auto" style={{ color: 'var(--text-primary)' }}>{`setState('aura.0.navigate.url', '${tabs[0]?.slug ?? 'dashboard'}');`}</pre>
-          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Für externe URLs die vollständige URL angeben (https://…).</p>
+          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.nav.externalUrl')}</p>
         </div>
       </div>
     </div>

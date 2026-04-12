@@ -2,27 +2,28 @@ import { useState } from 'react';
 import { Plus, Trash2, ChevronDown, ChevronRight, Database } from 'lucide-react';
 import { DatapointPicker } from './DatapointPicker';
 import type { WidgetCondition, ConditionClause, ConditionOperator, ConditionStyle } from '../../types';
+import { useT, t } from '../../i18n';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const OPERATORS: { value: ConditionOperator; label: string; noValue?: boolean }[] = [
-  { value: '==',       label: '= Gleich' },
-  { value: '!=',       label: '≠ Ungleich' },
-  { value: '>',        label: '> Größer' },
-  { value: '>=',       label: '≥ Größer/gleich' },
-  { value: '<',        label: '< Kleiner' },
-  { value: '<=',       label: '≤ Kleiner/gleich' },
-  { value: 'contains', label: '∋ Enthält' },
-  { value: 'true',     label: '✓ Ist wahr', noValue: true },
-  { value: 'false',    label: '✗ Ist falsch', noValue: true },
+const OPERATORS: { value: ConditionOperator; label: () => string; noValue?: boolean }[] = [
+  { value: '==',       label: () => t('cond.equal') },
+  { value: '!=',       label: () => t('cond.notEqual') },
+  { value: '>',        label: () => t('cond.greater') },
+  { value: '>=',       label: () => t('cond.greaterEq') },
+  { value: '<',        label: () => t('cond.less') },
+  { value: '<=',       label: () => t('cond.lessEq') },
+  { value: 'contains', label: () => t('cond.contains') },
+  { value: 'true',     label: () => t('cond.isTrue'), noValue: true },
+  { value: 'false',    label: () => t('cond.isFalse'), noValue: true },
 ];
 
-const STYLE_FIELDS: { key: keyof ConditionStyle; label: string }[] = [
-  { key: 'accent',        label: 'Akzent' },
-  { key: 'bg',            label: 'Hintergrund' },
-  { key: 'border',        label: 'Rahmen' },
-  { key: 'textPrimary',   label: 'Text' },
-  { key: 'textSecondary', label: 'Text 2' },
+const STYLE_FIELDS: { key: keyof ConditionStyle; labelKey: string }[] = [
+  { key: 'accent',        labelKey: 'cond.colorAccent' },
+  { key: 'bg',            labelKey: 'cond.colorBg' },
+  { key: 'border',        labelKey: 'cond.colorBorder' },
+  { key: 'textPrimary',   labelKey: 'cond.colorText' },
+  { key: 'textSecondary', labelKey: 'cond.colorText2' },
 ];
 
 const inputStyle: React.CSSProperties = {
@@ -64,6 +65,7 @@ function ClauseRow({
   onChange: (c: ConditionClause) => void;
   onDelete: () => void;
 }) {
+  const t = useT();
   const [showPicker, setShowPicker] = useState(false);
   const op = OPERATORS.find((o) => o.value === clause.operator)!;
 
@@ -71,7 +73,7 @@ function ClauseRow({
     <div className="flex items-center gap-1.5">
       {/* AND/OR toggle or "WENN" label */}
       {isFirst ? (
-        <span className="text-[10px] font-semibold w-8 shrink-0 text-center" style={{ color: 'var(--text-secondary)' }}>WENN</span>
+        <span className="text-[10px] font-semibold w-8 shrink-0 text-center" style={{ color: 'var(--text-secondary)' }}>{t('cond.when')}</span>
       ) : (
         <button
           onClick={onLogicToggle}
@@ -88,7 +90,7 @@ function ClauseRow({
           type="text"
           value={clause.datapoint}
           onChange={(e) => onChange({ ...clause, datapoint: e.target.value })}
-          placeholder="Datenpunkt-ID"
+          placeholder={t('cond.datapointId')}
           className={`${cls} flex-1 font-mono min-w-0`}
           style={inputStyle}
         />
@@ -96,7 +98,7 @@ function ClauseRow({
           onClick={() => setShowPicker(true)}
           className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
           style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-          title="Aus ioBroker wählen"
+          title={t('cond.fromIoBroker')}
         >
           <Database size={11} />
         </button>
@@ -110,7 +112,7 @@ function ClauseRow({
         style={{ ...inputStyle, width: '112px' }}
       >
         {OPERATORS.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
+          <option key={o.value} value={o.value}>{o.label()}</option>
         ))}
       </select>
 
@@ -120,7 +122,7 @@ function ClauseRow({
           type="text"
           value={clause.value}
           onChange={(e) => onChange({ ...clause, value: e.target.value })}
-          placeholder="Wert"
+          placeholder={t('cond.value')}
           className={`${cls} w-20 shrink-0`}
           style={inputStyle}
         />
@@ -132,7 +134,7 @@ function ClauseRow({
         onClick={onDelete}
         className="shrink-0 hover:opacity-70"
         style={{ color: 'var(--accent-red)' }}
-        title="Klausel entfernen"
+        title={t('cond.removeClause')}
       >
         <Trash2 size={12} />
       </button>
@@ -197,6 +199,7 @@ function ConditionRule({
   onChange: (c: WidgetCondition) => void;
   onDelete: () => void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(true);
 
   const setStyle = (patch: Partial<ConditionStyle>) =>
@@ -273,7 +276,7 @@ function ConditionRule({
             className="flex items-center gap-1 text-[10px] hover:opacity-80"
             style={{ color: 'var(--accent)' }}
           >
-            <Plus size={11} /> Klausel hinzufügen
+            <Plus size={11} /> {t('cond.addClause')}
           </button>
 
           {/* Separator */}
@@ -281,15 +284,15 @@ function ConditionRule({
 
           {/* Style — label */}
           <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
-            Stil wenn aktiv
+            {t('cond.activeStyle')}
           </p>
 
           {/* Color pickers */}
           <div className="space-y-1.5">
-            {STYLE_FIELDS.map(({ key, label }) => (
+            {STYLE_FIELDS.map(({ key, labelKey }) => (
               <ColorField
                 key={key}
-                label={label}
+                label={t(labelKey as Parameters<typeof t>[0])}
                 value={condition.style[key]}
                 onChange={(v) => setStyle({ [key]: v })}
               />
@@ -298,16 +301,16 @@ function ConditionRule({
 
           {/* Effect */}
           <div className="flex items-center gap-2">
-            <label className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>Effekt</label>
+            <label className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('cond.effect')}</label>
             <select
               value={condition.effect ?? 'none'}
               onChange={(e) => onChange({ ...condition, effect: e.target.value as WidgetCondition['effect'] })}
               className={`${cls} flex-1`}
               style={inputStyle}
             >
-              <option value="none">Kein Effekt</option>
-              <option value="pulse">Pulsieren</option>
-              <option value="blink">Blinken</option>
+              <option value="none">{t('cond.noEffect')}</option>
+              <option value="pulse">{t('cond.pulse')}</option>
+              <option value="blink">{t('cond.blink')}</option>
             </select>
           </div>
 
@@ -315,8 +318,8 @@ function ConditionRule({
           <div className="h-px" style={{ background: 'var(--app-border)' }} />
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>Widget verstecken</p>
-              <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>Widget wird unsichtbar wenn Bedingung erfüllt ist</p>
+              <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>{t('cond.hideWidget')}</p>
+              <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>{t('cond.hideWidgetHint')}</p>
             </div>
             <button
               onClick={() => onChange({ ...condition, hideWidget: !condition.hideWidget, reflow: condition.hideWidget ? false : condition.reflow })}
@@ -330,8 +333,8 @@ function ConditionRule({
           {condition.hideWidget && (
             <div className="flex items-center justify-between pl-3 border-l-2" style={{ borderColor: 'var(--accent)44' }}>
               <div>
-                <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>Andere Widgets hochschieben</p>
-                <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>Widget wird aus dem Raster entfernt, andere füllen den Platz</p>
+                <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>{t('cond.pushOthers')}</p>
+                <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>{t('cond.pushOthersHint')}</p>
               </div>
               <button
                 onClick={() => onChange({ ...condition, reflow: !condition.reflow })}
@@ -357,6 +360,7 @@ interface ConditionEditorProps {
 }
 
 export function ConditionEditor({ conditions, onChange }: ConditionEditorProps) {
+  const t = useT();
   const update = (i: number, c: WidgetCondition) =>
     onChange(conditions.map((x, j) => (j === i ? c : x)));
 
@@ -366,15 +370,15 @@ export function ConditionEditor({ conditions, onChange }: ConditionEditorProps) 
   return (
     <div className="p-3 space-y-2.5" style={{ width: '480px' }} onMouseDown={(e) => e.stopPropagation()}>
       <div className="flex items-center justify-between mb-1">
-        <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Bedingungsregeln</p>
+        <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{t('cond.rules')}</p>
         <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-          Farben ändern sich wenn Bedingungen erfüllt sind
+          {t('cond.rulesHint')}
         </p>
       </div>
 
       {conditions.length === 0 && (
         <p className="text-xs text-center py-3" style={{ color: 'var(--text-secondary)' }}>
-          Noch keine Regeln. Erstelle eine Regel um loszulegen.
+          {t('cond.noRules')}
         </p>
       )}
 
@@ -392,7 +396,7 @@ export function ConditionEditor({ conditions, onChange }: ConditionEditorProps) 
         className="w-full flex items-center justify-center gap-1.5 py-2 text-xs rounded-xl hover:opacity-80"
         style={{ background: 'var(--app-surface)', color: 'var(--accent)', border: '1px dashed var(--accent)55' }}
       >
-        <Plus size={13} /> Neue Regel
+        <Plus size={13} /> {t('cond.newRule')}
       </button>
     </div>
   );

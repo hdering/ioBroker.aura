@@ -5,6 +5,7 @@ import { useConnectionStore } from '../../store/connectionStore';
 import { useConfigStore } from '../../store/configStore';
 import { reconnectSocket } from '../../hooks/useIoBroker';
 import { Eye, EyeOff, AlertTriangle, Lock, Unlock, RefreshCw } from 'lucide-react';
+import { useT } from '../../i18n';
 
 async function sha256(text: string): Promise<string> {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -79,6 +80,7 @@ function SliderSetting({
 // ── Expert settings ────────────────────────────────────────────────────────────
 
 function ExpertSettings() {
+  const t = useT();
   const { pinHash } = useAuthStore();
   const { ioBrokerUrl, setIoBrokerUrl } = useConnectionStore();
   const [unlocked, setUnlocked] = useState(false);
@@ -91,7 +93,7 @@ function ExpertSettings() {
     e.preventDefault();
     const hash = await sha256(pin);
     if (hash === pinHash) { setUnlocked(true); setPinError(''); setPin(''); }
-    else setPinError('Falscher PIN');
+    else setPinError(t('settings.pin.wrong'));
   };
 
   const saveUrl = async () => {
@@ -104,13 +106,13 @@ function ExpertSettings() {
   };
 
   return (
-    <Card title="Experten">
+    <Card title={t('settings.expert.title')}>
       <div className="flex items-center gap-2">
         {unlocked
           ? <Unlock size={14} style={{ color: 'var(--accent-yellow)' }} />
           : <Lock size={14} style={{ color: 'var(--text-secondary)' }} />}
         <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-          {unlocked ? 'Entsperrt' : 'Zugang mit Admin-PIN'}
+          {unlocked ? t('settings.expert.unlocked') : t('settings.expert.locked')}
         </p>
       </div>
 
@@ -118,20 +120,20 @@ function ExpertSettings() {
         <form onSubmit={unlock} className="flex gap-2">
           <input type="password" value={pin}
             onChange={(e) => { setPin(e.target.value); setPinError(''); }}
-            placeholder="Admin-PIN"
+            placeholder={t('login.pin')}
             className="flex-1 rounded-lg px-3 py-2 text-sm focus:outline-none"
             style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: `1px solid ${pinError ? 'var(--accent-red)' : 'var(--app-border)'}` }} />
           <button type="submit"
             className="px-3 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80"
             style={{ background: 'var(--accent)' }}>
-            Entsperren
+            {t('settings.expert.unlock')}
           </button>
         </form>
       ) : (
         <div className="space-y-3">
           <div>
             <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
-              ioBroker Web-Adapter URL
+              {t('settings.expert.url')}
             </p>
             <div className="flex gap-2">
               <input type="text" value={urlInput}
@@ -143,12 +145,12 @@ function ExpertSettings() {
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80 disabled:opacity-40 shrink-0"
                 style={{ background: saved ? 'var(--accent-green)' : 'var(--accent)' }}>
                 <RefreshCw size={12} />
-                {saved ? 'OK' : 'Verbinden'}
+                {saved ? t('common.ok') : t('settings.expert.connect')}
               </button>
             </div>
           </div>
           <button onClick={() => setUnlocked(false)} className="text-xs hover:opacity-70"
-            style={{ color: 'var(--text-secondary)' }}>Sperren</button>
+            style={{ color: 'var(--text-secondary)' }}>{t('settings.expert.lock')}</button>
         </div>
       )}
     </Card>
@@ -158,6 +160,7 @@ function ExpertSettings() {
 // ── Main ───────────────────────────────────────────────────────────────────────
 
 export function AdminSettings() {
+  const t = useT();
   const tabs = useActiveLayout().tabs;
   const { frontend, updateFrontend } = useConfigStore();
   const [newPin, setNewPin] = useState('');
@@ -168,10 +171,10 @@ export function AdminSettings() {
 
   const handlePinChange = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPin.length < 4) { setPinMsg('Mindestens 4 Zeichen'); return; }
-    if (newPin !== confirm) { setPinMsg('PINs stimmen nicht überein'); return; }
+    if (newPin.length < 4) { setPinMsg(t('settings.pin.tooShort')); return; }
+    if (newPin !== confirm) { setPinMsg(t('settings.pin.mismatch')); return; }
     setupPin(newPin);
-    setPinMsg('PIN erfolgreich geändert');
+    setPinMsg(t('settings.pin.success'));
     setNewPin(''); setConfirm('');
     setTimeout(() => setPinMsg(''), 3000);
   };
@@ -199,42 +202,64 @@ export function AdminSettings() {
         if (data.theme) localStorage.setItem('aura-theme', JSON.stringify(data.theme));
         if (data.config) localStorage.setItem('aura-config', JSON.stringify(data.config));
         window.location.reload();
-      } catch { alert('Ungültige Backup-Datei'); }
+      } catch { alert(t('settings.backup.invalidFile')); }
     };
     reader.readAsText(file);
   };
 
+  const tabCount = tabs.length;
+
   return (
     <div className="p-5 max-w-3xl space-y-4">
       <div>
-        <h1 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Einstellungen</h1>
-        <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>Frontend, Grid, Sicherheit und Backup</p>
+        <h1 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{t('settings.title')}</h1>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{t('settings.subtitle')}</p>
       </div>
+
+      {/* Language */}
+      <Card title={t('settings.language.title')}>
+        <div className="flex gap-2">
+          {(['de', 'en'] as const).map((lang) => {
+            const active = (frontend.language ?? 'de') === lang;
+            return (
+              <button key={lang} onClick={() => updateFrontend({ language: lang })}
+                className="flex-1 py-2 rounded-xl text-sm font-medium hover:opacity-80 transition-opacity"
+                style={{
+                  background: active ? 'var(--accent)' : 'var(--app-bg)',
+                  color: active ? '#fff' : 'var(--text-secondary)',
+                  border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                }}>
+                {lang === 'de' ? `🇩🇪 ${t('settings.language.de')}` : `🇬🇧 ${t('settings.language.en')}`}
+              </button>
+            );
+          })}
+        </div>
+      </Card>
 
       {/* Row 1: Frontend + Numerics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Frontend-Vorgaben */}
-        <Card title="Frontend">
-          <ToggleRow label="Header anzeigen" value={frontend.showHeader} onChange={(v) => updateFrontend({ showHeader: v })} />
+        <Card title={t('settings.frontend.title')}>
+          <ToggleRow label={t('settings.frontend.showHeader')} value={frontend.showHeader} onChange={(v) => updateFrontend({ showHeader: v })} />
           {frontend.showHeader && (
             <>
               <div className="py-2 border-b" style={{ borderColor: 'var(--app-border)' }}>
-                <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Dashboard-Titel</p>
+                <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>{t('settings.frontend.dashboardTitle')}</p>
                 <input value={frontend.headerTitle}
                   onChange={(e) => updateFrontend({ headerTitle: e.target.value })}
                   className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
                   style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
               </div>
-              <ToggleRow label="Verbindungsstatus" value={frontend.showConnectionBadge} onChange={(v) => updateFrontend({ showConnectionBadge: v })} />
+              <ToggleRow label={t('settings.frontend.connectionBadge')} value={frontend.showConnectionBadge} onChange={(v) => updateFrontend({ showConnectionBadge: v })} />
             </>
           )}
         </Card>
 
         {/* Grid + Mobile + Wizard */}
-        <Card title="Grid & Mobil">
+        <Card title={t('settings.grid.title')}>
           <SliderSetting
-            label="Zeilenhöhe"
+            label={t('settings.grid.rowHeight')}
             value={frontend.gridRowHeight ?? 80}
             min={30} max={160} step={10} unit=" px"
             onChange={(v) => updateFrontend({ gridRowHeight: v })}
@@ -242,16 +267,16 @@ export function AdminSettings() {
           />
           <div className="border-t pt-3" style={{ borderColor: 'var(--app-border)' }}>
             <SliderSetting
-              label="Mobile-Breakpoint"
+              label={t('settings.grid.mobileBreak')}
               value={frontend.mobileBreakpoint ?? 600}
               min={0} max={1024} step={10} unit=" px"
               onChange={(v) => updateFrontend({ mobileBreakpoint: v })}
-              presets={[{ label: '480', value: 480 }, { label: '600', value: 600 }, { label: '768', value: 768 }, { label: 'Aus', value: 0 }]}
+              presets={[{ label: '480', value: 480 }, { label: '600', value: 600 }, { label: '768', value: 768 }, { label: t('settings.grid.mobileOff'), value: 0 }]}
             />
           </div>
           <div className="border-t pt-3" style={{ borderColor: 'var(--app-border)' }}>
             <SliderSetting
-              label="Wizard Max-Datenpunkte"
+              label={t('settings.grid.wizardMaxDp')}
               value={frontend.wizardMaxDatapoints ?? 500}
               min={100} max={5000} step={100}
               onChange={(v) => updateFrontend({ wizardMaxDatapoints: v })}
@@ -265,12 +290,12 @@ export function AdminSettings() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Admin-PIN */}
-        <Card title="Admin-PIN">
+        <Card title={t('settings.pin.title')}>
           <form onSubmit={handlePinChange} className="space-y-2">
             <div className="relative">
               <input type={show ? 'text' : 'password'} value={newPin}
                 onChange={(e) => setNewPin(e.target.value)}
-                placeholder="Neuer PIN (min. 4 Zeichen)"
+                placeholder={t('settings.pin.newPin')}
                 className="w-full rounded-lg px-3 py-2 pr-9 text-sm focus:outline-none"
                 style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
               <button type="button" onClick={() => setShow((s) => !s)}
@@ -280,36 +305,36 @@ export function AdminSettings() {
             </div>
             <input type={show ? 'text' : 'password'} value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
-              placeholder="PIN bestätigen"
+              placeholder={t('settings.pin.confirm')}
               className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
               style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
             {pinMsg && (
-              <p className="text-xs" style={{ color: pinMsg.includes('erfolgreich') ? 'var(--accent-green)' : 'var(--accent-red)' }}>
+              <p className="text-xs" style={{ color: pinMsg.includes('erfolgreich') || pinMsg.includes('successfully') ? 'var(--accent-green)' : 'var(--accent-red)' }}>
                 {pinMsg}
               </p>
             )}
             <button type="submit"
               className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80"
               style={{ background: 'var(--accent)' }}>
-              PIN speichern
+              {t('settings.pin.save')}
             </button>
           </form>
         </Card>
 
         {/* Backup */}
-        <Card title="Backup & Restore">
+        <Card title={t('settings.backup.title')}>
           <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-            Dashboard ({tabs.length} Tab{tabs.length !== 1 ? 's' : ''}), Theme und Config als JSON.
+            {t('settings.backup.description', { count: tabCount, s: tabCount !== 1 ? 's' : '' })}
           </p>
           <div className="flex flex-col gap-2">
             <button onClick={exportConfig}
               className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80"
               style={{ background: 'var(--accent)' }}>
-              Download Backup
+              {t('settings.backup.download')}
             </button>
             <label className="px-4 py-2 rounded-lg text-sm font-medium text-center cursor-pointer hover:opacity-80"
               style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
-              Backup importieren
+              {t('settings.backup.import')}
               <input type="file" accept=".json" onChange={importConfig} className="hidden" />
             </label>
           </div>
@@ -323,16 +348,16 @@ export function AdminSettings() {
       <div className="rounded-xl p-4" style={{ background: 'var(--app-surface)', border: '1px solid var(--accent-red)44' }}>
         <div className="flex items-center gap-2 mb-2">
           <AlertTriangle size={15} style={{ color: 'var(--accent-red)' }} />
-          <p className="text-sm font-semibold" style={{ color: 'var(--accent-red)' }}>Alles zurücksetzen</p>
+          <p className="text-sm font-semibold" style={{ color: 'var(--accent-red)' }}>{t('settings.reset.title')}</p>
         </div>
         <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>
-          Löscht alle Dashboards, Widgets, Themes und Einstellungen. Nicht rückgängig.
+          {t('settings.reset.description')}
         </p>
         {!showReset ? (
           <button onClick={() => setShowReset(true)}
             className="px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80"
             style={{ background: 'var(--accent-red)22', color: 'var(--accent-red)', border: '1px solid var(--accent-red)44' }}>
-            Zurücksetzen…
+            {t('settings.reset.button')}
           </button>
         ) : (
           <div className="flex gap-2">
@@ -341,12 +366,12 @@ export function AdminSettings() {
               window.location.href = '/';
             }} className="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-80"
               style={{ background: 'var(--accent-red)' }}>
-              Ja, alles löschen
+              {t('settings.reset.confirm')}
             </button>
             <button onClick={() => setShowReset(false)}
               className="px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80"
               style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-              Abbruch
+              {t('common.cancel')}
             </button>
           </div>
         )}

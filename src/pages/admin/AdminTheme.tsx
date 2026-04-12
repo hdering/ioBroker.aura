@@ -1,15 +1,7 @@
 import { useThemeStore } from '../../store/themeStore';
 import { useConfigStore } from '../../store/configStore';
 import { THEMES, getTheme, type ThemeVars } from '../../themes';
-
-// Tailwind text-* defaults (rem) used for preview labels
-const FONT_LEVELS = [
-  { label: 'Wert / Uhr',    cls: 'text-3xl', rem: 1.875 },
-  { label: 'Überschrift',   cls: 'text-xl',  rem: 1.25  },
-  { label: 'Subheading',    cls: 'text-lg',  rem: 1.125 },
-  { label: 'Fließtext',     cls: 'text-sm',  rem: 0.875 },
-  { label: 'Klein / Label', cls: 'text-xs',  rem: 0.75  },
-] as const;
+import { useT } from '../../i18n';
 
 const FONT_SCALE_PRESETS = [
   { label: 'XS', value: 0.8  },
@@ -20,39 +12,48 @@ const FONT_SCALE_PRESETS = [
   { label: 'XXL',value: 1.5  },
 ];
 
-const VAR_GROUPS: { label: string; keys: (keyof ThemeVars)[] }[] = [
-  { label: 'App', keys: ['--app-bg', '--app-surface', '--app-border'] },
-  { label: 'Widget-Karte', keys: ['--widget-bg', '--widget-border', '--widget-border-width', '--widget-radius', '--widget-shadow'] },
-  { label: 'Text', keys: ['--text-primary', '--text-secondary'] },
-  { label: 'Farben', keys: ['--accent', '--accent-green', '--accent-yellow', '--accent-red'] },
+const VAR_GROUPS: { labelKey: string; keys: (keyof ThemeVars)[] }[] = [
+  { labelKey: 'theme.vars.app',    keys: ['--app-bg', '--app-surface', '--app-border'] },
+  { labelKey: 'theme.vars.widget', keys: ['--widget-bg', '--widget-border', '--widget-border-width', '--widget-radius', '--widget-shadow'] },
+  { labelKey: 'theme.vars.text',   keys: ['--text-primary', '--text-secondary'] },
+  { labelKey: 'theme.vars.colors', keys: ['--accent', '--accent-green', '--accent-yellow', '--accent-red'] },
 ];
 
-const VAR_LABELS: Partial<Record<keyof ThemeVars, string>> = {
-  '--app-bg': 'Hintergrund', '--app-surface': 'Oberfläche', '--app-border': 'Rahmen',
-  '--widget-bg': 'Hintergrund', '--widget-border': 'Rahmen', '--widget-border-width': 'Rahmenbreite',
-  '--widget-radius': 'Eckenradius', '--widget-shadow': 'Schatten',
-  '--text-primary': 'Primär', '--text-secondary': 'Sekundär',
-  '--accent': 'Akzent', '--accent-green': 'Grün', '--accent-yellow': 'Gelb', '--accent-red': 'Rot',
+const VAR_LABEL_KEYS: Partial<Record<keyof ThemeVars, string>> = {
+  '--app-bg': 'theme.vars.bg', '--app-surface': 'theme.vars.surface', '--app-border': 'theme.vars.border',
+  '--widget-bg': 'theme.vars.bg', '--widget-border': 'theme.vars.border', '--widget-border-width': 'theme.vars.borderWidth',
+  '--widget-radius': 'theme.vars.radius', '--widget-shadow': 'theme.vars.shadow',
+  '--text-primary': 'theme.vars.primary', '--text-secondary': 'theme.vars.secondary',
+  '--accent': 'theme.vars.accent', '--accent-green': 'theme.vars.green', '--accent-yellow': 'theme.vars.yellow', '--accent-red': 'theme.vars.red',
 };
 
 function isColor(v: string) { return v.startsWith('#') || v.startsWith('rgb') || v.startsWith('hsl'); }
 
 export function AdminTheme() {
+  const t = useT();
   const { themeId, customVars, setTheme, setCustomVar, resetCustom } = useThemeStore();
   const { frontend, updateFrontend } = useConfigStore();
   const activeTheme = getTheme(themeId);
   const fontScale = frontend.fontScale ?? 1;
 
+  const FONT_LEVELS = [
+    { labelKey: 'theme.typography.value',      cls: 'text-3xl', rem: 1.875 },
+    { labelKey: 'theme.typography.heading',     cls: 'text-xl',  rem: 1.25  },
+    { labelKey: 'theme.typography.subheading',  cls: 'text-lg',  rem: 1.125 },
+    { labelKey: 'theme.typography.body',        cls: 'text-sm',  rem: 0.875 },
+    { labelKey: 'theme.typography.small',       cls: 'text-xs',  rem: 0.75  },
+  ] as const;
+
   return (
     <div className="p-8 space-y-8">
       <div>
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Theme & CSS</h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Globales Design für Frontend und Admin</p>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('theme.title')}</h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{t('theme.subtitle')}</p>
       </div>
 
       {/* Preset-Auswahl */}
       <div className="rounded-xl p-6" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
-        <h2 className="font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Theme-Preset</h2>
+        <h2 className="font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>{t('theme.preset.title')}</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {THEMES.map((theme) => (
             <button
@@ -71,7 +72,7 @@ export function AdminTheme() {
               </div>
               <div>
                 <p className="text-sm font-semibold" style={{ color: theme.vars['--text-primary'] }}>{theme.name}</p>
-                {themeId === theme.id && <p className="text-xs mt-0.5" style={{ color: theme.vars['--accent'] }}>Aktiv ✓</p>}
+                {themeId === theme.id && <p className="text-xs mt-0.5" style={{ color: theme.vars['--accent'] }}>{t('theme.preset.active')}</p>}
               </div>
             </button>
           ))}
@@ -81,26 +82,29 @@ export function AdminTheme() {
       {/* CSS-Variablen anpassen */}
       <div className="rounded-xl p-6" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>CSS-Variablen anpassen</h2>
+          <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{t('theme.vars.title')}</h2>
           {Object.keys(customVars).length > 0 && (
             <button onClick={resetCustom} className="text-xs px-3 py-1.5 rounded-lg hover:opacity-80"
               style={{ background: 'var(--app-bg)', color: 'var(--accent-red)', border: '1px solid var(--app-border)' }}>
-              Alle zurücksetzen
+              {t('theme.vars.resetAll')}
             </button>
           )}
         </div>
         <div className="space-y-6">
-          {VAR_GROUPS.map(({ label, keys }) => (
-            <div key={label}>
-              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-secondary)' }}>{label}</p>
+          {VAR_GROUPS.map(({ labelKey, keys }) => (
+            <div key={labelKey}>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-secondary)' }}>{t(labelKey as never)}</p>
               <div className="space-y-3">
                 {keys.map((key) => {
                   const base = activeTheme.vars[key];
                   const custom = customVars[key];
                   const current = custom ?? base;
+                  const varLabelKey = VAR_LABEL_KEYS[key];
                   return (
                     <div key={key} className="flex items-center gap-3">
-                      <label className="text-xs w-32 shrink-0" style={{ color: 'var(--text-secondary)' }}>{VAR_LABELS[key] ?? key}</label>
+                      <label className="text-xs w-32 shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                        {varLabelKey ? t(varLabelKey as never) : key}
+                      </label>
                       <div className="flex items-center gap-2 flex-1">
                         {isColor(current) && (
                           <input type="color" value={current.startsWith('#') ? current : '#000000'}
@@ -130,16 +134,16 @@ export function AdminTheme() {
       {/* Typografie */}
       <div className="rounded-xl p-6 space-y-5" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
         <div>
-          <h2 className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>Typografie</h2>
+          <h2 className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>{t('theme.typography.title')}</h2>
           <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-            Skaliert alle Textgrößen im Frontend proportional. Die Admin-Oberfläche bleibt unverändert.
+            {t('theme.typography.subtitle')}
           </p>
         </div>
 
         {/* Scale slider */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Schriftgröße</p>
+            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{t('theme.typography.fontSize')}</p>
             <span className="text-sm font-mono font-bold px-2.5 py-1 rounded-lg"
               style={{ background: 'var(--app-bg)', color: 'var(--accent)', border: '1px solid var(--app-border)' }}>
               {Math.round(fontScale * 100)} %
@@ -168,10 +172,10 @@ export function AdminTheme() {
         {/* Size reference table */}
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
-            Größen-Referenz bei {Math.round(fontScale * 100)} %
+            {t('theme.typography.reference', { percent: String(Math.round(fontScale * 100)) })}
           </p>
           <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-            {FONT_LEVELS.map(({ label, cls, rem }, i) => {
+            {FONT_LEVELS.map(({ labelKey, cls, rem }, i) => {
               const px = Math.round(rem * fontScale * 16);
               const remScaled = (rem * fontScale).toFixed(3).replace(/\.?0+$/, '');
               return (
@@ -182,13 +186,13 @@ export function AdminTheme() {
                     {cls}
                   </span>
                   <span className="w-28 shrink-0 text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    {label}
+                    {t(labelKey as never)}
                   </span>
                   <span className="w-28 shrink-0 text-xs font-mono" style={{ color: 'var(--accent)' }}>
                     {remScaled}rem · {px}px
                   </span>
                   <span style={{ fontSize: `${rem * fontScale}rem`, color: 'var(--text-primary)', lineHeight: 1.2 }}>
-                    Beispiel
+                    {t('theme.typography.example')}
                   </span>
                 </div>
               );
@@ -200,16 +204,16 @@ export function AdminTheme() {
           <button onClick={() => updateFrontend({ fontScale: 1 })}
             className="text-xs hover:opacity-70"
             style={{ color: 'var(--text-secondary)' }}>
-            Zurücksetzen (100 %)
+            {t('theme.typography.reset')}
           </button>
         )}
       </div>
 
       {/* Custom CSS */}
       <div className="rounded-xl p-6" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
-        <h2 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Globales CSS</h2>
+        <h2 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>{t('theme.css.title')}</h2>
         <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
-          Wird direkt auf das Frontend angewendet. CSS-Variablen, Animationen, Font-Overrides etc.
+          {t('theme.css.subtitle')}
         </p>
         <textarea
           value={frontend.customCSS}
@@ -221,7 +225,9 @@ export function AdminTheme() {
           style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)', lineHeight: 1.7 }}
         />
         <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)' }}>
-          {frontend.customCSS.trim() ? `${frontend.customCSS.split('\n').length} Zeilen` : 'Kein Custom CSS'}
+          {frontend.customCSS.trim()
+            ? t('theme.css.lines', { count: String(frontend.customCSS.split('\n').length) })
+            : t('theme.css.empty')}
         </p>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { WidgetFrame } from './WidgetFrame';
 import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
 import type { WidgetConfig } from '../../types';
 import type { Tab } from '../../store/dashboardStore';
+import { useT } from '../../i18n';
 
 // Gap between grid cells (px)
 const MARGIN = 10;
@@ -21,6 +22,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ readonly = false, editMode = false, onLayoutChange, viewTabs, viewActiveTabId }: DashboardProps) {
+  const t = useT();
   const activeLayout = useActiveLayout();
   const { updateWidget, updateLayouts, removeWidget } = useDashboardStore();
   const cellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);
@@ -194,7 +196,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
         className="flex flex-col items-center justify-center flex-1 h-64 space-y-2"
         style={{ color: 'var(--text-secondary)' }}
       >
-        <p>{readonly ? 'Keine Widgets konfiguriert.' : 'Noch keine Widgets – über "+ Geräte" hinzufügen.'}</p>
+        <p>{readonly ? t('frontend.noWidgets') : t('frontend.addWidgets')}</p>
       </div>
     );
   }

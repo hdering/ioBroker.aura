@@ -3,6 +3,7 @@ import { RefreshCw, Search, Check, X, Plus, ChevronDown, Settings2, ChevronRight
 import type { WidgetConfig } from '../../types';
 import { discoverDatapoints, loadFilterOptions } from '../widgets/AutoListWidget';
 import type { AutoListOptions, AutoListEntry, DiscoveredDp } from '../widgets/AutoListWidget';
+import { useT } from '../../i18n';
 
 // ── MultiSelect dropdown ───────────────────────────────────────────────────────
 
@@ -118,6 +119,7 @@ function EntryConfigRow({
   onUpdate: (patch: Partial<AutoListEntry>) => void;
   onRemove: () => void;
 }) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
   const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' } as React.CSSProperties;
   const iCls = 'w-full text-[10px] rounded px-2 py-1 focus:outline-none font-mono';
@@ -134,7 +136,7 @@ function EntryConfigRow({
           {entry.label || entry.id.split('.').pop() || entry.id}
         </span>
         <button onClick={() => setExpanded(e => !e)} className="shrink-0 hover:opacity-70 p-0.5"
-          style={{ color: 'var(--text-secondary)' }} title="Einstellungen">
+          style={{ color: 'var(--text-secondary)' }} title={t('autolist.settings')}>
           <Settings2 size={10} />
         </button>
         <button onClick={onRemove} className="shrink-0 hover:opacity-70"
@@ -149,27 +151,27 @@ function EntryConfigRow({
           <div className="text-[9px] font-mono truncate mb-1" style={{ color: 'var(--text-secondary)' }}>{entry.id}</div>
           <div className="grid grid-cols-2 gap-1.5">
             <div>
-              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Bezeichnung</label>
-              <input className={iCls} style={iSty} placeholder="Automatisch"
+              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.dp.label')}</label>
+              <input className={iCls} style={iSty} placeholder={t('autolist.auto')}
                 value={entry.label ?? ''}
                 onChange={e => onUpdate({ label: e.target.value || undefined })} />
             </div>
             <div>
-              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Einheit</label>
-              <input className={iCls} style={iSty} placeholder="z.B. °C, %, W"
+              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.dp.unit')}</label>
+              <input className={iCls} style={iSty} placeholder={t('endpoints.dp.unitPh')}
                 value={entry.unit ?? ''}
                 onChange={e => onUpdate({ unit: e.target.value || undefined })} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-1.5">
             <div>
-              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Text für AN / true / 1</label>
+              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>{t('autolist.trueText')}</label>
               <input className={iCls} style={iSty} placeholder="AN"
                 value={entry.trueLabel ?? ''}
                 onChange={e => onUpdate({ trueLabel: e.target.value || undefined })} />
             </div>
             <div>
-              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Text für AUS / false / 0</label>
+              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>{t('autolist.falseText')}</label>
               <input className={iCls} style={iSty} placeholder="AUS"
                 value={entry.falseLabel ?? ''}
                 onChange={e => onUpdate({ falseLabel: e.target.value || undefined })} />
@@ -196,6 +198,7 @@ function toCsv(arr: string[]): string | undefined {
 }
 
 export function AutoListConfig({ config, onConfigChange }: Props) {
+  const t = useT();
   const opts = (config.options ?? { entries: [] }) as unknown as AutoListOptions;
 
   // Filter options loaded from ioBroker
@@ -300,15 +303,15 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
     <>
       {/* ── Filters ── */}
       <div className="grid grid-cols-2 gap-2">
-        <MultiSelect label="Rollen" options={availRoles} selected={selRoles}
+        <MultiSelect label={t('autolist.roles')} options={availRoles} selected={selRoles}
           onChange={setSelRoles} loading={optLoading} />
-        <MultiSelect label="Raum" options={availRooms} selected={selRooms}
+        <MultiSelect label={t('autolist.room')} options={availRooms} selected={selRooms}
           onChange={setSelRooms} loading={optLoading} />
-        <MultiSelect label="Funktion" options={availFuncs} selected={selFuncs}
+        <MultiSelect label={t('autolist.func')} options={availFuncs} selected={selFuncs}
           onChange={setSelFuncs} loading={optLoading} />
         <div>
-          <label className="text-xs mb-1 block" style={{ color: 'var(--text-secondary)' }}>ID enthält</label>
-          <input className={iCls} style={iSty} placeholder="z.B. hm-rpc, shelly" value={idPat}
+          <label className="text-xs mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('autolist.idContains')}</label>
+          <input className={iCls} style={iSty} placeholder={t('autolist.idPh')} value={idPat}
             onChange={e => setIdPat(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && canSearch && search()} />
         </div>
@@ -321,26 +324,26 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
         style={{ background: 'var(--accent)', color: '#fff' }}
       >
         {loading ? <RefreshCw size={11} className="animate-spin" /> : <Search size={11} />}
-        Suchen
+        {t('autolist.search')}
       </button>
 
       {/* ── Search results ── */}
       {searched && results.length === 0 && (
         <p className="text-[11px] text-center py-2" style={{ color: 'var(--text-secondary)' }}>
-          Keine Datenpunkte gefunden
+          {t('autolist.noneFound')}
         </p>
       )}
       {searched && results.length > 0 && (
         <>
           <div className="flex items-center justify-between">
             <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-              {results.length} gefunden · {selected.size} ausgewählt
+              {t('autolist.found', { count: results.length, selected: selected.size })}
             </span>
             <div className="flex gap-2">
               <button className="text-[10px] hover:opacity-70" style={{ color: 'var(--accent)' }}
-                onClick={() => setSelected(new Set(results.map(d => d.id)))}>Alle</button>
+                onClick={() => setSelected(new Set(results.map(d => d.id)))}>{t('common.all')}</button>
               <button className="text-[10px] hover:opacity-70" style={{ color: 'var(--text-secondary)' }}
-                onClick={() => setSelected(new Set())}>Keine</button>
+                onClick={() => setSelected(new Set())}>{t('common.none')}</button>
             </div>
           </div>
           <div className="space-y-0.5 max-h-56 overflow-y-auto -mx-1 px-1">
@@ -369,7 +372,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
             className="w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg hover:opacity-80 disabled:opacity-40"
             style={{ background: 'var(--accent-green)', color: '#fff' }}
           >
-            <Check size={11} /> {selected.size} Einträge übernehmen
+            <Check size={11} /> {t('autolist.apply', { count: selected.size })}
           </button>
         </>
       )}
@@ -380,7 +383,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
       {/* ── Current entries ── */}
       <div>
         <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
-          Datenpunkte {(opts.entries ?? []).length > 0 && `(${opts.entries.length})`}
+          {t('autolist.datapoints')} {(opts.entries ?? []).length > 0 && `(${opts.entries.length})`}
         </label>
         {(opts.entries ?? []).length > 0 && (
           <div className="space-y-1 max-h-72 overflow-y-auto mb-1.5">
@@ -399,7 +402,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
             value={manualId}
             onChange={e => setManualId(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addManual()}
-            placeholder="Datenpunkt-ID manuell…"
+            placeholder={t('autolist.manualPh')}
             className="flex-1 text-[10px] rounded-lg px-2 py-1.5 font-mono focus:outline-none min-w-0"
             style={iSty}
           />
@@ -414,13 +417,13 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
       {/* ── Settings ── */}
       <div style={{ height: 1, background: 'var(--app-border)' }} />
       <div>
-        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Auto-Sync (Minuten)</label>
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('autolist.syncMin')}</label>
         <input type="number" min={1} className={iCls} style={iSty}
           value={opts.syncIntervalMin ?? 5}
           onChange={e => setOpts({ syncIntervalMin: Number(e.target.value) })} />
       </div>
       <div className="flex items-center justify-between">
-        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Raum anzeigen</label>
+        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('autolist.showRoom')}</label>
         <button onClick={() => setOpts({ showRoom: !(opts.showRoom ?? false) })}
           className="relative w-9 h-5 rounded-full transition-colors"
           style={{ background: (opts.showRoom ?? false) ? 'var(--accent)' : 'var(--app-border)' }}>

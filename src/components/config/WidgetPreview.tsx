@@ -1,6 +1,7 @@
 import { CalendarDays, Camera, Zap } from 'lucide-react';
 import type { WidgetType, WidgetLayout } from '../../types';
 import { WIDGET_BY_TYPE } from '../../widgetRegistry';
+import { useT } from '../../i18n';
 
 interface WidgetPreviewProps {
   type: WidgetType;
@@ -27,6 +28,7 @@ function Toggle({ on }: { on?: boolean }) {
 }
 
 function MockContent({ type, layout, title }: { type: WidgetType; layout: WidgetLayout; title: string }) {
+  const tr = useT();
   const m = MOCK[type];
   const t = title || m.t;
   const icon = ICON[type];
@@ -64,15 +66,15 @@ function MockContent({ type, layout, title }: { type: WidgetType; layout: Widget
   // Calendar
   if (type === 'calendar') {
     const mockEvents = [
-      { label: 'Team-Meeting', date: 'Heute, 10:00', dot: 'var(--accent)' },
-      { label: 'Zahnarzt', date: 'Morgen, 14:30', dot: 'var(--accent-green)' },
-      { label: 'Geburtstag Lisa', date: 'Mi, 9. Apr', dot: 'var(--accent-yellow)' },
+      { label: 'Team-Meeting', date: tr('calendar.todayAt', { time: '10:00' }), dot: 'var(--accent)' },
+      { label: tr('preview.cal.dentist'), date: tr('calendar.tomorrowAt', { time: '14:30' }), dot: 'var(--accent-green)' },
+      { label: tr('preview.cal.birthday'), date: `${tr('cal.day.3')}, 9. ${tr('cal.month.3')}`, dot: 'var(--accent-yellow)' },
     ];
     if (layout === 'minimal' || layout === 'card') {
       return (
         <div className="flex flex-col items-center justify-center h-full gap-1">
           <p className="text-3xl font-black leading-none" style={{ color: 'var(--accent)' }}>3</p>
-          <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Termine</p>
+          <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{tr('calendar.events')}</p>
         </div>
       );
     }
@@ -82,7 +84,7 @@ function MockContent({ type, layout, title }: { type: WidgetType; layout: Widget
           <CalendarDays size={16} style={{ color: 'var(--accent)' }} />
           <div>
             <p className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>Team-Meeting</p>
-            <p className="text-[10px]" style={{ color: 'var(--accent)' }}>Heute, 10:00</p>
+            <p className="text-[10px]" style={{ color: 'var(--accent)' }}>{tr('calendar.todayAt', { time: '10:00' })}</p>
           </div>
         </div>
       );
@@ -133,7 +135,7 @@ function MockContent({ type, layout, title }: { type: WidgetType; layout: Widget
         <div className="flex items-center gap-2 h-full">
           <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>⛅</span>
           <span className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>18°</span>
-          <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Bewölkt</span>
+          <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{tr('weather.cloudy')}</span>
         </div>
       );
     }
@@ -143,8 +145,8 @@ function MockContent({ type, layout, title }: { type: WidgetType; layout: Widget
           <span style={{ fontSize: '1.8rem', lineHeight: 1 }}>⛅</span>
           <div>
             <span className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>18°</span>
-            <span className="text-[11px] ml-1" style={{ color: 'var(--text-secondary)' }}>Bewölkt</span>
-            <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Gefühlt 15°</p>
+            <span className="text-[11px] ml-1" style={{ color: 'var(--text-secondary)' }}>{tr('weather.cloudy')}</span>
+            <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{tr('preview.feelsLike', { temp: 15 })}</p>
           </div>
         </div>
         <div className="text-[10px] flex gap-2" style={{ color: 'var(--text-secondary)' }}>
@@ -207,9 +209,9 @@ function MockContent({ type, layout, title }: { type: WidgetType; layout: Widget
     return (
       <div className="flex flex-col h-full gap-1.5">
         <p className="text-[11px] font-medium truncate" style={{ color: 'var(--text-secondary)' }}>{t}</p>
-        {['Gerät 1', 'Gerät 2', 'Gerät 3'].map((item, i) => (
+        {[1, 2, 3].map((n, i) => (
           <div key={i} className="flex items-center justify-between px-1.5 py-0.5 rounded" style={{ background: 'var(--app-bg)' }}>
-            <span className="text-[10px]" style={{ color: 'var(--text-primary)' }}>{item}</span>
+            <span className="text-[10px]" style={{ color: 'var(--text-primary)' }}>{tr('preview.device')} {n}</span>
             <Toggle on={i === 0} />
           </div>
         ))}
@@ -224,7 +226,7 @@ function MockContent({ type, layout, title }: { type: WidgetType; layout: Widget
         <div className="flex flex-col items-center justify-center h-full gap-2 rounded-md" style={{ background: 'color-mix(in srgb, var(--accent-green) 20%, transparent)' }}>
           <Zap size={26} style={{ color: 'var(--accent-green)' }} />
           <p className="text-[11px] font-bold" style={{ color: 'var(--text-primary)' }}>{t}</p>
-          <p className="text-[10px]" style={{ color: 'var(--accent-green)' }}>AN</p>
+          <p className="text-[10px]" style={{ color: 'var(--accent-green)' }}>{tr('common.on')}</p>
         </div>
       );
     }
@@ -300,7 +302,7 @@ function MockContent({ type, layout, title }: { type: WidgetType; layout: Widget
       <div>
         {type === 'switch' ? (
           <div className="flex items-center justify-between">
-            <span className="text-xl font-bold" style={{ color: 'var(--accent-green)' }}>AN</span>
+            <span className="text-xl font-bold" style={{ color: 'var(--accent-green)' }}>{tr('common.on')}</span>
             <Toggle />
           </div>
         ) : type === 'thermostat' ? (

@@ -5,6 +5,7 @@ import { DatapointPicker } from './DatapointPicker';
 import { getObjectDirect } from '../../hooks/useIoBroker';
 import { detectHistoryAdapters, RANGE_LABELS, type DetectedAdapter } from '../../hooks/useChartHistory';
 import type { EChartSeriesConfig, EChartTimeRange } from '../../hooks/useMultiSeriesData';
+import { useT, t } from '../../i18n';
 
 interface EChartConfigProps {
   config: WidgetConfig;
@@ -13,11 +14,11 @@ interface EChartConfigProps {
 
 const CHART_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
-const CHART_TYPES: { id: EChartSeriesConfig['chartType']; label: string }[] = [
-  { id: 'line', label: 'Linie' },
-  { id: 'area', label: 'Fläche' },
-  { id: 'bar', label: 'Balken' },
-  { id: 'scatter', label: 'Punkte' },
+const CHART_TYPES: { id: EChartSeriesConfig['chartType']; label: () => string }[] = [
+  { id: 'line',    label: () => t('echart.line') },
+  { id: 'area',    label: () => t('echart.area') },
+  { id: 'bar',     label: () => t('echart.bar') },
+  { id: 'scatter', label: () => t('echart.scatter') },
 ];
 
 function generateId(): string {
@@ -37,6 +38,7 @@ interface SeriesAdapterState {
 }
 
 export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
+  const t = useT();
   const o = config.options ?? {};
   const series = (o.echartSeries as EChartSeriesConfig[] | undefined) ?? [];
   const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? true;
@@ -137,20 +139,20 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
       {/* ── Series list ──────────────────────────────────────────────────── */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <p className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Serien</p>
+          <p className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>{t('echart.series')}</p>
           <button
             onClick={addSeries}
             className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-md hover:opacity-80 transition-opacity"
             style={{ background: 'var(--accent)', color: '#fff' }}
           >
             <Plus size={11} />
-            Serie hinzufügen
+            {t('echart.addSeries')}
           </button>
         </div>
 
         {series.length === 0 && (
           <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-            Noch keine Serien. Klicke "Serie hinzufügen".
+            {t('echart.noSeries')}
           </p>
         )}
 
@@ -179,7 +181,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                     {s.name || `Serie ${idx + 1}`}
                   </span>
                   <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                    {CHART_TYPES.find((t) => t.id === s.chartType)?.label ?? s.chartType}
+                    {(CHART_TYPES.find((ct) => ct.id === s.chartType)?.label ?? (() => s.chartType))()}
                   </span>
                   <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
                     <button
@@ -204,7 +206,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                       onClick={() => removeSeries(s.id)}
                       className="p-0.5 rounded hover:opacity-80"
                       style={{ color: 'var(--accent-red, #ef4444)' }}
-                      title="Serie löschen"
+                      title={t('echart.deleteSeries')}
                     >
                       <Trash2 size={11} />
                     </button>
@@ -220,7 +222,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                   <div className="px-2.5 pb-2.5 pt-1.5 flex flex-col gap-2" style={{ borderTop: '1px solid var(--app-border)' }}>
                     {/* Name */}
                     <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Name</label>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('echart.name')}</label>
                       <input
                         type="text"
                         value={s.name}
@@ -232,7 +234,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
 
                     {/* Datapoint */}
                     <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Datenpunkt</label>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('echart.datapoint')}</label>
                       <div className="flex gap-1">
                         <input
                           type="text"
@@ -248,7 +250,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                               });
                             }
                           }}
-                          placeholder="z.B. hm-rpc.0...."
+                          placeholder={t('echart.dpPlaceholder')}
                           className="flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0"
                           style={inputStyle}
                         />
@@ -256,7 +258,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                           onClick={() => setPickerForSeries(s.id)}
                           className="px-2 rounded-lg hover:opacity-80 shrink-0"
                           style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-                          title="Aus ioBroker wählen"
+                          title={t('echart.fromIoBroker')}
                         >
                           <Database size={13} />
                         </button>
@@ -265,7 +267,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
 
                     {/* Chart type */}
                     <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Diagrammtyp</label>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('echart.chartType')}</label>
                       <div className="flex gap-1">
                         {CHART_TYPES.map((ct) => (
                           <button
@@ -278,7 +280,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                               border: `1px solid ${s.chartType === ct.id ? 'var(--accent)' : 'var(--app-border)'}`,
                             }}
                           >
-                            {ct.label}
+                            {ct.label()}
                           </button>
                         ))}
                       </div>
@@ -286,7 +288,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
 
                     {/* Color */}
                     <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Farbe</label>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('echart.color')}</label>
                       <div className="flex gap-1.5 items-center">
                         <input
                           type="color"
@@ -307,7 +309,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
 
                     {/* Y-Axis */}
                     <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Y-Achse</label>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('echart.yAxis')}</label>
                       <div className="flex gap-1">
                         {([0, 1] as const).map((yi) => (
                           <button
@@ -320,7 +322,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                               border: `1px solid ${(s.yAxisIndex ?? 0) === yi ? 'var(--accent)' : 'var(--app-border)'}`,
                             }}
                           >
-                            {yi === 0 ? 'Links' : 'Rechts'}
+                            {yi === 0 ? t('echart.yLeft') : t('echart.yRight')}
                           </button>
                         ))}
                       </div>
@@ -329,7 +331,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                     {/* Smooth (only for line/area) */}
                     {(s.chartType === 'line' || s.chartType === 'area') && (
                       <div className="flex items-center justify-between">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Glatt</label>
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('echart.smooth')}</label>
                         <button
                           onClick={() => updateSeries(s.id, { smooth: !(s.smooth ?? true) })}
                           className="relative w-9 h-5 rounded-full transition-colors"
@@ -347,7 +349,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                     {(s.chartType === 'line' || s.chartType === 'area') && (
                       <div>
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                          Linienstärke: {s.lineWidth ?? 2}px
+                          {t('echart.lineWidth', { value: s.lineWidth ?? 2 })}
                         </label>
                         <input
                           type="range"
@@ -364,12 +366,12 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                     {/* History adapter detection */}
                     <div>
                       <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
-                      <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Verlaufsdaten</p>
+                      <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>{t('echart.history')}</p>
                       {!s.datapointId && (
-                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Erst Datenpunkt wählen.</p>
+                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('echart.selectDpFirst')}</p>
                       )}
                       {s.datapointId && adState?.checking && (
-                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Prüfe Adapter…</p>
+                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('echart.checking')}</p>
                       )}
                       {s.datapointId && !adState?.checking && !adState && (
                         <button
@@ -377,24 +379,24 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                           className="text-[11px] hover:opacity-80"
                           style={{ color: 'var(--accent)' }}
                         >
-                          Adapter erkennen
+                          {t('echart.detect')}
                         </button>
                       )}
                       {s.datapointId && adState && !adState.checking && adState.adapters.length === 0 && (
                         <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                          Kein History-Adapter aktiv.
+                          {t('echart.noAdapter')}
                         </p>
                       )}
                       {s.datapointId && adState && !adState.checking && adState.adapters.length > 0 && (
                         <div>
-                          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Adapter-Instanz</label>
+                          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('echart.instance')}</label>
                           <select
                             value={s.historyInstance ?? ''}
                             onChange={(e) => updateSeries(s.id, { historyInstance: e.target.value || undefined })}
                             className={inputCls}
                             style={inputStyle}
                           >
-                            <option value="">– Live-Daten –</option>
+                            <option value="">{t('echart.liveData')}</option>
                             {adState.adapters.map((a) => (
                               <option key={a.instance} value={a.instance}>{a.label}</option>
                             ))}
@@ -403,7 +405,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                       )}
                       {s.historyInstance && (
                         <div className="mt-1.5">
-                          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Zeitraum</label>
+                          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('echart.timeRange')}</label>
                           <div className="flex gap-1 flex-wrap">
                             {CHART_RANGES.map((r) => (
                               <button
@@ -435,11 +437,11 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
       {/* ── Global settings ──────────────────────────────────────────────── */}
       <div className="mt-3">
         <div className="h-px mb-2" style={{ background: 'var(--app-border)' }} />
-        <p className="text-[11px] font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>Globale Einstellungen</p>
+        <p className="text-[11px] font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>{t('echart.globalSettings')}</p>
 
         {/* Show legend */}
         <div className="flex items-center justify-between mb-2">
-          <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Legende anzeigen</label>
+          <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('echart.showLegend')}</label>
           <button
             onClick={() => setO({ echartShowLegend: !echartShowLegend })}
             className="relative w-9 h-5 rounded-full transition-colors"
@@ -454,13 +456,13 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
 
         {/* Left Y-Axis */}
         <div className="mb-2">
-          <p className="text-[11px] mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>Y-Achse links</p>
+          <p className="text-[11px] mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>{t('echart.yAxisLeft')}</p>
           <div className="flex gap-1.5 mb-1">
             <input
               type="text"
               value={echartLeftUnit}
               onChange={(e) => setO({ echartLeftUnit: e.target.value || undefined })}
-              placeholder="Einheit (z.B. °C)"
+              placeholder={t('echart.unitLeft')}
               className={inputCls + ' flex-1'}
               style={inputStyle}
             />
@@ -470,7 +472,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
               type="number"
               value={echartLeftMin}
               onChange={(e) => setO({ echartLeftMin: e.target.value !== '' ? Number(e.target.value) : undefined })}
-              placeholder="Min"
+              placeholder={t('echart.min')}
               className={inputCls + ' flex-1'}
               style={inputStyle}
             />
@@ -478,7 +480,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
               type="number"
               value={echartLeftMax}
               onChange={(e) => setO({ echartLeftMax: e.target.value !== '' ? Number(e.target.value) : undefined })}
-              placeholder="Max"
+              placeholder={t('echart.max')}
               className={inputCls + ' flex-1'}
               style={inputStyle}
             />
@@ -487,13 +489,13 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
 
         {/* Right Y-Axis */}
         <div className="mb-2">
-          <p className="text-[11px] mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>Y-Achse rechts</p>
+          <p className="text-[11px] mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>{t('echart.yAxisRight')}</p>
           <div className="flex gap-1.5 mb-1">
             <input
               type="text"
               value={echartRightUnit}
               onChange={(e) => setO({ echartRightUnit: e.target.value || undefined })}
-              placeholder="Einheit (z.B. %)"
+              placeholder={t('echart.unitRight')}
               className={inputCls + ' flex-1'}
               style={inputStyle}
             />
@@ -503,7 +505,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
               type="number"
               value={echartRightMin}
               onChange={(e) => setO({ echartRightMin: e.target.value !== '' ? Number(e.target.value) : undefined })}
-              placeholder="Min"
+              placeholder={t('echart.min')}
               className={inputCls + ' flex-1'}
               style={inputStyle}
             />
@@ -511,7 +513,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
               type="number"
               value={echartRightMax}
               onChange={(e) => setO({ echartRightMax: e.target.value !== '' ? Number(e.target.value) : undefined })}
-              placeholder="Max"
+              placeholder={t('echart.max')}
               className={inputCls + ' flex-1'}
               style={inputStyle}
             />
@@ -531,17 +533,17 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
             size={12}
             style={{ transform: jsonOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}
           />
-          JSON-Override
+          {t('echart.jsonOverride')}
           {echartJsonExtra && (
             <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'var(--accent)22', color: 'var(--accent)' }}>
-              aktiv
+              {t('echart.active')}
             </span>
           )}
         </button>
         {jsonOpen && (
           <>
             <p className="text-[10px] mb-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
-              Wird mit der auto-generierten ECharts-Option zusammengeführt (deep merge). Arrays werden ersetzt.
+              {t('echart.jsonOverrideHint')}
             </p>
             <textarea
               value={echartJsonExtra}

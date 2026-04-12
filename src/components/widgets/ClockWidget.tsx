@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import type { WidgetProps } from '../../types';
+import { useT } from '../../i18n';
 
-const DAYS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
-const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+type TFn = ReturnType<typeof useT>;
 
 function pad(n: number) { return String(n).padStart(2, '0'); }
 
-function applyCustomFormat(date: Date, fmt: string): string {
+function applyCustomFormat(date: Date, fmt: string, t: TFn): string {
   return fmt
-    .replace('EEEE', DAYS[date.getDay()])
-    .replace('MMMM', MONTHS[date.getMonth()])
+    .replace('EEEE', t(`clock.day.${date.getDay()}` as Parameters<TFn>[0]))
+    .replace('MMMM', t(`clock.month.${date.getMonth()}` as Parameters<TFn>[0]))
     .replace('yyyy', String(date.getFullYear()))
     .replace('yy', String(date.getFullYear()).slice(-2))
     .replace('MM', pad(date.getMonth() + 1))
@@ -24,14 +24,17 @@ function formatTime(date: Date, showSeconds: boolean): string {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}${showSeconds ? ':' + pad(date.getSeconds()) : ''}`;
 }
 
-function formatDate(date: Date, length: 'short' | 'long'): string {
+function formatDate(date: Date, length: 'short' | 'long', t: TFn): string {
   if (length === 'long') {
-    return `${DAYS[date.getDay()]}, ${date.getDate()}. ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+    const dayName = t(`clock.day.${date.getDay()}` as Parameters<TFn>[0]);
+    const monthName = t(`clock.month.${date.getMonth()}` as Parameters<TFn>[0]);
+    return `${dayName}, ${date.getDate()}. ${monthName} ${date.getFullYear()}`;
   }
   return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
 }
 
 export function ClockWidget({ config }: WidgetProps) {
+  const t = useT();
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -47,8 +50,8 @@ export function ClockWidget({ config }: WidgetProps) {
   const layout = config.layout ?? 'default';
 
   const timeStr = formatTime(now, showSeconds);
-  const dateStr = display !== 'time' ? formatDate(now, dateLength) : '';
-  const customStr = customFormat ? applyCustomFormat(now, customFormat) : '';
+  const dateStr = display !== 'time' ? formatDate(now, dateLength, t) : '';
+  const customStr = customFormat ? applyCustomFormat(now, customFormat, t) : '';
 
   // ---------- COMPACT ----------
   if (layout === 'compact') {

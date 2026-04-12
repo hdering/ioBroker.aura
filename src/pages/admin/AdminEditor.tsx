@@ -13,20 +13,17 @@ import { DatapointPicker } from '../../components/config/DatapointPicker';
 import type { WidgetConfig, WidgetType, WidgetLayout } from '../../types';
 import { WIDGET_REGISTRY, WIDGET_BY_TYPE, getEffectiveSize } from '../../widgetRegistry';
 import { useConfigStore } from '../../store/configStore';
+import { useT } from '../../i18n';
 
-const LAYOUTS: { id: WidgetLayout; label: string }[] = [
-  { id: 'default', label: 'Standard' },
-  { id: 'card', label: 'Karte' },
-  { id: 'compact', label: 'Kompakt' },
-  { id: 'minimal', label: 'Minimal' },
-];
-const CALENDAR_LAYOUTS: { id: WidgetLayout; label: string }[] = [
-  ...LAYOUTS,
-  { id: 'agenda', label: 'Agenda' },
-];
+// Layout labels are resolved inside components via t() to support i18n
+const LAYOUT_IDS: WidgetLayout[] = ['default', 'card', 'compact', 'minimal'];
+const CALENDAR_LAYOUT_IDS: WidgetLayout[] = [...LAYOUT_IDS, 'agenda'];
 
 function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => void; onClose: () => void }) {
+  const t = useT();
   const widgetDefaults = useConfigStore((s) => s.widgetDefaults);
+  const LAYOUTS = LAYOUT_IDS.map((id) => ({ id, label: t(`editor.layouts.${id}` as never) }));
+  const CALENDAR_LAYOUTS = CALENDAR_LAYOUT_IDS.map((id) => ({ id, label: t(`editor.layouts.${id}` as never) }));
   const [type, setType] = useState<WidgetType>('value');
   const [layout, setLayout] = useState<WidgetLayout>('default');
   const [title, setTitle] = useState('');
@@ -91,13 +88,13 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
       <div className="rounded-xl w-full max-w-lg shadow-2xl p-6"
         style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
         onClick={(e) => e.stopPropagation()}>
-        <h2 className="font-bold text-lg mb-5" style={{ color: 'var(--text-primary)' }}>Widget manuell hinzufügen</h2>
+        <h2 className="font-bold text-lg mb-5" style={{ color: 'var(--text-primary)' }}>{t('editor.manual.title')}</h2>
 
         <div className="flex gap-5">
           {/* Form */}
           <div className="flex-1 space-y-3.5 min-w-0">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Typ</label>
+              <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.type')}</label>
               <select value={type} onChange={(e) => { setType(e.target.value as WidgetType); setGroupId(''); setDatapoint(''); }}
                 className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
                 style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
@@ -106,7 +103,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Titel</label>
+              <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.titleField')}</label>
               <input value={title} onChange={(e) => setTitle(e.target.value)}
                 placeholder={def.label}
                 className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
@@ -115,7 +112,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
 
             {isCalendar ? (
               <div className="space-y-1.5">
-                <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>iCal-URL *</label>
+                <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.icalUrl')}</label>
                 <input
                   value={icalUrl}
                   onChange={(e) => setIcalUrl(e.target.value)}
@@ -127,7 +124,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                   <input
                     value={calName}
                     onChange={(e) => setCalName(e.target.value)}
-                    placeholder="Kalender-Name"
+                    placeholder={t('editor.manual.calName')}
                     className="flex-1 rounded-xl px-3 py-2.5 text-sm focus:outline-none min-w-0"
                     style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
                   />
@@ -137,31 +134,31 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                   />
                 </div>
                 <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                  Weitere Kalender nach dem Hinzufügen im Widget-Editor ergänzen.
+                  {t('editor.manual.moreCalendars')}
                 </p>
               </div>
             ) : isList ? (
               <div className="space-y-1.5">
-                <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Gruppe *</label>
+                <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.group')}</label>
                 {groups.length === 0 ? (
                   <p className="text-xs rounded-xl px-3 py-2.5"
                     style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                    Keine Gruppen vorhanden – zuerst unter "Endpunkte" anlegen
+                    {t('editor.manual.noGroups')}
                   </p>
                 ) : (
                   <select value={groupId} onChange={(e) => setGroupId(e.target.value)}
                     className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
                     style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
-                    <option value="">– Gruppe wählen –</option>
+                    <option value="">{t('editor.manual.selectGroup')}</option>
                     {groups.map((g) => (
-                      <option key={g.id} value={g.id}>{g.name} ({g.datapoints.length} Datenpunkte)</option>
+                      <option key={g.id} value={g.id}>{g.name} ({t('endpoints.dp.count', { count: g.datapoints.length })})</option>
                     ))}
                   </select>
                 )}
               </div>
             ) : addMode === 'datapoint' ? (
               <div className="space-y-1.5">
-                <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Datenpunkt-ID *</label>
+                <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.datapointId')}</label>
                 <div className="flex gap-1.5">
                   <input value={datapoint} onChange={(e) => setDatapoint(e.target.value)}
                     placeholder="z.B. hm-rpc.0.ABC123.STATE"
@@ -172,7 +169,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                     onClick={() => setShowPicker(true)}
                     className="px-3 rounded-xl hover:opacity-80 shrink-0"
                     style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-                    title="Aus ioBroker wählen"
+                    title={t('wf.edit.fromIoBroker')}
                   >
                     <Database size={15} />
                   </button>
@@ -182,7 +179,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
 
             {(type === 'value' || type === 'chart') && (
               <div className="space-y-1.5">
-                <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Einheit (optional)</label>
+                <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.unit')}</label>
                 <input value={unit} onChange={(e) => setUnit(e.target.value)}
                   placeholder="z.B. °C, %, W"
                   className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
@@ -215,12 +212,12 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
           <button onClick={handleAdd} disabled={!canAdd}
             className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-80 disabled:opacity-30"
             style={{ background: 'var(--accent)' }}>
-            Hinzufügen
+            {t('editor.manual.add')}
           </button>
           <button onClick={onClose}
             className="px-4 py-2.5 rounded-xl text-sm hover:opacity-80"
             style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-            Abbruch
+            {t('editor.manual.cancel')}
           </button>
         </div>
       </div>
@@ -236,13 +233,10 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
   );
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  switch: 'Schalter', value: 'Wert', dimmer: 'Dimmer', thermostat: 'Thermostat',
-  chart: 'Diagramm', list: 'Liste', clock: 'Uhr', calendar: 'Kalender',
-  header: 'Titel', group: 'Gruppe',
-};
+// TYPE_LABELS are now resolved via useT() inside components
 
 function MobileOrderPanel({ layoutId, tabId }: { layoutId: string; tabId: string }) {
+  const t = useT();
   const { layouts, updateWidgetInTab } = useDashboardStore();
   const tab = layouts.find((l) => l.id === layoutId)?.tabs.find((t) => t.id === tabId);
   const widgets = tab?.widgets ?? [];
@@ -287,16 +281,16 @@ function MobileOrderPanel({ layoutId, tabId }: { layoutId: string; tabId: string
   return (
     <div className="flex flex-col h-full overflow-hidden" style={{ borderLeft: '1px solid var(--app-border)', background: 'var(--app-surface)', width: 260 }}>
       <div className="px-4 py-3 shrink-0" style={{ borderBottom: '1px solid var(--app-border)' }}>
-        <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Mobile-Reihenfolge</p>
+        <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{t('editor.mobile.title')}</p>
         <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-          Ziehen oder ▲▼ für die Darstellung unter 600 px.
+          {t('editor.mobile.title')}
         </p>
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-1">
         {sorted.length === 0 ? (
           <p className="text-xs text-center py-8" style={{ color: 'var(--text-secondary)' }}>
-            Noch keine Widgets im Tab.
+            {t('editor.tab.noWidgets')}
           </p>
         ) : sorted.map((w, i) => {
           const isDragging = dragIdx === i;
@@ -321,7 +315,7 @@ function MobileOrderPanel({ layoutId, tabId }: { layoutId: string; tabId: string
               <GripVertical size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
               <span className="text-[11px] font-mono w-4 shrink-0 text-center" style={{ color: 'var(--text-secondary)' }}>{i + 1}</span>
               <span className="flex-1 text-xs truncate" style={{ color: 'var(--text-primary)' }}>
-                {w.title || TYPE_LABELS[w.type] || w.type}
+                {w.title || t(`widget.${w.type}` as never) || w.type}
               </span>
               <div className="flex flex-col gap-0.5 shrink-0">
                 <button onClick={() => moveItem(i, i - 1)} disabled={i === 0}
@@ -340,6 +334,7 @@ function MobileOrderPanel({ layoutId, tabId }: { layoutId: string; tabId: string
 }
 
 export function AdminEditor() {
+  const t = useT();
   const { layouts, activeLayoutId, setActiveLayout, addWidget, addTab, setActiveTab, renameTab, removeTab, setTabSlug, updateTab } = useDashboardStore();
   const activeLayout = layouts.find((l) => l.id === activeLayoutId) ?? layouts[0];
   const tabs = activeLayout.tabs;
@@ -370,7 +365,7 @@ export function AdminEditor() {
       {/* Toolbar */}
       <div className="flex items-center gap-3 px-6 py-3 shrink-0 flex-wrap"
         style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)' }}>
-        <h2 className="font-semibold text-sm mr-2 shrink-0" style={{ color: 'var(--text-primary)' }}>Dashboard-Editor</h2>
+        <h2 className="font-semibold text-sm mr-2 shrink-0" style={{ color: 'var(--text-primary)' }}>{t('admin.nav.editor')}</h2>
         {/* Layout selector */}
         <select
           value={activeLayoutId}
@@ -386,22 +381,22 @@ export function AdminEditor() {
         <button onClick={() => setShowTabWizard(true)}
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white hover:opacity-80"
           style={{ background: 'var(--accent)' }}>
-          <Wand2 size={15} /> Neuer Tab
+          <Wand2 size={15} /> {t('editor.tab.addTab')}
         </button>
         <button onClick={() => setShowManual(true)}
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-80"
           style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
-          <PenLine size={15} /> Manuell
+          <PenLine size={15} /> {t('editor.tab.addManual')}
         </button>
         <button onClick={() => setShowImport(true)}
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-80"
           style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
-          <Upload size={15} /> Importieren
+          <Upload size={15} /> {t('common.export')}
         </button>
         <button onClick={() => setShowWizard(true)}
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white hover:opacity-80"
           style={{ background: 'var(--accent-green)' }}>
-          <Cpu size={15} /> Aus ioBroker
+          <Cpu size={15} /> {t('editor.tab.addDevice')}
         </button>
         <button
           onClick={() => setShowMobileOrder(!showMobileOrder)}
@@ -411,7 +406,7 @@ export function AdminEditor() {
             color: showMobileOrder ? 'var(--accent)' : 'var(--text-secondary)',
             border: `1px solid ${showMobileOrder ? 'var(--accent)' : 'var(--app-border)'}`,
           }}
-          title="Mobile-Reihenfolge"
+          title={t('editor.mobile.title')}
         >
           <Smartphone size={15} />
         </button>
@@ -478,7 +473,7 @@ export function AdminEditor() {
         <button onClick={() => addTab(`Tab ${tabs.length + 1}`)}
           className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs hover:opacity-80"
           style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-          <Plus size={12} /> Tab
+          <Plus size={12} /> {t('tabBar.addTab')}
         </button>
       </div>
 
@@ -531,14 +526,14 @@ export function AdminEditor() {
             style={{ top: panelPos.top, left: panelPos.left, background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Tab-Einstellungen</span>
+              <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{t('editor.tabMgmt.settings')}</span>
               <button onClick={() => setSettingsTabId(null)} className="w-5 h-5 flex items-center justify-center rounded hover:opacity-70">
                 <X size={12} style={{ color: 'var(--text-secondary)' }} />
               </button>
             </div>
             {/* Name */}
             <div>
-              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Name</label>
+              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('editor.tabMgmt.name')}</label>
               <input
                 type="text"
                 value={settingsTab.name}
@@ -549,7 +544,7 @@ export function AdminEditor() {
             </div>
             {/* URL-Slug */}
             <div>
-              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>URL-Slug</label>
+              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('editor.tabMgmt.slug')}</label>
               <div className="flex items-center gap-1">
                 <span className="text-[11px] font-mono shrink-0" style={{ color: 'var(--text-secondary)' }}>/tab/</span>
                 <input
@@ -566,7 +561,7 @@ export function AdminEditor() {
             </div>
             {/* Hide label */}
             <div className="flex items-center justify-between">
-              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Beschriftung ausblenden</label>
+              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('editor.tabMgmt.hideLabel')}</label>
               <button
                 onClick={() => updateTab(settingsTabId, { hideLabel: !settingsTab.hideLabel })}
                 className="relative w-9 h-5 rounded-full transition-colors shrink-0"
@@ -579,11 +574,11 @@ export function AdminEditor() {
             {/* Icon picker */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon</label>
+                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('editor.tabMgmt.icon')}</label>
                 {settingsTab.icon && (
                   <button onClick={() => updateTab(settingsTabId, { icon: undefined })}
                     className="text-[10px] hover:opacity-70" style={{ color: 'var(--text-secondary)' }}>
-                    Entfernen
+                    {t('editor.tabMgmt.remove')}
                   </button>
                 )}
               </div>
