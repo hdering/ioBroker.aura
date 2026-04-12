@@ -31,7 +31,8 @@ export type WidgetType =
   | 'gauge'
   | 'camera'
   | 'autolist'
-  | 'image';
+  | 'image'
+  | 'iframe';
 
 export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda' | 'flow' | 'battery' | 'production' | 'consumption' | 'loadpoints';
 

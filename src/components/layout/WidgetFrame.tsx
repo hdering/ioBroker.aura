@@ -35,6 +35,7 @@ import { WeatherWidget } from '../widgets/WeatherWidget';
 import { GaugeWidget } from '../widgets/GaugeWidget';
 import { CameraWidget } from '../widgets/CameraWidget';
 import { ImageWidget } from '../widgets/ImageWidget';
+import { IframeWidget } from '../widgets/IframeWidget';
 import { AutoListWidget } from '../widgets/AutoListWidget';
 
 // Stable empty array – avoids creating a new reference on every render when no conditions are set
@@ -60,6 +61,7 @@ function getWidgetMap() {
     camera:     CameraWidget,
     autolist:   AutoListWidget,
     image:      ImageWidget,
+    iframe:     IframeWidget,
   } as const;
 }
 
@@ -783,7 +785,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
         ...(!editMode && conditionResult.hidden && !conditionResult.reflow
           ? { visibility: 'hidden', pointerEvents: 'none' } : {}),
       }}
-      className={`relative h-full transition-all overflow-visible ${isHeader ? 'px-2 py-0' : (isGroup || isTransparent) ? 'p-0' : 'p-4'} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''}`}
+      className={`relative h-full transition-all overflow-visible ${isHeader ? 'px-2 py-0' : (isGroup || isTransparent || config.type === 'iframe') ? 'p-0' : 'p-4'} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''}`}
     >
       {editMode && conditionResult.hidden && (
         <div className="nodrag absolute inset-0 z-20 rounded-[inherit] flex items-start justify-end pointer-events-none p-1.5">
@@ -1380,7 +1382,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                 <CalendarEditPanel config={config} onConfigChange={onConfigChange} />
               )}
 
-              {config.type !== 'list' && config.type !== 'clock' && config.type !== 'calendar' && config.type !== 'header' && config.type !== 'group' && config.type !== 'evcc' && config.type !== 'echart' && config.type !== 'weather' && config.type !== 'camera' && config.type !== 'autolist' && config.type !== 'image' && (
+              {config.type !== 'list' && config.type !== 'clock' && config.type !== 'calendar' && config.type !== 'header' && config.type !== 'group' && config.type !== 'evcc' && config.type !== 'echart' && config.type !== 'weather' && config.type !== 'camera' && config.type !== 'autolist' && config.type !== 'image' && config.type !== 'iframe' && (
                 <div>
                   <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.datapointId')}</label>
                   <div className="flex gap-1">
@@ -1742,6 +1744,64 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               {config.type === 'autolist' && (
                 <AutoListConfig config={config} onConfigChange={onConfigChange} />
               )}
+
+              {/* ── iFrame config ── */}
+              {config.type === 'iframe' && (() => {
+                const o   = config.options ?? {};
+                const set = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const iCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono';
+                const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                return (
+                  <>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>URL</label>
+                      <input type="text" value={(o.iframeUrl as string) ?? ''}
+                        onChange={(e) => set({ iframeUrl: e.target.value || undefined })}
+                        placeholder="https://…"
+                        className={iCls} style={iSty} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Aufrechterhalten (kein Reload)</label>
+                      <button onClick={() => set({ keepAlive: !(o.keepAlive ?? false) })}
+                        className="relative w-9 h-5 rounded-full transition-colors"
+                        style={{ background: (o.keepAlive ?? false) ? 'var(--accent)' : 'var(--app-border)' }}>
+                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                          style={{ left: (o.keepAlive ?? false) ? '18px' : '2px' }} />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Interaktion erlauben</label>
+                      <button onClick={() => set({ allowInteraction: !(o.allowInteraction ?? true) })}
+                        className="relative w-9 h-5 rounded-full transition-colors"
+                        style={{ background: (o.allowInteraction ?? true) ? 'var(--accent)' : 'var(--app-border)' }}>
+                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                          style={{ left: (o.allowInteraction ?? true) ? '18px' : '2px' }} />
+                      </button>
+                    </div>
+                    {!(o.keepAlive ?? false) && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Aktualisierungsintervall (Sekunden, 0 = aus)</label>
+                        <input type="number" min={0} value={(o.refreshInterval as number) ?? 0}
+                          onChange={(e) => set({ refreshInterval: parseInt(e.target.value) || 0 })}
+                          className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none" style={iSty} />
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Sandbox aktiv</label>
+                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>Schränkt Berechtigungen des iFrames ein</p>
+                      </div>
+                      <button onClick={() => set({ sandbox: !(o.sandbox ?? false) })}
+                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                        style={{ background: (o.sandbox ?? false) ? 'var(--accent)' : 'var(--app-border)' }}>
+                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                          style={{ left: (o.sandbox ?? false) ? '18px' : '2px' }} />
+                      </button>
+                    </div>
+                  </>
+                );
+              })()}
 
               {config.type === 'thermostat' && (() => {
                 const o = config.options ?? {};

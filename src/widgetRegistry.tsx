@@ -12,7 +12,7 @@
 
 import {
   Zap, TrendingUp, SlidersHorizontal, Thermometer, BarChart2, List,
-  Clock, CalendarDays, Heading2, Layers2, Cloud, Gauge, Camera, ImageIcon,
+  Clock, CalendarDays, Heading2, Layers2, Cloud, Gauge, Camera, ImageIcon, MonitorDot,
   type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -175,6 +175,14 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     defaultW: 3,            defaultH: 3,
     addMode: 'free',        widgetGroup: 'special',
     mock: { t: 'Bild', v: '' },
+  },
+  {
+    type: 'iframe',
+    label: 'iFrame',         shortLabel: 'iFrame',
+    Icon: MonitorDot,        iconName: 'MonitorDot',  color: '#64748b',
+    defaultW: 4,             defaultH: 4,
+    addMode: 'free',         widgetGroup: 'special',
+    mock: { t: 'iFrame', v: '' },
   },
   {
     type: 'header',
