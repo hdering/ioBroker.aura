@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { version as appVersion } from '../../../package.json';
 import { PortalTargetContext } from '../../contexts/PortalTargetContext';
 import { Navigate, Outlet, NavLink } from 'react-router-dom';
@@ -10,6 +10,7 @@ import { isDirty, saveAll, revertAll, subscribeDirty, saveToIoBroker } from '../
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useGroupStore } from '../../store/groupStore';
 import { useConfigStore } from '../../store/configStore';
+import { useIoBroker } from '../../hooks/useIoBroker';
 import { useT } from '../../i18n';
 
 function useSaveState() {
@@ -50,6 +51,17 @@ export function AdminLayout() {
   const { dirty, save, revert } = useSaveState();
   const { adminThemeId, setAdminTheme } = useThemeStore();
   const frontendUrl = useFrontendUrl();
+  const { connected } = useIoBroker();
+
+  // Auto-push localStorage config to ioBroker on first connect.
+  // Ensures other browsers get the current config even if the user never
+  // explicitly clicks "Speichern" after an upgrade.
+  const autoSyncedRef = useRef(false);
+  useEffect(() => {
+    if (!connected || autoSyncedRef.current) return;
+    autoSyncedRef.current = true;
+    saveToIoBroker();
+  }, [connected]);
 
   const adminTheme = adminThemeId === 'dark' ? ADMIN_DARK_THEME : getTheme(adminThemeId);
   const adminVars = Object.fromEntries(
