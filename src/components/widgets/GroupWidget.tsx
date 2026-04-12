@@ -73,18 +73,26 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Group title bar */}
-      {config.title && (
+      {/* Group title bar – also serves as drag handle for the outer grid.
+          Always rendered in editMode so the group can be repositioned even
+          when no title is set. */}
+      {(config.title || editMode) && (
         <div
           className="shrink-0 px-3 py-1.5 text-xs font-semibold truncate"
-          style={{ color: 'var(--text-secondary)', borderBottom: transparent ? 'none' : '1px solid var(--widget-border)' }}
+          style={{ color: 'var(--text-secondary)', borderBottom: transparent ? 'none' : '1px solid var(--widget-border)', minHeight: editMode && !config.title ? '18px' : undefined }}
         >
           {config.title}
         </div>
       )}
 
-      {/* Inner scrollable grid area */}
-      <div ref={containerRef} className="flex-1 overflow-auto min-h-0 p-1">
+      {/* Inner scrollable grid area – stop propagation so outer RGL doesn't
+          intercept drags meant for the inner grid */}
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-auto min-h-0 p-1"
+        onMouseDown={editMode ? (e) => e.stopPropagation() : undefined}
+        onPointerDown={editMode ? (e) => e.stopPropagation() : undefined}
+      >
         {width > 0 && (
           <ReactGridLayout
             layout={layout}
