@@ -72,11 +72,10 @@ jobs:
       - name: Build
         run: npm run build:adapter
 
-      - name: Remove auth token to enable OIDC Trusted Publishing
-        run: npm config delete //registry.npmjs.org/:_authToken
-
       - name: Publish to npm
-        run: npm publish --access public --provenance
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
