@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.3.82",
+    "version": "0.3.83",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -72,6 +72,19 @@
       }
     ],
     "news": {
+      "0.3.83": {
+        "en": "Fix CI publish: use granular npm access token",
+        "de": "CI-Publish korrigiert: granulares npm Access Token",
+        "ru": "Исправлен CI publish: используется гранулярный токен доступа npm",
+        "pt": "CI publish corrigido: token de acesso granular npm",
+        "nl": "CI publish gecorrigeerd: granulaire npm access token",
+        "fr": "CI publish corrigé: token d'accès granulaire npm",
+        "it": "CI publish corretto: token di accesso granulare npm",
+        "es": "CI publish corregido: token de acceso granular npm",
+        "pl": "Naprawiono CI publish: granularny token dostępu npm",
+        "uk": "Виправлено CI publish: гранулярний токен доступу npm",
+        "zh-cn": "修复 CI 发布：使用精细化 npm 访问令牌"
+      },
       "0.3.82": {
         "en": "Fix CI publish: explicitly remove npm auth token to enable OIDC Trusted Publishing",
         "de": "CI-Publish korrigiert: npm Auth-Token explizit entfernt für OIDC Trusted Publishing",
