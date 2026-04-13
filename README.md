@@ -89,6 +89,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.3.78 (2026-04-13)
+- Version bump for npm publish
+
 ### 0.3.77 (2026-04-13)
 - CI/CD pipeline fully operational: npm publish via automation token
 

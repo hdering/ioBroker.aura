@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.3.77",
+    "version": "0.3.78",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -68,6 +68,19 @@
       { "js-controller": ">=6.0.11" }
     ],
     "news": {
+      "0.3.78": {
+        "en": "Version bump for npm publish",
+        "de": "Versions-Bump für npm-Veröffentlichung",
+        "ru": "Обновление версии для публикации npm",
+        "pt": "Incremento de versão para publicação npm",
+        "nl": "Versieverhoging voor npm-publicatie",
+        "fr": "Incrément de version pour publication npm",
+        "it": "Aggiornamento versione per pubblicazione npm",
+        "es": "Incremento de versión para publicación npm",
+        "pl": "Inkrementacja wersji dla publikacji npm",
+        "uk": "Оновлення версії для публікації npm",
+        "zh-cn": "版本更新用于 npm 发布"
+      },
       "0.3.77": {
         "en": "CI/CD pipeline fully operational: npm publish via automation token",
         "de": "CI/CD-Pipeline voll funktionsfähig: npm-Veröffentlichung via Automation-Token",
