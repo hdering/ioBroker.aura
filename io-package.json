@@ -42,8 +42,8 @@
       "gauge",
       "chart"
     ],
-    "icon": "admin/aura.svg",
-    "extIcon": "https://raw.githubusercontent.com/hdering/ioBroker.aura/main/admin/aura.svg",
+    "icon": "admin/aura.png",
+    "extIcon": "https://raw.githubusercontent.com/hdering/ioBroker.aura/main/admin/aura.png",
     "type": "visualization",
     "licenseInformation": {
       "license": "MIT",
