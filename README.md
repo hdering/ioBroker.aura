@@ -1,8 +1,6 @@
 # Aura – Modernes Dashboard für ioBroker
 
-Aura ist ein modernes Visualisierungs-Dashboard für [ioBroker](https://www.iobroker.net/). Es entstand, weil die Entwicklung von Jarvis scheinbar eingeschlafen ist und die klassische VIS für viele Anwendungsfälle zu statisch ist.
-
-Die Entwicklung erfolgt KI-gestützt mit [Claude](https://claude.ai/) von Anthropic.
+Aura ist ein modernes Visualisierungs-Dashboard für [ioBroker](https://www.iobroker.net/). Die Entwicklung erfolgt KI-gestützt mit [Claude](https://claude.ai/) von Anthropic.
 
 > **Beta** – Das Projekt ist noch in aktiver Entwicklung. Bugs und Breaking Changes sind möglich.
 
