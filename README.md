@@ -36,17 +36,13 @@
 
 ## Installation
 
-Aura is **not yet** in the official ioBroker repository. Install manually via GitHub URL.
-
 ### Step 1 – Install adapter
 
-1. Open ioBroker Admin
-2. **Adapters** → click the **GitHub icon** (Install from URL) in the top right
-3. Enter the following URL and install:
+Install Aura via ioBroker Admin:
 
-```
-https://github.com/hdering/ioBroker.aura
-```
+1. Open ioBroker Admin
+2. Go to **Adapters**
+3. Search for **Aura** and install it
 
 ### Step 2 – Create instance
 
@@ -68,25 +64,11 @@ http://<iobroker-ip>:8082/aura/#/admin
 
 ---
 
-## Updates
-
-Since Aura is installed from an external URL, updates are **not applied automatically**.
-
-Connect to the ioBroker server via SSH, navigate to the ioBroker directory (usually `/opt/iobroker`) and run:
-
-```bash
-npm install iobroker.aura@latest --force && iobroker upload aura && iobroker restart aura
-```
-
-Current version and changelog: [Releases](https://github.com/hdering/ioBroker.aura/releases)
-
----
-
 ## Bugs & Feature Requests
 
 Please report directly as a GitHub issue:
 
-👉 **[github.com/hdering/ioBroker.aura/issues](https://github.com/hdering/ioBroker.aura/issues)**
+**[github.com/hdering/ioBroker.aura/issues](https://github.com/hdering/ioBroker.aura/issues)**
 
 ---
 
@@ -105,106 +87,30 @@ npm run build:adapter
 
 ---
 
+## Changelog
+
+### 0.3.73 (2026-04-13)
+- Stable fingerprint-based client ID – no more duplicate devices on mobile
+
+### 0.3.72
+- Calendar widget: fetch via state relay instead of sendTo for reliable operation
+
+### 0.3.63
+- New widgets: fill level indicator and waste collection
+
+### 0.1.0
+- Initial release
+
+---
+
 ## License
 
-MIT
+MIT License
 
----
+Copyright (c) 2026 Hermann Dering <aura@dering-online.de>
 
----
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-# ioBroker.aura (Deutsch)
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-**Aura** ist ein modernes Visualisierungs-Dashboard für [ioBroker](https://www.iobroker.net/).
-
-> **Beta** – Das Projekt ist noch in aktiver Entwicklung. Bugs und Breaking Changes sind möglich.
-
----
-
-## Features
-
-- **Flexibles Grid-Layout** mit Drag & Drop
-- **Mehrere Tabs / Seiten** pro Dashboard
-- **Themes:** Dark, Light, Catppuccin (Latte, Frappé, Macchiato, Mocha), Apple Liquid Glass u.v.m.
-- **Vollständige Admin-Oberfläche** – keine YAML, kein JSON-Editieren
-- **Responsive** – funktioniert auf Tablet, Smartphone und Desktop
-
-### Widgets
-
-| Widget | Beschreibung |
-|--------|-------------|
-| Schalter | Ein/Aus, Toggle |
-| Dimmer | Helligkeit mit Slider |
-| Thermostat | Soll-/Ist-Temperatur |
-| Gauge | Rundes Messgerät mit Farbzonen |
-| Füllstandsanzeige | Tank/Wasser/Gas – vertikal oder horizontal |
-| Diagramm | Linien-, Balken-, Tortendiagramm (ECharts) |
-| Kalender | iCal / Google Calendar |
-| Wetter | Aktuelle Wetterdaten |
-| Uhr | Analog oder Digital |
-| iFrame / Kamera | Einbettung beliebiger URLs |
-| EVCC | Wallbox, Solar, Batteriespeicher |
-| Müllabfuhr | Welche Tonne muss raus? |
-| Gruppe | Verschachtelte Widgets |
-
----
-
-## Installation
-
-Aura ist noch **nicht** im offiziellen ioBroker-Repository. Die Installation erfolgt manuell über eine GitHub-URL.
-
-### Schritt 1 – Adapter installieren
-
-1. ioBroker Admin öffnen
-2. **Adapter** → oben rechts auf das **GitHub-Icon** (Von URL installieren) klicken
-3. Folgende URL eingeben und installieren:
-
-```
-https://github.com/hdering/ioBroker.aura
-```
-
-### Schritt 2 – Instanz anlegen
-
-Nach der Installation eine neue Instanz von **Aura** anlegen (falls nicht automatisch geschehen).
-
-### Schritt 3 – Dashboard öffnen
-
-Das Dashboard ist erreichbar unter:
-
-```
-http://<iobroker-ip>:8082/aura/
-```
-
-Die Admin-Oberfläche unter:
-
-```
-http://<iobroker-ip>:8082/aura/#/admin
-```
-
----
-
-## Updates
-
-Da Aura von einer externen URL installiert wird, werden Updates **nicht automatisch** eingespielt.
-
-Per SSH auf den ioBroker-Server verbinden, ins ioBroker-Verzeichnis wechseln (meist `/opt/iobroker`) und folgenden Befehl ausführen:
-
-```bash
-npm install iobroker.aura@latest --force && iobroker upload aura && iobroker restart aura
-```
-
-Den aktuellen Versionsstand und alle Änderungen gibt es unter [Releases](https://github.com/hdering/ioBroker.aura/releases).
-
----
-
-## Bugs & Feature-Wünsche
-
-Bitte direkt als GitHub Issue melden:
-
-👉 **[github.com/hdering/ioBroker.aura/issues](https://github.com/hdering/ioBroker.aura/issues)**
-
----
-
-## Lizenz
-
-MIT
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
