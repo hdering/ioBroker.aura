@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.3.87",
+    "version": "0.3.88",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -42,7 +42,7 @@
       "gauge",
       "chart"
     ],
-    "icon": "admin/aura.png",
+    "icon": "aura.png",
     "extIcon": "https://raw.githubusercontent.com/hdering/ioBroker.aura/master/admin/aura.png",
     "type": "visualization",
     "licenseInformation": {
@@ -72,6 +72,19 @@
       }
     ],
     "news": {
+      "0.3.88": {
+        "en": "Fix E1012: remove admin/ prefix from icon field",
+        "de": "E1012 behoben: admin/-Präfix aus icon-Feld entfernt",
+        "ru": "Исправлен E1012: удалён префикс admin/ из поля icon",
+        "pt": "E1012 corrigido: prefixo admin/ removido do campo icon",
+        "nl": "E1012 opgelost: admin/ prefix verwijderd uit icon veld",
+        "fr": "E1012 corrigé: préfixe admin/ supprimé du champ icon",
+        "it": "E1012 corretto: prefisso admin/ rimosso dal campo icon",
+        "es": "E1012 corregido: prefijo admin/ eliminado del campo icon",
+        "pl": "Naprawiono E1012: usunięto prefiks admin/ z pola icon",
+        "uk": "Виправлено E1012: видалено префікс admin/ з поля icon",
+        "zh-cn": "修复 E1012：从 icon 字段移除 admin/ 前缀"
+      },
       "0.3.87": {
         "en": "Version bump",
         "de": "Versions-Bump",
