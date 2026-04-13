@@ -624,18 +624,20 @@ export function EvccWidget({ config }: WidgetProps) {
     return Array.from({ length: loadpointCount }, (_, i) => i);
   })();
 
-  // Optional override datapoints for battery (when evcc doesn't control the battery)
-  const batterySocDp    = (o.batterySocDatapoint    as string) ?? '';
-  const batteryPowerDp  = (o.batteryPowerDatapoint  as string) ?? '';
-  const { value: extSoc }   = useDatapoint(batterySocDp);
+  // Battery datapoint: manual override wins; otherwise auto-derive from prefix
+  const batterySocDp   = (o.batterySocDatapoint   as string) ?? '';
+  const batteryPowerDp = (o.batteryPowerDatapoint as string) ?? '';
+  const effectiveBattDp = batterySocDp || (prefix ? `${prefix}.status.battery` : '');
+
+  const { value: extSoc }   = useDatapoint(effectiveBattDp);
   const { value: extPower } = useDatapoint(batteryPowerDp);
 
   const { site: rawSite, loadpoints } = useEvccData(prefix, loadpointCount);
 
-  // If the SoC datapoint returns a JSON object (e.g. evcc.0.status.battery
-  // → {"soc":10.5,"power":0,...}), extract both values automatically.
+  // Auto-detect JSON battery object (e.g. evcc.0.status.battery
+  // → {"soc":10.5,"power":0,...}) and extract both values.
   const batteryJson = (() => {
-    if (!batterySocDp || extSoc == null) return null;
+    if (!effectiveBattDp || extSoc == null) return null;
     const str = String(extSoc).trim();
     if (!str.startsWith('{')) return null;
     try { return JSON.parse(str) as { soc?: number; power?: number }; } catch { return null; }
@@ -649,8 +651,8 @@ export function EvccWidget({ config }: WidgetProps) {
           ...(batteryJson.power != null ? { batteryPower: batteryJson.power }  : {}),
         }
       : {
-          ...(batterySocDp   && extSoc   != null ? { batterySoc:   parseFloat(String(extSoc))   } : {}),
-          ...(batteryPowerDp && extPower != null ? { batteryPower: parseFloat(String(extPower)) } : {}),
+          ...(effectiveBattDp && extSoc   != null ? { batterySoc:   parseFloat(String(extSoc))   } : {}),
+          ...(batteryPowerDp  && extPower != null ? { batteryPower: parseFloat(String(extPower)) } : {}),
         }
     ),
   };
