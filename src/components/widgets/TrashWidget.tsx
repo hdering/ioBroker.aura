@@ -55,23 +55,23 @@ function BinDisplay({ bin, size }: { bin: TrashBin; size: number }) {
   if (bin.hideWhen === 'false' && !active) return null;
 
   const Icon    = ICON_MAP[bin.icon] ?? Trash2;
-  const opacity = bin.hideWhen === 'never' && !active ? 0.22 : 1;
+  const dimmed  = bin.hideWhen === 'never' && !active;
   const lblSize = size <= 44 ? 9 : size <= 56 ? 10 : 11;
   // Icon size must be an integer – fractional SVG dimensions cause blurriness
   const iconPx  = Math.round(size / 2);
 
   return (
-    <div className="flex flex-col items-center gap-1.5" style={{ opacity }}>
+    <div className="flex flex-col items-center gap-1.5">
       <div
         className="rounded-full flex items-center justify-center"
         style={{
           width:      size,
           height:     size,
-          background: `${bin.color}22`,
-          border:     `2px solid ${bin.color}88`,
+          background: dimmed ? 'transparent' : bin.color,
+          border:     `2.5px solid ${bin.color}`,
         }}
       >
-        <Icon size={iconPx} color={bin.color} strokeWidth={2} />
+        <Icon size={iconPx} color={dimmed ? bin.color : '#ffffff'} strokeWidth={2} />
       </div>
       {bin.name && (
         <span
