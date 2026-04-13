@@ -89,6 +89,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.3.77 (2026-04-13)
+- CI/CD pipeline fully operational: npm publish via automation token
+
 ### 0.3.76 (2026-04-13)
 - Fix lint: disable no-var-requires for CommonJS adapter entry point
 

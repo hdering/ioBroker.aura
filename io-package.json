@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.3.76",
+    "version": "0.3.77",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -68,6 +68,19 @@
       { "js-controller": ">=6.0.11" }
     ],
     "news": {
+      "0.3.77": {
+        "en": "CI/CD pipeline fully operational: npm publish via automation token",
+        "de": "CI/CD-Pipeline voll funktionsfähig: npm-Veröffentlichung via Automation-Token",
+        "ru": "CI/CD-пайплайн полностью работает: публикация npm через токен автоматизации",
+        "pt": "Pipeline CI/CD totalmente operacional: publicação npm via token de automação",
+        "nl": "CI/CD-pipeline volledig operationeel: npm publish via automation token",
+        "fr": "Pipeline CI/CD pleinement opérationnel: publication npm via token d'automatisation",
+        "it": "Pipeline CI/CD completamente operativa: pubblicazione npm tramite token di automazione",
+        "es": "Pipeline CI/CD totalmente operativo: publicación npm via token de automatización",
+        "pl": "Pipeline CI/CD w pełni operacyjny: publikacja npm przez token automatyzacji",
+        "uk": "CI/CD-пайплайн повністю працює: публікація npm через токен автоматизації",
+        "zh-cn": "CI/CD 流水线完全运行：通过自动化令牌发布 npm"
+      },
       "0.3.76": {
         "en": "Fix lint: disable no-var-requires for CommonJS adapter entry point",
         "de": "Lint-Fehler behoben: no-var-requires für CommonJS-Adapter-Einstiegspunkt deaktiviert",
