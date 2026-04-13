@@ -125,6 +125,12 @@
   "objects": [],
   "instanceObjects": [
     {
+      "_id": "info",
+      "type": "channel",
+      "common": { "name": "Information" },
+      "native": {}
+    },
+    {
       "_id": "info.connection",
       "type": "state",
       "common": {
@@ -135,6 +141,12 @@
         "write": false,
         "def": false
       },
+      "native": {}
+    },
+    {
+      "_id": "config",
+      "type": "channel",
+      "common": { "name": "Configuration" },
       "native": {}
     },
     {
@@ -151,6 +163,12 @@
       "native": {}
     },
     {
+      "_id": "navigate",
+      "type": "channel",
+      "common": { "name": "Navigation" },
+      "native": {}
+    },
+    {
       "_id": "navigate.url",
       "type": "state",
       "common": {
@@ -161,6 +179,12 @@
         "write": true,
         "def": ""
       },
+      "native": {}
+    },
+    {
+      "_id": "calendar",
+      "type": "channel",
+      "common": { "name": "Calendar fetch relay" },
       "native": {}
     },
     {
