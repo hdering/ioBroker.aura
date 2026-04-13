@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.3.81",
+    "version": "0.3.82",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -72,6 +72,19 @@
       }
     ],
     "news": {
+      "0.3.82": {
+        "en": "Fix CI publish: explicitly remove npm auth token to enable OIDC Trusted Publishing",
+        "de": "CI-Publish korrigiert: npm Auth-Token explizit entfernt für OIDC Trusted Publishing",
+        "ru": "Исправлен CI publish: явное удаление токена npm для OIDC Trusted Publishing",
+        "pt": "CI publish corrigido: token auth npm removido explicitamente para Trusted Publishing",
+        "nl": "CI publish gecorrigeerd: auth token expliciet verwijderd voor OIDC Trusted Publishing",
+        "fr": "CI publish corrigé: token auth npm supprimé explicitement pour Trusted Publishing",
+        "it": "CI publish corretto: token auth npm rimosso esplicitamente per Trusted Publishing",
+        "es": "CI publish corregido: token auth npm eliminado explícitamente para Trusted Publishing",
+        "pl": "Naprawiono CI publish: explicite usunięto token auth npm dla Trusted Publishing",
+        "uk": "Виправлено CI publish: явно видалено токен auth npm для Trusted Publishing",
+        "zh-cn": "修复 CI 发布：显式删除 npm auth token 以启用 OIDC Trusted Publishing"
+      },
       "0.3.81": {
         "en": "Fix CI publish: remove registry-url to allow npm Trusted Publishing OIDC auth",
         "de": "CI-Publish korrigiert: registry-url entfernt für korrekte npm Trusted Publishing OIDC-Auth",

@@ -89,6 +89,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.3.82 (2026-04-13)
+- Fix CI publish: explicitly remove npm auth token to enable OIDC Trusted Publishing
+
 ### 0.3.81 (2026-04-13)
 - Fix CI publish: remove registry-url to allow npm Trusted Publishing OIDC auth
 
