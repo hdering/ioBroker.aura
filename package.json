@@ -2,7 +2,7 @@
   "name": "iobroker.aura",
   "version": "0.3.73",
   "description": "Modern visualization dashboard for ioBroker",
-  "author": "Hermann Dering <BITTE_EMAIL_EINTRAGEN>",
+  "author": "Hermann Dering <aura@dering-online.de>",
   "main": "lib/main.js",
   "license": "MIT",
   "files": [
