@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.3.84",
+    "version": "0.3.85",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -43,7 +43,7 @@
       "chart"
     ],
     "icon": "admin/aura.png",
-    "extIcon": "https://raw.githubusercontent.com/hdering/ioBroker.aura/main/admin/aura.png",
+    "extIcon": "https://raw.githubusercontent.com/hdering/ioBroker.aura/HEAD/admin/aura.png",
     "type": "visualization",
     "licenseInformation": {
       "license": "MIT",
@@ -72,6 +72,19 @@
       }
     ],
     "news": {
+      "0.3.85": {
+        "en": "Fix news section: remove unpublished versions; fix extIcon URL",
+        "de": "News-Bereich bereinigt: nicht veröffentlichte Versionen entfernt; extIcon-URL korrigiert",
+        "ru": "Исправлен раздел news: удалены неопубликованные версии; исправлен extIcon URL",
+        "pt": "Seção news corrigida: versões não publicadas removidas; URL extIcon corrigida",
+        "nl": "News sectie gecorrigeerd: niet-gepubliceerde versies verwijderd; extIcon URL gecorrigeerd",
+        "fr": "Section news corrigée: versions non publiées supprimées; URL extIcon corrigée",
+        "it": "Sezione news corretta: versioni non pubblicate rimosse; URL extIcon corretta",
+        "es": "Sección news corregida: versiones no publicadas eliminadas; URL extIcon corregida",
+        "pl": "Sekcja news poprawiona: usunięto nieopublikowane wersje; poprawiono URL extIcon",
+        "uk": "Розділ news виправлено: видалено неопубліковані версії; виправлено URL extIcon",
+        "zh-cn": "修复 news 部分：删除未发布版本；修复 extIcon URL"
+      },
       "0.3.84": {
         "en": "CI/CD pipeline fully operational",
         "de": "CI/CD-Pipeline voll funktionsfähig",
@@ -97,45 +110,6 @@
         "pl": "Naprawiono CI publish: granularny token dostępu npm",
         "uk": "Виправлено CI publish: гранулярний токен доступу npm",
         "zh-cn": "修复 CI 发布：使用精细化 npm 访问令牌"
-      },
-      "0.3.82": {
-        "en": "Fix CI publish: explicitly remove npm auth token to enable OIDC Trusted Publishing",
-        "de": "CI-Publish korrigiert: npm Auth-Token explizit entfernt für OIDC Trusted Publishing",
-        "ru": "Исправлен CI publish: явное удаление токена npm для OIDC Trusted Publishing",
-        "pt": "CI publish corrigido: token auth npm removido explicitamente para Trusted Publishing",
-        "nl": "CI publish gecorrigeerd: auth token expliciet verwijderd voor OIDC Trusted Publishing",
-        "fr": "CI publish corrigé: token auth npm supprimé explicitement pour Trusted Publishing",
-        "it": "CI publish corretto: token auth npm rimosso esplicitamente per Trusted Publishing",
-        "es": "CI publish corregido: token auth npm eliminado explícitamente para Trusted Publishing",
-        "pl": "Naprawiono CI publish: explicite usunięto token auth npm dla Trusted Publishing",
-        "uk": "Виправлено CI publish: явно видалено токен auth npm для Trusted Publishing",
-        "zh-cn": "修复 CI 发布：显式删除 npm auth token 以启用 OIDC Trusted Publishing"
-      },
-      "0.3.81": {
-        "en": "Fix CI publish: remove registry-url to allow npm Trusted Publishing OIDC auth",
-        "de": "CI-Publish korrigiert: registry-url entfernt für korrekte npm Trusted Publishing OIDC-Auth",
-        "ru": "Исправлен CI publish: удалён registry-url для корректной OIDC-аутентификации",
-        "pt": "Corrigido CI publish: removido registry-url para autenticação OIDC do Trusted Publishing",
-        "nl": "CI publish gecorrigeerd: registry-url verwijderd voor juiste OIDC-auth",
-        "fr": "CI publish corrigé: registry-url supprimé pour authentification OIDC Trusted Publishing",
-        "it": "CI publish corretto: rimosso registry-url per autenticazione OIDC Trusted Publishing",
-        "es": "CI publish corregido: eliminado registry-url para autenticación OIDC",
-        "pl": "Naprawiono CI publish: usunięto registry-url dla poprawnej autentykacji OIDC",
-        "uk": "Виправлено CI publish: видалено registry-url для коректної OIDC-автентифікації",
-        "zh-cn": "修复 CI 发布：删除 registry-url 以允许 npm Trusted Publishing OIDC 认证"
-      },
-      "0.3.80": {
-        "en": "Remove unpublished versions from news section; ioBroker repository compliance fixes",
-        "de": "Nicht veröffentlichte Versionen aus News entfernt; ioBroker-Repository-Konformität",
-        "ru": "Удалены неопубликованные версии из раздела news; исправления соответствия репозиторию",
-        "pt": "Versões não publicadas removidas do news; correções de conformidade do repositório",
-        "nl": "Niet-gepubliceerde versies verwijderd uit news; ioBroker repository compliance fixes",
-        "fr": "Versions non publiées supprimées du news; corrections de conformité dépôt ioBroker",
-        "it": "Versioni non pubblicate rimosse dal news; correzioni conformità repository ioBroker",
-        "es": "Versiones no publicadas eliminadas del news; correcciones de conformidad del repositorio",
-        "pl": "Usunięto nieopublikowane wersje z sekcji news; poprawki zgodności repozytorium ioBroker",
-        "uk": "Видалено неопубліковані версії з розділу news; виправлення відповідності репозиторію",
-        "zh-cn": "从 news 部分删除未发布版本；ioBroker 仓库合规性修复"
       },
       "0.3.79": {
         "en": "Switch npm publish to Trusted Publishing (OIDC) for secure CI/CD",

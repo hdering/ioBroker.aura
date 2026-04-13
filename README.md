@@ -89,6 +89,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.3.85 (2026-04-13)
+- Fix news section: remove unpublished versions; fix extIcon URL
+
 ### 0.3.84 (2026-04-13)
 - CI/CD pipeline fully operational
 
