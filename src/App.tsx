@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sun, Moon } from 'lucide-react';
 import { useIoBroker, getStateDirect, setStateDirect, setObjectDirect } from './hooks/useIoBroker';
@@ -46,7 +46,7 @@ export default function App() {
 
   // Determine which layout to display based on URL slug
   const layout = useLayoutBySlug(layoutSlug);
-  const tabs: Tab[] = layout?.tabs ?? [];
+  const tabs = useMemo<Tab[]>(() => layout?.tabs ?? [], [layout?.tabs]);
 
   // Local active tab state (frontend only — doesn't affect admin editor)
   // When no tab slug in URL, use defaultTabId (admin-configured) or fall back to first tab

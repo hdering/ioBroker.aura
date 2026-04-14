@@ -203,7 +203,7 @@ function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; o
       {/* separator */}
       <div className="h-px" style={{ background: 'var(--app-border)' }} />
 
-      {/* global settings */}
+      {/* ── calendar settings ── */}
       <div>
         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.cal.refreshInterval')}</label>
         <select value={(o.refreshInterval as number) ?? 30} onChange={(e) => setOpts({ refreshInterval: Number(e.target.value) })}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { RefreshCw, X } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { getObjectViewDirect, getObjectDirect, useIoBroker } from '../../hooks/useIoBroker';
@@ -187,8 +187,11 @@ function EntryValue({ entry, val, setState }: {
 // ── Main Widget ───────────────────────────────────────────────────────────────
 
 export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps) {
-  const opts = (config.options ?? { entries: [] }) as unknown as AutoListOptions;
-  const entries: AutoListEntry[] = opts.entries ?? [];
+  const opts = useMemo(
+    () => (config.options ?? { entries: [] }) as unknown as AutoListOptions,
+    [config.options],
+  );
+  const entries = useMemo<AutoListEntry[]>(() => opts.entries ?? [], [opts.entries]);
   const { subscribe, setState, getState } = useIoBroker();
   const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
   const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});

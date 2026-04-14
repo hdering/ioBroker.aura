@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
@@ -33,7 +33,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
   const activeTabId = viewActiveTabId ?? activeLayout.activeTabId;
 
   const activeTab = tabs.find((t) => t.id === activeTabId);
-  const widgets = activeTab?.widgets ?? [];
+  const widgets = useMemo(() => activeTab?.widgets ?? [], [activeTab]);
   const reflowHiddenIds = useReflowHiddenIds();
 
   // ── container width measurement ────────────────────────────────────────

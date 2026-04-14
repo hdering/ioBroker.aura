@@ -193,9 +193,12 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
     return map;
   }, [detectedGroups]);
 
-  const groupMapper = groupBy !== 'none' && detectedGroups.size >= 2
-    ? (id: string) => idToGroup.get(id) ?? t('wizard.tab.noData')
-    : undefined;
+  const groupMapper = useMemo(
+    () => groupBy !== 'none' && detectedGroups.size >= 2
+      ? (id: string) => idToGroup.get(id) ?? t('wizard.tab.noData')
+      : undefined,
+    [groupBy, detectedGroups.size, idToGroup, t],
+  );
 
   const layouts = useMemo(
     () => generateLayouts(activeWidgets, groupMapper),

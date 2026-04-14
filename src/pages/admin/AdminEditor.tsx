@@ -245,19 +245,18 @@ function MobileOrderPanel({ layoutId, tabId }: { layoutId: string; tabId: string
   const t = useT();
   const { layouts, updateWidgetInTab } = useDashboardStore();
   const tab = layouts.find((l) => l.id === layoutId)?.tabs.find((t) => t.id === tabId);
-  const widgets = tab?.widgets ?? [];
 
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [overIdx, setOverIdx] = useState<number | null>(null);
 
-  const sorted = useMemo(() =>
-    [...widgets].sort((a, b) => {
+  const sorted = useMemo(() => {
+    const widgets = tab?.widgets ?? [];
+    return [...widgets].sort((a, b) => {
       const oa = a.mobileOrder ?? (a.gridPos.y * 1000 + a.gridPos.x);
       const ob = b.mobileOrder ?? (b.gridPos.y * 1000 + b.gridPos.x);
       return oa - ob;
-    }),
-    [widgets],
-  );
+    });
+  }, [tab?.widgets]);
 
   const applyOrder = (reordered: typeof sorted) => {
     if (!tab) return;
