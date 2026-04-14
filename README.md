@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.1 (2026-04-14)
+- Fix CI pipeline: add test:package and test:integration scripts, resolve all ESLint warnings
+
 ### 0.4.0 (2026-04-14)
 - Adapter checker compliance: node >=20, trim news to 7 entries, remove allowInit, use ioBroker standard workflow actions, fix package dependencies
 

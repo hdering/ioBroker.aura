@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.0",
+    "version": "0.4.1",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -101,6 +101,10 @@
       }
     ],
     "news": {
+      "0.4.1": {
+        "en": "Fix CI pipeline: add test:package and test:integration scripts, resolve all ESLint warnings",
+        "de": "CI-Pipeline repariert: test:package und test:integration ergänzt, alle ESLint-Warnungen behoben"
+      },
       "0.4.0": {
         "en": "Adapter checker compliance: node >=20, trim news, remove allowInit, use ioBroker standard workflow actions, fix package dependencies",
         "de": "Adapter-Checker-Konformität: node >=20, News gekürzt, allowInit entfernt, ioBroker Standard-Workflow-Actions, Paketabhängigkeiten korrigiert"
