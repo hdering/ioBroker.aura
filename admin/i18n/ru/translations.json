@@ -1,0 +1,5 @@
+{
+  "Custom URL (optional)": "Пользовательский URL (необязательно)",
+  "Base URL": "Базовый URL",
+  "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:8082).": "Переопределяет ссылки в обзоре ioBroker. Оставьте пустым для стандартного значения (http://<ip>:8082)."
+}

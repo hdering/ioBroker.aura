@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.19",
+    "version": "0.4.20",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.20": {
+        "en": "Fix W5022: migrate jsonConfig to i18n – use translation keys and admin/i18n for all 11 languages",
+        "de": "W5022 behoben: jsonConfig auf i18n umgestellt – Übersetzungsschlüssel und admin/i18n für alle 11 Sprachen",
+        "ru": "Исправление W5022: jsonConfig переведён на i18n – ключи перевода и admin/i18n для всех 11 языков",
+        "pt": "Correção W5022: jsonConfig migrado para i18n – chaves de tradução e admin/i18n para todos os 11 idiomas",
+        "nl": "W5022 opgelost: jsonConfig gemigreerd naar i18n – vertaalsleutels en admin/i18n voor alle 11 talen",
+        "fr": "Correction W5022: jsonConfig migré vers i18n – clés de traduction et admin/i18n pour les 11 langues",
+        "it": "Correzione W5022: jsonConfig migrato a i18n – chiavi di traduzione e admin/i18n per tutte le 11 lingue",
+        "es": "Corrección W5022: jsonConfig migrado a i18n – claves de traducción y admin/i18n para los 11 idiomas",
+        "pl": "Naprawa W5022: jsonConfig przeniesiony na i18n – klucze tłumaczeń i admin/i18n dla wszystkich 11 języków",
+        "uk": "Виправлення W5022: jsonConfig переведено на i18n – ключі перекладу та admin/i18n для всіх 11 мов",
+        "zh-cn": "修复 W5022：将 jsonConfig 迁移到 i18n – 使用翻译键和 admin/i18n 支持所有 11 种语言"
+      },
       "0.4.19": {
         "en": "Fix W3009/W3019: fix concurrency group, switch deploy to npm trusted publishing (remove npm-token), fix W4042 jsonConfig fileMatch",
         "de": "W3009/W3019 behoben: Concurrency-Group korrigiert, Deploy auf npm Trusted Publishing umgestellt (npm-token entfernt), W4042 jsonConfig fileMatch korrigiert",
@@ -118,19 +131,6 @@
         "pl": "Naprawa W3009/W3019: poprawiono grupę concurrency, deploy przeniesiony na npm trusted publishing (usunięto npm-token), poprawiono fileMatch jsonConfig (W4042)",
         "uk": "Виправлення W3009/W3019: виправлено групу concurrency, деплой переведено на npm trusted publishing (видалено npm-token), виправлено fileMatch jsonConfig (W4042)",
         "zh-cn": "修复 W3009/W3019：修正 concurrency group，将部署切换为 npm trusted publishing（移除 npm-token），修正 jsonConfig fileMatch（W4042）"
-      },
-      "0.4.18": {
-        "en": "Fix W4042: extend jsonConfig fileMatch in .vscode/settings.json to include all jsonConfig variants",
-        "de": "W4042 behoben: jsonConfig fileMatch in .vscode/settings.json auf alle jsonConfig-Varianten erweitert",
-        "ru": "Исправление W4042: расширен fileMatch jsonConfig в .vscode/settings.json для всех вариантов jsonConfig",
-        "pt": "Correção W4042: fileMatch jsonConfig em .vscode/settings.json estendido para incluir todas as variantes jsonConfig",
-        "nl": "W4042 opgelost: jsonConfig fileMatch in .vscode/settings.json uitgebreid met alle jsonConfig-varianten",
-        "fr": "Correction W4042: fileMatch jsonConfig dans .vscode/settings.json étendu à toutes les variantes jsonConfig",
-        "it": "Correzione W4042: fileMatch jsonConfig in .vscode/settings.json esteso a tutte le varianti jsonConfig",
-        "es": "Corrección W4042: fileMatch jsonConfig en .vscode/settings.json ampliado a todas las variantes jsonConfig",
-        "pl": "Naprawa W4042: rozszerzono fileMatch jsonConfig w .vscode/settings.json o wszystkie warianty jsonConfig",
-        "uk": "Виправлення W4042: розширено fileMatch jsonConfig у .vscode/settings.json для всіх варіантів jsonConfig",
-        "zh-cn": "修复 W4042：将 .vscode/settings.json 中的 jsonConfig fileMatch 扩展到包含所有 jsonConfig 变体"
       },
       "0.4.17": {
         "en": "Move main.js to root directory per ioBroker adapter convention",
@@ -183,19 +183,6 @@
         "pl": "Nieprawidłowy JSON w io-package.json naprawiony (przecinek po ostatnim wpisie news)",
         "uk": "Виправлено невалідний JSON в io-package.json (зайва кома після останнього запису news)",
         "zh-cn": "修复 io-package.json 中的无效 JSON（最后一个 news 条目后的多余逗号）"
-      },
-      "0.4.12": {
-        "en": "Fix E2005: restore 0.3.98 (npm latest) in news section, keep max 7 entries",
-        "de": "E2005 behoben: 0.3.98 (npm latest) in der News-Sektion wiederhergestellt, max. 7 Einträge eingehalten",
-        "ru": "Исправление E2005: восстановлена запись 0.3.98 (npm latest) в секции news, соблюдён лимит 7 записей",
-        "pt": "Correção E2005: restaurada entrada 0.3.98 (npm latest) na seção news, mantido máximo de 7 entradas",
-        "nl": "E2005 opgelost: 0.3.98 (npm latest) hersteld in news-sectie, maximum van 7 vermeldingen aangehouden",
-        "fr": "Correction E2005: entrée 0.3.98 (npm latest) restaurée dans la section news, maximum de 7 entrées respecté",
-        "it": "Correzione E2005: voce 0.3.98 (npm latest) ripristinata nella sezione news, mantenuto massimo di 7 voci",
-        "es": "Corrección E2005: entrada 0.3.98 (npm latest) restaurada en la sección news, mantenido máximo de 7 entradas",
-        "pl": "Naprawa E2005: przywrócono wpis 0.3.98 (npm latest) w sekcji news, zachowano maksimum 7 wpisów",
-        "uk": "Виправлення E2005: відновлено запис 0.3.98 (npm latest) у секції news, дотримано ліміт 7 записів",
-        "zh-cn": "修复 E2005：在 news 部分恢复 0.3.98（npm latest）条目，保持最多 7 条记录"
       }
     }
   },

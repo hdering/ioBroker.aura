@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.20 (2026-04-14)
+- Fix W5022: migrate jsonConfig to i18n – use translation keys and `admin/i18n/` for all 11 languages
+
 ### 0.4.19 (2026-04-14)
 - Fix W3009: concurrency group set to `${{ github.ref }}`
 - Fix W3019: switch deploy to npm trusted publishing (remove npm-token)

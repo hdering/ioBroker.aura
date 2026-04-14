@@ -1,0 +1,5 @@
+{
+  "Custom URL (optional)": "Niestandardowy URL (opcjonalnie)",
+  "Base URL": "Bazowy URL",
+  "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:8082).": "Zastępuje linki wyświetlane w przeglądzie ioBroker. Pozostaw puste, aby użyć wartości domyślnej (http://<ip>:8082)."
+}

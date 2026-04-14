@@ -1,0 +1,5 @@
+{
+  "Custom URL (optional)": "自定义 URL（可选）",
+  "Base URL": "基础 URL",
+  "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:8082).": "覆盖 ioBroker 概览中显示的链接。留空则使用默认值 (http://<ip>:8082)。"
+}
