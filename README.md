@@ -89,6 +89,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.3.91 (2026-04-14)
+- Fix HTTPS: upgrade stored ioBroker URL protocol to match page protocol (avoid mixed-content errors)
+
 ### 0.3.90 (2026-04-14)
 - Fix HTTPS connection: use same origin for socket.io to avoid mixed-content errors
 - Fix WebSocket proxy in Vite dev server for local development

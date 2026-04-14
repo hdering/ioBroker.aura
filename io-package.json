@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.3.90",
+    "version": "0.3.91",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -72,6 +72,19 @@
       }
     ],
     "news": {
+      "0.3.91": {
+        "en": "Fix HTTPS: upgrade stored ioBroker URL protocol to match page protocol to avoid mixed-content errors",
+        "de": "HTTPS-Fix: gespeicherte ioBroker-URL auf Seitenprotokoll anpassen, um Mixed-Content-Fehler zu vermeiden",
+        "ru": "Исправление HTTPS: протокол сохранённого URL ioBroker приводится в соответствие с протоколом страницы",
+        "pt": "Fix HTTPS: protocolo da URL ioBroker armazenada atualizado para corresponder ao protocolo da página",
+        "nl": "HTTPS-fix: opgeslagen ioBroker URL protocol aangepast aan paginaprotocol om mixed-content fouten te vermijden",
+        "fr": "Fix HTTPS: le protocole de l'URL ioBroker stockée est mis à jour pour correspondre au protocole de la page",
+        "it": "Fix HTTPS: il protocollo dell'URL ioBroker memorizzato viene aggiornato per corrispondere al protocollo della pagina",
+        "es": "Fix HTTPS: el protocolo de la URL ioBroker almacenada se actualiza para coincidir con el protocolo de la página",
+        "pl": "Naprawiono HTTPS: protokół zapisanego URL ioBroker jest aktualizowany do protokołu strony",
+        "uk": "Виправлення HTTPS: протокол збереженої URL ioBroker оновлюється до протоколу сторінки",
+        "zh-cn": "修复 HTTPS：将存储的 ioBroker URL 协议升级为与页面协议匹配，以避免混合内容错误"
+      },
       "0.3.90": {
         "en": "Fix HTTPS connection; fix WebSocket proxy in dev server; remove PIN from expert settings",
         "de": "HTTPS-Verbindung korrigiert; WebSocket-Proxy im Dev-Server repariert; PIN aus Experteneinstellungen entfernt",

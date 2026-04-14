@@ -26,7 +26,18 @@ function getInitialUrl(): string {
     const stored = localStorage.getItem('aura-connection');
     if (stored) {
       const parsed = JSON.parse(stored) as { state?: { ioBrokerUrl?: string } };
-      if (parsed.state?.ioBrokerUrl) return parsed.state.ioBrokerUrl;
+      const storedUrl = parsed.state?.ioBrokerUrl;
+      if (storedUrl) {
+        // Upgrade protocol to match current page to avoid mixed-content errors.
+        // e.g. stored http://host:8082 + page on HTTPS → https://host:8082
+        try {
+          const u = new URL(storedUrl);
+          u.protocol = window.location.protocol;
+          return u.origin;
+        } catch {
+          return storedUrl;
+        }
+      }
     }
   } catch { /* ignore */ }
   // Default: same origin as the page (web adapter serves socket.io on same port,
