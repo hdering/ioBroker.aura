@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.15 (2026-04-14)
+- Fix E2004: remove 0.4.13 from news (never published to npm due to CI failure)
+
 ### 0.4.14 (2026-04-14)
 - Fix invalid JSON in io-package.json (trailing comma after last news entry)
 

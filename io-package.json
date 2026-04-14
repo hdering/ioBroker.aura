@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.14",
+    "version": "0.4.15",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.15": {
+        "en": "Fix E2004: remove 0.4.13 from news (never published to npm due to CI failure)",
+        "de": "E2004 behoben: 0.4.13 aus News entfernt (wegen CI-Fehler nie auf npm veröffentlicht)",
+        "ru": "Исправление E2004: удалена запись 0.4.13 из news (не опубликована на npm из-за ошибки CI)",
+        "pt": "Correção E2004: 0.4.13 removida das news (nunca publicada no npm devido a falha no CI)",
+        "nl": "E2004 opgelost: 0.4.13 verwijderd uit news (nooit gepubliceerd op npm door CI-fout)",
+        "fr": "Correction E2004: 0.4.13 supprimée des news (jamais publiée sur npm suite à une erreur CI)",
+        "it": "Correzione E2004: 0.4.13 rimossa dalle news (mai pubblicata su npm per errore CI)",
+        "es": "Corrección E2004: 0.4.13 eliminada de las news (nunca publicada en npm por fallo de CI)",
+        "pl": "Naprawa E2004: usunięto 0.4.13 z news (nigdy nie opublikowano na npm z powodu błędu CI)",
+        "uk": "Виправлення E2004: видалено 0.4.13 з news (не опублікована на npm через помилку CI)",
+        "zh-cn": "修复 E2004：从 news 中删除 0.4.13（因 CI 失败从未发布到 npm）"
+      },
       "0.4.14": {
         "en": "Fix invalid JSON in io-package.json (trailing comma after last news entry)",
         "de": "Ungültiges JSON in io-package.json behoben (Komma nach letztem News-Eintrag)",
@@ -118,19 +131,6 @@
         "pl": "Nieprawidłowy JSON w io-package.json naprawiony (przecinek po ostatnim wpisie news)",
         "uk": "Виправлено невалідний JSON в io-package.json (зайва кома після останнього запису news)",
         "zh-cn": "修复 io-package.json 中的无效 JSON（最后一个 news 条目后的多余逗号）"
-      },
-      "0.4.13": {
-        "en": "Stable release: adapter checker compliance, src-vis convention, release script, i18n in npm package",
-        "de": "Stable Release: Adapter-Checker-Konformität, src-vis-Konvention, Release-Script, i18n im npm-Paket",
-        "ru": "Стабильный релиз: соответствие adapter checker, конвенция src-vis, release script, i18n в npm-пакете",
-        "pt": "Release estável: conformidade adapter checker, convenção src-vis, release script, i18n no pacote npm",
-        "nl": "Stabiele release: adapter checker compliance, src-vis conventie, release script, i18n in npm-pakket",
-        "fr": "Version stable: conformité adapter checker, convention src-vis, release script, i18n dans le paquet npm",
-        "it": "Release stabile: conformità adapter checker, convenzione src-vis, release script, i18n nel pacchetto npm",
-        "es": "Release estable: cumplimiento adapter checker, convención src-vis, release script, i18n en paquete npm",
-        "pl": "Stabilne wydanie: zgodność z adapter checker, konwencja src-vis, release script, i18n w pakiecie npm",
-        "uk": "Стабільний реліз: відповідність adapter checker, конвенція src-vis, release script, i18n у npm-пакеті",
-        "zh-cn": "稳定版本：适配器检查器合规、src-vis 约定、release script、npm 包中包含 i18n"
       },
       "0.4.12": {
         "en": "Fix E2005: restore 0.3.98 (npm latest) in news section, keep max 7 entries",
