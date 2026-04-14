@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.21",
+    "version": "0.4.22",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.22": {
+        "en": "Fix W5022: generate admin/words.js from i18n JSON files for proper translation support",
+        "de": "W5022 behoben: admin/words.js aus i18n-JSON-Dateien generiert für korrekte Übersetzungsunterstützung",
+        "ru": "Исправление W5022: сгенерирован admin/words.js из JSON-файлов i18n для корректной поддержки переводов",
+        "pt": "Correção W5022: admin/words.js gerado a partir dos arquivos JSON i18n para suporte correto de tradução",
+        "nl": "W5022 opgelost: admin/words.js gegenereerd uit i18n JSON-bestanden voor correcte vertaalondersteuning",
+        "fr": "Correction W5022: admin/words.js généré à partir des fichiers JSON i18n pour un support correct des traductions",
+        "it": "Correzione W5022: admin/words.js generato dai file JSON i18n per il corretto supporto delle traduzioni",
+        "es": "Corrección W5022: admin/words.js generado desde archivos JSON i18n para soporte correcto de traducciones",
+        "pl": "Naprawa W5022: wygenerowano admin/words.js z plików JSON i18n dla prawidłowej obsługi tłumaczeń",
+        "uk": "Виправлення W5022: згенеровано admin/words.js з JSON-файлів i18n для коректної підтримки перекладів",
+        "zh-cn": "修复 W5022：从 i18n JSON 文件生成 admin/words.js 以正确支持翻译"
+      },
       "0.4.21": {
         "en": "Fix W5022: add translate script to package.json for i18n support",
         "de": "W5022 behoben: translate-Script in package.json für i18n-Unterstützung hinzugefügt",
@@ -187,8 +200,8 @@
     }
   },
   "native": {
-  "customUrl": ""
-},
+    "customUrl": ""
+  },
   "objects": [],
   "instanceObjects": [
     {
