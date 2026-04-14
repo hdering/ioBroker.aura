@@ -4,7 +4,7 @@
 
 **iobroker.aura** is a visualization dashboard adapter for ioBroker built with React 18 + TypeScript + Vite + Tailwind CSS + Zustand. The adapter serves a frontend from `www/` via ioBroker's web adapter.
 
-- Frontend: `src/` (React/TypeScript, built to `www/`)
+- Frontend: `src-vis/` (React/TypeScript, built to `www/`)
 - Adapter backend: `lib/main.js` (Node.js, ioBroker adapter-core)
 - Build: `npm run build:adapter` (always use this, not `npm run build`)
 
@@ -64,7 +64,7 @@ These rules come from the [ioBroker AI Developer Guide](https://github.com/Jey-C
 ## Frontend Rules
 
 ### Socket communication
-- Use `getSocket()` from `src/hooks/useIoBroker.ts` for all socket operations
+- Use `getSocket()` from `src-vis/hooks/useIoBroker.ts` for all socket operations
 - **Do NOT use `sendTo` with acknowledgement callbacks** — the ioBroker web adapter does not reliably forward them
 - Use **state-based relay** for request/response patterns (see `calendar.request` / `calendar.response`)
 
@@ -90,13 +90,36 @@ Releases are staged — never go straight to stable for significant changes.
 | **ioBroker beta repo** | PR on `ioBroker/ioBroker.repositories` → `sources-dist.json` | Shown in ioBroker adapter list (beta) |
 | **ioBroker stable repo** | PR on `ioBroker/ioBroker.repositories` → `sources-dist-stable.json` | Shown in ioBroker adapter list (stable) |
 
+### io-package.json news rules
+
+- **Max 7 entries** — remove the oldest when adding a new one
+- **npm latest must always be present** — never remove the version that npm `latest` points to
+- **Only published versions** — never list a version that failed CI and was never published to npm (E2004)
+- **Validate before every commit:**
+  ```bash
+  # 1. JSON valid?
+  node -e "JSON.parse(require('fs').readFileSync('io-package.json','utf8')); console.log('OK')"
+  # 2. All news versions exist on npm?
+  node -e "
+    const news = Object.keys(JSON.parse(require('fs').readFileSync('io-package.json','utf8')).common.news);
+    const https = require('https');
+    https.get('https://registry.npmjs.org/iobroker.aura', res => {
+      let d=''; res.on('data',c=>d+=c); res.on('end',()=>{
+        const versions = Object.keys(JSON.parse(d).versions);
+        news.forEach(v => console.log(v, versions.includes(v) ? 'OK' : 'MISSING ON NPM'));
+      });
+    });
+  "
+  ```
+
 ### Steps for every release
 
 1. Bump version in **both** `package.json` AND `io-package.json` (must match)
-2. Add entry to `news` in `io-package.json` (EN + DE minimum)
+2. Add entry to `news` in `io-package.json` (EN + DE minimum, all 11 languages preferred)
 3. Add entry to `## Changelog` in `README.md`
-4. `npm run build:adapter`
-5. `git add ... && git commit && git push`
+4. Run the news validation checks above
+5. `npm run build:adapter`
+6. `git add ... && git commit && git push`
 6. Create GitHub release:
    - **Beta** (new features, not yet fully tested):
      ```
