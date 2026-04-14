@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.8 (2026-04-14)
+- Fix adapter checker: correct news section, fix vscode schema URL, add .releaseconfig.json
+
 ### 0.4.7 (2026-04-14)
 - Fix invalid JSON in io-package.json (trailing comma after last news entry)
 

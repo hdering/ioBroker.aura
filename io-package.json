@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.7",
+    "version": "0.4.8",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.8": {
+        "en": "Fix adapter checker: correct news section (remove unpublished versions, restore npm latest entry), fix vscode schema URL, add .releaseconfig.json",
+        "de": "Adapter-Checker-Fix: News-Sektion korrigiert (nicht veröffentlichte Versionen entfernt, npm-latest-Eintrag wiederhergestellt), VSCode-Schema-URL korrigiert, .releaseconfig.json hinzugefügt",
+        "ru": "Исправление adapter checker: исправлена секция news (удалены неопубликованные версии, восстановлена запись npm latest), исправлен URL схемы VSCode, добавлен .releaseconfig.json",
+        "pt": "Correção adapter checker: seção news corrigida (remoção de versões não publicadas, restauração da entrada npm latest), URL de esquema VSCode corrigida, .releaseconfig.json adicionado",
+        "nl": "Adapter checker fix: news-sectie gecorrigeerd (ongepubliceerde versies verwijderd, npm latest-entry hersteld), VSCode schema-URL gecorrigeerd, .releaseconfig.json toegevoegd",
+        "fr": "Correction adapter checker: section news corrigée (versions non publiées supprimées, entrée npm latest restaurée), URL de schéma VSCode corrigée, .releaseconfig.json ajouté",
+        "it": "Correzione adapter checker: sezione news corretta (versioni non pubblicate rimosse, voce npm latest ripristinata), URL schema VSCode corretto, .releaseconfig.json aggiunto",
+        "es": "Corrección adapter checker: sección news corregida (versiones no publicadas eliminadas, entrada npm latest restaurada), URL de esquema VSCode corregida, .releaseconfig.json añadido",
+        "pl": "Naprawa adapter checker: sekcja news poprawiona (usunięto nieopublikowane wersje, przywrócono wpis npm latest), poprawiono URL schematu VSCode, dodano .releaseconfig.json",
+        "uk": "Виправлення adapter checker: виправлено секцію news (видалено неопубліковані версії, відновлено запис npm latest), виправлено URL схеми VSCode, додано .releaseconfig.json",
+        "zh-cn": "适配器检查器修复：更正 news 部分（删除未发布版本，恢复 npm latest 条目），修正 VSCode 架构 URL，添加 .releaseconfig.json"
+      },
       "0.4.7": {
         "en": "Fix invalid JSON in io-package.json (trailing comma after last news entry)",
         "de": "Ungültiges JSON in io-package.json behoben (fehlendes Komma nach letztem News-Eintrag)",
@@ -118,58 +131,6 @@
         "pl": "Nieprawidłowy JSON w io-package.json naprawiony (przecinek po ostatnim wpisie news)",
         "uk": "Виправлено невалідний JSON в io-package.json (зайва кома після останнього запису news)",
         "zh-cn": "修复 io-package.json 中的无效 JSON（最后一个 news 条目后的多余逗号）"
-      },
-      "0.4.6": {
-        "en": "Fix npm ci: add .npmrc with legacy-peer-deps=true to resolve peer dependency conflicts in CI",
-        "de": "npm ci repariert: .npmrc mit legacy-peer-deps=true ergänzt um Peer-Dependency-Konflikte in CI zu lösen",
-        "ru": "Исправление npm ci: добавлен .npmrc с legacy-peer-deps=true для разрешения конфликтов peer-зависимостей в CI",
-        "pt": "Correção npm ci: .npmrc adicionado com legacy-peer-deps=true para resolver conflitos de peer dependency no CI",
-        "nl": "npm ci gerepareerd: .npmrc toegevoegd met legacy-peer-deps=true om peer dependency conflicten in CI op te lossen",
-        "fr": "Correction npm ci: .npmrc ajouté avec legacy-peer-deps=true pour résoudre les conflits de peer dependency en CI",
-        "it": "Correzione npm ci: .npmrc aggiunto con legacy-peer-deps=true per risolvere i conflitti di peer dependency in CI",
-        "es": "Corrección npm ci: .npmrc añadido con legacy-peer-deps=true para resolver conflictos de peer dependency en CI",
-        "pl": "Naprawa npm ci: dodano .npmrc z legacy-peer-deps=true aby rozwiązać konflikty peer dependency w CI",
-        "uk": "Виправлення npm ci: додано .npmrc з legacy-peer-deps=true для вирішення конфліктів peer-залежностей у CI",
-        "zh-cn": "修复 npm ci：添加带有 legacy-peer-deps=true 的 .npmrc 以解决 CI 中的 peer dependency 冲突"
-      },
-      "0.4.5": {
-        "en": "Beta release for testing: adapter checker compliance and CI pipeline fully green",
-        "de": "Beta-Release zum Testen: Adapter-Checker-Konformität und CI-Pipeline vollständig grün",
-        "ru": "Бета-релиз для тестирования: соответствие adapter checker и CI-конвейер полностью зелёный",
-        "pt": "Lançamento beta para testes: conformidade adapter checker e pipeline CI totalmente verde",
-        "nl": "Beta-release voor testen: adapter checker compliance en CI-pipeline volledig groen",
-        "fr": "Version bêta pour tests: conformité adapter checker et pipeline CI entièrement vert",
-        "it": "Versione beta per il test: conformità adapter checker e pipeline CI completamente verde",
-        "es": "Versión beta para pruebas: conformidad adapter checker y pipeline CI completamente verde",
-        "pl": "Wydanie beta do testów: zgodność adapter checker i pipeline CI w pełni zielone",
-        "uk": "Бета-реліз для тестування: відповідність adapter checker та CI-конвеєр повністю зелений",
-        "zh-cn": "测试版发布：适配器检查器合规，CI 流水线完全绿色"
-      },
-      "0.4.4": {
-        "en": "Fix CI: upgrade @typescript-eslint to v8, add no-require-imports override, fix ternary-as-statement lint errors",
-        "de": "CI-Fix: @typescript-eslint auf v8 aktualisiert, no-require-imports Override ergänzt, Ternary-als-Statement Lint-Fehler behoben",
-        "ru": "Исправление CI: обновление @typescript-eslint до v8, добавлен override no-require-imports, исправлены ошибки lint ternary-as-statement",
-        "pt": "Correção CI: atualização @typescript-eslint para v8, override no-require-imports adicionado, erros lint ternary-as-statement corrigidos",
-        "nl": "CI-fix: @typescript-eslint geüpgraded naar v8, no-require-imports override toegevoegd, ternary-als-statement lint-fouten opgelost",
-        "fr": "Correction CI: mise à jour @typescript-eslint vers v8, override no-require-imports ajouté, erreurs lint ternary-as-statement corrigées",
-        "it": "Correzione CI: aggiornamento @typescript-eslint a v8, override no-require-imports aggiunto, errori lint ternary-as-statement corretti",
-        "es": "Corrección CI: actualización @typescript-eslint a v8, override no-require-imports añadido, errores lint ternary-as-statement corregidos",
-        "pl": "Naprawa CI: aktualizacja @typescript-eslint do v8, dodany override no-require-imports, naprawione błędy lint ternary-as-statement",
-        "uk": "Виправлення CI: оновлення @typescript-eslint до v8, додано override no-require-imports, виправлено помилки lint ternary-as-statement",
-        "zh-cn": "CI 修复：将 @typescript-eslint 升级到 v8，添加 no-require-imports 覆盖，修复 ternary-as-statement lint 错误"
-      },
-      "0.4.3": {
-        "en": "Adapter checker compliance: i18n for jsonConfig, node: prefix for built-ins, workflow deploy job, dependabot, react-resizable dependency",
-        "de": "Adapter-Checker-Konformität: i18n für jsonConfig, node:-Präfix für Built-ins, Workflow deploy-Job, dependabot, react-resizable Abhängigkeit",
-        "ru": "Соответствие adapter checker: i18n для jsonConfig, префикс node: для встроенных модулей, задание deploy в workflow, dependabot, зависимость react-resizable",
-        "pt": "Conformidade adapter checker: i18n para jsonConfig, prefixo node: para módulos integrados, job deploy no workflow, dependabot, dependência react-resizable",
-        "nl": "Adapter checker compliance: i18n voor jsonConfig, node: prefix voor ingebouwde modules, workflow deploy job, dependabot, react-resizable afhankelijkheid",
-        "fr": "Conformité adapter checker: i18n pour jsonConfig, préfixe node: pour les modules intégrés, job deploy dans le workflow, dependabot, dépendance react-resizable",
-        "it": "Conformità adapter checker: i18n per jsonConfig, prefisso node: per moduli integrati, job deploy nel workflow, dependabot, dipendenza react-resizable",
-        "es": "Cumplimiento adapter checker: i18n para jsonConfig, prefijo node: para módulos integrados, job deploy en workflow, dependabot, dependencia react-resizable",
-        "pl": "Zgodność adapter checker: i18n dla jsonConfig, prefiks node: dla wbudowanych modułów, job deploy w workflow, dependabot, zależność react-resizable",
-        "uk": "Відповідність adapter checker: i18n для jsonConfig, префікс node: для вбудованих модулів, завдання deploy у workflow, dependabot, залежність react-resizable",
-        "zh-cn": "适配器检查器合规：jsonConfig 的 i18n、内置模块的 node: 前缀、workflow 的 deploy job、dependabot、react-resizable 依赖"
       },
       "0.4.2": {
         "en": "Adapter checker fixes: globalDependencies admin, remove unpublished news entry, jsonConfig sizes, workflow tag trigger",
@@ -196,6 +157,19 @@
         "pl": "Naprawa pipeline CI: dodano skrypty test:package i test:integration, usunięto wszystkie ostrzeżenia ESLint",
         "uk": "Виправлення CI-конвеєра: додано скрипти test:package та test:integration, усунено всі попередження ESLint",
         "zh-cn": "修复 CI 流水线：添加 test:package 和 test:integration 脚本，解决所有 ESLint 警告"
+      },
+      "0.3.98": {
+        "en": "Replace hardcoded personal domain in settings placeholder with generic example",
+        "de": "Persönliche Domain im Einstellungs-Platzhalter durch generisches Beispiel ersetzt",
+        "ru": "Личный домен в подсказке настроек заменён на общий пример",
+        "pt": "Domínio pessoal no placeholder das configurações substituído por exemplo genérico",
+        "nl": "Persoonlijk domein in instellingen-placeholder vervangen door generiek voorbeeld",
+        "fr": "Domaine personnel dans le placeholder des paramètres remplacé par un exemple générique",
+        "it": "Dominio personale nel placeholder delle impostazioni sostituito con esempio generico",
+        "es": "Dominio personal en el placeholder de configuración reemplazado por ejemplo genérico",
+        "pl": "Osobista domena w placeholder ustawień zastąpiona ogólnym przykładem",
+        "uk": "Особистий домен у підказці налаштувань замінено на загальний приклад",
+        "zh-cn": "将设置占位符中的个人域名替换为通用示例"
       }
     }
   },
