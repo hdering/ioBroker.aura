@@ -39,7 +39,8 @@
     "build:adapter": "tsc && cross-env VITE_BASE=/aura/ vite build",
     "preview": "vite preview",
     "lint": "eslint src lib --ext .ts,.tsx,.js",
-    "test": "node test/adapter.test.js"
+    "test": "node test/adapter.test.js",
+    "test:integration": "node test/adapter.test.js"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.3.2",
