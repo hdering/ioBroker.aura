@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.5",
+    "version": "0.4.6",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.6": {
+        "en": "Fix npm ci: add .npmrc with legacy-peer-deps=true to resolve peer dependency conflicts in CI",
+        "de": "npm ci repariert: .npmrc mit legacy-peer-deps=true ergänzt um Peer-Dependency-Konflikte in CI zu lösen",
+        "ru": "Исправление npm ci: добавлен .npmrc с legacy-peer-deps=true для разрешения конфликтов peer-зависимостей в CI",
+        "pt": "Correção npm ci: .npmrc adicionado com legacy-peer-deps=true para resolver conflitos de peer dependency no CI",
+        "nl": "npm ci gerepareerd: .npmrc toegevoegd met legacy-peer-deps=true om peer dependency conflicten in CI op te lossen",
+        "fr": "Correction npm ci: .npmrc ajouté avec legacy-peer-deps=true pour résoudre les conflits de peer dependency en CI",
+        "it": "Correzione npm ci: .npmrc aggiunto con legacy-peer-deps=true per risolvere i conflitti di peer dependency in CI",
+        "es": "Corrección npm ci: .npmrc añadido con legacy-peer-deps=true para resolver conflictos de peer dependency en CI",
+        "pl": "Naprawa npm ci: dodano .npmrc z legacy-peer-deps=true aby rozwiązać konflikty peer dependency w CI",
+        "uk": "Виправлення npm ci: додано .npmrc з legacy-peer-deps=true для вирішення конфліктів peer-залежностей у CI",
+        "zh-cn": "修复 npm ci：添加带有 legacy-peer-deps=true 的 .npmrc 以解决 CI 中的 peer dependency 冲突"
+      },
       "0.4.5": {
         "en": "Beta release for testing: adapter checker compliance and CI pipeline fully green",
         "de": "Beta-Release zum Testen: Adapter-Checker-Konformität und CI-Pipeline vollständig grün",
@@ -183,19 +196,6 @@
         "pl": "Konfigurowalna domyślna zakładka dla każdego układu – określa, która zakładka otwiera się gdy URL dashboardu nie zawiera sluga zakładki",
         "uk": "Налаштований початковий таб для кожного макету – визначає який таб відкривається коли URL дашборду не містить slug табу",
         "zh-cn": "每个布局可配置默认标签页 – 设置当仪表板URL不含标签页slug时打开哪个标签页"
-      },
-      "0.3.98": {
-        "en": "Replace hardcoded personal domain in settings placeholder with generic example",
-        "de": "Persönliche Domain im Einstellungs-Platzhalter durch generisches Beispiel ersetzt",
-        "ru": "Личный домен в подсказке настроек заменён на общий пример",
-        "pt": "Domínio pessoal no placeholder das configurações substituído por exemplo genérico",
-        "nl": "Persoonlijk domein in instellingen-placeholder vervangen door generiek voorbeeld",
-        "fr": "Domaine personnel dans le placeholder des paramètres remplacé par un exemple générique",
-        "it": "Dominio personale nel placeholder delle impostazioni sostituito con esempio generico",
-        "es": "Dominio personal en el placeholder de configuración reemplazado por ejemplo genérico",
-        "pl": "Osobista domena w placeholder ustawień zastąpiona ogólnym przykładem",
-        "uk": "Особистий домен у підказці налаштувань замінено на загальний приклад",
-        "zh-cn": "将设置占位符中的个人域名替换为通用示例"
       },
     }
   },

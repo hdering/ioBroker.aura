@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.6 (2026-04-14)
+- Fix npm ci: add .npmrc with legacy-peer-deps=true to resolve peer dependency conflicts in CI
+
 ### 0.4.5 (2026-04-14)
 - Beta release for testing: adapter checker compliance and CI pipeline fully green
 
