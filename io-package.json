@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.10",
+    "version": "0.4.11",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.11": {
+        "en": "Add release script entry to package.json for iobroker.dev release management",
+        "de": "Release-Script-Eintrag in package.json für iobroker.dev-Releaseverwaltung hinzugefügt",
+        "ru": "Добавлена запись release script в package.json для управления релизами на iobroker.dev",
+        "pt": "Adicionada entrada release script no package.json para gestão de releases no iobroker.dev",
+        "nl": "Release script-vermelding toegevoegd aan package.json voor releasebeheer op iobroker.dev",
+        "fr": "Entrée release script ajoutée dans package.json pour la gestion des versions sur iobroker.dev",
+        "it": "Aggiunta voce release script in package.json per la gestione dei rilasci su iobroker.dev",
+        "es": "Añadida entrada release script en package.json para gestión de releases en iobroker.dev",
+        "pl": "Dodano wpis release script do package.json dla zarządzania wydaniami na iobroker.dev",
+        "uk": "Додано запис release script до package.json для керування релізами на iobroker.dev",
+        "zh-cn": "在 package.json 中添加 release script 条目，用于 iobroker.dev 发布管理"
+      },
       "0.4.10": {
         "en": "Add src-vis/i18n/ to package.json files to include translations in npm package",
         "de": "src-vis/i18n/ zu package.json files hinzugefügt, um Übersetzungen im npm-Paket einzuschließen",
@@ -183,19 +196,6 @@
         "pl": "Naprawa pipeline CI: dodano skrypty test:package i test:integration, usunięto wszystkie ostrzeżenia ESLint",
         "uk": "Виправлення CI-конвеєра: додано скрипти test:package та test:integration, усунено всі попередження ESLint",
         "zh-cn": "修复 CI 流水线：添加 test:package 和 test:integration 脚本，解决所有 ESLint 警告"
-      },
-      "0.3.98": {
-        "en": "Replace hardcoded personal domain in settings placeholder with generic example",
-        "de": "Persönliche Domain im Einstellungs-Platzhalter durch generisches Beispiel ersetzt",
-        "ru": "Личный домен в подсказке настроек заменён на общий пример",
-        "pt": "Domínio pessoal no placeholder das configurações substituído por exemplo genérico",
-        "nl": "Persoonlijk domein in instellingen-placeholder vervangen door generiek voorbeeld",
-        "fr": "Domaine personnel dans le placeholder des paramètres remplacé par un exemple générique",
-        "it": "Dominio personale nel placeholder delle impostazioni sostituito con esempio generico",
-        "es": "Dominio personal en el placeholder de configuración reemplazado por ejemplo genérico",
-        "pl": "Osobista domena w placeholder ustawień zastąpiona ogólnym przykładem",
-        "uk": "Особистий домен у підказці налаштувань замінено на загальний приклад",
-        "zh-cn": "将设置占位符中的个人域名替换为通用示例"
       }
     }
   },

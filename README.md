@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.11 (2026-04-14)
+- Add `release` script to `package.json` for iobroker.dev release management
+
 ### 0.4.10 (2026-04-14)
 - Add `src-vis/i18n/` to `package.json` files to include translations in npm package
 
