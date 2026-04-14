@@ -78,10 +78,47 @@ These rules come from the [ioBroker AI Developer Guide](https://github.com/Jey-C
 
 ## Release Process
 
+Releases are staged — never go straight to stable for significant changes.
+
+### Stages
+
+| Stage | How | Who sees it |
+|-------|-----|-------------|
+| **Local test** | build + copy `www/` to local ioBroker test instance | Developer only |
+| **npm / beta** | GitHub Pre-release → npm tag `beta` | ioBroker users with Beta channel enabled |
+| **npm / stable** | GitHub Release (non-pre-release) → npm tag `latest` | All ioBroker users |
+| **ioBroker beta repo** | PR on `ioBroker/ioBroker.repositories` → `sources-dist.json` | Shown in ioBroker adapter list (beta) |
+| **ioBroker stable repo** | PR on `ioBroker/ioBroker.repositories` → `sources-dist-stable.json` | Shown in ioBroker adapter list (stable) |
+
+### Steps for every release
+
 1. Bump version in **both** `package.json` AND `io-package.json` (must match)
 2. Add entry to `news` in `io-package.json` (EN + DE minimum)
-3. `npm run build:adapter`
-4. `git add ... && git commit && git push`
-5. `"/c/Program Files/GitHub CLI/gh.exe" release create vX.Y.Z --title "vX.Y.Z" --notes "..."`
+3. Add entry to `## Changelog` in `README.md`
+4. `npm run build:adapter`
+5. `git add ... && git commit && git push`
+6. Create GitHub release:
+   - **Beta** (new features, not yet fully tested):
+     ```
+     "/c/Program Files/GitHub CLI/gh.exe" release create vX.Y.Z --title "vX.Y.Z" --notes "..." --prerelease
+     ```
+     → GitHub Actions publishes with `npm publish --tag beta`
+   - **Stable** (tested, ready for all users):
+     ```
+     "/c/Program Files/GitHub CLI/gh.exe" release create vX.Y.Z --title "vX.Y.Z" --notes "..."
+     ```
+     → GitHub Actions publishes with `npm publish` (tag `latest`)
+   - **Promote existing pre-release to stable:**
+     ```
+     "/c/Program Files/GitHub CLI/gh.exe" release edit vX.Y.Z --prerelease=false
+     ```
 
-**Note:** npm publish happens automatically via GitHub Actions when a tag is pushed.
+### When to ask about release type
+
+Ask the user "Beta oder Stable Release?" when:
+- The change adds new user-facing features
+- The change touches adapter backend logic (`lib/main.js`)
+- The change could break existing setups
+- It's the first release after a series of fixes/features
+
+Don't ask for pure internal fixes (typos, i18n, build config) — those can go stable directly.

@@ -4,12 +4,11 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
-      - 'v[0-9]+.[0-9]+.[0-9]+-**'
   pull_request:
     branches:
       - main
+  release:
+    types: [published]
 
 jobs:
   check-and-lint:
@@ -52,7 +51,7 @@ jobs:
   release:
     needs: [check-and-lint, adapter-tests]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'release'
     permissions:
       id-token: write
       contents: write
@@ -73,7 +72,14 @@ jobs:
         run: npm run build:adapter
 
       - name: Publish to npm
-        run: npm publish --access public
+        run: |
+          if [ "${{ github.event.release.prerelease }}" = "true" ]; then
+            echo "Pre-release detected – publishing with tag 'beta'"
+            npm publish --access public --tag beta
+          else
+            echo "Stable release – publishing with tag 'latest'"
+            npm publish --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -83,4 +89,4 @@ jobs:
           generate_release_notes: true
 
       - name: Sync master branch
-        run: git push origin HEAD:master
+        run: git push origin HEAD:master || true
