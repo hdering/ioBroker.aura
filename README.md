@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.7 (2026-04-14)
+- Fix invalid JSON in io-package.json (trailing comma after last news entry)
+
 ### 0.4.6 (2026-04-14)
 - Fix npm ci: add .npmrc with legacy-peer-deps=true to resolve peer dependency conflicts in CI
 

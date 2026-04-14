@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.6",
+    "version": "0.4.7",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.7": {
+        "en": "Fix invalid JSON in io-package.json (trailing comma after last news entry)",
+        "de": "Ungültiges JSON in io-package.json behoben (fehlendes Komma nach letztem News-Eintrag)",
+        "ru": "Исправлен невалидный JSON в io-package.json (лишняя запятая после последнего элемента news)",
+        "pt": "JSON inválido em io-package.json corrigido (vírgula após última entrada de news)",
+        "nl": "Ongeldig JSON in io-package.json opgelost (komma na laatste news-entry)",
+        "fr": "JSON invalide dans io-package.json corrigé (virgule après la dernière entrée news)",
+        "it": "JSON non valido in io-package.json corretto (virgola dopo l'ultima voce news)",
+        "es": "JSON inválido en io-package.json corregido (coma tras la última entrada de news)",
+        "pl": "Nieprawidłowy JSON w io-package.json naprawiony (przecinek po ostatnim wpisie news)",
+        "uk": "Виправлено невалідний JSON в io-package.json (зайва кома після останнього запису news)",
+        "zh-cn": "修复 io-package.json 中的无效 JSON（最后一个 news 条目后的多余逗号）"
+      },
       "0.4.6": {
         "en": "Fix npm ci: add .npmrc with legacy-peer-deps=true to resolve peer dependency conflicts in CI",
         "de": "npm ci repariert: .npmrc mit legacy-peer-deps=true ergänzt um Peer-Dependency-Konflikte in CI zu lösen",
@@ -183,19 +196,6 @@
         "pl": "Naprawa pipeline CI: dodano skrypty test:package i test:integration, usunięto wszystkie ostrzeżenia ESLint",
         "uk": "Виправлення CI-конвеєра: додано скрипти test:package та test:integration, усунено всі попередження ESLint",
         "zh-cn": "修复 CI 流水线：添加 test:package 和 test:integration 脚本，解决所有 ESLint 警告"
-      },
-      "0.3.99": {
-        "en": "Add configurable default tab per layout – set which tab opens when the dashboard URL has no tab slug",
-        "de": "Konfigurierbarer Standard-Tab pro Layout – bestimmt welcher Tab geöffnet wird wenn die Dashboard-URL keinen Tab-Slug enthält",
-        "ru": "Настраиваемая вкладка по умолчанию для каждого макета – определяет, какая вкладка открывается при отсутствии slug в URL",
-        "pt": "Aba padrão configurável por layout – define qual aba abre quando a URL do dashboard não contém slug de aba",
-        "nl": "Configureerbaar standaard-tabblad per layout – bepaalt welk tabblad opent als de dashboard-URL geen tab-slug bevat",
-        "fr": "Onglet par défaut configurable par layout – définit quel onglet s'ouvre quand l'URL du dashboard n'a pas de slug d'onglet",
-        "it": "Tab predefinita configurabile per layout – determina quale tab si apre quando l'URL del dashboard non contiene uno slug di tab",
-        "es": "Pestaña predeterminada configurable por layout – determina qué pestaña se abre cuando la URL del dashboard no contiene slug de pestaña",
-        "pl": "Konfigurowalna domyślna zakładka dla każdego układu – określa, która zakładka otwiera się gdy URL dashboardu nie zawiera sluga zakładki",
-        "uk": "Налаштований початковий таб для кожного макету – визначає який таб відкривається коли URL дашборду не містить slug табу",
-        "zh-cn": "每个布局可配置默认标签页 – 设置当仪表板URL不含标签页slug时打开哪个标签页"
       }
     }
   },
