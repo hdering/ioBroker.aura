@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.8",
+    "version": "0.4.9",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.9": {
+        "en": "Rename frontend source directory from src/ to src-vis/ per ioBroker adapter convention",
+        "de": "Frontend-Quellverzeichnis von src/ nach src-vis/ umbenannt gemäß ioBroker-Adapter-Konvention",
+        "ru": "Переименование директории исходного кода фронтенда из src/ в src-vis/ согласно соглашению адаптеров ioBroker",
+        "pt": "Renomear diretório de código-fonte do frontend de src/ para src-vis/ conforme convenção de adaptadores ioBroker",
+        "nl": "Frontend bronmap hernoemd van src/ naar src-vis/ volgens ioBroker-adapterconventie",
+        "fr": "Renommer le répertoire source du frontend de src/ en src-vis/ selon la convention des adaptateurs ioBroker",
+        "it": "Rinominare la directory del codice sorgente del frontend da src/ a src-vis/ secondo la convenzione degli adapter ioBroker",
+        "es": "Renombrar el directorio de código fuente del frontend de src/ a src-vis/ según la convención de adaptadores ioBroker",
+        "pl": "Zmiana nazwy katalogu źródłowego frontendu z src/ na src-vis/ zgodnie z konwencją adapterów ioBroker",
+        "uk": "Перейменування директорії вихідного коду фронтенду з src/ на src-vis/ згідно з конвенцією адаптерів ioBroker",
+        "zh-cn": "按 ioBroker 适配器约定将前端源目录从 src/ 重命名为 src-vis/"
+      },
       "0.4.8": {
         "en": "Fix adapter checker: correct news section (remove unpublished versions, restore npm latest entry), fix vscode schema URL, add .releaseconfig.json",
         "de": "Adapter-Checker-Fix: News-Sektion korrigiert (nicht veröffentlichte Versionen entfernt, npm-latest-Eintrag wiederhergestellt), VSCode-Schema-URL korrigiert, .releaseconfig.json hinzugefügt",

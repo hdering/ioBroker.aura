@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.9 (2026-04-14)
+- Rename frontend source directory from `src/` to `src-vis/` per ioBroker adapter convention
+
 ### 0.4.8 (2026-04-14)
 - Fix adapter checker: correct news section, fix vscode schema URL, add .releaseconfig.json
 

@@ -16,6 +16,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
+  "include": ["src-vis"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
