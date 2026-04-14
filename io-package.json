@@ -196,7 +196,7 @@
         "pl": "Konfigurowalna domyślna zakładka dla każdego układu – określa, która zakładka otwiera się gdy URL dashboardu nie zawiera sluga zakładki",
         "uk": "Налаштований початковий таб для кожного макету – визначає який таб відкривається коли URL дашборду не містить slug табу",
         "zh-cn": "每个布局可配置默认标签页 – 设置当仪表板URL不含标签页slug时打开哪个标签页"
-      },
+      }
     }
   },
   "native": {
