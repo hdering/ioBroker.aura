@@ -8,8 +8,8 @@
     "customUrl": {
       "type": "text",
       "label": "Base URL",
-      "placeholder": "https://aura.dering-online.de",
-      "help": "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:8082). Example: https://aura.dering-online.de"
+      "placeholder": "https://your-domain.com",
+      "help": "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:8082). Example: https://your-domain.com"
     }
   }
 }
