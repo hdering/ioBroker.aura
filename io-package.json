@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.22",
+    "version": "0.4.23",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.23": {
+        "en": "Fix W5039: remove words.js – jsonConfig adapters use admin/i18n directly",
+        "de": "W5039 behoben: words.js entfernt – jsonConfig-Adapter verwenden admin/i18n direkt",
+        "ru": "Исправление W5039: удалён words.js – адаптеры jsonConfig используют admin/i18n напрямую",
+        "pt": "Correção W5039: words.js removido – adaptadores jsonConfig usam admin/i18n diretamente",
+        "nl": "W5039 opgelost: words.js verwijderd – jsonConfig-adapters gebruiken admin/i18n direct",
+        "fr": "Correction W5039: words.js supprimé – les adaptateurs jsonConfig utilisent admin/i18n directement",
+        "it": "Correzione W5039: words.js rimosso – gli adapter jsonConfig usano admin/i18n direttamente",
+        "es": "Corrección W5039: words.js eliminado – los adaptadores jsonConfig usan admin/i18n directamente",
+        "pl": "Naprawa W5039: usunięto words.js – adaptery jsonConfig używają admin/i18n bezpośrednio",
+        "uk": "Виправлення W5039: видалено words.js – адаптери jsonConfig використовують admin/i18n напряму",
+        "zh-cn": "修复 W5039：删除 words.js – jsonConfig 适配器直接使用 admin/i18n"
+      },
       "0.4.22": {
         "en": "Fix W5022: generate admin/words.js from i18n JSON files for proper translation support",
         "de": "W5022 behoben: admin/words.js aus i18n-JSON-Dateien generiert für korrekte Übersetzungsunterstützung",
@@ -183,19 +196,6 @@
         "pl": "Poprawki adapter checker: testing-action-deploy@v1, ESLint flat config, admin/i18n, URL schematu jsonConfig, cooldown dependabot",
         "uk": "Виправлення adapter checker: testing-action-deploy@v1, ESLint flat config, admin/i18n, URL схеми jsonConfig, cooldown dependabot",
         "zh-cn": "适配器检查器修复：testing-action-deploy@v1、ESLint flat config、admin/i18n、jsonConfig 架构 URL、dependabot cooldown"
-      },
-      "0.4.15": {
-        "en": "Fix E2004: remove 0.4.13 from news (never published to npm due to CI failure)",
-        "de": "E2004 behoben: 0.4.13 aus News entfernt (wegen CI-Fehler nie auf npm veröffentlicht)",
-        "ru": "Исправление E2004: удалена запись 0.4.13 из news (не опубликована на npm из-за ошибки CI)",
-        "pt": "Correção E2004: 0.4.13 removida das news (nunca publicada no npm devido a falha no CI)",
-        "nl": "E2004 opgelost: 0.4.13 verwijderd uit news (nooit gepubliceerd op npm door CI-fout)",
-        "fr": "Correction E2004: 0.4.13 supprimée des news (jamais publiée sur npm suite à une erreur CI)",
-        "it": "Correzione E2004: 0.4.13 rimossa dalle news (mai pubblicata su npm per errore CI)",
-        "es": "Corrección E2004: 0.4.13 eliminada de las news (nunca publicada en npm por fallo de CI)",
-        "pl": "Naprawa E2004: usunięto 0.4.13 z news (nigdy nie opublikowano na npm z powodu błędu CI)",
-        "uk": "Виправлення E2004: видалено 0.4.13 з news (не опублікована на npm через помилку CI)",
-        "zh-cn": "修复 E2004：从 news 中删除 0.4.13（因 CI 失败从未发布到 npm）"
       }
     }
   },
