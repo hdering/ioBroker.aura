@@ -40,6 +40,7 @@
     "preview": "vite preview",
     "lint": "eslint src lib --ext .ts,.tsx,.js",
     "test": "node test/adapter.test.js",
+    "test:package": "node test/adapter.test.js",
     "test:integration": "node test/adapter.test.js"
   },
   "dependencies": {
