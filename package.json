@@ -1,12 +1,12 @@
 {
   "name": "iobroker.aura",
-  "version": "0.3.99",
+  "version": "0.4.0",
   "description": "Modern visualization dashboard for ioBroker",
   "author": "Hermann Dering <aura@dering-online.de>",
   "main": "lib/main.js",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "files": [
     "admin/",
@@ -45,7 +45,15 @@
     "@iobroker/adapter-core": "^3.3.2",
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.6",
-    "ical.js": "^2.2.1"
+    "ical.js": "^2.2.1",
+    "lucide-react": "^1.7.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-grid-layout": "^1.4.4",
+    "react-router-dom": "^7.14.0",
+    "recharts": "^2.12.7",
+    "socket.io-client": "^2.5.0",
+    "zustand": "^4.5.4"
   },
   "devDependencies": {
     "@iobroker/testing": "^5.2.2",
@@ -61,18 +69,10 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.0",
     "eslint-plugin-react-hooks": "^4.6.2",
-    "lucide-react": "^1.7.0",
     "postcss": "^8.4.39",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-grid-layout": "^1.4.4",
-    "react-router-dom": "^7.14.0",
-    "recharts": "^2.12.7",
-    "socket.io-client": "^2.5.0",
     "tailwindcss": "^3.4.6",
     "typescript": "^5.5.3",
     "vite": "^5.3.4",
-    "vitest": "^2.0.3",
-    "zustand": "^4.5.4"
+    "vitest": "^2.0.3"
   }
 }

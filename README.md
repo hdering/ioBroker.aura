@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.0 (2026-04-14)
+- Adapter checker compliance: node >=20, trim news to 7 entries, remove allowInit, use ioBroker standard workflow actions, fix package dependencies
+
 ### 0.3.99 (2026-04-14)
 - Add configurable default tab per layout – set which tab opens when the dashboard URL has no tab slug
 

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.3.99",
+    "version": "0.4.0",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -50,7 +50,6 @@
       "type": "free"
     },
     "mode": "daemon",
-    "allowInit": true,
     "compact": false,
     "tier": 3,
     "connectionType": "local",
@@ -102,6 +101,10 @@
       }
     ],
     "news": {
+      "0.4.0": {
+        "en": "Adapter checker compliance: node >=20, trim news, remove allowInit, use ioBroker standard workflow actions, fix package dependencies",
+        "de": "Adapter-Checker-Konformität: node >=20, News gekürzt, allowInit entfernt, ioBroker Standard-Workflow-Actions, Paketabhängigkeiten korrigiert"
+      },
       "0.3.99": {
         "en": "Add configurable default tab per layout – set which tab opens when the dashboard URL has no tab slug",
         "de": "Konfigurierbarer Standard-Tab pro Layout – bestimmt welcher Tab geöffnet wird wenn die Dashboard-URL keinen Tab-Slug enthält",
@@ -193,149 +196,6 @@
         "uk": "Перейменовано плитки огляду на 'Aura Frontend' та 'Aura Backend'",
         "zh-cn": "将概览磁贴重命名为 'Aura Frontend' 和 'Aura Backend'"
       },
-      "0.3.92": {
-        "en": "Fix HTTPS: fall back to same-origin when stored URL would cause mixed-content block",
-        "de": "HTTPS-Fix: Fallback auf gleichen Origin wenn gespeicherte URL Mixed-Content verursachen würde",
-        "ru": "Исправление HTTPS: fallback на тот же origin при mixed-content с сохранённым URL",
-        "pt": "Fix HTTPS: fallback para mesmo origin quando URL armazenada causaria mixed-content",
-        "nl": "HTTPS-fix: fallback naar zelfde origin als opgeslagen URL mixed-content zou veroorzaken",
-        "fr": "Fix HTTPS: fallback sur même origin si l'URL stockée causerait un mixed-content",
-        "it": "Fix HTTPS: fallback allo stesso origin se l'URL memorizzata causerebbe mixed-content",
-        "es": "Fix HTTPS: fallback al mismo origin si la URL almacenada causaría mixed-content",
-        "pl": "Naprawiono HTTPS: fallback do tego samego origin gdy zapisany URL spowodowałby mixed-content",
-        "uk": "Виправлення HTTPS: fallback на той самий origin коли збережений URL спричиняє mixed-content",
-        "zh-cn": "修复 HTTPS：当存储的 URL 会导致混合内容时，回退到同源"
-      },
-      "0.3.91": {
-        "en": "Fix HTTPS: upgrade stored ioBroker URL protocol to match page protocol to avoid mixed-content errors",
-        "de": "HTTPS-Fix: gespeicherte ioBroker-URL auf Seitenprotokoll anpassen, um Mixed-Content-Fehler zu vermeiden",
-        "ru": "Исправление HTTPS: протокол сохранённого URL ioBroker приводится в соответствие с протоколом страницы",
-        "pt": "Fix HTTPS: protocolo da URL ioBroker armazenada atualizado para corresponder ao protocolo da página",
-        "nl": "HTTPS-fix: opgeslagen ioBroker URL protocol aangepast aan paginaprotocol om mixed-content fouten te vermijden",
-        "fr": "Fix HTTPS: le protocole de l'URL ioBroker stockée est mis à jour pour correspondre au protocole de la page",
-        "it": "Fix HTTPS: il protocollo dell'URL ioBroker memorizzato viene aggiornato per corrispondere al protocollo della pagina",
-        "es": "Fix HTTPS: el protocolo de la URL ioBroker almacenada se actualiza para coincidir con el protocolo de la página",
-        "pl": "Naprawiono HTTPS: protokół zapisanego URL ioBroker jest aktualizowany do protokołu strony",
-        "uk": "Виправлення HTTPS: протокол збереженої URL ioBroker оновлюється до протоколу сторінки",
-        "zh-cn": "修复 HTTPS：将存储的 ioBroker URL 协议升级为与页面协议匹配，以避免混合内容错误"
-      },
-      "0.3.90": {
-        "en": "Fix HTTPS connection; fix WebSocket proxy in dev server; remove PIN from expert settings",
-        "de": "HTTPS-Verbindung korrigiert; WebSocket-Proxy im Dev-Server repariert; PIN aus Experteneinstellungen entfernt",
-        "ru": "Исправлено HTTPS-соединение; исправлен WebSocket-прокси в dev-сервере; удалён PIN из экспертных настроек",
-        "pt": "Conexão HTTPS corrigida; proxy WebSocket no servidor dev corrigido; PIN removido das configurações avançadas",
-        "nl": "HTTPS verbinding gecorrigeerd; WebSocket proxy in dev server gerepareerd; PIN verwijderd uit expert-instellingen",
-        "fr": "Connexion HTTPS corrigée; proxy WebSocket dans le serveur dev réparé; PIN supprimé des paramètres experts",
-        "it": "Connessione HTTPS corretta; proxy WebSocket nel server dev corretto; PIN rimosso dalle impostazioni avanzate",
-        "es": "Conexión HTTPS corregida; proxy WebSocket en servidor dev reparado; PIN eliminado de configuración experta",
-        "pl": "Naprawiono połączenie HTTPS; poprawiono proxy WebSocket w serwerze dev; usunięto PIN z ustawień eksperta",
-        "uk": "Виправлено HTTPS-з'єднання; виправлено WebSocket-проксі в dev-сервері; видалено PIN з налаштувань експерта",
-        "zh-cn": "修复 HTTPS 连接；修复开发服务器中的 WebSocket 代理；从专家设置中移除 PIN"
-      },
-      "0.3.89": {
-        "en": "Version bump",
-        "de": "Versions-Bump",
-        "ru": "Обновление версии",
-        "pt": "Incremento de versão",
-        "nl": "Versieverhoging",
-        "fr": "Incrément de version",
-        "it": "Aggiornamento versione",
-        "es": "Incremento de versión",
-        "pl": "Inkrementacja wersji",
-        "uk": "Оновлення версії",
-        "zh-cn": "版本更新"
-      },
-      "0.3.88": {
-        "en": "Fix E1012: remove admin/ prefix from icon field",
-        "de": "E1012 behoben: admin/-Präfix aus icon-Feld entfernt",
-        "ru": "Исправлен E1012: удалён префикс admin/ из поля icon",
-        "pt": "E1012 corrigido: prefixo admin/ removido do campo icon",
-        "nl": "E1012 opgelost: admin/ prefix verwijderd uit icon veld",
-        "fr": "E1012 corrigé: préfixe admin/ supprimé du champ icon",
-        "it": "E1012 corretto: prefisso admin/ rimosso dal campo icon",
-        "es": "E1012 corregido: prefijo admin/ eliminado del campo icon",
-        "pl": "Naprawiono E1012: usunięto prefiks admin/ z pola icon",
-        "uk": "Виправлено E1012: видалено префікс admin/ з поля icon",
-        "zh-cn": "修复 E1012：从 icon 字段移除 admin/ 前缀"
-      },
-      "0.3.87": {
-        "en": "Version bump",
-        "de": "Versions-Bump",
-        "ru": "Обновление версии",
-        "pt": "Incremento de versão",
-        "nl": "Versieverhoging",
-        "fr": "Incrément de version",
-        "it": "Aggiornamento versione",
-        "es": "Incremento de versión",
-        "pl": "Inkrementacja wersji",
-        "uk": "Оновлення версії",
-        "zh-cn": "版本更新"
-      },
-      "0.3.86": {
-        "en": "Fix extIcon URL: use master branch ref as required by ioBroker checker",
-        "de": "extIcon-URL korrigiert: master-Branch-Ref wie vom ioBroker-Checker verlangt",
-        "ru": "Исправлен extIcon URL: используется master branch как требует checker",
-        "pt": "URL extIcon corrigida: uso do branch master conforme exigido pelo checker",
-        "nl": "extIcon URL gecorrigeerd: master branch ref zoals vereist door ioBroker checker",
-        "fr": "URL extIcon corrigée: utilisation de master branch comme requis par le checker",
-        "it": "URL extIcon corretta: uso del branch master come richiesto dal checker",
-        "es": "URL extIcon corregida: uso del branch master según lo requerido por el checker",
-        "pl": "Poprawiono URL extIcon: użycie gałęzi master wymaganej przez checker",
-        "uk": "Виправлено URL extIcon: використання гілки master як вимагає checker",
-        "zh-cn": "修复 extIcon URL：使用 master 分支引用（checker 要求）"
-      },
-      "0.3.85": {
-        "en": "Fix news section: remove unpublished versions; fix extIcon URL",
-        "de": "News-Bereich bereinigt: nicht veröffentlichte Versionen entfernt; extIcon-URL korrigiert",
-        "ru": "Исправлен раздел news: удалены неопубликованные версии; исправлен extIcon URL",
-        "pt": "Seção news corrigida: versões não publicadas removidas; URL extIcon corrigida",
-        "nl": "News sectie gecorrigeerd: niet-gepubliceerde versies verwijderd; extIcon URL gecorrigeerd",
-        "fr": "Section news corrigée: versions non publiées supprimées; URL extIcon corrigée",
-        "it": "Sezione news corretta: versioni non pubblicate rimosse; URL extIcon corretta",
-        "es": "Sección news corregida: versiones no publicadas eliminadas; URL extIcon corregida",
-        "pl": "Sekcja news poprawiona: usunięto nieopublikowane wersje; poprawiono URL extIcon",
-        "uk": "Розділ news виправлено: видалено неопубліковані версії; виправлено URL extIcon",
-        "zh-cn": "修复 news 部分：删除未发布版本；修复 extIcon URL"
-      },
-      "0.3.84": {
-        "en": "CI/CD pipeline fully operational",
-        "de": "CI/CD-Pipeline voll funktionsfähig",
-        "ru": "CI/CD-пайплайн полностью работает",
-        "pt": "Pipeline CI/CD totalmente operacional",
-        "nl": "CI/CD-pipeline volledig operationeel",
-        "fr": "Pipeline CI/CD pleinement opérationnel",
-        "it": "Pipeline CI/CD completamente operativa",
-        "es": "Pipeline CI/CD totalmente operativo",
-        "pl": "Pipeline CI/CD w pełni operacyjny",
-        "uk": "CI/CD-пайплайн повністю працює",
-        "zh-cn": "CI/CD 流水线完全运行"
-      },
-      "0.3.83": {
-        "en": "Fix CI publish: use granular npm access token",
-        "de": "CI-Publish korrigiert: granulares npm Access Token",
-        "ru": "Исправлен CI publish: используется гранулярный токен доступа npm",
-        "pt": "CI publish corrigido: token de acesso granular npm",
-        "nl": "CI publish gecorrigeerd: granulaire npm access token",
-        "fr": "CI publish corrigé: token d'accès granulaire npm",
-        "it": "CI publish corretto: token di accesso granulare npm",
-        "es": "CI publish corregido: token de acceso granular npm",
-        "pl": "Naprawiono CI publish: granularny token dostępu npm",
-        "uk": "Виправлено CI publish: гранулярний токен доступу npm",
-        "zh-cn": "修复 CI 发布：使用精细化 npm 访问令牌"
-      },
-      "0.3.79": {
-        "en": "Switch npm publish to Trusted Publishing (OIDC) for secure CI/CD",
-        "de": "npm-Veröffentlichung auf Trusted Publishing (OIDC) umgestellt",
-        "ru": "Переход на Trusted Publishing (OIDC) для безопасного CI/CD",
-        "pt": "Publicação npm migrada para Trusted Publishing (OIDC)",
-        "nl": "npm publish omgezet naar Trusted Publishing (OIDC)",
-        "fr": "Publication npm migrée vers Trusted Publishing (OIDC)",
-        "it": "Pubblicazione npm migrata a Trusted Publishing (OIDC)",
-        "es": "Publicación npm migrada a Trusted Publishing (OIDC)",
-        "pl": "Publikacja npm przeniesiona na Trusted Publishing (OIDC)",
-        "uk": "Публікацію npm переведено на Trusted Publishing (OIDC)",
-        "zh-cn": "npm 发布切换至 Trusted Publishing (OIDC)"
-      },
       "0.3.73": {
         "en": "Stable fingerprint-based client ID – no more duplicate devices on mobile",
         "de": "Stabile fingerprint-basierte Client-ID – kein Duplizieren von Geräten auf Mobilgeräten",
@@ -348,45 +208,6 @@
         "pl": "Stabilne ID klienta oparte na odcisku – koniec z duplikatami urządzeń na telefonie",
         "uk": "Стабільний ID клієнта на основі відбитку – більше немає дублікатів пристроїв на мобільних",
         "zh-cn": "基于指纹的稳定客户端 ID – 移动设备不再出现重复条目"
-      },
-      "0.3.72": {
-        "en": "Calendar widget: fetch via state relay instead of sendTo for reliable operation",
-        "de": "Kalender-Widget: Fetch via State-Relay statt sendTo für zuverlässigen Betrieb",
-        "ru": "Виджет календаря: получение через state relay вместо sendTo",
-        "pt": "Widget de calendário: busca via state relay em vez de sendTo",
-        "nl": "Kalender widget: ophalen via state relay in plaats van sendTo",
-        "fr": "Widget calendrier: récupération via state relay au lieu de sendTo",
-        "it": "Widget calendario: recupero tramite state relay invece di sendTo",
-        "es": "Widget de calendario: obtención a través de state relay en lugar de sendTo",
-        "pl": "Widget kalendarza: pobieranie przez state relay zamiast sendTo",
-        "uk": "Віджет календаря: отримання через state relay замість sendTo",
-        "zh-cn": "日历小部件：通过 state relay 而非 sendTo 获取数据"
-      },
-      "0.3.63": {
-        "en": "New widgets: fill level indicator and waste collection",
-        "de": "Neue Widgets: Füllstandsanzeige und Müllabfuhr",
-        "ru": "Новые виджеты: индикатор уровня заполнения и вывоз мусора",
-        "pt": "Novos widgets: indicador de nível e coleta de lixo",
-        "nl": "Nieuwe widgets: niveaumeter en afvalinzameling",
-        "fr": "Nouveaux widgets: indicateur de niveau et collecte des déchets",
-        "it": "Nuovi widget: indicatore di livello e raccolta rifiuti",
-        "es": "Nuevos widgets: indicador de nivel y recogida de basura",
-        "pl": "Nowe widżety: wskaźnik poziomu i wywóz śmieci",
-        "uk": "Нові віджети: індикатор рівня та вивіз сміття",
-        "zh-cn": "新增小部件：液位指示器和垃圾收集"
-      },
-      "0.1.0": {
-        "en": "Initial release",
-        "de": "Erstveröffentlichung",
-        "ru": "Первый выпуск",
-        "pt": "Lançamento inicial",
-        "nl": "Eerste release",
-        "fr": "Première version",
-        "it": "Prima versione",
-        "es": "Lanzamiento inicial",
-        "pl": "Pierwsze wydanie",
-        "uk": "Перший випуск",
-        "zh-cn": "初始版本"
       }
     }
   },
