@@ -120,7 +120,9 @@ Releases are staged — never go straight to stable for significant changes.
 
 1. Bump version in **both** `package.json` AND `io-package.json` (must match)
 2. Add entry to `news` in `io-package.json` (EN + DE minimum, all 11 languages preferred)
-3. Add entry to `## Changelog` in `README.md`
+3. Add entry to `## Changelog` in `README.md` — **mandatory, causes E6006 if missing**
+   - Format: `### X.Y.Z (YYYY-MM-DD)` followed by bullet points
+   - Every version that appears in `io-package.json` news **must** also appear in README.md Changelog
 4. Run the news validation checks above
 5. `npm run build:adapter`
 6. `git add ... && git commit && git push`

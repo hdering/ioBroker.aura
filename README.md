@@ -127,6 +127,12 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.23 (2026-04-14)
+- Fix W5039: remove `admin/words.js` – jsonConfig adapters use `admin/i18n/` directly
+
+### 0.4.22 (2026-04-14)
+- Fix W5022: generate `admin/words.js` from i18n JSON files; fix empty Russian translation file
+
 ### 0.4.21 (2026-04-14)
 - Fix W5022: add `translate` script to `package.json` for i18n support
 
