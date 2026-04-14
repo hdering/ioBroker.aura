@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.3.93 (2026-04-14)
+- Rename overview tiles to "Aura Frontend" and "Aura Backend"
+
 ### 0.3.92 (2026-04-14)
 - Fix HTTPS: fall back to same-origin when stored ioBroker URL would cause a mixed-content block (HTTP URL on HTTPS page)
 

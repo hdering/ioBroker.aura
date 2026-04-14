@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.3.92",
+    "version": "0.3.93",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -63,8 +63,8 @@
       "config": "none"
     },
     "localLinks": {
-      "Dashboard": "%protocol%://%ip%:8082/aura/",
-      "Admin": "%protocol%://%ip%:8082/aura/#/admin"
+      "Aura Frontend": "%protocol%://%ip%:8082/aura/",
+      "Aura Backend": "%protocol%://%ip%:8082/aura/#/admin"
     },
     "dependencies": [
       {
@@ -72,6 +72,19 @@
       }
     ],
     "news": {
+      "0.3.93": {
+        "en": "Rename overview tiles to 'Aura Frontend' and 'Aura Backend'",
+        "de": "Kacheln in der Übersicht umbenannt: 'Aura Frontend' und 'Aura Backend'",
+        "ru": "Переименованы плитки обзора: 'Aura Frontend' и 'Aura Backend'",
+        "pt": "Renomear tiles da visão geral para 'Aura Frontend' e 'Aura Backend'",
+        "nl": "Overzichtstegels hernoemd naar 'Aura Frontend' en 'Aura Backend'",
+        "fr": "Renommage des tuiles de vue d'ensemble en 'Aura Frontend' et 'Aura Backend'",
+        "it": "Rinominati i tile della panoramica in 'Aura Frontend' e 'Aura Backend'",
+        "es": "Renombrar tiles de la vista general a 'Aura Frontend' y 'Aura Backend'",
+        "pl": "Zmieniono nazwy kafelków przeglądu na 'Aura Frontend' i 'Aura Backend'",
+        "uk": "Перейменовано плитки огляду на 'Aura Frontend' та 'Aura Backend'",
+        "zh-cn": "将概览磁贴重命名为 'Aura Frontend' 和 'Aura Backend'"
+      },
       "0.3.92": {
         "en": "Fix HTTPS: fall back to same-origin when stored URL would cause mixed-content block",
         "de": "HTTPS-Fix: Fallback auf gleichen Origin wenn gespeicherte URL Mixed-Content verursachen würde",
