@@ -196,7 +196,7 @@ export const en: Record<TranslationKey, string> = {
 
   // ── Theme ─────────────────────────────────────────────────────────────────────
   'theme.title':    'Theme & CSS',
-  'theme.subtitle': 'Global design for Frontend and Admin',
+  'theme.subtitle': 'Global design for Frontend',
 
   'theme.preset.title':  'Theme Preset',
   'theme.preset.active': 'Active ✓',

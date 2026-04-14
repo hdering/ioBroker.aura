@@ -194,7 +194,7 @@ export const de = {
 
   // ── Theme ─────────────────────────────────────────────────────────────────────
   'theme.title':    'Theme & CSS',
-  'theme.subtitle': 'Globales Design für Frontend und Admin',
+  'theme.subtitle': 'Globales Design für Frontend',
 
   'theme.preset.title':  'Theme-Preset',
   'theme.preset.active': 'Aktiv ✓',
