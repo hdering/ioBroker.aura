@@ -3,6 +3,7 @@ import { setupPin } from '../../store/authStore';
 import { useActiveLayout } from '../../store/dashboardStore';
 import { useConnectionStore } from '../../store/connectionStore';
 import { useConfigStore } from '../../store/configStore';
+import { useAdminPrefsStore } from '../../store/adminPrefsStore';
 import { reconnectSocket } from '../../hooks/useIoBroker';
 import { Eye, EyeOff, AlertTriangle, RefreshCw, Tablet } from 'lucide-react';
 import { useT } from '../../i18n';
@@ -173,6 +174,7 @@ export function AdminSettings() {
   const t = useT();
   const tabs = useActiveLayout().tabs;
   const { frontend, updateFrontend } = useConfigStore();
+  const { autoSave, autoSaveDelay, setAutoSave, setAutoSaveDelay } = useAdminPrefsStore();
   const [newPin, setNewPin] = useState('');
   const [confirm, setConfirm] = useState('');
   const [show, setShow] = useState(false);
@@ -244,6 +246,38 @@ export function AdminSettings() {
             );
           })}
         </div>
+      </Card>
+
+      {/* Editor */}
+      <Card title={t('settings.editor.title')}>
+        <ToggleRow label={t('settings.editor.autoSave')} value={autoSave} onChange={setAutoSave} />
+        {autoSave && (
+          <div className="pt-1">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{t('settings.editor.delay')}</p>
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md"
+                style={{ background: 'var(--app-bg)', color: 'var(--accent)', border: '1px solid var(--app-border)' }}>
+                {autoSaveDelay}s
+              </span>
+            </div>
+            <div className="flex gap-1.5 flex-wrap">
+              {[10, 30, 60, 120, 300].map((s) => {
+                const active = autoSaveDelay === s;
+                const label = s < 60 ? `${s}s` : `${s / 60} min`;
+                return (
+                  <button key={s} onClick={() => setAutoSaveDelay(s)}
+                    className="px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
+                    style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        <p className="text-xs pt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+          {t('settings.editor.ctrlS')}
+        </p>
       </Card>
 
       {/* Row 1: Frontend + Numerics */}

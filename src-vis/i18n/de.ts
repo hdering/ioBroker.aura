@@ -36,10 +36,17 @@ export const de = {
   'admin.nav.darkMode':     'Dunkel-Modus',
 
   // ── Admin Save Bar ────────────────────────────────────────────────────────────
-  'admin.save.unsaved': 'Ungespeicherte Änderungen',
-  'admin.save.undo':    'Rückgängig',
-  'admin.save.save':    'Speichern',
-  'admin.save.saved':   'Alle Änderungen gespeichert',
+  'admin.save.unsaved':      'Ungespeicherte Änderungen',
+  'admin.save.undo':         'Rückgängig',
+  'admin.save.save':         'Speichern',
+  'admin.save.saved':        'Alle Änderungen gespeichert',
+  'admin.save.autoIn':       'Automatisch in {s}s…',
+
+  // ── Editor settings ───────────────────────────────────────────────────────────
+  'settings.editor.title':       'Editor',
+  'settings.editor.autoSave':    'Automatisch speichern',
+  'settings.editor.delay':       'Verzögerung',
+  'settings.editor.ctrlS':       'Strg+S speichert sofort',
 
   // ── Settings ──────────────────────────────────────────────────────────────────
   'settings.title':            'Einstellungen',

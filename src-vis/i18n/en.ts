@@ -38,10 +38,17 @@ export const en: Record<TranslationKey, string> = {
   'admin.nav.darkMode':     'Dark Mode',
 
   // ── Admin Save Bar ────────────────────────────────────────────────────────────
-  'admin.save.unsaved': 'Unsaved Changes',
-  'admin.save.undo':    'Undo',
-  'admin.save.save':    'Save',
-  'admin.save.saved':   'All changes saved',
+  'admin.save.unsaved':      'Unsaved Changes',
+  'admin.save.undo':         'Undo',
+  'admin.save.save':         'Save',
+  'admin.save.saved':        'All changes saved',
+  'admin.save.autoIn':       'Auto-saving in {s}s…',
+
+  // ── Editor settings ───────────────────────────────────────────────────────────
+  'settings.editor.title':       'Editor',
+  'settings.editor.autoSave':    'Auto-save',
+  'settings.editor.delay':       'Delay',
+  'settings.editor.ctrlS':       'Ctrl+S saves immediately',
 
   // ── Settings ──────────────────────────────────────────────────────────────────
   'settings.title':            'Settings',

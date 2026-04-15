@@ -10,6 +10,7 @@ import { isDirty, saveAll, revertAll, subscribeDirty, saveToIoBroker } from '../
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useGroupStore } from '../../store/groupStore';
 import { useConfigStore } from '../../store/configStore';
+import { useAdminPrefsStore } from '../../store/adminPrefsStore';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useT } from '../../i18n';
 
@@ -52,6 +53,7 @@ export function AdminLayout() {
   const { adminThemeId, setAdminTheme } = useThemeStore();
   const frontendUrl = useFrontendUrl();
   const { connected } = useIoBroker();
+  const { autoSave, autoSaveDelay } = useAdminPrefsStore();
 
   // Auto-push localStorage config to ioBroker on first connect.
   // Ensures other browsers get the current config even if the user never
@@ -62,6 +64,50 @@ export function AdminLayout() {
     autoSyncedRef.current = true;
     saveToIoBroker();
   }, [connected]);
+
+  // ── Ctrl+S / Cmd+S keyboard shortcut ──────────────────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (isDirty()) { saveAll(); saveToIoBroker(); }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  // ── Auto-save countdown ────────────────────────────────────────────────
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoSaveDeadlineRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    // Clear any running timer
+    if (autoSaveTimerRef.current) { clearInterval(autoSaveTimerRef.current); autoSaveTimerRef.current = null; }
+    setCountdown(null);
+    autoSaveDeadlineRef.current = null;
+
+    if (!autoSave || !dirty) return;
+
+    const deadline = Date.now() + autoSaveDelay * 1000;
+    autoSaveDeadlineRef.current = deadline;
+    setCountdown(autoSaveDelay);
+
+    autoSaveTimerRef.current = setInterval(() => {
+      const remaining = Math.ceil((autoSaveDeadlineRef.current! - Date.now()) / 1000);
+      if (remaining <= 0) {
+        clearInterval(autoSaveTimerRef.current!);
+        autoSaveTimerRef.current = null;
+        setCountdown(null);
+        if (isDirty()) { saveAll(); saveToIoBroker(); }
+      } else {
+        setCountdown(remaining);
+      }
+    }, 500);
+
+    return () => { if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current); };
+  }, [autoSave, autoSaveDelay, dirty]);
 
   const adminTheme = adminThemeId === 'dark' ? ADMIN_DARK_THEME : getTheme(adminThemeId);
   const adminVars = Object.fromEntries(
@@ -150,7 +196,9 @@ export function AdminLayout() {
           {dirty ? (
             <>
               <span className="text-xs mr-auto" style={{ color: 'var(--accent)' }}>
-                {t('admin.save.unsaved')}
+                {countdown !== null
+                  ? t('admin.save.autoIn', { s: String(countdown) })
+                  : t('admin.save.unsaved')}
               </span>
               <button
                 onClick={revert}
