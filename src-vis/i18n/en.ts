@@ -345,6 +345,7 @@ export const en: Record<TranslationKey, string> = {
   'wf.edit.posRight':       'Right',
   'wf.edit.style':          'Style',
   'wf.edit.styleReset':     'Reset',
+  'wf.edit.pixelOffset':    'Pixel Offset',
   'wf.edit.widgetType':     'Widget Type',
   'wf.edit.layout':         'Layout',
   'wf.edit.icon':           'Icon',

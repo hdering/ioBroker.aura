@@ -343,6 +343,7 @@ export const de = {
   'wf.edit.posRight':       'Rechts',
   'wf.edit.style':          'Stil',
   'wf.edit.styleReset':     'Zurücksetzen',
+  'wf.edit.pixelOffset':    'Pixel-Versatz',
   'wf.edit.widgetType':     'Widget-Typ',
   'wf.edit.layout':         'Layout',
   'wf.edit.icon':           'Icon',
