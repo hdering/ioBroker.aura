@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { setupPin } from '../../store/authStore';
-import { useActiveLayout } from '../../store/dashboardStore';
+import { useActiveLayout, useDashboardStore } from '../../store/dashboardStore';
 import { useConnectionStore } from '../../store/connectionStore';
 import { useConfigStore } from '../../store/configStore';
 import { useAdminPrefsStore } from '../../store/adminPrefsStore';
@@ -174,6 +174,8 @@ export function AdminSettings() {
   const t = useT();
   const tabs = useActiveLayout().tabs;
   const { frontend, updateFrontend } = useConfigStore();
+  const rescaleAllWidgetsX = useDashboardStore((s) => s.rescaleAllWidgetsX);
+  const MARGIN = frontend.gridGap ?? 10;
   const { autoSave, autoSaveDelay, setAutoSave, setAutoSaveDelay } = useAdminPrefsStore();
   const [newPin, setNewPin] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -380,7 +382,12 @@ export function AdminSettings() {
               label={t('settings.grid.snapX')}
               value={frontend.gridSnapX ?? frontend.gridRowHeight ?? 80}
               min={5} max={160} step={5} unit=" px"
-              onChange={(v) => updateFrontend({ gridSnapX: v })}
+              onChange={(v) => {
+                const oldSnap = frontend.gridSnapX ?? frontend.gridRowHeight ?? 80;
+                const factor = (oldSnap + MARGIN) / (v + MARGIN);
+                rescaleAllWidgetsX(factor);
+                updateFrontend({ gridSnapX: v });
+              }}
               presets={[{ label: '10', value: 10 }, { label: '20', value: 20 }, { label: '40', value: 40 }, { label: '80', value: 80 }, { label: '120', value: 120 }]}
             />
           </div>

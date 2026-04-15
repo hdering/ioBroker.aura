@@ -100,6 +100,7 @@ interface DashboardState {
   updateWidget: (id: string, config: Partial<WidgetConfig>) => void;
   updateWidgetInTab: (tabId: string, widgetId: string, config: Partial<WidgetConfig>) => void;
   updateLayouts: (widgets: WidgetConfig[]) => void;
+  rescaleAllWidgetsX: (factor: number) => void;
 
   /** Cross-layout variants – operate on an explicit layoutId */
   addWidgetToLayoutTab: (layoutId: string, tabId: string, widget: WidgetConfig) => void;
@@ -301,6 +302,24 @@ export const useDashboardStore = create<DashboardState>()(
             ...l, tabs: l.tabs.map((t) => (t.id === l.activeTabId ? { ...t, widgets } : t)),
           })) })
         ),
+
+      rescaleAllWidgetsX: (factor) =>
+        set((s) => ({
+          layouts: s.layouts.map((l) => ({
+            ...l,
+            tabs: l.tabs.map((tab) => ({
+              ...tab,
+              widgets: tab.widgets.map((w) => ({
+                ...w,
+                gridPos: {
+                  ...w.gridPos,
+                  x: Math.max(0, Math.round(w.gridPos.x * factor)),
+                  w: Math.max(1, Math.round(w.gridPos.w * factor)),
+                },
+              })),
+            })),
+          })),
+        })),
 
       setEditMode: (editMode) => set({ editMode }),
     }),

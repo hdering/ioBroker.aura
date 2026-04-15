@@ -34,8 +34,6 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
   const tabs = viewTabs ?? activeLayout.tabs;
   const activeTabId = viewActiveTabId ?? activeLayout.activeTabId;
 
-  const activeTab = tabs.find((t) => t.id === activeTabId);
-  const widgets = useMemo(() => activeTab?.widgets ?? [], [activeTab]);
   const reflowHiddenIds = useReflowHiddenIds();
 
   // ── container width measurement ────────────────────────────────────────
@@ -97,47 +95,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
     ? effectiveCols * (snapX + MARGIN) + MARGIN
     : rglWidth;
 
-  // ── re-scale widget x/w when snapX changes ────────────────────────────
-  // Rescale only when the snap setting itself changes, not on container resize.
-  const prevColsRef = useRef<number | null>(null);
-  const prevSnapXRef = useRef(snapX);
-  const widgetsRef = useRef(widgets);
-  widgetsRef.current = widgets;
-  const updateLayoutsRef = useRef(updateLayouts);
-  updateLayoutsRef.current = updateLayouts;
-
-  useEffect(() => {
-    // First mount: just initialise refs
-    if (prevColsRef.current === null) {
-      prevColsRef.current = cols;
-      prevSnapXRef.current = snapX;
-      return;
-    }
-
-    const prevCols = prevColsRef.current;
-    const prevSnap = prevSnapXRef.current;
-
-    // Only re-scale when snapX itself changed (not just a container resize)
-    // Skip in readonly mode — we must not write back to the store from a view-only context.
-    if (!readonly && prevSnap !== snapX && prevCols > 0) {
-      const cur = widgetsRef.current;
-      if (cur.length > 0) {
-        const rescaled = cur.map((w) => ({
-          ...w,
-          gridPos: {
-            ...w.gridPos,
-            x: Math.min(Math.round(w.gridPos.x * cols / prevCols), cols - 1),
-            w: Math.max(1, Math.round(w.gridPos.w * cols / prevCols)),
-          },
-        }));
-        updateLayoutsRef.current(rescaled);
-      }
-    }
-
-    prevColsRef.current = cols;
-    prevSnapXRef.current = snapX;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cols, snapX]);
+  // Rescaling when snapX changes is handled in AdminSettings via rescaleAllWidgetsX.
 
   // ── mobile: single-column stack ───────────────────────────────────────
   if (containerWidth > 0 && containerWidth < mobileBreakpoint) {
