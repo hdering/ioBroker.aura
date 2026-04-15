@@ -52,21 +52,49 @@ class Aura extends utils.Adapter {
     this.on('unload', this.onUnload.bind(this));
   }
 
-  // State-based calendar fetch: frontend writes {id, url} to calendar.request,
-  // adapter fetches and writes {id, content|error} to calendar.response.
+  // State-based calendar fetch: frontend writes {id, url, ttl?} to calendar.request,
+  // adapter checks calendar.cache first, falls back to fetching, writes
+  // {id, content|error} to calendar.response.
   async onStateChange(id, state) {
     if (!id.endsWith('calendar.request') || !state || state.ack || !state.val) return;
     let req;
     try { req = JSON.parse(String(state.val)); } catch { return; }
     if (!req.url || !req.id) return;
+
+    const ttlMs = (typeof req.ttl === 'number' && req.ttl > 0 ? req.ttl : 900) * 1000;
+    const now   = Date.now();
+
+    // ── Check cache ────────────────────────────────────────────────────────
+    let cache = {};
+    try {
+      const cs = await this.getStateAsync('calendar.cache');
+      if (cs?.val) cache = JSON.parse(String(cs.val));
+    } catch { /* start with empty cache on parse error */ }
+
+    const hit = cache[req.url];
+    if (hit && typeof hit.fetchedAt === 'number' && (now - hit.fetchedAt) < ttlMs) {
+      this.log.debug(`[calendar] cache hit: url=${req.url} age=${Math.round((now - hit.fetchedAt) / 1000)}s`);
+      await this.setStateAsync('calendar.response', JSON.stringify({ id: req.id, content: hit.content }), true);
+      return;
+    }
+
+    // ── Fetch ──────────────────────────────────────────────────────────────
     this.log.info(`[calendar] fetch request id=${req.id} url=${req.url}`);
     try {
       const content = await fetchUrl(req.url);
       this.log.info(`[calendar] fetch ok: ${content.length} bytes (id=${req.id})`);
+      cache[req.url] = { content, fetchedAt: now };
+      await this.setStateAsync('calendar.cache', JSON.stringify(cache), true);
       await this.setStateAsync('calendar.response', JSON.stringify({ id: req.id, content }), true);
     } catch (err) {
       this.log.error(`[calendar] fetch error (id=${req.id}): ${String(err)}`);
-      await this.setStateAsync('calendar.response', JSON.stringify({ id: req.id, error: String(err) }), true);
+      // On error, serve stale cache if available rather than failing completely
+      if (hit?.content) {
+        this.log.warn(`[calendar] serving stale cache for url=${req.url}`);
+        await this.setStateAsync('calendar.response', JSON.stringify({ id: req.id, content: hit.content }), true);
+      } else {
+        await this.setStateAsync('calendar.response', JSON.stringify({ id: req.id, error: String(err) }), true);
+      }
     }
   }
 
@@ -119,6 +147,18 @@ class Aura extends utils.Adapter {
     });
 
     // Calendar fetch relay states
+    await this.setObjectNotExistsAsync('calendar.cache', {
+      type: 'state',
+      common: {
+        name: 'Calendar fetch cache (JSON: {url: {content, fetchedAt}})',
+        type: 'string',
+        role: 'json',
+        read: true,
+        write: false,
+        def: '{}',
+      },
+      native: {},
+    });
     await this.setObjectNotExistsAsync('calendar.request', {
       type: 'state',
       common: {

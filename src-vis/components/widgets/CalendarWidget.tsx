@@ -104,7 +104,7 @@ function parseIcal(text: string): CalEvent[] {
 //   frontend writes {id, url} → aura.0.calendar.request
 //   adapter fetches URL, writes {id, content|error} → aura.0.calendar.response
 //   frontend subscriber matches by id and resolves/rejects
-async function fetchIcalText(url: string): Promise<string> {
+async function fetchIcalText(url: string, ttlSeconds: number): Promise<string> {
   if (import.meta.env.DEV) {
     const res = await fetch(`/proxy/ical?url=${encodeURIComponent(url)}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -133,8 +133,8 @@ async function fetchIcalText(url: string): Promise<string> {
         else reject(new Error(resp.error ?? 'Adapter-Fetch fehlgeschlagen'));
       } catch { /* ignore parse errors from unrelated state changes */ }
     });
-    // Write request – triggers adapter onStateChange
-    getSocket().emit('setState', 'aura.0.calendar.request', { val: JSON.stringify({ id, url }), ack: false });
+    // ttl tells the adapter how long its cache entry is considered fresh
+    getSocket().emit('setState', 'aura.0.calendar.request', { val: JSON.stringify({ id, url, ttl: ttlSeconds }), ack: false });
   });
 }
 
@@ -231,6 +231,7 @@ export function CalendarWidget({ config }: WidgetProps) {
     const opts = config.options ?? {};
     const srcs = getSources(opts);
     const dA = (opts.daysAhead as number) ?? 14;
+    const ttl = ((opts.refreshInterval as number) ?? 30) * 60; // seconds
     if (srcs.length === 0) { setEvents([]); return; }
 
     setLoading(true);
@@ -241,7 +242,7 @@ export function CalendarWidget({ config }: WidgetProps) {
       const errs: string[] = [];
       for (const src of srcs) {
         try {
-          const text = await fetchIcalText(src.url);
+          const text = await fetchIcalText(src.url, ttl);
           const parsed = parseIcal(text).map((ev): CalEventTagged => ({
             ...ev,
             uid: `${src.id}:${ev.uid}`,
