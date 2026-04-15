@@ -2060,9 +2060,12 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
             pickerTarget === 'localTempDatapoint' ? ((config.options?.localTempDatapoint as string) ?? '') :
             ((config.options?.actualDatapoint as string) ?? '')
           }
-          onSelect={(id) => {
+          onSelect={(id, unit) => {
             if (pickerTarget === 'datapoint') {
-              onConfigChange({ ...config, datapoint: id });
+              const supportsUnit = ['value', 'chart', 'gauge', 'fill'].includes(config.type);
+              const unitAlreadySet = !!(config.options?.unit as string | undefined);
+              const unitPatch = supportsUnit && !unitAlreadySet && unit ? { unit } : {};
+              onConfigChange({ ...config, datapoint: id, options: { ...config.options, ...unitPatch } });
             } else if (pickerTarget === 'localTempDatapoint') {
               onConfigChange({ ...config, options: { ...config.options, localTempDatapoint: id } });
             } else {
