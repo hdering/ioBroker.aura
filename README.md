@@ -127,6 +127,15 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.26 (2026-04-15)
+- Chart widget: configurable custom time range; remove stray colon from tooltip
+- Semantic CSS classes: `aura-page`, `aura-tab-{slug}`, `aura-widget-{id}`, `aura-widget-type-{type}`; clock CSS classes
+- Theme & CSS: configurable grid gap and widget inner padding sliders
+- CSS-variable reset button always visible, disabled when nothing is overridden
+- `aura.0.config.dashboard`: remove double-stringify; store as pretty-printed JSON object
+- Configurable horizontal snap width (`gridSnapX`) in Settings for finer widget positioning
+- Connection indicator: green dot for 2 s on startup; red dot on disconnect (even when badge is hidden)
+
 ### 0.4.25 (2026-04-15)
 - Fix: trailing comma in `io-package.json` news section caused CI JSON parse error
 

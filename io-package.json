@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.25",
+    "version": "0.4.26",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.26": {
+        "en": "New: chart custom time range, semantic CSS classes, configurable grid gap/padding/snap width, connection indicator dot, pretty-printed config datapoint",
+        "de": "Neu: Chart-Benutzerzeitraum, semantische CSS-Klassen, konfigurierbarer Gitter-Abstand/Padding/Snap-Breite, Verbindungsindikator-Punkt, formatierter Config-Datenpunkt",
+        "ru": "Новое: произвольный диапазон диаграммы, семантические CSS-классы, настраиваемый отступ сетки/виджета/шаг, индикатор соединения, форматированная точка данных конфига",
+        "pt": "Novo: intervalo personalizado para gráfico, classes CSS semânticas, espaçamento/padding/snap configuráveis, indicador de conexão, datapoint de config formatado",
+        "nl": "Nieuw: aangepast tijdbereik grafiek, semantische CSS-klassen, instelbare rasterafstand/padding/snap-breedte, verbindingsindicator, opgemaakt config-datapunt",
+        "fr": "Nouveau : plage personnalisée pour graphique, classes CSS sémantiques, espacement/rembourrage/pas de grille configurables, indicateur de connexion, point de données config formaté",
+        "it": "Novità: intervallo personalizzato per grafici, classi CSS semantiche, spaziatura/padding/snap configurabili, indicatore connessione, datapoint config formattato",
+        "es": "Nuevo: rango personalizado para gráfico, clases CSS semánticas, espaciado/relleno/snap configurables, indicador de conexión, datapoint de config formateado",
+        "pl": "Nowości: własny zakres wykresu, semantyczne klasy CSS, konfigurowalne odstępy/padding/snap, wskaźnik połączenia, sformatowany datapoint konfiguracji",
+        "uk": "Нове: довільний діапазон графіка, семантичні CSS-класи, налаштовуваний відступ сітки/padding/snap, індикатор з'єднання, форматована точка даних конфігу",
+        "zh-cn": "新功能：图表自定义时间范围、语义 CSS 类、可配置网格间距/内边距/对齐宽度、连接指示点、格式化配置数据点"
+      },
       "0.4.25": {
         "en": "Fix: trailing comma in io-package.json news section caused CI JSON parse error",
         "de": "Fix: Trailing Comma in io-package.json news-Abschnitt verursachte JSON-Fehler im CI",
@@ -183,19 +196,6 @@
         "pl": "Naprawa W5022: jsonConfig przeniesiony na i18n – klucze tłumaczeń i admin/i18n dla wszystkich 11 języków",
         "uk": "Виправлення W5022: jsonConfig переведено на i18n – ключі перекладу та admin/i18n для всіх 11 мов",
         "zh-cn": "修复 W5022：将 jsonConfig 迁移到 i18n – 使用翻译键和 admin/i18n 支持所有 11 种语言"
-      },
-      "0.4.19": {
-        "en": "Fix W3009/W3019: fix concurrency group, switch deploy to npm trusted publishing (remove npm-token), fix W4042 jsonConfig fileMatch",
-        "de": "W3009/W3019 behoben: Concurrency-Group korrigiert, Deploy auf npm Trusted Publishing umgestellt (npm-token entfernt), W4042 jsonConfig fileMatch korrigiert",
-        "ru": "Исправления W3009/W3019: исправлена группа concurrency, деплой переведён на npm trusted publishing (удалён npm-token), исправлен fileMatch jsonConfig (W4042)",
-        "pt": "Correções W3009/W3019: grupo de concurrency corrigido, deploy migrado para npm trusted publishing (npm-token removido), fileMatch jsonConfig corrigido (W4042)",
-        "nl": "W3009/W3019 opgelost: concurrency group gecorrigeerd, deploy omgezet naar npm trusted publishing (npm-token verwijderd), jsonConfig fileMatch gecorrigeerd (W4042)",
-        "fr": "Corrections W3009/W3019: groupe de concurrence corrigé, déploiement migré vers npm trusted publishing (npm-token supprimé), fileMatch jsonConfig corrigé (W4042)",
-        "it": "Correzioni W3009/W3019: gruppo concurrency corretto, deploy migrato a npm trusted publishing (npm-token rimosso), fileMatch jsonConfig corretto (W4042)",
-        "es": "Correcciones W3009/W3019: grupo de concurrencia corregido, deploy migrado a npm trusted publishing (npm-token eliminado), fileMatch jsonConfig corregido (W4042)",
-        "pl": "Naprawa W3009/W3019: poprawiono grupę concurrency, deploy przeniesiony na npm trusted publishing (usunięto npm-token), poprawiono fileMatch jsonConfig (W4042)",
-        "uk": "Виправлення W3009/W3019: виправлено групу concurrency, деплой переведено на npm trusted publishing (видалено npm-token), виправлено fileMatch jsonConfig (W4042)",
-        "zh-cn": "修复 W3009/W3019：修正 concurrency group，将部署切换为 npm trusted publishing（移除 npm-token），修正 jsonConfig fileMatch（W4042）"
       }
     }
   },
