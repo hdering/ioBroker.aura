@@ -26,6 +26,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
   const activeLayout = useActiveLayout();
   const { updateWidget, updateLayouts, removeWidget } = useDashboardStore();
   const cellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);
+  const snapX    = useConfigStore((s) => s.frontend.gridSnapX ?? s.frontend.gridRowHeight ?? 80);
   const MARGIN = useConfigStore((s) => s.frontend.gridGap ?? DEFAULT_MARGIN);
   const mobileBreakpoint = useConfigStore((s) => s.frontend.mobileBreakpoint ?? 600);
 
@@ -70,11 +71,11 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
   // RGL gets the locked width in editMode, actual containerWidth otherwise
   const rglWidth = editMode && editWidth > 0 ? editWidth : containerWidth;
 
-  // ── compute cols so that column width ≈ cellSize ───────────────────────
-  // col_width = (rglWidth - (cols+1)*MARGIN) / cols ≈ cellSize
-  // → cols ≈ (rglWidth - MARGIN) / (cellSize + MARGIN)
+  // ── compute cols based on horizontal snap width ────────────────────────
+  // col_width = (rglWidth - (cols+1)*MARGIN) / cols ≈ snapX
+  // → cols ≈ (rglWidth - MARGIN) / (snapX + MARGIN)
   const cols = rglWidth > 0
-    ? Math.max(2, Math.floor((rglWidth - MARGIN) / (cellSize + MARGIN)))
+    ? Math.max(2, Math.floor((rglWidth - MARGIN) / (snapX + MARGIN)))
     : 12;
 
   // ── in readonly (frontend) mode: prevent widget repositioning ──────────
@@ -93,12 +94,13 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
   // When the effective col count exceeds what fits in the viewport, use the
   // minimum required width so cell sizes stay consistent with the design.
   const effectiveRglWidth = (readonly && effectiveCols > cols)
-    ? effectiveCols * (cellSize + MARGIN) + MARGIN
+    ? effectiveCols * (snapX + MARGIN) + MARGIN
     : rglWidth;
 
-  // ── re-scale widget x/w when cellSize changes ──────────────────────────
+  // ── re-scale widget x/w when snapX changes ────────────────────────────
+  // Rescale only when the snap setting itself changes, not on container resize.
   const prevColsRef = useRef<number | null>(null);
-  const prevCellSizeRef = useRef(cellSize);
+  const prevSnapXRef = useRef(snapX);
   const widgetsRef = useRef(widgets);
   widgetsRef.current = widgets;
   const updateLayoutsRef = useRef(updateLayouts);
@@ -108,16 +110,16 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
     // First mount: just initialise refs
     if (prevColsRef.current === null) {
       prevColsRef.current = cols;
-      prevCellSizeRef.current = cellSize;
+      prevSnapXRef.current = snapX;
       return;
     }
 
     const prevCols = prevColsRef.current;
-    const prevCellSize = prevCellSizeRef.current;
+    const prevSnap = prevSnapXRef.current;
 
-    // Only re-scale when cellSize itself changed (not just a container resize)
+    // Only re-scale when snapX itself changed (not just a container resize)
     // Skip in readonly mode — we must not write back to the store from a view-only context.
-    if (!readonly && prevCellSize !== cellSize && prevCols > 0) {
+    if (!readonly && prevSnap !== snapX && prevCols > 0) {
       const cur = widgetsRef.current;
       if (cur.length > 0) {
         const rescaled = cur.map((w) => ({
@@ -133,9 +135,9 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
     }
 
     prevColsRef.current = cols;
-    prevCellSizeRef.current = cellSize;
+    prevSnapXRef.current = snapX;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cols, cellSize]);
+  }, [cols, snapX]);
 
   // ── mobile: single-column stack ───────────────────────────────────────
   if (containerWidth > 0 && containerWidth < mobileBreakpoint) {

@@ -797,9 +797,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
   const isTransparent = !!(config.options?.transparent);
   const widgetPadding = useConfigStore((s) => s.frontend.widgetPadding ?? 16);
   const isNoPad = isHeader || isGroup || isTransparent || config.type === 'iframe';
-  const pixelOffsetX = (config.options?.pixelOffsetX as number | undefined) ?? 0;
-  const pixelOffsetY = (config.options?.pixelOffsetY as number | undefined) ?? 0;
-  const hasPixelOffset = pixelOffsetX !== 0 || pixelOffsetY !== 0;
 
   return (
     <div
@@ -811,7 +808,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
         borderWidth: isTransparent && editMode ? 1 : 0,
         borderStyle: 'dashed',
         borderColor: isTransparent && editMode ? 'var(--app-border)' : 'transparent',
-        transform: hasPixelOffset ? `translate(${pixelOffsetX}px,${pixelOffsetY}px)` : undefined,
         ...cssOverride,
         // non-reflow hide: keep space but invisible
         ...(!editMode && conditionResult.hidden && !conditionResult.reflow
@@ -825,7 +821,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
         borderStyle: 'solid',
         borderColor: 'var(--widget-border)',
         padding: isNoPad ? undefined : widgetPadding,
-        transform: hasPixelOffset ? `translate(${pixelOffsetX}px,${pixelOffsetY}px)` : undefined,
         ...cssOverride,
         ...(!editMode && conditionResult.hidden && !conditionResult.reflow
           ? { visibility: 'hidden', pointerEvents: 'none' } : {}),
@@ -1232,51 +1227,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   )}
                 </div>
               ))}
-            </div>
-          </details>
-
-          <div className="h-px" style={{ background: 'var(--app-border)' }} />
-
-          {/* ─── 2b. Pixel-Versatz ─────────────────────────────────────────── */}
-          <details className="group" open={hasPixelOffset}>
-            <summary className="flex items-center justify-between cursor-pointer list-none select-none">
-              <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.pixelOffset')}</span>
-              <div className="flex items-center gap-2">
-                {hasPixelOffset && (
-                  <button
-                    onClick={(e) => { e.preventDefault(); onConfigChange({ ...config, options: { ...config.options, pixelOffsetX: 0, pixelOffsetY: 0 } }); }}
-                    className="text-[10px] hover:opacity-70"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    {t('wf.edit.styleReset')}
-                  </button>
-                )}
-                <ChevronDown size={13} className="transition-transform group-open:rotate-180" style={{ color: 'var(--text-secondary)' }} />
-              </div>
-            </summary>
-            <div className="mt-2.5 space-y-2">
-              {(['X', 'Y'] as const).map((axis) => {
-                const key = axis === 'X' ? 'pixelOffsetX' : 'pixelOffsetY';
-                const val = (config.options?.[key] as number | undefined) ?? 0;
-                const set = (v: number) => onConfigChange({ ...config, options: { ...config.options, [key]: v } });
-                return (
-                  <div key={axis} className="flex items-center gap-2">
-                    <span className="text-[11px] w-3 shrink-0 font-mono font-bold" style={{ color: 'var(--text-secondary)' }}>{axis}</span>
-                    <button onClick={() => set(val - 10)} className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-80 nodrag" style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>−10</button>
-                    <button onClick={() => set(val - 1)}  className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-80 nodrag" style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>−1</button>
-                    <input
-                      type="number"
-                      value={val}
-                      onChange={(e) => set(Number(e.target.value) || 0)}
-                      className="w-14 text-[11px] text-center rounded px-1 py-0.5 focus:outline-none font-mono nodrag"
-                      style={{ background: 'var(--app-bg)', color: val !== 0 ? 'var(--accent)' : 'var(--text-primary)', border: `1px solid ${val !== 0 ? 'var(--accent)' : 'var(--app-border)'}` }}
-                    />
-                    <button onClick={() => set(val + 1)}  className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-80 nodrag" style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>+1</button>
-                    <button onClick={() => set(val + 10)} className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-80 nodrag" style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>+10</button>
-                    {val !== 0 && <button onClick={() => set(0)} className="text-[10px] hover:opacity-70 nodrag" style={{ color: 'var(--text-secondary)' }}>✕</button>}
-                  </div>
-                );
-              })}
             </div>
           </details>
 

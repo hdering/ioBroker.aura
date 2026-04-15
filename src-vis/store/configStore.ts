@@ -16,6 +16,7 @@ export interface FrontendSettings {
   // Header datapoint
   headerDatapoint: string;
   gridRowHeight: number;
+  gridSnapX: number;
   gridGap: number;
   widgetPadding: number;
   wizardMaxDatapoints: number;
@@ -45,6 +46,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
   headerClockCustomFormat: '',
   headerDatapoint: '',
   gridRowHeight: 80,
+  gridSnapX: 80,
   gridGap: 10,
   widgetPadding: 16,
   wizardMaxDatapoints: 500,

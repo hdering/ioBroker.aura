@@ -75,6 +75,7 @@ export const de = {
 
   'settings.grid.title':         'Grid & Mobil',
   'settings.grid.rowHeight':     'Zeilenhöhe',
+  'settings.grid.snapX':         'Horizontaler Rasterabstand',
   'settings.grid.mobileBreak':   'Mobile-Breakpoint',
   'settings.grid.wizardMaxDp':   'Wizard Max-Datenpunkte',
   'settings.grid.mobileOff':     'Aus',
@@ -343,7 +344,6 @@ export const de = {
   'wf.edit.posRight':       'Rechts',
   'wf.edit.style':          'Stil',
   'wf.edit.styleReset':     'Zurücksetzen',
-  'wf.edit.pixelOffset':    'Pixel-Versatz',
   'wf.edit.widgetType':     'Widget-Typ',
   'wf.edit.layout':         'Layout',
   'wf.edit.icon':           'Icon',

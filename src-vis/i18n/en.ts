@@ -77,6 +77,7 @@ export const en: Record<TranslationKey, string> = {
 
   'settings.grid.title':        'Grid & Mobile',
   'settings.grid.rowHeight':    'Row Height',
+  'settings.grid.snapX':        'Horizontal snap width',
   'settings.grid.mobileBreak':  'Mobile Breakpoint',
   'settings.grid.wizardMaxDp':  'Wizard Max Datapoints',
   'settings.grid.mobileOff':    'Off',
@@ -345,7 +346,6 @@ export const en: Record<TranslationKey, string> = {
   'wf.edit.posRight':       'Right',
   'wf.edit.style':          'Style',
   'wf.edit.styleReset':     'Reset',
-  'wf.edit.pixelOffset':    'Pixel Offset',
   'wf.edit.widgetType':     'Widget Type',
   'wf.edit.layout':         'Layout',
   'wf.edit.icon':           'Icon',

@@ -377,6 +377,15 @@ export function AdminSettings() {
           />
           <div className="border-t pt-3" style={{ borderColor: 'var(--app-border)' }}>
             <SliderSetting
+              label={t('settings.grid.snapX')}
+              value={frontend.gridSnapX ?? frontend.gridRowHeight ?? 80}
+              min={5} max={160} step={5} unit=" px"
+              onChange={(v) => updateFrontend({ gridSnapX: v })}
+              presets={[{ label: '10', value: 10 }, { label: '20', value: 20 }, { label: '40', value: 40 }, { label: '80', value: 80 }, { label: '120', value: 120 }]}
+            />
+          </div>
+          <div className="border-t pt-3" style={{ borderColor: 'var(--app-border)' }}>
+            <SliderSetting
               label={t('settings.grid.mobileBreak')}
               value={frontend.mobileBreakpoint ?? 600}
               min={0} max={1024} step={10} unit=" px"
