@@ -196,7 +196,7 @@
         "pl": "main.js przeniesiony do katalogu głównego zgodnie z konwencją adapterów ioBroker",
         "uk": "main.js переміщено до кореневої директорії згідно з конвенцією адаптерів ioBroker",
         "zh-cn": "按 ioBroker 适配器约定将 main.js 移至根目录"
-      },
+      }
     }
   },
   "native": {
