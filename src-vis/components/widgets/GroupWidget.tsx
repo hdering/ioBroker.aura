@@ -60,6 +60,9 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+    // contentRect.width = clientWidth (content area, gutter excluded).
+    // With scrollbar-gutter: stable the gutter is always reserved, so
+    // contentRect.width stays constant whether or not the scrollbar is visible.
     setWidth(el.clientWidth);
     const ro = new ResizeObserver(([e]) => setWidth(Math.floor(e.contentRect.width)));
     ro.observe(el);
@@ -225,7 +228,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     return (
       <div className="flex flex-col h-full">
         {titleBar}
-        <div className="flex-1 overflow-auto min-h-0 p-1">
+        <div className="aura-scroll flex-1 overflow-auto min-h-0 p-1">
           <div className="flex flex-col gap-1.5">
             {sorted.map((child) => (
               <div
@@ -269,7 +272,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
           intercept drags meant for the inner grid */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-auto min-h-0 p-1"
+        className="aura-scroll flex-1 overflow-auto min-h-0 p-1"
         onMouseDown={editMode ? (e) => e.stopPropagation() : undefined}
         onPointerDown={editMode ? (e) => e.stopPropagation() : undefined}
       >

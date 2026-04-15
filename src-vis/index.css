@@ -25,6 +25,27 @@ html, body, #root {
 [data-aura-app="frontend"] .text-2xl       { font-size: calc(1.5rem    * var(--font-scale, 1)); }
 [data-aura-app="frontend"] .text-3xl       { font-size: calc(1.875rem  * var(--font-scale, 1)); }
 [data-aura-app="frontend"] .text-4xl       { font-size: calc(2.25rem   * var(--font-scale, 1)); }
+/* ── Styled scrollbar ────────────────────────────────────────────────────────
+   Thin accent-coloured scrollbar for overflow containers.
+   scrollbar-gutter: stable reserves scrollbar space upfront so the layout
+   never shifts when the scrollbar appears or disappears.
+   ─────────────────────────────────────────────────────────────────────────── */
+.aura-scroll {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--accent, #888) 35%, transparent) transparent;
+}
+.aura-scroll::-webkit-scrollbar        { width: 5px; height: 5px; }
+.aura-scroll::-webkit-scrollbar-track  { background: transparent; }
+.aura-scroll::-webkit-scrollbar-thumb  {
+  background: color-mix(in srgb, var(--accent, #888) 35%, transparent);
+  border-radius: 99px;
+}
+.aura-scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--accent, #888) 60%, transparent);
+}
+.aura-scroll::-webkit-scrollbar-corner { background: transparent; }
+
 /* Arbitrary px sizes used in some widgets */
 [data-aura-app="frontend"] .text-\[9px\]  { font-size: calc(9px        * var(--font-scale, 1)); }
 [data-aura-app="frontend"] .text-\[10px\] { font-size: calc(10px       * var(--font-scale, 1)); }
