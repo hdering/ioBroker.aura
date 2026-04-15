@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.24",
+    "version": "0.4.25",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.25": {
+        "en": "Fix: trailing comma in io-package.json news section caused CI JSON parse error",
+        "de": "Fix: Trailing Comma in io-package.json news-Abschnitt verursachte JSON-Fehler im CI",
+        "ru": "Исправление: лишняя запятая в секции news io-package.json вызывала ошибку JSON в CI",
+        "pt": "Fix: vírgula extra na seção news do io-package.json causava erro JSON no CI",
+        "nl": "Fix: overtollige komma in news-sectie van io-package.json veroorzaakte JSON-fout in CI",
+        "fr": "Fix: virgule en trop dans la section news d'io-package.json causait une erreur JSON en CI",
+        "it": "Fix: virgola in eccesso nella sezione news di io-package.json causava errore JSON in CI",
+        "es": "Fix: coma sobrante en la sección news de io-package.json causaba error JSON en CI",
+        "pl": "Fix: nadmiarowy przecinek w sekcji news io-package.json powodował błąd JSON w CI",
+        "uk": "Виправлення: зайва кома в секції news io-package.json спричиняла помилку JSON у CI",
+        "zh-cn": "修复：io-package.json news 部分的尾随逗号导致 CI JSON 解析错误"
+      },
       "0.4.24": {
         "en": "Clock widget custom format: add EE token for abbreviated weekday (e.g. Mon)",
         "de": "Uhr-Widget Customformat: EE-Token für abgekürzten Wochentag hinzugefügt (z.B. Mo)",
@@ -183,19 +196,6 @@
         "pl": "Naprawa W3009/W3019: poprawiono grupę concurrency, deploy przeniesiony na npm trusted publishing (usunięto npm-token), poprawiono fileMatch jsonConfig (W4042)",
         "uk": "Виправлення W3009/W3019: виправлено групу concurrency, деплой переведено на npm trusted publishing (видалено npm-token), виправлено fileMatch jsonConfig (W4042)",
         "zh-cn": "修复 W3009/W3019：修正 concurrency group，将部署切换为 npm trusted publishing（移除 npm-token），修正 jsonConfig fileMatch（W4042）"
-      },
-      "0.4.17": {
-        "en": "Move main.js to root directory per ioBroker adapter convention",
-        "de": "main.js gemäß ioBroker-Adapter-Konvention ins Root-Verzeichnis verschoben",
-        "ru": "main.js перемещён в корневую директорию согласно конвенции адаптеров ioBroker",
-        "pt": "main.js movido para o diretório raiz conforme convenção de adaptadores ioBroker",
-        "nl": "main.js verplaatst naar de rootmap volgens ioBroker-adapterconventie",
-        "fr": "main.js déplacé dans le répertoire racine selon la convention des adaptateurs ioBroker",
-        "it": "main.js spostato nella directory radice secondo la convenzione degli adapter ioBroker",
-        "es": "main.js movido al directorio raíz según la convención de adaptadores ioBroker",
-        "pl": "main.js przeniesiony do katalogu głównego zgodnie z konwencją adapterów ioBroker",
-        "uk": "main.js переміщено до кореневої директорії згідно з конвенцією адаптерів ioBroker",
-        "zh-cn": "按 ioBroker 适配器约定将 main.js 移至根目录"
       }
     }
   },

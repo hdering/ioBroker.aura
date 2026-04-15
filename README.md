@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.25 (2026-04-15)
+- Fix: trailing comma in `io-package.json` news section caused CI JSON parse error
+
 ### 0.4.24 (2026-04-15)
 - Clock widget custom format: add `EE` token for abbreviated weekday (e.g. `Mo`)
 
