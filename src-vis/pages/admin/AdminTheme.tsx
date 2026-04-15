@@ -116,12 +116,14 @@ export function AdminTheme() {
       <div className="rounded-xl p-6" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{t('theme.vars.title')}</h2>
-          {Object.keys(customVars).length > 0 && (
-            <button onClick={resetCustom} className="text-xs px-3 py-1.5 rounded-lg hover:opacity-80"
-              style={{ background: 'var(--app-bg)', color: 'var(--accent-red)', border: '1px solid var(--app-border)' }}>
-              {t('theme.vars.resetAll')}
-            </button>
-          )}
+          <button
+            onClick={resetCustom}
+            disabled={Object.keys(customVars).length === 0}
+            className="text-xs px-3 py-1.5 rounded-lg hover:opacity-80 disabled:opacity-30 disabled:cursor-not-allowed"
+            style={{ background: 'var(--app-bg)', color: 'var(--accent-red)', border: '1px solid var(--app-border)' }}
+          >
+            {t('theme.vars.resetAll')}
+          </button>
         </div>
         <div className="space-y-6">
           {VAR_GROUPS.map(({ labelKey, keys }) => (
