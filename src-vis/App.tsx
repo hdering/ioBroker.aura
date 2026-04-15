@@ -128,48 +128,44 @@ function ConnectionBadge() {
 }
 
 // ── ConnectionIndicator ────────────────────────────────────────────────────
-// Always-on minimal dot: green for 2 s on startup, red while disconnected.
-// Renders as a fixed overlay when the full badge is not shown in the header.
+// Fixed-overlay dot: green for 2 s on startup, red while disconnected.
+// Always rendered; visible/hidden via opacity so it never shifts layout.
+// When the full badge is active it already shows "Getrennt" – the dot is
+// then suppressed for disconnects to avoid duplication.
 
-function ConnectionIndicator({ inHeader }: { inHeader: boolean }) {
+function ConnectionIndicator({ showBadge }: { showBadge: boolean }) {
   const { connected } = useIoBroker();
   const [startupVisible, setStartupVisible] = useState(true);
   const wasConnectedRef = useRef(false);
-  const [disconnected, setDisconnected] = useState(false);
+  const [everConnected, setEverConnected] = useState(false);
 
-  // Hide green dot after 2 s once connected for the first time
+  // On first connect: mark, then hide green dot after 2 s
   useEffect(() => {
     if (!connected) return;
     if (!wasConnectedRef.current) {
       wasConnectedRef.current = true;
+      setEverConnected(true);
       const t = setTimeout(() => setStartupVisible(false), 2000);
       return () => clearTimeout(t);
     }
   }, [connected]);
 
-  // Track disconnections after first connect
-  useEffect(() => {
-    if (!wasConnectedRef.current) return;
-    setDisconnected(!connected);
-  }, [connected]);
+  // Disconnect dot: red, only relevant once we were connected before
+  const disconnectDot  = everConnected && !connected && !showBadge;
 
-  const visible = startupVisible || disconnected;
-  if (!visible) return null;
+  const visible = startupVisible || disconnectDot;
+  const color   = (startupVisible && connected) ? 'var(--accent-green)' : 'var(--accent-red)';
+  // Suppress startup dot if badge covers it and we're connected (badge shows "Verbunden")
+  const suppressed = startupVisible && connected && showBadge;
 
-  const color = connected ? 'var(--accent-green)' : 'var(--accent-red)';
-  const dot = (
-    <span
-      className={`w-2.5 h-2.5 rounded-full ${connected ? 'animate-pulse' : ''}`}
-      style={{ background: color, boxShadow: `0 0 4px ${color}` }}
-    />
-  );
+  if (!visible || suppressed) return null;
 
-  if (inHeader) return dot;
-
-  // Fixed overlay when header is hidden
   return (
     <div className="fixed top-3 right-3 z-50 pointer-events-none">
-      {dot}
+      <span
+        className={`block w-3 h-3 rounded-full ${connected ? 'animate-pulse' : ''}`}
+        style={{ background: color, boxShadow: `0 0 6px ${color}` }}
+      />
     </div>
   );
 }
@@ -326,14 +322,11 @@ export default function App() {
 
   const layoutUrlBase = layoutSlug ? `/view/${layoutSlug}` : '';
 
-  // Show indicator dot in header only if badge is off; fixed overlay if header is off entirely
-  const showBadgeInHeader = frontend.showHeader && frontend.showConnectionBadge;
-  const showDotInHeader   = frontend.showHeader && !frontend.showConnectionBadge;
-  const showDotFixed      = !frontend.showHeader;
+  const showBadge = frontend.showHeader && frontend.showConnectionBadge;
 
   return (
     <div data-aura-app="frontend" className="aura-page h-full flex flex-col overflow-hidden" style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}>
-      {showDotFixed && <ConnectionIndicator inHeader={false} />}
+      <ConnectionIndicator showBadge={showBadge} />
       {frontend.showHeader && (
         <header className="flex items-center justify-between px-4 sm:px-6 py-4 shrink-0"
           style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)' }}>
@@ -341,8 +334,7 @@ export default function App() {
           <div className="flex items-center gap-3">
             {frontend.headerDatapoint && <HeaderDatapoint id={frontend.headerDatapoint} />}
             {frontend.headerClockEnabled && <HeaderClock f={frontend} />}
-            {showDotInHeader && <ConnectionIndicator inHeader={true} />}
-            {showBadgeInHeader && <ConnectionBadge />}
+            {showBadge && <ConnectionBadge />}
             <button
               onClick={() => setTheme(currentTheme.dark ? 'light' : 'dark')}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
