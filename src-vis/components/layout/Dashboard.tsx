@@ -8,8 +8,8 @@ import type { WidgetConfig } from '../../types';
 import type { Tab } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
 
-// Gap between grid cells (px)
-const MARGIN = 10;
+// Default gap — overridden by config at runtime
+const DEFAULT_MARGIN = 10;
 
 
 interface DashboardProps {
@@ -26,6 +26,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
   const activeLayout = useActiveLayout();
   const { updateWidget, updateLayouts, removeWidget } = useDashboardStore();
   const cellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);
+  const MARGIN = useConfigStore((s) => s.frontend.gridGap ?? DEFAULT_MARGIN);
   const mobileBreakpoint = useConfigStore((s) => s.frontend.mobileBreakpoint ?? 600);
 
   // In frontend view, use provided override; otherwise use active editor layout
@@ -164,7 +165,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
                   <p>{readonly ? t('frontend.noWidgets') : t('frontend.addWidgets')}</p>
                 </div>
               ) : (
-                <div className="flex flex-col gap-2.5">
+                <div className="flex flex-col" style={{ gap: MARGIN }}>
                   {sorted.map((w) => (
                     <div key={w.id} style={{ height: w.gridPos.h * cellSize + (w.gridPos.h - 1) * MARGIN }}>
                       <WidgetFrame config={w} editMode={false} onRemove={removeWidget} onConfigChange={(cfg) => updateWidget(cfg.id, cfg)} />

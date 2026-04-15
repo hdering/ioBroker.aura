@@ -246,6 +246,10 @@ export const en: Record<TranslationKey, string> = {
   'theme.typography.body':      'Body text',
   'theme.typography.small':     'Small / Label',
 
+  'theme.layout.title':       'Layout & Spacing',
+  'theme.layout.gap':         'Gap between widgets',
+  'theme.layout.padding':     'Widget inner padding',
+
   'theme.css.title':    'Global CSS',
   'theme.css.subtitle': 'Applied directly to the frontend. CSS variables, animations, font overrides, etc.',
   'theme.css.lines':    '{count} lines',

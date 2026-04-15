@@ -244,6 +244,10 @@ export const de = {
   'theme.typography.body':      'Fließtext',
   'theme.typography.small':     'Klein / Label',
 
+  'theme.layout.title':       'Layout & Abstände',
+  'theme.layout.gap':         'Abstand zwischen Widgets',
+  'theme.layout.padding':     'Innenabstand der Widgets',
+
   'theme.css.title':    'Globales CSS',
   'theme.css.subtitle': 'Wird direkt auf das Frontend angewendet. CSS-Variablen, Animationen, Font-Overrides etc.',
   'theme.css.lines':    '{count} Zeilen',

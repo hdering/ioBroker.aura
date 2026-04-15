@@ -6,6 +6,7 @@ import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Downl
 import { exportWidget } from '../../utils/widgetExportImport';
 import { ICON_PICKER_ENTRIES } from '../../utils/widgetIconMap';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
+import { useConfigStore } from '../../store/configStore';
 import type { WidgetConfig, WidgetCondition } from '../../types';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
@@ -794,6 +795,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
   const isHeader    = config.type === 'header';
   const isGroup     = config.type === 'group';
   const isTransparent = !!(config.options?.transparent);
+  const widgetPadding = useConfigStore((s) => s.frontend.widgetPadding ?? 16);
+  const isNoPad = isHeader || isGroup || isTransparent || config.type === 'iframe';
 
   return (
     <div
@@ -817,11 +820,12 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
         borderWidth: 'var(--widget-border-width)',
         borderStyle: 'solid',
         borderColor: 'var(--widget-border)',
+        padding: isNoPad ? undefined : widgetPadding,
         ...cssOverride,
         ...(!editMode && conditionResult.hidden && !conditionResult.reflow
           ? { visibility: 'hidden', pointerEvents: 'none' } : {}),
       }}
-      className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isHeader ? 'px-2 py-0' : (isGroup || isTransparent || config.type === 'iframe') ? 'p-0' : 'p-4'} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''}`}
+      className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''}`}
     >
       {editMode && conditionResult.hidden && (
         <div className="nodrag absolute inset-0 z-20 rounded-[inherit] flex items-start justify-end pointer-events-none p-1.5">

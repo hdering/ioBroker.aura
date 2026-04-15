@@ -3,6 +3,39 @@ import { useConfigStore } from '../../store/configStore';
 import { THEMES, getTheme, type ThemeVars } from '../../themes';
 import { useT } from '../../i18n';
 
+function SpacingSlider({ label, value, min, max, step, unit = 'px', onChange, presets }: {
+  label: string; value: number; min: number; max: number; step: number;
+  unit?: string; onChange: (v: number) => void;
+  presets: { label: string; value: number }[];
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{label}</p>
+        <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md"
+          style={{ background: 'var(--app-bg)', color: 'var(--accent)', border: '1px solid var(--app-border)' }}>
+          {value}{unit}
+        </span>
+      </div>
+      <input type="range" min={min} max={max} step={step} value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full accent-[var(--accent)] mb-2" />
+      <div className="flex gap-1.5 flex-wrap">
+        {presets.map((p) => {
+          const active = value === p.value;
+          return (
+            <button key={p.value} onClick={() => onChange(p.value)}
+              className="px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
+              style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
+              {p.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 const FONT_SCALE_PRESETS = [
   { label: 'XS', value: 0.8  },
   { label: 'S',  value: 0.9  },
@@ -207,6 +240,25 @@ export function AdminTheme() {
             {t('theme.typography.reset')}
           </button>
         )}
+      </div>
+
+      {/* Layout & Abstände */}
+      <div className="rounded-xl p-6 space-y-5" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
+        <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{t('theme.layout.title')}</h2>
+        <SpacingSlider
+          label={t('theme.layout.gap')}
+          value={frontend.gridGap ?? 10}
+          min={0} max={40} step={2} unit=" px"
+          onChange={(v) => updateFrontend({ gridGap: v })}
+          presets={[{ label: '0', value: 0 }, { label: '4', value: 4 }, { label: '8', value: 8 }, { label: '10', value: 10 }, { label: '16', value: 16 }, { label: '24', value: 24 }]}
+        />
+        <SpacingSlider
+          label={t('theme.layout.padding')}
+          value={frontend.widgetPadding ?? 16}
+          min={0} max={40} step={2} unit=" px"
+          onChange={(v) => updateFrontend({ widgetPadding: v })}
+          presets={[{ label: '0', value: 0 }, { label: '8', value: 8 }, { label: '12', value: 12 }, { label: '16', value: 16 }, { label: '24', value: 24 }]}
+        />
       </div>
 
       {/* Custom CSS */}
