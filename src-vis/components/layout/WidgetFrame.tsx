@@ -1377,7 +1377,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                         style={inputStyle}
                       />
                       <p className="text-[10px] mt-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
-                        Tokens: HH mm ss dd MM yyyy EEEE MMMM
+                        Tokens: HH mm ss dd MM yyyy EE EEEE MMMM
                       </p>
                     </div>
                   </>

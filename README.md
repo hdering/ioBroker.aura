@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.24 (2026-04-15)
+- Clock widget custom format: add `EE` token for abbreviated weekday (e.g. `Mo`)
+
 ### 0.4.23 (2026-04-14)
 - Fix W5039: remove `admin/words.js` – jsonConfig adapters use `admin/i18n/` directly
 

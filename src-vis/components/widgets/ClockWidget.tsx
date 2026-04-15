@@ -9,6 +9,7 @@ function pad(n: number) { return String(n).padStart(2, '0'); }
 function applyCustomFormat(date: Date, fmt: string, t: TFn): string {
   return fmt
     .replace('EEEE', t(`clock.day.${date.getDay()}` as Parameters<TFn>[0]))
+    .replace('EE', t(`cal.day.${date.getDay()}` as Parameters<TFn>[0]))
     .replace('MMMM', t(`clock.month.${date.getMonth()}` as Parameters<TFn>[0]))
     .replace('yyyy', String(date.getFullYear()))
     .replace('yy', String(date.getFullYear()).slice(-2))

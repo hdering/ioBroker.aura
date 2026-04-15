@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.23",
+    "version": "0.4.24",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.24": {
+        "en": "Clock widget custom format: add EE token for abbreviated weekday (e.g. Mon)",
+        "de": "Uhr-Widget Customformat: EE-Token für abgekürzten Wochentag hinzugefügt (z.B. Mo)",
+        "ru": "Виджет часов: добавлен токен EE для краткого названия дня недели (напр. Пн)",
+        "pt": "Widget relógio: token EE para dia da semana abreviado (ex.: Seg)",
+        "nl": "Klokwidget: EE-token toegevoegd voor afgekorte weekdag (bijv. Ma)",
+        "fr": "Widget horloge: jeton EE pour le jour de la semaine abrégé (ex. Lun)",
+        "it": "Widget orologio: token EE per il giorno della settimana abbreviato (es. Lun)",
+        "es": "Widget reloj: token EE para el día de la semana abreviado (ej. Lun)",
+        "pl": "Widget zegara: token EE dla skróconej nazwy dnia tygodnia (np. Pn)",
+        "uk": "Віджет годинника: токен EE для скороченої назви дня тижня (напр. Пн)",
+        "zh-cn": "时钟小部件自定义格式：添加 EE 标记用于缩写星期名称（如 周一）"
+      },
       "0.4.23": {
         "en": "Fix W5039: remove words.js – jsonConfig adapters use admin/i18n directly",
         "de": "W5039 behoben: words.js entfernt – jsonConfig-Adapter verwenden admin/i18n direkt",
@@ -184,19 +197,6 @@
         "uk": "main.js переміщено до кореневої директорії згідно з конвенцією адаптерів ioBroker",
         "zh-cn": "按 ioBroker 适配器约定将 main.js 移至根目录"
       },
-      "0.4.16": {
-        "en": "Adapter checker fixes: testing-action-deploy@v1, eslint flat config, admin/i18n, jsonConfig schema URL, dependabot cooldown",
-        "de": "Adapter-Checker-Fixes: testing-action-deploy@v1, ESLint Flat Config, admin/i18n, jsonConfig-Schema-URL, Dependabot Cooldown",
-        "ru": "Исправления adapter checker: testing-action-deploy@v1, ESLint flat config, admin/i18n, URL схемы jsonConfig, cooldown dependabot",
-        "pt": "Correções adapter checker: testing-action-deploy@v1, ESLint flat config, admin/i18n, URL do esquema jsonConfig, cooldown do dependabot",
-        "nl": "Adapter checker fixes: testing-action-deploy@v1, ESLint flat config, admin/i18n, jsonConfig schema-URL, dependabot cooldown",
-        "fr": "Corrections adapter checker: testing-action-deploy@v1, ESLint flat config, admin/i18n, URL schéma jsonConfig, cooldown dependabot",
-        "it": "Correzioni adapter checker: testing-action-deploy@v1, ESLint flat config, admin/i18n, URL schema jsonConfig, cooldown dependabot",
-        "es": "Correcciones adapter checker: testing-action-deploy@v1, ESLint flat config, admin/i18n, URL de esquema jsonConfig, cooldown de dependabot",
-        "pl": "Poprawki adapter checker: testing-action-deploy@v1, ESLint flat config, admin/i18n, URL schematu jsonConfig, cooldown dependabot",
-        "uk": "Виправлення adapter checker: testing-action-deploy@v1, ESLint flat config, admin/i18n, URL схеми jsonConfig, cooldown dependabot",
-        "zh-cn": "适配器检查器修复：testing-action-deploy@v1、ESLint flat config、admin/i18n、jsonConfig 架构 URL、dependabot cooldown"
-      }
     }
   },
   "native": {
