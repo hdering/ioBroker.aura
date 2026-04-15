@@ -67,6 +67,13 @@ export const en: Record<TranslationKey, string> = {
   'settings.frontend.showHeader':     'Show Header',
   'settings.frontend.dashboardTitle': 'Dashboard Title',
   'settings.frontend.connectionBadge':'Connection Status',
+  'settings.frontend.headerClock':          'Clock/Date in Header',
+  'settings.frontend.headerClockDisplay':   'Display',
+  'settings.frontend.headerClockSeconds':   'Seconds',
+  'settings.frontend.headerClockDateLen':   'Date format',
+  'settings.frontend.headerClockCustom':    'Custom format (empty = default)',
+  'settings.frontend.headerDatapoint':      'Datapoint in Header',
+  'settings.frontend.headerDatapointPh':    'e.g. hm-rpc.0.NEQ123.1.ACTUAL_TEMPERATURE',
 
   'settings.grid.title':        'Grid & Mobile',
   'settings.grid.rowHeight':    'Row Height',

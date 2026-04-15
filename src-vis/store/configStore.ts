@@ -7,6 +7,14 @@ export interface FrontendSettings {
   showHeader: boolean;
   headerTitle: string;
   showConnectionBadge: boolean;
+  // Header clock
+  headerClockEnabled: boolean;
+  headerClockDisplay: 'time' | 'date' | 'datetime';
+  headerClockShowSeconds: boolean;
+  headerClockDateLength: 'short' | 'long';
+  headerClockCustomFormat: string;
+  // Header datapoint
+  headerDatapoint: string;
   gridRowHeight: number;
   wizardMaxDatapoints: number;
   fontScale: number;
@@ -28,6 +36,12 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
   showHeader: true,
   headerTitle: 'Aura',
   showConnectionBadge: true,
+  headerClockEnabled: false,
+  headerClockDisplay: 'time',
+  headerClockShowSeconds: false,
+  headerClockDateLength: 'short',
+  headerClockCustomFormat: '',
+  headerDatapoint: '',
   gridRowHeight: 80,
   wizardMaxDatapoints: 500,
   fontScale: 1,

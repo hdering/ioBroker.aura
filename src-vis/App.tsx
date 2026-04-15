@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sun, Moon } from 'lucide-react';
-import { useIoBroker, getStateDirect, setStateDirect, setObjectDirect } from './hooks/useIoBroker';
+import { useIoBroker, getStateDirect, setStateDirect, setObjectDirect, subscribeStateDirect } from './hooks/useIoBroker';
 import { useConnectionStore } from './store/connectionStore';
 import { useConfigStore } from './store/configStore';
 import { useDashboardStore, useLayoutBySlug } from './store/dashboardStore';
@@ -10,7 +10,9 @@ import { getTheme } from './themes';
 import { useGroupStore } from './store/groupStore';
 import { Dashboard } from './components/layout/Dashboard';
 import { TabBar } from './components/layout/TabBar';
+import { useT } from './i18n';
 import type { Tab } from './store/dashboardStore';
+import type { FrontendSettings } from './store/configStore';
 
 const IOBROKER_CONFIG_KEY = 'aura.0.config.dashboard';
 const SYNC_STORE_KEYS = ['aura-dashboard', 'aura-theme', 'aura-groups', 'aura-config'] as const;
@@ -21,6 +23,97 @@ const STORE_REHYDRATORS: Record<string, () => void> = {
   'aura-groups':    () => useGroupStore.persist.rehydrate(),
   'aura-config':    () => useConfigStore.persist.rehydrate(),
 };
+
+// ── Shared clock helpers (mirrors ClockWidget) ─────────────────────────────
+
+type TFn = ReturnType<typeof useT>;
+
+function pad(n: number) { return String(n).padStart(2, '0'); }
+
+function applyCustomFormat(date: Date, fmt: string, t: TFn): string {
+  return fmt
+    .replace('EEEE', t(`clock.day.${date.getDay()}` as Parameters<TFn>[0]))
+    .replace('EE', t(`cal.day.${date.getDay()}` as Parameters<TFn>[0]))
+    .replace('MMMM', t(`clock.month.${date.getMonth()}` as Parameters<TFn>[0]))
+    .replace('yyyy', String(date.getFullYear()))
+    .replace('yy', String(date.getFullYear()).slice(-2))
+    .replace('MM', pad(date.getMonth() + 1))
+    .replace('dd', pad(date.getDate()))
+    .replace('HH', pad(date.getHours()))
+    .replace('hh', pad(date.getHours() % 12 || 12))
+    .replace('mm', pad(date.getMinutes()))
+    .replace('ss', pad(date.getSeconds()));
+}
+
+function fmtTime(date: Date, showSeconds: boolean) {
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}${showSeconds ? ':' + pad(date.getSeconds()) : ''}`;
+}
+
+function fmtDate(date: Date, length: 'short' | 'long', t: TFn) {
+  if (length === 'long') {
+    return `${t(`clock.day.${date.getDay()}` as Parameters<TFn>[0])}, ${date.getDate()}. ${t(`clock.month.${date.getMonth()}` as Parameters<TFn>[0])} ${date.getFullYear()}`;
+  }
+  return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
+}
+
+// ── HeaderClock ────────────────────────────────────────────────────────────
+
+function HeaderClock({ f }: { f: FrontendSettings }) {
+  const t = useT();
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (f.headerClockCustomFormat) {
+    return (
+      <span className="text-sm font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
+        {applyCustomFormat(now, f.headerClockCustomFormat, t)}
+      </span>
+    );
+  }
+
+  const timeStr = fmtTime(now, f.headerClockShowSeconds);
+  const dateStr = fmtDate(now, f.headerClockDateLength, t);
+
+  if (f.headerClockDisplay === 'datetime') {
+    return (
+      <div className="flex flex-col items-end leading-tight">
+        <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>{timeStr}</span>
+        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{dateStr}</span>
+      </div>
+    );
+  }
+
+  const text = f.headerClockDisplay === 'date' ? dateStr : timeStr;
+  return (
+    <span className="text-sm font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
+      {text}
+    </span>
+  );
+}
+
+// ── HeaderDatapoint ────────────────────────────────────────────────────────
+
+function HeaderDatapoint({ id }: { id: string }) {
+  const [val, setVal] = useState<string>('…');
+  useEffect(() => {
+    if (!id) return;
+    const unsub = subscribeStateDirect(id, (state) => {
+      setVal(state?.val != null ? String(state.val) : '–');
+    });
+    return unsub;
+  }, [id]);
+
+  return (
+    <span className="text-sm font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
+      {val}
+    </span>
+  );
+}
+
+// ── ConnectionBadge ────────────────────────────────────────────────────────
 
 function ConnectionBadge() {
   const { connected } = useIoBroker();
@@ -190,6 +283,8 @@ export default function App() {
           style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)' }}>
           <h1 className="text-xl font-bold tracking-tight">{frontend.headerTitle || 'Aura'}</h1>
           <div className="flex items-center gap-3">
+            {frontend.headerDatapoint && <HeaderDatapoint id={frontend.headerDatapoint} />}
+            {frontend.headerClockEnabled && <HeaderClock f={frontend} />}
             {frontend.showConnectionBadge && <ConnectionBadge />}
             <button
               onClick={() => setTheme(currentTheme.dark ? 'light' : 'dark')}

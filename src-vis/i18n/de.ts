@@ -65,6 +65,13 @@ export const de = {
   'settings.frontend.showHeader':     'Header anzeigen',
   'settings.frontend.dashboardTitle': 'Dashboard-Titel',
   'settings.frontend.connectionBadge':'Verbindungsstatus',
+  'settings.frontend.headerClock':          'Uhrzeit/Datum im Header',
+  'settings.frontend.headerClockDisplay':   'Anzeige',
+  'settings.frontend.headerClockSeconds':   'Sekunden',
+  'settings.frontend.headerClockDateLen':   'Datumsformat',
+  'settings.frontend.headerClockCustom':    'Eigenes Format (leer = Standard)',
+  'settings.frontend.headerDatapoint':      'Datenpunkt im Header',
+  'settings.frontend.headerDatapointPh':    'z.B. hm-rpc.0.NEQ123.1.ACTUAL_TEMPERATURE',
 
   'settings.grid.title':         'Grid & Mobil',
   'settings.grid.rowHeight':     'Zeilenhöhe',
