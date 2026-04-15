@@ -183,12 +183,15 @@ export default function App() {
       const raw = String(state.val);
       if (raw === '{"widgets":[]}' || raw === '{}') return; // factory default – nothing to load
       try {
-        const remote = JSON.parse(raw) as Record<string, string | null>;
+        const remote = JSON.parse(raw) as Record<string, unknown>;
         let changed = false;
         SYNC_STORE_KEYS.forEach((key) => {
           const remoteVal = remote[key];
-          if (remoteVal && remoteVal !== localStorage.getItem(key)) {
-            localStorage.setItem(key, remoteVal);
+          if (!remoteVal) return;
+          // Support both old format (pre-serialized string) and new format (parsed object)
+          const remoteStr = typeof remoteVal === 'string' ? remoteVal : JSON.stringify(remoteVal);
+          if (remoteStr && remoteStr !== localStorage.getItem(key)) {
+            localStorage.setItem(key, remoteStr);
             changed = true;
           }
         });

@@ -42,12 +42,14 @@ export function revertAll(rehydrateFns: Array<() => void>): void {
  * Must be called AFTER saveAll() so localStorage is up-to-date.
  */
 export function saveToIoBroker(): void {
-  const payload: Record<string, string | null> = {};
+  const payload: Record<string, unknown> = {};
   SYNC_STORE_KEYS.forEach((key) => {
-    payload[key] = localStorage.getItem(key);
+    const raw = localStorage.getItem(key);
+    try { payload[key] = raw ? JSON.parse(raw) : null; }
+    catch { payload[key] = raw; }
   });
   try {
-    setStateDirect(IOBROKER_CONFIG_KEY, JSON.stringify(payload));
+    setStateDirect(IOBROKER_CONFIG_KEY, JSON.stringify(payload, null, 2));
   } catch { /* socket not yet connected – silently skip */ }
 }
 
