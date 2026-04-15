@@ -81,7 +81,7 @@ function DatapointPicker({ onAdd, onClose }: { onAdd: (dps: GroupDatapoint[]) =>
               </select>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-3 space-y-1">
+            <div className="aura-scroll flex-1 overflow-y-auto px-5 py-3 space-y-1">
               {filtered.map((device) => {
                 const deviceSelected = device.states.filter((s) => selected.has(s.id)).length;
                 const allChecked = deviceSelected === device.states.length;

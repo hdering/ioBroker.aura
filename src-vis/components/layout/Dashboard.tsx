@@ -139,7 +139,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
   // ── mobile: single-column stack ───────────────────────────────────────
   if (containerWidth > 0 && containerWidth < mobileBreakpoint) {
     return (
-      <div ref={containerRef} className="flex-1 min-h-0 overflow-auto p-2">
+      <div ref={containerRef} className="aura-scroll flex-1 min-h-0 overflow-auto p-2">
         {/* Reflow-hidden widgets from all tabs rendered off-screen */}
         <div style={{ position: 'fixed', top: -9999, left: -9999, width: 1, height: 1, overflow: 'hidden', pointerEvents: 'none', opacity: 0 }}>
           {tabs.flatMap((tab) =>
@@ -180,7 +180,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
   }
 
   return (
-    <div ref={containerRef} className="flex-1 min-h-0 overflow-auto p-2 sm:p-4" style={(editMode && rglWidth > containerWidth) || (readonly && effectiveRglWidth > containerWidth) ? { overflowX: 'auto' } : undefined}>
+    <div ref={containerRef} className="aura-scroll flex-1 min-h-0 overflow-auto p-2 sm:p-4" style={(editMode && rglWidth > containerWidth) || (readonly && effectiveRglWidth > containerWidth) ? { overflowX: 'auto' } : undefined}>
       {rglWidth > 0 && (
         <>
           {/* Reflow-hidden widgets from all tabs rendered off-screen so conditions keep evaluating */}

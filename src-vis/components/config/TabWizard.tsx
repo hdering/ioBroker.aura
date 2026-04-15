@@ -316,7 +316,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
         `}</style>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 min-h-0">
+        <div className="aura-scroll flex-1 overflow-y-auto p-6 min-h-0">
 
           {/* ── STEP: mode ── */}
           {step === 'mode' && (
@@ -440,7 +440,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
                 {search && <button onClick={() => setSearch('')}><X size={11} style={{ color: 'var(--text-secondary)' }} /></button>}
               </div>
 
-              <div className="space-y-1 max-h-72 overflow-y-auto">
+              <div className="aura-scroll space-y-1 max-h-72 overflow-y-auto">
                 {filteredWidgets.map((w) => {
                   const on = selected.has(w.datapoint.id);
                   return (
@@ -519,7 +519,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
 
               {/* Preview of groups */}
               {groupBy !== 'none' && detectedGroups.size > 0 && (
-                <div className="space-y-2 max-h-56 overflow-y-auto">
+                <div className="aura-scroll space-y-2 max-h-56 overflow-y-auto">
                   {Array.from(detectedGroups.entries()).map(([label, widgets], gi) => (
                     <div key={label} className="rounded-xl overflow-hidden"
                       style={{ border: '1px solid var(--app-border)' }}>
@@ -555,7 +555,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
                   ? t('wizard.tab.readingDp')
                   : t('wizard.tab.foundHomeDp', { count: homeWidgets.length })}
               </p>
-              <div className="space-y-3 max-h-72 overflow-y-auto">
+              <div className="aura-scroll space-y-3 max-h-72 overflow-y-auto">
                 {(homeSections as HomepageCategory[]).map((sec) => (
                   <div key={sec.label}>
                     <p className="text-[11px] font-semibold mb-1 px-1" style={{ color: 'var(--text-secondary)' }}>{sec.label}</p>

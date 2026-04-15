@@ -292,7 +292,7 @@ function MobileOrderPanel({ layoutId, tabId }: { layoutId: string; tabId: string
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-1">
+      <div className="aura-scroll flex-1 overflow-y-auto p-3 space-y-1">
         {sorted.length === 0 ? (
           <p className="text-xs text-center py-8" style={{ color: 'var(--text-secondary)' }}>
             {t('editor.tab.noWidgets')}
@@ -487,7 +487,7 @@ export function AdminEditor() {
 
       {/* Dashboard-Vorschau mit Edit-Modus */}
       <div className="flex-1 flex overflow-hidden" style={{ background: 'var(--app-bg)' }}>
-        <div className="flex-1 overflow-auto">
+        <div className="aura-scroll flex-1 overflow-auto">
           <Dashboard editMode={true} />
         </div>
         {showMobileOrder && (
@@ -529,7 +529,7 @@ export function AdminEditor() {
         <>
           <div className="fixed inset-0 z-[998]" onClick={() => setSettingsTabId(null)} />
           <div
-            className="fixed z-[999] rounded-xl shadow-2xl p-3 space-y-3 w-64 overflow-y-auto"
+            className="aura-scroll fixed z-[999] rounded-xl shadow-2xl p-3 space-y-3 w-64 overflow-y-auto"
             style={{ top: panelPos.top, left: panelPos.left, maxHeight: `calc(100vh - ${panelPos.top + 12}px)`, background: 'var(--app-surface)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--app-border)' }}
           >
             <div className="flex items-center justify-between">

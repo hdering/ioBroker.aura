@@ -65,7 +65,7 @@ export function ThemeSelector() {
           </div>
 
           {tab === 'presets' && (
-            <div className="p-3 space-y-2 max-h-80 overflow-y-auto">
+            <div className="aura-scroll p-3 space-y-2 max-h-80 overflow-y-auto">
               {THEMES.map((theme) => (
                 <button
                   key={theme.id}
@@ -98,7 +98,7 @@ export function ThemeSelector() {
           )}
 
           {tab === 'custom' && (
-            <div className="p-3 space-y-2 max-h-80 overflow-y-auto">
+            <div className="aura-scroll p-3 space-y-2 max-h-80 overflow-y-auto">
               <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>
                 Basierend auf: <strong style={{ color: 'var(--text-primary)' }}>{activeTheme.name}</strong>
               </p>

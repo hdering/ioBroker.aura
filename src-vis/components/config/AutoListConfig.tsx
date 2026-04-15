@@ -71,7 +71,7 @@ function MultiSelect({
               />
             </div>
           )}
-          <div className="max-h-56 overflow-y-auto">
+          <div className="aura-scroll max-h-56 overflow-y-auto">
             {filtered.length === 0 && (
               <p className="text-[10px] p-2 text-center" style={{ color: 'var(--text-secondary)' }}>
                 Keine Ergebnisse
@@ -346,7 +346,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                 onClick={() => setSelected(new Set())}>{t('common.none')}</button>
             </div>
           </div>
-          <div className="space-y-0.5 max-h-56 overflow-y-auto -mx-1 px-1">
+          <div className="aura-scroll space-y-0.5 max-h-56 overflow-y-auto -mx-1 px-1">
             {results.map(dp => (
               <label key={dp.id}
                 className="flex items-center gap-2 px-2.5 py-2 rounded cursor-pointer hover:opacity-90"
@@ -386,7 +386,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
           {t('autolist.datapoints')} {(opts.entries ?? []).length > 0 && `(${opts.entries.length})`}
         </label>
         {(opts.entries ?? []).length > 0 && (
-          <div className="space-y-1 max-h-72 overflow-y-auto mb-1.5">
+          <div className="aura-scroll space-y-1 max-h-72 overflow-y-auto mb-1.5">
             {opts.entries.map(e => (
               <EntryConfigRow
                 key={e.id}

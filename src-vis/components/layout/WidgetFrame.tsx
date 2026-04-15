@@ -375,7 +375,7 @@ function CenteredModal({
             <X size={15} />
           </button>
         </div>
-        <div className="overflow-y-auto flex-1 p-4 space-y-2.5">
+        <div className="aura-scroll overflow-y-auto flex-1 p-4 space-y-2.5">
           {children}
         </div>
       </div>

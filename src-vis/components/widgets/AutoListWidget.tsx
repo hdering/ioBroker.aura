@@ -269,7 +269,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
       )}
 
       {entries.length > 0 && (
-        <div className="flex-1 overflow-auto min-h-0">
+        <div className="aura-scroll flex-1 overflow-auto min-h-0">
           {entries.map(entry => {
             const state = states[entry.id] ?? null;
             const label = entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id;

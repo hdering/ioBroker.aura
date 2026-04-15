@@ -104,7 +104,7 @@ export function ListWidget({ config }: WidgetProps) {
       </div>
 
       {/* Liste */}
-      <div className="flex-1 overflow-y-auto space-y-1 min-h-0">
+      <div className="aura-scroll flex-1 overflow-y-auto space-y-1 min-h-0">
         {filtered.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>

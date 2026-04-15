@@ -195,7 +195,7 @@ export function WeatherWidget({ config }: WidgetProps) {
   // ── Warnings-only mode ────────────────────────────────────────────────────
   if (!showWeather && showWarnings) {
     return (
-      <div className="flex flex-col h-full gap-1.5 overflow-auto">
+      <div className="aura-scroll flex flex-col h-full gap-1.5 overflow-auto">
         {locationName && (
           <div className="shrink-0 text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
             {locationName}
@@ -321,7 +321,7 @@ export function WeatherWidget({ config }: WidgetProps) {
 
   // ── DEFAULT / CARD ────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full gap-2 overflow-auto">
+    <div className="aura-scroll flex flex-col h-full gap-2 overflow-auto">
       {config.title && !config.options?.hideTitle && (
         <p className="text-xs truncate mb-1" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
       )}

@@ -125,7 +125,7 @@ export function DeviceWizard({ onAdd, onClose }: DeviceWizardProps) {
             </div>
 
             {/* Liste */}
-            <div className="flex-1 overflow-y-auto px-6 py-3 space-y-2">
+            <div className="aura-scroll flex-1 overflow-y-auto px-6 py-3 space-y-2">
               {filtered.map((device) => {
                 const cnt = Array.from(selections.values()).filter((s) => s.device.id === device.id).length;
                 return (

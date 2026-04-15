@@ -89,7 +89,7 @@ export function AdminLayout() {
       background: adminTheme.vars['--app-bg'],
       color: adminTheme.vars['--text-primary'],
     }}>
-      <aside className="w-56 shrink-0 flex flex-col h-screen sticky top-0 overflow-y-auto" style={{ background: 'var(--app-surface)', borderRight: '1px solid var(--app-border)' }}>
+      <aside className="aura-scroll w-56 shrink-0 flex flex-col h-screen sticky top-0 overflow-y-auto" style={{ background: 'var(--app-surface)', borderRight: '1px solid var(--app-border)' }}>
         <div className="px-5 py-5 border-b shrink-0 flex items-center justify-between" style={{ borderColor: 'var(--app-border)' }}>
           <div title="Adaptive Unified Room Automation">
             <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: 'var(--text-secondary)' }}>Aura</p>
@@ -172,7 +172,7 @@ export function AdminLayout() {
           )}
         </div>
 
-        <main className="flex-1 overflow-auto">
+        <main className="aura-scroll flex-1 overflow-auto">
           <Outlet />
         </main>
       </div>

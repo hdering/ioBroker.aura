@@ -132,7 +132,7 @@ export function AdminDashboard() {
 
         <div className="rounded-lg px-4 py-3 space-y-1" style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
           <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.nav.example')}</p>
-          <pre className="text-xs font-mono overflow-x-auto" style={{ color: 'var(--text-primary)' }}>{`setState('aura.0.navigate.url', '${tabs[0]?.slug ?? 'dashboard'}');`}</pre>
+          <pre className="aura-scroll text-xs font-mono overflow-x-auto" style={{ color: 'var(--text-primary)' }}>{`setState('aura.0.navigate.url', '${tabs[0]?.slug ?? 'dashboard'}');`}</pre>
           <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.nav.externalUrl')}</p>
         </div>
       </div>

@@ -133,7 +133,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
 
   return (
     <div
-      className="flex flex-col gap-0 overflow-y-auto"
+      className="aura-scroll flex flex-col gap-0 overflow-y-auto"
       style={{ maxHeight: '80vh' }}
     >
       {/* ── Series list ──────────────────────────────────────────────────── */}

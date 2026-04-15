@@ -680,7 +680,7 @@ export function EvccWidget({ config }: WidgetProps) {
   // ── Layout: loadpoints only ───────────────────────────────────────────────
   if (layout === 'loadpoints') {
     return (
-      <div className="flex flex-col gap-2 h-full overflow-auto">
+      <div className="aura-scroll flex flex-col gap-2 h-full overflow-auto">
         {visLps.map(({ lp, idx }) => (
           <LoadpointCard key={idx} lp={lp} idx={idx} prefix={prefix} compact={false} />
         ))}
@@ -703,7 +703,7 @@ export function EvccWidget({ config }: WidgetProps) {
   // ── Layout: flow (SVG node graph) ────────────────────────────────────────
   if (layout === 'flow') {
     return (
-      <div className="flex flex-col gap-2 h-full overflow-auto">
+      <div className="aura-scroll flex flex-col gap-2 h-full overflow-auto">
         {config.title && !config.options?.hideTitle && (
           <p className="text-xs truncate shrink-0" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
         )}
@@ -719,7 +719,7 @@ export function EvccWidget({ config }: WidgetProps) {
 
   // ── Layout: default / card ────────────────────────────────────────────────
   return (
-    <div className="flex flex-col gap-2 h-full overflow-auto">
+    <div className="aura-scroll flex flex-col gap-2 h-full overflow-auto">
       {config.title && !config.options?.hideTitle && (
         <p className="text-xs truncate shrink-0" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
       )}

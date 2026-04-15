@@ -170,7 +170,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
 
   return (
     <>
-      <div className="flex items-center gap-1 px-4 overflow-x-auto shrink-0"
+      <div className="aura-scroll flex items-center gap-1 px-4 overflow-x-auto shrink-0"
         style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)' }}>
         {tabs.map((tab) => {
           const isActive = tab.id === activeTabId;

@@ -128,7 +128,7 @@ export function DatapointPicker({ currentValue, onSelect, onClose }: DatapointPi
         )}
 
         {/* List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="aura-scroll flex-1 overflow-y-auto">
           {!loaded && loading ? (
             <div className="flex items-center justify-center py-16 gap-3">
               <div
