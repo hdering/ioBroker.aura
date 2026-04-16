@@ -120,17 +120,13 @@ function GaugeSVG({
         {displayVal}{unit && <tspan fontSize={13} fill="var(--text-secondary)" dx={2}>{unit}</tspan>}
       </text>
 
-      {/* Min/Max labels */}
-      {showMinMax && (() => {
-        const minPt = polarToCartesian(cx, cy, r + 14, -180);
-        const maxPt = polarToCartesian(cx, cy, r + 14,    0);
-        return (
-          <>
-            <text x={minPt.x + 2} y={minPt.y + 4} fontSize={9} fill="var(--text-secondary)" textAnchor="start">{min}</text>
-            <text x={maxPt.x - 2} y={maxPt.y + 4} fontSize={9} fill="var(--text-secondary)" textAnchor="end">{max}</text>
-          </>
-        );
-      })()}
+      {/* Min/Max labels – centred below the arc endpoints, clear of the stroke */}
+      {showMinMax && (
+        <>
+          <text x={cx - r} y={cy + 16} fontSize={10} fill="var(--text-secondary)" textAnchor="middle">{min}</text>
+          <text x={cx + r} y={cy + 16} fontSize={10} fill="var(--text-secondary)" textAnchor="middle">{max}</text>
+        </>
+      )}
     </svg>
   );
 }
