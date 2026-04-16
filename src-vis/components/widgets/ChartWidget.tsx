@@ -1,9 +1,12 @@
+import { useState, useEffect } from 'react';
 import { LineChart, Line, AreaChart, Area, ResponsiveContainer, Tooltip, YAxis, XAxis } from 'recharts';
 import { TrendingUp, BarChart2, Loader } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfigStore } from '../../store/configStore';
 import { useChartHistory, type ChartTimeRange, RANGE_LABELS } from '../../hooks/useChartHistory';
 import type { WidgetProps } from '../../types';
+
+const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
 function formatTick(ts: number, rangeMs: number): string {
   const d = new Date(ts);
@@ -25,22 +28,32 @@ export function ChartWidget({ config }: WidgetProps) {
 
   const unit            = (config.options?.unit as string | undefined);
   const historyInstance = (config.options?.historyInstance as string | undefined);
-  const timeRange       = ((config.options?.historyRange as ChartTimeRange | undefined) ?? '24h');
+  const cfgRange        = ((config.options?.historyRange as ChartTimeRange | undefined) ?? '24h');
   const customVal       = (config.options?.historyRangeCustomValue as number | undefined) ?? 24;
   const customUnit      = (config.options?.historyRangeCustomUnit as 'h' | 'd' | undefined) ?? 'h';
-  const customRangeMs   = timeRange === 'custom'
+  const cfgCustomMs     = cfgRange === 'custom'
     ? customVal * (customUnit === 'd' ? 86_400_000 : 3_600_000)
     : undefined;
-  const effectiveRangeMs = customRangeMs ?? ({ '1h': 3_600_000, '6h': 21_600_000, '24h': 86_400_000, '7d': 604_800_000, '30d': 2_592_000_000 } as Record<string, number>)[timeRange] ?? 86_400_000;
   const layout          = config.layout ?? 'default';
+
+  // ── Frontend-local range selection (starts from admin config, switchable at runtime) ──
+  const [activeRange, setActiveRange]       = useState<ChartTimeRange>(cfgRange);
+  const [activeCustomMs, setActiveCustomMs] = useState<number | undefined>(cfgCustomMs);
+
+  // Reset when admin config changes
+  useEffect(() => { setActiveRange(cfgRange); setActiveCustomMs(cfgCustomMs); }, [cfgRange, cfgCustomMs]);
+
+  const effectiveRangeMs = activeRange === 'custom'
+    ? (activeCustomMs ?? 86_400_000)
+    : ({ '1h': 3_600_000, '6h': 21_600_000, '24h': 86_400_000, '7d': 604_800_000, '30d': 2_592_000_000 } as Record<string, number>)[activeRange] ?? 86_400_000;
 
   const { history, current, loading } = useChartHistory(
     config.datapoint,
     historyInstance,
-    timeRange,
+    activeRange,
     connected,
     subscribe,
-    customRangeMs,
+    activeCustomMs,
   );
 
   const tooltipStyle = {
@@ -63,14 +76,48 @@ export function ChartWidget({ config }: WidgetProps) {
   );
 
   const rangeLabel = historyInstance
-    ? (timeRange === 'custom' ? `${customVal} ${customUnit === 'd' ? 'Tage' : 'Std'}` : RANGE_LABELS[timeRange])
+    ? (activeRange === 'custom' ? `${customVal} ${customUnit === 'd' ? 'Tage' : 'Std'}` : RANGE_LABELS[activeRange])
     : null;
+
+  // Range selector shown only when a history adapter is configured
+  const rangeSelector = historyInstance ? (
+    <div className="flex gap-1 flex-wrap">
+      {PRESET_RANGES.map((r) => {
+        const active = activeRange === r;
+        return (
+          <button
+            key={r}
+            className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+            style={{
+              background: active ? 'var(--accent)' : 'var(--app-border)',
+              color: active ? '#fff' : 'var(--text-secondary)',
+            }}
+            onClick={() => { setActiveRange(r); setActiveCustomMs(undefined); }}
+          >
+            {RANGE_LABELS[r]}
+          </button>
+        );
+      })}
+      {cfgRange === 'custom' && (
+        <button
+          className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+          style={{
+            background: activeRange === 'custom' ? 'var(--accent)' : 'var(--app-border)',
+            color: activeRange === 'custom' ? '#fff' : 'var(--text-secondary)',
+          }}
+          onClick={() => { setActiveRange('custom'); setActiveCustomMs(cfgCustomMs); }}
+        >
+          {customVal}{customUnit === 'd' ? 'd' : 'h'}
+        </button>
+      )}
+    </div>
+  ) : null;
 
   // ── CARD ─────────────────────────────────────────────────────────────────
   if (layout === 'card') {
     return (
       <div className="flex flex-col h-full">
-        <div className="flex items-start justify-between mb-2">
+        <div className="flex items-start justify-between mb-1">
           <div>
             <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
             {current !== null && (
@@ -80,11 +127,9 @@ export function ChartWidget({ config }: WidgetProps) {
               </p>
             )}
           </div>
-          <div className="flex items-center gap-1.5">
-            {rangeLabel && <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{rangeLabel}</span>}
-            <TrendingUp size={18} style={{ color: 'var(--accent)' }} />
-          </div>
+          <TrendingUp size={18} style={{ color: 'var(--accent)' }} />
         </div>
+        {rangeSelector && <div className="mb-1.5">{rangeSelector}</div>}
         <div className="flex-1 min-h-0">
           {history.length > 1 ? (
             <ResponsiveContainer width="100%" height="100%">
@@ -161,15 +206,13 @@ export function ChartWidget({ config }: WidgetProps) {
     <div className="flex flex-col h-full">
       <div className="flex justify-between items-start mb-1">
         <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
-        <div className="flex items-center gap-1.5 shrink-0">
-          {rangeLabel && <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{rangeLabel}</span>}
-          {current !== null && (
-            <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
-              {current.toLocaleString('de-DE')}{unit ? ` ${unit}` : ''}
-            </span>
-          )}
-        </div>
+        {current !== null && (
+          <span className="font-bold text-sm shrink-0 ml-2" style={{ color: 'var(--text-primary)' }}>
+            {current.toLocaleString('de-DE')}{unit ? ` ${unit}` : ''}
+          </span>
+        )}
       </div>
+      {rangeSelector && <div className="mb-1">{rangeSelector}</div>}
       <div className="flex-1 min-h-0">
         {history.length > 1 ? (
           <ResponsiveContainer width="100%" height="100%">
