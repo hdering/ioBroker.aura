@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Settings } from 'lucide-react';
 import { useIoBroker, getStateDirect, setStateDirect, setObjectDirect, subscribeStateDirect } from './hooks/useIoBroker';
 import { useConnectionStore } from './store/connectionStore';
 import { useConfigStore } from './store/configStore';
@@ -346,6 +346,16 @@ export default function App() {
             {frontend.headerDatapoint && <HeaderDatapoint id={frontend.headerDatapoint} />}
             {frontend.headerClockEnabled && <HeaderClock f={frontend} />}
             {showBadge && <ConnectionBadge />}
+            {frontend.showAdminLink && (
+              <a
+                href="#/admin"
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
+                style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+                title="Admin"
+              >
+                <Settings size={15} />
+              </a>
+            )}
             <button
               onClick={() => setTheme(currentTheme.dark ? 'light' : 'dark')}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"

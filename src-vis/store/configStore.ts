@@ -7,6 +7,7 @@ export interface FrontendSettings {
   showHeader: boolean;
   headerTitle: string;
   showConnectionBadge: boolean;
+  showAdminLink: boolean;
   // Header clock
   headerClockEnabled: boolean;
   headerClockDisplay: 'time' | 'date' | 'datetime';
@@ -39,6 +40,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
   showHeader: true,
   headerTitle: 'Aura',
   showConnectionBadge: true,
+  showAdminLink: false,
   headerClockEnabled: false,
   headerClockDisplay: 'time',
   headerClockShowSeconds: false,

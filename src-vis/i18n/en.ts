@@ -76,6 +76,7 @@ export const en: Record<TranslationKey, string> = {
   'settings.frontend.showHeader':     'Show Header',
   'settings.frontend.dashboardTitle': 'Dashboard Title',
   'settings.frontend.connectionBadge':'Connection Status',
+  'settings.frontend.showAdminLink':  'Show Admin Link in Header',
   'settings.frontend.headerClock':          'Clock/Date in Header',
   'settings.frontend.headerClockDisplay':   'Display',
   'settings.frontend.headerClockSeconds':   'Seconds',

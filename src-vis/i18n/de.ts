@@ -74,6 +74,7 @@ export const de = {
   'settings.frontend.showHeader':     'Header anzeigen',
   'settings.frontend.dashboardTitle': 'Dashboard-Titel',
   'settings.frontend.connectionBadge':'Verbindungsstatus',
+  'settings.frontend.showAdminLink':  'Admin-Link im Header anzeigen',
   'settings.frontend.headerClock':          'Uhrzeit/Datum im Header',
   'settings.frontend.headerClockDisplay':   'Anzeige',
   'settings.frontend.headerClockSeconds':   'Sekunden',

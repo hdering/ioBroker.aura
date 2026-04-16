@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.29 (2026-04-16)
+- Frontend: optional admin link button in header, configurable in Settings
+
 ### 0.4.28 (2026-04-16)
 - Editor: widget ID moved to dialog title bar in parentheses next to "Widget Bearbeiten"; edit dialog is draggable (no backdrop)
 
