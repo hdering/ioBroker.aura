@@ -2083,6 +2083,11 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                 );
               })()}
           </div>
+
+          {/* Widget ID – for CSS targeting */}
+          <p className="text-[10px] font-mono text-right select-all mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.4 }}>
+            {config.id}
+          </p>
         </CenteredModal>
       )}
 
