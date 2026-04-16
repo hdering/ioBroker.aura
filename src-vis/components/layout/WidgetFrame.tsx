@@ -11,6 +11,7 @@ import type { WidgetConfig, WidgetCondition } from '../../types';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
 import { getObjectDirect, subscribeStateDirect, getStateDirect } from '../../hooks/useIoBroker';
+import { lookupDatapointEntry } from '../../hooks/useDatapointList';
 import { WIDGET_REGISTRY, WIDGET_GROUPS } from '../../widgetRegistry';
 import { AutoListConfig } from '../config/AutoListConfig';
 import { WidgetPreview } from '../config/WidgetPreview';
@@ -1467,6 +1468,19 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                       type="text"
                       value={config.datapoint}
                       onChange={(e) => onConfigChange({ ...config, datapoint: e.target.value })}
+                      onBlur={(e) => {
+                        const id = e.target.value.trim();
+                        if (!id) return;
+                        const entry = lookupDatapointEntry(id);
+                        if (!entry) return;
+                        const supportsUnit = ['value', 'chart', 'gauge', 'fill'].includes(config.type);
+                        let updated: typeof config = { ...config, datapoint: id };
+                        if (!updated.title?.trim() && entry.name) updated = { ...updated, title: entry.name };
+                        if (supportsUnit && !(updated.options?.unit as string | undefined) && entry.unit) {
+                          updated = { ...updated, options: { ...updated.options, unit: entry.unit } };
+                        }
+                        onConfigChange(updated);
+                      }}
                       className="flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0"
                       style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
                     />

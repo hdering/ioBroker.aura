@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { WidgetConfig, WidgetType } from '../../types';
 import { useT } from '../../i18n';
+import { lookupDatapointEntry, useDatapointList, isCacheStale } from '../../hooks/useDatapointList';
 
 interface AddWidgetDialogProps {
   onAdd: (config: WidgetConfig) => void;
@@ -22,6 +23,12 @@ export function AddWidgetDialog({ onAdd, onClose }: AddWidgetDialogProps) {
   const [title, setTitle] = useState('');
   const [datapoint, setDatapoint] = useState('');
   const [unit, setUnit] = useState('');
+  const { load } = useDatapointList();
+
+  // Pre-load the cache silently so lookupDatapointEntry works when user types a datapoint ID
+  useEffect(() => {
+    if (isCacheStale()) load();
+  }, [load]);
 
   const handleAdd = () => {
     if (!datapoint.trim()) return;
@@ -70,6 +77,15 @@ export function AddWidgetDialog({ onAdd, onClose }: AddWidgetDialogProps) {
           <input
             value={datapoint}
             onChange={(e) => setDatapoint(e.target.value)}
+            onBlur={(e) => {
+              const id = e.target.value.trim();
+              if (!id) return;
+              const entry = lookupDatapointEntry(id);
+              if (!entry) return;
+              if (!title.trim() && entry.name) setTitle(entry.name);
+              const supportsUnit = type === 'value' || type === 'chart';
+              if (supportsUnit && !unit.trim() && entry.unit) setUnit(entry.unit);
+            }}
             placeholder="z.B. system.adapter.admin.0.alive"
             className="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm placeholder-gray-500"
           />

@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.35 (2026-04-16)
+- Datapoint auto-fill: title and unit now also resolved when typing the ID directly in the edit dialog or using the manual wizard
+
 ### 0.4.34 (2026-04-16)
 - Datapoint picker: auto-fill widget title from `common.name` when the title field is still empty
 

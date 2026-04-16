@@ -31,6 +31,12 @@ export function lookupDatapointName(id: string): string | null {
   return cache.find((e) => e.id === id)?.name ?? null;
 }
 
+/** Synchronous full-entry lookup from the in-memory cache. Returns null if not loaded yet. */
+export function lookupDatapointEntry(id: string): DatapointEntry | null {
+  if (!cache || !id) return null;
+  return cache.find((e) => e.id === id) ?? null;
+}
+
 function resolveName(name: string | Record<string, string> | undefined, fallback: string): string {
   if (!name) return fallback;
   if (typeof name === 'string') return name;

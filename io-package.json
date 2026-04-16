@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.34",
+    "version": "0.4.35",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.35": {
+        "en": "Datapoint auto-fill: title and unit now also resolved when typing ID directly or using the manual wizard",
+        "de": "Datenpunkt-Autofill: Titel und Einheit werden nun auch beim direkten Eingeben der ID oder im manuellen Wizard befüllt",
+        "ru": "Автозаполнение точки данных: заголовок и единица теперь также определяются при прямом вводе ID или в ручном мастере",
+        "pt": "Preenchimento automático de datapoint: título e unidade agora também resolvidos ao digitar ID diretamente ou no wizard manual",
+        "nl": "Datapunt-autofill: titel en eenheid worden nu ook ingevuld bij directe invoer van het ID of via de handmatige wizard",
+        "fr": "Remplissage automatique du point de données: titre et unité maintenant résolus lors de la saisie directe de l'ID ou via l'assistant manuel",
+        "it": "Compilazione automatica datapoint: titolo e unità ora risolti anche digitando l'ID direttamente o tramite procedura guidata manuale",
+        "es": "Autocompletado de datapoint: título y unidad ahora también resueltos al escribir el ID directamente o usando el asistente manual",
+        "pl": "Automatyczne uzupełnianie punktu danych: tytuł i jednostka są teraz ustawiane również przy bezpośrednim wpisaniu ID lub w kreatorze ręcznym",
+        "uk": "Автозаповнення точки даних: заголовок і одиниця тепер також визначаються при прямому введенні ID або в ручному майстрі",
+        "zh-cn": "数据点自动填充：现在直接输入 ID 或使用手动向导时也会自动解析标题和单位"
+      },
       "0.4.34": {
         "en": "Datapoint picker: auto-fill widget title from common.name when title is empty",
         "de": "Datenpunkt-Auswahl: Widget-Titel automatisch aus common.name befüllen, wenn noch kein Titel gesetzt",
@@ -183,19 +196,6 @@
         "pl": "Frontend: opcjonalny przycisk linku do admina w nagłówku (konfigurowalny w Ustawieniach)",
         "uk": "Фронтенд: необов'язкова кнопка посилання на адмінку в заголовку (налаштовується в Налаштуваннях)",
         "zh-cn": "前端：页眉中可选的管理员链接按钮（可在设置中配置）"
-      },
-      "0.4.28": {
-        "en": "Editor: widget ID moved to dialog title bar (next to 'Edit Widget'); draggable edit dialog",
-        "de": "Editor: Widget-ID in die Titelzeile des Dialogs verschoben (neben 'Widget Bearbeiten'); verschiebbarer Bearbeiten-Dialog",
-        "ru": "Редактор: ID виджета перемещён в заголовок диалога (рядом с 'Редактировать виджет'); перемещаемый диалог редактирования",
-        "pt": "Editor: ID do widget movido para a barra de título do diálogo (ao lado de 'Editar Widget'); diálogo de edição arrastável",
-        "nl": "Editor: widget-ID verplaatst naar titelbalk van dialoog (naast 'Widget Bewerken'); versleepbaar bewerkdialoog",
-        "fr": "Éditeur: ID du widget déplacé dans la barre de titre (à côté de 'Modifier le widget'); boîte de dialogue déplaçable",
-        "it": "Editor: ID widget spostato nella barra del titolo (accanto a 'Modifica Widget'); dialogo di modifica trascinabile",
-        "es": "Editor: ID del widget movido a la barra de título del diálogo (junto a 'Editar Widget'); diálogo de edición arrastrable",
-        "pl": "Edytor: ID widgetu przeniesione do paska tytułu okna (obok 'Edytuj Widget'); przeciągane okno edycji",
-        "uk": "Редактор: ID віджета переміщено до рядка заголовка діалогу (поруч з 'Редагувати Віджет'); переміщуваний діалог",
-        "zh-cn": "编辑器：小部件 ID 移至对话框标题栏（紧靠'编辑小部件'）；可拖动的编辑对话框"
       }
     }
   },
