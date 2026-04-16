@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.33",
+    "version": "0.4.34",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.34": {
+        "en": "Datapoint picker: auto-fill widget title from common.name when title is empty",
+        "de": "Datenpunkt-Auswahl: Widget-Titel automatisch aus common.name befüllen, wenn noch kein Titel gesetzt",
+        "ru": "Выбор точки данных: автозаполнение заголовка виджета из common.name если заголовок пуст",
+        "pt": "Seletor de datapoint: preencher automaticamente o título do widget com common.name se estiver vazio",
+        "nl": "Datapuntkiezer: widgettitel automatisch invullen vanuit common.name als die nog leeg is",
+        "fr": "Sélecteur de point de données: remplissage automatique du titre du widget depuis common.name si vide",
+        "it": "Selettore datapoint: compilazione automatica del titolo widget da common.name se vuoto",
+        "es": "Selector de datapoint: relleno automático del título del widget desde common.name si está vacío",
+        "pl": "Selektor punktu danych: automatyczne uzupełnianie tytułu widgetu z common.name gdy jest pusty",
+        "uk": "Вибір точки даних: автозаповнення заголовка віджета з common.name якщо заголовок порожній",
+        "zh-cn": "数据点选择器：当标题为空时，自动从 common.name 填充小部件标题"
+      },
       "0.4.33": {
         "en": "Header datapoint and value widget: optional HTML template with {dp} placeholder for rich formatting",
         "de": "Header-Datenpunkt und Wert-Widget: optionales HTML-Template mit {dp}-Platzhalter für freie Formatierung",
@@ -183,19 +196,6 @@
         "pl": "Edytor: ID widgetu przeniesione do paska tytułu okna (obok 'Edytuj Widget'); przeciągane okno edycji",
         "uk": "Редактор: ID віджета переміщено до рядка заголовка діалогу (поруч з 'Редагувати Віджет'); переміщуваний діалог",
         "zh-cn": "编辑器：小部件 ID 移至对话框标题栏（紧靠'编辑小部件'）；可拖动的编辑对话框"
-      },
-      "0.4.27": {
-        "en": "Chart: runtime time range selector; gauge min/max labels outside arc; CSS classes aura-header/aura-tabs/aura-page-{slug}/data-tab; widget ID in edit dialog; connected devices merged card with inline rename",
-        "de": "Chart: Zeitraum im Frontend wählbar; Gauge Min/Max-Labels außerhalb des Bogens; CSS-Klassen aura-header/aura-tabs/aura-page-{slug}/data-tab; Widget-ID im Bearbeiten-Dialog; Geräte-Karte mit Inline-Umbenennung",
-        "ru": "График: выбор диапазона в интерфейсе; метки мин/макс шкалы за дугой; CSS-классы aura-header/aura-tabs/aura-page-{slug}/data-tab; ID виджета в диалоге редактирования; карточка устройств с переименованием",
-        "pt": "Gráfico: seletor de intervalo no frontend; rótulos min/max fora do arco; classes CSS aura-header/aura-tabs/aura-page-{slug}/data-tab; ID do widget no diálogo de edição; card de dispositivos com renomeação",
-        "nl": "Grafiek: tijdbereik selecteerbaar in frontend; gauge min/max labels buiten boog; CSS-klassen aura-header/aura-tabs/aura-page-{slug}/data-tab; widget-ID in bewerkdialoog; apparatenkaart met inline hernoemen",
-        "fr": "Graphique: sélection de plage dans le frontend; étiquettes min/max hors de l'arc; classes CSS aura-header/aura-tabs/aura-page-{slug}/data-tab; ID du widget dans la boîte de dialogue; carte des appareils avec renommage",
-        "it": "Grafico: selezione intervallo nel frontend; etichette min/max fuori dall'arco; classi CSS aura-header/aura-tabs/aura-page-{slug}/data-tab; ID widget nel dialogo di modifica; scheda dispositivi con ridenominazione",
-        "es": "Gráfico: selector de rango en frontend; etiquetas min/max fuera del arco; clases CSS aura-header/aura-tabs/aura-page-{slug}/data-tab; ID del widget en el diálogo de edición; tarjeta de dispositivos con renombrado",
-        "pl": "Wykres: wybór zakresu w interfejsie; etykiety min/max poza łukiem; klasy CSS aura-header/aura-tabs/aura-page-{slug}/data-tab; ID widgetu w oknie edycji; karta urządzeń z przemianowywaniem",
-        "uk": "Графік: вибір діапазону у фронтенді; мітки мін/макс поза дугою; CSS-класи aura-header/aura-tabs/aura-page-{slug}/data-tab; ID віджета в діалозі редагування; картка пристроїв з перейменуванням",
-        "zh-cn": "图表：前端运行时时间范围选择器；仪表盘最小/最大标签移至弧外；CSS 类 aura-header/aura-tabs/aura-page-{slug}/data-tab；编辑对话框显示小部件 ID；设备卡片支持内联重命名"
       }
     }
   },

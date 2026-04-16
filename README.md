@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.34 (2026-04-16)
+- Datapoint picker: auto-fill widget title from `common.name` when the title field is still empty
+
 ### 0.4.33 (2026-04-16)
 - Header datapoint and value widget: optional HTML template with `{dp}` placeholder for rich value formatting (e.g. `<b style="color:var(--accent)">{dp}</b> °C`)
 

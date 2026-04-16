@@ -6,7 +6,7 @@ import { useT } from '../../i18n';
 
 interface DatapointPickerProps {
   currentValue: string;
-  onSelect: (id: string, unit?: string) => void;
+  onSelect: (id: string, unit?: string, name?: string) => void;
   onClose: () => void;
 }
 
@@ -148,7 +148,7 @@ export function DatapointPicker({ currentValue, onSelect, onClose }: DatapointPi
                 <button
                   key={dp.id}
                   ref={isSelected ? selectedRef : undefined}
-                  onClick={() => { onSelect(dp.id, dp.unit); onClose(); }}
+                  onClick={() => { onSelect(dp.id, dp.unit, dp.name); onClose(); }}
                   className="w-full text-left px-5 py-2.5 flex items-center gap-3 hover:opacity-80 transition-opacity"
                   style={{
                     background: isSelected ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent',
