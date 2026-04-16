@@ -132,7 +132,7 @@ export function ChartWidget({ config }: WidgetProps) {
         {rangeSelector && <div className="mb-1.5">{rangeSelector}</div>}
         <div className="flex-1 min-h-0">
           {history.length > 1 ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={1}>
               <AreaChart data={history}>
                 <defs>
                   <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
@@ -170,7 +170,7 @@ export function ChartWidget({ config }: WidgetProps) {
         </div>
         <div className="w-20 h-full">
           {history.length > 1 ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={1}>
               <LineChart data={history}>
                 <Line type="monotone" dataKey="v" stroke="var(--accent)" strokeWidth={1.5}
                   dot={false} isAnimationActive={false} />
@@ -215,7 +215,7 @@ export function ChartWidget({ config }: WidgetProps) {
       {rangeSelector && <div className="mb-1">{rangeSelector}</div>}
       <div className="flex-1 min-h-0">
         {history.length > 1 ? (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minHeight={1}>
             <LineChart data={history}>
               <YAxis domain={['auto', 'auto']} hide />
               <XAxis
