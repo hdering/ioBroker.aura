@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.37 (2026-04-16)
+- Frontend: fix active tab resetting to first tab on F5 or after ioBroker config reload
+
 ### 0.4.36 (2026-04-16)
 - Datapoint auto-fill: fix title and unit lookup in manual widget dialog (was patching dead code); fix `y:null` ReactGridLayout warning (`Infinity` → `9999`); fix chart `ResponsiveContainer` 0×0 warning
 

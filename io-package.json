@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.36",
+    "version": "0.4.37",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.37": {
+        "en": "Frontend: fix active tab resetting to first tab on F5 / after ioBroker config reload",
+        "de": "Frontend: Aktiver Tab springt nach F5 oder ioBroker-Config-Reload nicht mehr auf den ersten Tab zurück",
+        "ru": "Фронтенд: исправлен сброс активной вкладки на первую после F5 или перезагрузки конфигурации ioBroker",
+        "pt": "Frontend: corrigido reset do separador ativo para o primeiro após F5 ou reload da config ioBroker",
+        "nl": "Frontend: actief tabblad springt na F5 of ioBroker config-reload niet meer terug naar het eerste",
+        "fr": "Frontend: correction du reset de l'onglet actif vers le premier onglet après F5 ou rechargement config ioBroker",
+        "it": "Frontend: corretto reset della scheda attiva alla prima scheda dopo F5 o ricaricamento config ioBroker",
+        "es": "Frontend: corregido el reset de la pestaña activa a la primera tras F5 o recarga de config ioBroker",
+        "pl": "Frontend: poprawiono resetowanie aktywnej karty do pierwszej po F5 lub przeładowaniu konfiguracji ioBroker",
+        "uk": "Фронтенд: виправлено скидання активної вкладки до першої після F5 або перезавантаження конфігурації ioBroker",
+        "zh-cn": "前端：修复 F5 刷新或 ioBroker 配置重载后活动选项卡重置为第一个选项卡的问题"
+      },
       "0.4.36": {
         "en": "Datapoint auto-fill: title and unit now resolved in manual widget dialog; fix y:null ReactGridLayout warning; fix chart ResponsiveContainer 0x0 warning",
         "de": "Datenpunkt-Autofill: Titel und Einheit werden nun im manuellen Widget-Dialog befüllt; y:null ReactGridLayout-Warnung behoben; Chart ResponsiveContainer 0x0-Warnung behoben",
@@ -183,21 +196,7 @@
         "pl": "Widget iFrame: opcja 'Wypełnij kartę' – wypełnia cały obszar karty; aktywowalna tylko bez innych widgetów",
         "uk": "Віджет iFrame: опція 'Заповнити вкладку' – заповнює всю область вкладки; активується лише за відсутності інших віджетів",
         "zh-cn": "iFrame 小部件：'填充选项卡'选项 – 填满整个选项卡区域；仅在选项卡中没有其他小部件时可激活"
-      },
-      "0.4.30": {
-        "en": "iFrame widget: fullscreen button (hover to reveal, Esc or X to close)",
-        "de": "iFrame-Widget: Vollbild-Button (erscheint beim Hover, Esc oder X zum Schließen)",
-        "ru": "Виджет iFrame: кнопка полноэкранного режима (появляется при наведении, Esc или X для выхода)",
-        "pt": "Widget iFrame: botão de ecrã inteiro (aparece ao passar o rato, Esc ou X para fechar)",
-        "nl": "iFrame-widget: volledigschermknop (verschijnt bij hover, Esc of X om te sluiten)",
-        "fr": "Widget iFrame: bouton plein écran (apparaît au survol, Esc ou X pour fermer)",
-        "it": "Widget iFrame: pulsante schermo intero (appare al passaggio del mouse, Esc o X per chiudere)",
-        "es": "Widget iFrame: botón de pantalla completa (aparece al pasar el cursor, Esc o X para cerrar)",
-        "pl": "Widget iFrame: przycisk pełnoekranowy (pojawia się po najechaniu, Esc lub X aby zamknąć)",
-        "uk": "Віджет iFrame: кнопка повного екрану (з'являється при наведенні, Esc або X для закриття)",
-        "zh-cn": "iFrame 小部件：全屏按钮（悬停显示，按 Esc 或 X 关闭）"
-      }
-    }
+      }}
   },
   "native": {
     "customUrl": ""
