@@ -80,8 +80,11 @@ export const de = {
   'settings.frontend.headerClockSeconds':   'Sekunden',
   'settings.frontend.headerClockDateLen':   'Datumsformat',
   'settings.frontend.headerClockCustom':    'Eigenes Format (leer = Standard)',
-  'settings.frontend.headerDatapoint':      'Datenpunkt im Header',
-  'settings.frontend.headerDatapointPh':    'z.B. hm-rpc.0.NEQ123.1.ACTUAL_TEMPERATURE',
+  'settings.frontend.headerDatapoint':             'Datenpunkt im Header',
+  'settings.frontend.headerDatapointPh':           'z.B. hm-rpc.0.NEQ123.1.ACTUAL_TEMPERATURE',
+  'settings.frontend.headerDatapointTemplate':     'HTML-Template (optional)',
+  'settings.frontend.headerDatapointTemplatePh':   '<b style="color:var(--accent)">{dp}</b> °C',
+  'settings.frontend.headerDatapointTemplateHint': '{dp} wird durch den Datenpunkt-Wert ersetzt · Beispiel: <span style="font-size:1.2em">{dp}</span> kW',
 
   'settings.grid.title':         'Grid & Mobil',
   'settings.grid.rowHeight':     'Zeilenhöhe',

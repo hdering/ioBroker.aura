@@ -16,6 +16,7 @@ export interface FrontendSettings {
   headerClockCustomFormat: string;
   // Header datapoint
   headerDatapoint: string;
+  headerDatapointTemplate: string;
   gridRowHeight: number;
   gridSnapX: number;
   gridGap: number;
@@ -47,6 +48,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
   headerClockDateLength: 'short',
   headerClockCustomFormat: '',
   headerDatapoint: '',
+  headerDatapointTemplate: '',
   gridRowHeight: 80,
   gridSnapX: 80,
   gridGap: 10,

@@ -96,7 +96,7 @@ function HeaderClock({ f }: { f: FrontendSettings }) {
 
 // ── HeaderDatapoint ────────────────────────────────────────────────────────
 
-function HeaderDatapoint({ id }: { id: string }) {
+function HeaderDatapoint({ id, template }: { id: string; template?: string }) {
   const [val, setVal] = useState<string>('…');
   useEffect(() => {
     if (!id) return;
@@ -105,6 +105,17 @@ function HeaderDatapoint({ id }: { id: string }) {
     });
     return unsub;
   }, [id]);
+
+  if (template) {
+    return (
+      <span
+        className="text-sm font-medium"
+        style={{ color: 'var(--text-primary)' }}
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: template.replace(/\{dp\}/g, val) }}
+      />
+    );
+  }
 
   return (
     <span className="text-sm font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
@@ -343,7 +354,7 @@ export default function App() {
           style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)' }}>
           <h1 className="text-xl font-bold tracking-tight">{frontend.headerTitle || 'Aura'}</h1>
           <div className="flex items-center gap-3">
-            {frontend.headerDatapoint && <HeaderDatapoint id={frontend.headerDatapoint} />}
+            {frontend.headerDatapoint && <HeaderDatapoint id={frontend.headerDatapoint} template={frontend.headerDatapointTemplate || undefined} />}
             {frontend.headerClockEnabled && <HeaderClock f={frontend} />}
             {showBadge && <ConnectionBadge />}
             {frontend.showAdminLink && (

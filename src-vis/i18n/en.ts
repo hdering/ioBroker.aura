@@ -82,8 +82,11 @@ export const en: Record<TranslationKey, string> = {
   'settings.frontend.headerClockSeconds':   'Seconds',
   'settings.frontend.headerClockDateLen':   'Date format',
   'settings.frontend.headerClockCustom':    'Custom format (empty = default)',
-  'settings.frontend.headerDatapoint':      'Datapoint in Header',
-  'settings.frontend.headerDatapointPh':    'e.g. hm-rpc.0.NEQ123.1.ACTUAL_TEMPERATURE',
+  'settings.frontend.headerDatapoint':             'Datapoint in Header',
+  'settings.frontend.headerDatapointPh':           'e.g. hm-rpc.0.NEQ123.1.ACTUAL_TEMPERATURE',
+  'settings.frontend.headerDatapointTemplate':     'HTML Template (optional)',
+  'settings.frontend.headerDatapointTemplatePh':   '<b style="color:var(--accent)">{dp}</b> °C',
+  'settings.frontend.headerDatapointTemplateHint': '{dp} is replaced by the datapoint value · Example: <span style="font-size:1.2em">{dp}</span> kW',
 
   'settings.grid.title':        'Grid & Mobile',
   'settings.grid.rowHeight':    'Row Height',

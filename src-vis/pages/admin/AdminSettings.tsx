@@ -486,6 +486,17 @@ export function AdminSettings() {
                   className="w-full rounded-lg px-3 py-2 text-xs font-mono focus:outline-none"
                   style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
               </div>
+              {frontend.headerDatapoint && (
+                <div>
+                  <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>{t('settings.frontend.headerDatapointTemplate')}</p>
+                  <input value={frontend.headerDatapointTemplate ?? ''}
+                    onChange={(e) => updateFrontend({ headerDatapointTemplate: e.target.value })}
+                    placeholder={t('settings.frontend.headerDatapointTemplatePh')}
+                    className="w-full rounded-lg px-3 py-2 text-xs font-mono focus:outline-none"
+                    style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
+                  <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>{t('settings.frontend.headerDatapointTemplateHint')}</p>
+                </div>
+              )}
             </>
           )}
         </Card>

@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.33 (2026-04-16)
+- Header datapoint and value widget: optional HTML template with `{dp}` placeholder for rich value formatting (e.g. `<b style="color:var(--accent)">{dp}</b> °C`)
+
 ### 0.4.32 (2026-04-16)
 - Calendar: automatic retry on fetch timeout (5 s delay, 1 retry); final errors logged to ioBroker via `aura.0.calendar.clientError`
 

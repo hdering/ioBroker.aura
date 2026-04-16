@@ -6,8 +6,9 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 export function ValueWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
-  const unit      = config.options?.unit as string | undefined;
-  const layout    = config.layout ?? 'default';
+  const unit         = config.options?.unit as string | undefined;
+  const htmlTemplate = config.options?.htmlTemplate as string | undefined;
+  const layout       = config.layout ?? 'default';
   const CardIcon    = getWidgetIcon(config.options?.icon as string | undefined, Activity);
   const CompactIcon = getWidgetIcon(config.options?.icon as string | undefined, Hash);
   const DefaultIcon = getWidgetIcon(config.options?.icon as string | undefined, TrendingUp);
@@ -15,6 +16,17 @@ export function ValueWidget({ config }: WidgetProps) {
   const displayValue = value === null ? '–'
     : typeof value === 'number' ? value.toLocaleString('de-DE')
     : String(value);
+
+  // HTML template mode: replaces the entire widget content
+  if (htmlTemplate) {
+    return (
+      <div
+        className="h-full w-full"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: htmlTemplate.replace(/\{dp\}/g, displayValue) }}
+      />
+    );
+  }
 
   // --- CARD: Akzent-Leiste links, großer Wert zentriert ---
   if (layout === 'card') {

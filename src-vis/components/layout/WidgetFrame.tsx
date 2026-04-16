@@ -1494,6 +1494,22 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   />
                 </div>
               )}
+              {config.type === 'value' && (
+                <div>
+                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>HTML-Template (optional)</label>
+                  <input
+                    type="text"
+                    value={(config.options?.htmlTemplate as string) ?? ''}
+                    onChange={(e) => onConfigChange({ ...config, options: { ...config.options, htmlTemplate: e.target.value || undefined } })}
+                    placeholder='z.B. <b style="color:var(--accent)">{dp}</b> °C'
+                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono"
+                    style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                  />
+                  <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                    {'{dp}'} wird durch den Wert ersetzt · Beispiel: {'<span style="font-size:2em">{dp}</span> kW'}
+                  </p>
+                </div>
+              )}
               {config.type === 'chart' && (
                 <ChartHistoryConfig config={config} onConfigChange={onConfigChange} />
               )}

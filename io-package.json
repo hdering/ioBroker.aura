@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.32",
+    "version": "0.4.33",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.33": {
+        "en": "Header datapoint and value widget: optional HTML template with {dp} placeholder for rich formatting",
+        "de": "Header-Datenpunkt und Wert-Widget: optionales HTML-Template mit {dp}-Platzhalter für freie Formatierung",
+        "ru": "Точка данных заголовка и виджет значения: опциональный HTML-шаблон с заменой {dp} для гибкого форматирования",
+        "pt": "Datapoint do cabeçalho e widget de valor: template HTML opcional com marcador {dp} para formatação livre",
+        "nl": "Header-datapunt en waardewidget: optioneel HTML-template met {dp}-plaatshouder voor vrije opmaak",
+        "fr": "Point de données d'en-tête et widget valeur: template HTML optionnel avec marqueur {dp} pour formatage libre",
+        "it": "Datapoint intestazione e widget valore: template HTML opzionale con segnaposto {dp} per formattazione libera",
+        "es": "Punto de datos del encabezado y widget de valor: plantilla HTML opcional con marcador {dp} para formato libre",
+        "pl": "Punkt danych nagłówka i widget wartości: opcjonalny szablon HTML z symbolem {dp} dla dowolnego formatowania",
+        "uk": "Точка даних заголовка і віджет значення: опціональний HTML-шаблон із заміною {dp} для вільного форматування",
+        "zh-cn": "页眉数据点和数值小部件：可选 HTML 模板，使用 {dp} 占位符自由格式化"
+      },
       "0.4.32": {
         "en": "Calendar: auto-retry once on fetch timeout (5s delay); log client errors to ioBroker via aura.0.calendar.clientError",
         "de": "Kalender: automatischer Wiederholungsversuch bei Fetch-Timeout (5s Pause); Client-Fehler via aura.0.calendar.clientError im ioBroker-Log",
@@ -183,19 +196,6 @@
         "pl": "Wykres: wybór zakresu w interfejsie; etykiety min/max poza łukiem; klasy CSS aura-header/aura-tabs/aura-page-{slug}/data-tab; ID widgetu w oknie edycji; karta urządzeń z przemianowywaniem",
         "uk": "Графік: вибір діапазону у фронтенді; мітки мін/макс поза дугою; CSS-класи aura-header/aura-tabs/aura-page-{slug}/data-tab; ID віджета в діалозі редагування; картка пристроїв з перейменуванням",
         "zh-cn": "图表：前端运行时时间范围选择器；仪表盘最小/最大标签移至弧外；CSS 类 aura-header/aura-tabs/aura-page-{slug}/data-tab；编辑对话框显示小部件 ID；设备卡片支持内联重命名"
-      },
-      "0.4.26": {
-        "en": "New: chart custom time range, semantic CSS classes, configurable grid gap/padding/snap width, connection indicator dot, pretty-printed config datapoint",
-        "de": "Neu: Chart-Benutzerzeitraum, semantische CSS-Klassen, konfigurierbarer Gitter-Abstand/Padding/Snap-Breite, Verbindungsindikator-Punkt, formatierter Config-Datenpunkt",
-        "ru": "Новое: произвольный диапазон диаграммы, семантические CSS-классы, настраиваемый отступ сетки/виджета/шаг, индикатор соединения, форматированная точка данных конфига",
-        "pt": "Novo: intervalo personalizado para gráfico, classes CSS semânticas, espaçamento/padding/snap configuráveis, indicador de conexão, datapoint de config formatado",
-        "nl": "Nieuw: aangepast tijdbereik grafiek, semantische CSS-klassen, instelbare rasterafstand/padding/snap-breedte, verbindingsindicator, opgemaakt config-datapunt",
-        "fr": "Nouveau : plage personnalisée pour graphique, classes CSS sémantiques, espacement/rembourrage/pas de grille configurables, indicateur de connexion, point de données config formaté",
-        "it": "Novità: intervallo personalizzato per grafici, classi CSS semantiche, spaziatura/padding/snap configurabili, indicatore connessione, datapoint config formattato",
-        "es": "Nuevo: rango personalizado para gráfico, clases CSS semánticas, espaciado/relleno/snap configurables, indicador de conexión, datapoint de config formateado",
-        "pl": "Nowości: własny zakres wykresu, semantyczne klasy CSS, konfigurowalne odstępy/padding/snap, wskaźnik połączenia, sformatowany datapoint konfiguracji",
-        "uk": "Нове: довільний діапазон графіка, семантичні CSS-класи, налаштовуваний відступ сітки/padding/snap, індикатор з'єднання, форматована точка даних конфігу",
-        "zh-cn": "新功能：图表自定义时间范围、语义 CSS 类、可配置网格间距/内边距/对齐宽度、连接指示点、格式化配置数据点"
       }
     }
   },
