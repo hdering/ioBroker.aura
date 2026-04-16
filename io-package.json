@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.35",
+    "version": "0.4.36",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.36": {
+        "en": "Datapoint auto-fill: title and unit now resolved in manual widget dialog; fix y:null ReactGridLayout warning; fix chart ResponsiveContainer 0x0 warning",
+        "de": "Datenpunkt-Autofill: Titel und Einheit werden nun im manuellen Widget-Dialog befüllt; y:null ReactGridLayout-Warnung behoben; Chart ResponsiveContainer 0x0-Warnung behoben",
+        "ru": "Автозаполнение точки данных: заголовок и единица теперь определяются в диалоге ручного виджета; исправлено предупреждение y:null ReactGridLayout; исправлено предупреждение ResponsiveContainer 0x0",
+        "pt": "Preenchimento automático de datapoint: título e unidade agora resolvidos no diálogo manual; corrigido aviso y:null ReactGridLayout; corrigido aviso ResponsiveContainer 0x0",
+        "nl": "Datapunt-autofill: titel en eenheid nu ingevuld in handmatige widgetdialoog; y:null ReactGridLayout-waarschuwing opgelost; ResponsiveContainer 0x0-waarschuwing opgelost",
+        "fr": "Remplissage automatique datapoint: titre et unité maintenant résolus dans la boîte de dialogue manuelle; correction avertissement y:null ReactGridLayout; correction avertissement ResponsiveContainer 0x0",
+        "it": "Compilazione automatica datapoint: titolo e unità ora risolti nel dialogo widget manuale; corretto avviso y:null ReactGridLayout; corretto avviso ResponsiveContainer 0x0",
+        "es": "Autocompletado datapoint: título y unidad ahora resueltos en el diálogo manual; corregida advertencia y:null ReactGridLayout; corregida advertencia ResponsiveContainer 0x0",
+        "pl": "Autouzupełnianie punktu danych: tytuł i jednostka teraz ustawiane w ręcznym oknie dialogowym; poprawiono ostrzeżenie y:null ReactGridLayout; poprawiono ostrzeżenie ResponsiveContainer 0x0",
+        "uk": "Автозаповнення точки даних: заголовок і одиниця тепер визначаються в діалозі ручного віджета; виправлено попередження y:null ReactGridLayout; виправлено попередження ResponsiveContainer 0x0",
+        "zh-cn": "数据点自动填充：现在在手动小部件对话框中解析标题和单位；修复 y:null ReactGridLayout 警告；修复 ResponsiveContainer 0x0 警告"
+      },
       "0.4.35": {
         "en": "Datapoint auto-fill: title and unit now also resolved when typing ID directly or using the manual wizard",
         "de": "Datenpunkt-Autofill: Titel und Einheit werden nun auch beim direkten Eingeben der ID oder im manuellen Wizard befüllt",
@@ -183,19 +196,6 @@
         "pl": "Widget iFrame: przycisk pełnoekranowy (pojawia się po najechaniu, Esc lub X aby zamknąć)",
         "uk": "Віджет iFrame: кнопка повного екрану (з'являється при наведенні, Esc або X для закриття)",
         "zh-cn": "iFrame 小部件：全屏按钮（悬停显示，按 Esc 或 X 关闭）"
-      },
-      "0.4.29": {
-        "en": "Frontend: optional admin link button in header (configurable in Settings)",
-        "de": "Frontend: optionaler Admin-Link-Button im Header (in Einstellungen konfigurierbar)",
-        "ru": "Фронтенд: необязательная кнопка ссылки на админку в заголовке (настраивается в Настройках)",
-        "pt": "Frontend: botão opcional de link para o admin no cabeçalho (configurável em Definições)",
-        "nl": "Frontend: optionele admin-linkknop in header (configureerbaar in Instellingen)",
-        "fr": "Frontend: bouton lien admin optionnel dans l'en-tête (configurable dans Paramètres)",
-        "it": "Frontend: pulsante link admin opzionale nell'intestazione (configurabile in Impostazioni)",
-        "es": "Frontend: botón de enlace al admin opcional en el encabezado (configurable en Ajustes)",
-        "pl": "Frontend: opcjonalny przycisk linku do admina w nagłówku (konfigurowalny w Ustawieniach)",
-        "uk": "Фронтенд: необов'язкова кнопка посилання на адмінку в заголовку (налаштовується в Налаштуваннях)",
-        "zh-cn": "前端：页眉中可选的管理员链接按钮（可在设置中配置）"
       }
     }
   },

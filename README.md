@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.36 (2026-04-16)
+- Datapoint auto-fill: fix title and unit lookup in manual widget dialog (was patching dead code); fix `y:null` ReactGridLayout warning (`Infinity` → `9999`); fix chart `ResponsiveContainer` 0×0 warning
+
 ### 0.4.35 (2026-04-16)
 - Datapoint auto-fill: title and unit now also resolved when typing the ID directly in the edit dialog or using the manual wizard
 
