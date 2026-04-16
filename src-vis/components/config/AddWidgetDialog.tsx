@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { WidgetConfig, WidgetType } from '../../types';
 import { useT } from '../../i18n';
 import { lookupDatapointEntry } from '../../hooks/useDatapointList';
-import { getObjectDirect } from '../../hooks/useIoBroker';
+import { getObjectViewDirect } from '../../hooks/useIoBroker';
 
 interface AddWidgetDialogProps {
   onAdd: (config: WidgetConfig) => void;
@@ -27,6 +27,22 @@ function resolveObjName(name: unknown, fallback: string): string {
   return fallback;
 }
 
+async function fetchMeta(id: string): Promise<{ name?: string; unit?: string }> {
+  // Try in-memory cache first (available if DatapointPicker was opened before)
+  const cached = lookupDatapointEntry(id);
+  if (cached) return { name: cached.name, unit: cached.unit };
+
+  // Fall back to getObjectView – same socket mechanism used by DatapointPicker
+  const result = await getObjectViewDirect('state', id, id);
+  const row = result.rows.find((r) => r.id === id);
+  if (!row?.value?.common) return {};
+  const common = row.value.common;
+  return {
+    name: resolveObjName(common.name, id.split('.').pop() ?? id),
+    unit: common.unit,
+  };
+}
+
 export function AddWidgetDialog({ onAdd, onClose }: AddWidgetDialogProps) {
   const t = useT();
   const WIDGET_TYPES = WIDGET_TYPE_KEYS.map((w) => ({ ...w, label: t(w.key as never) }));
@@ -35,49 +51,50 @@ export function AddWidgetDialog({ onAdd, onClose }: AddWidgetDialogProps) {
   const [datapoint, setDatapoint] = useState('');
   const [unit, setUnit] = useState('');
 
-  const resolveEntry = async (id: string): Promise<{ name?: string; unit?: string }> => {
-    const cached = lookupDatapointEntry(id);
-    if (cached) return { name: cached.name, unit: cached.unit };
-    const obj = await getObjectDirect(id);
-    if (!obj?.common) return {};
-    return {
-      name: resolveObjName(obj.common.name, id.split('.').pop() ?? id),
-      unit: obj.common.unit as string | undefined,
-    };
-  };
+  // Keep a ref to the latest in-flight meta promise so handleAdd can await it
+  const metaRef = useRef<Promise<{ name?: string; unit?: string }> | null>(null);
+
+  // Pre-fetch metadata whenever the datapoint ID changes
+  useEffect(() => {
+    const id = datapoint.trim();
+    if (!id) { metaRef.current = null; return; }
+
+    const promise = fetchMeta(id);
+    metaRef.current = promise;
+
+    let cancelled = false;
+    promise.then((meta) => {
+      if (cancelled) return;
+      if (!title.trim() && meta.name) setTitle(meta.name);
+      const supportsUnit = type === 'value' || type === 'chart';
+      if (supportsUnit && !unit.trim() && meta.unit) setUnit(meta.unit);
+    }).catch(() => { /* ignore */ });
+
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [datapoint]);
 
   const handleAdd = async () => {
-    if (!datapoint.trim()) return;
     const id = datapoint.trim();
+    if (!id) return;
     const def = WIDGET_TYPES.find((w) => w.type === type)!;
     const supportsUnit = type === 'value' || type === 'chart';
 
-    let resolvedTitle = title;
-    let resolvedUnit = unit;
+    // Await any in-flight meta fetch, or fetch now if not started yet
+    const meta = await (metaRef.current ?? fetchMeta(id));
 
-    if (!resolvedTitle.trim() || (supportsUnit && !resolvedUnit.trim())) {
-      const entry = await resolveEntry(id);
-      if (!resolvedTitle.trim() && entry.name) resolvedTitle = entry.name;
-      if (supportsUnit && !resolvedUnit.trim() && entry.unit) resolvedUnit = entry.unit;
-    }
+    const finalTitle = title.trim() || meta.name || def.label;
+    const finalUnit = supportsUnit ? (unit.trim() || meta.unit || '') : '';
 
     onAdd({
       id: `${type}-${Date.now()}`,
       type,
-      title: resolvedTitle || def.label,
+      title: finalTitle,
       datapoint: id,
       gridPos: { x: 0, y: Infinity, w: def.defaultW, h: def.defaultH },
-      options: resolvedUnit ? { unit: resolvedUnit } : {},
+      options: finalUnit ? { unit: finalUnit } : {},
     });
     onClose();
-  };
-
-  const handleDatapointBlur = async (id: string) => {
-    if (!id) return;
-    const supportsUnit = type === 'value' || type === 'chart';
-    const entry = await resolveEntry(id);
-    if (!title.trim() && entry.name) setTitle(entry.name);
-    if (supportsUnit && !unit.trim() && entry.unit) setUnit(entry.unit);
   };
 
   return (
@@ -113,7 +130,6 @@ export function AddWidgetDialog({ onAdd, onClose }: AddWidgetDialogProps) {
           <input
             value={datapoint}
             onChange={(e) => setDatapoint(e.target.value)}
-            onBlur={(e) => void handleDatapointBlur(e.target.value.trim())}
             placeholder="z.B. system.adapter.admin.0.alive"
             className="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm placeholder-gray-500"
           />

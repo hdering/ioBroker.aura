@@ -10,7 +10,7 @@ import { useConfigStore } from '../../store/configStore';
 import type { WidgetConfig, WidgetCondition } from '../../types';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
-import { getObjectDirect, subscribeStateDirect, getStateDirect } from '../../hooks/useIoBroker';
+import { getObjectDirect, getObjectViewDirect, subscribeStateDirect, getStateDirect } from '../../hooks/useIoBroker';
 import { lookupDatapointEntry } from '../../hooks/useDatapointList';
 import { WIDGET_REGISTRY, WIDGET_GROUPS } from '../../widgetRegistry';
 import { AutoListConfig } from '../config/AutoListConfig';
@@ -1480,16 +1480,17 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                           }
                           onConfigChange(updated);
                         };
-                        // Try synchronous cache first; fall back to direct ioBroker fetch
+                        // Try synchronous cache first; fall back to getObjectView (known-working path)
                         const cached = lookupDatapointEntry(id);
                         if (cached) { apply(cached.name, cached.unit); return; }
-                        void getObjectDirect(id).then((obj) => {
-                          if (!obj?.common) return;
-                          const raw = obj.common.name as string | Record<string,string> | undefined;
+                        void getObjectViewDirect('state', id, id).then((result) => {
+                          const row = result.rows.find((r) => r.id === id);
+                          if (!row?.value?.common) return;
+                          const raw = row.value.common.name as string | Record<string,string> | undefined;
                           let name = id.split('.').pop() ?? id;
                           if (typeof raw === 'string') name = raw;
                           else if (raw && typeof raw === 'object') name = (raw as Record<string,string>).de ?? (raw as Record<string,string>).en ?? Object.values(raw as Record<string,string>)[0] ?? name;
-                          apply(name, obj.common.unit as string | undefined);
+                          apply(name, row.value.common.unit as string | undefined);
                         });
                       }}
                       className="flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0"
