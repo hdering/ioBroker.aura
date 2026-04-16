@@ -56,6 +56,12 @@ class Aura extends utils.Adapter {
   // adapter checks calendar.cache first, falls back to fetching, writes
   // {id, content|error} to calendar.response.
   async onStateChange(id, state) {
+    // Client-side error report (timeout after all retries exhausted)
+    if (id.endsWith('calendar.clientError') && state && !state.ack && state.val) {
+      this.log.warn(`[calendar] client error: ${String(state.val)}`);
+      return;
+    }
+
     if (!id.endsWith('calendar.request') || !state || state.ack || !state.val) return;
     let req;
     try { req = JSON.parse(String(state.val)); } catch { return; }
@@ -183,7 +189,20 @@ class Aura extends utils.Adapter {
       },
       native: {},
     });
+    await this.setObjectNotExistsAsync('calendar.clientError', {
+      type: 'state',
+      common: {
+        name: 'Calendar client error (written by frontend after all retries failed)',
+        type: 'string',
+        role: 'text',
+        read: true,
+        write: true,
+        def: '',
+      },
+      native: {},
+    });
     this.subscribeStates('calendar.request');
+    this.subscribeStates('calendar.clientError');
 
     // NOTE: The block below modifies system.adapter.aura.X via setForeignObjectAsync
     // to keep localLinks (overview tile URLs) up-to-date when a custom URL is configured.

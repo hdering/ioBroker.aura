@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.32 (2026-04-16)
+- Calendar: automatic retry on fetch timeout (5 s delay, 1 retry); final errors logged to ioBroker via `aura.0.calendar.clientError`
+
 ### 0.4.31 (2026-04-16)
 - iFrame widget: "Fill tab" option – widget fills entire tab area permanently; toggle is disabled when other widgets are present in the tab (with hint)
 

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.31",
+    "version": "0.4.32",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.32": {
+        "en": "Calendar: auto-retry once on fetch timeout (5s delay); log client errors to ioBroker via aura.0.calendar.clientError",
+        "de": "Kalender: automatischer Wiederholungsversuch bei Fetch-Timeout (5s Pause); Client-Fehler via aura.0.calendar.clientError im ioBroker-Log",
+        "ru": "Календарь: автоматический повтор при таймауте (пауза 5с); ошибки клиента логируются через aura.0.calendar.clientError",
+        "pt": "Calendário: nova tentativa automática em timeout (5s de pausa); erros do cliente registados via aura.0.calendar.clientError",
+        "nl": "Kalender: automatische herpoging bij fetch-timeout (5s pauze); clientfouten gelogd via aura.0.calendar.clientError",
+        "fr": "Calendrier: nouvelle tentative automatique sur timeout (5s de pause); erreurs client journalisées via aura.0.calendar.clientError",
+        "it": "Calendario: nuovo tentativo automatico su timeout (pausa 5s); errori client registrati tramite aura.0.calendar.clientError",
+        "es": "Calendario: reintento automático en timeout (5s de pausa); errores de cliente registrados via aura.0.calendar.clientError",
+        "pl": "Kalendarz: automatyczna ponowna próba przy timeout (pauza 5s); błędy klienta logowane przez aura.0.calendar.clientError",
+        "uk": "Календар: автоматична повторна спроба при таймауті (пауза 5с); помилки клієнта логуються через aura.0.calendar.clientError",
+        "zh-cn": "日历：fetch 超时时自动重试一次（5秒延迟）；通过 aura.0.calendar.clientError 将客户端错误记录到 ioBroker"
+      },
       "0.4.31": {
         "en": "iFrame widget: 'Fill tab' option – fills entire tab area; only activatable when no other widgets in tab",
         "de": "iFrame-Widget: Option 'Tab ausfüllen' – füllt den gesamten Tab-Bereich; nur aktivierbar wenn keine anderen Widgets im Tab",
@@ -183,19 +196,6 @@
         "pl": "Nowości: własny zakres wykresu, semantyczne klasy CSS, konfigurowalne odstępy/padding/snap, wskaźnik połączenia, sformatowany datapoint konfiguracji",
         "uk": "Нове: довільний діапазон графіка, семантичні CSS-класи, налаштовуваний відступ сітки/padding/snap, індикатор з'єднання, форматована точка даних конфігу",
         "zh-cn": "新功能：图表自定义时间范围、语义 CSS 类、可配置网格间距/内边距/对齐宽度、连接指示点、格式化配置数据点"
-      },
-      "0.4.25": {
-        "en": "Fix: trailing comma in io-package.json news section caused CI JSON parse error",
-        "de": "Fix: Trailing Comma in io-package.json news-Abschnitt verursachte JSON-Fehler im CI",
-        "ru": "Исправление: лишняя запятая в секции news io-package.json вызывала ошибку JSON в CI",
-        "pt": "Fix: vírgula extra na seção news do io-package.json causava erro JSON no CI",
-        "nl": "Fix: overtollige komma in news-sectie van io-package.json veroorzaakte JSON-fout in CI",
-        "fr": "Fix: virgule en trop dans la section news d'io-package.json causait une erreur JSON en CI",
-        "it": "Fix: virgola in eccesso nella sezione news di io-package.json causava errore JSON in CI",
-        "es": "Fix: coma sobrante en la sección news de io-package.json causaba error JSON en CI",
-        "pl": "Fix: nadmiarowy przecinek w sekcji news io-package.json powodował błąd JSON w CI",
-        "uk": "Виправлення: зайва кома в секції news io-package.json спричиняла помилку JSON у CI",
-        "zh-cn": "修复：io-package.json news 部分的尾随逗号导致 CI JSON 解析错误"
       }
     }
   },

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { RefreshCw, CalendarDays, MapPin, AlertCircle } from 'lucide-react';
 import type { WidgetProps } from '../../types';
-import { getSocket, subscribeStateDirect } from '../../hooks/useIoBroker';
+import { getSocket, subscribeStateDirect, setStateDirect } from '../../hooks/useIoBroker';
 import { useT } from '../../i18n';
 
 // ── CalendarSource ─────────────────────────────────────────────────────────
@@ -104,11 +104,11 @@ function parseIcal(text: string): CalEvent[] {
 //   frontend writes {id, url} → aura.0.calendar.request
 //   adapter fetches URL, writes {id, content|error} → aura.0.calendar.response
 //   frontend subscriber matches by id and resolves/rejects
-async function fetchIcalText(url: string, ttlSeconds: number): Promise<string> {
+/** Single attempt – rejects on timeout or adapter error. */
+function fetchIcalTextOnce(url: string, ttlSeconds: number): Promise<string> {
   if (import.meta.env.DEV) {
-    const res = await fetch(`/proxy/ical?url=${encodeURIComponent(url)}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.text();
+    return fetch(`/proxy/ical?url=${encodeURIComponent(url)}`)
+      .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.text(); });
   }
   const id = Math.random().toString(36).slice(2) + Date.now().toString(36);
   return new Promise((resolve, reject) => {
@@ -117,7 +117,7 @@ async function fetchIcalText(url: string, ttlSeconds: number): Promise<string> {
       if (!settled) {
         settled = true;
         unsubscribe();
-        reject(new Error('Kalender-Fetch Timeout (20s) – Adapter läuft nicht oder erreichbar?'));
+        reject(new Error('Timeout'));
       }
     }, 20000);
     const unsubscribe = subscribeStateDirect('aura.0.calendar.response', (state) => {
@@ -136,6 +136,38 @@ async function fetchIcalText(url: string, ttlSeconds: number): Promise<string> {
     // ttl tells the adapter how long its cache entry is considered fresh
     getSocket().emit('setState', 'aura.0.calendar.request', { val: JSON.stringify({ id, url, ttl: ttlSeconds }), ack: false });
   });
+}
+
+/**
+ * Fetch iCal text with one automatic retry on timeout.
+ * On final failure writes to aura.0.calendar.clientError so the adapter can log it.
+ */
+async function fetchIcalText(url: string, ttlSeconds: number): Promise<string> {
+  const MAX_ATTEMPTS = 2;
+  let lastError: Error = new Error('Unknown error');
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    if (attempt > 0) {
+      // Short pause before retry so a briefly unavailable adapter can recover
+      await new Promise<void>((r) => setTimeout(r, 5000));
+    }
+    try {
+      return await fetchIcalTextOnce(url, ttlSeconds);
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      // Only retry on timeout; propagate other errors (bad URL, HTTP error) immediately
+      if (!lastError.message.startsWith('Timeout')) break;
+    }
+  }
+  // Notify the adapter so it can write to the ioBroker log
+  if (!import.meta.env.DEV) {
+    setStateDirect('aura.0.calendar.clientError',
+      `[${new Date().toISOString()}] ${lastError.message} – url: ${url}`);
+  }
+  // Re-surface a user-friendly message
+  if (lastError.message.startsWith('Timeout')) {
+    throw new Error('Kalender-Fetch Timeout – Adapter läuft nicht oder erreichbar?');
+  }
+  throw lastError;
 }
 
 // ── helpers ────────────────────────────────────────────────────────────────
