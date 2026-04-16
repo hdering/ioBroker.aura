@@ -196,12 +196,23 @@ export default function App() {
   const tabs = useMemo<Tab[]>(() => layout?.tabs ?? [], [layout?.tabs]);
 
   // Local active tab state (frontend only — doesn't affect admin editor)
-  // When no tab slug in URL, use defaultTabId (admin-configured) or fall back to first tab
-  const [activeTabId, setActiveTabId] = useState<string>(() => layout?.defaultTabId ?? layout?.activeTabId ?? tabs[0]?.id ?? '');
+  // URL slug takes priority; fall back to defaultTabId or first tab
+  const [activeTabId, setActiveTabId] = useState<string>(() => {
+    if (tabSlug && layout?.tabs) {
+      const tab = layout.tabs.find((t) => (t.slug ?? t.id) === tabSlug);
+      if (tab) return tab.id;
+    }
+    return layout?.defaultTabId ?? layout?.activeTabId ?? tabs[0]?.id ?? '';
+  });
 
-  // Reset active tab when layout changes (different URL)
+  // Reset active tab when layout changes (e.g. after ioBroker config rehydration)
+  // Always respect URL slug first so F5 stays on the correct tab
   useEffect(() => {
-    setActiveTabId(layout?.defaultTabId ?? layout?.tabs[0]?.id ?? '');
+    if (tabSlug) {
+      const tab = (layout?.tabs ?? []).find((t) => (t.slug ?? t.id) === tabSlug);
+      if (tab) { setActiveTabId(tab.id); return; }
+    }
+    setActiveTabId(layout?.defaultTabId ?? layout?.tabs?.[0]?.id ?? '');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layout?.id]);
 
