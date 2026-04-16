@@ -312,7 +312,7 @@ export default function App() {
     });
     setObjectDirect(`${prefix}.info.lastSeen`, {
       type: 'state',
-      common: { name: 'Last Seen', type: 'number', role: 'date', read: true, write: false, def: 0 },
+      common: { name: 'Last Seen', type: 'number', role: 'date', read: true, write: true, def: 0 },
       native: {},
     });
 
