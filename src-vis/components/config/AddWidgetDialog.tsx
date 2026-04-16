@@ -35,16 +35,39 @@ export function AddWidgetDialog({ onAdd, onClose }: AddWidgetDialogProps) {
   const [datapoint, setDatapoint] = useState('');
   const [unit, setUnit] = useState('');
 
-  const handleAdd = () => {
+  const resolveEntry = async (id: string): Promise<{ name?: string; unit?: string }> => {
+    const cached = lookupDatapointEntry(id);
+    if (cached) return { name: cached.name, unit: cached.unit };
+    const obj = await getObjectDirect(id);
+    if (!obj?.common) return {};
+    return {
+      name: resolveObjName(obj.common.name, id.split('.').pop() ?? id),
+      unit: obj.common.unit as string | undefined,
+    };
+  };
+
+  const handleAdd = async () => {
     if (!datapoint.trim()) return;
+    const id = datapoint.trim();
     const def = WIDGET_TYPES.find((w) => w.type === type)!;
+    const supportsUnit = type === 'value' || type === 'chart';
+
+    let resolvedTitle = title;
+    let resolvedUnit = unit;
+
+    if (!resolvedTitle.trim() || (supportsUnit && !resolvedUnit.trim())) {
+      const entry = await resolveEntry(id);
+      if (!resolvedTitle.trim() && entry.name) resolvedTitle = entry.name;
+      if (supportsUnit && !resolvedUnit.trim() && entry.unit) resolvedUnit = entry.unit;
+    }
+
     onAdd({
       id: `${type}-${Date.now()}`,
       type,
-      title: title || def.label,
-      datapoint: datapoint.trim(),
+      title: resolvedTitle || def.label,
+      datapoint: id,
       gridPos: { x: 0, y: Infinity, w: def.defaultW, h: def.defaultH },
-      options: unit ? { unit } : {},
+      options: resolvedUnit ? { unit: resolvedUnit } : {},
     });
     onClose();
   };
@@ -52,20 +75,9 @@ export function AddWidgetDialog({ onAdd, onClose }: AddWidgetDialogProps) {
   const handleDatapointBlur = async (id: string) => {
     if (!id) return;
     const supportsUnit = type === 'value' || type === 'chart';
-
-    // Try in-memory cache first (fast path), then fetch directly from ioBroker
-    const cached = lookupDatapointEntry(id);
-    if (cached) {
-      if (!title.trim() && cached.name) setTitle(cached.name);
-      if (supportsUnit && !unit.trim() && cached.unit) setUnit(cached.unit);
-      return;
-    }
-
-    const obj = await getObjectDirect(id);
-    if (!obj?.common) return;
-    const resolvedName = resolveObjName(obj.common.name, id.split('.').pop() ?? id);
-    if (!title.trim() && resolvedName) setTitle(resolvedName);
-    if (supportsUnit && !unit.trim() && obj.common.unit) setUnit(obj.common.unit as string);
+    const entry = await resolveEntry(id);
+    if (!title.trim() && entry.name) setTitle(entry.name);
+    if (supportsUnit && !unit.trim() && entry.unit) setUnit(entry.unit);
   };
 
   return (
@@ -121,7 +133,7 @@ export function AddWidgetDialog({ onAdd, onClose }: AddWidgetDialogProps) {
 
         <div className="flex gap-2 pt-2">
           <button
-            onClick={handleAdd}
+            onClick={() => void handleAdd()}
             disabled={!datapoint.trim()}
             className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded px-4 py-2 text-sm font-medium"
           >
