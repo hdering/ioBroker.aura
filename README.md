@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.28 (2026-04-16)
+- Editor: widget ID moved to dialog title bar in parentheses next to "Widget Bearbeiten"; edit dialog is draggable (no backdrop)
+
 ### 0.4.27 (2026-04-16)
 - Chart widget: runtime time range selector buttons (1h/6h/24h/7d/30d) in frontend
 - Gauge widget: min/max labels moved outside the arc, centred at endpoints

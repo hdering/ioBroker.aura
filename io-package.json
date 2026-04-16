@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.27",
+    "version": "0.4.28",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.28": {
+        "en": "Editor: widget ID moved to dialog title bar (next to 'Edit Widget'); draggable edit dialog",
+        "de": "Editor: Widget-ID in die Titelzeile des Dialogs verschoben (neben 'Widget Bearbeiten'); verschiebbarer Bearbeiten-Dialog",
+        "ru": "Редактор: ID виджета перемещён в заголовок диалога (рядом с 'Редактировать виджет'); перемещаемый диалог редактирования",
+        "pt": "Editor: ID do widget movido para a barra de título do diálogo (ao lado de 'Editar Widget'); diálogo de edição arrastável",
+        "nl": "Editor: widget-ID verplaatst naar titelbalk van dialoog (naast 'Widget Bewerken'); versleepbaar bewerkdialoog",
+        "fr": "Éditeur: ID du widget déplacé dans la barre de titre (à côté de 'Modifier le widget'); boîte de dialogue déplaçable",
+        "it": "Editor: ID widget spostato nella barra del titolo (accanto a 'Modifica Widget'); dialogo di modifica trascinabile",
+        "es": "Editor: ID del widget movido a la barra de título del diálogo (junto a 'Editar Widget'); diálogo de edición arrastrable",
+        "pl": "Edytor: ID widgetu przeniesione do paska tytułu okna (obok 'Edytuj Widget'); przeciągane okno edycji",
+        "uk": "Редактор: ID віджета переміщено до рядка заголовка діалогу (поруч з 'Редагувати Віджет'); переміщуваний діалог",
+        "zh-cn": "编辑器：小部件 ID 移至对话框标题栏（紧靠'编辑小部件'）；可拖动的编辑对话框"
+      },
       "0.4.27": {
         "en": "Chart: runtime time range selector; gauge min/max labels outside arc; CSS classes aura-header/aura-tabs/aura-page-{slug}/data-tab; widget ID in edit dialog; connected devices merged card with inline rename",
         "de": "Chart: Zeitraum im Frontend wählbar; Gauge Min/Max-Labels außerhalb des Bogens; CSS-Klassen aura-header/aura-tabs/aura-page-{slug}/data-tab; Widget-ID im Bearbeiten-Dialog; Geräte-Karte mit Inline-Umbenennung",
@@ -183,19 +196,6 @@
         "pl": "Naprawa W5022: wygenerowano admin/words.js z plików JSON i18n dla prawidłowej obsługi tłumaczeń",
         "uk": "Виправлення W5022: згенеровано admin/words.js з JSON-файлів i18n для коректної підтримки перекладів",
         "zh-cn": "修复 W5022：从 i18n JSON 文件生成 admin/words.js 以正确支持翻译"
-      },
-      "0.4.21": {
-        "en": "Fix W5022: add translate script to package.json for i18n support",
-        "de": "W5022 behoben: translate-Script in package.json für i18n-Unterstützung hinzugefügt",
-        "ru": "Исправление W5022: добавлен скрипт translate в package.json для поддержки i18n",
-        "pt": "Correção W5022: script translate adicionado ao package.json para suporte a i18n",
-        "nl": "W5022 opgelost: translate-script toegevoegd aan package.json voor i18n-ondersteuning",
-        "fr": "Correction W5022: script translate ajouté dans package.json pour la prise en charge i18n",
-        "it": "Correzione W5022: aggiunto script translate in package.json per il supporto i18n",
-        "es": "Corrección W5022: script translate añadido a package.json para soporte i18n",
-        "pl": "Naprawa W5022: dodano skrypt translate do package.json dla obsługi i18n",
-        "uk": "Виправлення W5022: додано скрипт translate до package.json для підтримки i18n",
-        "zh-cn": "修复 W5022：在 package.json 中添加 translate 脚本以支持 i18n"
       }
     }
   },

@@ -374,7 +374,7 @@ function CenteredModal({
   wide,
   children,
 }: {
-  title: string;
+  title: React.ReactNode;
   onClose: () => void;
   wide?: boolean;
   children: React.ReactNode;
@@ -1130,7 +1130,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
       {/* Edit Modal */}
       {openPanel === 'edit' && (
         <CenteredModal
-          title={t('wf.edit.title')}
+          title={<>{t('wf.edit.title')} <span className="text-[10px] font-mono opacity-40 ml-1 font-normal">({config.id})</span></>}
           wide={config.type === 'echart' || config.type === 'autolist' || config.type === 'trash'}
           onClose={() => openPanelFor(null)}
         >
@@ -2121,10 +2121,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               })()}
           </div>
 
-          {/* Widget ID – for CSS targeting */}
-          <p className="text-[10px] font-mono text-right select-all mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.4 }}>
-            {config.id}
-          </p>
         </CenteredModal>
       )}
 
