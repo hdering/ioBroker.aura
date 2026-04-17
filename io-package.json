@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.42",
+    "version": "0.4.43",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.43": {
+        "en": "Icon picker: all 1900+ Lucide icons with category tabs and search, loaded lazily; JSON Table: remove layout picker",
+        "de": "Icon-Auswahl: alle 1900+ Lucide-Icons mit Kategorie-Tabs und Suche, lazily geladen; JSON-Tabelle: Layout-Auswahl entfernt",
+        "ru": "Выбор иконок: все 1900+ иконок Lucide с вкладками категорий и поиском, загрузка по требованию; JSON-Таблица: удален выбор макета",
+        "pt": "Seletor de ícones: todos os 1900+ ícones Lucide com abas de categoria e pesquisa, carregados sob demanda; Tabela JSON: seletor de layout removido",
+        "nl": "Icoonkiezer: alle 1900+ Lucide-iconen met categorietabs en zoeken, lazy geladen; JSON-tabel: layout-kiezer verwijderd",
+        "fr": "Sélecteur d'icônes: tous les 1900+ icônes Lucide avec onglets de catégorie et recherche, chargés à la demande; Tableau JSON: sélecteur de mise en page supprimé",
+        "it": "Selettore icone: tutti i 1900+ icone Lucide con schede categoria e ricerca, caricati su richiesta; Tabella JSON: selettore layout rimosso",
+        "es": "Selector de iconos: todos los 1900+ iconos Lucide con pestañas de categoría y búsqueda, cargados de forma diferida; Tabla JSON: selector de diseño eliminado",
+        "pl": "Selektor ikon: wszystkie 1900+ ikon Lucide z zakładkami kategorii i wyszukiwaniem, ładowane leniwie; Tabela JSON: usunięto wybór układu",
+        "uk": "Вибір іконок: всі 1900+ іконок Lucide з вкладками категорій та пошуком, ліниве завантаження; JSON-Таблиця: видалено вибір макету",
+        "zh-cn": "图标选择器：全部 1900+ Lucide 图标，含分类标签与搜索，懒加载；JSON 表格：移除布局选择器"
+      },
       "0.4.42": {
         "en": "JSON Table widget: column editor (reorder, rename, hide, HTML toggle), search bar, header text color; load columns from live datapoint value",
         "de": "JSON-Tabelle Widget: Spalten-Editor (Reihenfolge, Umbenennen, Ausblenden, HTML), Suchleiste, Header-Textfarbe; Spalten aus aktuellem Datenpunkt laden",
@@ -183,19 +196,6 @@
         "pl": "Frontend: poprawiono resetowanie aktywnej karty do pierwszej po F5 lub przeładowaniu konfiguracji ioBroker",
         "uk": "Фронтенд: виправлено скидання активної вкладки до першої після F5 або перезавантаження конфігурації ioBroker",
         "zh-cn": "前端：修复 F5 刷新或 ioBroker 配置重载后活动选项卡重置为第一个选项卡的问题"
-      },
-      "0.4.36": {
-        "en": "Datapoint auto-fill: title and unit now resolved in manual widget dialog; fix y:null ReactGridLayout warning; fix chart ResponsiveContainer 0x0 warning",
-        "de": "Datenpunkt-Autofill: Titel und Einheit werden nun im manuellen Widget-Dialog befüllt; y:null ReactGridLayout-Warnung behoben; Chart ResponsiveContainer 0x0-Warnung behoben",
-        "ru": "Автозаполнение точки данных: заголовок и единица теперь определяются в диалоге ручного виджета; исправлено предупреждение y:null ReactGridLayout; исправлено предупреждение ResponsiveContainer 0x0",
-        "pt": "Preenchimento automático de datapoint: título e unidade agora resolvidos no diálogo manual; corrigido aviso y:null ReactGridLayout; corrigido aviso ResponsiveContainer 0x0",
-        "nl": "Datapunt-autofill: titel en eenheid nu ingevuld in handmatige widgetdialoog; y:null ReactGridLayout-waarschuwing opgelost; ResponsiveContainer 0x0-waarschuwing opgelost",
-        "fr": "Remplissage automatique datapoint: titre et unité maintenant résolus dans la boîte de dialogue manuelle; correction avertissement y:null ReactGridLayout; correction avertissement ResponsiveContainer 0x0",
-        "it": "Compilazione automatica datapoint: titolo e unità ora risolti nel dialogo widget manuale; corretto avviso y:null ReactGridLayout; corretto avviso ResponsiveContainer 0x0",
-        "es": "Autocompletado datapoint: título y unidad ahora resueltos en el diálogo manual; corregida advertencia y:null ReactGridLayout; corregida advertencia ResponsiveContainer 0x0",
-        "pl": "Autouzupełnianie punktu danych: tytuł i jednostka teraz ustawiane w ręcznym oknie dialogowym; poprawiono ostrzeżenie y:null ReactGridLayout; poprawiono ostrzeżenie ResponsiveContainer 0x0",
-        "uk": "Автозаповнення точки даних: заголовок і одиниця тепер визначаються в діалозі ручного віджета; виправлено попередження y:null ReactGridLayout; виправлено попередження ResponsiveContainer 0x0",
-        "zh-cn": "数据点自动填充：现在在手动小部件对话框中解析标题和单位；修复 y:null ReactGridLayout 警告；修复 ResponsiveContainer 0x0 警告"
       }
     }
   },

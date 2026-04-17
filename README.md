@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.43 (2026-04-17)
+- Icon picker: all 1900+ Lucide icons with category tabs and search, lazy-loaded in a separate chunk; JSON Table: layout picker removed
+
 ### 0.4.42 (2026-04-17)
 - JSON Table widget: column editor – reorder, rename, hide, HTML per column; search bar toggle; header text color; load columns from live datapoint value
 

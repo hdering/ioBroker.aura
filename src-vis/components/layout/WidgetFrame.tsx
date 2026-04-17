@@ -4,7 +4,7 @@ import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useT, t } from '../../i18n';
 import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Download, ArrowRightLeft, Copy } from 'lucide-react';
 import { exportWidget } from '../../utils/widgetExportImport';
-import { ICON_PICKER_ENTRIES } from '../../utils/widgetIconMap';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import type { WidgetConfig, WidgetCondition } from '../../types';
@@ -43,6 +43,7 @@ import { AutoListWidget } from '../widgets/AutoListWidget';
 import { ShutterWidget } from '../widgets/ShutterWidget';
 import { JsonTableWidget } from '../widgets/JsonTableWidget';
 import { JsonTableConfig } from '../config/JsonTableConfig';
+import { IconPickerModal } from '../config/IconPickerModal';
 
 // Stable empty array – avoids creating a new reference on every render when no conditions are set
 const NO_CONDITIONS: WidgetCondition[] = [];
@@ -786,6 +787,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
     }
   };
   const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | null>(null);
+  const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const menuBtnRef = useRef<HTMLButtonElement>(null);
   const Widget = getWidgetMap()[config.type as keyof ReturnType<typeof getWidgetMap>];
   const currentLayout = config.layout ?? 'default';
@@ -1304,7 +1306,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
             </div>
 
             {/* Layout-Auswahl mit Live-Vorschau (non-header) */}
-            {config.type !== 'header' && config.type !== 'iframe' && config.type !== 'fill' && (() => {
+            {config.type !== 'header' && config.type !== 'iframe' && config.type !== 'fill' && config.type !== 'jsontable' && (() => {
               const activeLayout = config.layout ?? 'default';
               const layouts: { value: string; label: string }[] = [
                 { value: 'default', label: t('wf.edit.layout.standard') },
@@ -1382,29 +1384,37 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
             })()}
 
             {/* Icon picker */}
-            <div>
-              <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.icon')}</label>
-              <div className="flex flex-wrap gap-1">
-                {ICON_PICKER_ENTRIES.map(([name, Icon]) => {
-                  const selected = (config.options?.icon ?? '') === name;
-                  return (
-                    <button
-                      key={name}
-                      title={name}
-                      onClick={() => onConfigChange({ ...config, options: { ...(config.options ?? {}), icon: name } })}
-                      className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
-                      style={{
-                        background: selected ? 'var(--accent)' : 'var(--app-bg)',
-                        color:      selected ? '#fff' : 'var(--text-secondary)',
-                        border:     `1px solid ${selected ? 'var(--accent)' : 'var(--app-border)'}`,
-                      }}
-                    >
-                      <Icon size={13} />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            {(() => {
+              const currentIconName = config.options?.icon as string | undefined;
+              const CurrentIcon = currentIconName
+                ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))
+                : null;
+              return (
+                <div>
+                  <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.icon')}</label>
+                  <button
+                    onClick={() => setIconPickerOpen(true)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}
+                  >
+                    {CurrentIcon
+                      ? <CurrentIcon size={14} style={{ flexShrink: 0 }} />
+                      : <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />}
+                    <span className="flex-1 truncate" style={{ color: currentIconName ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                      {currentIconName ?? 'Icon auswählen…'}
+                    </span>
+                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>›</span>
+                  </button>
+                  {iconPickerOpen && (
+                    <IconPickerModal
+                      current={currentIconName ?? ''}
+                      onSelect={(name) => onConfigChange({ ...config, options: { ...(config.options ?? {}), icon: name || undefined } })}
+                      onClose={() => setIconPickerOpen(false)}
+                    />
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
           <div className="h-px" style={{ background: 'var(--app-border)' }} />
