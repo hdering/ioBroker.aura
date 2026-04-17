@@ -155,8 +155,8 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
           border: '1px solid var(--app-border)',
           width: 620,
           maxWidth: '95vw',
-          height: 540,
-          maxHeight: '90vh',
+          height: 680,
+          maxHeight: '92vh',
           boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
         }}
       >
