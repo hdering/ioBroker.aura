@@ -15,7 +15,7 @@ import { WIDGET_REGISTRY, WIDGET_GROUPS, WIDGET_BY_TYPE, getEffectiveSize } from
 import { useConfigStore } from '../../store/configStore';
 import { useT } from '../../i18n';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
-import { DP_TEMPLATES, detectWidgetTypeFromRole } from '../../utils/dpTemplates';
+import { DP_TEMPLATES, DP_TEMPLATE_CATEGORIES, detectWidgetTypeFromRole, findTemplateByRole } from '../../utils/dpTemplates';
 
 // Layout labels are resolved inside components via t() to support i18n
 const LAYOUT_IDS: WidgetLayout[] = ['default', 'card', 'compact', 'minimal'];
@@ -27,6 +27,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
   const LAYOUTS = LAYOUT_IDS.map((id) => ({ id, label: t(`editor.layouts.${id}` as never) }));
   const CALENDAR_LAYOUTS = CALENDAR_LAYOUT_IDS.map((id) => ({ id, label: t(`editor.layouts.${id}` as never) }));
   const [type, setType] = useState<WidgetType>('value');
+  const [templateId, setTemplateId] = useState<string>('value');
   const [layout, setLayout] = useState<WidgetLayout>('default');
   const [title, setTitle] = useState('');
   const [datapoint, setDatapoint] = useState('');
@@ -38,7 +39,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
   const [calColor, setCalColor] = useState('#3b82f6');
   const { groups } = useGroupStore();
 
-  // Auto-detect type / title / unit when the datapoint ID changes
+  // Auto-detect type / template / title / unit when the datapoint ID changes
   useEffect(() => {
     const dp = datapoint.trim();
     if (!dp) return;
@@ -50,7 +51,11 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
         if (!title && entry.name) setTitle(entry.name);
         if (!unit && entry.unit) setUnit(entry.unit);
         const detected = detectWidgetTypeFromRole(entry.role, entry.type);
-        if (detected) setType(detected);
+        if (detected) {
+          setType(detected);
+          const tpl = findTemplateByRole(entry.role, entry.type);
+          if (tpl) setTemplateId(tpl.id);
+        }
       } catch { /* ignore */ }
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -146,28 +151,42 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
         <div className="flex gap-5">
           {/* Form */}
           <div className="flex-1 space-y-3.5 min-w-0">
-            {/* Quick-select templates */}
+            {/* Quick-select templates – grouped by category */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.template')}</label>
-              <div className="flex flex-wrap gap-1.5">
-                {DP_TEMPLATES.map((tpl) => (
-                  <button key={tpl.id} type="button"
-                    onClick={() => { setType(tpl.widgetType); setGroupId(''); setDatapoint(''); }}
-                    className="px-2.5 py-1 text-xs rounded-lg transition-opacity hover:opacity-80"
-                    style={{
-                      background: type === tpl.widgetType ? 'var(--accent)22' : 'var(--app-bg)',
-                      color: type === tpl.widgetType ? 'var(--accent)' : 'var(--text-secondary)',
-                      border: `1px solid ${type === tpl.widgetType ? 'var(--accent)66' : 'var(--app-border)'}`,
-                    }}>
-                    {tpl.label}
-                  </button>
-                ))}
+              <div className="space-y-1.5">
+                {DP_TEMPLATE_CATEGORIES.map((cat) => {
+                  const catTpls = DP_TEMPLATES.filter((tpl) => tpl.category === cat.id);
+                  if (!catTpls.length) return null;
+                  return (
+                    <div key={cat.id}>
+                      <p className="text-[10px] mb-1 font-medium uppercase tracking-wide" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>{cat.label}</p>
+                      <div className="flex flex-wrap gap-1">
+                        {catTpls.map((tpl) => {
+                          const active = templateId === tpl.id;
+                          return (
+                            <button key={tpl.id} type="button"
+                              onClick={() => { setType(tpl.widgetType); setTemplateId(tpl.id); setGroupId(''); setDatapoint(''); }}
+                              className="px-2.5 py-1 text-xs rounded-lg transition-opacity hover:opacity-80"
+                              style={{
+                                background: active ? 'var(--accent)22' : 'var(--app-bg)',
+                                color: active ? 'var(--accent)' : 'var(--text-secondary)',
+                                border: `1px solid ${active ? 'var(--accent)66' : 'var(--app-border)'}`,
+                              }}>
+                              {tpl.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.type')}</label>
-              <select value={type} onChange={(e) => { setType(e.target.value as WidgetType); setGroupId(''); setDatapoint(''); }}
+              <select value={type} onChange={(e) => { setType(e.target.value as WidgetType); setTemplateId(''); setGroupId(''); setDatapoint(''); }}
                 className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
                 style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
                 {WIDGET_GROUPS.map((g) => (
