@@ -125,14 +125,6 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
               </select>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.titleField')}</label>
-              <input value={title} onChange={(e) => setTitle(e.target.value)}
-                placeholder={def.label}
-                className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
-                style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
-            </div>
-
             {isCalendar ? (
               <div className="space-y-1.5">
                 <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.icalUrl')}</label>
@@ -199,6 +191,14 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                 </div>
               </div>
             ) : null}
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.titleField')}</label>
+              <input value={title} onChange={(e) => setTitle(e.target.value)}
+                placeholder={def.label}
+                className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
+                style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
+            </div>
 
             {(type === 'value' || type === 'chart') && (
               <div className="space-y-1.5">
