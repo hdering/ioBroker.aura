@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useIoBroker } from './useIoBroker';
+import { useIoBroker, getObjectViewDirect } from './useIoBroker';
 import type { ioBrokerObject, WidgetType } from '../types';
 
 export interface DeviceState {
@@ -13,6 +13,9 @@ export interface Device {
   id: string;
   name: string;
   adapter: string;
+  rooms: string[];
+  funcs: string[];
+  roles: string[];
   states: DeviceState[];
 }
 
@@ -51,11 +54,29 @@ export function useIoBrokerDevices() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [devResult, chResult, stResult] = await Promise.all([
+      const [devResult, chResult, stResult, enumResult] = await Promise.all([
         getObjectView('device'),
         getObjectView('channel'),
         getObjectView('state'),
+        getObjectViewDirect('enum', 'enum.', 'enum.\u9999'),
       ]);
+
+      // Build memberId → { rooms, funcs } map from enums
+      const enumMap = new Map<string, { rooms: string[]; funcs: string[] }>();
+      for (const { value: obj } of enumResult.rows) {
+        const members = (obj?.common as Record<string, unknown> | undefined)?.members as string[] | undefined;
+        if (!members?.length) continue;
+        const isRoom = obj._id.startsWith('enum.rooms.');
+        const isFunc = obj._id.startsWith('enum.functions.');
+        if (!isRoom && !isFunc) continue;
+        const label = getObjectName(obj);
+        for (const memberId of members) {
+          if (!enumMap.has(memberId)) enumMap.set(memberId, { rooms: [], funcs: [] });
+          const e = enumMap.get(memberId)!;
+          if (isRoom) e.rooms.push(label);
+          else e.funcs.push(label);
+        }
+      }
 
       // States nach Parent-ID gruppieren
       const statesByParent = new Map<string, DeviceState[]>();
@@ -72,6 +93,18 @@ export function useIoBrokerDevices() {
         });
       }
 
+      function buildDeviceEnumInfo(states: DeviceState[]): { rooms: string[]; funcs: string[]; roles: string[] } {
+        const rooms = new Set<string>();
+        const funcs = new Set<string>();
+        const roles = new Set<string>();
+        for (const state of states) {
+          const e = enumMap.get(state.id);
+          if (e) { e.rooms.forEach((r) => rooms.add(r)); e.funcs.forEach((f) => funcs.add(f)); }
+          if (state.obj.common.role) roles.add(state.obj.common.role);
+        }
+        return { rooms: [...rooms].sort(), funcs: [...funcs].sort(), roles: [...roles].sort() };
+      }
+
       const result: Device[] = [];
 
       // Geräte (device-Objekte)
@@ -85,12 +118,7 @@ export function useIoBrokerDevices() {
           }
         }
         if (states.length === 0) continue;
-        result.push({
-          id: obj._id,
-          name: getObjectName(obj),
-          adapter: adapterPrefix(obj._id),
-          states,
-        });
+        result.push({ id: obj._id, name: getObjectName(obj), adapter: adapterPrefix(obj._id), ...buildDeviceEnumInfo(states), states });
       }
 
       // Kanäle ohne übergeordnetes Gerät
@@ -102,12 +130,7 @@ export function useIoBrokerDevices() {
         if (deviceIds.has(parentDevice)) continue; // schon über Gerät abgedeckt
         const states = statesByParent.get(obj._id) ?? [];
         if (states.length === 0) continue;
-        result.push({
-          id: obj._id,
-          name: getObjectName(obj),
-          adapter: adapterPrefix(obj._id),
-          states,
-        });
+        result.push({ id: obj._id, name: getObjectName(obj), adapter: adapterPrefix(obj._id), ...buildDeviceEnumInfo(states), states });
       }
 
       // Nach Adapter + Name sortieren

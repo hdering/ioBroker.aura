@@ -34,20 +34,29 @@ export function DeviceWizard({ onAdd, onClose }: DeviceWizardProps) {
   const { devices, loading, loaded, load } = useIoBrokerDevices();
   const [search, setSearch] = useState('');
   const [selectedAdapter, setSelectedAdapter] = useState('');
+  const [selectedRoom, setSelectedRoom] = useState('');
+  const [selectedFunc, setSelectedFunc] = useState('');
+  const [selectedRole, setSelectedRole] = useState('');
   const [expandedDevice, setExpandedDevice] = useState<string | null>(null);
   const [selections, setSelections] = useState<Map<string, Selection>>(new Map());
 
   const adapters = useMemo(() => Array.from(new Set(devices.map((d) => d.adapter))).sort(), [devices]);
+  const rooms = useMemo(() => Array.from(new Set(devices.flatMap((d) => d.rooms))).sort(), [devices]);
+  const funcs = useMemo(() => Array.from(new Set(devices.flatMap((d) => d.funcs))).sort(), [devices]);
+  const roles = useMemo(() => Array.from(new Set(devices.flatMap((d) => d.roles))).sort(), [devices]);
 
   const filtered = useMemo(() => devices.filter((d) => {
     if (selectedAdapter && d.adapter !== selectedAdapter) return false;
+    if (selectedRoom && !d.rooms.includes(selectedRoom)) return false;
+    if (selectedFunc && !d.funcs.includes(selectedFunc)) return false;
+    if (selectedRole && !d.roles.includes(selectedRole)) return false;
     if (search) {
       const q = search.toLowerCase();
       return d.name.toLowerCase().includes(q) || d.id.toLowerCase().includes(q) ||
         d.states.some((s) => s.id.toLowerCase().includes(q));
     }
     return true;
-  }), [devices, search, selectedAdapter]);
+  }), [devices, search, selectedAdapter, selectedRoom, selectedFunc, selectedRole]);
 
   const toggleState = (device: Device, state: DeviceState) => {
     setSelections((prev) => {
@@ -112,16 +121,43 @@ export function DeviceWizard({ onAdd, onClose }: DeviceWizardProps) {
         ) : (
           <>
             {/* Filter */}
-            <div className="flex gap-3 px-6 py-3" style={{ borderBottom: '1px solid var(--app-border)' }}>
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('wizard.device.search')}
-                className="flex-1 rounded-lg px-3 py-1.5 text-sm focus:outline-none"
-                style={{ ...inputStyle, outlineColor: 'var(--accent)' }} />
-              <select value={selectedAdapter} onChange={(e) => setSelectedAdapter(e.target.value)}
-                className="rounded-lg px-3 py-1.5 text-sm" style={inputStyle}>
-                <option value="">{t('wizard.device.allAdapters')}</option>
-                {adapters.map((a) => <option key={a} value={a}>{a}</option>)}
-              </select>
-              <span className="text-sm self-center whitespace-nowrap" style={{ color: 'var(--text-secondary)' }}>{filtered.length} {t('wizard.device.devices')}</span>
+            <div className="px-6 py-3 space-y-2" style={{ borderBottom: '1px solid var(--app-border)' }}>
+              <div className="flex gap-3">
+                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('wizard.device.search')}
+                  className="flex-1 rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+                  style={{ ...inputStyle, outlineColor: 'var(--accent)' }} />
+                <select value={selectedAdapter} onChange={(e) => setSelectedAdapter(e.target.value)}
+                  className="rounded-lg px-3 py-1.5 text-sm" style={inputStyle}>
+                  <option value="">{t('wizard.device.allAdapters')}</option>
+                  {adapters.map((a) => <option key={a} value={a}>{a}</option>)}
+                </select>
+                <span className="text-sm self-center whitespace-nowrap" style={{ color: 'var(--text-secondary)' }}>{filtered.length} {t('wizard.device.devices')}</span>
+              </div>
+              {(rooms.length > 0 || funcs.length > 0 || roles.length > 0) && (
+                <div className="flex gap-2 flex-wrap">
+                  {rooms.length > 0 && (
+                    <select value={selectedRoom} onChange={(e) => setSelectedRoom(e.target.value)}
+                      className="rounded-lg px-3 py-1.5 text-xs" style={inputStyle}>
+                      <option value="">{t('wizard.device.allRooms')}</option>
+                      {rooms.map((r) => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  )}
+                  {funcs.length > 0 && (
+                    <select value={selectedFunc} onChange={(e) => setSelectedFunc(e.target.value)}
+                      className="rounded-lg px-3 py-1.5 text-xs" style={inputStyle}>
+                      <option value="">{t('wizard.device.allFuncs')}</option>
+                      {funcs.map((f) => <option key={f} value={f}>{f}</option>)}
+                    </select>
+                  )}
+                  {roles.length > 0 && (
+                    <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)}
+                      className="rounded-lg px-3 py-1.5 text-xs" style={inputStyle}>
+                      <option value="">{t('wizard.device.allRoles')}</option>
+                      {roles.map((r) => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Liste */}

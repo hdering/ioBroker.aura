@@ -17,6 +17,9 @@ export function DatapointPicker({ currentValue, onSelect, onClose }: DatapointPi
   const { datapoints, loading, loaded, load } = useDatapointList();
   const [search, setSearch] = useState('');
   const [adapter, setAdapter] = useState(() => currentValue ? currentValue.split('.')[0] : '');
+  const [room, setRoom] = useState('');
+  const [func, setFunc] = useState('');
+  const [role, setRole] = useState('');
   const selectedRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -33,16 +36,22 @@ export function DatapointPicker({ currentValue, onSelect, onClose }: DatapointPi
     () => Array.from(new Set(datapoints.map((dp) => dp.id.split('.')[0]))).sort(),
     [datapoints],
   );
+  const rooms = useMemo(() => Array.from(new Set(datapoints.flatMap((dp) => dp.rooms))).sort(), [datapoints]);
+  const funcs = useMemo(() => Array.from(new Set(datapoints.flatMap((dp) => dp.funcs))).sort(), [datapoints]);
+  const roles = useMemo(() => Array.from(new Set(datapoints.map((dp) => dp.role).filter(Boolean) as string[])).sort(), [datapoints]);
 
   const filtered = useMemo(() => {
     let list = datapoints;
     if (adapter) list = list.filter((dp) => dp.id.startsWith(adapter + '.'));
+    if (room) list = list.filter((dp) => dp.rooms.includes(room));
+    if (func) list = list.filter((dp) => dp.funcs.includes(func));
+    if (role) list = list.filter((dp) => dp.role === role);
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((dp) => dp.id.toLowerCase().includes(q) || dp.name.toLowerCase().includes(q));
     }
     return list;
-  }, [datapoints, search, adapter]);
+  }, [datapoints, search, adapter, room, func, role]);
 
   const shown = filtered.slice(0, MAX_DISPLAY);
   const countLabel = filtered.length > MAX_DISPLAY
@@ -85,38 +94,68 @@ export function DatapointPicker({ currentValue, onSelect, onClose }: DatapointPi
         </div>
 
         {/* Filter bar */}
-        <div className="flex gap-2 px-5 py-3 shrink-0" style={{ borderBottom: '1px solid var(--app-border)' }}>
-          <div
-            className="flex items-center gap-2 flex-1 rounded-lg px-3 py-2"
-            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-          >
-            <Search size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-            <input
-              autoFocus
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('dp.picker.search')}
-              className="flex-1 text-sm bg-transparent focus:outline-none"
-              style={{ color: 'var(--text-primary)' }}
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="hover:opacity-60" style={{ color: 'var(--text-secondary)' }}>
-                <X size={12} />
-              </button>
+        <div className="px-5 py-3 shrink-0 space-y-2" style={{ borderBottom: '1px solid var(--app-border)' }}>
+          <div className="flex gap-2">
+            <div
+              className="flex items-center gap-2 flex-1 rounded-lg px-3 py-2"
+              style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+            >
+              <Search size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+              <input
+                autoFocus
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t('dp.picker.search')}
+                className="flex-1 text-sm bg-transparent focus:outline-none"
+                style={{ color: 'var(--text-primary)' }}
+              />
+              {search && (
+                <button onClick={() => setSearch('')} className="hover:opacity-60" style={{ color: 'var(--text-secondary)' }}>
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+            {adapters.length > 0 && (
+              <select
+                value={adapter}
+                onChange={(e) => setAdapter(e.target.value)}
+                className="rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+              >
+                <option value="">{t('dp.picker.allAdapters')}</option>
+                {adapters.map((a) => (
+                  <option key={a} value={a}>{a}</option>
+                ))}
+              </select>
             )}
           </div>
-          {adapters.length > 0 && (
-            <select
-              value={adapter}
-              onChange={(e) => setAdapter(e.target.value)}
-              className="rounded-lg px-3 py-2 text-sm focus:outline-none"
-              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
-            >
-              <option value="">{t('dp.picker.allAdapters')}</option>
-              {adapters.map((a) => (
-                <option key={a} value={a}>{a}</option>
-              ))}
-            </select>
+          {(rooms.length > 0 || funcs.length > 0 || roles.length > 0) && (
+            <div className="flex gap-2 flex-wrap">
+              {rooms.length > 0 && (
+                <select value={room} onChange={(e) => setRoom(e.target.value)}
+                  className="rounded-lg px-3 py-1.5 text-xs focus:outline-none"
+                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
+                  <option value="">{t('dp.picker.allRooms')}</option>
+                  {rooms.map((r) => <option key={r} value={r}>{r}</option>)}
+                </select>
+              )}
+              {funcs.length > 0 && (
+                <select value={func} onChange={(e) => setFunc(e.target.value)}
+                  className="rounded-lg px-3 py-1.5 text-xs focus:outline-none"
+                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
+                  <option value="">{t('dp.picker.allFuncs')}</option>
+                  {funcs.map((f) => <option key={f} value={f}>{f}</option>)}
+                </select>
+              )}
+              {roles.length > 0 && (
+                <select value={role} onChange={(e) => setRole(e.target.value)}
+                  className="rounded-lg px-3 py-1.5 text-xs focus:outline-none"
+                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
+                  <option value="">{t('dp.picker.allRoles')}</option>
+                  {roles.map((r) => <option key={r} value={r}>{r}</option>)}
+                </select>
+              )}
+            </div>
           )}
         </div>
 
