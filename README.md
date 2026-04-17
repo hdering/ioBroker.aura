@@ -128,7 +128,10 @@ npm run build:adapter
 ## Changelog
 
 ### 0.4.44 (2026-04-17)
-- Settings: delete connected devices via relay state (trash icon with confirmation, own device protected)
+- Settings: delete connected devices via adapter relay state (recursive object deletion)
+- Client registration now handled by adapter backend – fixes "State has no existing object" warnings
+- CSS: per-tab body class `aura-{slug}` (e.g. `aura-startseite`) and `aura-titel` on header title
+- Dimmer compact layout: icon + name + value row above full-width slider
 
 ### 0.4.43 (2026-04-17)
 - Icon picker: all 1900+ Lucide icons with category tabs and search, lazy-loaded in a separate chunk; JSON Table: layout picker removed

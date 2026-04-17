@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sun, Moon, Settings } from 'lucide-react';
-import { useIoBroker, getStateDirect, setStateDirect, setObjectDirect, subscribeStateDirect } from './hooks/useIoBroker';
+import { useIoBroker, getStateDirect, setStateDirect, subscribeStateDirect } from './hooks/useIoBroker';
 import { useConfigSync } from './hooks/useConfigSync';
 import { useConnectionStore } from './store/connectionStore';
 import { useConfigStore } from './store/configStore';
@@ -307,45 +307,11 @@ export default function App() {
   // Register this client in ioBroker on connect and subscribe to per-client navigate
   useEffect(() => {
     if (!connected) return;
-    const prefix = `aura.0.clients.${clientId}`;
     const displayName = clientName || navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Aura Client';
 
-    // Ensure objects exist (idempotent)
-    // Intermediate channels must be created before their child states (ioBroker hierarchy rule)
-    setObjectDirect(prefix, {
-      type: 'channel',
-      common: { name: displayName },
-      native: {},
-    });
-    setObjectDirect(`${prefix}.navigate`, {
-      type: 'channel',
-      common: { name: 'Navigation' },
-      native: {},
-    });
-    setObjectDirect(`${prefix}.info`, {
-      type: 'channel',
-      common: { name: 'Info' },
-      native: {},
-    });
-    setObjectDirect(`${prefix}.navigate.url`, {
-      type: 'state',
-      common: { name: 'Navigate', type: 'string', role: 'url', read: true, write: true, def: '' },
-      native: {},
-    });
-    setObjectDirect(`${prefix}.info.name`, {
-      type: 'state',
-      common: { name: 'Client Name', type: 'string', role: 'text', read: true, write: true, def: displayName },
-      native: {},
-    });
-    setObjectDirect(`${prefix}.info.lastSeen`, {
-      type: 'state',
-      common: { name: 'Last Seen', type: 'number', role: 'date', read: true, write: true, def: 0 },
-      native: {},
-    });
-
-    // Update live info
-    setStateDirect(`${prefix}.info.name`, displayName);
-    setStateDirect(`${prefix}.info.lastSeen`, Date.now());
+    // Register via relay state: adapter creates the full object tree and writes initial states.
+    // Direct setObject calls are blocked by the web adapter socket (admin-only).
+    setStateDirect('aura.0.clients.register', JSON.stringify({ clientId, name: displayName }));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected, clientId, clientName]);
 
@@ -362,13 +328,18 @@ export default function App() {
 
   const showBadge = frontend.showHeader && frontend.showConnectionBadge;
 
+  const activeTabSlug = useMemo(() => {
+    const t = tabs.find((t) => t.id === activeTabId);
+    return t?.slug ?? null;
+  }, [tabs, activeTabId]);
+
   return (
-    <div data-aura-app="frontend" className={`aura-page${layout?.slug ? ` aura-page-${layout.slug}` : ''} h-full flex flex-col overflow-hidden`} style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}>
+    <div data-aura-app="frontend" className={`aura-page${layout?.slug ? ` aura-page-${layout.slug}` : ''}${activeTabSlug ? ` aura-${activeTabSlug}` : ''} h-full flex flex-col overflow-hidden`} style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}>
       <ConnectionIndicator showBadge={showBadge} />
       {frontend.showHeader && (
         <header className="aura-header flex items-center justify-between px-4 sm:px-6 py-4 shrink-0"
           style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)' }}>
-          <h1 className="text-xl font-bold tracking-tight">{frontend.headerTitle || 'Aura'}</h1>
+          <h1 className="aura-titel text-xl font-bold tracking-tight">{frontend.headerTitle || 'Aura'}</h1>
           <div className="flex items-center gap-3">
             {frontend.headerDatapoint && <HeaderDatapoint id={frontend.headerDatapoint} template={frontend.headerDatapointTemplate || undefined} />}
             {frontend.headerClockEnabled && <HeaderClock f={frontend} />}

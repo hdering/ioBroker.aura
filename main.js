@@ -62,6 +62,51 @@ class Aura extends utils.Adapter {
       return;
     }
 
+    // Client register relay: frontend writes {clientId, name} → adapter creates object tree
+    if (id.endsWith('clients.register') && state && !state.ack && state.val) {
+      let reg;
+      try { reg = JSON.parse(String(state.val)); } catch {
+        await this.setStateAsync('clients.register', '', true);
+        return;
+      }
+      if (!reg.clientId) { await this.setStateAsync('clients.register', '', true); return; }
+
+      const cId = String(reg.clientId);
+      const displayName = reg.name ? String(reg.name) : cId.slice(0, 8);
+
+      await this.setObjectNotExistsAsync(`clients.${cId}`, {
+        type: 'channel', common: { name: displayName }, native: {},
+      });
+      await this.setObjectNotExistsAsync(`clients.${cId}.info`, {
+        type: 'channel', common: { name: 'Info' }, native: {},
+      });
+      await this.setObjectNotExistsAsync(`clients.${cId}.info.name`, {
+        type: 'state',
+        common: { name: 'Client Name', type: 'string', role: 'text', read: true, write: true, def: displayName },
+        native: {},
+      });
+      await this.setObjectNotExistsAsync(`clients.${cId}.info.lastSeen`, {
+        type: 'state',
+        common: { name: 'Last Seen', type: 'number', role: 'date', read: true, write: true, def: 0 },
+        native: {},
+      });
+      await this.setObjectNotExistsAsync(`clients.${cId}.navigate`, {
+        type: 'channel', common: { name: 'Navigation' }, native: {},
+      });
+      await this.setObjectNotExistsAsync(`clients.${cId}.navigate.url`, {
+        type: 'state',
+        common: { name: 'Navigate', type: 'string', role: 'url', read: true, write: true, def: '' },
+        native: {},
+      });
+
+      await this.setStateAsync(`clients.${cId}.info.name`, { val: displayName, ack: true });
+      await this.setStateAsync(`clients.${cId}.info.lastSeen`, { val: Date.now(), ack: true });
+
+      this.log.info(`[clients] registered: ${cId} (${displayName})`);
+      await this.setStateAsync('clients.register', '', true);
+      return;
+    }
+
     // Client delete relay: frontend writes clientId → adapter deletes recursively
     if (id.endsWith('clients.deleteRequest') && state && !state.ack && state.val) {
       const clientId = String(state.val).trim();
@@ -236,9 +281,23 @@ class Aura extends utils.Adapter {
       native: {},
     });
 
+    await this.setObjectNotExistsAsync('clients.register', {
+      type: 'state',
+      common: {
+        name: 'Client register relay (write JSON {clientId, name} to create client object tree)',
+        type: 'string',
+        role: 'json',
+        read: true,
+        write: true,
+        def: '',
+      },
+      native: {},
+    });
+
     this.subscribeStates('calendar.request');
     this.subscribeStates('calendar.clientError');
     this.subscribeStates('clients.deleteRequest');
+    this.subscribeStates('clients.register');
 
     // NOTE: The block below modifies system.adapter.aura.X via setForeignObjectAsync
     // to keep localLinks (overview tile URLs) up-to-date when a custom URL is configured.

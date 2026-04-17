@@ -37,14 +37,16 @@ export function DimmerWidget({ config }: WidgetProps) {
   // --- COMPACT ---
   if (layout === 'compact') {
     return (
-      <div className="flex items-center gap-2.5 h-full">
-        <CompactIcon size={16} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }} />
-        <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>
+      <div className="flex flex-col justify-center h-full gap-1.5">
+        <div className="flex items-center gap-2">
+          <CompactIcon size={15} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }} />
+          <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>
+          <span className="text-sm font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>{level}%</span>
+        </div>
         <input type="range" min={0} max={100} step={1} value={level}
           onChange={(e) => setState(config.datapoint, Number(e.target.value))}
-          style={{ accentColor: 'var(--accent)', minWidth: 50, width: 70 }}
-          className="h-1.5 rounded-full appearance-none cursor-pointer shrink-0" />
-        <span className="text-sm font-bold shrink-0 w-8 text-right" style={{ color: 'var(--text-primary)' }}>{level}%</span>
+          style={{ accentColor: 'var(--accent-yellow)' }}
+          className="w-full h-1.5 rounded-full appearance-none cursor-pointer" />
       </div>
     );
   }
