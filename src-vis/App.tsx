@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sun, Moon, Settings } from 'lucide-react';
 import { useIoBroker, getStateDirect, setStateDirect, setObjectDirect, subscribeStateDirect } from './hooks/useIoBroker';
-import { isDirty } from './store/persistManager';
 import { useConnectionStore } from './store/connectionStore';
 import { useConfigStore } from './store/configStore';
 import { useDashboardStore, useLayoutBySlug } from './store/dashboardStore';
@@ -277,11 +276,13 @@ export default function App() {
   // state for all active subscribers on every reconnect, so changes that
   // happened during a connection drop are picked up as well.
   // Own writes are not looped: saveAll() flushes to localStorage before
-  // saveToIoBroker() fires the event, so the comparison finds no diff.
+  // saveToIoBroker() fires the event, so the comparison below finds no diff.
+  // No isDirty() guard: Zustand merging new default fields (e.g. after an
+  // upgrade) marks the store as dirty immediately on load, which would
+  // permanently block external updates on fresh or HTTPS clients.
   useEffect(() => {
     return subscribeStateDirect(IOBROKER_CONFIG_KEY, (state) => {
       if (!state?.val || !ioBrokerConfigLoaded.current) return;
-      if (isDirty()) return; // unsaved local changes take priority
       const raw = String(state.val);
       try {
         const remote = JSON.parse(raw) as Record<string, unknown>;
