@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, Trash2, Edit3, Check, Cpu, PenLine, Database, Wand2, Smartphone, GripVertical, Upload, Settings, X } from 'lucide-react';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
@@ -15,7 +15,7 @@ import { WIDGET_REGISTRY, WIDGET_GROUPS, WIDGET_BY_TYPE, getEffectiveSize } from
 import { useConfigStore } from '../../store/configStore';
 import { useT } from '../../i18n';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
-import { DP_TEMPLATES } from '../../utils/dpTemplates';
+import { DP_TEMPLATES, detectWidgetTypeFromRole } from '../../utils/dpTemplates';
 
 // Layout labels are resolved inside components via t() to support i18n
 const LAYOUT_IDS: WidgetLayout[] = ['default', 'card', 'compact', 'minimal'];
@@ -37,6 +37,24 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
   const [calName, setCalName] = useState('');
   const [calColor, setCalColor] = useState('#3b82f6');
   const { groups } = useGroupStore();
+
+  // Auto-detect type / title / unit when the datapoint ID changes
+  useEffect(() => {
+    const dp = datapoint.trim();
+    if (!dp) return;
+    void (async () => {
+      try {
+        const entries = await ensureDatapointCache();
+        const entry = entries.find((e) => e.id === dp);
+        if (!entry) return;
+        if (!title && entry.name) setTitle(entry.name);
+        if (!unit && entry.unit) setUnit(entry.unit);
+        const detected = detectWidgetTypeFromRole(entry.role, entry.type);
+        if (detected) setType(detected);
+      } catch { /* ignore */ }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [datapoint]);
 
   const def = WIDGET_REGISTRY.find((w) => w.type === type)!;
   const addMode = WIDGET_BY_TYPE[type].addMode;

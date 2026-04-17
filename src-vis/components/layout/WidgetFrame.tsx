@@ -2210,6 +2210,20 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   onConfigChange({ ...config, options: { ...o, ...patch } });
                 const tInputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
                 const tInputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                const autoFillThermostat = async () => {
+                  if (!config.datapoint) return;
+                  const parts = config.datapoint.split('.');
+                  const parent = parts.slice(0, -1).join('.');
+                  const entries = await ensureDatapointCache();
+                  const sibs = entries.filter((e) => e.id.startsWith(parent + '.'));
+                  const find = (...names: string[]) => names.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
+                  const patch: Record<string, unknown> = {};
+                  if (!o.actualDatapoint) {
+                    const v = find('ACTUAL', 'actual', 'ACTUAL_TEMPERATURE', 'ACTUAL_TEMP', 'TEMPERATURE', 'temperature', 'TEMP', 'temp', 'MEASURED_TEMPERATURE');
+                    if (v) patch.actualDatapoint = v;
+                  }
+                  if (Object.keys(patch).length) setO(patch);
+                };
                 return (
                   <>
                     <div className="flex items-center justify-between">
@@ -2224,7 +2238,14 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                       </button>
                     </div>
                     <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Ist-Temperatur Datenpunkt</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Ist-Temperatur Datenpunkt</label>
+                        <button onClick={() => void autoFillThermostat()}
+                          className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
+                          style={{ background: 'var(--accent)22', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
+                          Auto-Erkennen
+                        </button>
+                      </div>
                       <div className="flex gap-1">
                         <input
                           type="text"
