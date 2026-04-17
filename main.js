@@ -107,18 +107,25 @@ class Aura extends utils.Adapter {
       return;
     }
 
-    // Client delete relay: frontend writes clientId → adapter deletes recursively
+    // Client delete relay: frontend writes clientId → adapter deletes all child objects explicitly
     if (id.endsWith('clients.deleteRequest') && state && !state.ack && state.val) {
       const clientId = String(state.val).trim();
       if (clientId) {
-        const fullId = `aura.0.clients.${clientId}`;
-        this.log.info(`[clients] deleting client tree: ${fullId}`);
-        try {
-          await this.delForeignObjectAsync(fullId, { recursive: true });
-          this.log.info(`[clients] deleted: ${fullId}`);
-        } catch (e) {
-          this.log.error(`[clients] delete failed for ${fullId}: ${e.message}`);
+        const base = `${this.namespace}.clients.${clientId}`;
+        // Delete leaves first, then channels, then root channel
+        const toDelete = [
+          `${base}.info.name`,
+          `${base}.info.lastSeen`,
+          `${base}.info`,
+          `${base}.navigate.url`,
+          `${base}.navigate`,
+          base,
+        ];
+        this.log.info(`[clients] deleting client: ${base}`);
+        for (const objId of toDelete) {
+          try { await this.delForeignObjectAsync(objId); } catch { /* ignore missing */ }
         }
+        this.log.info(`[clients] deleted: ${base}`);
       }
       await this.setStateAsync('clients.deleteRequest', '', true);
       return;
