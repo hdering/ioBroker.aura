@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.47",
+    "version": "0.4.48",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.48": {
+        "en": "Fix: tabs no longer go blank after switching away from a fillTab iFrame widget (callback ref prevents ResizeObserver from firing with width=0 on detached element)",
+        "de": "Fix: Tabs werden nach dem Wechsel von einem fillTab-iFrame-Widget nicht mehr leer (Callback-Ref verhindert ResizeObserver-Aufruf mit Breite=0 auf entferntem Element)",
+        "ru": "Исправление: вкладки больше не становятся пустыми после переключения с виджета iFrame в режиме fillTab (callback-ref предотвращает вызов ResizeObserver с width=0 для отсоединённого элемента)",
+        "pt": "Correção: os separadores já não ficam em branco após mudar de um widget iFrame em modo fillTab (callback ref impede ResizeObserver de disparar com largura=0 em elemento removido)",
+        "nl": "Fix: tabs worden niet meer leeg na het wisselen van een fillTab iFrame-widget (callback ref voorkomt dat ResizeObserver met breedte=0 op een verwijderd element wordt aangeroepen)",
+        "fr": "Correction: les onglets ne deviennent plus vides après avoir quitté un widget iFrame en mode fillTab (le callback ref empêche le ResizeObserver de se déclencher avec width=0 sur un élément détaché)",
+        "it": "Fix: le schede non diventano più vuote dopo aver cambiato da un widget iFrame in modalità fillTab (il callback ref impedisce a ResizeObserver di attivarsi con width=0 su elemento rimosso)",
+        "es": "Corrección: las pestañas ya no quedan en blanco tras cambiar desde un widget iFrame en modo fillTab (el callback ref evita que ResizeObserver se dispare con width=0 en un elemento eliminado)",
+        "pl": "Poprawka: zakładki nie stają się już puste po przełączeniu z widgetu iFrame w trybie fillTab (callback ref zapobiega wywołaniu ResizeObserver z width=0 na odłączonym elemencie)",
+        "uk": "Виправлення: вкладки більше не стають порожніми після переходу від віджета iFrame у режимі fillTab (callback ref запобігає спрацюванню ResizeObserver із width=0 на від'єднаному елементі)",
+        "zh-cn": "修复：从 fillTab iFrame 小部件切换后标签页不再变空（callback ref 防止 ResizeObserver 在已移除元素上以 width=0 触发）"
+      },
       "0.4.47": {
         "en": "Fix: iFrame fullscreen overlay now uses position:fixed (covers full viewport) and is always cleared when switching tabs",
         "de": "Fix: iFrame-Vollbild-Overlay nutzt jetzt position:fixed (deckt gesamten Viewport) und wird beim Tab-Wechsel immer geschlossen",
@@ -183,19 +196,6 @@
         "pl": "Widget Tabela JSON: edytor kolumn (zmiana kolejności, zmiana nazwy, ukrycie, HTML), pasek wyszukiwania, kolor tekstu nagłówka; ładowanie kolumn z wartości punktu danych",
         "uk": "Віджет JSON-Таблиця: редактор стовпців (порядок, перейменування, приховування, HTML), рядок пошуку, колір тексту заголовка; завантаження стовпців з поточного значення точки даних",
         "zh-cn": "JSON 表格小部件：列编辑器（重新排序、重命名、隐藏、HTML 开关），搜索栏，表头文字颜色；从数据点当前值加载列"
-      },
-      "0.4.41": {
-        "en": "New widget: JSON Table – display JSON datapoints as scrollable tables with configurable colors; Dynamic List improvements; iFrame load-failure hint; various widget and dialog fixes",
-        "de": "Neues Widget: JSON-Tabelle – JSON-Datenpunkte als scrollbare Tabelle mit konfigurierbaren Farben; Dynamische Liste verbessert; iFrame Ladehinweis; diverse Widget- und Dialog-Fixes",
-        "ru": "Новый виджет: JSON-Таблица – отображение JSON-точек данных в виде таблицы с настраиваемыми цветами; улучшен Динамический список; подсказка загрузки iFrame; различные исправления",
-        "pt": "Novo widget: Tabela JSON – exibe datapoints JSON como tabelas com cores configuráveis; Lista dinâmica melhorada; dica de falha de carregamento iFrame; várias correções",
-        "nl": "Nieuw widget: JSON-tabel – JSON-datapunten weergeven als tabel met instelbare kleuren; Dynamische lijst verbeterd; iFrame laadwaarschuwing; diverse widget- en dialoogfixes",
-        "fr": "Nouveau widget: Tableau JSON – affichage des datapoints JSON sous forme de tableau avec couleurs configurables; Liste dynamique améliorée; indication d'échec de chargement iFrame; divers correctifs",
-        "it": "Nuovo widget: Tabella JSON – visualizza datapoint JSON come tabella con colori configurabili; Lista dinamica migliorata; suggerimento errore caricamento iFrame; varie correzioni",
-        "es": "Nuevo widget: Tabla JSON – muestra datapoints JSON como tabla con colores configurables; Lista dinámica mejorada; aviso de fallo de carga iFrame; diversas correcciones",
-        "pl": "Nowy widget: Tabela JSON – wyświetla punkty danych JSON jako tabelę z konfigurowalnymi kolorami; ulepszona Lista dynamiczna; wskazówka błędu ładowania iFrame; różne poprawki",
-        "uk": "Новий віджет: JSON-Таблиця – відображення JSON-точок даних як таблиці з налаштовуваними кольорами; покращено Динамічний список; підказка помилки завантаження iFrame; різні виправлення",
-        "zh-cn": "新小部件：JSON 表格 – 将 JSON 数据点显示为可滚动表格，支持颜色配置；动态列表改进；iFrame 加载失败提示；多项部件和对话框修复"
       }
     }
   },

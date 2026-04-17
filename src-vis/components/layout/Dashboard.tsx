@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 import { X } from 'lucide-react';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
@@ -58,20 +58,27 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
   const showIframeOverlay = iframeFullscreen !== null && fullscreenTabId === activeTabId;
 
   // ── container width measurement ────────────────────────────────────────
-  const containerRef = useRef<HTMLDivElement>(null);
+  // Use a callback ref instead of useRef + useEffect so that the ResizeObserver
+  // is correctly connected to whichever DOM element is currently mounted.
+  // The fillTab early-return path omits the container div entirely; switching
+  // back to a normal tab creates a NEW DOM element. A plain useEffect with []
+  // deps would keep watching the OLD (now-detached) element, causing some
+  // browsers (Chrome) to fire with width=0, setting containerWidth=0 and
+  // making the tab appear blank ({rglWidth > 0 && ...} renders nothing).
+  const roRef = useRef<ResizeObserver | null>(null);
   const [containerWidth, setContainerWidth] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth : 0,
   );
 
-  useEffect(() => {
-    const el = containerRef.current;
+  const containerRefCallback = useCallback((el: HTMLDivElement | null) => {
+    if (roRef.current) { roRef.current.disconnect(); roRef.current = null; }
     if (!el) return;
     setContainerWidth(el.clientWidth);
     const ro = new ResizeObserver(([entry]) => {
       setContainerWidth(Math.floor(entry.contentRect.width));
     });
     ro.observe(el);
-    return () => ro.disconnect();
+    roRef.current = ro;
   }, []);
 
   // ── in editMode: lock grid width so the window can shrink without reflowing widgets ──
@@ -155,7 +162,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
   if (containerWidth > 0 && containerWidth < mobileBreakpoint) {
     return (
       <div className="flex-1 min-h-0 relative">
-        <div ref={containerRef} className="aura-scroll absolute inset-0 overflow-auto p-2">
+        <div ref={containerRefCallback} className="aura-scroll absolute inset-0 overflow-auto p-2">
           {/* Reflow-hidden widgets from all tabs rendered off-screen */}
           <div style={{ position: 'fixed', top: -9999, left: -9999, width: 1, height: 1, overflow: 'hidden', pointerEvents: 'none', opacity: 0 }}>
             {tabs.flatMap((tab) =>
@@ -199,7 +206,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
 
   return (
     <div className="flex-1 min-h-0 relative">
-    <div ref={containerRef} className="aura-scroll absolute inset-0 overflow-auto p-2 sm:p-4" style={(editMode && rglWidth > containerWidth) || (readonly && effectiveRglWidth > containerWidth) ? { overflowX: 'auto' } : undefined}>
+    <div ref={containerRefCallback} className="aura-scroll absolute inset-0 overflow-auto p-2 sm:p-4" style={(editMode && rglWidth > containerWidth) || (readonly && effectiveRglWidth > containerWidth) ? { overflowX: 'auto' } : undefined}>
       {rglWidth > 0 && (
         <>
           {/* Reflow-hidden widgets from all tabs rendered off-screen so conditions keep evaluating */}

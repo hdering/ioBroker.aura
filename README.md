@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.48 (2026-04-17)
+- Fix: tabs no longer go blank after switching away from a fillTab iFrame widget (callback ref prevents ResizeObserver from firing with width=0 on detached element)
+
 ### 0.4.47 (2026-04-17)
 - Fix: iFrame fullscreen overlay now uses position:fixed (covers full viewport) and is always cleared when switching tabs
 
