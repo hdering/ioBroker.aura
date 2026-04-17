@@ -667,7 +667,7 @@ export const en: Record<TranslationKey, string> = {
   'widget.echart':    'Chart (Advanced (ECharts))',
   'widget.gauge':     'Gauge',
   'widget.list':      'Group List',
-  'widget.autolist':  'Auto List',
+  'widget.autolist':  'Dynamic List',
   'widget.clock':     'Clock',
   'widget.calendar':  'Calendar',
   'widget.weather':   'Weather',

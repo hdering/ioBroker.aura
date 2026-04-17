@@ -294,7 +294,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     <div className="shrink-0 px-3 py-1.5 flex items-center justify-between"
       style={{ borderBottom: '1px solid var(--widget-border)' }}>
       <span className="text-xs font-semibold truncate" style={{ color: 'var(--text-secondary)' }}>
-        {config.title || 'Auto-Liste'}
+        {config.title || 'Dynamische Liste'}
         {entries.length > 0 && <span className="ml-1 opacity-50">({entries.length})</span>}
       </span>
       <button onClick={runSync} title="Jetzt synchronisieren"

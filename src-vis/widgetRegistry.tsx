@@ -130,11 +130,11 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   },
   {
     type: 'autolist',
-    label: 'Auto-Liste',    shortLabel: 'Auto-Liste',
+    label: 'Dynamische Liste', shortLabel: 'Dyn. Liste',
     Icon: List,             iconName: 'List',       color: '#14b8a6',
     defaultW: 3,            defaultH: 5,
     addMode: 'free',        widgetGroup: 'control',
-    mock: { t: 'Auto-Liste', v: '' },
+    mock: { t: 'Dynamische Liste', v: '' },
   },
   {
     type: 'clock',

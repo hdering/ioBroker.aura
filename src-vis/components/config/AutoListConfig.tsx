@@ -222,9 +222,12 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
   const [selFuncs, setSelFuncs] = useState<string[]>(toArr(opts.filterFuncs));
   const [idPat, setIdPat] = useState(opts.filterIdPattern ?? '');
 
-  // Search state
+  // IDs already in the list before this search session — always preserved on apply
+  const baseIds = new Set((opts.entries ?? []).map(e => e.id));
+
+  // Search state – selected only tracks items from the *current* results
   const [results, setResults] = useState<DiscoveredDp[]>([]);
-  const [selected, setSelected] = useState<Set<string>>(new Set((opts.entries ?? []).map(e => e.id)));
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
@@ -245,11 +248,8 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
       });
       setResults(found);
       setSearched(true);
-      setSelected(prev => {
-        const next = new Set(prev);
-        found.forEach(d => next.add(d.id));
-        return next;
-      });
+      // Auto-select all found results (the user can deselect individually)
+      setSelected(new Set(found.map(d => d.id)));
     } finally {
       setLoading(false);
     }
@@ -258,20 +258,16 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
   const apply = () => {
     const existing = new Map((opts.entries ?? []).map(e => [e.id, e]));
     const discovered = new Map(results.map(d => [d.id, d]));
-    const entries: AutoListEntry[] = [...selected].map(id => {
-      const ex = existing.get(id);
-      const dp = discovered.get(id);
-      return {
-        id,
-        label: ex?.label ?? dp?.name,
-        rooms: dp?.rooms ?? ex?.rooms,
-        unit: ex?.unit,
-        trueLabel: ex?.trueLabel,
-        falseLabel: ex?.falseLabel,
-      };
-    });
+    // Always keep all existing entries, then add selected results that aren't already present
+    const merged = new Map<string, AutoListEntry>(existing);
+    for (const id of selected) {
+      if (!merged.has(id)) {
+        const dp = discovered.get(id);
+        merged.set(id, { id, label: dp?.name, rooms: dp?.rooms });
+      }
+    }
     setOpts({
-      entries,
+      entries: [...merged.values()],
       filterRoles: toCsv(selRoles),
       filterIdPattern: idPat || undefined,
       filterRooms: toCsv(selRooms),
@@ -333,49 +329,72 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
           {t('autolist.noneFound')}
         </p>
       )}
-      {searched && results.length > 0 && (
-        <>
-          <div className="flex items-center justify-between">
-            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-              {t('autolist.found', { count: results.length, selected: selected.size })}
-            </span>
-            <div className="flex gap-2">
-              <button className="text-[10px] hover:opacity-70" style={{ color: 'var(--accent)' }}
-                onClick={() => setSelected(new Set(results.map(d => d.id)))}>{t('common.all')}</button>
-              <button className="text-[10px] hover:opacity-70" style={{ color: 'var(--text-secondary)' }}
-                onClick={() => setSelected(new Set())}>{t('common.none')}</button>
+      {searched && results.length > 0 && (() => {
+        const newCount = [...selected].filter(id => !baseIds.has(id)).length;
+        const totalAfter = baseIds.size + newCount;
+        return (
+          <>
+            {/* Hint: existing entries are always preserved */}
+            {baseIds.size > 0 && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px]"
+                style={{ background: 'color-mix(in srgb, var(--accent) 10%, transparent)', color: 'var(--accent)', border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)' }}>
+                <Check size={10} />
+                <span>
+                  <strong>{baseIds.size}</strong> bestehende Einträge bleiben erhalten
+                </span>
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                {results.length} gefunden · <strong style={{ color: 'var(--text-primary)' }}>{newCount} neu</strong>
+              </span>
+              <div className="flex gap-2">
+                <button className="text-[10px] hover:opacity-70" style={{ color: 'var(--accent)' }}
+                  onClick={() => setSelected(new Set(results.map(d => d.id)))}>{t('common.all')}</button>
+                <button className="text-[10px] hover:opacity-70" style={{ color: 'var(--text-secondary)' }}
+                  onClick={() => setSelected(new Set())}>{t('common.none')}</button>
+              </div>
             </div>
-          </div>
-          <div className="aura-scroll space-y-0.5 max-h-56 overflow-y-auto -mx-1 px-1">
-            {results.map(dp => (
-              <label key={dp.id}
-                className="flex items-center gap-2 px-2.5 py-2 rounded cursor-pointer hover:opacity-90"
-                style={{ background: selected.has(dp.id) ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent' }}>
-                <div className="w-3.5 h-3.5 rounded shrink-0 flex items-center justify-center"
-                  style={{ background: selected.has(dp.id) ? 'var(--accent)' : 'var(--app-border)' }}>
-                  {selected.has(dp.id) && <Check size={9} color="#fff" />}
-                </div>
-                <input type="checkbox" className="sr-only" checked={selected.has(dp.id)}
-                  onChange={() => toggle(dp.id)} />
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>{dp.name}</div>
-                  <div className="text-[10px] truncate font-mono" style={{ color: 'var(--text-secondary)' }}>
-                    {dp.id}{dp.rooms.length > 0 ? ` · ${dp.rooms[0]}` : ''}
+            <div className="aura-scroll space-y-0.5 max-h-56 overflow-y-auto -mx-1 px-1">
+              {results.map(dp => (
+                <label key={dp.id}
+                  className="flex items-center gap-2 px-2.5 py-2 rounded cursor-pointer hover:opacity-90"
+                  style={{ background: selected.has(dp.id) ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent' }}>
+                  <div className="w-3.5 h-3.5 rounded shrink-0 flex items-center justify-center"
+                    style={{ background: selected.has(dp.id) ? 'var(--accent)' : 'var(--app-border)' }}>
+                    {selected.has(dp.id) && <Check size={9} color="#fff" />}
                   </div>
-                </div>
-              </label>
-            ))}
-          </div>
-          <button
-            onClick={apply}
-            disabled={selected.size === 0}
-            className="w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg hover:opacity-80 disabled:opacity-40"
-            style={{ background: 'var(--accent-green)', color: '#fff' }}
-          >
-            <Check size={11} /> {t('autolist.apply', { count: selected.size })}
-          </button>
-        </>
-      )}
+                  <input type="checkbox" className="sr-only" checked={selected.has(dp.id)}
+                    onChange={() => toggle(dp.id)} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>{dp.name}</div>
+                    <div className="text-[10px] truncate font-mono" style={{ color: 'var(--text-secondary)' }}>
+                      {dp.id}{dp.rooms.length > 0 ? ` · ${dp.rooms[0]}` : ''}
+                    </div>
+                  </div>
+                  {baseIds.has(dp.id) && (
+                    <span className="text-[9px] shrink-0 px-1 py-0.5 rounded"
+                      style={{ background: 'var(--app-border)', color: 'var(--text-secondary)' }}>
+                      vorhanden
+                    </span>
+                  )}
+                </label>
+              ))}
+            </div>
+            <button
+              onClick={apply}
+              disabled={newCount === 0 && baseIds.size === 0}
+              className="w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg hover:opacity-80 disabled:opacity-40"
+              style={{ background: 'var(--accent-green)', color: '#fff' }}
+            >
+              <Check size={11} />
+              {newCount > 0
+                ? `${newCount} neu hinzufügen · ${totalAfter} gesamt`
+                : `Übernehmen · ${totalAfter} gesamt`}
+            </button>
+          </>
+        );
+      })()}
 
       {/* ── Divider ── */}
       <div style={{ height: 1, background: 'var(--app-border)' }} />

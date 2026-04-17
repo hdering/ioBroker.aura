@@ -665,7 +665,7 @@ export const de = {
   'widget.echart':    'Diagramm (erweitert (echarts))',
   'widget.gauge':     'Gauge',
   'widget.list':      'Gruppenliste',
-  'widget.autolist':  'Auto-Liste',
+  'widget.autolist':  'Dynamische Liste',
   'widget.clock':     'Uhrzeit',
   'widget.calendar':  'Kalender',
   'widget.weather':   'Wetter',
