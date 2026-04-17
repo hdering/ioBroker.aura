@@ -70,6 +70,7 @@ export const DP_TEMPLATE_CATEGORIES: DpTemplateCategory[] = [
   { id: 'security',  label: 'Sicherheit'        },
   { id: 'energy',    label: 'Energie'           },
   { id: 'sensor',    label: 'Messwerte'         },
+  { id: 'special',   label: 'Sonstiges'         },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -79,6 +80,8 @@ export const DP_TEMPLATE_CATEGORIES: DpTemplateCategory[] = [
 export interface DpTemplate {
   id: string;
   label: string;
+  /** Emoji icon shown in the wizard card */
+  icon: string;
   widgetType: WidgetType;
   category: string;
   /** Sibling DP name patterns to try auto-filling (in order of preference) */
@@ -94,6 +97,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'shutter',
     label: 'Rollladen',
+    icon: '🪟',
     widgetType: 'shutter',
     category: 'shading',
     secondaryDps: [
@@ -105,6 +109,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'awning',
     label: 'Markise',
+    icon: '⛱',
     widgetType: 'shutter',
     category: 'shading',
     secondaryDps: [
@@ -118,6 +123,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'thermostat',
     label: 'Thermostat',
+    icon: '🌡',
     widgetType: 'thermostat',
     category: 'climate',
     secondaryDps: [
@@ -138,6 +144,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'dimmer',
     label: 'Dimmer',
+    icon: '🔆',
     widgetType: 'dimmer',
     category: 'lighting',
     secondaryDps: [],
@@ -145,6 +152,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'switch_light',
     label: 'Lichtschalter',
+    icon: '💡',
     widgetType: 'switch',
     category: 'lighting',
     secondaryDps: [],
@@ -154,6 +162,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'switch',
     label: 'Schalter',
+    icon: '🔘',
     widgetType: 'switch',
     category: 'switching',
     secondaryDps: [],
@@ -161,6 +170,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'socket',
     label: 'Steckdose',
+    icon: '🔌',
     widgetType: 'switch',
     category: 'switching',
     secondaryDps: [],
@@ -168,6 +178,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'fan',
     label: 'Ventilator',
+    icon: '🌀',
     widgetType: 'switch',
     category: 'switching',
     secondaryDps: [],
@@ -177,6 +188,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'sensor_door',
     label: 'Tür',
+    icon: '🚪',
     widgetType: 'switch',
     category: 'security',
     secondaryDps: [],
@@ -184,13 +196,15 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'sensor_window',
     label: 'Fenster',
+    icon: '🪟',
     widgetType: 'switch',
     category: 'security',
     secondaryDps: [],
   },
   {
     id: 'sensor_motion',
-    label: 'Bewegungsmelder',
+    label: 'Bewegung',
+    icon: '👁',
     widgetType: 'switch',
     category: 'security',
     secondaryDps: [],
@@ -198,6 +212,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'sensor_smoke',
     label: 'Rauchmelder',
+    icon: '🚨',
     widgetType: 'switch',
     category: 'security',
     secondaryDps: [],
@@ -207,6 +222,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'value_power',
     label: 'Leistung (W)',
+    icon: '⚡',
     widgetType: 'value',
     category: 'energy',
     secondaryDps: [],
@@ -214,6 +230,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'value_energy',
     label: 'Energie (kWh)',
+    icon: '🔋',
     widgetType: 'value',
     category: 'energy',
     secondaryDps: [],
@@ -223,6 +240,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'value_temperature',
     label: 'Temperatur',
+    icon: '🌡',
     widgetType: 'value',
     category: 'sensor',
     secondaryDps: [],
@@ -230,6 +248,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'value_humidity',
     label: 'Luftfeuchte',
+    icon: '💧',
     widgetType: 'value',
     category: 'sensor',
     secondaryDps: [],
@@ -237,6 +256,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
   {
     id: 'value',
     label: 'Messwert',
+    icon: '📊',
     widgetType: 'value',
     category: 'sensor',
     secondaryDps: [],

@@ -11,7 +11,7 @@ import { TabWizard } from '../../components/config/TabWizard';
 import { WidgetPreview } from '../../components/config/WidgetPreview';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
 import type { WidgetConfig, WidgetType, WidgetLayout } from '../../types';
-import { WIDGET_REGISTRY, WIDGET_GROUPS, WIDGET_BY_TYPE, getEffectiveSize } from '../../widgetRegistry';
+import { WIDGET_REGISTRY, WIDGET_BY_TYPE, getEffectiveSize } from '../../widgetRegistry';
 import { useConfigStore } from '../../store/configStore';
 import { useT } from '../../i18n';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
@@ -26,8 +26,10 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
   const widgetDefaults = useConfigStore((s) => s.widgetDefaults);
   const LAYOUTS = LAYOUT_IDS.map((id) => ({ id, label: t(`editor.layouts.${id}` as never) }));
   const CALENDAR_LAYOUTS = CALENDAR_LAYOUT_IDS.map((id) => ({ id, label: t(`editor.layouts.${id}` as never) }));
+
+  const [step, setStep] = useState<1 | 2>(1);
   const [type, setType] = useState<WidgetType>('value');
-  const [templateId, setTemplateId] = useState<string>('value');
+  const [templateId, setTemplateId] = useState<string>('');
   const [layout, setLayout] = useState<WidgetLayout>('default');
   const [title, setTitle] = useState('');
   const [datapoint, setDatapoint] = useState('');
@@ -37,6 +39,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
   const [icalUrl, setIcalUrl] = useState('');
   const [calName, setCalName] = useState('');
   const [calColor, setCalColor] = useState('#3b82f6');
+  const [showFurtherTypes, setShowFurtherTypes] = useState(false);
   const { groups } = useGroupStore();
 
   // Auto-detect type / template / title / unit when the datapoint ID changes
@@ -75,6 +78,23 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                : addMode === 'wizard-only' ? !!icalUrl.trim()
                : true;
 
+  // Widget types from WIDGET_REGISTRY not covered by any DP_TEMPLATE
+  const coveredWidgetTypes = useMemo(() => new Set(DP_TEMPLATES.map((t) => t.widgetType)), []);
+  const furtherWidgets = useMemo(
+    () => WIDGET_REGISTRY.filter((w) => !coveredWidgetTypes.has(w.type)),
+    [coveredWidgetTypes],
+  );
+
+  const selectedTemplate = DP_TEMPLATES.find((tpl) => tpl.id === templateId);
+  const selectedFurther  = furtherWidgets.find((w) => w.type === type && templateId === w.type);
+  const templateLabel    = selectedTemplate?.label ?? selectedFurther?.label ?? def?.label ?? '';
+  const templateIcon     = selectedTemplate?.icon ?? null;
+
+  const selectTemplate = (tplId: string, widgetType: WidgetType) => {
+    setType(widgetType);
+    setTemplateId(tplId);
+  };
+
   const handleAdd = async () => {
     if (!canAdd) return;
     const selectedGroup = isList ? groups.find((g) => g.id === groupId) : undefined;
@@ -94,16 +114,17 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
       } catch { /* ignore */ }
     }
 
-    // Auto-fill secondary DPs for templates that define sibling patterns
-    const template = DP_TEMPLATES.find((tpl) => tpl.widgetType === type && tpl.secondaryDps.length > 0);
+    // Auto-fill secondary DPs using the selected template's sibling patterns
+    const activeTemplate = DP_TEMPLATES.find((tpl) => tpl.id === templateId && tpl.secondaryDps.length > 0)
+      ?? DP_TEMPLATES.find((tpl) => tpl.widgetType === type && tpl.secondaryDps.length > 0);
     const secondaryDpOptions: Record<string, unknown> = {};
-    if (template && dpId) {
+    if (activeTemplate && dpId) {
       try {
         const entries = await ensureDatapointCache();
         const parts = dpId.split('.');
         const parent = parts.slice(0, -1).join('.');
         const sibs = entries.filter((e) => e.id.startsWith(parent + '.'));
-        for (const sdp of template.secondaryDps) {
+        for (const sdp of activeTemplate.secondaryDps) {
           const found = sdp.siblingNames.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
           if (found) secondaryDpOptions[sdp.optionKey] = found;
         }
@@ -141,103 +162,238 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="rounded-xl w-full max-w-3xl shadow-2xl p-6"
-        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
-        onClick={(e) => e.stopPropagation()}>
-        <h2 className="font-bold text-lg mb-5" style={{ color: 'var(--text-primary)' }}>{t('editor.manual.title')}</h2>
+  const inputCls = 'w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none';
+  const inputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
 
-        <div className="flex gap-5">
-          {/* Form */}
-          <div className="flex-1 space-y-3.5 min-w-0">
-            {/* Quick-select templates – grouped by category */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.template')}</label>
-              <div className="space-y-1.5">
-                {DP_TEMPLATE_CATEGORIES.map((cat) => {
-                  const catTpls = DP_TEMPLATES.filter((tpl) => tpl.category === cat.id);
-                  if (!catTpls.length) return null;
-                  return (
-                    <div key={cat.id}>
-                      <p className="text-[10px] mb-1 font-medium uppercase tracking-wide" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>{cat.label}</p>
-                      <div className="flex flex-wrap gap-1">
-                        {catTpls.map((tpl) => {
-                          const active = templateId === tpl.id;
-                          return (
-                            <button key={tpl.id} type="button"
-                              onClick={() => { setType(tpl.widgetType); setTemplateId(tpl.id); setGroupId(''); setDatapoint(''); }}
-                              className="px-2.5 py-1 text-xs rounded-lg transition-opacity hover:opacity-80"
-                              style={{
-                                background: active ? 'var(--accent)22' : 'var(--app-bg)',
-                                color: active ? 'var(--accent)' : 'var(--text-secondary)',
-                                border: `1px solid ${active ? 'var(--accent)66' : 'var(--app-border)'}`,
-                              }}>
+  // ── STEP 1: type selection ─────────────────────────────────────────────────
+  if (step === 1) {
+    return (
+      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+        <div className="rounded-xl w-full max-w-2xl shadow-2xl"
+          style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+          onClick={(e) => e.stopPropagation()}>
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 pt-5 pb-4"
+            style={{ borderBottom: '1px solid var(--app-border)' }}>
+            <h2 className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>
+              {t('editor.manual.title')}
+            </h2>
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}>
+              1 / 2
+            </span>
+          </div>
+
+          {/* DP field */}
+          <div className="px-6 pt-4 pb-2">
+            <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+              Datenpunkt <span className="font-normal opacity-60">(optional – Typ wird automatisch erkannt)</span>
+            </label>
+            <div className="flex gap-1.5">
+              <input value={datapoint} onChange={(e) => setDatapoint(e.target.value)}
+                placeholder="z.B. hm-rpc.0.ABC123.LEVEL"
+                className={`flex-1 font-mono min-w-0 ${inputCls}`} style={inputStyle} />
+              <button type="button" onClick={() => setShowPicker(true)}
+                className="px-3 rounded-xl hover:opacity-80 shrink-0"
+                style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                <Database size={15} />
+              </button>
+            </div>
+            {templateId && selectedTemplate && (
+              <p className="mt-1.5 text-xs flex items-center gap-1" style={{ color: 'var(--accent)' }}>
+                <Check size={11} />
+                Erkannt als: <strong>{selectedTemplate.label}</strong>
+              </p>
+            )}
+          </div>
+
+          {/* Template grid */}
+          <div className="px-6 pb-2 overflow-y-auto" style={{ maxHeight: '52vh' }}>
+            <div className="space-y-3 py-2">
+              {DP_TEMPLATE_CATEGORIES.filter((cat) => cat.id !== 'special').map((cat) => {
+                const catTpls = DP_TEMPLATES.filter((tpl) => tpl.category === cat.id);
+                if (!catTpls.length) return null;
+                return (
+                  <div key={cat.id}>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider mb-1.5"
+                      style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>
+                      {cat.label}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {catTpls.map((tpl) => {
+                        const active = templateId === tpl.id;
+                        return (
+                          <button key={tpl.id} type="button"
+                            onClick={() => selectTemplate(tpl.id, tpl.widgetType)}
+                            className="flex flex-col items-center gap-1 rounded-xl transition-all hover:scale-105 active:scale-95"
+                            style={{
+                              width: 68, padding: '8px 4px',
+                              background: active ? 'var(--accent)1a' : 'var(--app-bg)',
+                              border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                              boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
+                            }}>
+                            <span style={{ fontSize: 20, lineHeight: 1 }}>{tpl.icon}</span>
+                            <span className="text-center leading-tight font-medium"
+                              style={{ fontSize: 10, color: active ? 'var(--accent)' : 'var(--text-secondary)' }}>
                               {tpl.label}
-                            </button>
-                          );
-                        })}
-                      </div>
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  </div>
+                );
+              })}
+
+              {/* Further widget types (not home-automation devices) */}
+              <div>
+                <button type="button"
+                  onClick={() => setShowFurtherTypes((v) => !v)}
+                  className="text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 hover:opacity-80"
+                  style={{ color: 'var(--text-secondary)', opacity: showFurtherTypes ? 1 : 0.5 }}>
+                  <span style={{ transition: 'transform 0.15s', transform: showFurtherTypes ? 'rotate(90deg)' : 'none', display: 'inline-block' }}>▶</span>
+                  Weitere Widgets
+                </button>
+                {showFurtherTypes && (
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {furtherWidgets.map((w) => {
+                      const active = templateId === w.type;
+                      return (
+                        <button key={w.type} type="button"
+                          onClick={() => selectTemplate(w.type, w.type)}
+                          className="flex flex-col items-center gap-1 rounded-xl transition-all hover:scale-105 active:scale-95"
+                          style={{
+                            width: 68, padding: '8px 4px',
+                            background: active ? 'var(--accent)1a' : 'var(--app-bg)',
+                            border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                            boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
+                          }}>
+                          <w.Icon size={20} color={active ? 'var(--accent)' : w.color} />
+                          <span className="text-center leading-tight font-medium"
+                            style={{ fontSize: 10, color: active ? 'var(--accent)' : 'var(--text-secondary)' }}>
+                            {w.shortLabel}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
+          </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.type')}</label>
-              <select value={type} onChange={(e) => { setType(e.target.value as WidgetType); setTemplateId(''); setGroupId(''); setDatapoint(''); }}
-                className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
-                style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
-                {WIDGET_GROUPS.map((g) => (
-                  <optgroup key={g.id} label={g.label}>
-                    {WIDGET_REGISTRY.filter((w) => w.widgetGroup === g.id).map((w) => (
-                      <option key={w.type} value={w.type}>{w.label}</option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </div>
+          {/* Footer */}
+          <div className="flex items-center justify-between px-6 py-4"
+            style={{ borderTop: '1px solid var(--app-border)' }}>
+            <button onClick={onClose}
+              className="px-4 py-2 rounded-xl text-sm hover:opacity-80"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+              {t('editor.manual.cancel')}
+            </button>
+            <button onClick={() => setStep(2)} disabled={!templateId}
+              className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold hover:opacity-80 disabled:opacity-30 transition-opacity"
+              style={{ background: 'var(--accent)', color: '#fff' }}>
+              Weiter
+              <span style={{ fontSize: 14 }}>→</span>
+            </button>
+          </div>
+        </div>
 
-            {isCalendar ? (
+        {showPicker && (
+          <DatapointPicker
+            currentValue={datapoint}
+            onSelect={(id, dpUnit, dpName) => {
+              setDatapoint(id);
+              if (!title.trim() && dpName) setTitle(dpName);
+              if (!unit.trim() && dpUnit) setUnit(dpUnit);
+            }}
+            onClose={() => setShowPicker(false)}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // ── STEP 2: details ────────────────────────────────────────────────────────
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="rounded-xl w-full max-w-3xl shadow-2xl"
+        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+        onClick={(e) => e.stopPropagation()}>
+
+        {/* Header */}
+        <div className="flex items-center gap-3 px-6 pt-5 pb-4"
+          style={{ borderBottom: '1px solid var(--app-border)' }}>
+          <button onClick={() => setStep(1)}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
+            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+            <span>←</span>
+            {templateIcon && <span>{templateIcon}</span>}
+            {templateLabel}
+          </button>
+          <span className="text-xs font-medium ml-auto px-2 py-0.5 rounded-full"
+            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}>
+            2 / 2
+          </span>
+        </div>
+
+        {/* Body */}
+        <div className="flex gap-5 px-6 py-5">
+          {/* Fields */}
+          <div className="flex-1 space-y-3.5 min-w-0">
+
+            {/* Datapoint (for datapoint-mode widgets) */}
+            {addMode === 'datapoint' && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
+                  {t('editor.manual.datapointId')}
+                </label>
+                <div className="flex gap-1.5">
+                  <input value={datapoint} onChange={(e) => setDatapoint(e.target.value)}
+                    placeholder="z.B. hm-rpc.0.ABC123.LEVEL"
+                    className={`flex-1 font-mono min-w-0 ${inputCls}`} style={inputStyle} />
+                  <button type="button" onClick={() => setShowPicker(true)}
+                    className="px-3 rounded-xl hover:opacity-80 shrink-0"
+                    style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                    <Database size={15} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Calendar URL */}
+            {isCalendar && (
               <div className="space-y-1.5">
                 <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.icalUrl')}</label>
-                <input
-                  value={icalUrl}
-                  onChange={(e) => setIcalUrl(e.target.value)}
+                <input value={icalUrl} onChange={(e) => setIcalUrl(e.target.value)}
                   placeholder="https://calendar.google.com/…"
-                  className="w-full rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none"
-                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
-                />
+                  className={`font-mono ${inputCls}`} style={inputStyle} />
                 <div className="flex gap-2">
-                  <input
-                    value={calName}
-                    onChange={(e) => setCalName(e.target.value)}
+                  <input value={calName} onChange={(e) => setCalName(e.target.value)}
                     placeholder={t('editor.manual.calName')}
-                    className="flex-1 rounded-xl px-3 py-2.5 text-sm focus:outline-none min-w-0"
-                    style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
-                  />
+                    className={`flex-1 min-w-0 ${inputCls}`} style={inputStyle} />
                   <input type="color" value={calColor} onChange={(e) => setCalColor(e.target.value)}
                     className="w-10 h-10 rounded-xl cursor-pointer border-0 p-0.5 shrink-0"
-                    style={{ border: '1px solid var(--app-border)' }}
-                  />
+                    style={{ border: '1px solid var(--app-border)' }} />
                 </div>
                 <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
                   {t('editor.manual.moreCalendars')}
                 </p>
               </div>
-            ) : isList ? (
+            )}
+
+            {/* Group selector (list widget) */}
+            {isList && (
               <div className="space-y-1.5">
                 <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.group')}</label>
                 {groups.length === 0 ? (
-                  <p className="text-xs rounded-xl px-3 py-2.5"
-                    style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                  <p className="text-xs rounded-xl px-3 py-2.5" style={inputStyle}>
                     {t('editor.manual.noGroups')}
                   </p>
                 ) : (
                   <select value={groupId} onChange={(e) => setGroupId(e.target.value)}
-                    className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
-                    style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
+                    className={inputCls} style={inputStyle}>
                     <option value="">{t('editor.manual.selectGroup')}</option>
                     {groups.map((g) => (
                       <option key={g.id} value={g.id}>{g.name} ({t('endpoints.dp.count', { count: g.datapoints.length })})</option>
@@ -245,76 +401,73 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                   </select>
                 )}
               </div>
-            ) : addMode === 'datapoint' ? (
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.datapointId')}</label>
-                <div className="flex gap-1.5">
-                  <input value={datapoint} onChange={(e) => setDatapoint(e.target.value)}
-                    placeholder="z.B. hm-rpc.0.ABC123.STATE"
-                    className="flex-1 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none min-w-0"
-                    style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
-                  <button
-                    type="button"
-                    onClick={() => setShowPicker(true)}
-                    className="px-3 rounded-xl hover:opacity-80 shrink-0"
-                    style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-                    title={t('wf.edit.fromIoBroker')}
-                  >
-                    <Database size={15} />
-                  </button>
-                </div>
-              </div>
-            ) : null}
+            )}
 
+            {/* Title */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.titleField')}</label>
               <input value={title} onChange={(e) => setTitle(e.target.value)}
                 placeholder={def.label}
-                className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
-                style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
+                className={inputCls} style={inputStyle} />
             </div>
 
+            {/* Unit (value / chart only) */}
             {(type === 'value' || type === 'chart') && (
               <div className="space-y-1.5">
                 <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.unit')}</label>
                 <input value={unit} onChange={(e) => setUnit(e.target.value)}
                   placeholder="z.B. °C, %, W"
-                  className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
-                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
+                  className={inputCls} style={inputStyle} />
               </div>
             )}
+
+            {/* Layout selection (radio-style) */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Layout</label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {(isCalendar ? CALENDAR_LAYOUTS : LAYOUTS).map((l) => (
+                  <button key={l.id} onClick={() => setLayout(l.id)}
+                    className="flex flex-col items-center gap-1.5 p-1.5 rounded-lg transition-opacity hover:opacity-80"
+                    style={{
+                      background: layout === l.id ? 'var(--accent)22' : 'var(--app-bg)',
+                      border: `1px solid ${layout === l.id ? 'var(--accent)' : 'var(--app-border)'}`,
+                    }}>
+                    <WidgetPreview type={type} layout={l.id} />
+                    <span className="text-[10px]"
+                      style={{ color: layout === l.id ? 'var(--accent)' : 'var(--text-secondary)' }}>
+                      {l.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Preview + Layout picker */}
-          <div className="flex flex-col gap-3 items-center shrink-0">
-            <WidgetPreview type={type} layout={layout} title={title} />
-            <div className="grid grid-cols-2 gap-1.5">
-              {(isCalendar ? CALENDAR_LAYOUTS : LAYOUTS).map((l) => (
-                <button key={l.id}
-                  onClick={() => setLayout(l.id)}
-                  className="flex flex-col items-center gap-1.5 p-1.5 rounded-lg transition-opacity hover:opacity-80"
-                  style={{
-                    background: layout === l.id ? 'var(--accent)22' : 'var(--app-bg)',
-                    border: `1px solid ${layout === l.id ? 'var(--accent)' : 'var(--app-border)'}`,
-                  }}>
-                  <WidgetPreview type={type} layout={l.id} />
-                  <span className="text-[10px]" style={{ color: layout === l.id ? 'var(--accent)' : 'var(--text-secondary)' }}>{l.label}</span>
-                </button>
-              ))}
-            </div>
+          {/* Preview */}
+          <div className="flex flex-col items-center justify-center shrink-0 gap-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wider"
+              style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>Vorschau</p>
+            <WidgetPreview type={type} layout={layout} title={title || def.label} />
           </div>
         </div>
 
-        <div className="flex gap-2 pt-5">
-          <button onClick={() => void handleAdd()} disabled={!canAdd}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-80 disabled:opacity-30"
-            style={{ background: 'var(--accent)' }}>
-            {t('editor.manual.add')}
+        {/* Footer */}
+        <div className="flex items-center gap-2 px-6 py-4"
+          style={{ borderTop: '1px solid var(--app-border)' }}>
+          <button onClick={() => setStep(1)}
+            className="px-4 py-2 rounded-xl text-sm hover:opacity-80"
+            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+            ← Zurück
           </button>
           <button onClick={onClose}
-            className="px-4 py-2.5 rounded-xl text-sm hover:opacity-80"
+            className="px-4 py-2 rounded-xl text-sm hover:opacity-80"
             style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
             {t('editor.manual.cancel')}
+          </button>
+          <button onClick={() => void handleAdd()} disabled={!canAdd}
+            className="flex-1 py-2 rounded-xl text-sm font-semibold text-white hover:opacity-80 disabled:opacity-30 transition-opacity"
+            style={{ background: 'var(--accent)' }}>
+            {t('editor.manual.add')}
           </button>
         </div>
       </div>
@@ -325,7 +478,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
           onSelect={(id, dpUnit, dpName) => {
             setDatapoint(id);
             if (!title.trim() && dpName) setTitle(dpName);
-            if ((type === 'value' || type === 'chart') && !unit.trim() && dpUnit) setUnit(dpUnit);
+            if (!unit.trim() && dpUnit) setUnit(dpUnit);
           }}
           onClose={() => setShowPicker(false)}
         />
