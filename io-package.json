@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.40",
+    "version": "0.4.41",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.41": {
+        "en": "New widget: JSON Table – display JSON datapoints as scrollable tables with configurable colors; Dynamic List improvements; iFrame load-failure hint; various widget and dialog fixes",
+        "de": "Neues Widget: JSON-Tabelle – JSON-Datenpunkte als scrollbare Tabelle mit konfigurierbaren Farben; Dynamische Liste verbessert; iFrame Ladehinweis; diverse Widget- und Dialog-Fixes",
+        "ru": "Новый виджет: JSON-Таблица – отображение JSON-точек данных в виде таблицы с настраиваемыми цветами; улучшен Динамический список; подсказка загрузки iFrame; различные исправления",
+        "pt": "Novo widget: Tabela JSON – exibe datapoints JSON como tabelas com cores configuráveis; Lista dinâmica melhorada; dica de falha de carregamento iFrame; várias correções",
+        "nl": "Nieuw widget: JSON-tabel – JSON-datapunten weergeven als tabel met instelbare kleuren; Dynamische lijst verbeterd; iFrame laadwaarschuwing; diverse widget- en dialoogfixes",
+        "fr": "Nouveau widget: Tableau JSON – affichage des datapoints JSON sous forme de tableau avec couleurs configurables; Liste dynamique améliorée; indication d'échec de chargement iFrame; divers correctifs",
+        "it": "Nuovo widget: Tabella JSON – visualizza datapoint JSON come tabella con colori configurabili; Lista dinamica migliorata; suggerimento errore caricamento iFrame; varie correzioni",
+        "es": "Nuevo widget: Tabla JSON – muestra datapoints JSON como tabla con colores configurables; Lista dinámica mejorada; aviso de fallo de carga iFrame; diversas correcciones",
+        "pl": "Nowy widget: Tabela JSON – wyświetla punkty danych JSON jako tabelę z konfigurowalnymi kolorami; ulepszona Lista dynamiczna; wskazówka błędu ładowania iFrame; różne poprawki",
+        "uk": "Новий віджет: JSON-Таблиця – відображення JSON-точок даних як таблиці з налаштовуваними кольорами; покращено Динамічний список; підказка помилки завантаження iFrame; різні виправлення",
+        "zh-cn": "新小部件：JSON 表格 – 将 JSON 数据点显示为可滚动表格，支持颜色配置；动态列表改进；iFrame 加载失败提示；多项部件和对话框修复"
+      },
       "0.4.40": {
         "en": "Frontend: auto-reload when aura.0.config.dashboard is changed externally (ioBroker admin / script)",
         "de": "Frontend: automatisches Nachladen wenn aura.0.config.dashboard extern geändert wird (ioBroker Admin / Skript)",
@@ -183,45 +196,6 @@
         "pl": "Automatyczne uzupełnianie punktu danych: tytuł i jednostka są teraz ustawiane również przy bezpośrednim wpisaniu ID lub w kreatorze ręcznym",
         "uk": "Автозаповнення точки даних: заголовок і одиниця тепер також визначаються при прямому введенні ID або в ручному майстрі",
         "zh-cn": "数据点自动填充：现在直接输入 ID 或使用手动向导时也会自动解析标题和单位"
-      },
-      "0.4.34": {
-        "en": "Datapoint picker: auto-fill widget title from common.name when title is empty",
-        "de": "Datenpunkt-Auswahl: Widget-Titel automatisch aus common.name befüllen, wenn noch kein Titel gesetzt",
-        "ru": "Выбор точки данных: автозаполнение заголовка виджета из common.name если заголовок пуст",
-        "pt": "Seletor de datapoint: preencher automaticamente o título do widget com common.name se estiver vazio",
-        "nl": "Datapuntkiezer: widgettitel automatisch invullen vanuit common.name als die nog leeg is",
-        "fr": "Sélecteur de point de données: remplissage automatique du titre du widget depuis common.name si vide",
-        "it": "Selettore datapoint: compilazione automatica del titolo widget da common.name se vuoto",
-        "es": "Selector de datapoint: relleno automático del título del widget desde common.name si está vacío",
-        "pl": "Selektor punktu danych: automatyczne uzupełnianie tytułu widgetu z common.name gdy jest pusty",
-        "uk": "Вибір точки даних: автозаповнення заголовка віджета з common.name якщо заголовок порожній",
-        "zh-cn": "数据点选择器：当标题为空时，自动从 common.name 填充小部件标题"
-      },
-      "0.4.33": {
-        "en": "Header datapoint and value widget: optional HTML template with {dp} placeholder for rich formatting",
-        "de": "Header-Datenpunkt und Wert-Widget: optionales HTML-Template mit {dp}-Platzhalter für freie Formatierung",
-        "ru": "Точка данных заголовка и виджет значения: опциональный HTML-шаблон с заменой {dp} для гибкого форматирования",
-        "pt": "Datapoint do cabeçalho e widget de valor: template HTML opcional com marcador {dp} para formatação livre",
-        "nl": "Header-datapunt en waardewidget: optioneel HTML-template met {dp}-plaatshouder voor vrije opmaak",
-        "fr": "Point de données d'en-tête et widget valeur: template HTML optionnel avec marqueur {dp} pour formatage libre",
-        "it": "Datapoint intestazione e widget valore: template HTML opzionale con segnaposto {dp} per formattazione libera",
-        "es": "Punto de datos del encabezado y widget de valor: plantilla HTML opcional con marcador {dp} para formato libre",
-        "pl": "Punkt danych nagłówka i widget wartości: opcjonalny szablon HTML z symbolem {dp} dla dowolnego formatowania",
-        "uk": "Точка даних заголовка і віджет значення: опціональний HTML-шаблон із заміною {dp} для вільного форматування",
-        "zh-cn": "页眉数据点和数值小部件：可选 HTML 模板，使用 {dp} 占位符自由格式化"
-      },
-      "0.4.32": {
-        "en": "Calendar: auto-retry once on fetch timeout (5s delay); log client errors to ioBroker via aura.0.calendar.clientError",
-        "de": "Kalender: automatischer Wiederholungsversuch bei Fetch-Timeout (5s Pause); Client-Fehler via aura.0.calendar.clientError im ioBroker-Log",
-        "ru": "Календарь: автоматический повтор при таймауте (пауза 5с); ошибки клиента логируются через aura.0.calendar.clientError",
-        "pt": "Calendário: nova tentativa automática em timeout (5s de pausa); erros do cliente registados via aura.0.calendar.clientError",
-        "nl": "Kalender: automatische herpoging bij fetch-timeout (5s pauze); clientfouten gelogd via aura.0.calendar.clientError",
-        "fr": "Calendrier: nouvelle tentative automatique sur timeout (5s de pause); erreurs client journalisées via aura.0.calendar.clientError",
-        "it": "Calendario: nuovo tentativo automatico su timeout (pausa 5s); errori client registrati tramite aura.0.calendar.clientError",
-        "es": "Calendario: reintento automático en timeout (5s de pausa); errores de cliente registrados via aura.0.calendar.clientError",
-        "pl": "Kalendarz: automatyczna ponowna próba przy timeout (pauza 5s); błędy klienta logowane przez aura.0.calendar.clientError",
-        "uk": "Календар: автоматична повторна спроба при таймауті (пауза 5с); помилки клієнта логуються через aura.0.calendar.clientError",
-        "zh-cn": "日历：fetch 超时时自动重试一次（5秒延迟）；通过 aura.0.calendar.clientError 将客户端错误记录到 ioBroker"
       }
     }
   },

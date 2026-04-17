@@ -127,6 +127,17 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.41 (2026-04-17)
+- New widget: JSON Table – display JSON datapoints as scrollable tables with configurable header/label-column colors
+- Dynamic List (formerly Auto List): improved search UX, filter change replaces entries, fixed dropdown close on outside click
+- iFrame: load-failure hint after 8s timeout with cert/CSP troubleshooting and direct-open button
+- Gauge: object browser button for pointer 2 and 3 datapoints
+- EChart (advanced chart): wizard datapoint auto-populated as first series on creation
+- Fill widget: remove layout picker; improved horizontal fill-level indicator visibility
+- Widget dialog: preserve explicitly selected widget type during datapoint auto-detection
+- WidgetFrame: graceful fallback for unknown widget types (prevents full app crash on stale cache)
+- Fix: layout chip labels showing raw i18n key in wizard step 2
+
 ### 0.4.40 (2026-04-17)
 - Frontend: auto-reload when `aura.0.config.dashboard` is changed externally (ioBroker admin / script)
 
