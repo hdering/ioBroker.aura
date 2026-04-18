@@ -418,6 +418,26 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
             style={{ left: (opts.showRoom ?? false) ? '18px' : '2px' }} />
         </button>
       </div>
+      <div>
+        <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Anzeige-Filter (Frontend)</label>
+        <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+          {(['all', 'active', 'inactive'] as const).map((v) => {
+            const label = v === 'all' ? 'Alle' : v === 'active' ? 'Nur aktive' : 'Nur inaktive';
+            const active = (opts.valueFilter ?? 'all') === v;
+            return (
+              <button key={v} onClick={() => setOpts({ valueFilter: v })}
+                className="flex-1 text-[11px] py-1.5 transition-colors"
+                style={{
+                  background: active ? 'var(--accent)' : 'var(--app-bg)',
+                  color: active ? '#fff' : 'var(--text-secondary)',
+                  borderRight: v !== 'inactive' ? '1px solid var(--app-border)' : undefined,
+                }}>
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </>
   );
 }

@@ -61,6 +61,8 @@ export interface AutoListOptions {
   filterFuncs?: string;
   syncIntervalMin?: number;
   showRoom?: boolean;
+  /** 'all' = show everything (default), 'active' = only on/> 0, 'inactive' = only off/0 */
+  valueFilter?: 'all' | 'active' | 'inactive';
 }
 
 export interface DiscoveredDp {
@@ -355,13 +357,40 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
   const getLabel = (entry: AutoListEntry) =>
     entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id;
 
+  // ── Value filter ───────────────────────────────────────────────────────────
+  const valueFilter = opts.valueFilter ?? 'all';
+
+  /** true = value is considered "active" (on / > 0) */
+  const isActive = (val: ioBrokerState['val']): boolean => {
+    if (val === null || val === undefined) return false;
+    if (typeof val === 'boolean') return val;
+    if (typeof val === 'number')  return val > 0;
+    if (typeof val === 'string')  return val !== '' && val !== '0' && val.toLowerCase() !== 'false';
+    return false;
+  };
+
+  // In edit mode always show all entries so the user can manage them.
+  const visibleEntries = useMemo(() => {
+    if (editMode || valueFilter === 'all') return entries;
+    return entries.filter(e => {
+      const val = states[e.id]?.val ?? null;
+      // If state not yet loaded, show the entry (avoid flicker on load)
+      if (val === null) return true;
+      return valueFilter === 'active' ? isActive(val) : !isActive(val);
+    });
+  }, [entries, states, valueFilter, editMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Shared header ──────────────────────────────────────────────────────────
   const header = (
     <div className="shrink-0 px-3 py-1.5 flex items-center justify-between"
       style={{ borderBottom: '1px solid var(--widget-border)' }}>
       <span className="text-xs font-semibold truncate" style={{ color: 'var(--text-secondary)' }}>
         {config.title || 'Dynamische Liste'}
-        {entries.length > 0 && <span className="ml-1 opacity-50">({entries.length})</span>}
+        {entries.length > 0 && (
+          <span className="ml-1 opacity-50">
+            ({valueFilter !== 'all' ? `${visibleEntries.length}/` : ''}{entries.length})
+          </span>
+        )}
       </span>
       <button onClick={runSync} title="Jetzt synchronisieren"
         className="hover:opacity-70 transition-opacity p-0.5" style={{ color: 'var(--text-secondary)' }}>
@@ -370,10 +399,13 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     </div>
   );
 
-  const empty = entries.length === 0 && (
+  const empty = (editMode ? entries.length === 0 : visibleEntries.length === 0) && (
     <div className="flex-1 flex items-center justify-center p-4">
       <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
-        Noch keine Datenpunkte konfiguriert.{editMode ? ' Bearbeiten → Datenpunkte suchen.' : ''}
+        {entries.length === 0
+          ? `Noch keine Datenpunkte konfiguriert.${editMode ? ' Bearbeiten → Datenpunkte suchen.' : ''}`
+          : valueFilter === 'active' ? 'Alle Datenpunkte inaktiv.'
+          : 'Alle Datenpunkte aktiv.'}
       </p>
     </div>
   );
@@ -384,10 +416,10 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
       <div className="flex flex-col h-full">
         {header}
         {empty}
-        {entries.length > 0 && (
+        {visibleEntries.length > 0 && (
           <div className="aura-scroll flex-1 overflow-auto min-h-0 p-2"
             style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 6, alignContent: 'start' }}>
-            {entries.map(entry => {
+            {visibleEntries.map(entry => {
               const state = states[entry.id] ?? null;
               const label = getLabel(entry);
               return (
@@ -424,10 +456,10 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
       <div className="flex flex-col h-full">
         {header}
         {empty}
-        {entries.length > 0 && (
+        {visibleEntries.length > 0 && (
           <div className="aura-scroll flex-1 overflow-auto min-h-0"
             style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignContent: 'start' }}>
-            {entries.map((entry, i) => {
+            {visibleEntries.map((entry, i) => {
               const state = states[entry.id] ?? null;
               const label = getLabel(entry);
               const isRight = i % 2 === 1;
@@ -461,9 +493,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
       <div className="flex flex-col h-full">
         {header}
         {empty}
-        {entries.length > 0 && (
+        {visibleEntries.length > 0 && (
           <div className="aura-scroll flex-1 overflow-auto min-h-0 p-2 flex flex-wrap gap-1.5 content-start">
-            {entries.map(entry => {
+            {visibleEntries.map(entry => {
               const state = states[entry.id] ?? null;
               const val = state?.val ?? null;
               const label = getLabel(entry);
@@ -506,9 +538,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     <div className="flex flex-col h-full">
       {header}
       {empty}
-      {entries.length > 0 && (
+      {visibleEntries.length > 0 && (
         <div className="aura-scroll flex-1 overflow-auto min-h-0">
-          {entries.map(entry => {
+          {visibleEntries.map(entry => {
             const state = states[entry.id] ?? null;
             const label = getLabel(entry);
             const roomLabel = entry.rooms?.join(', ');
