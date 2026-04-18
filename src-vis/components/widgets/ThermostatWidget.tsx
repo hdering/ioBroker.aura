@@ -6,6 +6,7 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import { lookupDatapointName } from '../../hooks/useDatapointList';
 import type { WidgetProps, WidgetConfig } from '../../types';
 import { useT } from '../../i18n';
+import { StatusBadges } from './StatusBadges';
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -216,7 +217,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
   if (layout === 'card') {
     return (
       <>
-        <div className={`flex flex-col h-full justify-between ${wrapperCls}`} onClick={handleClick}>
+        <div className={`flex flex-col h-full justify-between ${wrapperCls}`} style={{ position: 'relative' }} onClick={handleClick}>
           <div className="flex items-center justify-between">
             <p className="text-xs font-medium truncate" style={{ color: 'var(--text-secondary)' }}>{displayTitle}</p>
             <StatusIcon />
@@ -244,6 +245,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
                 }} />
             </div>
           )}
+          <StatusBadges config={config} />
         </div>
         {showDetail && <ThermostatDetail config={config} onClose={() => setShowDetail(false)} />}
       </>
@@ -254,7 +256,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
   if (layout === 'compact') {
     return (
       <>
-        <div className={`flex items-center gap-2.5 h-full ${wrapperCls}`} onClick={handleClick}>
+        <div className={`flex items-center gap-2.5 h-full ${wrapperCls}`} style={{ position: 'relative' }} onClick={handleClick}>
           <Thermometer size={16} style={{ color: accentColor, flexShrink: 0 }} />
           <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)' }}>{displayTitle}</span>
           <span className="text-sm font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>
@@ -273,6 +275,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
               className="w-6 h-6 rounded font-bold text-sm hover:opacity-70 active:scale-95 transition-all"
               style={{ background: 'var(--app-border)', color: 'var(--text-primary)' }}>+</button>
           </div>
+          <StatusBadges config={config} />
         </div>
         {showDetail && <ThermostatDetail config={config} onClose={() => setShowDetail(false)} />}
       </>
@@ -283,7 +286,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
   if (layout === 'minimal') {
     return (
       <>
-        <div className={`flex flex-col items-center justify-center h-full gap-2 ${wrapperCls}`} onClick={handleClick}>
+        <div className={`flex flex-col items-center justify-center h-full gap-2 ${wrapperCls}`} style={{ position: 'relative' }} onClick={handleClick}>
           <Thermometer size={22} style={{ color: accentColor }} />
           <span className="font-black" style={{ fontSize: 'calc(2.5rem * var(--font-scale, 1))', color: 'var(--text-primary)', lineHeight: 1 }}>
             {target.toFixed(1)}°
@@ -299,6 +302,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
               className="w-8 h-8 rounded-full font-bold hover:opacity-70 active:scale-95 transition-all"
               style={{ background: 'var(--app-border)', color: 'var(--text-primary)' }}>+</button>
           </div>
+          <StatusBadges config={config} />
         </div>
         {showDetail && <ThermostatDetail config={config} onClose={() => setShowDetail(false)} />}
       </>
@@ -308,7 +312,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
   // ── DEFAULT ───────────────────────────────────────────────────────────────
   return (
     <>
-      <div className={`flex flex-col h-full gap-2 ${wrapperCls}`} onClick={handleClick}>
+      <div className={`flex flex-col h-full gap-2 ${wrapperCls}`} style={{ position: 'relative' }} onClick={handleClick}>
         {/* Title row */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
@@ -346,6 +350,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
               }} />
           </div>
         )}
+        <StatusBadges config={config} />
       </div>
       {showDetail && <ThermostatDetail config={config} onClose={() => setShowDetail(false)} />}
     </>

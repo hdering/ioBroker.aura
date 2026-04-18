@@ -13,13 +13,14 @@
 import {
   Zap, TrendingUp, SlidersHorizontal, Thermometer, BarChart2, List,
   Clock, CalendarDays, Heading2, Layers2, Cloud, Gauge, Camera, ImageIcon, MonitorDot, Droplets, Truck, AlignJustify, Table2,
+  DoorOpen, ShieldAlert,
   type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
 
 export type AddMode =
   | 'datapoint'   // requires an ioBroker state ID
-  | 'group'       // requires selecting a widget-group (ListWidget)
+  | 'group'       // legacy – no longer used for new widgets
   | 'free'        // no datapoint / special config (clock, header, …)
   | 'wizard-only' // cannot be added manually (calendar)
 
@@ -122,11 +123,11 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   },
   {
     type: 'list',
-    label: 'Gruppenliste',  shortLabel: 'Liste',
-    Icon: List,             iconName: 'List',       color: '#06b6d4',
-    defaultW: 3,            defaultH: 4,
-    addMode: 'group',       widgetGroup: 'control',
-    mock: { t: 'Alle Geräte', v: '' },
+    label: 'Statische Liste', shortLabel: 'Liste',
+    Icon: List,               iconName: 'List',       color: '#06b6d4',
+    defaultW: 3,              defaultH: 4,
+    addMode: 'free',          widgetGroup: 'control',
+    mock: { t: 'Statische Liste', v: '' },
   },
   {
     type: 'autolist',
@@ -231,6 +232,22 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     defaultW: 4,            defaultH: 3,
     addMode: 'datapoint',   widgetGroup: 'special',
     mock: { t: 'JSON-Tabelle', v: '' },
+  },
+  {
+    type: 'windowcontact',
+    label: 'Fenster-/Türkontakt', shortLabel: 'Kontakt',
+    Icon: DoorOpen,              iconName: 'DoorOpen',    color: '#22c55e',
+    defaultW: 2,                 defaultH: 2,
+    addMode: 'datapoint',        widgetGroup: 'control',
+    mock: { t: 'Fenster', v: 'false' },
+  },
+  {
+    type: 'binarysensor',
+    label: 'Binärsensor',   shortLabel: 'Sensor',
+    Icon: ShieldAlert,      iconName: 'ShieldAlert', color: '#f59e0b',
+    defaultW: 2,            defaultH: 2,
+    addMode: 'datapoint',   widgetGroup: 'control',
+    mock: { t: 'Bewegung', v: 'false' },
   },
 ];
 

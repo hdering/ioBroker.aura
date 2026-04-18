@@ -125,9 +125,12 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
         const entries = await ensureDatapointCache();
         const parts = dpId.split('.');
         const parent = parts.slice(0, -1).join('.');
-        const sibs = entries.filter((e) => e.id.startsWith(parent + '.'));
+        const parentUp = parts.slice(0, -2).join('.');
+        const sibs   = entries.filter((e) => e.id.startsWith(parent + '.'));
+        const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.'));
         for (const sdp of activeTemplate.secondaryDps) {
-          const found = sdp.siblingNames.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
+          const found = sdp.siblingNames.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean)
+            ?? sdp.siblingNames.map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}`)?.id).find(Boolean);
           if (found) secondaryDpOptions[sdp.optionKey] = found;
         }
       } catch { /* ignore */ }
@@ -142,6 +145,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
       gridPos: { x: 0, y: 9999, ...getEffectiveSize(type, widgetDefaults) },
       options: {
         icon: def.iconName,
+        ...(activeTemplate?.defaultOptions ?? {}),
         ...secondaryDpOptions,
         ...(isCalendar
           ? {
@@ -184,7 +188,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
   if (step === 1) {
     return (
       <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
-        <div className="rounded-xl w-full max-w-2xl shadow-2xl overflow-y-auto"
+        <div className="rounded-xl w-full max-w-4xl shadow-2xl overflow-y-auto"
           style={{ maxHeight: '95vh', background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
           onClick={(e) => e.stopPropagation()}>
 
@@ -226,6 +230,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
           {/* Template grid */}
           <div className="px-6 pb-2">
             <div className="space-y-3 py-2">
+              {/* Standard categories – 2-column grid per category */}
               {DP_TEMPLATE_CATEGORIES.filter((cat) => cat.id !== 'special').map((cat) => {
                 const catTpls = DP_TEMPLATES.filter((tpl) => tpl.category === cat.id);
                 if (!catTpls.length) return null;
@@ -235,22 +240,22 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                       style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>
                       {cat.label}
                     </p>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="grid grid-cols-3 gap-2">
                       {catTpls.map((tpl) => {
                         const active = templateId === tpl.id;
                         return (
                           <button key={tpl.id} type="button"
                             onClick={() => selectTemplate(tpl.id, tpl.widgetType)}
-                            className="flex flex-col items-center gap-1 rounded-xl transition-all hover:scale-105 active:scale-95"
+                            className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
                             style={{
-                              width: 68, padding: '8px 4px',
+                              padding: '8px 12px',
                               background: active ? 'var(--accent)1a' : 'var(--app-bg)',
                               border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
                               boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
                             }}>
-                            <span style={{ fontSize: 20, lineHeight: 1 }}>{tpl.icon}</span>
-                            <span className="text-center leading-tight font-medium"
-                              style={{ fontSize: 10, color: active ? 'var(--accent)' : 'var(--text-secondary)' }}>
+                            <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>{tpl.icon}</span>
+                            <span className="leading-tight font-medium truncate"
+                              style={{ fontSize: 12, color: active ? 'var(--accent)' : 'var(--text-secondary)' }}>
                               {tpl.label}
                             </span>
                           </button>
@@ -271,22 +276,22 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                   Weitere Widgets
                 </button>
                 {showFurtherTypes && (
-                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  <div className="grid grid-cols-3 gap-2 mt-1.5">
                     {furtherWidgets.map((w) => {
                       const active = templateId === w.type;
                       return (
                         <button key={w.type} type="button"
                           onClick={() => selectTemplate(w.type, w.type)}
-                          className="flex flex-col items-center gap-1 rounded-xl transition-all hover:scale-105 active:scale-95"
+                          className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
                           style={{
-                            width: 68, padding: '8px 4px',
+                            padding: '8px 12px',
                             background: active ? 'var(--accent)1a' : 'var(--app-bg)',
                             border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
                             boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
                           }}>
-                          <w.Icon size={20} color={active ? 'var(--accent)' : w.color} />
-                          <span className="text-center leading-tight font-medium"
-                            style={{ fontSize: 10, color: active ? 'var(--accent)' : 'var(--text-secondary)' }}>
+                          <w.Icon size={18} color={active ? 'var(--accent)' : w.color} style={{ flexShrink: 0 }} />
+                          <span className="leading-tight font-medium truncate"
+                            style={{ fontSize: 12, color: active ? 'var(--accent)' : 'var(--text-secondary)' }}>
                             {w.shortLabel}
                           </span>
                         </button>

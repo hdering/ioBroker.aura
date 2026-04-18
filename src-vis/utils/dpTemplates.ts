@@ -36,12 +36,17 @@ export function detectWidgetTypeFromRole(role?: string, valueType?: string): Wid
   if (r.startsWith('level.')) return 'dimmer';   // catch-all for other level.* roles
   if (r === 'level') return 'dimmer';
 
+  // ── WINDOW / DOOR CONTACT ─────────────────────────────────────────────────
+  if (r === 'sensor.window' || r === 'window') return 'windowcontact';
+  if (r === 'sensor.door' || r === 'door') return 'windowcontact';
+
   // ── SWITCH / BUTTON / SENSOR / INDICATOR ──────────────────────────────────
   if (r === 'switch' || r.startsWith('switch.')) return 'switch';
   if (r === 'button') return 'switch';
   if (r.startsWith('indicator.')) return 'switch';
   if (r.startsWith('sensor.')) return 'switch';
-  if (r === 'motion' || r === 'alarm') return 'switch';
+  if (r === 'motion' || r.startsWith('sensor.motion') || r.includes('presence')) return 'binarysensor';
+  if (r.startsWith('sensor.alarm') || r === 'alarm' || r.includes('smoke')) return 'binarysensor';
   // media controls other than volume (play, pause, stop, mute …)
   if (r.startsWith('media.') && r !== 'media.volume') return 'switch';
   if (valueType === 'boolean') return 'switch';
@@ -84,6 +89,8 @@ export interface DpTemplate {
   icon: string;
   widgetType: WidgetType;
   category: string;
+  /** Default options merged into the widget on creation */
+  defaultOptions?: Record<string, unknown>;
   /** Sibling DP name patterns to try auto-filling (in order of preference) */
   secondaryDps: {
     optionKey: string;
@@ -163,6 +170,8 @@ export const DP_TEMPLATES: DpTemplate[] = [
           'MEASURED_TEMPERATURE',
         ],
       },
+      { optionKey: 'batteryDp', siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat'] },
+      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
     ],
   },
 
@@ -173,7 +182,9 @@ export const DP_TEMPLATES: DpTemplate[] = [
     icon: '🔆',
     widgetType: 'dimmer',
     category: 'lighting',
-    secondaryDps: [],
+    secondaryDps: [
+      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
+    ],
   },
   {
     id: 'switch_light',
@@ -181,7 +192,9 @@ export const DP_TEMPLATES: DpTemplate[] = [
     icon: '💡',
     widgetType: 'switch',
     category: 'lighting',
-    secondaryDps: [],
+    secondaryDps: [
+      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
+    ],
   },
 
   // ── SCHALTEN ─────────────────────────────────────────────────────────────
@@ -191,7 +204,9 @@ export const DP_TEMPLATES: DpTemplate[] = [
     icon: '🔘',
     widgetType: 'switch',
     category: 'switching',
-    secondaryDps: [],
+    secondaryDps: [
+      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
+    ],
   },
   {
     id: 'socket',
@@ -199,7 +214,9 @@ export const DP_TEMPLATES: DpTemplate[] = [
     icon: '🔌',
     widgetType: 'switch',
     category: 'switching',
-    secondaryDps: [],
+    secondaryDps: [
+      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
+    ],
   },
   {
     id: 'fan',
@@ -207,7 +224,9 @@ export const DP_TEMPLATES: DpTemplate[] = [
     icon: '🌀',
     widgetType: 'switch',
     category: 'switching',
-    secondaryDps: [],
+    secondaryDps: [
+      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
+    ],
   },
 
   // ── SICHERHEIT ───────────────────────────────────────────────────────────
@@ -215,33 +234,47 @@ export const DP_TEMPLATES: DpTemplate[] = [
     id: 'sensor_door',
     label: 'Tür',
     icon: '🚪',
-    widgetType: 'switch',
+    widgetType: 'windowcontact',
     category: 'security',
-    secondaryDps: [],
+    secondaryDps: [
+      { optionKey: 'batteryDp', siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow'] },
+      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
+    ],
   },
   {
     id: 'sensor_window',
     label: 'Fenster',
     icon: '🪟',
-    widgetType: 'switch',
+    widgetType: 'windowcontact',
     category: 'security',
-    secondaryDps: [],
+    secondaryDps: [
+      { optionKey: 'batteryDp', siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow'] },
+      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
+    ],
   },
   {
     id: 'sensor_motion',
     label: 'Bewegung',
     icon: '👁',
-    widgetType: 'switch',
+    widgetType: 'binarysensor',
     category: 'security',
-    secondaryDps: [],
+    defaultOptions: { sensorType: 'motion' },
+    secondaryDps: [
+      { optionKey: 'batteryDp', siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow'] },
+      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
+    ],
   },
   {
     id: 'sensor_smoke',
     label: 'Rauchmelder',
     icon: '🚨',
-    widgetType: 'switch',
+    widgetType: 'binarysensor',
     category: 'security',
-    secondaryDps: [],
+    defaultOptions: { sensorType: 'smoke' },
+    secondaryDps: [
+      { optionKey: 'batteryDp', siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow'] },
+      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
+    ],
   },
 
   // ── ENERGIE ──────────────────────────────────────────────────────────────
@@ -318,14 +351,14 @@ export function findTemplateByRole(role?: string, valueType?: string): DpTemplat
   if (r.startsWith('level.') || r === 'level')
     return DP_TEMPLATES.find((t) => t.id === 'dimmer')!;
 
-  // Security sensors
+  // Window / door contacts
   if (r.startsWith('sensor.door') || r === 'door')
     return DP_TEMPLATES.find((t) => t.id === 'sensor_door')!;
   if (r.startsWith('sensor.window') || r === 'window')
     return DP_TEMPLATES.find((t) => t.id === 'sensor_window')!;
   if (r.startsWith('sensor.motion') || r === 'motion' || r.includes('presence'))
     return DP_TEMPLATES.find((t) => t.id === 'sensor_motion')!;
-  if (r.startsWith('sensor.smoke') || r.includes('smoke') || r.includes('alarm.fire'))
+  if (r.startsWith('sensor.smoke') || r.includes('smoke') || r.includes('alarm.fire') || r.includes('alarm'))
     return DP_TEMPLATES.find((t) => t.id === 'sensor_smoke')!;
 
   // Switch sub-types

@@ -4,12 +4,10 @@ import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useT } from '../../i18n';
 import {
   ChevronDown, ChevronRight, Copy, Trash2, Pencil,
-  Plus, Database, X, Check, Search, RotateCcw,
+  Plus, Database, X, Check, RotateCcw,
   ArrowRightLeft, Download, Upload,
 } from 'lucide-react';
 import { useDashboardStore, useActiveLayout, type Tab } from '../../store/dashboardStore';
-import { useGroupStore, type DatapointGroup, type GroupDatapoint } from '../../store/groupStore';
-import { useIoBrokerDevices } from '../../hooks/useIoBrokerDevices';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
 import { WidgetPreview } from '../../components/config/WidgetPreview';
 import type { WidgetConfig, WidgetType, WidgetLayout } from '../../types';
@@ -54,19 +52,18 @@ function InlineEditForm({
   onClose: () => void;
 }) {
   const t = useT();
-  const { groups } = useGroupStore();
   const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actual' | null>(null);
 
   const o = config.options ?? {};
   const setO = (patch: Record<string, unknown>) =>
     onChange({ ...config, options: { ...o, ...patch } });
 
-  const isClock    = config.type === 'clock';
-  const isCalendar = config.type === 'calendar';
-  const isHeader   = config.type === 'header';
-  const isList     = config.type === 'list';
+  const isClock      = config.type === 'clock';
+  const isCalendar   = config.type === 'calendar';
+  const isHeader     = config.type === 'header';
+  const isList       = config.type === 'list';
   const isThermostat = config.type === 'thermostat';
-  const needsDatapoint = !isClock && !isCalendar && !isHeader;
+  const needsDatapoint = !isClock && !isCalendar && !isHeader && !isList;
 
   return (
     <div
@@ -103,7 +100,7 @@ function InlineEditForm({
             </select>
           </div>
 
-          {needsDatapoint && !isList && (
+          {needsDatapoint && (
             <div>
               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                 {t('wf.edit.datapointId')}
@@ -128,22 +125,6 @@ function InlineEditForm({
             </div>
           )}
 
-          {isList && (
-            <div>
-              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.group')}</label>
-              <select
-                value={config.datapoint}
-                onChange={(e) => onChange({ ...config, datapoint: e.target.value })}
-                className={inputCls}
-                style={inputStyle}
-              >
-                <option value="">{t('editor.manual.selectGroup')}</option>
-                {groups.map((g) => (
-                  <option key={g.id} value={g.id}>{g.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
 
           {(config.type === 'value' || config.type === 'chart') && (
             <div>
@@ -620,13 +601,11 @@ function NewWidgetDialog({
   onClose: () => void;
 }) {
   const t = useT();
-  const { groups } = useGroupStore();
   const widgetDefaults = useConfigStore((s) => s.widgetDefaults);
   const [type, setType] = useState<WidgetType>('value');
   const [layout, setLayout] = useState<WidgetLayout>('default');
   const [title, setTitle] = useState('');
   const [datapoint, setDatapoint] = useState('');
-  const [groupId, setGroupId] = useState('');
   const [unit, setUnit] = useState('');
   const [targetTabId, setTargetTabId] = useState(tabs[0]?.id ?? '');
   const [showPicker, setShowPicker] = useState(false);
@@ -634,22 +613,19 @@ function NewWidgetDialog({
   const def = WIDGET_REGISTRY.find((w) => w.type === type)!;
   const addMode = WIDGET_BY_TYPE[type].addMode;
   const isCalendar = type === 'calendar';
-  const isList = addMode === 'group';
   const noDatapoint = addMode !== 'datapoint';
   const canAdd = addMode === 'datapoint' ? !!datapoint.trim()
-               : addMode === 'group'     ? !!groupId
                : addMode === 'wizard-only' ? false
                : true;
 
   const handleAdd = () => {
     if (!canAdd || !targetTabId) return;
-    const selectedGroup = isList ? groups.find((g) => g.id === groupId) : undefined;
     onAdd(targetTabId, {
       id: `w-${Date.now()}`,
       type,
       layout,
-      title: title || (isList && selectedGroup ? selectedGroup.name : def.label),
-      datapoint: noDatapoint ? '' : isList ? groupId : datapoint.trim(),
+      title: title || def.label,
+      datapoint: noDatapoint ? '' : datapoint.trim(),
       gridPos: { x: 0, y: 9999, ...getEffectiveSize(type, widgetDefaults) },
       options: { icon: def.iconName, ...(unit ? { unit } : {}) },
     });
@@ -681,7 +657,7 @@ function NewWidgetDialog({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.type')}</label>
-            <select value={type} onChange={(e) => { setType(e.target.value as WidgetType); setDatapoint(''); setGroupId(''); }}
+            <select value={type} onChange={(e) => { setType(e.target.value as WidgetType); setDatapoint(''); }}
               className={inputCls} style={inputStyle}>
               {WIDGET_REGISTRY.map((w) => <option key={w.type} value={w.type}>{w.label}</option>)}
             </select>
@@ -719,17 +695,6 @@ function NewWidgetDialog({
                 <Database size={13} />
               </button>
             </div>
-          </div>
-        )}
-
-        {isList && (
-          <div>
-            <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('editor.manual.group')}</label>
-            <select value={groupId} onChange={(e) => setGroupId(e.target.value)}
-              className={inputCls} style={inputStyle}>
-              <option value="">{t('editor.manual.selectGroup')}</option>
-              {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-            </select>
           </div>
         )}
 
@@ -772,470 +737,51 @@ function NewWidgetDialog({
     </div>
   );
 }
-
-// ── Multi-select Datapoint Picker ────────────────────────────────────────────
-
-function MultiDatapointPicker({ onAdd, onClose }: { onAdd: (dps: GroupDatapoint[]) => void; onClose: () => void }) {
-  const t = useT();
-  const { devices, loading, loaded, load } = useIoBrokerDevices();
-  const [search, setSearch] = useState('');
-  const [adapter, setAdapter] = useState('');
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-
-  const adapters = useMemo(() => Array.from(new Set(devices.map((d) => d.adapter))).sort(), [devices]);
-  const filtered = useMemo(() => devices.filter((d) => {
-    if (adapter && d.adapter !== adapter) return false;
-    if (search) { const q = search.toLowerCase(); return d.name.toLowerCase().includes(q) || d.id.toLowerCase().includes(q) || d.states.some((s) => s.id.toLowerCase().includes(q)); }
-    return true;
-  }), [devices, search, adapter]);
-
-  const toggle = (stateId: string) =>
-    setSelected((prev) => { const next = new Set(prev); if (next.has(stateId)) { next.delete(stateId); } else { next.add(stateId); } return next; });
-
-  const toggleDevice = (deviceId: string) => {
-    const device = devices.find((d) => d.id === deviceId);
-    if (!device) return;
-    const allSelected = device.states.every((s) => selected.has(s.id));
-    setSelected((prev) => {
-      const next = new Set(prev);
-      device.states.forEach((s) => allSelected ? next.delete(s.id) : next.add(s.id));
-      return next;
-    });
-  };
-
-  const handleAdd = () => {
-    const result: GroupDatapoint[] = [];
-    for (const device of devices) {
-      for (const state of device.states) {
-        if (!selected.has(state.id)) continue;
-        result.push({
-          id: state.id,
-          label: `${device.name} – ${state.id.split('.').pop()}`,
-          type: state.obj.common.type === 'boolean' ? 'boolean' : state.obj.common.type === 'number' ? 'number' : 'string',
-          unit: state.unit,
-          writable: state.obj.common.write !== false,
-        });
-      }
-    }
-    onAdd(result);
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl"
-        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--app-border)' }}>
-          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{t('endpoints.picker.title')}</h3>
-          <button onClick={onClose} style={{ color: 'var(--text-secondary)' }}><X size={18} /></button>
-        </div>
-
-        {!loaded ? (
-          <div className="flex flex-col items-center justify-center flex-1 gap-4 py-12">
-            {loading
-              ? <><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} /><p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('common.loading')}</p></>
-              : <button onClick={load} className="px-5 py-2 rounded-lg text-white text-sm hover:opacity-80" style={{ background: 'var(--accent)' }}>{t('endpoints.picker.load')}</button>
-            }
-          </div>
-        ) : (
-          <>
-            <div className="flex gap-2 px-5 py-3" style={{ borderBottom: '1px solid var(--app-border)' }}>
-              <div className="flex-1 flex items-center gap-2 rounded-lg px-3 py-1.5" style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
-                <Search size={14} style={{ color: 'var(--text-secondary)' }} />
-                <input autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('common.search')} className="flex-1 text-sm bg-transparent focus:outline-none" style={{ color: 'var(--text-primary)' }} />
-              </div>
-              <select value={adapter} onChange={(e) => setAdapter(e.target.value)} className="text-sm rounded-lg px-2 py-1.5" style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
-                <option value="">{t('common.all')}</option>
-                {adapters.map((a) => <option key={a} value={a}>{a}</option>)}
-              </select>
-            </div>
-
-            <div className="aura-scroll flex-1 overflow-y-auto px-5 py-3 space-y-1">
-              {filtered.map((device) => {
-                const deviceSelected = device.states.filter((s) => selected.has(s.id)).length;
-                const allChecked = deviceSelected === device.states.length;
-                return (
-                  <div key={device.id} className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-                    <div className="flex items-center gap-2 px-3 py-2.5" style={{ background: 'var(--app-bg)' }}>
-                      <input type="checkbox" checked={allChecked} ref={(el) => { if (el) el.indeterminate = deviceSelected > 0 && !allChecked; }}
-                        onChange={() => toggleDevice(device.id)}
-                        className="w-4 h-4 shrink-0 cursor-pointer" style={{ accentColor: 'var(--accent)' }} />
-                      <button className="flex-1 flex items-center gap-2 text-left hover:opacity-80 min-w-0"
-                        onClick={() => setExpanded(expanded === device.id ? null : device.id)}>
-                        {expanded === device.id ? <ChevronDown size={14} style={{ flexShrink: 0 }} /> : <ChevronRight size={14} style={{ flexShrink: 0 }} />}
-                        <span className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{device.name}</span>
-                        <span className="text-xs ml-1 shrink-0" style={{ color: deviceSelected > 0 ? 'var(--accent)' : 'var(--text-secondary)' }}>
-                          {deviceSelected > 0 ? `${deviceSelected}/` : ''}{device.states.length} DP
-                        </span>
-                      </button>
-                    </div>
-                    {expanded === device.id && device.states.map((state) => (
-                      <label key={state.id}
-                        className="flex items-center gap-3 px-4 py-2 cursor-pointer hover:opacity-80"
-                        style={{ borderTop: '1px solid var(--app-border)', background: selected.has(state.id) ? 'color-mix(in srgb, var(--accent) 8%, transparent)' : 'var(--app-surface)' }}>
-                        <input type="checkbox" checked={selected.has(state.id)} onChange={() => toggle(state.id)}
-                          className="w-4 h-4 shrink-0" style={{ accentColor: 'var(--accent)' }} />
-                        <span className="text-xs font-mono flex-1 truncate" style={{ color: 'var(--text-primary)' }}>{state.id}</span>
-                        {state.unit && <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>{state.unit}</span>}
-                      </label>
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="flex items-center justify-between px-5 py-3" style={{ borderTop: '1px solid var(--app-border)' }}>
-              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                {selected.size === 0 ? t('endpoints.picker.none') : t('endpoints.picker.selected', { count: String(selected.size) })}
-              </span>
-              <div className="flex gap-2">
-                <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:opacity-80"
-                  style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                  {t('endpoints.picker.cancel')}
-                </button>
-                <button onClick={handleAdd} disabled={selected.size === 0}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80 disabled:opacity-30"
-                  style={{ background: 'var(--accent)' }}>
-                  {t('endpoints.picker.add')} {selected.size > 0 && `(${selected.size})`}
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── Group Editor ──────────────────────────────────────────────────────────────
-
-function GroupEditor({ group }: { group: DatapointGroup }) {
-  const { removeDatapoint, updateDatapoint, addDatapoint } = useGroupStore();
-  const [showPicker, setShowPicker] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const t = useT();
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.dp.count', { count: group.datapoints.length })}</span>
-        <button onClick={() => setShowPicker(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-80"
-          style={{ background: 'var(--accent)' }}>
-          <Plus size={12} /> {t('endpoints.dp.add')}
-        </button>
-      </div>
-
-      {group.datapoints.length === 0 ? (
-        <p className="text-xs text-center py-6" style={{ color: 'var(--text-secondary)' }}>
-          {t('endpoints.dp.empty')}
-        </p>
-      ) : (
-        <div className="space-y-1">
-          {group.datapoints.map((dp) => (
-            <div key={dp.id} className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-              <div className="flex items-center gap-3 px-3 py-2.5" style={{ background: 'var(--app-bg)' }}>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>{dp.label}</p>
-                  <p className="text-[10px] font-mono truncate" style={{ color: 'var(--text-secondary)' }}>{dp.id}</p>
-                </div>
-                <span className="text-[10px] px-1.5 py-0.5 rounded shrink-0"
-                  style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)' }}>
-                  {dp.type === 'boolean' ? (dp.writable ? t('endpoints.dp.typeSwitch') : t('endpoints.dp.typeBool')) : dp.type === 'number' ? `${t('endpoints.dp.typeNum')}${dp.unit ? ` · ${dp.unit}` : ''}` : t('endpoints.dp.typeText')}
-                </span>
-                <button onClick={() => setEditingId(editingId === dp.id ? null : dp.id)}
-                  className="hover:opacity-70 shrink-0"
-                  style={{ color: editingId === dp.id ? 'var(--accent)' : 'var(--text-secondary)' }}>
-                  <Pencil size={12} />
-                </button>
-                <button onClick={() => removeDatapoint(group.id, dp.id)} className="hover:opacity-70 shrink-0" style={{ color: 'var(--accent-red)' }}>
-                  <Trash2 size={12} />
-                </button>
-              </div>
-
-              {editingId === dp.id && (
-                <div className="px-3 py-3 space-y-2" style={{ background: 'var(--app-surface)', borderTop: '1px solid var(--app-border)' }}>
-                  <div className="flex items-center gap-2">
-                    <label className="text-[11px] w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.dp.label')}</label>
-                    <input type="text" defaultValue={dp.label}
-                      onBlur={(e) => updateDatapoint(group.id, dp.id, { label: e.target.value || dp.label })}
-                      className="flex-1 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none" style={inputStyle} />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <label className="text-[11px] w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.dp.type')}</label>
-                    <select value={dp.type}
-                      onChange={(e) => updateDatapoint(group.id, dp.id, { type: e.target.value as GroupDatapoint['type'] })}
-                      className="flex-1 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none" style={inputStyle}>
-                      <option value="boolean">{t('endpoints.dp.typeBoolean')}</option>
-                      <option value="number">{t('endpoints.dp.typeNumber')}</option>
-                      <option value="string">{t('endpoints.dp.typeText')}</option>
-                    </select>
-                  </div>
-                  {dp.type === 'number' && (
-                    <div className="flex items-center gap-2">
-                      <label className="text-[11px] w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('endpoints.dp.unit')}</label>
-                      <input type="text" defaultValue={dp.unit ?? ''}
-                        onBlur={(e) => updateDatapoint(group.id, dp.id, { unit: e.target.value || undefined })}
-                        placeholder={t('endpoints.dp.unitPh')}
-                        className="flex-1 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none" style={inputStyle} />
-                    </div>
-                  )}
-                  {(dp.type === 'boolean' || dp.type === 'number') && (
-                    <div className="flex items-center gap-2">
-                      <label className="text-[11px] w-20 shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                        {dp.type === 'boolean' ? t('endpoints.dp.asSwitch') : t('endpoints.dp.writable')}
-                      </label>
-                      <button onClick={() => updateDatapoint(group.id, dp.id, { writable: !dp.writable })}
-                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                        style={{ background: dp.writable ? 'var(--accent)' : 'var(--app-border)' }}>
-                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                          style={{ left: dp.writable ? '18px' : '2px' }} />
-                      </button>
-                      <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {dp.writable ? (dp.type === 'boolean' ? t('endpoints.dp.toggle') : t('endpoints.dp.settable')) : t('endpoints.dp.readOnly')}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {showPicker && (
-        <MultiDatapointPicker
-          onAdd={(dps) => dps.forEach((dp) => addDatapoint(group.id, dp))}
-          onClose={() => setShowPicker(false)}
-        />
-      )}
-    </div>
-  );
-}
-
-
 // ── Default Sizes Dialog ──────────────────────────────────────────────────────
 
 function DefaultSizesDialog({ onClose }: { onClose: () => void }) {
   const t = useT();
   const { widgetDefaults, setWidgetDefault, resetWidgetDefault } = useConfigStore();
+  const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' } as React.CSSProperties;
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
-        className="rounded-xl w-full max-w-md shadow-2xl flex flex-col"
-        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', maxHeight: '80vh' }}
+        className="rounded-xl w-full max-w-sm shadow-2xl p-6 space-y-4"
+        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 shrink-0"
-          style={{ borderBottom: '1px solid var(--app-border)' }}>
-          <div>
-            <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>{t('widgets.defaultSizes')}</h2>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-              {t('widgets.defaultSizesHint')}
-            </p>
-          </div>
-          <button onClick={onClose} className="hover:opacity-60 ml-4 shrink-0" style={{ color: 'var(--text-secondary)' }}>
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>{t('widgets.defaultSizes')}</h2>
+          <button onClick={onClose} className="hover:opacity-60" style={{ color: 'var(--text-secondary)' }}>
             <X size={18} />
           </button>
         </div>
-
-        {/* List */}
-        <div className="aura-scroll overflow-y-auto p-4 space-y-2">
-          {WIDGET_REGISTRY.map((meta) => {
-            const override = widgetDefaults[meta.type];
-            const w = override?.w ?? meta.defaultW;
-            const h = override?.h ?? meta.defaultH;
-            const isOverridden = !!override;
+        <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('widgets.defaultSizesHint')}</p>
+        <div className="space-y-2 max-h-96 overflow-y-auto aura-scroll">
+          {WIDGET_REGISTRY.map((w) => {
+            const d = widgetDefaults[w.type] ?? { w: w.defaultW, h: w.defaultH };
             return (
-              <div key={meta.type}
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5"
-                style={{ background: 'var(--app-bg)', border: `1px solid ${isOverridden ? meta.color + '55' : 'var(--app-border)'}` }}
-              >
-                <span className="w-6 h-6 rounded flex items-center justify-center shrink-0"
-                  style={{ background: meta.color + '22', color: meta.color }}>
-                  <meta.Icon size={13} />
-                </span>
-                <span className="flex-1 text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>
-                  {meta.label}
-                </span>
-                <span className="text-[10px] mr-1 shrink-0" style={{ color: 'var(--text-secondary)' }}>B</span>
-                <input
-                  type="number" min={1} max={20} value={w}
-                  onChange={(e) => setWidgetDefault(meta.type, Number(e.target.value) || 1, h)}
-                  className="w-12 text-center text-xs rounded-lg px-1 py-1 focus:outline-none"
-                  style={{ background: 'var(--app-surface)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
-                />
-                <span className="text-[10px] mx-1 shrink-0" style={{ color: 'var(--text-secondary)' }}>H</span>
-                <input
-                  type="number" min={1} max={20} value={h}
-                  onChange={(e) => setWidgetDefault(meta.type, w, Number(e.target.value) || 1)}
-                  className="w-12 text-center text-xs rounded-lg px-1 py-1 focus:outline-none"
-                  style={{ background: 'var(--app-surface)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
-                />
-                <button
-                  onClick={() => resetWidgetDefault(meta.type)}
-                  disabled={!isOverridden}
-                  title={t('widgets.resetDefault')}
-                  className="ml-1 hover:opacity-70 disabled:opacity-20 shrink-0"
-                  style={{ color: 'var(--accent-red)' }}
-                >
-                  <RotateCcw size={13} />
+              <div key={w.type} className="flex items-center gap-3 px-3 py-2 rounded-lg"
+                style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
+                <span className="text-xs flex-1 truncate" style={{ color: 'var(--text-primary)' }}>{w.label}</span>
+                <input type="number" min={1} max={12} value={d.w}
+                  onChange={(e) => setWidgetDefault(w.type, Number(e.target.value), d.h)}
+                  className="w-12 text-xs text-center rounded px-1 py-1 focus:outline-none" style={iSty} />
+                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>×</span>
+                <input type="number" min={1} max={12} value={d.h}
+                  onChange={(e) => setWidgetDefault(w.type, d.w, Number(e.target.value))}
+                  className="w-12 text-xs text-center rounded px-1 py-1 focus:outline-none" style={iSty} />
+                <button onClick={() => resetWidgetDefault(w.type)}
+                  className="hover:opacity-70 shrink-0" style={{ color: 'var(--text-secondary)' }}
+                  title={t('common.reset')}>
+                  <RotateCcw size={11} />
                 </button>
               </div>
             );
           })}
         </div>
-
-        {/* Footer */}
-        <div className="px-6 py-3 shrink-0 flex justify-end"
-          style={{ borderTop: '1px solid var(--app-border)' }}>
-          <button onClick={onClose}
-            className="px-4 py-2 text-sm rounded-lg hover:opacity-80"
-            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-            {t('common.close')}
-          </button>
-        </div>
       </div>
-    </div>
-  );
-}
-
-// ── Groups Section ────────────────────────────────────────────────────────────
-
-function GroupsSection() {
-  const { groups, addGroup, removeGroup, renameGroup } = useGroupStore();
-  const [sectionOpen, setSectionOpen] = useState(false);
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [newName, setNewName] = useState('');
-  const [showNew, setShowNew] = useState(false);
-  const [renamingId, setRenamingId] = useState<string | null>(null);
-  const [renameValue, setRenameValue] = useState('');
-  const t = useT();
-
-  const handleAdd = () => {
-    if (!newName.trim()) return;
-    const id = addGroup(newName.trim());
-    setNewName('');
-    setShowNew(false);
-    setExpanded(id);
-    setSectionOpen(true);
-  };
-
-  return (
-    <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-      <button
-        onClick={() => setSectionOpen(!sectionOpen)}
-        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:opacity-80 transition-opacity"
-        style={{ background: 'var(--app-surface)' }}
-      >
-        <span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-          style={{ background: '#06b6d422', color: '#06b6d4' }}>
-          <Database size={15} />
-        </span>
-        <span className="font-semibold text-sm flex-1" style={{ color: 'var(--text-primary)' }}>
-          {t('widgets.groupsSection')}
-        </span>
-        <span className="px-2.5 py-0.5 text-xs font-medium rounded-full"
-          style={{ background: '#06b6d422', color: '#06b6d4' }}>
-          {groups.length}
-        </span>
-        <span
-          onClick={(e) => { e.stopPropagation(); setShowNew(true); setSectionOpen(true); }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-80"
-          style={{ background: 'var(--accent)' }}
-          role="button"
-        >
-          <Plus size={12} /> {t('widgets.newGroup')}
-        </span>
-        <span style={{ color: 'var(--text-secondary)' }}>
-          {sectionOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-        </span>
-      </button>
-
-      {sectionOpen && (
-        <div className="p-3 space-y-2" style={{ background: 'var(--app-bg)' }}>
-          {showNew && (
-            <div className="flex gap-2 mb-1">
-              <input autoFocus value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setShowNew(false); }}
-                placeholder={t('widgets.groupPlaceholder')}
-                className="flex-1 rounded-lg px-3 py-2 text-sm focus:outline-none"
-                style={inputStyle}
-              />
-              <button onClick={handleAdd} disabled={!newName.trim()}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80 disabled:opacity-30"
-                style={{ background: 'var(--accent)' }}>
-                {t('common.create')}
-              </button>
-              <button onClick={() => setShowNew(false)} className="hover:opacity-70" style={{ color: 'var(--text-secondary)' }}>
-                <X size={16} />
-              </button>
-            </div>
-          )}
-
-          {groups.length === 0 ? (
-            <p className="text-xs text-center py-8" style={{ color: 'var(--text-secondary)' }}>
-              {t('widgets.noGroupsHint')}
-            </p>
-          ) : (
-            groups.map((group) => (
-              <div key={group.id} className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-                <div className="flex items-center gap-3 px-4 py-3" style={{ background: 'var(--app-surface)' }}>
-                  <button onClick={() => setExpanded(expanded === group.id ? null : group.id)}
-                    style={{ color: 'var(--text-secondary)' }}>
-                    {expanded === group.id ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
-                  </button>
-
-                  {renamingId === group.id ? (
-                    <div className="flex items-center gap-2 flex-1">
-                      <input autoFocus value={renameValue}
-                        onChange={(e) => setRenameValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') { renameGroup(group.id, renameValue); setRenamingId(null); }
-                          if (e.key === 'Escape') setRenamingId(null);
-                        }}
-                        className="flex-1 text-sm rounded-lg px-2.5 py-1 focus:outline-none"
-                        style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--accent)' }}
-                      />
-                      <button onClick={() => { renameGroup(group.id, renameValue); setRenamingId(null); }} style={{ color: 'var(--accent-green)' }}><Check size={14} /></button>
-                      <button onClick={() => setRenamingId(null)} style={{ color: 'var(--text-secondary)' }}><X size={14} /></button>
-                    </div>
-                  ) : (
-                    <div className="flex-1 min-w-0 cursor-pointer"
-                      onClick={() => setExpanded(expanded === group.id ? null : group.id)}>
-                      <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{group.name}</p>
-                      {group.description && <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{group.description}</p>}
-                    </div>
-                  )}
-
-                  <span className="text-xs px-2 py-0.5 rounded-full shrink-0"
-                    style={{ background: 'var(--accent)22', color: 'var(--accent)' }}>
-                    {group.datapoints.length} DP
-                  </span>
-                  <button onClick={() => { setRenamingId(group.id); setRenameValue(group.name); }}
-                    className="hover:opacity-70 shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                    <Pencil size={13} />
-                  </button>
-                  <button onClick={() => removeGroup(group.id)}
-                    className="hover:opacity-70 shrink-0" style={{ color: 'var(--accent-red)' }}>
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-
-                {expanded === group.id && (
-                  <div className="px-4 py-3" style={{ background: 'var(--app-bg)', borderTop: '1px solid var(--app-border)' }}>
-                    <GroupEditor group={group} />
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -1393,14 +939,6 @@ export function AdminWidgets() {
           ))}
         </div>
       )}
-
-      {/* Groups section */}
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-widest mb-3 px-1" style={{ color: 'var(--text-secondary)' }}>
-          {t('widgets.groups')}
-        </p>
-        <GroupsSection />
-      </div>
 
       {showCreate && (
         <NewWidgetDialog

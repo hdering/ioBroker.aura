@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
+import { StatusBadges } from './StatusBadges';
 
 // Shutter visual: horizontal slat lines filling from top = how much is closed
 function ShutterViz({
@@ -129,7 +130,7 @@ export function ShutterWidget({ config }: WidgetProps) {
   // ── CARD ──────────────────────────────────────────────────────────────────
   if (layout === 'card') {
     return (
-      <div className="flex flex-col h-full gap-2">
+      <div className="flex flex-col h-full gap-2" style={{ position: 'relative' }}>
         <div className="flex items-center justify-between">
           <p className="text-xs truncate font-medium" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
           {isMoving && <span className="text-[10px] animate-pulse" style={{ color: 'var(--accent-yellow)' }}>
@@ -142,6 +143,7 @@ export function ShutterWidget({ config }: WidgetProps) {
           <BtnRow onUp={openFully} onStop={stop} onDown={closeFully} size="md" />
         </div>
         {slider}
+        <StatusBadges config={config} />
       </div>
     );
   }
@@ -149,12 +151,13 @@ export function ShutterWidget({ config }: WidgetProps) {
   // ── COMPACT ───────────────────────────────────────────────────────────────
   if (layout === 'compact') {
     return (
-      <div className="flex items-center gap-2 h-full">
+      <div className="flex items-center gap-2 h-full" style={{ position: 'relative' }}>
         <ShutterViz closedFrac={closedFrac} accentColor={accentColor} isMoving={isMoving}
           style={{ width: 22, height: 22, flexShrink: 0 }} />
         <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>
         <span className="text-sm font-bold shrink-0" style={{ color: isMoving ? 'var(--accent-yellow)' : 'var(--text-primary)' }}>{pos}%</span>
         <BtnRow onUp={openFully} onStop={stop} onDown={closeFully} size="sm" />
+        <StatusBadges config={config} />
       </div>
     );
   }
@@ -162,7 +165,7 @@ export function ShutterWidget({ config }: WidgetProps) {
   // ── MINIMAL ───────────────────────────────────────────────────────────────
   if (layout === 'minimal') {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-1.5">
+      <div className="flex flex-col items-center justify-center h-full gap-1.5" style={{ position: 'relative' }}>
         <button onClick={openFully} className="p-2 rounded-xl hover:opacity-80 transition-opacity"
           style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
           <ChevronUp size={18} />
@@ -181,13 +184,14 @@ export function ShutterWidget({ config }: WidgetProps) {
           style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
           <ChevronDown size={18} />
         </button>
+        <StatusBadges config={config} />
       </div>
     );
   }
 
   // ── DEFAULT ───────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full gap-2">
+    <div className="flex flex-col h-full gap-2" style={{ position: 'relative' }}>
       <div className="flex items-center justify-between">
         <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
         {isMoving && <span className="text-[10px] animate-pulse" style={{ color: 'var(--accent-yellow)' }}>
@@ -205,6 +209,7 @@ export function ShutterWidget({ config }: WidgetProps) {
         </div>
         {slider}
       </div>
+      <StatusBadges config={config} />
     </div>
   );
 }

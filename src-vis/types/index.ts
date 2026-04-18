@@ -36,7 +36,9 @@ export type WidgetType =
   | 'fill'
   | 'trash'
   | 'shutter'
-  | 'jsontable';
+  | 'jsontable'
+  | 'windowcontact'
+  | 'binarysensor';
 
 export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda' | 'flow' | 'battery' | 'production' | 'consumption' | 'loadpoints';
 

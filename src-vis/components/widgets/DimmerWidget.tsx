@@ -3,6 +3,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { StatusBadges } from './StatusBadges';
 
 export function DimmerWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
@@ -22,7 +23,7 @@ export function DimmerWidget({ config }: WidgetProps) {
   if (layout === 'card') {
     const opacity = 0.2 + (level / 100) * 0.8;
     return (
-      <div className="flex flex-col h-full justify-between">
+      <div className="flex flex-col h-full justify-between" style={{ position: 'relative' }}>
         <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
         <div className="flex flex-col items-center gap-3 flex-1 justify-center">
           <Sun size={40} strokeWidth={1.5}
@@ -30,6 +31,7 @@ export function DimmerWidget({ config }: WidgetProps) {
           <span className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{level}%</span>
         </div>
         {slider}
+        <StatusBadges config={config} />
       </div>
     );
   }
@@ -37,7 +39,7 @@ export function DimmerWidget({ config }: WidgetProps) {
   // --- COMPACT ---
   if (layout === 'compact') {
     return (
-      <div className="flex flex-col justify-center h-full gap-1.5">
+      <div className="flex flex-col justify-center h-full gap-1.5" style={{ position: 'relative' }}>
         <div className="flex items-center gap-2">
           <CompactIcon size={15} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }} />
           <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>
@@ -47,6 +49,7 @@ export function DimmerWidget({ config }: WidgetProps) {
           onChange={(e) => setState(config.datapoint, Number(e.target.value))}
           style={{ accentColor: 'var(--accent-yellow)' }}
           className="w-full h-1.5 rounded-full appearance-none cursor-pointer" />
+        <StatusBadges config={config} />
       </div>
     );
   }
@@ -54,16 +57,17 @@ export function DimmerWidget({ config }: WidgetProps) {
   // --- MINIMAL: Nur Slider + Prozentzahl ---
   if (layout === 'minimal') {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-3">
+      <div className="flex flex-col items-center justify-center h-full gap-3" style={{ position: 'relative' }}>
         <span className="text-3xl font-black" style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)' }}>{level}%</span>
         {slider}
+        <StatusBadges config={config} />
       </div>
     );
   }
 
   // --- DEFAULT ---
   return (
-    <div className="flex flex-col h-full justify-between">
+    <div className="flex flex-col h-full justify-between" style={{ position: 'relative' }}>
       <div className="flex items-center gap-2">
         <SunDim size={14} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)' }} />
         <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
@@ -76,6 +80,7 @@ export function DimmerWidget({ config }: WidgetProps) {
         </div>
         {slider}
       </div>
+      <StatusBadges config={config} />
     </div>
   );
 }

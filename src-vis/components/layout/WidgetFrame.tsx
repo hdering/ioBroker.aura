@@ -14,6 +14,7 @@ import { getObjectDirect, subscribeStateDirect, getStateDirect } from '../../hoo
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
 import { WIDGET_REGISTRY, WIDGET_GROUPS } from '../../widgetRegistry';
 import { AutoListConfig } from '../config/AutoListConfig';
+import { StaticListConfig } from '../config/StaticListConfig';
 import { detectHistoryAdapters, RANGE_LABELS, type ChartTimeRange, type DetectedAdapter } from '../../hooks/useChartHistory';
 import { useConditionStyle, notifyHiddenState, cleanupHiddenState } from '../../hooks/useConditionStyle';
 import { SwitchWidget } from '../widgets/SwitchWidget';
@@ -42,6 +43,8 @@ import { TrashWidget, TrashConfig } from '../widgets/TrashWidget';
 import { AutoListWidget } from '../widgets/AutoListWidget';
 import { ShutterWidget } from '../widgets/ShutterWidget';
 import { JsonTableWidget } from '../widgets/JsonTableWidget';
+import { WindowContactWidget } from '../widgets/WindowContactWidget';
+import { BinarySensorWidget, BINARY_SENSOR_PRESETS } from '../widgets/BinarySensorWidget';
 import { JsonTableConfig } from '../config/JsonTableConfig';
 import { IconPickerModal } from '../config/IconPickerModal';
 
@@ -71,8 +74,10 @@ function getWidgetMap() {
     iframe:     IframeWidget,
     fill:       FillWidget,
     trash:      TrashWidget,
-    shutter:    ShutterWidget,
-    jsontable:  JsonTableWidget,
+    shutter:       ShutterWidget,
+    jsontable:     JsonTableWidget,
+    windowcontact: WindowContactWidget,
+    binarysensor:  BinarySensorWidget,
   } as const;
 }
 
@@ -786,7 +791,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
       setOpenPanel(panel);
     }
   };
-  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'status_batteryDp' | 'status_unreachDp' | null>(null);
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const menuBtnRef = useRef<HTMLButtonElement>(null);
   const Widget = getWidgetMap()[config.type as keyof ReturnType<typeof getWidgetMap>];
@@ -1147,7 +1152,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
       {openPanel === 'edit' && (
         <CenteredModal
           title={<>{t('wf.edit.title')} <span className="text-[10px] font-mono opacity-40 ml-1 font-normal">({config.id})</span></>}
-          wide={config.type === 'echart' || config.type === 'autolist' || config.type === 'trash'}
+          wide={config.type === 'echart' || config.type === 'autolist' || config.type === 'list' || config.type === 'trash'}
           onClose={() => openPanelFor(null)}
         >
           {/* ─── 1. Name / Titel ──────────────────────────────────────────── */}
@@ -1484,7 +1489,14 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
 
               {config.type !== 'list' && config.type !== 'clock' && config.type !== 'calendar' && config.type !== 'header' && config.type !== 'group' && config.type !== 'evcc' && config.type !== 'echart' && config.type !== 'weather' && config.type !== 'camera' && config.type !== 'autolist' && config.type !== 'image' && config.type !== 'iframe' && config.type !== 'trash' && (
                 <div>
-                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.datapointId')}</label>
+                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                    {config.type === 'thermostat'     ? 'Soll-Temperatur Datenpunkt' :
+                     config.type === 'windowcontact'  ? 'Kontaktstatus Datenpunkt (boolean / 0=zu / 1=kippt / 2=offen)' :
+                     config.type === 'binarysensor'   ? 'Sensorwert Datenpunkt (boolean, true = aktiv)' :
+                     config.type === 'shutter'        ? 'Positions-Datenpunkt (0–100 %)' :
+                     config.type === 'dimmer'         ? 'Helligkeits-Datenpunkt (0–100 %)' :
+                     t('wf.edit.datapointId')}
+                  </label>
                   <div className="flex gap-1">
                     <input
                       type="text"
@@ -1909,6 +1921,11 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                 <AutoListConfig config={config} onConfigChange={onConfigChange} />
               )}
 
+              {/* ── Static List config ── */}
+              {config.type === 'list' && (
+                <StaticListConfig config={config} onConfigChange={onConfigChange} />
+              )}
+
               {/* ── iFrame config ── */}
               {config.type === 'iframe' && (() => {
                 const o   = config.options ?? {};
@@ -2177,9 +2194,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   const sibs = entries.filter((e) => e.id.startsWith(parent + '.'));
                   const find = (...names: string[]) => names.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
                   const patch: Record<string, unknown> = {};
-                  if (!o.activityDp)  { const v = find('WORKING', 'working', 'ACTIVITY_STATE', 'activity_state', 'PROCESS', 'process', 'state', 'moving', 'activity', 'ACTIVITY'); if (v) patch.activityDp = v; }
-                  if (!o.directionDp) { const v = find('DIRECTION', 'direction'); if (v) patch.directionDp = v; }
-                  if (!o.stopDp)      { const v = find('STOP', 'stop', 'Pause', 'pause'); if (v) patch.stopDp = v; }
+                  { const v = find('WORKING', 'working', 'ACTIVITY_STATE', 'activity_state', 'PROCESS', 'process', 'state', 'moving', 'activity', 'ACTIVITY'); if (v) patch.activityDp = v; }
+                  { const v = find('DIRECTION', 'direction'); if (v) patch.directionDp = v; }
+                  { const v = find('STOP', 'stop', 'Pause', 'pause'); if (v) patch.stopDp = v; }
                   if (Object.keys(patch).length) setO(patch);
                 };
                 return (
@@ -2253,6 +2270,150 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                 );
               })()}
 
+              {config.type === 'windowcontact' && (() => {
+                const o = config.options ?? {};
+                const setO = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const wInputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono';
+                const wInputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                const autoFillContact = async () => {
+                  if (!config.datapoint) return;
+                  const parts = config.datapoint.split('.');
+                  const parent = parts.slice(0, -1).join('.');
+                  const entries = await ensureDatapointCache();
+                  const sibs = entries.filter((e) => e.id.startsWith(parent + '.'));
+                  const find = (...names: string[]) => names.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
+                  // Also check one level up (channel → device) for battery
+                  const parentUp = parts.slice(0, -2).join('.');
+                  const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.'));
+                  const findUp = (...names: string[]) => names.map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}` || e.id === `${parentUp}.${n}`)?.id).find(Boolean);
+                  const patch: Record<string, unknown> = {};
+                  { const v = find('LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow')
+                           ?? findUp('LOWBAT', 'LOW_BAT');
+                    if (v) patch.batteryDp = v; }
+                  if (Object.keys(patch).length) setO(patch);
+                };
+                return (
+                  <>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Batterie-DP (z.B. LOWBAT)</label>
+                        <button onClick={() => void autoFillContact()}
+                          className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
+                          style={{ background: 'var(--accent)22', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
+                          Auto-Erkennen
+                        </button>
+                      </div>
+                      <div className="flex gap-1">
+                        <input type="text" value={(o.batteryDp as string) ?? ''}
+                          onChange={(e) => setO({ batteryDp: e.target.value || undefined })}
+                          placeholder="optional"
+                          className={`flex-1 ${wInputCls} min-w-0`} style={wInputStyle} />
+                        <button onClick={() => setPickerTarget('windowcontact_batteryDp')}
+                          className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                          style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                          <Database size={13} />
+                        </button>
+                      </div>
+                      <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        Boolean-DP für Batterie-Warnanzeige (z.B. hm-rpc …0.LOWBAT)
+                      </p>
+                    </div>
+                  </>
+                );
+              })()}
+
+              {config.type === 'binarysensor' && (() => {
+                const o = config.options ?? {};
+                const setO = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const bInputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono';
+                const bInputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                const sInputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                const sensorType = (o.sensorType as string) ?? 'generic';
+                const preset = BINARY_SENSOR_PRESETS[sensorType] ?? BINARY_SENSOR_PRESETS.generic;
+                const autoFillSensor = async () => {
+                  if (!config.datapoint) return;
+                  const parts = config.datapoint.split('.');
+                  const parent = parts.slice(0, -1).join('.');
+                  const entries = await ensureDatapointCache();
+                  const sibs = entries.filter((e) => e.id.startsWith(parent + '.'));
+                  const find = (...names: string[]) => names.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
+                  const parentUp = parts.slice(0, -2).join('.');
+                  const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.'));
+                  const findUp = (...names: string[]) => names.map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}` || e.id === `${parentUp}.${n}`)?.id).find(Boolean);
+                  const patch: Record<string, unknown> = {};
+                  { const v = find('LOWBAT', 'LOW_BAT', 'lowBat', 'battery_low', 'batteryLow')
+                           ?? findUp('LOWBAT', 'LOW_BAT');
+                    if (v) patch.batteryDp = v; }
+                  if (Object.keys(patch).length) setO(patch);
+                };
+                return (
+                  <>
+                    {/* Sensor-Typ Auswahl */}
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Sensor-Typ</label>
+                      <select value={sensorType}
+                        onChange={(e) => setO({ sensorType: e.target.value })}
+                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                        style={sInputStyle}>
+                        {Object.keys(BINARY_SENSOR_PRESETS).map((k) => (
+                          <option key={k} value={k}>
+                            {k === 'motion' ? 'Bewegungsmelder' :
+                             k === 'smoke' ? 'Rauchmelder' :
+                             k === 'doorbell' ? 'Türklingel' :
+                             k === 'vibration' ? 'Erschütterung' :
+                             k === 'flood' ? 'Wassermelder' :
+                             'Generisch'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {/* Labels */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Label aktiv</label>
+                        <input type="text" value={(o.labelOn as string) ?? ''}
+                          onChange={(e) => setO({ labelOn: e.target.value || undefined })}
+                          placeholder={preset.labelOn}
+                          className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                          style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
+                      </div>
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Label inaktiv</label>
+                        <input type="text" value={(o.labelOff as string) ?? ''}
+                          onChange={(e) => setO({ labelOff: e.target.value || undefined })}
+                          placeholder={preset.labelOff}
+                          className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                          style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
+                      </div>
+                    </div>
+                    {/* Battery DP */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Batterie-DP (z.B. LOWBAT)</label>
+                        <button onClick={() => void autoFillSensor()}
+                          className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
+                          style={{ background: 'var(--accent)22', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
+                          Auto-Erkennen
+                        </button>
+                      </div>
+                      <div className="flex gap-1">
+                        <input type="text" value={(o.batteryDp as string) ?? ''}
+                          onChange={(e) => setO({ batteryDp: e.target.value || undefined })}
+                          placeholder="optional"
+                          className={`flex-1 ${bInputCls} min-w-0`} style={bInputStyle} />
+                        <button onClick={() => setPickerTarget('windowcontact_batteryDp')}
+                          className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                          style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                          <Database size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+
               {config.type === 'thermostat' && (() => {
                 const o = config.options ?? {};
                 const setO = (patch: Record<string, unknown>) =>
@@ -2267,10 +2428,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   const sibs = entries.filter((e) => e.id.startsWith(parent + '.'));
                   const find = (...names: string[]) => names.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
                   const patch: Record<string, unknown> = {};
-                  if (!o.actualDatapoint) {
-                    const v = find('ACTUAL_TEMPERATURE', 'ACTUAL_TEMP', 'ACTUAL', 'actual', 'local_temperature', 'localTemperature', 'temperatureC', 'temperature_c', 'TEMPERATURE', 'temperature', 'TEMP', 'temp', 'MEASURED_TEMPERATURE');
-                    if (v) patch.actualDatapoint = v;
-                  }
+                  { const v = find('ACTUAL_TEMPERATURE', 'ACTUAL_TEMP', 'ACTUAL', 'actual', 'local_temperature', 'localTemperature', 'temperatureC', 'temperature_c', 'TEMPERATURE', 'temperature', 'TEMP', 'temp', 'MEASURED_TEMPERATURE');
+                    if (v) patch.actualDatapoint = v; }
                   if (Object.keys(patch).length) setO(patch);
                 };
                 return (
@@ -2356,6 +2515,93 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   </>
                 );
               })()}
+
+              {/* ── Status-Datenpunkte (gemeinsam für alle Sensor-/Aktor-Typen) ── */}
+              {['switch', 'dimmer', 'thermostat', 'shutter', 'windowcontact', 'binarysensor'].includes(config.type) && (() => {
+                const o = config.options ?? {};
+                const setO = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const stInputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono';
+                const stInputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                const showBadges = (o.showStatusBadges as boolean) !== false;
+                const autoFillStatus = async () => {
+                  if (!config.datapoint) return;
+                  const parts = config.datapoint.split('.');
+                  const parent = parts.slice(0, -1).join('.');
+                  const parentUp = parts.slice(0, -2).join('.');
+                  const entries = await ensureDatapointCache();
+                  const sibs   = entries.filter((e) => e.id.startsWith(parent + '.'));
+                  const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.'));
+                  const find   = (...names: string[]) => names.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
+                  const findUp = (...names: string[]) => names.map((n) =>
+                    sibsUp.find((e) => e.id === `${parentUp}.0.${n}` || e.id === `${parentUp}.${n}`)?.id
+                  ).find(Boolean);
+                  const patch: Record<string, unknown> = {};
+                  { const v = find('LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow')
+                           ?? findUp('LOWBAT', 'LOW_BAT');
+                    if (v) patch.batteryDp = v; }
+                  { const v = find('UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline')
+                           ?? findUp('UNREACH', 'UNREACHABLE');
+                    if (v) patch.unreachDp = v; }
+                  if (Object.keys(patch).length) setO(patch);
+                };
+                return (
+                  <div style={{ borderTop: '1px solid var(--app-border)', marginTop: 4, paddingTop: 8 }}>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                        Status-Datenpunkte
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => void autoFillStatus()}
+                          className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
+                          style={{ background: 'var(--accent)22', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
+                          Auto-Erkennen
+                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Anzeigen</span>
+                          <button
+                            onClick={() => setO({ showStatusBadges: !showBadges })}
+                            className="relative w-8 h-4 rounded-full transition-colors"
+                            style={{ background: showBadges ? 'var(--accent)' : 'var(--app-border)' }}>
+                            <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                              style={{ left: showBadges ? '17px' : '2px' }} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Batterie-DP (z.B. LOWBAT)</label>
+                        <div className="flex gap-1">
+                          <input type="text" value={(o.batteryDp as string) ?? ''}
+                            onChange={(e) => setO({ batteryDp: e.target.value || undefined })}
+                            placeholder="optional"
+                            className={`flex-1 ${stInputCls} min-w-0`} style={stInputStyle} />
+                          <button onClick={() => setPickerTarget('status_batteryDp')}
+                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                            <Database size={13} />
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Unreach-DP (z.B. UNREACH)</label>
+                        <div className="flex gap-1">
+                          <input type="text" value={(o.unreachDp as string) ?? ''}
+                            onChange={(e) => setO({ unreachDp: e.target.value || undefined })}
+                            placeholder="optional"
+                            className={`flex-1 ${stInputCls} min-w-0`} style={stInputStyle} />
+                          <button onClick={() => setPickerTarget('status_unreachDp')}
+                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                            <Database size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
           </div>
 
         </CenteredModal>
@@ -2370,8 +2616,11 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
             pickerTarget === 'shutter_activityDp'  ? ((config.options?.activityDp as string) ?? '') :
             pickerTarget === 'shutter_directionDp' ? ((config.options?.directionDp as string) ?? '') :
             pickerTarget === 'shutter_stopDp'      ? ((config.options?.stopDp as string) ?? '') :
-            pickerTarget === 'gauge_pointer2Dp'    ? ((config.options?.pointer2Datapoint as string) ?? '') :
-            pickerTarget === 'gauge_pointer3Dp'    ? ((config.options?.pointer3Datapoint as string) ?? '') :
+            pickerTarget === 'gauge_pointer2Dp'         ? ((config.options?.pointer2Datapoint as string) ?? '') :
+            pickerTarget === 'gauge_pointer3Dp'         ? ((config.options?.pointer3Datapoint as string) ?? '') :
+            pickerTarget === 'windowcontact_batteryDp'  ? ((config.options?.batteryDp  as string) ?? '') :
+            pickerTarget === 'status_batteryDp'         ? ((config.options?.batteryDp  as string) ?? '') :
+            pickerTarget === 'status_unreachDp'         ? ((config.options?.unreachDp  as string) ?? '') :
             ((config.options?.actualDatapoint as string) ?? '')
           }
           onSelect={(id, unit, name) => {
@@ -2393,6 +2642,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               onConfigChange({ ...config, options: { ...config.options, pointer2Datapoint: id } });
             } else if (pickerTarget === 'gauge_pointer3Dp') {
               onConfigChange({ ...config, options: { ...config.options, pointer3Datapoint: id } });
+            } else if (pickerTarget === 'windowcontact_batteryDp' || pickerTarget === 'status_batteryDp') {
+              onConfigChange({ ...config, options: { ...config.options, batteryDp: id } });
+            } else if (pickerTarget === 'status_unreachDp') {
+              onConfigChange({ ...config, options: { ...config.options, unreachDp: id } });
             } else {
               onConfigChange({ ...config, options: { ...config.options, actualDatapoint: id } });
             }

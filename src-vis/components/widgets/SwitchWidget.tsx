@@ -4,6 +4,7 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
 import { contentPositionClass, titlePositionStyle, titleTextAlign } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { StatusBadges } from './StatusBadges';
 
 export function SwitchWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
@@ -20,6 +21,7 @@ export function SwitchWidget({ config }: WidgetProps) {
         onClick={toggle}
         className="w-full h-full flex flex-col items-center justify-center gap-3 rounded-widget transition-all duration-300"
         style={{
+          position: 'relative',
           background: isOn ? 'linear-gradient(135deg, var(--accent-green), color-mix(in srgb, var(--accent-green) 60%, black))' : 'var(--app-bg)',
           border: `2px solid ${isOn ? 'var(--accent-green)' : 'var(--app-border)'}`,
         }}
@@ -33,6 +35,7 @@ export function SwitchWidget({ config }: WidgetProps) {
           <p className="font-bold text-sm" style={{ color: isOn ? '#fff' : 'var(--text-secondary)' }}>{config.title}</p>
           <p className="text-xs opacity-70" style={{ color: isOn ? '#fff' : 'var(--text-secondary)' }}>{isOn ? 'AN' : 'AUS'}</p>
         </div>
+        <StatusBadges config={config} />
       </button>
     );
   }
@@ -40,7 +43,7 @@ export function SwitchWidget({ config }: WidgetProps) {
   // --- COMPACT: Zeile mit Icon + Titel + Toggle ---
   if (layout === 'compact') {
     return (
-      <div className="flex items-center gap-3 h-full">
+      <div className="flex items-center gap-3 h-full" style={{ position: 'relative' }}>
         <CompactIcon size={18} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} />
         <span className="flex-1 text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{config.title}</span>
         <button onClick={toggle}
@@ -48,6 +51,7 @@ export function SwitchWidget({ config }: WidgetProps) {
           style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}>
           <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
         </button>
+        <StatusBadges config={config} />
       </div>
     );
   }
@@ -55,7 +59,7 @@ export function SwitchWidget({ config }: WidgetProps) {
   // --- MINIMAL: Nur großer Toggle-Button ---
   if (layout === 'minimal') {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2">
+      <div className="flex flex-col items-center justify-center h-full gap-2" style={{ position: 'relative' }}>
         <button onClick={toggle} className="focus:outline-none transition-transform active:scale-95">
           <ToggleRight
             size={48}
@@ -68,6 +72,7 @@ export function SwitchWidget({ config }: WidgetProps) {
           />
         </button>
         <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>
+        <StatusBadges config={config} />
       </div>
     );
   }
@@ -94,6 +99,7 @@ export function SwitchWidget({ config }: WidgetProps) {
           <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-6' : 'translate-x-0'}`} />
         </button>
       </div>
+      <StatusBadges config={config} />
     </div>
   );
 }
