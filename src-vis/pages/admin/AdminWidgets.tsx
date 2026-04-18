@@ -14,6 +14,7 @@ import type { WidgetConfig, WidgetType, WidgetLayout } from '../../types';
 import { WIDGET_REGISTRY, WIDGET_BY_TYPE, getEffectiveSize } from '../../widgetRegistry';
 import { useConfigStore } from '../../store/configStore';
 import { exportWidget } from '../../utils/widgetExportImport';
+import { detectType } from '../../utils/widgetDetection';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 
 // ── Meta (derived from central registry) ─────────────────────────────────────
@@ -729,7 +730,16 @@ function NewWidgetDialog({
         {showPicker && (
           <DatapointPicker
             currentValue={datapoint}
-            onSelect={(id) => setDatapoint(id)}
+            onSelect={(id, dpUnit, dpName, role, dpType) => {
+              setDatapoint(id);
+              if (!title.trim() && dpName) setTitle(dpName);
+              if (!unit && dpUnit) setUnit(dpUnit);
+              if (role || dpType) {
+                const det = detectType({ id, name: dpName ?? id, role, type: dpType, unit: dpUnit, rooms: [], funcs: [] });
+                setType(det.type);
+                if (!unit && !dpUnit && det.unit) setUnit(det.unit);
+              }
+            }}
             onClose={() => setShowPicker(false)}
           />
         )}

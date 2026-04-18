@@ -7,7 +7,7 @@ import { isRelevantDp } from '../../utils/dpRelevance';
 
 interface DatapointPickerProps {
   currentValue: string;
-  onSelect: (id: string, unit?: string, name?: string) => void;
+  onSelect: (id: string, unit?: string, name?: string, role?: string, dpType?: string) => void;
   onClose: () => void;
   /** When true: show checkboxes + confirm button instead of immediate single-select */
   multiSelect?: boolean;
@@ -241,7 +241,7 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
                 <button
                   key={dp.id}
                   ref={isSelected ? selectedRef : undefined}
-                  onClick={() => multiSelect ? toggleCheck(dp) : (onSelect(dp.id, dp.unit, dp.name), onClose())}
+                  onClick={() => multiSelect ? toggleCheck(dp) : (onSelect(dp.id, dp.unit, dp.name, dp.role, dp.type), onClose())}
                   className="w-full text-left px-5 py-2.5 flex items-center gap-3 hover:opacity-80 transition-opacity"
                   style={{
                     background: (multiSelect ? isChecked : isSelected)

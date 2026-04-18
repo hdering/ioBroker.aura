@@ -12,37 +12,37 @@ export interface LayoutVariant {
 type SizeMap = Record<string, [number, number]>;
 
 const SIZES: Record<string, SizeMap> = {
-  // Kompakt: ~50 px je Zelle (bei gridSnapX=10)
+  // Kompakt: 2 Widgets/Reihe
   compact: {
-    switch:     [3, 4],
-    value:      [4, 4],
-    dimmer:     [4, 5],
-    thermostat: [5, 5],
-    chart:      [8, 5],
-    list:       [5, 5],
-    clock:      [4, 3],
-    calendar:   [8, 5],
+    switch:     [6, 4],
+    value:      [6, 4],
+    dimmer:     [8, 5],
+    thermostat: [8, 5],
+    chart:      [12, 5],
+    list:       [8, 5],
+    clock:      [6, 3],
+    calendar:   [12, 5],
   },
-  // Standard: ~100 px je Zelle
+  // Standard: 1–2 Widgets/Reihe
   standard: {
-    switch:     [4, 5],
-    value:      [5, 5],
-    dimmer:     [6, 6],
-    thermostat: [6, 6],
-    chart:      [10, 6],
-    list:       [6, 6],
-    clock:      [6, 5],
-    calendar:   [10, 6],
+    switch:     [8, 5],
+    value:      [8, 5],
+    dimmer:     [10, 6],
+    thermostat: [10, 6],
+    chart:      [12, 6],
+    list:       [10, 6],
+    clock:      [8, 4],
+    calendar:   [12, 6],
   },
-  // Großzügig: ~150 px je Zelle – Wandtablet
+  // Großzügig: 1 Widget/Reihe – Wandtablet
   wide: {
-    switch:     [6, 6],
-    value:      [6, 6],
-    dimmer:     [8, 7],
-    thermostat: [8, 7],
+    switch:     [12, 6],
+    value:      [12, 6],
+    dimmer:     [12, 7],
+    thermostat: [12, 7],
     chart:      [12, 7],
-    list:       [8, 7],
-    clock:      [8, 5],
+    list:       [12, 7],
+    clock:      [12, 5],
     calendar:   [12, 7],
   },
 };

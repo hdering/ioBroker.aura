@@ -13,6 +13,7 @@ import { ConditionEditor } from '../config/ConditionEditor';
 import { getObjectDirect, subscribeStateDirect, getStateDirect } from '../../hooks/useIoBroker';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
 import { WIDGET_REGISTRY, WIDGET_GROUPS } from '../../widgetRegistry';
+import { detectType } from '../../utils/widgetDetection';
 import { AutoListConfig } from '../config/AutoListConfig';
 import { StaticListConfig } from '../config/StaticListConfig';
 import { detectHistoryAdapters, RANGE_LABELS, type ChartTimeRange, type DetectedAdapter } from '../../hooks/useChartHistory';
@@ -2623,13 +2624,17 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
             pickerTarget === 'status_unreachDp'         ? ((config.options?.unreachDp  as string) ?? '') :
             ((config.options?.actualDatapoint as string) ?? '')
           }
-          onSelect={(id, unit, name) => {
+          onSelect={(id, unit, name, role, dpType) => {
             if (pickerTarget === 'datapoint') {
-              const supportsUnit = ['value', 'chart', 'gauge', 'fill'].includes(config.type);
+              const detected = (role || dpType) ? detectType({ id, name: name ?? id, role, type: dpType, unit, rooms: [], funcs: [] }) : null;
+              const typePatch = detected ? { type: detected.type } : {};
+              const effectiveType = detected?.type ?? config.type;
+              const supportsUnit = ['value', 'chart', 'gauge', 'fill'].includes(effectiveType);
               const unitAlreadySet = !!(config.options?.unit as string | undefined);
-              const unitPatch = supportsUnit && !unitAlreadySet && unit ? { unit } : {};
+              const resolvedUnit = unit || detected?.unit;
+              const unitPatch = supportsUnit && !unitAlreadySet && resolvedUnit ? { unit: resolvedUnit } : {};
               const titlePatch = !config.title?.trim() && name ? { title: name } : {};
-              onConfigChange({ ...config, ...titlePatch, datapoint: id, options: { ...config.options, ...unitPatch } });
+              onConfigChange({ ...config, ...typePatch, ...titlePatch, datapoint: id, options: { ...config.options, ...unitPatch } });
             } else if (pickerTarget === 'localTempDatapoint') {
               onConfigChange({ ...config, options: { ...config.options, localTempDatapoint: id } });
             } else if (pickerTarget === 'shutter_activityDp') {
