@@ -127,6 +127,14 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.53 (2026-04-18)
+- New widgets: Window/Door Contact, Binary Sensor (motion, smoke detector, …)
+- Status badges (battery low, unreachable) overlay for all widgets, toggleable
+- Dynamic List: smart DP filtering by role (irrelevant DPs like INSTALL_TEST moved to collapsible section), unit carry-over from ioBroker, value filter (show only active / inactive entries in frontend)
+
+### 0.4.52 (2026-04-18)
+- Editor: 'Add widget manually' dialog – standard widget types displayed in 2-column grid per category; special widgets remain in collapsible 'Further Widgets' section below
+
 ### 0.4.51 (2026-04-18)
 - Fix: Dynamic List filter results now match the Datapoint Picker – parent-path traversal for room/function membership; exact role matching
 

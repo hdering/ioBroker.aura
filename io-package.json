@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.51",
+    "version": "0.4.53",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,32 @@
       }
     ],
     "news": {
+      "0.4.53": {
+        "en": "New widgets: Window/Door Contact, Binary Sensor (motion, smoke, …); Status badges (battery, reachability) for all widgets; Dynamic List: smart DP filtering by role, unit carry-over, value filter (show only active/inactive)",
+        "de": "Neue Widgets: Fenster-/Türkontakt, Binärsensor (Bewegung, Rauch, …); Status-Badges (Batterie, Erreichbarkeit) für alle Widgets; Dynamische Liste: intelligente DP-Filterung nach Rolle, Einheit wird übernommen, Werte-Filter (nur aktive/inaktive anzeigen)",
+        "ru": "Новые виджеты: контакт окна/двери, бинарный сенсор (движение, дым, …); значки состояния (батарея, доступность) для всех виджетов; динамический список: умная фильтрация DP по роли, перенос единицы, фильтр значений (показывать только активные/неактивные)",
+        "pt": "Novos widgets: contacto de janela/porta, sensor binário (movimento, fumo, …); badges de estado (bateria, acessibilidade) para todos os widgets; lista dinâmica: filtro inteligente de DP por papel, transferência de unidade, filtro de valores (mostrar apenas activos/inactivos)",
+        "nl": "Nieuwe widgets: raam-/deurcontact, binaire sensor (beweging, rook, …); statusbadges (batterij, bereikbaarheid) voor alle widgets; dynamische lijst: slimme DP-filtering op rol, eenheidsovername, waardefilter (alleen actieve/inactieve tonen)",
+        "fr": "Nouveaux widgets: contact fenêtre/porte, capteur binaire (mouvement, fumée, …); badges d'état (batterie, accessibilité) pour tous les widgets; liste dynamique: filtrage DP intelligent par rôle, transfert d'unité, filtre de valeurs (afficher uniquement les actifs/inactifs)",
+        "it": "Nuovi widget: contatto finestra/porta, sensore binario (movimento, fumo, …); badge di stato (batteria, raggiungibilità) per tutti i widget; lista dinamica: filtro DP intelligente per ruolo, trasferimento unità, filtro valori (mostra solo attivi/inattivi)",
+        "es": "Nuevos widgets: contacto de ventana/puerta, sensor binario (movimiento, humo, …); badges de estado (batería, accesibilidad) para todos los widgets; lista dinámica: filtrado inteligente de DP por rol, transferencia de unidad, filtro de valores (mostrar sólo activos/inactivos)",
+        "pl": "Nowe widgety: kontakt okna/drzwi, czujnik binarny (ruch, dym, …); odznaki statusu (bateria, osiągalność) dla wszystkich widgetów; lista dynamiczna: inteligentne filtrowanie DP według roli, przenoszenie jednostki, filtr wartości (pokaż tylko aktywne/nieaktywne)",
+        "uk": "Нові віджети: контакт вікна/дверей, бінарний сенсор (рух, дим, …); значки стану (батарея, доступність) для всіх віджетів; динамічний список: розумна фільтрація DP за роллю, перенесення одиниці, фільтр значень (показувати лише активні/неактивні)",
+        "zh-cn": "新增小部件：窗/门接触传感器、二值传感器（运动、烟雾等）；所有小部件的状态徽章（电池、可达性）；动态列表：按角色智能过滤数据点、单位继承、数值过滤器（仅显示活跃/非活跃）"
+      },
+      "0.4.52": {
+        "en": "Editor: 'Add widget manually' dialog – standard widget types displayed in 2-column grid per category; special widgets remain in collapsible 'Further Widgets' section below",
+        "de": "Editor: Dialog 'Widget manuell hinzufügen' – Standard-Widgettypen werden je Kategorie zweispaltig dargestellt; spezielle Widgets bleiben in einem aufklappbaren Bereich 'Weitere Widgets' darunter",
+        "ru": "Редактор: диалог 'Добавить виджет вручную' – стандартные типы виджетов отображаются в 2-колоночной сетке по категориям; специальные виджеты остаются в раскрываемом разделе 'Weitere Widgets' ниже",
+        "pt": "Editor: diálogo 'Adicionar widget manualmente' – tipos de widget padrão exibidos em grelha de 2 colunas por categoria; widgets especiais permanecem na secção retrátil 'Weitere Widgets' abaixo",
+        "nl": "Editor: dialoog 'Widget handmatig toevoegen' – standaard widgettypen weergegeven in 2-kolomsraster per categorie; speciale widgets blijven in een inklapbaar 'Weitere Widgets'-gedeelte hieronder",
+        "fr": "Éditeur: dialogue 'Ajouter un widget manuellement' – types de widgets standard affichés en grille à 2 colonnes par catégorie; les widgets spéciaux restent dans la section rétractable 'Weitere Widgets' ci-dessous",
+        "it": "Editor: dialogo 'Aggiungi widget manualmente' – tipi di widget standard visualizzati in griglia a 2 colonne per categoria; i widget speciali rimangono nella sezione comprimibile 'Weitere Widgets' sotto",
+        "es": "Editor: diálogo 'Añadir widget manualmente' – tipos de widget estándar mostrados en cuadrícula de 2 columnas por categoría; los widgets especiales permanecen en la sección plegable 'Weitere Widgets' debajo",
+        "pl": "Edytor: dialog 'Dodaj widget ręcznie' – standardowe typy widgetów wyświetlane w siatce 2-kolumnowej według kategorii; specjalne widgety pozostają w zwijanej sekcji 'Weitere Widgets' poniżej",
+        "uk": "Редактор: діалог 'Додати віджет вручну' – стандартні типи віджетів відображаються у 2-колонковій сітці за категоріями; спеціальні віджети залишаються у згортаємому розділі 'Weitere Widgets' нижче",
+        "zh-cn": "编辑器：'手动添加小部件'对话框 – 标准小部件类型按类别显示为2列网格；特殊小部件保留在下方可折叠的'更多小部件'区域"
+      },
       "0.4.51": {
         "en": "Dynamic List: fix filter results to match Datapoint Picker – parent-path traversal for room/function membership; exact role matching instead of substring",
         "de": "Dynamische Liste: Filterergebnisse korrigiert – entsprechen jetzt dem Datenpunkt-Dialog (übergeordnete Pfade für Raum/Funktion; exakte Rollenübereinstimmung statt Teilstring)",
@@ -170,32 +196,6 @@
         "pl": "Poprawka: nakładka iFrame używa teraz position:fixed (pokrywa cały viewport) i jest zawsze zamykana przy zmianie zakładki",
         "uk": "Виправлення: оверлей iFrame тепер використовує position:fixed (покриває весь екран) і завжди закривається при зміні вкладки",
         "zh-cn": "修复：iFrame 全屏覆盖层现在使用 position:fixed（覆盖整个视口），切换标签时始终关闭"
-      },
-      "0.4.46": {
-        "en": "Fix: iFrame fullscreen overlay now reliably closes when switching tabs (synchronous render-time check replaces async effect)",
-        "de": "Fix: iFrame-Vollbild-Overlay schließt sich beim Tab-Wechsel jetzt zuverlässig (synchrone Prüfung statt asynchronem Effect)",
-        "ru": "Исправление: оверлей iFrame теперь надёжно закрывается при смене вкладки (синхронная проверка вместо асинхронного эффекта)",
-        "pt": "Correção: o overlay iFrame fecha-se de forma fiável ao mudar de aba (verificação síncrona substitui efeito assíncrono)",
-        "nl": "Fix: iFrame-overlay sluit nu betrouwbaar bij tab-wissel (synchrone controle vervangt async effect)",
-        "fr": "Correction: l'overlay iFrame se ferme désormais fiablement lors du changement d'onglet (vérification synchrone remplace l'effet asynchrone)",
-        "it": "Fix: l'overlay iFrame si chiude ora in modo affidabile al cambio scheda (controllo sincrono sostituisce l'effetto asincrono)",
-        "es": "Corrección: el overlay iFrame se cierra de forma fiable al cambiar de pestaña (verificación síncrona reemplaza el efecto asíncrono)",
-        "pl": "Poprawka: nakładka iFrame teraz niezawodnie zamyka się przy zmianie zakładki (sprawdzenie synchroniczne zastępuje asynchroniczny efekt)",
-        "uk": "Виправлення: оверлей iFrame тепер надійно закривається при зміні вкладки (синхронна перевірка замість асинхронного ефекту)",
-        "zh-cn": "修复：切换标签时 iFrame 全屏覆盖层现在可靠关闭（同步渲染时检查替代异步 effect）"
-      },
-      "0.4.45": {
-        "en": "Fix: iFrame fullscreen overlay now closes automatically when switching tabs",
-        "de": "Fix: iFrame-Vollbild-Overlay schließt sich automatisch beim Tab-Wechsel",
-        "ru": "Исправление: оверлей полноэкранного iFrame теперь автоматически закрывается при смене вкладки",
-        "pt": "Correção: o overlay de iFrame em ecrã inteiro fecha automaticamente ao mudar de aba",
-        "nl": "Fix: iFrame-volledig-scherm-overlay sluit nu automatisch bij tab-wissel",
-        "fr": "Correction: l'overlay iFrame plein écran se ferme automatiquement lors du changement d'onglet",
-        "it": "Fix: l'overlay iFrame a schermo intero si chiude automaticamente al cambio scheda",
-        "es": "Corrección: el overlay de iFrame en pantalla completa se cierra automáticamente al cambiar de pestaña",
-        "pl": "Poprawka: nakładka pełnoekranowa iFrame zamyka się automatycznie przy zmianie zakładki",
-        "uk": "Виправлення: оверлей повноекранного iFrame тепер автоматично закривається при зміні вкладки",
-        "zh-cn": "修复：切换标签时 iFrame 全屏覆盖层现在自动关闭"
       }
     }
   },
