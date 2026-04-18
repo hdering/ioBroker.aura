@@ -3,6 +3,7 @@ import { RefreshCw, X } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { getObjectViewDirect, getObjectDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { saveAll } from '../../store/persistManager';
+import { detectWidgetTypeFromRole } from '../../utils/dpTemplates';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -30,7 +31,10 @@ export interface DiscoveredDp {
   name: string;
   role?: string;
   type?: string;
+  unit?: string;
   rooms: string[];
+  /** true if the role/type matches a known widget pattern */
+  isRelevant: boolean;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -130,12 +134,16 @@ export async function discoverDatapoints(
         const e = enumMap.get(parts.slice(0, i).join('.'));
         if (e) e.rooms.forEach(r => roomsSet.add(r));
       }
+      const role = obj.common.role as string | undefined;
+      const type = obj.common.type as string | undefined;
       return {
         id,
         name: resolveName(obj.common.name, id.split('.').pop() ?? id),
-        role: obj.common.role,
-        type: obj.common.type,
+        role,
+        type,
+        unit: (obj.common.unit as string | undefined) || undefined,
         rooms: [...roomsSet],
+        isRelevant: detectWidgetTypeFromRole(role, type) !== null,
       };
     });
 }
@@ -290,7 +298,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     try {
       const found = await discoverDatapoints(opts);
       const existingIds = new Set(entries.map(e => e.id));
-      const newEntries = found.filter(d => !existingIds.has(d.id)).map(d => ({ id: d.id, label: d.name, rooms: d.rooms }));
+      const newEntries = found.filter(d => !existingIds.has(d.id)).map(d => ({ id: d.id, label: d.name, rooms: d.rooms, unit: d.unit }));
       if (newEntries.length > 0) {
         saveOpts({ entries: [...entries, ...newEntries] });
         saveAll();

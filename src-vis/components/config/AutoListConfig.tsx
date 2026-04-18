@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { RefreshCw, Search, Check, X, ChevronDown, Settings2, ChevronRight } from 'lucide-react';
+import { RefreshCw, Search, Check, X, ChevronDown, Settings2, ChevronRight, ChevronUp } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import { discoverDatapoints, loadFilterOptions } from '../widgets/AutoListWidget';
 import type { AutoListOptions, AutoListEntry, DiscoveredDp } from '../widgets/AutoListWidget';
@@ -218,13 +218,14 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
   const [idPat, setIdPat]       = useState(opts.filterIdPattern ?? '');
 
   // Search results – reset whenever any filter changes
-  const [results, setResults]   = useState<DiscoveredDp[]>([]);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [loading, setLoading]   = useState(false);
-  const [searched, setSearched] = useState(false);
+  const [results, setResults]     = useState<DiscoveredDp[]>([]);
+  const [selected, setSelected]   = useState<Set<string>>(new Set());
+  const [loading, setLoading]     = useState(false);
+  const [searched, setSearched]   = useState(false);
+  const [showOthers, setShowOthers] = useState(false);
 
   // Reset search results when any filter value changes
-  const resetSearch = () => { setResults([]); setSelected(new Set()); setSearched(false); };
+  const resetSearch = () => { setResults([]); setSelected(new Set()); setSearched(false); setShowOthers(false); };
 
   const setOpts = (patch: Partial<AutoListOptions>) =>
     onConfigChange({ ...config, options: { ...opts, ...patch } });
@@ -240,7 +241,9 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
       });
       setResults(found);
       setSearched(true);
-      setSelected(new Set(found.map(d => d.id)));
+      // Pre-select only relevant DPs; non-relevant start deselected
+      setSelected(new Set(found.filter(d => d.isRelevant).map(d => d.id)));
+      setShowOthers(false);
     } finally {
       setLoading(false);
     }
@@ -251,7 +254,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
     const discovered = new Map(results.map(d => [d.id, d]));
     const entries: AutoListEntry[] = [...selected].map(id => {
       const dp = discovered.get(id);
-      return { id, label: dp?.name, rooms: dp?.rooms };
+      return { id, label: dp?.name, rooms: dp?.rooms, unit: dp?.unit };
     });
     setOpts({
       entries,
@@ -309,49 +312,72 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
           {t('autolist.noneFound')}
         </p>
       )}
-      {searched && results.length > 0 && (
-        <>
-          <div className="flex items-center justify-between">
-            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-              {t('autolist.found', { count: results.length, selected: selected.size })}
-            </span>
-            <div className="flex gap-2">
-              <button className="text-[10px] hover:opacity-70" style={{ color: 'var(--accent)' }}
-                onClick={() => setSelected(new Set(results.map(d => d.id)))}>{t('common.all')}</button>
-              <button className="text-[10px] hover:opacity-70" style={{ color: 'var(--text-secondary)' }}
-                onClick={() => setSelected(new Set())}>{t('common.none')}</button>
+      {searched && results.length > 0 && (() => {
+        const relevant = results.filter(d => d.isRelevant);
+        const others   = results.filter(d => !d.isRelevant);
+        const DpRow = ({ dp, dimmed }: { dp: DiscoveredDp; dimmed?: boolean }) => (
+          <label key={dp.id}
+            className="flex items-center gap-2 px-2.5 py-2 rounded cursor-pointer hover:opacity-90"
+            style={{
+              background: selected.has(dp.id) ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+              opacity: dimmed ? 0.55 : 1,
+            }}>
+            <div className="w-3.5 h-3.5 rounded shrink-0 flex items-center justify-center"
+              style={{ background: selected.has(dp.id) ? 'var(--accent)' : 'var(--app-border)' }}>
+              {selected.has(dp.id) && <Check size={9} color="#fff" />}
             </div>
-          </div>
-          <div className="aura-scroll space-y-0.5 max-h-56 overflow-y-auto -mx-1 px-1">
-            {results.map(dp => (
-              <label key={dp.id}
-                className="flex items-center gap-2 px-2.5 py-2 rounded cursor-pointer hover:opacity-90"
-                style={{ background: selected.has(dp.id) ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent' }}>
-                <div className="w-3.5 h-3.5 rounded shrink-0 flex items-center justify-center"
-                  style={{ background: selected.has(dp.id) ? 'var(--accent)' : 'var(--app-border)' }}>
-                  {selected.has(dp.id) && <Check size={9} color="#fff" />}
-                </div>
-                <input type="checkbox" className="sr-only" checked={selected.has(dp.id)}
-                  onChange={() => toggle(dp.id)} />
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>{dp.name}</div>
-                  <div className="text-[10px] truncate font-mono" style={{ color: 'var(--text-secondary)' }}>
-                    {dp.id}{dp.rooms.length > 0 ? ` · ${dp.rooms[0]}` : ''}
-                  </div>
-                </div>
-              </label>
-            ))}
-          </div>
-          <button
-            onClick={apply}
-            disabled={selected.size === 0}
-            className="w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg hover:opacity-80 disabled:opacity-40"
-            style={{ background: 'var(--accent-green)', color: '#fff' }}
-          >
-            <Check size={11} /> {t('autolist.apply', { count: selected.size })}
-          </button>
-        </>
-      )}
+            <input type="checkbox" className="sr-only" checked={selected.has(dp.id)}
+              onChange={() => toggle(dp.id)} />
+            <div className="min-w-0 flex-1">
+              <div className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>
+                {dp.name}
+                {dp.unit && <span className="ml-1 text-[10px]" style={{ color: 'var(--text-secondary)' }}>[{dp.unit}]</span>}
+              </div>
+              <div className="text-[10px] truncate font-mono" style={{ color: 'var(--text-secondary)' }}>
+                {dp.id}{dp.rooms.length > 0 ? ` · ${dp.rooms[0]}` : ''}
+              </div>
+            </div>
+          </label>
+        );
+        return (
+          <>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                {t('autolist.found', { count: results.length, selected: selected.size })}
+              </span>
+              <div className="flex gap-2">
+                <button className="text-[10px] hover:opacity-70" style={{ color: 'var(--accent)' }}
+                  onClick={() => setSelected(new Set(relevant.map(d => d.id)))}>{t('common.all')}</button>
+                <button className="text-[10px] hover:opacity-70" style={{ color: 'var(--text-secondary)' }}
+                  onClick={() => setSelected(new Set())}>{t('common.none')}</button>
+              </div>
+            </div>
+            <div className="aura-scroll space-y-0.5 max-h-56 overflow-y-auto -mx-1 px-1">
+              {relevant.map(dp => <DpRow key={dp.id} dp={dp} />)}
+              {others.length > 0 && (
+                <>
+                  <button
+                    onClick={() => setShowOthers(v => !v)}
+                    className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded text-[10px] hover:opacity-80 transition-opacity mt-1"
+                    style={{ background: 'var(--app-border)', color: 'var(--text-secondary)' }}>
+                    {showOthers ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                    <span>Weitere Datenpunkte ({others.length})</span>
+                  </button>
+                  {showOthers && others.map(dp => <DpRow key={dp.id} dp={dp} dimmed />)}
+                </>
+              )}
+            </div>
+            <button
+              onClick={apply}
+              disabled={selected.size === 0}
+              className="w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg hover:opacity-80 disabled:opacity-40"
+              style={{ background: 'var(--accent-green)', color: '#fff' }}
+            >
+              <Check size={11} /> {t('autolist.apply', { count: selected.size })}
+            </button>
+          </>
+        );
+      })()}
 
       {/* ── Divider ── */}
       <div style={{ height: 1, background: 'var(--app-border)' }} />
