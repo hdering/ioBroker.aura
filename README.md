@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.51 (2026-04-18)
+- Fix: Dynamic List filter results now match the Datapoint Picker – parent-path traversal for room/function membership; exact role matching
+
 ### 0.4.50 (2026-04-18)
 - Fix: Gauge color zones now always cover the full arc; last zone always extends to max; midpoint calculation for new zones corrected
 

@@ -73,50 +73,71 @@ export async function discoverDatapoints(
     getObjectViewDirect('state'),
     getObjectViewDirect('enum', 'enum.', 'enum.\u9999'),
   ]);
-  const roomMap = new Map<string, string[]>();
+
+  // Build memberId → { rooms, funcs } map.
+  // IMPORTANT: index by each member ID so we can do parent-path traversal below.
+  // This mirrors useDatapointList which checks the state ID AND all parent paths,
+  // because ioBroker adapters often assign rooms/functions to channels or devices,
+  // not to individual state objects.
+  const enumMap = new Map<string, { rooms: string[]; funcs: string[] }>();
   for (const { value: obj } of enumResult.rows) {
-    if (!obj?.common?.members?.length || !obj._id.startsWith('enum.rooms.')) continue;
+    if (!obj?.common?.members?.length) continue;
+    const isRoom = obj._id.startsWith('enum.rooms.');
+    const isFunc = obj._id.startsWith('enum.functions.');
+    if (!isRoom && !isFunc) continue;
     const label = resolveName(obj.common.name, obj._id.split('.').pop() ?? obj._id);
-    for (const id of obj.common.members) {
-      if (!roomMap.has(id)) roomMap.set(id, []);
-      roomMap.get(id)!.push(label);
+    for (const memberId of obj.common.members) {
+      if (!enumMap.has(memberId)) enumMap.set(memberId, { rooms: [], funcs: [] });
+      const e = enumMap.get(memberId)!;
+      if (isRoom) e.rooms.push(label);
+      else e.funcs.push(label);
     }
   }
-  const funcMap = new Map<string, string[]>();
-  for (const { value: obj } of enumResult.rows) {
-    if (!obj?.common?.members?.length || !obj._id.startsWith('enum.functions.')) continue;
-    const label = resolveName(obj.common.name, obj._id.split('.').pop() ?? obj._id);
-    for (const id of obj.common.members) {
-      if (!funcMap.has(id)) funcMap.set(id, []);
-      funcMap.get(id)!.push(label);
-    }
-  }
-  const rolePatterns = (opts.filterRoles ?? '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-  const idPattern = opts.filterIdPattern?.trim().toLowerCase() ?? '';
-  const roomFilter = (opts.filterRooms ?? '').split(',').map(s => s.trim()).filter(Boolean);
-  const funcFilter = (opts.filterFuncs ?? '').split(',').map(s => s.trim()).filter(Boolean);
+
+  // Role filter: exact match (same as DatapointPicker) with OR semantics for multiple values.
+  const roleFilter  = (opts.filterRoles ?? '').split(',').map(s => s.trim()).filter(Boolean);
+  const idPattern   = opts.filterIdPattern?.trim().toLowerCase() ?? '';
+  const roomFilter  = (opts.filterRooms ?? '').split(',').map(s => s.trim()).filter(Boolean);
+  const funcFilter  = (opts.filterFuncs ?? '').split(',').map(s => s.trim()).filter(Boolean);
+
   return stateResult.rows
     .filter(({ id, value: obj }) => {
-      const role = (obj.common.role ?? '').toLowerCase();
-      if (rolePatterns.length > 0 && !rolePatterns.some(p => role.includes(p))) return false;
+      const role = obj.common.role ?? '';
+      if (roleFilter.length > 0 && !roleFilter.includes(role)) return false;
       if (idPattern && !id.toLowerCase().includes(idPattern)) return false;
-      if (roomFilter.length > 0) {
-        const rooms = roomMap.get(id) ?? [];
-        if (!roomFilter.some(r => rooms.includes(r))) return false;
-      }
-      if (funcFilter.length > 0) {
-        const funcs = funcMap.get(id) ?? [];
-        if (!funcFilter.some(f => funcs.includes(f))) return false;
+
+      // Traverse the state ID and all parent paths to find room/func memberships.
+      // e.g. for "hm-rpc.0.ABC.1.STATE" check:
+      //   hm-rpc.0.ABC.1.STATE → hm-rpc.0.ABC.1 → hm-rpc.0.ABC → hm-rpc.0
+      if (roomFilter.length > 0 || funcFilter.length > 0) {
+        const parts = id.split('.');
+        const roomsSet = new Set<string>();
+        const funcsSet = new Set<string>();
+        for (let i = parts.length; i >= 2; i--) {
+          const e = enumMap.get(parts.slice(0, i).join('.'));
+          if (e) { e.rooms.forEach(r => roomsSet.add(r)); e.funcs.forEach(f => funcsSet.add(f)); }
+        }
+        if (roomFilter.length > 0 && !roomFilter.some(r => roomsSet.has(r))) return false;
+        if (funcFilter.length > 0 && !funcFilter.some(f => funcsSet.has(f))) return false;
       }
       return true;
     })
-    .map(({ id, value: obj }) => ({
-      id,
-      name: resolveName(obj.common.name, id.split('.').pop() ?? id),
-      role: obj.common.role,
-      type: obj.common.type,
-      rooms: roomMap.get(id) ?? [],
-    }));
+    .map(({ id, value: obj }) => {
+      // Build rooms array via parent-path traversal (same logic as filter above)
+      const parts = id.split('.');
+      const roomsSet = new Set<string>();
+      for (let i = parts.length; i >= 2; i--) {
+        const e = enumMap.get(parts.slice(0, i).join('.'));
+        if (e) e.rooms.forEach(r => roomsSet.add(r));
+      }
+      return {
+        id,
+        name: resolveName(obj.common.name, id.split('.').pop() ?? id),
+        role: obj.common.role,
+        type: obj.common.type,
+        rooms: [...roomsSet],
+      };
+    });
 }
 
 // ── Value display: row variant ────────────────────────────────────────────────

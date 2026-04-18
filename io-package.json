@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.50",
+    "version": "0.4.51",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.51": {
+        "en": "Dynamic List: fix filter results to match Datapoint Picker – parent-path traversal for room/function membership; exact role matching instead of substring",
+        "de": "Dynamische Liste: Filterergebnisse korrigiert – entsprechen jetzt dem Datenpunkt-Dialog (übergeordnete Pfade für Raum/Funktion; exakte Rollenübereinstimmung statt Teilstring)",
+        "ru": "Динамический список: исправлены результаты фильтрации – соответствуют диалогу выбора точки данных (обход родительских путей для комнаты/функции; точное совпадение роли вместо подстроки)",
+        "pt": "Lista Dinâmica: resultados de filtro corrigidos para corresponder ao seletor de ponto de dados – travessia de caminho pai para associação de sala/função; correspondência exata de função em vez de substring",
+        "nl": "Dynamische Lijst: filterresultaten gecorrigeerd zodat ze overeenkomen met de datapointkiezer – padtraversal voor kamer-/functiebeheer; exacte rolovereenkomst in plaats van deelstring",
+        "fr": "Liste Dynamique: résultats de filtrage corrigés pour correspondre au sélecteur de point de données – traversée du chemin parent pour l'appartenance salle/fonction; correspondance exacte du rôle au lieu de sous-chaîne",
+        "it": "Lista Dinamica: risultati filtro corretti per corrispondere al selettore datapoint – traversal percorso padre per appartenenza stanza/funzione; corrispondenza esatta ruolo invece di sottostringa",
+        "es": "Lista Dinámica: resultados de filtro corregidos para coincidir con el selector de datapoint – traversal de ruta padre para pertenencia sala/función; coincidencia exacta de rol en vez de subcadena",
+        "pl": "Lista Dynamiczna: poprawiono wyniki filtrowania aby odpowiadały wyborze punktu danych – przeszukiwanie ścieżki nadrzędnej dla przynależności pokoju/funkcji; dokładne dopasowanie roli zamiast podciągu",
+        "uk": "Динамічний список: виправлено результати фільтрації відповідно до вибору точки даних – обхід батьківських шляхів для кімнати/функції; точне збігання ролі замість підрядка",
+        "zh-cn": "动态列表：修复过滤结果与数据点选择器一致 – 房间/功能成员资格的父路径遍历；精确角色匹配而非子字符串"
+      },
       "0.4.50": {
         "en": "Fix: Gauge color zones now always cover the full arc; last zone always extends to max; midpoint calculation for new zones corrected",
         "de": "Fix: Gauge-Farbzonen decken jetzt immer den gesamten Bogen ab; letzte Zone erstreckt sich immer bis max; Mittelpunkt-Berechnung beim Hinzufügen neuer Zonen korrigiert",
@@ -183,19 +196,6 @@
         "pl": "Poprawka: nakładka pełnoekranowa iFrame zamyka się automatycznie przy zmianie zakładki",
         "uk": "Виправлення: оверлей повноекранного iFrame тепер автоматично закривається при зміні вкладки",
         "zh-cn": "修复：切换标签时 iFrame 全屏覆盖层现在自动关闭"
-      },
-      "0.4.44": {
-        "en": "Settings: delete connected devices via adapter relay; client objects now created by adapter (fixes missing-object warnings); CSS: per-tab class (aura-{slug}) and aura-titel on header; Dimmer compact: icon+name+value row above slider",
-        "de": "Einstellungen: Geräte löschen per Relay-State; Client-Objekte jetzt vom Adapter erstellt (behebt Warnungen); CSS: Tab-Klasse (aura-{slug}) und aura-titel am Header; Dimmer Kompakt: Icon+Name+Wert über Slider",
-        "ru": "Настройки: удаление устройств через relay-состояние; объекты клиентов создаются адаптером (устраняет предупреждения); CSS: класс вкладки (aura-{slug}) и aura-titel; Диммер компакт: иконка+имя+значение над ползунком",
-        "pt": "Definições: eliminar dispositivos via relay; objetos de cliente criados pelo adaptador (corrige avisos); CSS: classe por aba (aura-{slug}) e aura-titel; Dimmer compacto: ícone+nome+valor acima do slider",
-        "nl": "Instellingen: apparaten verwijderen via relay; clientobjecten aangemaakt door adapter (lost waarschuwingen op); CSS: tab-klasse (aura-{slug}) en aura-titel; Dimmer compact: icon+naam+waarde boven slider",
-        "fr": "Paramètres: suppression d'appareils via relay; objets client créés par l'adaptateur (corrige les avertissements); CSS: classe par onglet (aura-{slug}) et aura-titel; Dimmer compact: icône+nom+valeur au-dessus du slider",
-        "it": "Impostazioni: eliminazione dispositivi via relay; oggetti client creati dall'adattatore (corregge avvisi); CSS: classe per scheda (aura-{slug}) e aura-titel; Dimmer compatto: icona+nome+valore sopra slider",
-        "es": "Ajustes: eliminar dispositivos via relay; objetos de cliente creados por el adaptador (corrige advertencias); CSS: clase por pestaña (aura-{slug}) y aura-titel; Dimmer compacto: icono+nombre+valor sobre slider",
-        "pl": "Ustawienia: usuwanie urządzeń przez relay; obiekty klientów tworzone przez adapter (naprawia ostrzeżenia); CSS: klasa zakładki (aura-{slug}) i aura-titel; Dimmer kompaktowy: ikona+nazwa+wartość nad sliderem",
-        "uk": "Налаштування: видалення пристроїв через relay; об'єкти клієнтів створюються адаптером (виправляє попередження); CSS: клас вкладки (aura-{slug}) і aura-titel; Диммер компакт: іконка+назва+значення над повзунком",
-        "zh-cn": "设置：通过 relay 状态删除设备；客户端对象由适配器创建（修复缺少对象警告）；CSS：标签类（aura-{slug}）和标题 aura-titel；调光器紧凑布局：图标+名称+值行在滑块上方"
       }
     }
   },
