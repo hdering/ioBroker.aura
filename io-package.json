@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.53",
+    "version": "0.4.54",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.54": {
+        "en": "Static List widget replaces group-based list: DPs added directly via object browser with multi-select, relevance filtering (INSTALL_TEST etc. dimmed), value filter (active/inactive); DatapointPicker enhanced with multi-select mode",
+        "de": "Statische Liste ersetzt gruppenbasierte Liste: DPs direkt über Objektbrowser mit Mehrfachauswahl hinzufügen, Relevanzfilterung (INSTALL_TEST etc. gedimmt), Werte-Filter (aktiv/inaktiv); Objektbrowser mit Multi-Select-Modus",
+        "ru": "Статический список заменяет групповой: DP добавляются через браузер объектов с мультивыбором, фильтрация релевантности (INSTALL_TEST и др. приглушены), фильтр значений; браузер объектов с мультивыбором",
+        "pt": "Lista Estática substitui lista de grupos: DPs adicionados via navegador de objetos com seleção múltipla, filtragem de relevância (INSTALL_TEST etc. esmaecidos), filtro de valores; navegador com modo multi-seleção",
+        "nl": "Statische Lijst vervangt groepslijst: DPs via objectbrowser toevoegen met meervoudige selectie, relevantiefiltering (INSTALL_TEST etc. gedempt), waardefilter; objectbrowser met multi-selectmodus",
+        "fr": "Liste Statique remplace la liste de groupes: DPs ajoutés via le navigateur d'objets avec sélection multiple, filtrage de pertinence (INSTALL_TEST etc. estompés), filtre de valeurs; navigateur avec mode multi-sélection",
+        "it": "Lista Statica sostituisce la lista di gruppo: DP aggiunti tramite browser oggetti con selezione multipla, filtraggio rilevanza (INSTALL_TEST ecc. attenuati), filtro valori; browser con modalità multi-selezione",
+        "es": "Lista Estática reemplaza la lista de grupos: DPs añadidos via navegador de objetos con selección múltiple, filtrado de relevancia (INSTALL_TEST etc. atenuados), filtro de valores; navegador con modo multi-selección",
+        "pl": "Lista Statyczna zastępuje listę grupową: DP dodawane przez przeglądarkę obiektów z wielokrotnym wyborem, filtrowanie trafności (INSTALL_TEST itp. wyszarzone), filtr wartości; przeglądarka z trybem wielu zaznaczeń",
+        "uk": "Статичний список замінює груповий: DP додаються через браузер об'єктів з мультивибором, фільтрація релевантності (INSTALL_TEST тощо приглушені), фільтр значень; браузер з мульти-вибором",
+        "zh-cn": "静态列表替代分组列表：通过对象浏览器多选添加数据点，相关性过滤（INSTALL_TEST等变暗），数值过滤器；对象浏览器支持多选模式"
+      },
       "0.4.53": {
         "en": "New widgets: Window/Door Contact, Binary Sensor (motion, smoke, …); Status badges (battery, reachability) for all widgets; Dynamic List: smart DP filtering by role, unit carry-over, value filter (show only active/inactive)",
         "de": "Neue Widgets: Fenster-/Türkontakt, Binärsensor (Bewegung, Rauch, …); Status-Badges (Batterie, Erreichbarkeit) für alle Widgets; Dynamische Liste: intelligente DP-Filterung nach Rolle, Einheit wird übernommen, Werte-Filter (nur aktive/inaktive anzeigen)",
@@ -183,19 +196,6 @@
         "pl": "Poprawka: zakładki nie stają się już puste po przełączeniu z widgetu iFrame w trybie fillTab (callback ref zapobiega wywołaniu ResizeObserver z width=0 na odłączonym elemencie)",
         "uk": "Виправлення: вкладки більше не стають порожніми після переходу від віджета iFrame у режимі fillTab (callback ref запобігає спрацюванню ResizeObserver із width=0 на від'єднаному елементі)",
         "zh-cn": "修复：从 fillTab iFrame 小部件切换后标签页不再变空（callback ref 防止 ResizeObserver 在已移除元素上以 width=0 触发）"
-      },
-      "0.4.47": {
-        "en": "Fix: iFrame fullscreen overlay now uses position:fixed (covers full viewport) and is always cleared when switching tabs",
-        "de": "Fix: iFrame-Vollbild-Overlay nutzt jetzt position:fixed (deckt gesamten Viewport) und wird beim Tab-Wechsel immer geschlossen",
-        "ru": "Исправление: оверлей iFrame теперь использует position:fixed (покрывает весь экран) и всегда сбрасывается при смене вкладки",
-        "pt": "Correção: o overlay iFrame usa agora position:fixed (cobre todo o viewport) e é sempre fechado ao mudar de aba",
-        "nl": "Fix: iFrame-overlay gebruikt nu position:fixed (dekt volledig viewport) en wordt altijd gesloten bij tab-wissel",
-        "fr": "Correction: l'overlay iFrame utilise désormais position:fixed (couvre tout le viewport) et est toujours fermé lors du changement d'onglet",
-        "it": "Fix: l'overlay iFrame usa ora position:fixed (copre l'intero viewport) ed è sempre chiuso al cambio scheda",
-        "es": "Corrección: el overlay iFrame usa ahora position:fixed (cubre todo el viewport) y siempre se cierra al cambiar de pestaña",
-        "pl": "Poprawka: nakładka iFrame używa teraz position:fixed (pokrywa cały viewport) i jest zawsze zamykana przy zmianie zakładki",
-        "uk": "Виправлення: оверлей iFrame тепер використовує position:fixed (покриває весь екран) і завжди закривається при зміні вкладки",
-        "zh-cn": "修复：iFrame 全屏覆盖层现在使用 position:fixed（覆盖整个视口），切换标签时始终关闭"
       }
     }
   },
