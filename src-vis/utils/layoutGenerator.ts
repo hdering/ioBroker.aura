@@ -48,7 +48,7 @@ const SIZES: Record<string, SizeMap> = {
 };
 
 const LAYOUT_MODES: Record<string, WidgetLayout> = {
-  compact:  'card',
+  compact:  'compact',
   standard: 'default',
   wide:     'card',
 };

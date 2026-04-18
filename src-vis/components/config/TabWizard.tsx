@@ -11,6 +11,7 @@ import { detectWidgets, detectHomepage, type HomepageCategory } from '../../util
 import { generateLayouts } from '../../utils/layoutGenerator';
 import { WIDGET_BY_TYPE } from '../../widgetRegistry';
 import { useT } from '../../i18n';
+import { isRelevantDp } from '../../utils/dpRelevance';
 
 // ── mini grid preview ──────────────────────────────────────────────────────
 
@@ -142,7 +143,11 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
 
   useEffect(() => {
     const list = mode === 'homepage' ? homeWidgets : topicWidgets;
-    setSelected(new Set(list.map((w) => w.datapoint.id)));
+    setSelected(new Set(
+      list
+        .filter((w) => isRelevantDp(w.datapoint.role, w.datapoint.type))
+        .map((w) => w.datapoint.id),
+    ));
   }, [topicWidgets, homeWidgets, mode]);
 
   const filteredWidgets = useMemo(() => {
@@ -410,19 +415,34 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
                 <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                   {t('wizard.tab.foundDp', { count: topicWidgets.length })}
                 </p>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs mr-1" style={{ color: 'var(--text-secondary)' }}>
                     {activeWidgets.length} {t('wizard.tab.selected')}
                   </span>
                   <button
-                    onClick={() => {
-                      if (activeWidgets.length === topicWidgets.length) setSelected(new Set());
-                      else setSelected(new Set(topicWidgets.map((w) => w.datapoint.id)));
-                    }}
-                    className="text-xs px-2 py-0.5 rounded hover:opacity-80"
+                    onClick={() => setSelected(new Set(
+                      topicWidgets
+                        .filter((w) => isRelevantDp(w.datapoint.role, w.datapoint.type))
+                        .map((w) => w.datapoint.id),
+                    ))}
+                    className="text-[11px] px-2 py-0.5 rounded hover:opacity-80"
                     style={{ color: 'var(--accent)', border: '1px solid var(--accent)' }}
                   >
-                    {activeWidgets.length === topicWidgets.length ? t('wizard.tab.allFrom') : t('wizard.tab.allOn')}
+                    Relevante
+                  </button>
+                  <button
+                    onClick={() => setSelected(new Set(topicWidgets.map((w) => w.datapoint.id)))}
+                    className="text-[11px] px-2 py-0.5 rounded hover:opacity-80"
+                    style={{ color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+                  >
+                    Alle
+                  </button>
+                  <button
+                    onClick={() => setSelected(new Set())}
+                    className="text-[11px] px-2 py-0.5 rounded hover:opacity-80"
+                    style={{ color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+                  >
+                    Keine
                   </button>
                 </div>
               </div>
@@ -443,6 +463,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
               <div className="aura-scroll space-y-1 max-h-72 overflow-y-auto">
                 {filteredWidgets.map((w) => {
                   const on = selected.has(w.datapoint.id);
+                  const relevant = isRelevantDp(w.datapoint.role, w.datapoint.type);
                   return (
                     <button
                       key={w.datapoint.id}
@@ -455,6 +476,7 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
                       style={{
                         background: on ? 'var(--accent)11' : 'var(--app-bg)',
                         border: `1px solid ${on ? 'var(--accent)33' : 'var(--app-border)'}`,
+                        opacity: relevant ? 1 : 0.55,
                       }}
                     >
                       <div className="w-4 h-4 rounded flex items-center justify-center shrink-0"
