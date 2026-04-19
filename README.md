@@ -127,6 +127,13 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.62 (2026-04-19)
+- Per-layout settings: Guidelines, Grid & Mobile, Theme & CSS are now configurable independently per layout
+- Different layouts (e.g. different tablets) can have different grid sizes, mobile breakpoints, themes, custom CSS and guidelines
+- Admin Settings: layout context switcher on Grid and Guidelines cards
+- Admin Theme: layout context switcher on Theme Preset, CSS Variables, Typography & Spacing, and Custom CSS sections
+- Overridden values show "Layout" badge with "↩ Global" reset button
+
 ### 0.4.61 (2026-04-19)
 - Icon picker: switched to Iconify with 9,400+ icons (Lucide + MDI) bundled for offline use
 - New MDI icon categories: buildings/rooms, energy/heating, smart home, security, sensors, vehicles, nature/garden

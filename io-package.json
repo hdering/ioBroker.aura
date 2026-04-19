@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.61",
+    "version": "0.4.62",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.62": {
+        "en": "Per-layout settings: Guidelines, Grid & Mobile, Theme & CSS can now be configured independently per layout – different tablets get different grid sizes, themes and CSS",
+        "de": "Layout-spezifische Einstellungen: Hilfslinien, Grid & Mobil, Theme & CSS sind jetzt je Layout unabhängig konfigurierbar – verschiedene Tablets erhalten unterschiedliche Raster, Themes und CSS",
+        "ru": "Настройки на уровне макета: Hilfslinien, Grid & Mobile, Theme & CSS теперь можно настраивать независимо для каждого макета – разные планшеты получают разные размеры сетки, темы и CSS",
+        "pt": "Definições por layout: Guias, Grid & Mobile, Tema e CSS agora podem ser configurados de forma independente por layout – tablets diferentes recebem tamanhos de grelha, temas e CSS diferentes",
+        "nl": "Lay-outspecifieke instellingen: Hulplijnen, Grid & Mobiel, Thema en CSS zijn nu per lay-out onafhankelijk instelbaar – verschillende tablets krijgen verschillende rastergroottes, thema's en CSS",
+        "fr": "Paramètres par mise en page: Guides, Grille & Mobile, Thème et CSS peuvent désormais être configurés indépendamment par mise en page – différentes tablettes reçoivent des tailles de grille, thèmes et CSS différents",
+        "it": "Impostazioni per layout: Guide, Griglia & Mobile, Tema e CSS ora configurabili indipendentemente per layout – tablet diversi ottengono dimensioni griglia, temi e CSS diversi",
+        "es": "Configuración por diseño: Guías, Cuadrícula y Móvil, Tema y CSS ahora se pueden configurar de forma independiente por diseño – diferentes tablets reciben diferentes tamaños de cuadrícula, temas y CSS",
+        "pl": "Ustawienia na poziomie układu: Linie pomocnicze, Siatka i Mobile, Motyw i CSS można teraz konfigurować niezależnie dla każdego układu – różne tablety uzyskują różne rozmiary siatki, motywy i CSS",
+        "uk": "Налаштування на рівні макету: Допоміжні лінії, Сітка та Мобільний, Тема та CSS тепер можна налаштовувати незалежно для кожного макету – різні планшети отримують різні розміри сітки, теми та CSS",
+        "zh-cn": "按布局的设置：辅助线、网格和移动端、主题和CSS现在可以按布局独立配置 – 不同平板可以获得不同的网格大小、主题和CSS"
+      },
       "0.4.61": {
         "en": "Icon picker: switched to Iconify with 9,400+ icons (Lucide + MDI) bundled offline; 7 new MDI categories including garage, heat pump, solar, EV charging, sensors; icon picker dialog taller; full backwards compatibility for existing icon configs",
         "de": "Icon-Auswahl: Wechsel zu Iconify mit 9.400+ Icons (Lucide + MDI) offline gebündelt; 7 neue MDI-Kategorien inkl. Garage, Wärmepumpe, Solar, E-Laden, Sensoren; Icon-Dialog höher; volle Rückwärtskompatibilität für bestehende Icon-Konfigurationen",
@@ -198,6 +211,7 @@
         "zh-cn": "标签向导：基于相关性的数据点预选（默认仅勾选相关数据点）；快捷按钮「相关/全部/无」；不相关数据点变暗；布局变体正确为小部件分配 compact/default/card"
       }
     }
+
   },
   "native": {
     "customUrl": ""
