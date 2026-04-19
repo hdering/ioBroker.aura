@@ -108,10 +108,12 @@ function isImportant(ev: CalEventTagged, keywords: string[], usePriority: boolea
   if (usePriority && ev.priority != null && ev.priority >= 1 && ev.priority <= 4) return true;
   if (keywords.length === 0) return false;
   const summaryLower = ev.summary.toLowerCase();
+  const descLower = ev.description?.toLowerCase() ?? '';
   return keywords.some((kw) => {
     if (!kw) return false;
     const kwLower = kw.toLowerCase();
     if (summaryLower.includes(kwLower)) return true;
+    if (descLower && descLower.includes(kwLower)) return true;
     if (ev.categories?.some((c) => c.toLowerCase().includes(kwLower))) return true;
     return false;
   });
