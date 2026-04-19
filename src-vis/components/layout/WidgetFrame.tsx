@@ -873,7 +873,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [iconPickerTrueOpen,  setIconPickerTrueOpen]  = useState(false);
   const [iconPickerFalseOpen, setIconPickerFalseOpen] = useState(false);
-  const [selectedCustomCell,  setSelectedCustomCell]  = useState<number | null>(null);
+  const [selectedCustomCell,   setSelectedCustomCell]   = useState<number | null>(null);
+  const [customCellPickerOpen, setCustomCellPickerOpen] = useState(false);
   const menuBtnRef = useRef<HTMLButtonElement>(null);
   const Widget = getWidgetMap()[config.type as keyof ReturnType<typeof getWidgetMap>];
   const currentLayout = config.layout ?? 'default';
@@ -1708,7 +1709,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               {/* ── Custom-Grid editor (value widget, layout=custom) ── */}
               {config.type === 'value' && (config.layout ?? 'default') === 'custom' && (() => {
                 const CELL_LABELS: Record<string, string> = {
-                  empty: '–', title: 'Titel', value: 'Wert', unit: 'Einheit', text: 'Text',
+                  empty: '–', title: 'Titel', value: 'Wert', unit: 'Einheit', text: 'Text', dp: 'DP',
                 };
                 const o   = config.options ?? {};
                 const cells: CustomGrid = (o.customGrid as CustomGrid | undefined) ?? DEFAULT_CUSTOM_GRID;
@@ -1728,19 +1729,23 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
                       {cells.map((cell, i) => {
                         const active = sel === i;
+                        const row = Math.floor(i / 3) + 1;
+                        const col = (i % 3) + 1;
                         return (
                           <button
                             key={i}
                             onClick={() => setSelectedCustomCell(active ? null : i)}
-                            className="rounded text-[10px] py-1.5 transition-colors"
+                            className="rounded text-[10px] transition-colors"
                             style={{
                               background: active ? 'var(--accent)' : 'var(--widget-bg)',
                               color:      active ? '#fff' : 'var(--text-secondary)',
                               border:     `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                              minHeight: 32,
+                              minHeight: 36,
+                              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
                             }}
                           >
-                            {CELL_LABELS[cell.type] ?? cell.type}
+                            <span>{CELL_LABELS[cell.type] ?? cell.type}</span>
+                            <span style={{ fontSize: 9, opacity: 0.6 }}>{row}/{col}</span>
                           </button>
                         );
                       })}
@@ -1748,9 +1753,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
 
                     {/* Per-cell editor */}
                     {sel !== null && selCell && (
-                      <div className="space-y-2 pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
-                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                          Feld {Math.floor(sel / 3) + 1}/{(sel % 3) + 1} bearbeiten
+                      <div className="space-y-2 pt-2" style={{ borderTop: '1px solid var(--app-border)' }}>
+                        <p className="text-[10px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+                          Zeile {Math.floor(sel / 3) + 1}, Spalte {(sel % 3) + 1} · CSS: .aura-custom-cell-{sel}
                         </p>
 
                         {/* Type */}
@@ -1763,13 +1768,14 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                           >
                             <option value="empty">– leer –</option>
                             <option value="title">Titel</option>
-                            <option value="value">Wert (DP)</option>
-                            <option value="unit">Einheit</option>
+                            <option value="value">Hauptwert (DP1)</option>
+                            <option value="unit">Einheit (DP1)</option>
                             <option value="text">Freitext</option>
+                            <option value="dp">Weiterer Datenpunkt</option>
                           </select>
                         </div>
 
-                        {/* Free text */}
+                        {/* Free text content */}
                         {selCell.type === 'text' && (
                           <div>
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Text</label>
@@ -1779,6 +1785,58 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                               onChange={(e) => setCell(sel, { text: e.target.value })}
                               className={inputCls} style={inputSty}
                             />
+                          </div>
+                        )}
+
+                        {/* Additional DP selector */}
+                        {selCell.type === 'dp' && (
+                          <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Datenpunkt</label>
+                            <div className="flex gap-1">
+                              <input
+                                type="text"
+                                value={selCell.dpId ?? ''}
+                                onChange={(e) => setCell(sel, { dpId: e.target.value })}
+                                placeholder="z.B. hm-rpc.0.ABC.TEMP"
+                                className="flex-1 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                style={inputSty}
+                              />
+                              <button
+                                onClick={() => setCustomCellPickerOpen(true)}
+                                className="text-xs px-2 py-1.5 rounded-lg shrink-0"
+                                style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
+                              >
+                                <Database size={12} />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Prefix / Suffix for value or dp */}
+                        {(selCell.type === 'value' || selCell.type === 'dp') && (
+                          <div className="flex gap-2">
+                            <div className="flex-1">
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Prefix</label>
+                              <input
+                                type="text"
+                                value={selCell.prefix ?? ''}
+                                onChange={(e) => setCell(sel, { prefix: e.target.value || undefined })}
+                                placeholder="z.B. ~"
+                                className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                style={inputSty}
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Suffix</label>
+                              <input
+                                type="text"
+                                value={selCell.suffix ?? ''}
+                                onChange={(e) => setCell(sel, { suffix: e.target.value || undefined })}
+                                placeholder="z.B. °C"
+                                className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                style={inputSty}
+                              />
+                            </div>
                           </div>
                         )}
 
@@ -1801,10 +1859,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
 
                             {/* Bold / Italic */}
                             <div className="flex items-center gap-4">
-                              {[
-                                { key: 'bold',   label: 'Fett' },
-                                { key: 'italic', label: 'Kursiv' },
-                              ].map(({ key, label }) => {
+                              {([{ key: 'bold', label: 'Fett' }, { key: 'italic', label: 'Kursiv' }] as const).map(({ key, label }) => {
                                 const val = !!(selCell as unknown as Record<string, unknown>)[key];
                                 return (
                                   <div key={key} className="flex items-center gap-2">
@@ -1848,12 +1903,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                                 {(['left', 'center', 'right'] as const).map((a) => {
                                   const active = (selCell.align ?? 'left') === a;
                                   return (
-                                    <button
-                                      key={a}
-                                      onClick={() => setCell(sel, { align: a })}
+                                    <button key={a} onClick={() => setCell(sel, { align: a })}
                                       className="flex-1 text-[10px] py-1 rounded"
-                                      style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}
-                                    >
+                                      style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
                                       {a === 'left' ? 'Links' : a === 'center' ? 'Mitte' : 'Rechts'}
                                     </button>
                                   );
@@ -1868,12 +1920,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                                 {(['top', 'middle', 'bottom'] as const).map((v) => {
                                   const active = (selCell.valign ?? 'middle') === v;
                                   return (
-                                    <button
-                                      key={v}
-                                      onClick={() => setCell(sel, { valign: v })}
+                                    <button key={v} onClick={() => setCell(sel, { valign: v })}
                                       className="flex-1 text-[10px] py-1 rounded"
-                                      style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}
-                                    >
+                                      style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
                                       {v === 'top' ? 'Oben' : v === 'middle' ? 'Mitte' : 'Unten'}
                                     </button>
                                   );
@@ -1887,7 +1936,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
 
                     {/* Reset grid */}
                     <button
-                      onClick={() => onConfigChange({ ...config, options: { ...o, customGrid: undefined } })}
+                      onClick={() => { onConfigChange({ ...config, options: { ...o, customGrid: undefined } }); setSelectedCustomCell(null); }}
                       className="text-[10px] px-2 py-1 rounded"
                       style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
                     >
@@ -3127,6 +3176,23 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
           onClose={() => setPickerTarget(null)}
         />
       )}
+
+      {/* Custom-Grid DP picker */}
+      {customCellPickerOpen && selectedCustomCell !== null && (() => {
+        const cells: CustomGrid = ((config.options?.customGrid as CustomGrid | undefined) ?? DEFAULT_CUSTOM_GRID);
+        const idx = selectedCustomCell;
+        return (
+          <DatapointPicker
+            currentValue={cells[idx]?.dpId ?? ''}
+            onSelect={(id) => {
+              const next = cells.map((c, i) => i === idx ? { ...c, dpId: id } : c);
+              onConfigChange({ ...config, options: { ...config.options, customGrid: next } });
+              setCustomCellPickerOpen(false);
+            }}
+            onClose={() => setCustomCellPickerOpen(false)}
+          />
+        );
+      })()}
 
       {/* Conditions Modal */}
       {openPanel === 'conditions' && (

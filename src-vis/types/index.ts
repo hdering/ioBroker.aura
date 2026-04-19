@@ -45,13 +45,16 @@ export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda'
 
 // ── Custom-Grid layout ────────────────────────────────────────────────────────
 
-export type CustomCellType = 'empty' | 'title' | 'value' | 'unit' | 'text';
+export type CustomCellType = 'empty' | 'title' | 'value' | 'unit' | 'text' | 'dp';
 export type CustomCellAlign  = 'left' | 'center' | 'right';
 export type CustomCellValign = 'top'  | 'middle'  | 'bottom';
 
 export interface CustomCell {
   type:      CustomCellType;
-  text?:     string;            // only for 'text' type
+  text?:     string;            // 'text' type: static text content
+  dpId?:     string;            // 'dp' type: ioBroker datapoint ID
+  prefix?:   string;            // 'value' / 'dp' type: text prepended to value
+  suffix?:   string;            // 'value' / 'dp' type: text appended to value
   fontSize?: number;            // px; undefined = auto
   bold?:     boolean;
   italic?:   boolean;
