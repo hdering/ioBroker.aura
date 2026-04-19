@@ -113,7 +113,17 @@ export function ChartWidget({ config }: WidgetProps) {
     </div>
   ) : null;
 
-  if (layout === 'custom') return <CustomGridView config={config} value={current !== null ? current.toLocaleString('de-DE') : '–'} unit={o.unit as string | undefined} />;
+  if (layout === 'custom') return (
+    <CustomGridView
+      config={config}
+      value={current !== null ? current.toLocaleString('de-DE') : '–'}
+      unit={o.unit as string | undefined}
+      extraFields={{
+        current: current !== null ? current.toLocaleString('de-DE') : '–',
+        unit:    (o.unit as string | undefined) || '–',
+      }}
+    />
+  );
 
   // ── CARD ─────────────────────────────────────────────────────────────────
   if (layout === 'card') {

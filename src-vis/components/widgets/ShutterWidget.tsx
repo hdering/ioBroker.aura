@@ -132,7 +132,17 @@ export function ShutterWidget({ config }: WidgetProps) {
       className="w-full h-1.5 rounded-full appearance-none cursor-pointer" />
   );
 
-  if (layout === 'custom') return <CustomGridView config={config} value={`${pos}`} />;
+  if (layout === 'custom') return (
+    <CustomGridView
+      config={config}
+      value={`${pos}`}
+      extraFields={{
+        position:  `${pos}%`,
+        status:    statusText,
+        moving:    isMoving ? 'Ja' : 'Nein',
+      }}
+    />
+  );
 
   // ── CARD ──────────────────────────────────────────────────────────────────
   if (layout === 'card') {

@@ -30,7 +30,16 @@ export function ImageWidget({ config }: WidgetProps) {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [imageUrl, refreshSeconds]);
 
-  if (layout === 'custom') return <CustomGridView config={config} value="" />;
+  if (layout === 'custom') return (
+    <CustomGridView
+      config={config}
+      value={imageUrl || (dpValue ? String(dpValue) : '')}
+      extraFields={{
+        url:   imageUrl || '–',
+        dp:    datapointId || '–',
+      }}
+    />
+  );
 
   // Build src from datapoint value (base64 or URL) or from static URL
   const src = (() => {

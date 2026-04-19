@@ -24,7 +24,17 @@ export function DimmerWidget({ config }: WidgetProps) {
       className="w-full h-2 rounded-lg appearance-none cursor-pointer" />
   );
 
-  if (layout === 'custom') return <CustomGridView config={config} value={`${Math.round(typeof value === 'number' ? value : 0)}`} />;
+  if (layout === 'custom') return (
+    <CustomGridView
+      config={config}
+      value={`${level}`}
+      extraFields={{
+        level:  `${level}%`,
+        status: level === 0 ? 'Aus' : level === 100 ? 'Voll' : `${level}%`,
+        on:     level > 0 ? 'Ein' : 'Aus',
+      }}
+    />
+  );
 
   // --- CARD: Großes Glühbirnen-Icon, Helligkeit als Opacity ---
   if (layout === 'card') {

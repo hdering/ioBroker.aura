@@ -57,7 +57,18 @@ export function WindowContactWidget({ config }: WidgetProps) {
   const showTitle = o.showTitle !== false;
   const showLabel = o.showLabel !== false;
 
-  if (layout === 'custom') return <CustomGridView config={config} value={label} />;
+  if (layout === 'custom') return (
+    <CustomGridView
+      config={config}
+      value={label}
+      extraFields={{
+        label:  label,
+        open:   state === 'open' ? 'Ja' : 'Nein',
+        tilted: state === 'tilted' ? 'Ja' : 'Nein',
+        closed: state === 'closed' ? 'Ja' : 'Nein',
+      }}
+    />
+  );
 
   // ── CARD ─────────────────────────────────────────────────────────────────
   if (layout === 'card') {

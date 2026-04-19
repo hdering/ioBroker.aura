@@ -669,7 +669,21 @@ export function EvccWidget({ config }: WidgetProps) {
 
   const visLps = visibleLpIndices.map((i) => ({ lp: loadpoints[i], idx: i })).filter(({ lp }) => !!lp);
 
-  if (layout === 'custom') return <CustomGridView config={config} value="" />;
+  if (layout === 'custom') return (
+    <CustomGridView
+      config={config}
+      value={fmtKW(site.pvPower)}
+      extraFields={{
+        pvPower:     fmtKW(site.pvPower),
+        gridPower:   fmtKW(Math.abs(site.gridPower)),
+        homePower:   fmtKW(site.homePower),
+        batterySoc:  fmtSoc(site.batterySoc),
+        batteryPower: fmtKW(Math.abs(site.batteryPower)),
+        gridImport:  site.gridPower > 10 ? 'Ja' : 'Nein',
+        gridExport:  site.gridPower < -10 ? 'Ja' : 'Nein',
+      }}
+    />
+  );
 
   // ── Layout: battery only ──────────────────────────────────────────────────
   if (layout === 'battery') return <BatteryView site={site} />;

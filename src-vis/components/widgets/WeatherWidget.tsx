@@ -254,7 +254,20 @@ export function WeatherWidget({ config }: WidgetProps) {
   const info = getWeatherInfo(cur.weather_code, t);
   const feel = `${Math.round(cur.apparent_temperature)}°`;
 
-  if (layout === 'custom') return <CustomGridView config={config} value={displayTemp ? `${displayTemp}°C` : ''} />;
+  if (layout === 'custom') return (
+    <CustomGridView
+      config={config}
+      value={displayTemp ? `${displayTemp}°C` : ''}
+      extraFields={{
+        temp:      `${displayTemp}°C`,
+        feelsLike: feel + 'C',
+        humidity:  `${cur.relative_humidity_2m}%`,
+        wind:      `${Math.round(cur.wind_speed_10m)} km/h`,
+        condition: info.desc,
+        emoji:     info.emoji,
+      }}
+    />
+  );
 
   // ── MINIMAL ──────────────────────────────────────────────────────────────
   if (layout === 'minimal') {

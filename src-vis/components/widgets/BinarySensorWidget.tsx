@@ -37,7 +37,18 @@ export function BinarySensorWidget({ config }: WidgetProps) {
   const showTitle = opts.showTitle !== false;
   const showLabel = opts.showLabel !== false;
 
-  if (layout === 'custom') return <CustomGridView config={config} value={isActive ? labelOn : labelOff} />;
+  if (layout === 'custom') return (
+    <CustomGridView
+      config={config}
+      value={isActive ? labelOn : labelOff}
+      extraFields={{
+        label:    isActive ? labelOn : labelOff,
+        labelOn:  labelOn,
+        labelOff: labelOff,
+        active:   isActive ? 'Ja' : 'Nein',
+      }}
+    />
+  );
 
   // ── CARD ─────────────────────────────────────────────────────────────────
   if (layout === 'card') {

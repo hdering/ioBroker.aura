@@ -2993,6 +2993,60 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                               { key: 'actual',   label: 'Isttemperatur' },
                               { key: 'status',   label: 'Heizstatus' },
                             ],
+                            shutter: [
+                              { key: 'position', label: 'Position (%)' },
+                              { key: 'status',   label: 'Status' },
+                              { key: 'moving',   label: 'Fährt' },
+                            ],
+                            dimmer: [
+                              { key: 'level',  label: 'Helligkeit (%)' },
+                              { key: 'status', label: 'Status' },
+                              { key: 'on',     label: 'Ein/Aus' },
+                            ],
+                            gauge: [
+                              { key: 'value',   label: 'Wert' },
+                              { key: 'unit',    label: 'Einheit' },
+                              { key: 'percent', label: 'Prozent' },
+                              { key: 'min',     label: 'Minimum' },
+                              { key: 'max',     label: 'Maximum' },
+                            ],
+                            echart: [
+                              { key: 'current', label: 'Aktueller Wert' },
+                              { key: 'unit',    label: 'Einheit' },
+                            ],
+                            windowcontact: [
+                              { key: 'label',  label: 'Status-Text' },
+                              { key: 'open',   label: 'Geöffnet' },
+                              { key: 'tilted', label: 'Gekippt' },
+                              { key: 'closed', label: 'Geschlossen' },
+                            ],
+                            binarysensor: [
+                              { key: 'label',    label: 'Status-Text' },
+                              { key: 'active',   label: 'Aktiv' },
+                              { key: 'labelOn',  label: 'Text aktiv' },
+                              { key: 'labelOff', label: 'Text inaktiv' },
+                            ],
+                            evcc: [
+                              { key: 'pvPower',      label: 'Solar (kW)' },
+                              { key: 'homePower',    label: 'Verbrauch (kW)' },
+                              { key: 'gridPower',    label: 'Netz (kW)' },
+                              { key: 'gridImport',   label: 'Netzbezug' },
+                              { key: 'gridExport',   label: 'Netzeinspeisung' },
+                              { key: 'batterySoc',   label: 'Batterie (%)' },
+                              { key: 'batteryPower', label: 'Batterie-Leistung' },
+                            ],
+                            image: [
+                              { key: 'url', label: 'Bild-URL' },
+                              { key: 'dp',  label: 'Datenpunkt-ID' },
+                            ],
+                            weather: [
+                              { key: 'temp',      label: 'Temperatur' },
+                              { key: 'feelsLike', label: 'Gefühlte Temp.' },
+                              { key: 'humidity',  label: 'Luftfeuchtigkeit' },
+                              { key: 'wind',      label: 'Wind' },
+                              { key: 'condition', label: 'Wetterlage' },
+                              { key: 'emoji',     label: 'Wetter-Emoji' },
+                            ],
                           };
                           const options = FIELD_OPTIONS[config.type] ?? [];
                           return (

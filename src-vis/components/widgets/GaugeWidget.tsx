@@ -228,7 +228,23 @@ export function GaugeWidget({ config }: WidgetProps) {
     );
   });
 
-  if (layout === 'custom') return <CustomGridView config={config} value={safeVal === 0 && value === null ? '–' : (decimals === 0 ? String(Math.round(safeVal)) : safeVal.toFixed(decimals))} unit={unit} />;
+  if (layout === 'custom') {
+    const displayValue = safeVal === 0 && value === null ? '–' : (decimals === 0 ? String(Math.round(safeVal)) : safeVal.toFixed(decimals));
+    return (
+      <CustomGridView
+        config={config}
+        value={displayValue}
+        unit={unit}
+        extraFields={{
+          value:   displayValue,
+          unit:    unit || '–',
+          min:     String(effectiveMin),
+          max:     String(effectiveMax),
+          percent: effectiveMax > effectiveMin ? `${Math.round(((safeVal - effectiveMin) / (effectiveMax - effectiveMin)) * 100)}%` : '–',
+        }}
+      />
+    );
+  }
 
   if (layout === 'minimal') {
     return (
