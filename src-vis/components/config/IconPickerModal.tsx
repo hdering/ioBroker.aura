@@ -151,7 +151,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
       <div
         className="relative rounded-xl flex flex-col"
         style={{
-          background: 'var(--app-surface)',
+          background: 'linear-gradient(var(--app-surface), var(--app-surface)), var(--app-bg)',
           border: '1px solid var(--app-border)',
           width: 620,
           maxWidth: '95vw',

@@ -222,7 +222,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
     return (
       <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
         <div className="rounded-xl w-full max-w-4xl shadow-2xl overflow-y-auto"
-          style={{ maxHeight: '95vh', background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+          style={{ maxHeight: '95vh', background: 'linear-gradient(var(--app-surface), var(--app-surface)), var(--app-bg)', border: '1px solid var(--app-border)' }}
           onClick={(e) => e.stopPropagation()}>
 
           {/* Header */}
@@ -447,7 +447,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="rounded-xl w-full max-w-xl shadow-2xl"
-        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+        style={{ background: 'linear-gradient(var(--app-surface), var(--app-surface)), var(--app-bg)', border: '1px solid var(--app-border)' }}
         onClick={(e) => e.stopPropagation()}>
 
         {/* Header */}

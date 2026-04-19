@@ -93,7 +93,9 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
       <div
         className="rounded-xl w-full max-w-2xl flex flex-col shadow-2xl"
         style={{
-          background: 'var(--app-surface)',
+          // Multi-layer fallback: transparent --app-surface (glassmorphism themes) lets
+          // the opaque --app-bg shine through so the dialog is always readable.
+          background: 'linear-gradient(var(--app-surface), var(--app-surface)), var(--app-bg)',
           border: '1px solid var(--app-border)',
           maxHeight: 'min(80vh, 640px)',
         }}
