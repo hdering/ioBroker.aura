@@ -41,7 +41,27 @@ export type WidgetType =
   | 'binarysensor'
   | 'stateimage';
 
-export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda' | 'flow' | 'battery' | 'production' | 'consumption' | 'loadpoints';
+export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda' | 'flow' | 'battery' | 'production' | 'consumption' | 'loadpoints' | 'custom';
+
+// ── Custom-Grid layout ────────────────────────────────────────────────────────
+
+export type CustomCellType = 'empty' | 'title' | 'value' | 'unit' | 'text';
+export type CustomCellAlign  = 'left' | 'center' | 'right';
+export type CustomCellValign = 'top'  | 'middle'  | 'bottom';
+
+export interface CustomCell {
+  type:      CustomCellType;
+  text?:     string;            // only for 'text' type
+  fontSize?: number;            // px; undefined = auto
+  bold?:     boolean;
+  italic?:   boolean;
+  color?:    string;            // CSS color; '' / undefined = theme default
+  align?:    CustomCellAlign;   // default: 'left'
+  valign?:   CustomCellValign;  // default: 'middle'
+}
+
+/** 9-element array, row-major (index = row*3 + col) */
+export type CustomGrid = CustomCell[];
 
 export interface ioBrokerState {
   val: boolean | number | string | null;

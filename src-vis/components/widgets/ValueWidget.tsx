@@ -1,8 +1,65 @@
 import { Activity, TrendingUp, Hash } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
-import type { WidgetProps } from '../../types';
+import type { WidgetProps, CustomCell, CustomGrid } from '../../types';
 import { contentPositionClass, titlePositionStyle, titleTextAlign } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+
+// ── Custom-Grid helpers ───────────────────────────────────────────────────────
+
+export const DEFAULT_CUSTOM_GRID: CustomGrid = [
+  { type: 'title', align: 'left', valign: 'top' },
+  { type: 'empty' },
+  { type: 'empty' },
+  { type: 'value', fontSize: 32, bold: true, align: 'left', valign: 'middle' },
+  { type: 'unit',  fontSize: 14,             align: 'left', valign: 'middle' },
+  { type: 'empty' },
+  { type: 'empty' },
+  { type: 'empty' },
+  { type: 'empty' },
+];
+
+function CustomCellView({
+  cell, title, value, unit,
+}: { cell: CustomCell; title: string; value: string; unit?: string }) {
+  const content = (() => {
+    switch (cell.type) {
+      case 'title': return title;
+      case 'value': return value;
+      case 'unit':  return unit ?? '';
+      case 'text':  return cell.text ?? '';
+      default:      return '';
+    }
+  })();
+
+  if (cell.type === 'empty' || !content) return <div />;
+
+  const defaultColor = (cell.type === 'value')
+    ? 'var(--text-primary)'
+    : 'var(--text-secondary)';
+
+  return (
+    <div style={{
+      display:        'flex',
+      overflow:       'hidden',
+      alignItems:     cell.valign === 'top' ? 'flex-start' : cell.valign === 'bottom' ? 'flex-end' : 'center',
+      justifyContent: cell.align  === 'center' ? 'center' : cell.align === 'right' ? 'flex-end' : 'flex-start',
+      padding:        '2px',
+    }}>
+      <span style={{
+        fontSize:     cell.fontSize ? `${cell.fontSize}px` : undefined,
+        fontWeight:   cell.bold   ? 'bold'   : undefined,
+        fontStyle:    cell.italic ? 'italic' : undefined,
+        color:        cell.color || defaultColor,
+        overflow:     'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace:   'nowrap',
+        lineHeight:   1.15,
+      }}>
+        {content}
+      </span>
+    </div>
+  );
+}
 
 export function ValueWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
@@ -21,6 +78,18 @@ export function ValueWidget({ config }: WidgetProps) {
   const displayValue = value === null ? '–'
     : typeof value === 'number' ? value.toLocaleString('de-DE')
     : String(value);
+
+  // --- CUSTOM: freies 3×3-Raster ---
+  if (layout === 'custom') {
+    const cells: CustomGrid = (o.customGrid as CustomGrid | undefined) ?? DEFAULT_CUSTOM_GRID;
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gridTemplateRows: '1fr 1fr 1fr', width: '100%', height: '100%', gap: '2px' }}>
+        {cells.map((cell, i) => (
+          <CustomCellView key={i} cell={cell} title={config.title} value={displayValue} unit={unit} />
+        ))}
+      </div>
+    );
+  }
 
   // HTML template mode: replaces the entire widget content
   if (htmlTemplate) {
