@@ -127,6 +127,13 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.59 (2026-04-19)
+- Custom layout for all widgets: free 3×3 grid, each cell configurable with title/value/unit/free text/datapoint/widget-field
+- Per-cell settings: prefix/suffix for values, font size, bold/italic, color, horizontal and vertical alignment, unique CSS class per cell
+- Calendar and Clock expose widget-specific fields (summary, date, time, calname, location, count / time, date, custom) for use in custom grid cells
+- Custom grid editor now always positioned at the bottom of widget-specific settings
+- Stronger visual separation between general and widget-specific settings in the edit panel (accent left border, increased tint)
+
 ### 0.4.58 (2026-04-19)
 - New StateImage widget: boolean DP displays configurable icon/color or base64 image per state (true/false), 4 layouts, adjustable icon size
 - Calendar: per-widget font scale slider (50–300%), important event highlighting by keyword/PRIORITY/description, card title uses accent color

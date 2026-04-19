@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.58",
+    "version": "0.4.59",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.59": {
+        "en": "Custom layout for all widgets: free 3×3 grid, each cell configurable with title/value/unit/text/datapoint/widget-field, prefix/suffix, font size, bold/italic, color, alignment; custom grid editor always shown at bottom of widget settings; stronger visual separation between general and widget-specific settings",
+        "de": "Custom-Layout für alle Widgets: freies 3×3-Raster, jede Zelle konfigurierbar mit Titel/Wert/Einheit/Text/Datenpunkt/Widget-Feld, Prä-/Suffix, Schriftgröße, Fett/Kursiv, Farbe, Ausrichtung; Raster-Editor immer unten in den Widget-Einstellungen; stärkere visuelle Trennung zwischen allgemeinen und widget-spezifischen Einstellungen",
+        "ru": "Custom-макет для всех виджетов: свободная сетка 3×3, каждая ячейка настраивается с заголовком/значением/единицей/текстом/датапойнтом/полем виджета, префикс/суффикс, размер шрифта, жирный/курсив, цвет, выравнивание; редактор сетки всегда внизу настроек виджета; более чёткое визуальное разделение общих и специфических настроек",
+        "pt": "Layout personalizado para todos os widgets: grelha livre 3×3, cada célula configurável com título/valor/unidade/texto/ponto de dados/campo do widget, prefixo/sufixo, tamanho de fonte, negrito/itálico, cor, alinhamento; editor de grelha sempre na parte inferior das configurações do widget; separação visual mais forte entre configurações gerais e específicas do widget",
+        "nl": "Aangepaste lay-out voor alle widgets: vrij 3×3-raster, elke cel instelbaar met titel/waarde/eenheid/tekst/datapunt/widgetveld, voor-/achtervoegsel, lettergrootte, vet/cursief, kleur, uitlijning; rasterbewerker altijd onderaan de widgetinstellingen; sterkere visuele scheiding tussen algemene en widgetspecifieke instellingen",
+        "fr": "Mise en page personnalisée pour tous les widgets: grille libre 3×3, chaque cellule configurable avec titre/valeur/unité/texte/point de données/champ de widget, préfixe/suffixe, taille de police, gras/italique, couleur, alignement; éditeur de grille toujours en bas des paramètres du widget; séparation visuelle plus forte entre les paramètres généraux et spécifiques au widget",
+        "it": "Layout personalizzato per tutti i widget: griglia libera 3×3, ogni cella configurabile con titolo/valore/unità/testo/punto dati/campo widget, prefisso/suffisso, dimensione font, grassetto/corsivo, colore, allineamento; editor griglia sempre in fondo alle impostazioni del widget; separazione visiva più forte tra impostazioni generali e specifiche del widget",
+        "es": "Diseño personalizado para todos los widgets: cuadrícula libre 3×3, cada celda configurable con título/valor/unidad/texto/punto de datos/campo de widget, prefijo/sufijo, tamaño de fuente, negrita/cursiva, color, alineación; editor de cuadrícula siempre en la parte inferior de la configuración del widget; separación visual más fuerte entre configuraciones generales y específicas del widget",
+        "pl": "Niestandardowy układ dla wszystkich widgetów: wolna siatka 3×3, każda komórka konfigurowalna z tytułem/wartością/jednostką/tekstem/punktem danych/polem widgetu, przedrostek/przyrostek, rozmiar czcionki, pogrubienie/kursywa, kolor, wyrównanie; edytor siatki zawsze na dole ustawień widgetu; silniejsze wizualne rozdzielenie ustawień ogólnych i specyficznych dla widgetu",
+        "uk": "Кастомний макет для всіх віджетів: вільна сітка 3×3, кожна комірка налаштовується з заголовком/значенням/одиницею/текстом/точкою даних/полем віджета, префікс/суфікс, розмір шрифту, жирний/курсив, колір, вирівнювання; редактор сітки завжди внизу налаштувань віджета; більш чітке візуальне розділення загальних та специфічних налаштувань",
+        "zh-cn": "所有小部件支持自定义布局：自由3×3网格，每个单元格可配置标题/值/单位/文本/数据点/小部件字段、前缀/后缀、字体大小、粗体/斜体、颜色、对齐方式；网格编辑器始终显示在小部件设置底部；通用设置与小部件特定设置之间视觉分隔更明显"
+      },
       "0.4.58": {
         "en": "New StateImage widget – boolean DP shows configurable icon/color or image per state (true/false), 4 layouts; Calendar: per-widget font scale, important event highlighting by keyword/PRIORITY/description, accent color for card title; ValueWidget minimal: value and unit inline on same baseline",
         "de": "Neues Zustandsbild-Widget – boolescher DP zeigt konfigurierbares Icon/Farbe oder Bild je Zustand (true/false), 4 Layouts; Kalender: Widget-eigener Schriftskalafaktor, wichtige Termine per Stichwort/PRIORITY/Beschreibung hervorheben, Akzentfarbe für Card-Titel; Wert-Widget Minimal: Wert und Einheit inline auf gleicher Basislinie",
@@ -183,19 +196,6 @@
         "pl": "Nowe widgety: kontakt okna/drzwi, czujnik binarny (ruch, dym, …); odznaki statusu (bateria, osiągalność) dla wszystkich widgetów; lista dynamiczna: inteligentne filtrowanie DP według roli, przenoszenie jednostki, filtr wartości (pokaż tylko aktywne/nieaktywne)",
         "uk": "Нові віджети: контакт вікна/дверей, бінарний сенсор (рух, дим, …); значки стану (батарея, доступність) для всіх віджетів; динамічний список: розумна фільтрація DP за роллю, перенесення одиниці, фільтр значень (показувати лише активні/неактивні)",
         "zh-cn": "新增小部件：窗/门接触传感器、二值传感器（运动、烟雾等）；所有小部件的状态徽章（电池、可达性）；动态列表：按角色智能过滤数据点、单位继承、数值过滤器（仅显示活跃/非活跃）"
-      },
-      "0.4.52": {
-        "en": "Editor: 'Add widget manually' dialog – standard widget types displayed in 2-column grid per category; special widgets remain in collapsible 'Further Widgets' section below",
-        "de": "Editor: Dialog 'Widget manuell hinzufügen' – Standard-Widgettypen werden je Kategorie zweispaltig dargestellt; spezielle Widgets bleiben in einem aufklappbaren Bereich 'Weitere Widgets' darunter",
-        "ru": "Редактор: диалог 'Добавить виджет вручную' – стандартные типы виджетов отображаются в 2-колоночной сетке по категориям; специальные виджеты остаются в раскрываемом разделе 'Weitere Widgets' ниже",
-        "pt": "Editor: diálogo 'Adicionar widget manualmente' – tipos de widget padrão exibidos em grelha de 2 colunas por categoria; widgets especiais permanecem na secção retrátil 'Weitere Widgets' abaixo",
-        "nl": "Editor: dialoog 'Widget handmatig toevoegen' – standaard widgettypen weergegeven in 2-kolomsraster per categorie; speciale widgets blijven in een inklapbaar 'Weitere Widgets'-gedeelte hieronder",
-        "fr": "Éditeur: dialogue 'Ajouter un widget manuellement' – types de widgets standard affichés en grille à 2 colonnes par catégorie; les widgets spéciaux restent dans la section rétractable 'Weitere Widgets' ci-dessous",
-        "it": "Editor: dialogo 'Aggiungi widget manualmente' – tipi di widget standard visualizzati in griglia a 2 colonne per categoria; i widget speciali rimangono nella sezione comprimibile 'Weitere Widgets' sotto",
-        "es": "Editor: diálogo 'Añadir widget manualmente' – tipos de widget estándar mostrados en cuadrícula de 2 columnas por categoría; los widgets especiales permanecen en la sección plegable 'Weitere Widgets' debajo",
-        "pl": "Edytor: dialog 'Dodaj widget ręcznie' – standardowe typy widgetów wyświetlane w siatce 2-kolumnowej według kategorii; specjalne widgety pozostają w zwijanej sekcji 'Weitere Widgets' poniżej",
-        "uk": "Редактор: діалог 'Додати віджет вручну' – стандартні типи віджетів відображаються у 2-колонковій сітці за категоріями; спеціальні віджети залишаються у згортаємому розділі 'Weitere Widgets' нижче",
-        "zh-cn": "编辑器：'手动添加小部件'对话框 – 标准小部件类型按类别显示为2列网格；特殊小部件保留在下方可折叠的'更多小部件'区域"
       }
     }
   },
