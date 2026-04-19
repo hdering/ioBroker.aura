@@ -25,17 +25,13 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
   const [func, setFunc] = useState('');
   const [role, setRole] = useState('');
   const selectedRef = useRef<HTMLButtonElement>(null);
+  const scrolledRef = useRef(false);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!loaded) load();
   }, [loaded, load]);
 
-  useEffect(() => {
-    if (loaded && selectedRef.current) {
-      selectedRef.current.scrollIntoView({ behavior: 'instant', block: 'center' });
-    }
-  }, [loaded]);
 
   const adapters = useMemo(
     () => Array.from(new Set(datapoints.map((dp) => dp.id.split('.')[0]))).sort(),
@@ -59,6 +55,21 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
   }, [datapoints, search, adapter, room, func, role]);
 
   const shown = filtered.slice(0, MAX_DISPLAY);
+
+  // Scroll to the selected item once after data is available.
+  // Uses rAF so the list is fully painted, guard prevents re-scroll on filter changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!loaded || scrolledRef.current) return;
+    const raf = requestAnimationFrame(() => {
+      if (selectedRef.current) {
+        selectedRef.current.scrollIntoView({ behavior: 'instant', block: 'center' });
+        scrolledRef.current = true;
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [loaded, shown]); // shown in deps so we retry if cached data renders on first tick
+
   const countLabel = filtered.length > MAX_DISPLAY
     ? t('dp.picker.showing', { max: MAX_DISPLAY, count: filtered.length })
     : t('dp.picker.count', { count: filtered.length });
@@ -260,29 +271,33 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
                   )}
                   <div className="flex-1 min-w-0">
                     <p
-                      className="font-mono text-xs truncate"
+                      className="text-sm font-medium truncate"
                       style={{ color: (multiSelect ? isChecked : isSelected) ? 'var(--accent)' : 'var(--text-primary)' }}
                     >
+                      {dp.name || dp.id.split('.').pop() || dp.id}
+                    </p>
+                    <p className="font-mono text-[11px] truncate mt-0.5" style={{ color: 'var(--text-secondary)' }}>
                       {dp.id}
                     </p>
-                    {dp.name && dp.name !== dp.id.split('.').pop() && (
-                      <p className="text-[11px] truncate mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        {dp.name}
-                      </p>
-                    )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {dp.unit && (
                       <span className="text-xs font-medium" style={{ color: 'var(--accent)' }}>{dp.unit}</span>
                     )}
-                    {dp.type && (
-                      <span
-                        className="text-[10px] px-1.5 py-0.5 rounded"
-                        style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}
-                      >
-                        {dp.type}
-                      </span>
-                    )}
+                    {dp.type && (() => {
+                      const tc = dp.type === 'boolean' ? '#f59e0b'
+                               : dp.type === 'number'  ? '#3b82f6'
+                               : dp.type === 'string'  ? '#8b5cf6'
+                               : 'var(--accent)';
+                      return (
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                          style={{ background: tc + '22', color: tc }}
+                        >
+                          {dp.type}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </button>
               );
