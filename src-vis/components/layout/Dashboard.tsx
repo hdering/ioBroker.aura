@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 import { X } from 'lucide-react';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
-import { useConfigStore } from '../../store/configStore';
 import { useIframeStore, type IframeFullscreenData } from '../../store/iframeStore';
 import { WidgetFrame } from './WidgetFrame';
 import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
+import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
+import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
 import type { WidgetConfig } from '../../types';
 import type { Tab } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
@@ -21,20 +22,27 @@ interface DashboardProps {
   /** Override tabs for frontend readonly view (specific layout by slug) */
   viewTabs?: Tab[];
   viewActiveTabId?: string;
+  /** Layout ID for per-layout settings resolution. If omitted, uses activeLayout.id (admin editor). */
+  layoutId?: string;
 }
 
-export function Dashboard({ readonly = false, editMode = false, onLayoutChange, viewTabs, viewActiveTabId }: DashboardProps) {
+export function Dashboard({ readonly = false, editMode = false, onLayoutChange, viewTabs, viewActiveTabId, layoutId }: DashboardProps) {
   const t = useT();
   const activeLayout = useActiveLayout();
   const { updateWidget, updateLayouts, removeWidget } = useDashboardStore();
-  const cellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 20);
-  const snapX    = useConfigStore((s) => s.frontend.gridSnapX ?? s.frontend.gridRowHeight ?? 20);
-  const MARGIN = useConfigStore((s) => s.frontend.gridGap ?? DEFAULT_MARGIN);
-  const mobileBreakpoint = useConfigStore((s) => s.frontend.mobileBreakpoint ?? 600);
-  const guidelinesEnabled      = useConfigStore((s) => s.frontend.guidelinesEnabled ?? false);
-  const guidelinesWidth        = useConfigStore((s) => s.frontend.guidelinesWidth ?? 1280);
-  const guidelinesHeight       = useConfigStore((s) => s.frontend.guidelinesHeight ?? 800);
-  const guidelinesShowInFrontend = useConfigStore((s) => s.frontend.guidelinesShowInFrontend ?? false);
+
+  // Use per-layout effective settings (falls back to global when no override)
+  const effectiveLayoutId = layoutId ?? activeLayout.id;
+  const settings = useEffectiveSettings(effectiveLayoutId);
+
+  const cellSize = settings.gridRowHeight ?? 20;
+  const snapX    = settings.gridSnapX ?? settings.gridRowHeight ?? 20;
+  const MARGIN = settings.gridGap ?? DEFAULT_MARGIN;
+  const mobileBreakpoint = settings.mobileBreakpoint ?? 600;
+  const guidelinesEnabled      = settings.guidelinesEnabled ?? false;
+  const guidelinesWidth        = settings.guidelinesWidth ?? 1280;
+  const guidelinesHeight       = settings.guidelinesHeight ?? 800;
+  const guidelinesShowInFrontend = settings.guidelinesShowInFrontend ?? false;
 
   const showGuidelines = guidelinesEnabled && (editMode || guidelinesShowInFrontend);
 
@@ -143,30 +151,33 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
       .filter((w) => w.id !== fillTabWidget.id && w.type === 'iframe' && (w.options as Record<string, unknown>)?.keepAlive);
 
     return (
-      <div className="flex-1 min-h-0 relative">
-        {keepAliveWidgets.length > 0 && (
-          <div style={{ position: 'fixed', top: -9999, left: -9999, width: 1, height: 1, overflow: 'hidden', pointerEvents: 'none', opacity: 0 }}>
-            {keepAliveWidgets.map((w) => (
-              <WidgetFrame key={w.id} config={w} editMode={false} onRemove={removeWidget} onConfigChange={(cfg) => updateWidget(cfg.id, cfg)} />
-            ))}
+      <ActiveLayoutContext.Provider value={effectiveLayoutId}>
+        <div className="flex-1 min-h-0 relative">
+          {keepAliveWidgets.length > 0 && (
+            <div style={{ position: 'fixed', top: -9999, left: -9999, width: 1, height: 1, overflow: 'hidden', pointerEvents: 'none', opacity: 0 }}>
+              {keepAliveWidgets.map((w) => (
+                <WidgetFrame key={w.id} config={w} editMode={false} onRemove={removeWidget} onConfigChange={(cfg) => updateWidget(cfg.id, cfg)} />
+              ))}
+            </div>
+          )}
+          <div className="absolute inset-0">
+            <WidgetFrame
+              config={fillTabWidget}
+              editMode={editMode}
+              onRemove={removeWidget}
+              onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
+            />
           </div>
-        )}
-        <div className="absolute inset-0">
-          <WidgetFrame
-            config={fillTabWidget}
-            editMode={editMode}
-            onRemove={removeWidget}
-            onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
-          />
+          {showIframeOverlay && <IframeOverlay data={iframeFullscreen!} onClose={() => setIframeFullscreen(null)} />}
         </div>
-        {showIframeOverlay && <IframeOverlay data={iframeFullscreen!} onClose={() => setIframeFullscreen(null)} />}
-      </div>
+      </ActiveLayoutContext.Provider>
     );
   }
 
   // ── mobile: single-column stack ───────────────────────────────────────
   if (containerWidth > 0 && containerWidth < mobileBreakpoint) {
     return (
+      <ActiveLayoutContext.Provider value={effectiveLayoutId}>
       <div className="flex-1 min-h-0 relative">
         <div ref={containerRefCallback} className="aura-scroll absolute inset-0 overflow-auto p-2">
           {/* Reflow-hidden widgets from all tabs rendered off-screen */}
@@ -207,10 +218,12 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
         </div>
         {showIframeOverlay && <IframeOverlay data={iframeFullscreen!} onClose={() => setIframeFullscreen(null)} />}
       </div>
+      </ActiveLayoutContext.Provider>
     );
   }
 
   return (
+    <ActiveLayoutContext.Provider value={effectiveLayoutId}>
     <div className="flex-1 min-h-0 relative">
     <div ref={containerRefCallback} className="aura-scroll absolute inset-0 overflow-auto p-2 sm:p-4" style={(editMode && rglWidth > containerWidth) || (readonly && effectiveRglWidth > containerWidth) ? { overflowX: 'auto' } : undefined}>
       {showGuidelines && <GuidelinesOverlay width={guidelinesWidth} height={guidelinesHeight} />}
@@ -295,6 +308,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
     </div>
     {showIframeOverlay && <IframeOverlay data={iframeFullscreen!} onClose={() => setIframeFullscreen(null)} />}
     </div>
+    </ActiveLayoutContext.Provider>
   );
 }
 

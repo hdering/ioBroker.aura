@@ -3,6 +3,32 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { managedStorage } from './persistManager';
 import { slugify } from '../utils/slugify';
 import type { WidgetConfig } from '../types';
+import type { ThemeVars } from '../themes';
+
+// ── Per-layout overrideable settings ──────────────────────────────────────────
+// All fields are optional; undefined = inherit from global.
+export interface LayoutSettings {
+  // Theme
+  themeId?: string;
+  customVars?: Partial<ThemeVars>;
+  // CSS
+  customCSS?: string;
+  customCSSEnabled?: boolean;
+  // Typography
+  fontScale?: number;
+  // Spacing (Theme section)
+  gridGap?: number;
+  widgetPadding?: number;
+  // Grid & Mobile
+  gridRowHeight?: number;
+  gridSnapX?: number;
+  mobileBreakpoint?: number;
+  // Guidelines
+  guidelinesEnabled?: boolean;
+  guidelinesWidth?: number;
+  guidelinesHeight?: number;
+  guidelinesShowInFrontend?: boolean;
+}
 
 export interface Tab {
   id: string;
@@ -20,6 +46,7 @@ export interface DashboardLayout {
   tabs: Tab[];
   activeTabId: string;
   defaultTabId?: string;   // tab shown when frontend opens without a tab slug
+  settings?: LayoutSettings; // per-layout overrides (undefined = use global)
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -107,6 +134,11 @@ interface DashboardState {
   removeWidgetFromLayoutTab: (layoutId: string, tabId: string, widgetId: string) => void;
 
   setEditMode: (editMode: boolean) => void;
+
+  /** Update per-layout settings (pass undefined values to clear individual fields) */
+  updateLayoutSettings: (layoutId: string, patch: Partial<LayoutSettings>) => void;
+  /** Clear all per-layout settings for a layout (revert to global) */
+  clearLayoutSettings: (layoutId: string, key: keyof LayoutSettings) => void;
 }
 
 // ── store ─────────────────────────────────────────────────────────────────────
@@ -322,6 +354,24 @@ export const useDashboardStore = create<DashboardState>()(
         })),
 
       setEditMode: (editMode) => set({ editMode }),
+
+      updateLayoutSettings: (layoutId, patch) =>
+        set((s) => ({
+          layouts: patchLayout(s.layouts, layoutId, (l) => ({
+            ...l,
+            settings: { ...l.settings, ...patch },
+          })),
+        })),
+
+      clearLayoutSettings: (layoutId, key) =>
+        set((s) => ({
+          layouts: patchLayout(s.layouts, layoutId, (l) => {
+            if (!l.settings) return l;
+            const next = { ...l.settings };
+            delete next[key];
+            return { ...l, settings: Object.keys(next).length > 0 ? next : undefined };
+          }),
+        })),
     }),
     {
       name: 'aura-dashboard',

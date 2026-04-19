@@ -6,7 +6,8 @@ import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Downl
 import { exportWidget } from '../../utils/widgetExportImport';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
-import { useConfigStore } from '../../store/configStore';
+import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
+import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import type { WidgetConfig, WidgetCondition, CustomCell, CustomGrid } from '../../types';
 import { DEFAULT_CUSTOM_GRID } from '../widgets/CustomGridView';
 import { DatapointPicker } from '../config/DatapointPicker';
@@ -926,7 +927,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
   const isHeader    = config.type === 'header';
   const isGroup     = config.type === 'group';
   const isTransparent = !!(config.options?.transparent);
-  const widgetPadding = useConfigStore((s) => s.frontend.widgetPadding ?? 16);
+  const activeLayoutIdCtx = useActiveLayoutId();
+  const effectiveSettings = useEffectiveSettings(activeLayoutIdCtx);
+  const widgetPadding = effectiveSettings.widgetPadding ?? 16;
   const isNoPad = isHeader || isGroup || isTransparent || config.type === 'iframe';
 
   return (

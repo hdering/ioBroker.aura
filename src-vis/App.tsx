@@ -12,6 +12,7 @@ import { useGroupStore } from './store/groupStore';
 import { Dashboard } from './components/layout/Dashboard';
 import { TabBar } from './components/layout/TabBar';
 import { useIframeStore } from './store/iframeStore';
+import { useEffectiveSettings, useEffectiveThemeId, useEffectiveCustomVars } from './hooks/useEffectiveSettings';
 import { useT } from './i18n';
 import type { Tab } from './store/dashboardStore';
 import type { FrontendSettings } from './store/configStore';
@@ -187,8 +188,7 @@ export default function App() {
   const { tabSlug, layoutSlug } = useParams<{ tabSlug?: string; layoutSlug?: string }>();
   const navigate = useNavigate();
   const { frontend } = useConfigStore();
-  const { themeId, setTheme } = useThemeStore();
-  const currentTheme = getTheme(themeId);
+  const { setTheme } = useThemeStore();
   const { connected, subscribe } = useIoBroker();
   const { clientId, clientName } = useConnectionStore();
 
@@ -197,6 +197,12 @@ export default function App() {
   // Determine which layout to display based on URL slug
   const layout = useLayoutBySlug(layoutSlug);
   const tabs = useMemo<Tab[]>(() => layout?.tabs ?? [], [layout?.tabs]);
+
+  // Effective settings for the active layout (per-layout overrides + global fallback)
+  const effectiveSettings = useEffectiveSettings(layout?.id);
+  const effectiveThemeId = useEffectiveThemeId(layout?.id);
+  const effectiveCustomVars = useEffectiveCustomVars(layout?.id);
+  const currentTheme = getTheme(effectiveThemeId);
 
   // Local active tab state (frontend only — doesn't affect admin editor)
   // URL slug takes priority; fall back to defaultTabId or first tab
@@ -236,15 +242,40 @@ export default function App() {
     return () => window.removeEventListener('storage', handler);
   }, []);
 
-  // Apply custom CSS
+  // Apply effective custom CSS (per-layout overrides global when set)
   useEffect(() => {
     if (!styleRef.current) {
       styleRef.current = document.createElement('style');
       styleRef.current.id = 'aura-custom-css';
       document.head.appendChild(styleRef.current);
     }
-    styleRef.current.textContent = (frontend.customCSSEnabled ?? true) ? frontend.customCSS : '';
-  }, [frontend.customCSS, frontend.customCSSEnabled]);
+    const css = effectiveSettings.customCSS ?? frontend.customCSS;
+    const enabled = effectiveSettings.customCSSEnabled ?? true;
+    styleRef.current.textContent = enabled ? css : '';
+  }, [effectiveSettings.customCSS, effectiveSettings.customCSSEnabled, frontend.customCSS, frontend.customCSSEnabled]);
+
+  // Apply per-layout theme overrides on top of global ThemeProvider vars
+  const layoutThemeRef = useRef<HTMLStyleElement | null>(null);
+  useEffect(() => {
+    const ls = layout?.settings;
+    if (!ls?.themeId && !ls?.customVars && !ls?.fontScale) {
+      // No layout-specific theme — remove any previous override
+      if (layoutThemeRef.current) {
+        layoutThemeRef.current.textContent = '';
+      }
+      return;
+    }
+    if (!layoutThemeRef.current) {
+      layoutThemeRef.current = document.createElement('style');
+      layoutThemeRef.current.id = 'aura-layout-theme';
+      document.head.appendChild(layoutThemeRef.current);
+    }
+    const root = document.documentElement;
+    const vars = { ...currentTheme.vars, ...effectiveCustomVars };
+    Object.entries(vars).forEach(([k, v]) => { if (v) root.style.setProperty(k, v); });
+    if (ls?.fontScale !== undefined) root.style.setProperty('--font-scale', String(ls.fontScale));
+    root.classList.toggle('dark', currentTheme.dark);
+  }, [layout?.id, layout?.settings, currentTheme, effectiveCustomVars]);
 
   // ── Load config from ioBroker on first connect ─────────────────────────────
   // localStorage is browser-local; ioBroker holds the authoritative config so
@@ -392,6 +423,7 @@ export default function App() {
         readonly
         viewTabs={tabs}
         viewActiveTabId={activeTabId}
+        layoutId={layout?.id}
       />
     </div>
   );
