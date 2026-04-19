@@ -242,6 +242,19 @@ function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; o
         <input type="number" min={1} max={20} value={(o.maxEvents as number) ?? 5}
           onChange={(e) => setOpts({ maxEvents: Number(e.target.value) })} className={inputCls} style={inputStyle} />
       </div>
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Schriftgröße</label>
+          <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>
+            {Math.round(((o.calFontScale as number) ?? 1) * 100)} %
+          </span>
+        </div>
+        <input type="range" min={0.5} max={3} step={0.05}
+          value={(o.calFontScale as number) ?? 1}
+          onChange={(e) => setOpts({ calFontScale: Number(e.target.value) })}
+          className="w-full h-1"
+          style={{ accentColor: 'var(--accent)' }} />
+      </div>
 
     </>
   );

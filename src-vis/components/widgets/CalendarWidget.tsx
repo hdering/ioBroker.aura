@@ -316,8 +316,9 @@ export function CalendarWidget({ config }: WidgetProps) {
   const sources = getSources(options);
   const layout = config.layout ?? 'default';
   const visibleEvents = events.slice(0, maxEvents);
+  const calFontScale = (options.calFontScale as number) ?? 1;
 
-  const fs = (px: number) => `calc(${px}px * var(--font-scale, 1))`;
+  const fs = (px: number) => `calc(${px}px * var(--font-scale, 1) * ${calFontScale})`;
 
   // ── no sources configured ────────────────────────────────────────────────
   if (sources.length === 0) {
@@ -402,7 +403,7 @@ export function CalendarWidget({ config }: WidgetProps) {
       <div className="flex flex-col h-full">
         {/* header row */}
         <div className="flex items-center justify-between shrink-0">
-          <p className="truncate" style={{ color: 'var(--text-secondary)', fontSize: 'calc(11px * var(--font-scale, 1))' }}>{config.title}</p>
+          <p className="truncate" style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>{config.title}</p>
           <button onClick={fetchEvents} className="hover:opacity-70 shrink-0"><Spinner loading={loading} /></button>
         </div>
 
@@ -411,36 +412,36 @@ export function CalendarWidget({ config }: WidgetProps) {
           {next ? (
             <div className={meta?.className} data-calendar-event={meta?.dataAttr}>
               {showCalName && next.showSourceName && (
-                <p style={{ color: next.sourceColor, fontSize: 'calc(9px * var(--font-scale, 1))', marginBottom: 2 }}>
+                <p style={{ color: next.sourceColor, fontSize: fs(9), marginBottom: 2 }}>
                   {next.sourceName}
                 </p>
               )}
               {showSummary && (
-                <p className="font-bold leading-tight" style={{ color, fontSize: 'calc(1.25rem * var(--font-scale, 1))' }}>
+                <p className="font-bold leading-tight" style={{ color, fontSize: fs(20) }}>
                   {next.summary}
                 </p>
               )}
               {showDate && (
-                <p style={{ color: 'var(--text-secondary)', fontSize: 'calc(11px * var(--font-scale, 1))', marginTop: 2 }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: fs(11), marginTop: 2 }}>
                   {formatEventDate(next, t)}
                 </p>
               )}
               {showLocation && next.location && (
                 <div className="flex items-center gap-1" style={{ marginTop: 4 }}>
                   <MapPin size={10} style={{ color: 'var(--text-secondary)' }} />
-                  <p className="truncate" style={{ color: 'var(--text-secondary)', fontSize: 'calc(10px * var(--font-scale, 1))' }}>
+                  <p className="truncate" style={{ color: 'var(--text-secondary)', fontSize: fs(10) }}>
                     {next.location}
                   </p>
                 </div>
               )}
               {showMore && visibleEvents.length > 1 && (
-                <p style={{ color: 'var(--text-secondary)', fontSize: 'calc(10px * var(--font-scale, 1))', marginTop: 6 }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: fs(10), marginTop: 6 }}>
                   {t('calendar.more', { count: visibleEvents.length - 1 })}
                 </p>
               )}
             </div>
           ) : (
-            <p className="font-bold" style={{ color: 'var(--text-secondary)', fontSize: 'calc(1.125rem * var(--font-scale, 1))' }}>
+            <p className="font-bold" style={{ color: 'var(--text-secondary)', fontSize: fs(18) }}>
               {t('calendar.noEvents')}
             </p>
           )}
