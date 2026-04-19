@@ -256,6 +256,60 @@ function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; o
           style={{ accentColor: 'var(--accent)' }} />
       </div>
 
+      {/* separator */}
+      <div className="h-px" style={{ background: 'var(--app-border)' }} />
+
+      {/* ── Wichtige Termine ── */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Wichtige Termine</p>
+          <button
+            onClick={() => setOpts({ highlightEnabled: !(o.highlightEnabled !== false) })}
+            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+            style={{ background: o.highlightEnabled !== false ? 'var(--accent)' : 'var(--app-border)' }}>
+            <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+              style={{ left: o.highlightEnabled !== false ? '14px' : '2px' }} />
+          </button>
+        </div>
+        {o.highlightEnabled !== false && (
+          <div className="space-y-2">
+            {/* PRIORITY toggle */}
+            <div className="flex items-center justify-between">
+              <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                iCal PRIORITY 1–4 (Outlook, Thunderbird)
+              </span>
+              <button
+                onClick={() => setOpts({ highlightPriority: !(o.highlightPriority !== false) })}
+                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                style={{ background: o.highlightPriority !== false ? 'var(--accent)' : 'var(--app-border)' }}>
+                <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                  style={{ left: o.highlightPriority !== false ? '14px' : '2px' }} />
+              </button>
+            </div>
+            {/* Keywords */}
+            <div>
+              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                Stichwörter im Titel / Kategorie (kommagetrennt)
+              </label>
+              <input type="text"
+                value={(o.highlightKeywords as string) ?? ''}
+                onChange={(e) => setOpts({ highlightKeywords: e.target.value || undefined })}
+                placeholder="z.B. ⭐, wichtig, urgent"
+                className={inputCls} style={inputStyle} />
+            </div>
+            {/* Color */}
+            <div className="flex items-center gap-2">
+              <label className="text-[11px] flex-1" style={{ color: 'var(--text-secondary)' }}>Hervorhebungsfarbe</label>
+              <input type="color"
+                value={(o.highlightColor as string) || '#f59e0b'}
+                onChange={(e) => setOpts({ highlightColor: e.target.value })}
+                className="w-8 h-6 rounded cursor-pointer p-0.5"
+                style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }} />
+            </div>
+          </div>
+        )}
+      </div>
+
     </>
   );
 }

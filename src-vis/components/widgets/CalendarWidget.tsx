@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { RefreshCw, CalendarDays, MapPin, AlertCircle } from 'lucide-react';
+import { RefreshCw, CalendarDays, MapPin, AlertCircle, Star } from 'lucide-react';
 import type { WidgetProps } from '../../types';
 import { getSocket, subscribeStateDirect, setStateDirect } from '../../hooks/useIoBroker';
 import { useT } from '../../i18n';
@@ -46,6 +46,8 @@ interface CalEvent {
   start: Date;
   end?: Date;
   allDay: boolean;
+  priority?: number;     // PRIORITY 1-9 (1-4 = high)
+  categories?: string[]; // CATEGORIES
 }
 
 interface CalEventTagged extends CalEvent {
@@ -94,8 +96,25 @@ function parseIcal(text: string): CalEvent[] {
     else if (key === 'LOCATION') cur.location = value.replace(/\\,/g, ',');
     else if (key === 'DTSTART') { cur.allDay = !value.includes('T'); try { cur.start = parseIcalDate(value); } catch { /* skip */ } }
     else if (key === 'DTEND') { try { cur.end = parseIcalDate(value); } catch { /* skip */ } }
+    else if (key === 'PRIORITY') { const p = parseInt(value, 10); if (!isNaN(p)) cur.priority = p; }
+    else if (key === 'CATEGORIES') { cur.categories = value.split(',').map((c) => c.trim()).filter(Boolean); }
   }
   return events;
+}
+
+// ── importance detection ───────────────────────────────────────────────────
+
+function isImportant(ev: CalEventTagged, keywords: string[], usePriority: boolean): boolean {
+  if (usePriority && ev.priority != null && ev.priority >= 1 && ev.priority <= 4) return true;
+  if (keywords.length === 0) return false;
+  const summaryLower = ev.summary.toLowerCase();
+  return keywords.some((kw) => {
+    if (!kw) return false;
+    const kwLower = kw.toLowerCase();
+    if (summaryLower.includes(kwLower)) return true;
+    if (ev.categories?.some((c) => c.toLowerCase().includes(kwLower))) return true;
+    return false;
+  });
 }
 
 // ── fetch ──────────────────────────────────────────────────────────────────
@@ -316,9 +335,16 @@ export function CalendarWidget({ config }: WidgetProps) {
   const sources = getSources(options);
   const layout = config.layout ?? 'default';
   const visibleEvents = events.slice(0, maxEvents);
-  const calFontScale = (options.calFontScale as number) ?? 1;
+  const calFontScale    = (options.calFontScale as number) ?? 1;
+  const highlightEnabled  = options.highlightEnabled !== false;
+  const highlightPriority = options.highlightPriority !== false;
+  const highlightColor    = (options.highlightColor as string) || '#f59e0b';
+  const highlightKeywords: string[] = ((options.highlightKeywords as string) ?? '')
+    .split(',').map((s) => s.trim()).filter(Boolean);
 
   const fs = (px: number) => `calc(${px}px * var(--font-scale, 1) * ${calFontScale})`;
+  const imp = (ev: CalEventTagged) =>
+    highlightEnabled && isImportant(ev, highlightKeywords, highlightPriority);
 
   // ── no sources configured ────────────────────────────────────────────────
   if (sources.length === 0) {
@@ -361,7 +387,8 @@ export function CalendarWidget({ config }: WidgetProps) {
   // ── COMPACT ──────────────────────────────────────────────────────────────
   if (layout === 'compact') {
     const next = visibleEvents[0];
-    const color = next?.sourceColor ?? 'var(--accent)';
+    const important = next ? imp(next) : false;
+    const color = important ? highlightColor : (next?.sourceColor ?? 'var(--accent)');
     const meta = next ? eventMeta(next, 0) : null;
     const showCalName = options.showCalName !== false;
     const showDate    = options.showDate    !== false;
@@ -370,14 +397,16 @@ export function CalendarWidget({ config }: WidgetProps) {
         className={`flex items-center gap-2 h-full${meta ? ` ${meta.className}` : ''}`}
         data-calendar-event={meta?.dataAttr}
       >
-        <CalendarDays size={14} style={{ color, flexShrink: 0 }} />
+        {important
+          ? <Star size={14} style={{ color, flexShrink: 0 }} />
+          : <CalendarDays size={14} style={{ color, flexShrink: 0 }} />}
         {showCalName && next?.showSourceName && (
           <span className="shrink-0 font-medium" style={{ color: next.sourceColor, fontSize: fs(9) }}>{next.sourceName}</span>
         )}
         {loading && !next
           ? <span className="flex-1 truncate" style={{ color: 'var(--text-secondary)', fontSize: fs(12) }}>{t('calendar.loading')}</span>
           : next
-            ? <span className="flex-1 font-medium truncate min-w-0" style={{ color: 'var(--text-primary)', fontSize: fs(12) }}>{next.summary}</span>
+            ? <span className="flex-1 font-medium truncate min-w-0" style={{ color: important ? highlightColor : 'var(--text-primary)', fontSize: fs(12) }}>{next.summary}</span>
             : <span className="flex-1 truncate" style={{ color: 'var(--text-secondary)', fontSize: fs(12) }}>{t('calendar.noEvents')}</span>
         }
         {showDate && next && <span className="shrink-0" style={{ color, fontSize: fs(12) }}>{formatEventDate(next, t)}</span>}
@@ -389,7 +418,8 @@ export function CalendarWidget({ config }: WidgetProps) {
   // ── CARD ─────────────────────────────────────────────────────────────────
   if (layout === 'card') {
     const next = visibleEvents[0];
-    const color = next?.sourceColor ?? 'var(--accent)';
+    const important = next ? imp(next) : false;
+    const color = important ? highlightColor : (next?.sourceColor ?? 'var(--accent)');
     const meta = next ? eventMeta(next, 0) : null;
 
     // Visibility options (all shown by default)
@@ -418,6 +448,7 @@ export function CalendarWidget({ config }: WidgetProps) {
               )}
               {showSummary && (
                 <p className="font-bold leading-tight" style={{ color, fontSize: fs(20) }}>
+                  {important && <Star size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />}
                   {next.summary}
                 </p>
               )}
@@ -473,22 +504,29 @@ export function CalendarWidget({ config }: WidgetProps) {
               const showDate    = options.showDate    !== false;
               return visibleEvents.map((ev, idx) => {
                 const meta = eventMeta(ev, idx);
+                const important = imp(ev);
                 return (
                   <div
                     key={ev.uid}
                     className={`${meta.className} flex items-center gap-2 min-h-0 shrink-0 py-0.5 rounded px-1 -mx-1 transition-colors`}
                     data-calendar-event={meta.dataAttr}
-                    style={meta.isToday || meta.isNext ? { background: ev.sourceColor + '18' } : undefined}
+                    style={{
+                      background: important
+                        ? highlightColor + '18'
+                        : meta.isToday || meta.isNext ? ev.sourceColor + '18' : undefined,
+                      ...(important ? { borderLeft: `2px solid ${highlightColor}`, paddingLeft: 4 } : {}),
+                    }}
                   >
                     <div className="self-stretch rounded-full shrink-0 transition-all"
-                      style={{ width: meta.isNext ? 3 : 2, background: ev.sourceColor }} />
+                      style={{ width: meta.isNext ? 3 : 2, background: important ? highlightColor : ev.sourceColor }} />
                     {showCalName && ev.showSourceName && (
                       <span className="font-medium shrink-0 w-14 truncate" style={{ color: ev.sourceColor, fontSize: fs(9) }}>
                         {ev.sourceName}
                       </span>
                     )}
                     <p className="flex-1 truncate min-w-0"
-                      style={{ color: 'var(--text-primary)', fontWeight: meta.isNext ? 700 : 500, fontSize: fs(11) }}>
+                      style={{ color: important ? highlightColor : 'var(--text-primary)', fontWeight: important || meta.isNext ? 700 : 500, fontSize: fs(11) }}>
+                      {important && <Star size={9} style={{ display: 'inline', marginRight: 3, verticalAlign: 'middle' }} />}
                       {ev.summary}
                     </p>
                     {showDate && (
@@ -538,25 +576,33 @@ export function CalendarWidget({ config }: WidgetProps) {
             const showLocation = options.showLocation !== false;
             return visibleEvents.map((ev, idx) => {
               const meta = eventMeta(ev, idx);
+              const important = imp(ev);
               return (
                 <div
                   key={ev.uid}
                   className={`${meta.className} flex items-start gap-2 min-h-0 shrink-0 rounded-lg px-1.5 py-0.5 -mx-1.5 transition-colors`}
                   data-calendar-event={meta.dataAttr}
-                  style={meta.isToday || meta.isNext ? { background: ev.sourceColor + '18' } : undefined}
+                  style={{
+                    background: important
+                      ? highlightColor + '18'
+                      : meta.isToday || meta.isNext ? ev.sourceColor + '18' : undefined,
+                    ...(important ? { borderLeft: `2px solid ${highlightColor}`, marginLeft: -8, paddingLeft: 6 } : {}),
+                  }}
                 >
                   {meta.isNext ? (
                     <div className="mt-1.5 shrink-0 w-2 h-2 rounded-full"
-                      style={{ background: ev.sourceColor, boxShadow: `0 0 0 1.5px var(--app-surface), 0 0 0 3px ${ev.sourceColor}` }} />
+                      style={{ background: important ? highlightColor : ev.sourceColor, boxShadow: `0 0 0 1.5px var(--app-surface), 0 0 0 3px ${important ? highlightColor : ev.sourceColor}` }} />
                   ) : (
-                    <div className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ background: ev.sourceColor }} />
+                    <div className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
+                      style={{ background: important ? highlightColor : ev.sourceColor }} />
                   )}
                   <div className="flex-1 min-w-0">
                     {showCalName && ev.showSourceName && sources.length > 1 && (
                       <p style={{ color: ev.sourceColor, fontSize: fs(9) }}>{ev.sourceName}</p>
                     )}
                     <p className="leading-tight truncate"
-                      style={{ color: 'var(--text-primary)', fontWeight: meta.isNext ? 700 : 500, fontSize: fs(11) }}>
+                      style={{ color: important ? highlightColor : 'var(--text-primary)', fontWeight: important || meta.isNext ? 700 : 500, fontSize: fs(11) }}>
+                      {important && <Star size={9} style={{ display: 'inline', marginRight: 3, verticalAlign: 'middle' }} />}
                       {ev.summary}
                     </p>
                     {showDate && (
