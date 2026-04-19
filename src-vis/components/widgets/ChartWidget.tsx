@@ -5,6 +5,7 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfigStore } from '../../store/configStore';
 import { useChartHistory, type ChartTimeRange, RANGE_LABELS } from '../../hooks/useChartHistory';
 import type { WidgetProps } from '../../types';
+import { CustomGridView } from './CustomGridView';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
@@ -111,6 +112,8 @@ export function ChartWidget({ config }: WidgetProps) {
       )}
     </div>
   ) : null;
+
+  if (layout === 'custom') return <CustomGridView config={config} value={current !== null ? current.toLocaleString('de-DE') : '–'} unit={o.unit as string | undefined} />;
 
   // ── CARD ─────────────────────────────────────────────────────────────────
   if (layout === 'card') {

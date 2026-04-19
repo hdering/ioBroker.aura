@@ -3,6 +3,7 @@ import { BarChart2, Loader } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useMultiSeriesData, type EChartSeriesConfig } from '../../hooks/useMultiSeriesData';
 import type { WidgetProps } from '../../types';
+import { CustomGridView } from './CustomGridView';
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -33,6 +34,9 @@ function deepMerge(
 
 export function EChartWidget({ config, editMode }: WidgetProps) {
   const { subscribe, connected } = useIoBroker();
+
+  const layout = config.layout ?? 'default';
+  if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
   const o = config.options ?? {};
   const showTitle = o.showTitle !== false;

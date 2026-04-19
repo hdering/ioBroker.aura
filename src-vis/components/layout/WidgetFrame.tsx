@@ -8,12 +8,12 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import type { WidgetConfig, WidgetCondition, CustomCell, CustomGrid } from '../../types';
-import { DEFAULT_CUSTOM_GRID } from '../widgets/ValueWidget';
+import { DEFAULT_CUSTOM_GRID } from '../widgets/CustomGridView';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
 import { getObjectDirect, subscribeStateDirect, getStateDirect } from '../../hooks/useIoBroker';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
-import { WIDGET_REGISTRY, WIDGET_GROUPS } from '../../widgetRegistry';
+import { WIDGET_REGISTRY, WIDGET_GROUPS, WIDGET_BY_TYPE } from '../../widgetRegistry';
 import { detectType } from '../../utils/widgetDetection';
 import { AutoListConfig } from '../config/AutoListConfig';
 import { StaticListConfig } from '../config/StaticListConfig';
@@ -1401,7 +1401,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                 { value: 'compact', label: t('wf.edit.layout.compact') },
                 { value: 'minimal', label: t('wf.edit.layout.minimal') },
                 ...(config.type === 'calendar' ? [{ value: 'agenda', label: t('wf.edit.layout.agenda') }] : []),
-                ...(config.type === 'value' ? [{ value: 'custom', label: 'Custom' }] : []),
+                ...(!['iframe', 'jsontable', 'trash', 'header', 'fill'].includes(config.type) ? [{ value: 'custom', label: 'Custom' }] : []),
                 ...(config.type === 'evcc' ? [
                   { value: 'flow',        label: 'Nur Fluss' },
                   { value: 'battery',     label: 'Nur Batterie' },
@@ -1562,10 +1562,14 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
             })()}
           </div>
 
-          <div className="h-px" style={{ background: 'var(--app-border)' }} />
-
           {/* ─── 4. Widget-spezifische Einstellungen ───────────────────────── */}
-          <div className="space-y-2.5">
+          <div
+            className="space-y-2.5 rounded-lg px-3 py-3"
+            style={{ background: 'color-mix(in srgb, var(--accent) 6%, var(--app-bg))' }}
+          >
+            <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--accent)', opacity: 0.75 }}>
+              {WIDGET_BY_TYPE[config.type]?.label ?? config.type}
+            </p>
               {config.type === 'clock' && (() => {
                 const o = config.options ?? {};
                 const set = (patch: Record<string, unknown>) =>
@@ -1706,8 +1710,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   </p>
                 </div>
               )}
-              {/* ── Custom-Grid editor (value widget, layout=custom) ── */}
-              {config.type === 'value' && (config.layout ?? 'default') === 'custom' && (() => {
+              {/* ── Custom-Grid editor (all widgets except excluded) ── */}
+              {!['iframe', 'jsontable', 'trash', 'header', 'fill'].includes(config.type) && (config.layout ?? 'default') === 'custom' && (() => {
                 const CELL_LABELS: Record<string, string> = {
                   empty: '–', title: 'Titel', value: 'Wert', unit: 'Einheit', text: 'Text', dp: 'DP',
                 };

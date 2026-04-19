@@ -7,6 +7,7 @@ import { lookupDatapointName } from '../../hooks/useDatapointList';
 import type { WidgetProps, WidgetConfig } from '../../types';
 import { useT } from '../../i18n';
 import { StatusBadges } from './StatusBadges';
+import { CustomGridView } from './CustomGridView';
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -217,6 +218,8 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
 
   const layout = config.layout ?? 'default';
   const wrapperCls = `${clickable && !editMode ? 'cursor-pointer' : ''}`;
+
+  if (layout === 'custom') return <CustomGridView config={config} value={typeof rawTarget === 'number' ? rawTarget.toFixed(1) : '–'} />;
 
   // ── CARD ──────────────────────────────────────────────────────────────────
   if (layout === 'card') {

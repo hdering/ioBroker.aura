@@ -3,6 +3,7 @@ import { RefreshCw, CalendarDays, MapPin, AlertCircle, Star } from 'lucide-react
 import type { WidgetProps } from '../../types';
 import { getSocket, subscribeStateDirect, setStateDirect } from '../../hooks/useIoBroker';
 import { useT } from '../../i18n';
+import { CustomGridView } from './CustomGridView';
 
 // ── CalendarSource ─────────────────────────────────────────────────────────
 
@@ -373,6 +374,8 @@ export function CalendarWidget({ config }: WidgetProps) {
       </div>
     );
   }
+
+  if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
   // ── MINIMAL ──────────────────────────────────────────────────────────────
   if (layout === 'minimal') {

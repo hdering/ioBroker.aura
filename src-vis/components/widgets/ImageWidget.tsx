@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ImageIcon } from 'lucide-react';
 import type { WidgetProps } from '../../types';
 import { useDatapoint } from '../../hooks/useDatapoint';
+import { CustomGridView } from './CustomGridView';
 
 type FitMode = 'none' | 'contain' | 'width' | 'height';
 
@@ -13,6 +14,9 @@ export function ImageWidget({ config }: WidgetProps) {
   const refreshSeconds  = (opts.refreshInterval as number)   ?? 0;
 
   const { value: dpValue } = useDatapoint(datapointId);
+
+  const layout = config.layout ?? 'default';
+  if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
   // Incrementing key forces <img> reload on refresh tick
   const [tick, setTick]       = useState(0);

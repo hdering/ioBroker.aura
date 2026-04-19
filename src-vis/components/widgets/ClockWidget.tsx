@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { WidgetProps } from '../../types';
 import { useT } from '../../i18n';
+import { CustomGridView } from './CustomGridView';
 
 type TFn = ReturnType<typeof useT>;
 
@@ -55,6 +56,8 @@ export function ClockWidget({ config }: WidgetProps) {
 
   const timeStr = formatTime(now, showSeconds);
   const customStr = customFormat ? applyCustomFormat(now, customFormat, t) : '';
+
+  if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
   // ---------- COMPACT ----------
   if (layout === 'compact') {

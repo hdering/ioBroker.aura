@@ -8,6 +8,7 @@ import { WIDGET_BY_TYPE, WIDGET_REGISTRY, WIDGET_GROUPS } from '../../widgetRegi
 // uses WidgetFrame inside its render function, never at module-init time.
 import { WidgetFrame } from '../layout/WidgetFrame';
 import { useT } from '../../i18n';
+import { CustomGridView } from './CustomGridView';
 
 const CHILD_MARGIN = 6;
 
@@ -43,6 +44,9 @@ function mobileSort(children: WidgetConfig[]): WidgetConfig[] {
 
 export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const t = useT();
+  const configLayout = config.layout ?? 'default';
+  if (configLayout === 'custom') return <CustomGridView config={config} value="" />;
+
   const children = (config.options?.children as WidgetConfig[] | undefined) ?? [];
   const transparent = !!(config.options?.transparent);
   const cellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);

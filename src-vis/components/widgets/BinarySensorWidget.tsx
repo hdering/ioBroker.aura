@@ -3,6 +3,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { StatusBadges } from './StatusBadges';
+import { CustomGridView } from './CustomGridView';
 
 // Preset configurations per sensor sub-type
 export const BINARY_SENSOR_PRESETS: Record<string, {
@@ -35,6 +36,8 @@ export function BinarySensorWidget({ config }: WidgetProps) {
   const Icon = isActive ? ShieldAlert : CheckCircle2;
   const showTitle = opts.showTitle !== false;
   const showLabel = opts.showLabel !== false;
+
+  if (layout === 'custom') return <CustomGridView config={config} value={isActive ? labelOn : labelOff} />;
 
   // ── CARD ─────────────────────────────────────────────────────────────────
   if (layout === 'card') {

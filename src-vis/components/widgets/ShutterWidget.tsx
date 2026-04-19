@@ -4,6 +4,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
 import { StatusBadges } from './StatusBadges';
+import { CustomGridView } from './CustomGridView';
 
 // Shutter visual: horizontal slat lines filling from top = how much is closed
 function ShutterViz({
@@ -130,6 +131,8 @@ export function ShutterWidget({ config }: WidgetProps) {
       style={{ accentColor: 'var(--accent)' }}
       className="w-full h-1.5 rounded-full appearance-none cursor-pointer" />
   );
+
+  if (layout === 'custom') return <CustomGridView config={config} value={`${pos}`} />;
 
   // ── CARD ──────────────────────────────────────────────────────────────────
   if (layout === 'card') {

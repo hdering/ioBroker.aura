@@ -5,6 +5,7 @@ import type { WidgetProps } from '../../types';
 import { contentPositionClass, titlePositionStyle, titleTextAlign } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
+import { CustomGridView } from './CustomGridView';
 
 export function SwitchWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
@@ -16,6 +17,8 @@ export function SwitchWidget({ config }: WidgetProps) {
   const o = config.options ?? {};
   const showTitle = o.showTitle !== false;
   const showLabel = o.showLabel !== false;
+
+  if (layout === 'custom') return <CustomGridView config={config} value={isOn ? 'AN' : 'AUS'} />;
 
   // --- CARD: Vollflächige farbige Karte mit großem Icon ---
   if (layout === 'card') {

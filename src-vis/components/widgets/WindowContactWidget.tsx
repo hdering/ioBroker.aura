@@ -3,6 +3,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { StatusBadges } from './StatusBadges';
+import { CustomGridView } from './CustomGridView';
 
 // ─── state helpers ────────────────────────────────────────────────────────────
 
@@ -55,6 +56,8 @@ export function WindowContactWidget({ config }: WidgetProps) {
   const o = config.options ?? {};
   const showTitle = o.showTitle !== false;
   const showLabel = o.showLabel !== false;
+
+  if (layout === 'custom') return <CustomGridView config={config} value={label} />;
 
   // ── CARD ─────────────────────────────────────────────────────────────────
   if (layout === 'card') {

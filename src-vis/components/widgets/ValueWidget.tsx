@@ -1,86 +1,9 @@
 import { Activity, TrendingUp, Hash } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
-import type { WidgetProps, CustomCell, CustomGrid } from '../../types';
+import type { WidgetProps } from '../../types';
 import { contentPositionClass, titlePositionStyle, titleTextAlign } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-
-// ── Custom-Grid helpers ───────────────────────────────────────────────────────
-
-export const DEFAULT_CUSTOM_GRID: CustomGrid = [
-  { type: 'title', align: 'left', valign: 'top' },
-  { type: 'empty' },
-  { type: 'empty' },
-  { type: 'value', fontSize: 32, bold: true, align: 'left', valign: 'middle' },
-  { type: 'unit',  fontSize: 14,             align: 'left', valign: 'middle' },
-  { type: 'empty' },
-  { type: 'empty' },
-  { type: 'empty' },
-  { type: 'empty' },
-];
-
-/** Shared text + layout styles for a cell */
-function cellStyle(cell: CustomCell, defaultColor: string): React.CSSProperties {
-  return {
-    fontSize:     cell.fontSize ? `${cell.fontSize}px` : undefined,
-    fontWeight:   cell.bold   ? 'bold'   : undefined,
-    fontStyle:    cell.italic ? 'italic' : undefined,
-    color:        cell.color || defaultColor,
-    overflow:     'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace:   'nowrap',
-    lineHeight:   1.15,
-  };
-}
-
-function cellWrapStyle(cell: CustomCell): React.CSSProperties {
-  return {
-    display:        'flex',
-    overflow:       'hidden',
-    alignItems:     cell.valign === 'top' ? 'flex-start' : cell.valign === 'bottom' ? 'flex-end' : 'center',
-    justifyContent: cell.align === 'center' ? 'center' : cell.align === 'right' ? 'flex-end' : 'flex-start',
-    padding:        '2px',
-  };
-}
-
-/** Cell for an additional (arbitrary) ioBroker datapoint */
-function DpCellView({ cell, index }: { cell: CustomCell; index: number }) {
-  const { value } = useDatapoint(cell.dpId ?? '');
-  const formatted = value === null ? '–'
-    : typeof value === 'number' ? value.toLocaleString('de-DE')
-    : String(value);
-  const content = `${cell.prefix ?? ''}${formatted}${cell.suffix ?? ''}`;
-  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} />;
-  return (
-    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell)}>
-      <span style={cellStyle(cell, 'var(--text-primary)')}>{content}</span>
-    </div>
-  );
-}
-
-/** Cell for static / widget-derived content */
-function StaticCellView({
-  cell, index, title, value, unit,
-}: { cell: CustomCell; index: number; title: string; value: string; unit?: string }) {
-  const content = (() => {
-    switch (cell.type) {
-      case 'title': return title;
-      case 'value': return `${cell.prefix ?? ''}${value}${cell.suffix ?? ''}`;
-      case 'unit':  return unit ?? '';
-      case 'text':  return cell.text ?? '';
-      default:      return '';
-    }
-  })();
-
-  if (cell.type === 'empty' || !content) return <div className={`aura-custom-cell-${index}`} />;
-
-  const defaultColor = cell.type === 'value' ? 'var(--text-primary)' : 'var(--text-secondary)';
-
-  return (
-    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell)}>
-      <span style={cellStyle(cell, defaultColor)}>{content}</span>
-    </div>
-  );
-}
+import { CustomGridView } from './CustomGridView';
 
 export function ValueWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
@@ -100,19 +23,8 @@ export function ValueWidget({ config }: WidgetProps) {
     : typeof value === 'number' ? value.toLocaleString('de-DE')
     : String(value);
 
-  // --- CUSTOM: freies 3×3-Raster ---
-  if (layout === 'custom') {
-    const cells: CustomGrid = (o.customGrid as CustomGrid | undefined) ?? DEFAULT_CUSTOM_GRID;
-    return (
-      <div className="aura-custom-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gridTemplateRows: '1fr 1fr 1fr', width: '100%', height: '100%', gap: '2px' }}>
-        {cells.map((cell, i) =>
-          cell.type === 'dp'
-            ? <DpCellView  key={i} cell={cell} index={i} />
-            : <StaticCellView key={i} cell={cell} index={i} title={config.title} value={displayValue} unit={unit} />
-        )}
-      </div>
-    );
-  }
+  // --- CUSTOM ---
+  if (layout === 'custom') return <CustomGridView config={config} value={displayValue} unit={unit} />;
 
   // HTML template mode: replaces the entire widget content
   if (htmlTemplate) {

@@ -2,6 +2,7 @@ import { useId } from 'react';
 import { Droplets } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
+import { CustomGridView } from './CustomGridView';
 
 export interface ColorZone { max: number; color: string; }
 
@@ -280,6 +281,8 @@ export function FillWidget({ config }: WidgetProps) {
 
   const layout = (config.layout ?? 'default') as string;
   const showTitle = opts.showTitle !== false;
+
+  if (layout === 'custom') return <CustomGridView config={config} value={value !== null ? (decimals === 0 ? String(Math.round(safeVal)) : safeVal.toFixed(decimals)) : '–'} unit={unit} />;
 
   if (layout === 'compact') {
     const displayVal = decimals === 0 ? String(Math.round(safeVal)) : safeVal.toFixed(decimals);

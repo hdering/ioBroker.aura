@@ -4,6 +4,7 @@ import type { WidgetProps, ioBrokerState } from '../../types';
 import { getObjectViewDirect, getObjectDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { saveAll } from '../../store/persistManager';
 import { isRelevantDp } from '../../utils/dpRelevance';
+import { CustomGridView } from './CustomGridView';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -375,6 +376,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
       </p>
     </div>
   );
+
+  if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
   // ── KACHELN (card) ─────────────────────────────────────────────────────────
   if (layout === 'card') {

@@ -4,6 +4,7 @@ import { useIoBroker, getObjectDirect } from '../../hooks/useIoBroker';
 import { saveAll } from '../../store/persistManager';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { resolveName } from './AutoListWidget';
+import { CustomGridView } from './CustomGridView';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -164,6 +165,9 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const activeCount = entries.filter(e => isActive(states[e.id]?.val ?? null)).length;
 
   const showTitle = opts.showTitle !== false;
+
+  const layout = config.layout ?? 'default';
+  if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
   return (
     <div className="flex flex-col h-full">

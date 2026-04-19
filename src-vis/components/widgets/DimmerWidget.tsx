@@ -4,6 +4,7 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
+import { CustomGridView } from './CustomGridView';
 
 export function DimmerWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
@@ -22,6 +23,8 @@ export function DimmerWidget({ config }: WidgetProps) {
       style={{ accentColor: 'var(--accent-yellow)' }}
       className="w-full h-2 rounded-lg appearance-none cursor-pointer" />
   );
+
+  if (layout === 'custom') return <CustomGridView config={config} value={`${Math.round(typeof value === 'number' ? value : 0)}`} />;
 
   // --- CARD: Großes Glühbirnen-Icon, Helligkeit als Opacity ---
   if (layout === 'card') {

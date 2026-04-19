@@ -1,5 +1,6 @@
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
+import { CustomGridView } from './CustomGridView';
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg * Math.PI) / 180;
@@ -226,6 +227,8 @@ export function GaugeWidget({ config }: WidgetProps) {
       </span>
     );
   });
+
+  if (layout === 'custom') return <CustomGridView config={config} value={safeVal === 0 && value === null ? '–' : (decimals === 0 ? String(Math.round(safeVal)) : safeVal.toFixed(decimals))} unit={unit} />;
 
   if (layout === 'minimal') {
     return (

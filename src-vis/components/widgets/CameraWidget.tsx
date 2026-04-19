@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Camera } from 'lucide-react';
 import type { WidgetProps } from '../../types';
+import { CustomGridView } from './CustomGridView';
 
 export function CameraWidget({ config, editMode }: WidgetProps) {
   const opts            = config.options ?? {};
@@ -39,6 +40,8 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streamUrl, refreshInterval]);
+
+  if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
   const showTitle = (layout === 'default' || layout === 'card') && config.title;
   const showOverlayBadge = editMode;

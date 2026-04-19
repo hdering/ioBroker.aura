@@ -3,6 +3,7 @@ import { Loader } from 'lucide-react';
 import type { WidgetProps } from '../../types';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useT } from '../../i18n';
+import { CustomGridView } from './CustomGridView';
 
 // ── Open-Meteo types ──────────────────────────────────────────────────────────
 interface WeatherData {
@@ -252,6 +253,8 @@ export function WeatherWidget({ config }: WidgetProps) {
   const cur  = data!.current;
   const info = getWeatherInfo(cur.weather_code, t);
   const feel = `${Math.round(cur.apparent_temperature)}°`;
+
+  if (layout === 'custom') return <CustomGridView config={config} value={displayTemp ? `${displayTemp}°C` : ''} />;
 
   // ── MINIMAL ──────────────────────────────────────────────────────────────
   if (layout === 'minimal') {

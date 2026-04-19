@@ -4,6 +4,7 @@ import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { StatusBadges } from './StatusBadges';
+import { CustomGridView } from './CustomGridView';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -59,6 +60,8 @@ export function StateImageWidget({ config }: WidgetProps) {
   };
 
   const cfg = isActive ? trueCfg : falseCfg;
+
+  if (layout === 'custom') return <CustomGridView config={config} value={cfg.label} />;
 
   // ── CARD ──────────────────────────────────────────────────────────────────
   if (layout === 'card') {

@@ -4,6 +4,7 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps, WidgetConfig, ioBrokerState } from '../../types';
 import { useT } from '../../i18n';
+import { CustomGridView } from './CustomGridView';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -667,6 +668,8 @@ export function EvccWidget({ config }: WidgetProps) {
   }
 
   const visLps = visibleLpIndices.map((i) => ({ lp: loadpoints[i], idx: i })).filter(({ lp }) => !!lp);
+
+  if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
   // ── Layout: battery only ──────────────────────────────────────────────────
   if (layout === 'battery') return <BatteryView site={site} />;
