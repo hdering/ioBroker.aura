@@ -419,7 +419,6 @@ export function CalendarWidget({ config }: WidgetProps) {
   if (layout === 'card') {
     const next = visibleEvents[0];
     const important = next ? imp(next) : false;
-    const color = important ? highlightColor : (next?.sourceColor ?? 'var(--accent)');
     const meta = next ? eventMeta(next, 0) : null;
 
     // Visibility options (all shown by default)
