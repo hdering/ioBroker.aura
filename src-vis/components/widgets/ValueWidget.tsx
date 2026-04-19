@@ -79,8 +79,12 @@ export function ValueWidget({ config }: WidgetProps) {
   if (layout === 'minimal') {
     return (
       <div className="flex flex-col items-center justify-center h-full">
-        {showValue && <span className="font-black text-center leading-none" style={{ color: 'var(--accent)', fontSize: 'calc(clamp(2rem, 4vw, 3.5rem) * var(--font-scale, 1))' }}>{displayValue}</span>}
-        {showValue && showUnit && unit && <span className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
+        {showValue && (
+          <div className="flex items-baseline gap-1 leading-none">
+            <span className="font-black" style={{ color: 'var(--accent)', fontSize: 'calc(clamp(2rem, 4vw, 3.5rem) * var(--font-scale, 1))' }}>{displayValue}</span>
+            {showUnit && unit && <span className="text-lg font-medium" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
+          </div>
+        )}
         {showTitle && <span className="text-xs mt-2 truncate max-w-full" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>}
       </div>
     );
