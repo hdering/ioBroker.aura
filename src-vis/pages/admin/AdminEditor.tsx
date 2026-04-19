@@ -19,6 +19,21 @@ import { DP_TEMPLATES, DP_TEMPLATE_CATEGORIES, detectWidgetTypeFromRole, findTem
 const LAYOUT_IDS: WidgetLayout[] = ['default', 'card', 'compact', 'minimal'];
 const CALENDAR_LAYOUT_IDS: WidgetLayout[] = [...LAYOUT_IDS, 'agenda'];
 
+// ── Recently used templates (persisted in localStorage) ──────────────────────
+const RECENT_TEMPLATES_KEY = 'aura-recent-templates';
+const MAX_RECENT_TEMPLATES = 5;
+
+interface RecentTemplate { templateId: string; widgetType: WidgetType; label: string; icon: string; }
+
+function getRecentTemplates(): RecentTemplate[] {
+  try { return JSON.parse(localStorage.getItem(RECENT_TEMPLATES_KEY) ?? '[]') as RecentTemplate[]; }
+  catch { return []; }
+}
+function pushRecentTemplate(entry: RecentTemplate) {
+  const prev = getRecentTemplates().filter((t) => t.templateId !== entry.templateId);
+  localStorage.setItem(RECENT_TEMPLATES_KEY, JSON.stringify([entry, ...prev].slice(0, MAX_RECENT_TEMPLATES)));
+}
+
 function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => void; onClose: () => void }) {
   const t = useT();
   const widgetDefaults = useConfigStore((s) => s.widgetDefaults);
@@ -38,7 +53,8 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
   const [icalUrl, setIcalUrl] = useState('');
   const [calName, setCalName] = useState('');
   const [calColor, setCalColor] = useState('#3b82f6');
-  const [showFurtherTypes, setShowFurtherTypes] = useState(true);
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [recentTemplates, setRecentTemplates] = useState<RecentTemplate[]>(() => getRecentTemplates());
   const { groups } = useGroupStore();
 
   // Auto-detect type / template / title / unit when the datapoint ID changes
@@ -97,8 +113,25 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
     setTypePicked(true);
   };
 
+  const selectRecent = (recent: RecentTemplate) => {
+    setType(recent.widgetType);
+    setTemplateId(recent.templateId);
+    setTypePicked(true);
+    setStep(2);
+  };
+
   const handleAdd = async () => {
     if (!canAdd) return;
+    // Persist to recently used
+    const activeTpl = DP_TEMPLATES.find((tpl) => tpl.id === templateId);
+    const activeWidget = WIDGET_REGISTRY.find((w) => w.type === type);
+    pushRecentTemplate({
+      templateId: templateId || type,
+      widgetType: type,
+      label: activeTpl?.label ?? activeWidget?.shortLabel ?? type,
+      icon: activeTpl?.icon ?? '',
+    });
+    setRecentTemplates(getRecentTemplates());
     const selectedGroup = isList ? groups.find((g) => g.id === groupId) : undefined;
     const dpId = noDatapointNeeded ? '' : isList ? groupId : datapoint.trim();
 
@@ -227,56 +260,131 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
             )}
           </div>
 
+          {/* Recently used */}
+          {recentTemplates.length > 0 && (
+            <div className="px-6 pt-3 pb-1">
+              <p className="text-[10px] font-semibold uppercase tracking-wider mb-2"
+                style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>
+                {t('editor.manual.recentlyUsed')}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {recentTemplates.map((recent) => {
+                  const meta = WIDGET_REGISTRY.find((w) => w.type === recent.widgetType);
+                  if (!meta) return null;
+                  const isActive = templateId === recent.templateId;
+                  return (
+                    <button key={recent.templateId} type="button"
+                      onClick={() => selectRecent(recent)}
+                      title="Direkt zu Schritt 2"
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium hover:opacity-80 transition-opacity"
+                      style={{
+                        background: isActive ? meta.color + '22' : 'var(--app-bg)',
+                        color: isActive ? meta.color : 'var(--text-secondary)',
+                        border: `1px solid ${isActive ? meta.color : 'var(--app-border)'}`,
+                      }}>
+                      {recent.icon
+                        ? <span style={{ fontSize: 12, lineHeight: 1 }}>{recent.icon}</span>
+                        : <meta.Icon size={11} />}
+                      {recent.label}
+                      <span style={{ fontSize: 9, opacity: 0.6 }}>→ 2</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Category filter tabs */}
+          <div className="px-6 pt-3 pb-1">
+            <div className="flex flex-wrap gap-1.5">
+              <button type="button"
+                onClick={() => setCategoryFilter('all')}
+                className="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
+                style={{
+                  background: categoryFilter === 'all' ? 'var(--accent)' : 'var(--app-bg)',
+                  color: categoryFilter === 'all' ? 'white' : 'var(--text-secondary)',
+                  border: '1px solid var(--app-border)',
+                }}>
+                {t('common.all')}
+              </button>
+              {DP_TEMPLATE_CATEGORIES.map((cat) => (
+                <button key={cat.id} type="button"
+                  onClick={() => setCategoryFilter(cat.id)}
+                  className="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
+                  style={{
+                    background: categoryFilter === cat.id ? 'var(--accent)' : 'var(--app-bg)',
+                    color: categoryFilter === cat.id ? 'white' : 'var(--text-secondary)',
+                    border: '1px solid var(--app-border)',
+                  }}>
+                  {cat.label}
+                </button>
+              ))}
+              <button type="button"
+                onClick={() => setCategoryFilter('further')}
+                className="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
+                style={{
+                  background: categoryFilter === 'further' ? 'var(--accent)' : 'var(--app-bg)',
+                  color: categoryFilter === 'further' ? 'white' : 'var(--text-secondary)',
+                  border: '1px solid var(--app-border)',
+                }}>
+                Weitere
+              </button>
+            </div>
+          </div>
+
           {/* Template grid */}
           <div className="px-6 pb-2">
             <div className="space-y-3 py-2">
-              {/* Standard categories – 2-column grid per category */}
-              {DP_TEMPLATE_CATEGORIES.filter((cat) => cat.id !== 'special').map((cat) => {
-                const catTpls = DP_TEMPLATES.filter((tpl) => tpl.category === cat.id);
-                if (!catTpls.length) return null;
-                return (
-                  <div key={cat.id}>
+              {/* Standard categories – filtered or all */}
+              {DP_TEMPLATE_CATEGORIES
+                .filter((cat) => categoryFilter === 'all' || categoryFilter === cat.id)
+                .map((cat) => {
+                  const catTpls = DP_TEMPLATES.filter((tpl) => tpl.category === cat.id);
+                  if (!catTpls.length) return null;
+                  return (
+                    <div key={cat.id}>
+                      {categoryFilter === 'all' && (
+                        <p className="text-[10px] font-semibold uppercase tracking-wider mb-1.5"
+                          style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>
+                          {cat.label}
+                        </p>
+                      )}
+                      <div className="grid grid-cols-3 gap-2">
+                        {catTpls.map((tpl) => {
+                          const active = templateId === tpl.id;
+                          return (
+                            <button key={tpl.id} type="button"
+                              onClick={() => selectTemplate(tpl.id, tpl.widgetType)}
+                              className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
+                              style={{
+                                padding: '8px 12px',
+                                background: active ? 'var(--accent)1a' : 'var(--app-bg)',
+                                border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
+                              }}>
+                              <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>{tpl.icon}</span>
+                              <span className="leading-tight font-medium truncate"
+                                style={{ fontSize: 12, color: active ? 'var(--accent)' : 'var(--text-secondary)' }}>
+                                {tpl.label}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+
+              {/* Further widget types – shown for "Alle" or "Weitere" filter */}
+              {(categoryFilter === 'all' || categoryFilter === 'further') && (
+                <div>
+                  {categoryFilter === 'all' && (
                     <p className="text-[10px] font-semibold uppercase tracking-wider mb-1.5"
                       style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>
-                      {cat.label}
+                      Weitere Widgets
                     </p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {catTpls.map((tpl) => {
-                        const active = templateId === tpl.id;
-                        return (
-                          <button key={tpl.id} type="button"
-                            onClick={() => selectTemplate(tpl.id, tpl.widgetType)}
-                            className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
-                            style={{
-                              padding: '8px 12px',
-                              background: active ? 'var(--accent)1a' : 'var(--app-bg)',
-                              border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                              boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
-                            }}>
-                            <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>{tpl.icon}</span>
-                            <span className="leading-tight font-medium truncate"
-                              style={{ fontSize: 12, color: active ? 'var(--accent)' : 'var(--text-secondary)' }}>
-                              {tpl.label}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Further widget types (not home-automation devices) */}
-              <div>
-                <button type="button"
-                  onClick={() => setShowFurtherTypes((v) => !v)}
-                  className="text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 hover:opacity-80"
-                  style={{ color: 'var(--text-secondary)', opacity: showFurtherTypes ? 1 : 0.5 }}>
-                  <span style={{ transition: 'transform 0.15s', transform: showFurtherTypes ? 'rotate(90deg)' : 'none', display: 'inline-block' }}>▶</span>
-                  Weitere Widgets
-                </button>
-                {showFurtherTypes && (
-                  <div className="grid grid-cols-3 gap-2 mt-1.5">
+                  )}
+                  <div className="grid grid-cols-3 gap-2">
                     {furtherWidgets.map((w) => {
                       const active = templateId === w.type;
                       return (
@@ -298,8 +406,8 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                       );
                     })}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
 
