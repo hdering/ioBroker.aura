@@ -46,6 +46,7 @@ import { ShutterWidget } from '../widgets/ShutterWidget';
 import { JsonTableWidget } from '../widgets/JsonTableWidget';
 import { WindowContactWidget } from '../widgets/WindowContactWidget';
 import { BinarySensorWidget, BINARY_SENSOR_PRESETS } from '../widgets/BinarySensorWidget';
+import { StateImageWidget } from '../widgets/StateImageWidget';
 import { JsonTableConfig } from '../config/JsonTableConfig';
 import { IconPickerModal } from '../config/IconPickerModal';
 
@@ -79,6 +80,7 @@ function getWidgetMap() {
     jsontable:     JsonTableWidget,
     windowcontact: WindowContactWidget,
     binarysensor:  BinarySensorWidget,
+    stateimage:    StateImageWidget,
   } as const;
 }
 
@@ -801,6 +803,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
   };
   const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'status_batteryDp' | 'status_unreachDp' | null>(null);
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
+  const [iconPickerTrueOpen,  setIconPickerTrueOpen]  = useState(false);
+  const [iconPickerFalseOpen, setIconPickerFalseOpen] = useState(false);
   const menuBtnRef = useRef<HTMLButtonElement>(null);
   const Widget = getWidgetMap()[config.type as keyof ReturnType<typeof getWidgetMap>];
   const currentLayout = config.layout ?? 'default';
@@ -1350,6 +1354,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   case 'weather':       return [{ key: 'showTitle', label: 'Titel' }];
                   case 'windowcontact': return [{ key: 'showTitle', label: 'Titel' }, { key: 'showLabel', label: 'Status-Text' }];
                   case 'binarysensor':  return [{ key: 'showTitle', label: 'Titel' }, { key: 'showLabel', label: 'Status-Text' }];
+                  case 'stateimage':    return [{ key: 'showTitle', label: 'Titel' }, { key: 'showLabel', label: 'Status-Text' }];
                   case 'chart':         return [{ key: 'showTitle', label: 'Titel' }];
                   case 'echart':        return [{ key: 'showTitle', label: 'Titel' }];
                   case 'list':          return [{ key: 'showTitle', label: 'Kopfzeile' }];
@@ -1452,8 +1457,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               );
             })()}
 
-            {/* Icon picker */}
-            {(() => {
+            {/* Icon picker (not for stateimage – has per-state pickers in widget config) */}
+            {config.type !== 'stateimage' && (() => {
               const currentIconName = config.options?.icon as string | undefined;
               const CurrentIcon = currentIconName
                 ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))
@@ -1557,6 +1562,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                     {config.type === 'thermostat'     ? 'Soll-Temperatur Datenpunkt' :
                      config.type === 'windowcontact'  ? 'Kontaktstatus Datenpunkt (boolean / 0=zu / 1=kippt / 2=offen)' :
                      config.type === 'binarysensor'   ? 'Sensorwert Datenpunkt (boolean, true = aktiv)' :
+                     config.type === 'stateimage'     ? 'Zustand Datenpunkt (boolean, true = erstes Bild)' :
                      config.type === 'shutter'        ? 'Positions-Datenpunkt (0–100 %)' :
                      config.type === 'dimmer'         ? 'Helligkeits-Datenpunkt (0–100 %)' :
                      t('wf.edit.datapointId')}
@@ -2478,6 +2484,118 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                 );
               })()}
 
+              {config.type === 'stateimage' && (() => {
+                const o = config.options ?? {};
+                const setO = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const siInputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+
+                const renderStateSection = (prefix: 'true' | 'false', stateLabel: string) => {
+                  const currentType = (o[`${prefix}Type`] as 'icon' | 'base64') ?? 'icon';
+                  const currentIcon = o[`${prefix}Icon`] as string | undefined;
+                  const currentColor = (o[`${prefix}Color`] as string) || (prefix === 'true' ? '#22c55e' : '#6b7280');
+                  const currentLabel = (o[`${prefix}Label`] as string) ?? (prefix === 'true' ? 'Offen' : 'Geschlossen');
+                  const currentBase64 = o[`${prefix}Base64`] as string | undefined;
+                  const CurrentIcon = currentIcon
+                    ? getWidgetIcon(currentIcon, (() => null) as unknown as import('lucide-react').LucideIcon)
+                    : null;
+                  const isOpen = prefix === 'true' ? iconPickerTrueOpen : iconPickerFalseOpen;
+                  const setOpen = prefix === 'true' ? setIconPickerTrueOpen : setIconPickerFalseOpen;
+
+                  return (
+                    <div key={prefix} className="space-y-2">
+                      <p className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>{stateLabel}</p>
+                      {/* Type selector */}
+                      <div className="flex gap-1">
+                        {(['icon', 'base64'] as const).map(btnType => (
+                          <button key={btnType} onClick={() => setO({ [`${prefix}Type`]: btnType })}
+                            className="flex-1 text-[10px] py-1 rounded-lg transition-colors"
+                            style={{
+                              background: currentType === btnType ? 'var(--accent)' : 'var(--app-bg)',
+                              color: currentType === btnType ? '#fff' : 'var(--text-secondary)',
+                              border: `1px solid ${currentType === btnType ? 'var(--accent)' : 'var(--app-border)'}`,
+                            }}>
+                            {btnType === 'icon' ? 'Icon' : 'Bild'}
+                          </button>
+                        ))}
+                      </div>
+                      {/* Icon + color */}
+                      {currentType === 'icon' && (
+                        <div className="flex gap-1 items-start">
+                          <div className="flex-1 min-w-0">
+                            <button
+                              onClick={() => setOpen(true)}
+                              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+                              style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}>
+                              {CurrentIcon
+                                ? <CurrentIcon size={14} style={{ flexShrink: 0, color: currentColor }} />
+                                : <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />}
+                              <span className="flex-1 truncate text-[11px]"
+                                style={{ color: currentIcon ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                {currentIcon ?? 'Icon wählen…'}
+                              </span>
+                            </button>
+                            {isOpen && (
+                              <IconPickerModal
+                                current={currentIcon ?? ''}
+                                onSelect={(name) => { setO({ [`${prefix}Icon`]: name || undefined }); setOpen(false); }}
+                                onClose={() => setOpen(false)}
+                              />
+                            )}
+                          </div>
+                          <input type="color" value={currentColor}
+                            onChange={(e) => setO({ [`${prefix}Color`]: e.target.value })}
+                            title="Farbe"
+                            className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
+                            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }} />
+                        </div>
+                      )}
+                      {/* Base64 image */}
+                      {currentType === 'base64' && (
+                        <div className="space-y-1">
+                          <input type="file" accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const reader = new FileReader();
+                              reader.onload = () => setO({ [`${prefix}Base64`]: reader.result as string });
+                              reader.readAsDataURL(file);
+                            }}
+                            className="w-full text-[11px] cursor-pointer"
+                            style={{ color: 'var(--text-secondary)' }} />
+                          {currentBase64 && (
+                            <div className="flex items-center gap-2">
+                              <img src={currentBase64}
+                                style={{ width: 32, height: 32, objectFit: 'contain', border: '1px solid var(--app-border)', borderRadius: 4 }}
+                                alt="" />
+                              <button onClick={() => setO({ [`${prefix}Base64`]: undefined })}
+                                className="text-[10px] hover:opacity-70"
+                                style={{ color: 'var(--accent-red, #ef4444)' }}>
+                                Entfernen
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {/* Label */}
+                      <input type="text" value={currentLabel}
+                        onChange={(e) => setO({ [`${prefix}Label`]: e.target.value })}
+                        placeholder={prefix === 'true' ? 'Offen' : 'Geschlossen'}
+                        className="w-full text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
+                        style={siInputStyle} />
+                    </div>
+                  );
+                };
+
+                return (
+                  <>
+                    {renderStateSection('true', 'Wahr (true)')}
+                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                    {renderStateSection('false', 'Falsch (false)')}
+                  </>
+                );
+              })()}
+
               {config.type === 'thermostat' && (() => {
                 const o = config.options ?? {};
                 const setO = (patch: Record<string, unknown>) =>
@@ -2581,7 +2699,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               })()}
 
               {/* ── Status-Datenpunkte (gemeinsam für alle Sensor-/Aktor-Typen) ── */}
-              {['switch', 'dimmer', 'thermostat', 'shutter', 'windowcontact', 'binarysensor'].includes(config.type) && (() => {
+              {['switch', 'dimmer', 'thermostat', 'shutter', 'windowcontact', 'binarysensor', 'stateimage'].includes(config.type) && (() => {
                 const o = config.options ?? {};
                 const setO = (patch: Record<string, unknown>) =>
                   onConfigChange({ ...config, options: { ...o, ...patch } });

@@ -13,7 +13,7 @@
 import {
   Zap, TrendingUp, SlidersHorizontal, Thermometer, BarChart2, List,
   Clock, CalendarDays, Heading2, Layers2, Cloud, Gauge, Camera, ImageIcon, MonitorDot, Droplets, Truck, AlignJustify, Table2,
-  DoorOpen, ShieldAlert,
+  DoorOpen, ShieldAlert, ToggleRight,
   type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -248,6 +248,14 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     defaultW: 8,            defaultH: 4,
     addMode: 'datapoint',   widgetGroup: 'control',
     mock: { t: 'Bewegung', v: 'false' },
+  },
+  {
+    type: 'stateimage',
+    label: 'Zustandsbild',  shortLabel: 'Zustand',
+    Icon: ToggleRight,      iconName: 'ToggleRight', color: '#22c55e',
+    defaultW: 8,            defaultH: 4,
+    addMode: 'datapoint',   widgetGroup: 'control',
+    mock: { t: 'Garage', v: 'false' },
   },
 ];
 
