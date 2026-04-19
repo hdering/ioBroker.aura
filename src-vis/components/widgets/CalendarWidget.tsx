@@ -447,7 +447,7 @@ export function CalendarWidget({ config }: WidgetProps) {
                 </p>
               )}
               {showSummary && (
-                <p className="font-bold leading-tight" style={{ color, fontSize: fs(20) }}>
+                <p className="font-bold leading-tight" style={{ color: important ? highlightColor : 'var(--text-primary)', fontSize: fs(20) }}>
                   {important && <Star size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />}
                   {next.summary}
                 </p>
