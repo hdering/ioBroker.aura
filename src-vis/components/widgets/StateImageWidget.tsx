@@ -83,7 +83,7 @@ export function StateImageWidget({ config }: WidgetProps) {
   if (layout === 'compact') {
     return (
       <div className="flex items-center gap-3 h-full" style={{ position: 'relative' }}>
-        <StateDisplay cfg={cfg} size={Math.min(iconSize, 24)} />
+        <StateDisplay cfg={cfg} size={iconSize} />
         {showTitle && (
           <span className="flex-1 text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
             {config.title}
@@ -123,7 +123,7 @@ export function StateImageWidget({ config }: WidgetProps) {
     <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
       {showTitle && (
         <div className="flex items-center gap-2">
-          <StateDisplay cfg={cfg} size={Math.min(iconSize, 20)} />
+          <StateDisplay cfg={cfg} size={iconSize} />
           <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
         </div>
       )}

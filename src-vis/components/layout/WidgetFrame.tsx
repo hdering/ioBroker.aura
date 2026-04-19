@@ -2609,7 +2609,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Größe</label>
                         <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{iconSize} px</span>
                       </div>
-                      <input type="range" min={16} max={128} step={4} value={iconSize}
+                      <input type="range" min={16} max={512} step={4} value={iconSize}
                         onChange={(e) => setO({ iconSize: Number(e.target.value) })}
                         className="w-full h-1"
                         style={{ accentColor: 'var(--accent)' }} />
