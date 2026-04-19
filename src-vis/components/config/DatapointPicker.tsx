@@ -54,21 +54,24 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
     return list;
   }, [datapoints, search, adapter, room, func, role]);
 
-  const shown = filtered.slice(0, MAX_DISPLAY);
+  // Memoized so the scroll effect only re-runs when the actual list changes,
+  // not on every render (which would create a new array reference each time).
+  const shown = useMemo(() => filtered.slice(0, MAX_DISPLAY), [filtered]);
 
   // Scroll to the selected item once after data is available.
-  // Uses rAF so the list is fully painted, guard prevents re-scroll on filter changes.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Each effect instance gets its own `cancelled` flag so re-renders don't
+  // block the scroll — only the last scheduled rAF will fire with cancelled=false.
   useEffect(() => {
     if (!loaded || scrolledRef.current) return;
-    const raf = requestAnimationFrame(() => {
-      if (selectedRef.current) {
+    let cancelled = false;
+    requestAnimationFrame(() => {
+      if (!cancelled && selectedRef.current) {
         selectedRef.current.scrollIntoView({ behavior: 'instant', block: 'center' });
         scrolledRef.current = true;
       }
     });
-    return () => cancelAnimationFrame(raf);
-  }, [loaded, shown]); // shown in deps so we retry if cached data renders on first tick
+    return () => { cancelled = true; };
+  }, [loaded, shown]);
 
   const countLabel = filtered.length > MAX_DISPLAY
     ? t('dp.picker.showing', { max: MAX_DISPLAY, count: filtered.length })
