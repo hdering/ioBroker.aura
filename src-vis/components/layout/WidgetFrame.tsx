@@ -2010,6 +2010,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                           <select value={(o.wakeUpMode as string) ?? 'auto'} onChange={(e) => set({ wakeUpMode: e.target.value })} className={cCls} style={cSty}>
                             <option value="auto">Automatisch (beim Laden)</option>
                             <option value="onView">Bei Sicht (Viewport)</option>
+                            <option value="onClick">Manuell (bei Klick)</option>
                           </select>
                         </div>
                         <div>

@@ -5,7 +5,7 @@ import { CustomGridView } from './CustomGridView';
 import { setStateDirect } from '../../hooks/useIoBroker';
 
 type StreamMode  = 'img' | 'iframe' | 'rtsp-hint';
-type WakeUpMode  = 'auto' | 'onView';
+type WakeUpMode  = 'auto' | 'onView' | 'onClick';
 
 function detectMode(url: string): StreamMode {
   if (!url) return 'img';
@@ -80,6 +80,13 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
     return () => doSleep();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wakeUpDp, streamUrl, wakeUpDelay, wakeUpMode]);
+
+  // onClick mode: sleep on unmount (wake is triggered by user click)
+  useEffect(() => {
+    if (!wakeUpDp || !streamUrl || wakeUpMode !== 'onClick') return;
+    return () => doSleep();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wakeUpDp, streamUrl, wakeUpMode]);
 
   // onView mode: wake when widget enters viewport, sleep when it leaves
   useEffect(() => {
@@ -156,7 +163,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
     );
   }
 
-  // onView + not yet visible: show neutral placeholder
+  // onView + not yet visible: neutral placeholder (IntersectionObserver still attached via ref)
   if (wakeUpDp && wakeUpMode === 'onView' && !waking && !streamReady) {
     return (
       <div
@@ -167,6 +174,35 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
         <Camera size={28} style={{ color: 'var(--text-secondary)' }} />
         {config.title && (
           <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
+        )}
+      </div>
+    );
+  }
+
+  // onClick + not yet triggered: clickable placeholder
+  if (wakeUpDp && wakeUpMode === 'onClick' && !waking && !streamReady) {
+    return (
+      <div
+        ref={containerRef}
+        onClick={editMode ? undefined : doWake}
+        className="flex flex-col items-center justify-center h-full gap-2 select-none"
+        style={{
+          background: 'var(--app-bg)',
+          borderRadius: 'var(--widget-radius)',
+          cursor: editMode ? 'default' : 'pointer',
+        }}
+      >
+        <div
+          className="flex items-center justify-center rounded-full w-10 h-10"
+          style={{ background: 'var(--accent)', opacity: 0.85 }}
+        >
+          <Camera size={20} color="#fff" />
+        </div>
+        {config.title && (
+          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
+        )}
+        {!editMode && (
+          <p className="text-[10px] opacity-50" style={{ color: 'var(--text-secondary)' }}>Tippen zum Aktivieren</p>
         )}
       </div>
     );
