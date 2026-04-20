@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.65",
+    "version": "0.4.66",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.66": {
+        "en": "Admin PIN is now stored in ioBroker datapoint admin.pinHash – a PIN set on one device or URL applies to all browsers and clients",
+        "de": "Admin-PIN wird jetzt im ioBroker-Datenpunkt admin.pinHash gespeichert – ein gesetzter PIN gilt für alle Browser und URLs",
+        "ru": "PIN администратора теперь хранится в точке данных ioBroker admin.pinHash – PIN, установленный на одном устройстве, действует для всех браузеров и клиентов",
+        "pt": "O PIN de administrador é agora armazenado no ponto de dados ioBroker admin.pinHash – um PIN definido num dispositivo ou URL aplica-se a todos os browsers e clientes",
+        "nl": "Admin PIN wordt nu opgeslagen in ioBroker datapunt admin.pinHash – een ingestelde PIN geldt voor alle browsers en URL's",
+        "fr": "Le PIN administrateur est maintenant stocké dans le point de données ioBroker admin.pinHash – un PIN défini sur un appareil ou une URL s'applique à tous les navigateurs et clients",
+        "it": "Il PIN amministratore è ora memorizzato nel punto dati ioBroker admin.pinHash – un PIN impostato su un dispositivo o URL vale per tutti i browser e client",
+        "es": "El PIN de administrador ahora se almacena en el punto de datos ioBroker admin.pinHash – un PIN establecido en un dispositivo o URL se aplica a todos los navegadores y clientes",
+        "pl": "PIN administratora jest teraz przechowywany w punkcie danych ioBroker admin.pinHash – PIN ustawiony na jednym urządzeniu lub URL obowiązuje dla wszystkich przeglądarek i klientów",
+        "uk": "PIN адміністратора тепер зберігається в точці даних ioBroker admin.pinHash – PIN, встановлений на одному пристрої або URL, діє для всіх браузерів і клієнтів",
+        "zh-cn": "管理员 PIN 现在存储在 ioBroker 数据点 admin.pinHash 中 – 在一个设备或 URL 上设置的 PIN 适用于所有浏览器和客户端"
+      },
       "0.4.65": {
         "en": "DatapointPicker: name resolution now includes parent channel/device names for non-Homematic adapters (Zigbee, Shelly, Hue, etc.) – shows e.g. \"Living Room Lamp › on\" instead of just \"on\"",
         "de": "DatapointPicker: Namensauflösung berücksichtigt jetzt übergeordnete Kanal-/Geräteobjekte für Nicht-Homematic-Adapter (Zigbee, Shelly, Hue usw.) – zeigt z.B. \"Wohnzimmer Lampe › on\" statt nur \"on\"",
@@ -183,19 +196,6 @@
         "pl": "Niestandardowy układ: lista rozwijana pola widgetu dla wszystkich typów (roleta, dimmer, miernik, wykres, kontakt okna/drzwi, czujnik binarny, EVCC, obraz, pogoda); selektor DP: nazwa pierwsza, wstępnie wypełnione wyszukiwanie, kolorowa odznaka typu; okno 'Dodaj widget': zakładki filtrów kategorii i chipy 'Ostatnio używane'",
         "uk": "Кастомний макет: випадаючий список полів віджета для всіх типів (ролети, диммер, манометр, діаграма, контакт вікна/дверей, бінарний сенсор, EVCC, зображення, погода); вибір точки даних: ім'я спочатку, попередньо заповнений пошук, значок типу з кольором; діалог 'Додати віджет': вкладки категорій та чіпи 'Нещодавно використані'",
         "zh-cn": "自定义布局：所有小部件类型的字段下拉菜单（卷帘、调光器、仪表、图表、窗/门接触传感器、二值传感器、EVCC、图片、天气）；数据点选择器：名称优先、预填搜索快速导航、彩色类型徽章；'添加小部件'对话框：分类过滤标签页和'最近使用'筹码"
-      },
-      "0.4.59": {
-        "en": "Custom layout for all widgets: free 3×3 grid, each cell configurable with title/value/unit/text/datapoint/widget-field, prefix/suffix, font size, bold/italic, color, alignment; custom grid editor always shown at bottom of widget settings; stronger visual separation between general and widget-specific settings",
-        "de": "Custom-Layout für alle Widgets: freies 3×3-Raster, jede Zelle konfigurierbar mit Titel/Wert/Einheit/Text/Datenpunkt/Widget-Feld, Prä-/Suffix, Schriftgröße, Fett/Kursiv, Farbe, Ausrichtung; Raster-Editor immer unten in den Widget-Einstellungen; stärkere visuelle Trennung zwischen allgemeinen und widget-spezifischen Einstellungen",
-        "ru": "Custom-макет для всех виджетов: свободная сетка 3×3, каждая ячейка настраивается с заголовком/значением/единицей/текстом/датапойнтом/полем виджета, префикс/суффикс, размер шрифта, жирный/курсив, цвет, выравнивание; редактор сетки всегда внизу настроек виджета; более чёткое визуальное разделение общих и специфических настроек",
-        "pt": "Layout personalizado para todos os widgets: grelha livre 3×3, cada célula configurável com título/valor/unidade/texto/ponto de dados/campo do widget, prefixo/sufixo, tamanho de fonte, negrito/itálico, cor, alinhamento; editor de grelha sempre na parte inferior das configurações do widget; separação visual mais forte entre configurações gerais e específicas do widget",
-        "nl": "Aangepaste lay-out voor alle widgets: vrij 3×3-raster, elke cel instelbaar met titel/waarde/eenheid/tekst/datapunt/widgetveld, voor-/achtervoegsel, lettergrootte, vet/cursief, kleur, uitlijning; rasterbewerker altijd onderaan de widgetinstellingen; sterkere visuele scheiding tussen algemene en widgetspecifieke instellingen",
-        "fr": "Mise en page personnalisée pour tous les widgets: grille libre 3×3, chaque cellule configurable avec titre/valeur/unité/texte/point de données/champ de widget, préfixe/suffixe, taille de police, gras/italique, couleur, alignement; éditeur de grille toujours en bas des paramètres du widget; séparation visuelle plus forte entre les paramètres généraux et spécifiques au widget",
-        "it": "Layout personalizzato per tutti i widget: griglia libera 3×3, ogni cella configurabile con titolo/valore/unità/testo/punto dati/campo widget, prefisso/suffisso, dimensione font, grassetto/corsivo, colore, allineamento; editor griglia sempre in fondo alle impostazioni del widget; separazione visiva più forte tra impostazioni generali e specifiche del widget",
-        "es": "Diseño personalizado para todos los widgets: cuadrícula libre 3×3, cada celda configurable con título/valor/unidad/texto/punto de datos/campo de widget, prefijo/sufijo, tamaño de fuente, negrita/cursiva, color, alineación; editor de cuadrícula siempre en la parte inferior de la configuración del widget; separación visual más fuerte entre configuraciones generales y específicas del widget",
-        "pl": "Niestandardowy układ dla wszystkich widgetów: wolna siatka 3×3, każda komórka konfigurowalna z tytułem/wartością/jednostką/tekstem/punktem danych/polem widgetu, przedrostek/przyrostek, rozmiar czcionki, pogrubienie/kursywa, kolor, wyrównanie; edytor siatki zawsze na dole ustawień widgetu; silniejsze wizualne rozdzielenie ustawień ogólnych i specyficznych dla widgetu",
-        "uk": "Кастомний макет для всіх віджетів: вільна сітка 3×3, кожна комірка налаштовується з заголовком/значенням/одиницею/текстом/точкою даних/полем віджета, префікс/суфікс, розмір шрифту, жирний/курсив, колір, вирівнювання; редактор сітки завжди внизу налаштувань віджета; більш чітке візуальне розділення загальних та специфічних налаштувань",
-        "zh-cn": "所有小部件支持自定义布局：自由3×3网格，每个单元格可配置标题/值/单位/文本/数据点/小部件字段、前缀/后缀、字体大小、粗体/斜体、颜色、对齐方式；网格编辑器始终显示在小部件设置底部；通用设置与小部件特定设置之间视觉分隔更明显"
       }
     }
   },
@@ -261,6 +261,27 @@
         "name": "Navigate to URL or tab slug",
         "type": "string",
         "role": "url",
+        "read": true,
+        "write": true,
+        "def": ""
+      },
+      "native": {}
+    },
+    {
+      "_id": "admin",
+      "type": "channel",
+      "common": {
+        "name": "Admin access"
+      },
+      "native": {}
+    },
+    {
+      "_id": "admin.pinHash",
+      "type": "state",
+      "common": {
+        "name": "Admin PIN hash (FNV-1a, managed by frontend)",
+        "type": "string",
+        "role": "text",
         "read": true,
         "write": true,
         "def": ""

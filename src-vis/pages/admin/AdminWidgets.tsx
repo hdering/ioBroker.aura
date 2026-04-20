@@ -831,7 +831,7 @@ function NewWidgetDialog({
               if (!title.trim() && dpName) setTitle(dpName);
               if (!unit && dpUnit) setUnit(dpUnit);
               if (role || dpType) {
-                const det = detectType({ id, name: dpName ?? id, role, type: dpType, unit: dpUnit, rooms: [], funcs: [] });
+                const det = detectType({ id, name: dpName ?? id, role, type: dpType, unit: dpUnit, rooms: [], funcs: [], logging: [] });
                 setType(det.type);
                 if (!unit && !dpUnit && det.unit) setUnit(det.unit);
               }

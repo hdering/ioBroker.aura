@@ -127,6 +127,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.66 (2026-04-20)
+- Admin PIN is now stored in ioBroker datapoint `admin.pinHash` – a PIN set on one device or URL applies to all browsers and clients
+
 ### 0.4.65 (2026-04-20)
 - DatapointPicker: name resolution now includes parent channel/device names for non-Homematic adapters (Zigbee, Shelly, Hue, etc.) – shows e.g. "Living Room Lamp › on" instead of just "on"
 

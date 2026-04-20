@@ -95,6 +95,7 @@ export interface ioBrokerObject {
     read?: boolean;
     write?: boolean;
     members?: string[];   // enum.rooms / enum.functions member IDs
+    custom?: Record<string, { enabled?: boolean } | null>;
   };
 }
 

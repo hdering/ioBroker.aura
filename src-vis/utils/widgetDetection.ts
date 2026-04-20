@@ -198,7 +198,7 @@ export function detectHomepage(datapoints: DatapointEntry[]): {
   const sections: HomepageCategory[] = [];
 
   const clockWidget: DetectedWidget = {
-    datapoint: { id: '__clock__', name: 'Uhrzeit', rooms: [], funcs: [] },
+    datapoint: { id: '__clock__', name: 'Uhrzeit', rooms: [], funcs: [], logging: [] },
     type: 'clock', title: 'Uhrzeit', score: 1,
   };
   sections.push({ label: 'Uhrzeit', widgets: [clockWidget] });

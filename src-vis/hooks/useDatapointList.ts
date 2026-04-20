@@ -9,6 +9,7 @@ export interface DatapointEntry {
   role?: string;
   rooms: string[];   // labels from enum.rooms.*
   funcs: string[];   // labels from enum.functions.*
+  logging: string[]; // enabled logging adapter IDs, e.g. ['history.0', 'influxdb.0']
 }
 
 // Module-level cache – survives component mount/unmount
@@ -122,6 +123,11 @@ async function loadAll(): Promise<DatapointEntry[]> {
       name = parts[parts.length - 1] ?? row.id;
     }
 
+    const custom = row.value.common.custom ?? {};
+    const logging = Object.entries(custom)
+      .filter(([, cfg]) => cfg?.enabled === true)
+      .map(([id]) => id);
+
     return {
       id: row.id,
       name,
@@ -130,6 +136,7 @@ async function loadAll(): Promise<DatapointEntry[]> {
       role: row.value.common.role,
       rooms: [...roomsSet],
       funcs: [...funcsSet],
+      logging,
     };
   });
 }

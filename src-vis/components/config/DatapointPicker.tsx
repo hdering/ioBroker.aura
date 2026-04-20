@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { RefreshCw, Search, X, Check } from 'lucide-react';
 import { useDatapointList, type DatapointEntry } from '../../hooks/useDatapointList';
@@ -27,6 +27,34 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
   const [func, setFunc] = useState('');
   const [role, setRole] = useState('');
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+  const [size, setSize] = useState({ w: 672, h: 600 });
+  const resizeOrigin = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
+
+  const onResizeMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    resizeOrigin.current = { x: e.clientX, y: e.clientY, w: size.w, h: size.h };
+    const onMove = (ev: MouseEvent) => {
+      if (!resizeOrigin.current) return;
+      const { x, y, w, h } = resizeOrigin.current;
+      setSize({
+        w: Math.max(360, Math.min(window.innerWidth  - 32, w + ev.clientX - x)),
+        h: Math.max(300, Math.min(window.innerHeight - 32, h + ev.clientY - y)),
+      });
+    };
+    const onUp = () => {
+      resizeOrigin.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, [size]);
+
+  // Cancel any drag active in underlying RGL when the picker opens.
+  // react-draggable listens on document, not window.
+  useEffect(() => {
+    document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+  }, []);
 
   useEffect(() => {
     if (!loaded) load();
@@ -85,15 +113,18 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
   return createPortal(
     <div
       className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4"
+      onMouseDown={(e) => e.stopPropagation()}
+      onMouseMove={(e) => e.stopPropagation()}
+      onMouseUp={(e) => e.stopPropagation()}
     >
       <div
-        className="rounded-xl w-full max-w-2xl flex flex-col shadow-2xl"
+        className="rounded-xl flex flex-col shadow-2xl"
         style={{
-          // Multi-layer fallback: transparent --app-surface (glassmorphism themes) lets
-          // the opaque --app-bg shine through so the dialog is always readable.
           background: 'linear-gradient(var(--app-surface), var(--app-surface)), var(--app-bg)',
           border: '1px solid var(--app-border)',
-          maxHeight: 'min(80vh, 640px)',
+          width: size.w,
+          height: size.h,
+          position: 'relative',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -264,7 +295,7 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
                       {dp.id}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     {dp.unit && (
                       <span className="text-xs font-medium" style={{ color: 'var(--accent)' }}>{dp.unit}</span>
                     )}
@@ -282,6 +313,23 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
                         </span>
                       );
                     })()}
+                    {dp.logging.map((adapterId) => {
+                      const adapterName = adapterId.replace(/\.\d+$/, '');
+                      const label = adapterName === 'history'  ? 'H'
+                                  : adapterName === 'influxdb' ? 'flux'
+                                  : adapterName === 'sql'      ? 'SQL'
+                                  : adapterName.slice(0, 4);
+                      return (
+                        <span
+                          key={adapterId}
+                          title={adapterId}
+                          className="text-[9px] px-1 py-0.5 rounded font-bold"
+                          style={{ background: '#10b98122', color: '#10b981' }}
+                        >
+                          {label}
+                        </span>
+                      );
+                    })}
                   </div>
                 </button>
               );
@@ -305,6 +353,24 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
             </button>
           </div>
         )}
+
+        {/* Resize handle – bottom-right corner */}
+        <div
+          onMouseDown={onResizeMouseDown}
+          title="Größe ändern"
+          style={{
+            position: 'absolute', bottom: 0, right: 0,
+            width: 18, height: 18,
+            cursor: 'nwse-resize',
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end',
+            padding: '3px',
+            borderBottomRightRadius: '0.75rem',
+          }}
+        >
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path d="M9 1L1 9M9 5L5 9M9 9" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
+          </svg>
+        </div>
       </div>
     </div>,
     document.body,

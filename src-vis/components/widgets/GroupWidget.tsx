@@ -74,7 +74,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
   if (configLayout === 'custom') return <CustomGridView config={config} value="" />;
 
-  const isMobile = width > 0 && mobileBreakpoint > 0 && width < mobileBreakpoint;
+  const isMobile = !editMode && width > 0 && mobileBreakpoint > 0 && width < mobileBreakpoint;
 
   const cols = !isMobile && width > 0
     ? Math.max(2, Math.floor((width - CHILD_MARGIN) / (cellSize + CHILD_MARGIN)))

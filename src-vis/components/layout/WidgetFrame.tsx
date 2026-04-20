@@ -3259,7 +3259,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
           }
           onSelect={(id, unit, name, role, dpType) => {
             if (pickerTarget === 'datapoint') {
-              const detected = (role || dpType) ? detectType({ id, name: name ?? id, role, type: dpType, unit, rooms: [], funcs: [] }) : null;
+              const detected = (role || dpType) ? detectType({ id, name: name ?? id, role, type: dpType, unit, rooms: [], funcs: [], logging: [] }) : null;
               const typePatch = detected ? { type: detected.type } : {};
               const effectiveType = detected?.type ?? config.type;
               const supportsUnit = ['value', 'chart', 'gauge', 'fill'].includes(effectiveType);
