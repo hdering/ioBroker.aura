@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Eye, EyeOff } from 'lucide-react';
-import { loginWithPin, setupPin, useAuthStore } from '../../store/authStore';
+import { loginWithPin, setupPin, loadPinHash, useAuthStore } from '../../store/authStore';
 import { useT } from '../../i18n';
 
 export function AdminLogin() {
   const t = useT();
-  const { pinHash } = useAuthStore();
+  const { pinHash, pinHashLoaded } = useAuthStore();
   const isFirstTime = !pinHash;
   const [pin, setPin] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -14,6 +14,10 @@ export function AdminLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    loadPinHash();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +35,14 @@ export function AdminLogin() {
       else { setError(t('login.wrong')); setLoading(false); }
     }
   };
+
+  if (!pinHashLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--app-bg)' }}>
+        <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--app-bg)' }}>

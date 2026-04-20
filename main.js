@@ -192,6 +192,11 @@ class Aura extends utils.Adapter {
       common: { name: 'Calendar fetch relay' },
       native: {},
     });
+    await this.setObjectNotExistsAsync('admin', {
+      type: 'channel',
+      common: { name: 'Admin access' },
+      native: {},
+    });
     await this.setObjectNotExistsAsync('clients', {
       type: 'channel',
       common: { name: 'Connected clients' },
@@ -267,6 +272,18 @@ class Aura extends utils.Adapter {
       type: 'state',
       common: {
         name: 'Calendar client error (written by frontend after all retries failed)',
+        type: 'string',
+        role: 'text',
+        read: true,
+        write: true,
+        def: '',
+      },
+      native: {},
+    });
+    await this.setObjectNotExistsAsync('admin.pinHash', {
+      type: 'state',
+      common: {
+        name: 'Admin PIN hash (FNV-1a, managed by frontend)',
         type: 'string',
         role: 'text',
         read: true,
