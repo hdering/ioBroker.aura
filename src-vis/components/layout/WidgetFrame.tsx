@@ -870,7 +870,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
       setOpenPanel(panel);
     }
   };
-  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'status_batteryDp' | 'status_unreachDp' | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | null>(null);
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [iconPickerTrueOpen,  setIconPickerTrueOpen]  = useState(false);
   const [iconPickerFalseOpen, setIconPickerFalseOpen] = useState(false);
@@ -1991,6 +1991,27 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                           style={{ left: (o.showTimestamp ?? true) ? '18px' : '2px' }} />
                       </button>
                     </div>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        Wake-Up Datenpunkt <span style={{ opacity: 0.6 }}>(optional, z.B. Eufy)</span>
+                      </label>
+                      <div className="flex gap-1">
+                        <input type="text" value={(o.wakeUpDp as string) ?? ''} onChange={(e) => set({ wakeUpDp: e.target.value || undefined })}
+                          placeholder="adapter.0.channel.state" className={cCls + ' flex-1 font-mono min-w-0'} style={cSty} />
+                        <button type="button" onClick={() => setPickerTarget('camera_wakeUpDp')}
+                          className="px-2 rounded-lg shrink-0"
+                          style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>…</button>
+                      </div>
+                    </div>
+                    {(o.wakeUpDp as string) && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                          Wartezeit nach Wake-Up (Sek.)
+                        </label>
+                        <input type="number" min={1} max={30} value={(o.wakeUpDelay as number) ?? 3}
+                          onChange={(e) => set({ wakeUpDelay: Number(e.target.value) })} className={cCls} style={cSty} />
+                      </div>
+                    )}
                   </>
                 );
               })()}
@@ -3255,6 +3276,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
             pickerTarget === 'windowcontact_batteryDp'  ? ((config.options?.batteryDp  as string) ?? '') :
             pickerTarget === 'status_batteryDp'         ? ((config.options?.batteryDp  as string) ?? '') :
             pickerTarget === 'status_unreachDp'         ? ((config.options?.unreachDp  as string) ?? '') :
+            pickerTarget === 'camera_wakeUpDp'          ? ((config.options?.wakeUpDp   as string) ?? '') :
             ((config.options?.actualDatapoint as string) ?? '')
           }
           onSelect={(id, unit, name, role, dpType) => {
@@ -3284,6 +3306,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               onConfigChange({ ...config, options: { ...config.options, batteryDp: id } });
             } else if (pickerTarget === 'status_unreachDp') {
               onConfigChange({ ...config, options: { ...config.options, unreachDp: id } });
+            } else if (pickerTarget === 'camera_wakeUpDp') {
+              onConfigChange({ ...config, options: { ...config.options, wakeUpDp: id } });
             } else {
               onConfigChange({ ...config, options: { ...config.options, actualDatapoint: id } });
             }
