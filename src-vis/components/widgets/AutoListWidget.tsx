@@ -28,6 +28,7 @@ export interface AutoListOptions {
   filterFuncs?: string;
   syncIntervalMin?: number;
   showRoom?: boolean;
+  showId?: boolean;
   /** 'all' = show everything (default), 'active' = only on/> 0, 'inactive' = only off/0 */
   valueFilter?: 'all' | 'active' | 'inactive';
   filterActiveLabel?: string;
@@ -596,6 +597,11 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                   {opts.showRoom && (roomLabel || entry.id) && (
                     <div className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
                       {roomLabel || entry.id}
+                    </div>
+                  )}
+                  {opts.showId && (
+                    <div className="text-[9px] truncate font-mono" style={{ color: 'var(--text-secondary)' }}>
+                      {entry.id}
                     </div>
                   )}
                 </div>

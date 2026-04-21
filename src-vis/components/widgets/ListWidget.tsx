@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Filter, X } from 'lucide-react';
-import { useIoBroker, getObjectDirect } from '../../hooks/useIoBroker';
+import { useIoBroker, getObjectDirect, getObjectViewDirect } from '../../hooks/useIoBroker';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { resolveName } from './AutoListWidget';
@@ -26,6 +26,7 @@ export interface StaticListOptions {
   filterActiveLabel?: string;
   filterInactiveLabel?: string;
   showId?: boolean;
+  showRoom?: boolean;
   showTitle?: boolean;
   showCount?: boolean;
 }
@@ -151,6 +152,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const { subscribe, setState, getState } = useIoBroker();
   const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
   const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
+  const [resolvedRooms, setResolvedRooms] = useState<Record<string, string[]>>({});
   const [showFilter, setShowFilter] = useState(false);
 
   const saveOpts = useCallback((patch: Partial<StaticListOptions>) => {
@@ -177,6 +179,32 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     return () => unsubs.forEach(u => u());
   }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Resolve rooms for showRoom display
+  useEffect(() => {
+    if (!opts.showRoom || entries.length === 0) return;
+    getObjectViewDirect('enum', 'enum.rooms.', 'enum.rooms.\u9999').then(result => {
+      const memberRooms = new Map<string, string[]>();
+      for (const { value: obj } of result.rows) {
+        if (!obj?.common?.members?.length) continue;
+        const label = resolveName(obj.common.name as string | Record<string, string>, obj._id.split('.').pop() ?? obj._id);
+        for (const memberId of (obj.common.members as string[])) {
+          if (!memberRooms.has(memberId)) memberRooms.set(memberId, []);
+          memberRooms.get(memberId)!.push(label);
+        }
+      }
+      const map: Record<string, string[]> = {};
+      for (const e of entries) {
+        const parts = e.id.split('.');
+        const roomsSet = new Set<string>();
+        for (let i = parts.length; i >= 2; i--) {
+          memberRooms.get(parts.slice(0, i).join('.'))?.forEach(r => roomsSet.add(r));
+        }
+        if (roomsSet.size > 0) map[e.id] = [...roomsSet];
+      }
+      setResolvedRooms(map);
+    });
+  }, [opts.showRoom, entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const removeEntry = (id: string) => {
     saveOpts({ entries: entries.filter(e => e.id !== id) });
     saveAll();
@@ -202,8 +230,6 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
       return valueFilter === 'active' ? isActive(val) : !isActive(val);
     });
   }, [entries, states, valueFilter, editMode]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const activeCount = entries.filter(e => isActive(states[e.id]?.val ?? null)).length;
 
   const showTitle = opts.showTitle !== false;
   const showCount = opts.showCount !== false;
@@ -397,14 +423,6 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   return (
     <div className="flex flex-col h-full">
       {header}
-      {/* Active summary line – only in default layout */}
-      {showTitle && entries.length > 0 && valueFilter === 'all' && (
-        <div className="shrink-0 px-3 py-0.5">
-          <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-            {activeCount} / {entries.length} aktiv
-          </span>
-        </div>
-      )}
       {empty}
       {visibleEntries.length > 0 && (
         <div className="aura-scroll flex-1 overflow-y-auto min-h-0">
@@ -433,6 +451,11 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                   {opts.showId && (
                     <div className="text-[9px] truncate font-mono" style={{ color: 'var(--text-secondary)' }}>
                       {entry.id}
+                    </div>
+                  )}
+                  {opts.showRoom && (resolvedRooms[entry.id]?.join(', ') || null) && (
+                    <div className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
+                      {resolvedRooms[entry.id].join(', ')}
                     </div>
                   )}
                 </div>
