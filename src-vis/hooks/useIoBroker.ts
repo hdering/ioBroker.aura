@@ -172,6 +172,7 @@ export interface ioBrokerObject {
     name: string | Record<string, string>;
     type?: string;
     unit?: string;
+    write?: boolean;
     custom?: Record<string, { enabled?: boolean; [key: string]: unknown }>;
   };
 }

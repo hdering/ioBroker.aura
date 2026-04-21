@@ -155,9 +155,10 @@ export async function discoverDatapoints(
 
 // ── Value display: row variant ────────────────────────────────────────────────
 
-function EntryValue({ entry, val, setState }: {
+function EntryValue({ entry, val, writable, setState }: {
   entry: AutoListEntry;
   val: ioBrokerState['val'];
+  writable: boolean;
   setState: (id: string, v: boolean | number | string) => void;
 }) {
   const hasLabels = !!(entry.trueLabel || entry.falseLabel);
@@ -166,21 +167,30 @@ function EntryValue({ entry, val, setState }: {
 
   if (isBoolLike) {
     const on = val === true || val === 1;
-    const toggle = () => setState(entry.id, isBool ? !on : on ? 0 : 1);
     if (hasLabels) {
       return (
-        <button onClick={toggle}
-          className="shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium transition-colors"
+        <button onClick={writable ? () => setState(entry.id, isBool ? !on : on ? 0 : 1) : undefined}
+          className="shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium"
           style={{
             background: on ? 'var(--accent)' : 'var(--app-border)',
             color: on ? '#fff' : 'var(--text-secondary)',
+            cursor: writable ? 'pointer' : 'default',
           }}>
           {on ? (entry.trueLabel || 'AN') : (entry.falseLabel || 'AUS')}
         </button>
       );
     }
+    if (!writable) {
+      return (
+        <span className="shrink-0 relative w-9 h-[18px] rounded-full pointer-events-none"
+          style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}>
+          <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white"
+            style={{ left: on ? 'calc(100% - 16px)' : '2px' }} />
+        </span>
+      );
+    }
     return (
-      <button onClick={toggle}
+      <button onClick={() => setState(entry.id, isBool ? !on : on ? 0 : 1)}
         className="shrink-0 relative w-9 h-[18px] rounded-full transition-colors"
         style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}>
         <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
@@ -190,6 +200,13 @@ function EntryValue({ entry, val, setState }: {
   }
 
   if (typeof val === 'number' && isDimmerRole(entry.id)) {
+    if (!writable) {
+      return (
+        <span className="shrink-0 text-xs font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
+          {Math.round(val)}{entry.unit ?? '%'}
+        </span>
+      );
+    }
     return (
       <div className="shrink-0 flex items-center gap-1.5">
         <input type="range" min={0} max={100} value={val}
@@ -211,9 +228,10 @@ function EntryValue({ entry, val, setState }: {
 
 // ── Value display: card variant (larger) ──────────────────────────────────────
 
-function CardEntryValue({ entry, val, setState }: {
+function CardEntryValue({ entry, val, writable, setState }: {
   entry: AutoListEntry;
   val: ioBrokerState['val'];
+  writable: boolean;
   setState: (id: string, v: boolean | number | string) => void;
 }) {
   const hasLabels = !!(entry.trueLabel || entry.falseLabel);
@@ -222,13 +240,13 @@ function CardEntryValue({ entry, val, setState }: {
 
   if (isBoolLike) {
     const on = val === true || val === 1;
-    const toggle = () => setState(entry.id, isBool ? !on : on ? 0 : 1);
     return (
-      <button onClick={toggle}
-        className="w-full py-1.5 rounded-lg text-xs font-semibold transition-colors"
+      <button onClick={writable ? () => setState(entry.id, isBool ? !on : on ? 0 : 1) : undefined}
+        className="w-full py-1.5 rounded-lg text-xs font-semibold"
         style={{
           background: on ? 'var(--accent)' : 'var(--app-border)',
           color: on ? '#fff' : 'var(--text-secondary)',
+          cursor: writable ? 'pointer' : 'default',
         }}>
         {on ? (entry.trueLabel || 'AN') : (entry.falseLabel || 'AUS')}
       </button>
@@ -236,6 +254,14 @@ function CardEntryValue({ entry, val, setState }: {
   }
 
   if (typeof val === 'number' && isDimmerRole(entry.id)) {
+    if (!writable) {
+      return (
+        <span className="text-xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>
+          {Math.round(val)}
+          <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>{entry.unit ?? '%'}</span>
+        </span>
+      );
+    }
     return (
       <div className="w-full flex flex-col items-center gap-1">
         <span className="text-xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>
@@ -268,6 +294,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
   const { subscribe, setState, getState } = useIoBroker();
   const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
   const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
+  const [writableMap, setWritableMap] = useState<Record<string, boolean>>({});
   const [syncing, setSyncing] = useState(false);
   const syncMs = (opts.syncIntervalMin ?? 5) * 60_000;
   const layout = config.layout ?? 'default';
@@ -286,12 +313,14 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const unsubs = entries.map(e =>
       subscribe(e.id, s => setStates(prev => ({ ...prev, [e.id]: s })))
     );
-    entries.filter(e => !e.label).forEach(async (e) => {
+    entries.forEach(async (e) => {
       const obj = await getObjectDirect(e.id);
-      if (obj?.common?.name) {
+      if (!obj) return;
+      if (!e.label && obj.common?.name) {
         const name = resolveName(obj.common.name as string | Record<string, string>, e.id.split('.').pop() ?? e.id);
         setResolvedNames(prev => ({ ...prev, [e.id]: name }));
       }
+      setWritableMap(prev => ({ ...prev, [e.id]: obj.common?.write !== false }));
     });
     return () => unsubs.forEach(u => u());
   }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -406,7 +435,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                   )}
                   <span className="text-[10px] truncate leading-tight pr-2" style={{ color: 'var(--text-secondary)' }}>{label}</span>
                   <div className="flex items-center justify-center">
-                    <CardEntryValue entry={entry} val={state?.val ?? null} setState={setState} />
+                    <CardEntryValue entry={entry} val={state?.val ?? null} writable={writableMap[entry.id] !== false} setState={setState} />
                   </div>
                   {opts.showRoom && entry.rooms?.length ? (
                     <span className="text-[9px] truncate opacity-50" style={{ color: 'var(--text-secondary)' }}>
@@ -449,7 +478,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     </button>
                   )}
                   <span className="flex-1 text-[11px] truncate min-w-0" style={{ color: 'var(--text-primary)' }}>{label}</span>
-                  <EntryValue entry={entry} val={state?.val ?? null} setState={setState} />
+                  <EntryValue entry={entry} val={state?.val ?? null} writable={writableMap[entry.id] !== false} setState={setState} />
                 </div>
               );
             })}
@@ -471,6 +500,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
               const state = states[entry.id] ?? null;
               const val = state?.val ?? null;
               const label = getLabel(entry);
+              const writable = writableMap[entry.id] !== false;
               const hasLabels = !!(entry.trueLabel || entry.falseLabel);
               const isBool = typeof val === 'boolean';
               const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1) && hasLabels);
@@ -482,6 +512,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
               return (
                 <button key={entry.id}
                   onClick={() => {
+                    if (!writable) return;
                     if (isBool) setState(entry.id, !on);
                     else if (isBoolLike) setState(entry.id, on ? 0 : 1);
                   }}
@@ -490,7 +521,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     background: isBoolLike && on ? 'var(--accent)1a' : 'var(--app-bg)',
                     color: isBoolLike && on ? 'var(--accent)' : 'var(--text-secondary)',
                     border: `1px solid ${isBoolLike && on ? 'var(--accent)55' : 'var(--widget-border)'}`,
-                    cursor: isBoolLike ? 'pointer' : 'default',
+                    cursor: isBoolLike && writable ? 'pointer' : 'default',
                   }}>
                   <span className="opacity-70 truncate" style={{ maxWidth: 80 }}>{label}</span>
                   <span className="font-semibold tabular-nums" style={{ color: isBoolLike ? 'inherit' : 'var(--text-primary)' }}>
@@ -533,7 +564,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     </div>
                   )}
                 </div>
-                <EntryValue entry={entry} val={state?.val ?? null} setState={setState} />
+                <EntryValue entry={entry} val={state?.val ?? null} writable={writableMap[entry.id] !== false} setState={setState} />
               </div>
             );
           })}

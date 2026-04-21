@@ -49,9 +49,10 @@ const FILTER_LABELS: Record<FilterMode, string> = {
 
 // ── Value cell ─────────────────────────────────────────────────────────────────
 
-function EntryValue({ entry, val, setState }: {
+function EntryValue({ entry, val, writable, setState }: {
   entry: StaticListEntry;
   val: ioBrokerState['val'];
+  writable: boolean;
   setState: (id: string, v: boolean | number | string) => void;
 }) {
   const hasLabels = !!(entry.trueLabel || entry.falseLabel);
@@ -60,21 +61,30 @@ function EntryValue({ entry, val, setState }: {
   const on = val === true || val === 1;
 
   if (isBoolLike) {
-    const toggle = () => setState(entry.id, isBool ? !on : on ? 0 : 1);
     if (hasLabels) {
       return (
-        <button onClick={toggle}
-          className="shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium transition-colors"
+        <button onClick={writable ? () => setState(entry.id, isBool ? !on : on ? 0 : 1) : undefined}
+          className="shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium"
           style={{
             background: on ? 'var(--accent)' : 'var(--app-border)',
             color: on ? '#fff' : 'var(--text-secondary)',
+            cursor: writable ? 'pointer' : 'default',
           }}>
           {on ? (entry.trueLabel || 'AN') : (entry.falseLabel || 'AUS')}
         </button>
       );
     }
+    if (!writable) {
+      return (
+        <span className="shrink-0 relative w-9 h-[18px] rounded-full pointer-events-none"
+          style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}>
+          <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white"
+            style={{ left: on ? 'calc(100% - 16px)' : '2px' }} />
+        </span>
+      );
+    }
     return (
-      <button onClick={toggle}
+      <button onClick={() => setState(entry.id, isBool ? !on : on ? 0 : 1)}
         className="shrink-0 relative w-9 h-[18px] rounded-full transition-colors"
         style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}>
         <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
@@ -84,6 +94,13 @@ function EntryValue({ entry, val, setState }: {
   }
 
   if (typeof val === 'number' && isDimmerRole(entry.id)) {
+    if (!writable) {
+      return (
+        <span className="shrink-0 text-xs font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
+          {Math.round(val)}{entry.unit ?? '%'}
+        </span>
+      );
+    }
     return (
       <div className="shrink-0 flex items-center gap-1.5">
         <input type="range" min={0} max={100} value={val}
@@ -116,6 +133,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const { subscribe, setState, getState } = useIoBroker();
   const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
   const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
+  const [writableMap, setWritableMap] = useState<Record<string, boolean>>({});
   const [showFilter, setShowFilter] = useState(false);
 
   const saveOpts = useCallback((patch: Partial<StaticListOptions>) => {
@@ -133,12 +151,14 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const unsubs = entries.map(e =>
       subscribe(e.id, s => setStates(prev => ({ ...prev, [e.id]: s })))
     );
-    entries.filter(e => !e.label).forEach(async (e) => {
+    entries.forEach(async (e) => {
       const obj = await getObjectDirect(e.id);
-      if (obj?.common?.name) {
+      if (!obj) return;
+      if (!e.label && obj.common?.name) {
         const name = resolveName(obj.common.name as string | Record<string, string>, e.id.split('.').pop() ?? e.id);
         setResolvedNames(prev => ({ ...prev, [e.id]: name }));
       }
+      setWritableMap(prev => ({ ...prev, [e.id]: obj.common?.write !== false }));
     });
     return () => unsubs.forEach(u => u());
   }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -279,7 +299,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                   )}
                 </div>
 
-                <EntryValue entry={entry} val={val} setState={setState} />
+                <EntryValue entry={entry} val={val} writable={writableMap[entry.id] !== false} setState={setState} />
               </div>
             );
           })}
