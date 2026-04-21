@@ -4,6 +4,7 @@ import { useIoBroker, getObjectDirect } from '../../hooks/useIoBroker';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { resolveName } from './AutoListWidget';
+import { getRoleDisplay } from '../../utils/listEntryDisplay';
 import { CustomGridView } from './CustomGridView';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -12,6 +13,7 @@ export interface StaticListEntry {
   id: string;
   label?: string;
   unit?: string;
+  role?: string;
   trueLabel?: string;
   falseLabel?: string;
   writable?: boolean; // false = read-only; undefined/true = writable
@@ -58,8 +60,21 @@ function EntryValue({ entry, val, writable, setState }: {
 }) {
   const hasLabels = !!(entry.trueLabel || entry.falseLabel);
   const isBool    = typeof val === 'boolean';
-  const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1) && hasLabels);
+  const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
   const on = val === true || val === 1;
+
+  // Role-based display for sensors (window, door, motion, smoke, …)
+  if (isBoolLike && !hasLabels) {
+    const roleDisplay = getRoleDisplay(entry.role, val);
+    if (roleDisplay) {
+      return (
+        <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full"
+          style={{ background: `${roleDisplay.color}22`, color: roleDisplay.color }}>
+          {roleDisplay.label}
+        </span>
+      );
+    }
+  }
 
   if (isBoolLike) {
     if (hasLabels) {

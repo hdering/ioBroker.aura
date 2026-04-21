@@ -109,7 +109,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
     if (entries.find(e => e.id === id)) return;
     const dp = lookupDatapointEntry(id);
     const writable = dp?.write !== false ? undefined : false;
-    setOpts({ entries: [...entries, { id, label: name || undefined, unit: unit || undefined, writable }] });
+    setOpts({ entries: [...entries, { id, label: name || undefined, unit: unit || undefined, role: dp?.role, writable }] });
   };
 
   const removeEntry = (id: string) =>
@@ -202,7 +202,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
           onMultiSelect={(picks) => {
             const newEntries = picks
               .filter(p => !entries.find(e => e.id === p.id))
-              .map(p => ({ id: p.id, label: p.name || undefined, unit: p.unit || undefined, writable: p.write !== false ? undefined : false }));
+              .map(p => ({ id: p.id, label: p.name || undefined, unit: p.unit || undefined, role: p.role, writable: p.write !== false ? undefined : false }));
             if (newEntries.length > 0) setOpts({ entries: [...entries, ...newEntries] });
             setShowPicker(false);
           }}

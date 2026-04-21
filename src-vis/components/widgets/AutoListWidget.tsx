@@ -4,6 +4,7 @@ import type { WidgetProps, ioBrokerState } from '../../types';
 import { getObjectViewDirect, getObjectDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import { isRelevantDp } from '../../utils/dpRelevance';
+import { getRoleDisplay } from '../../utils/listEntryDisplay';
 import { CustomGridView } from './CustomGridView';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -13,6 +14,7 @@ export interface AutoListEntry {
   label?: string;
   rooms?: string[];
   unit?: string;
+  role?: string;
   trueLabel?: string;
   falseLabel?: string;
   writable?: boolean; // false = read-only; undefined/true = writable
@@ -166,10 +168,23 @@ function EntryValue({ entry, val, writable, setState }: {
 }) {
   const hasLabels = !!(entry.trueLabel || entry.falseLabel);
   const isBool = typeof val === 'boolean';
-  const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1) && hasLabels);
+  const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
+  const on = val === true || val === 1;
+
+  // Role-based display for sensors (window, door, motion, smoke, …)
+  if (isBoolLike && !hasLabels) {
+    const roleDisplay = getRoleDisplay(entry.role, val);
+    if (roleDisplay) {
+      return (
+        <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full"
+          style={{ background: `${roleDisplay.color}22`, color: roleDisplay.color }}>
+          {roleDisplay.label}
+        </span>
+      );
+    }
+  }
 
   if (isBoolLike) {
-    const on = val === true || val === 1;
     if (hasLabels) {
       return (
         <button onClick={writable ? () => setState(entry.id, isBool ? !on : on ? 0 : 1) : undefined}
@@ -239,10 +254,23 @@ function CardEntryValue({ entry, val, writable, setState }: {
 }) {
   const hasLabels = !!(entry.trueLabel || entry.falseLabel);
   const isBool = typeof val === 'boolean';
-  const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1) && hasLabels);
+  const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
+  const on = val === true || val === 1;
+
+  // Role-based display for sensors
+  if (isBoolLike && !hasLabels) {
+    const roleDisplay = getRoleDisplay(entry.role, val);
+    if (roleDisplay) {
+      return (
+        <span className="w-full py-1.5 rounded-lg text-xs font-semibold text-center block"
+          style={{ background: `${roleDisplay.color}22`, color: roleDisplay.color }}>
+          {roleDisplay.label}
+        </span>
+      );
+    }
+  }
 
   if (isBoolLike) {
-    const on = val === true || val === 1;
     return (
       <button onClick={writable ? () => setState(entry.id, isBool ? !on : on ? 0 : 1) : undefined}
         className="w-full py-1.5 rounded-lg text-xs font-semibold"
@@ -331,7 +359,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     try {
       const found = await discoverDatapoints(opts);
       const existingIds = new Set(entries.map(e => e.id));
-      const newEntries = found.filter(d => !existingIds.has(d.id)).map(d => ({ id: d.id, label: d.name, rooms: d.rooms, unit: d.unit, writable: d.write }));
+      const newEntries = found.filter(d => !existingIds.has(d.id)).map(d => ({ id: d.id, label: d.name, rooms: d.rooms, unit: d.unit, role: d.role, writable: d.write }));
       if (newEntries.length > 0) {
         saveOpts({ entries: [...entries, ...newEntries] });
         saveAll();
@@ -502,28 +530,32 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
               const writable = entry.writable !== false;
               const hasLabels = !!(entry.trueLabel || entry.falseLabel);
               const isBool = typeof val === 'boolean';
-              const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1) && hasLabels);
+              const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
               const on = val === true || val === 1;
-              const valueStr = isBoolLike
-                ? (on ? (entry.trueLabel || 'AN') : (entry.falseLabel || 'AUS'))
-                : val != null ? `${String(val)}${entry.unit ? '\u202f' + entry.unit : ''}` : '–';
+              const roleDisplay = (isBoolLike && !hasLabels) ? getRoleDisplay(entry.role, val) : null;
+              const valueStr = roleDisplay
+                ? roleDisplay.label
+                : isBoolLike && hasLabels
+                  ? (on ? (entry.trueLabel || 'AN') : (entry.falseLabel || 'AUS'))
+                  : val != null ? `${String(val)}${entry.unit ? '\u202f' + entry.unit : ''}` : '–';
+              const pillColor = roleDisplay ? roleDisplay.color : (isBoolLike && on ? 'var(--accent)' : null);
 
               return (
                 <button key={entry.id}
                   onClick={() => {
-                    if (!writable) return;
+                    if (!writable || roleDisplay) return;
                     if (isBool) setState(entry.id, !on);
                     else if (isBoolLike) setState(entry.id, on ? 0 : 1);
                   }}
                   className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors hover:opacity-80"
                   style={{
-                    background: isBoolLike && on ? 'var(--accent)1a' : 'var(--app-bg)',
-                    color: isBoolLike && on ? 'var(--accent)' : 'var(--text-secondary)',
-                    border: `1px solid ${isBoolLike && on ? 'var(--accent)55' : 'var(--widget-border)'}`,
-                    cursor: isBoolLike && writable ? 'pointer' : 'default',
+                    background: pillColor ? `${pillColor}1a` : 'var(--app-bg)',
+                    color: pillColor ?? 'var(--text-secondary)',
+                    border: `1px solid ${pillColor ? `${pillColor}55` : 'var(--widget-border)'}`,
+                    cursor: isBoolLike && writable && !roleDisplay ? 'pointer' : 'default',
                   }}>
                   <span className="opacity-70 truncate" style={{ maxWidth: 80 }}>{label}</span>
-                  <span className="font-semibold tabular-nums" style={{ color: isBoolLike ? 'inherit' : 'var(--text-primary)' }}>
+                  <span className="font-semibold tabular-nums" style={{ color: isBoolLike || roleDisplay ? 'inherit' : 'var(--text-primary)' }}>
                     {valueStr}
                   </span>
                 </button>
