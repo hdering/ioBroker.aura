@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.77",
+    "version": "0.4.78",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.78": {
+        "en": "Feat: icon picker per datapoint in static list; removed non-functional delete buttons from list widgets; calendar widget auto-retries every 45 s after adapter restart",
+        "de": "Neu: Icon-Auswahl pro Datenpunkt in statischer Liste; nicht-funktionale Löschen-Buttons aus Listen-Widgets entfernt; Kalender-Widget wiederholt Fetch alle 45 s nach Adapter-Neustart",
+        "ru": "Новое: выбор иконки для каждой точки данных в статическом списке; удалены нефункциональные кнопки удаления из виджетов списков; виджет календаря повторяет запрос каждые 45 с после перезапуска адаптера",
+        "pt": "Novo: seletor de ícone por ponto de dados na lista estática; botões de exclusão não-funcionais removidos dos widgets de lista; widget de calendário repete a busca a cada 45 s após reinício do adaptador",
+        "nl": "Nieuw: icon-kiezer per datapunt in statische lijst; niet-functionele verwijderknoppen verwijderd uit lijst-widgets; kalender-widget herhaalt fetch elke 45 s na adapter-herstart",
+        "fr": "Nouveau: sélecteur d'icône par point de données dans la liste statique; boutons de suppression non-fonctionnels supprimés des widgets de liste; le widget calendrier réessaie toutes les 45 s après le redémarrage de l'adaptateur",
+        "it": "Nuovo: selettore icona per punto dati nella lista statica; pulsanti di eliminazione non funzionali rimossi dai widget lista; il widget calendario riprova ogni 45 s dopo il riavvio dell'adattatore",
+        "es": "Nuevo: selector de icono por punto de datos en la lista estática; botones de eliminación no funcionales eliminados de los widgets de lista; el widget de calendario reintenta cada 45 s tras el reinicio del adaptador",
+        "pl": "Nowe: wybór ikony dla każdego punktu danych na liście statycznej; usunięto niedziałające przyciski usuwania z widgetów list; widget kalendarza ponawia próbę co 45 s po ponownym uruchomieniu adaptera",
+        "uk": "Нове: вибір іконки для кожної точки даних у статичному списку; видалено непрацюючі кнопки видалення з віджетів списків; віджет календаря повторює запит кожні 45 с після перезапуску адаптера",
+        "zh-cn": "新增：静态列表中每个数据点的图标选择器；从列表小部件中删除了无效的删除按钮；日历小部件在适配器重启后每45秒自动重试"
+      },
       "0.4.77": {
         "en": "Fix: tab switching and DP name filter fixes – activeTabId preserved on config sync, tab switch no longer marks config dirty, name filter applied per name-part and in widget title picker, list auto-sync adds only relevant DPs",
         "de": "Fix: Tab-Wechsel und DP-Namensfilter – activeTabId bleibt bei Config-Sync erhalten, Tab-Wechsel markiert Config nicht mehr als geändert, Namensfilter greift pro Namensteil und im Widget-Titel-Picker, Listen-Auto-Sync fügt nur relevante DPs hinzu",

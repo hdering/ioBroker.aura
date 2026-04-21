@@ -6,10 +6,17 @@
  */
 import { useState, useEffect } from 'react';
 import { Database, X, ChevronRight, Settings2 } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../types';
 import type { StaticListEntry, StaticListOptions } from '../widgets/ListWidget';
 import { DatapointPicker } from './DatapointPicker';
+import { IconPickerModal } from './IconPickerModal';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
+import { lucidePascalToIconify } from '../../utils/iconifyLoader';
+
+function toIconifyId(name: string): string {
+  return name.includes(':') ? name : lucidePascalToIconify(name);
+}
 
 interface Props {
   config: WidgetConfig;
@@ -30,6 +37,7 @@ function EntryRow({
   onRemove: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' } as React.CSSProperties;
   const iCls = 'w-full text-[10px] rounded px-2 py-1 focus:outline-none font-mono';
 
@@ -41,6 +49,12 @@ function EntryRow({
           style={{ color: 'var(--text-secondary)', transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
           <ChevronRight size={11} />
         </button>
+        {entry.icon && (
+          <button onClick={() => setIconPickerOpen(true)} className="shrink-0 hover:opacity-70 p-0.5"
+            style={{ color: 'var(--text-secondary)' }}>
+            <Icon icon={toIconifyId(entry.icon)} width={11} height={11} />
+          </button>
+        )}
         <span className="flex-1 text-[10px] truncate" style={{ color: 'var(--text-primary)' }}>
           {entry.label || resolvedName || entry.id.split('.').pop() || entry.id}
         </span>
@@ -86,7 +100,35 @@ function EntryRow({
                 onChange={e => onUpdate({ falseLabel: e.target.value || undefined })} />
             </div>
           </div>
+          <div>
+            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Icon</label>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setIconPickerOpen(true)}
+                className="flex-1 flex items-center gap-1.5 text-[10px] rounded px-2 py-1 text-left hover:opacity-80"
+                style={iSty}>
+                {entry.icon
+                  ? <><Icon icon={toIconifyId(entry.icon)} width={11} height={11} /><span className="truncate font-mono">{entry.icon}</span></>
+                  : <span style={{ color: 'var(--text-secondary)' }}>Kein Icon</span>
+                }
+              </button>
+              {entry.icon && (
+                <button onClick={() => onUpdate({ icon: undefined })}
+                  className="shrink-0 hover:opacity-70 p-1"
+                  style={{ color: 'var(--text-secondary)' }}>
+                  <X size={10} />
+                </button>
+              )}
+            </div>
+          </div>
         </div>
+      )}
+      {iconPickerOpen && (
+        <IconPickerModal
+          current={entry.icon ?? ''}
+          onSelect={(name) => { onUpdate({ icon: name || undefined }); setIconPickerOpen(false); }}
+          onClose={() => setIconPickerOpen(false)}
+        />
       )}
     </div>
   );

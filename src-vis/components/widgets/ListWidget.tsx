@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Filter, X } from 'lucide-react';
+import { Filter } from 'lucide-react';
 import { useIoBroker, getObjectViewDirect } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
-import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { resolveName } from './AutoListWidget';
 import { getRoleDisplay } from '../../utils/listEntryDisplay';
@@ -22,6 +21,7 @@ export interface StaticListEntry {
   trueLabel?: string;
   falseLabel?: string;
   writable?: boolean; // false = read-only; undefined/true = writable
+  icon?: string;
 }
 
 export interface StaticListOptions {
@@ -218,12 +218,6 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     });
   }, [opts.showRoom, entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const removeEntry = (id: string) => {
-    saveOpts({ entries: entries.filter(e => e.id !== id) });
-    saveAll();
-    saveToIoBroker();
-  };
-
   const getLabel = (entry: StaticListEntry) =>
     applyDpNameFilter(entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id);
 
@@ -343,17 +337,15 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
             {visibleEntries.map(entry => {
               const val = states[entry.id]?.val ?? null;
               const label = getLabel(entry);
+              const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
               return (
                 <div key={entry.id}
                   className="rounded-xl p-2.5 flex flex-col gap-2 relative"
                   style={{ background: 'var(--app-bg)', border: '1px solid var(--widget-border)' }}>
-                  {editMode && (
-                    <button onClick={() => removeEntry(entry.id)}
-                      className="absolute top-1 right-1 hover:opacity-70" style={{ color: 'var(--text-secondary)' }}>
-                      <X size={10} />
-                    </button>
-                  )}
-                  <span className="text-[10px] truncate leading-tight pr-2" style={{ color: 'var(--text-secondary)' }}>{label}</span>
+                  <span className="flex items-center gap-1 text-[10px] truncate leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                    {EntryIcon && <EntryIcon size={11} className="shrink-0" />}
+                    {label}
+                  </span>
                   <div className="flex items-center justify-center">
                     <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} />
                   </div>
@@ -380,6 +372,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
               const val = states[entry.id]?.val ?? null;
               const label = getLabel(entry);
               const isRight = i % 2 === 1;
+              const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
               return (
                 <div key={entry.id}
                   className="flex items-center gap-1.5 px-2 py-1.5"
@@ -387,12 +380,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     borderBottom: '1px solid var(--widget-border)',
                     borderLeft: isRight ? '1px solid var(--widget-border)' : undefined,
                   }}>
-                  {editMode && (
-                    <button onClick={() => removeEntry(entry.id)} className="shrink-0 hover:opacity-70"
-                      style={{ color: 'var(--text-secondary)' }}>
-                      <X size={10} />
-                    </button>
-                  )}
+                  {EntryIcon && <EntryIcon size={11} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
                   <span className="flex-1 text-[11px] truncate min-w-0" style={{ color: 'var(--text-primary)' }}>{label}</span>
                   <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} />
                 </div>
@@ -428,6 +416,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                   ? (on ? (entry.trueLabel || 'AN') : (entry.falseLabel || 'AUS'))
                   : val != null ? `${String(val)}${entry.unit ? '\u202f' + entry.unit : ''}` : '–';
               const pillColor = roleDisplay ? roleDisplay.color : (isBoolLike && on ? 'var(--accent)' : null);
+              const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
 
               return (
                 <button key={entry.id}
@@ -443,6 +432,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     border: `1px solid ${pillColor ? `${pillColor}55` : 'var(--widget-border)'}`,
                     cursor: isBoolLike && writable && !roleDisplay ? 'pointer' : 'default',
                   }}>
+                  {EntryIcon && <EntryIcon size={11} className="shrink-0 opacity-70" />}
                   <span className="opacity-70 truncate" style={{ maxWidth: 80 }}>{label}</span>
                   <span className="font-semibold tabular-nums" style={{ color: isBoolLike || roleDisplay ? 'inherit' : 'var(--text-primary)' }}>
                     {valueStr}
@@ -467,17 +457,13 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
           {visibleEntries.map(entry => {
             const val   = states[entry.id]?.val ?? null;
             const label = getLabel(entry);
+            const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
 
             return (
               <div key={entry.id}
                 className="flex items-center gap-2 px-3 py-2"
                 style={{ borderBottom: '1px solid var(--widget-border)' }}>
-                {editMode && (
-                  <button onClick={() => removeEntry(entry.id)}
-                    className="shrink-0 hover:opacity-70" style={{ color: 'var(--text-secondary)' }}>
-                    <X size={11} />
-                  </button>
-                )}
+                {EntryIcon && <EntryIcon size={13} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
                 <div className="flex-1 min-w-0">
                   <div className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>{label}</div>
                   {opts.showRoom && (resolvedRooms[entry.id]?.join(', ') || null) && (

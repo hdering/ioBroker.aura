@@ -275,18 +275,22 @@ export function CalendarWidget({ config }: WidgetProps) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timerRef   = useRef<ReturnType<typeof setInterval> | null>(null);
+  const retryRef   = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fetchingRef = useRef(false); // prevents concurrent fetches
 
   // stable key so fetchEvents only recreates when sources/daysAhead actually change
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const sourcesKey = JSON.stringify((options.calendars ?? (options.icalUrl ? [{ url: options.icalUrl }] : [])));
 
   const fetchEvents = useCallback(async () => {
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
     const opts = config.options ?? {};
     const srcs = getSources(opts);
     const dA = (opts.daysAhead as number) ?? 14;
     const ttl = ((opts.refreshInterval as number) ?? 30) * 60; // seconds
-    if (srcs.length === 0) { setEvents([]); return; }
+    if (srcs.length === 0) { setEvents([]); fetchingRef.current = false; return; }
 
     setLoading(true);
     setErrors([]);
@@ -322,6 +326,7 @@ export function CalendarWidget({ config }: WidgetProps) {
       setErrors([String(err instanceof Error ? err.message : err)]);
     } finally {
       setLoading(false);
+      fetchingRef.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sourcesKey, daysAhead]);
@@ -334,6 +339,15 @@ export function CalendarWidget({ config }: WidgetProps) {
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [fetchEvents, refreshInterval]);
+
+  // When all sources failed, retry every 45 s until one succeeds
+  useEffect(() => {
+    if (retryRef.current) { clearInterval(retryRef.current); retryRef.current = null; }
+    if (errors.length > 0 && events.length === 0) {
+      retryRef.current = setInterval(fetchEvents, 45_000);
+    }
+    return () => { if (retryRef.current) { clearInterval(retryRef.current); retryRef.current = null; } };
+  }, [errors.length, events.length, fetchEvents]);
 
   const sources = getSources(options);
   const layout = config.layout ?? 'default';

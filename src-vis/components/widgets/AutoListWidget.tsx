@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { RefreshCw, X, Filter } from 'lucide-react';
+import { RefreshCw, Filter } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { getObjectViewDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
@@ -420,8 +420,6 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     return () => clearInterval(timer);
   }, [runSync, syncMs]);
 
-  const removeEntry = (id: string) => saveOpts({ entries: entries.filter(e => e.id !== id) });
-
   const getLabel = (entry: AutoListEntry) =>
     applyDpNameFilter(entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id);
 
@@ -559,13 +557,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                 <div key={entry.id}
                   className="rounded-xl p-2.5 flex flex-col gap-2 relative"
                   style={{ background: 'var(--app-bg)', border: '1px solid var(--widget-border)' }}>
-                  {editMode && (
-                    <button onClick={() => removeEntry(entry.id)}
-                      className="absolute top-1 right-1 hover:opacity-70" style={{ color: 'var(--text-secondary)' }}>
-                      <X size={10} />
-                    </button>
-                  )}
-                  <span className="text-[10px] truncate leading-tight pr-2" style={{ color: 'var(--text-secondary)' }}>{label}</span>
+                  <span className="text-[10px] truncate leading-tight" style={{ color: 'var(--text-secondary)' }}>{label}</span>
                   <div className="flex items-center justify-center">
                     <CardEntryValue entry={entry} val={state?.val ?? null} writable={entry.writable !== false} setState={setState} />
                   </div>
@@ -604,12 +596,6 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     borderBottom: '1px solid var(--widget-border)',
                     borderLeft: isRight ? '1px solid var(--widget-border)' : undefined,
                   }}>
-                  {editMode && (
-                    <button onClick={() => removeEntry(entry.id)} className="shrink-0 hover:opacity-70"
-                      style={{ color: 'var(--text-secondary)' }}>
-                      <X size={10} />
-                    </button>
-                  )}
                   <span className="flex-1 text-[11px] truncate min-w-0" style={{ color: 'var(--text-primary)' }}>{label}</span>
                   <EntryValue entry={entry} val={state?.val ?? null} writable={entry.writable !== false} setState={setState} />
                 </div>
@@ -689,12 +675,6 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
             return (
               <div key={entry.id} className="flex items-center gap-2 px-3 py-2"
                 style={{ borderBottom: '1px solid var(--widget-border)' }}>
-                {editMode && (
-                  <button onClick={() => removeEntry(entry.id)} className="shrink-0 hover:opacity-70"
-                    style={{ color: 'var(--text-secondary)' }}>
-                    <X size={12} />
-                  </button>
-                )}
                 <div className="flex-1 min-w-0">
                   <div className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>{label}</div>
                   {opts.showRoom && (roomLabel || entry.id) && (

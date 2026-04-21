@@ -175,6 +175,11 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.78 (2026-04-21)
+- Feat(list): icon picker per datapoint in static list widget
+- Fix(list): removed non-functional delete (X) buttons from static and dynamic list widget views
+- Fix(calendar): auto-retry every 45 s when widget is in error state (e.g. after adapter restart)
+
 ### 0.4.77 (2026-04-21)
 - Fix: preserve activeTabId during ioBroker config sync to prevent tab revert
 - Fix: tab switching no longer marks config as dirty
