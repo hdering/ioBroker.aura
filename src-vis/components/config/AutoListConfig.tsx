@@ -444,7 +444,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
         <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Anzeige-Filter (Frontend)</label>
         <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
           {(['all', 'active', 'inactive'] as const).map((v) => {
-            const label = v === 'all' ? 'Alle' : v === 'active' ? 'Nur aktive' : 'Nur inaktive';
+            const label = v === 'all' ? 'Alle' : v === 'active' ? (opts.filterActiveLabel || 'Nur aktive') : (opts.filterInactiveLabel || 'Nur inaktive');
             const active = (opts.valueFilter ?? 'all') === v;
             return (
               <button key={v} onClick={() => setOpts({ valueFilter: v })}
@@ -458,6 +458,24 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
               </button>
             );
           })}
+        </div>
+        <div className="grid grid-cols-2 gap-1.5 mt-1.5">
+          <div>
+            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Label "aktiv"</label>
+            <input className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+              placeholder="Nur aktive"
+              value={opts.filterActiveLabel ?? ''}
+              onChange={e => setOpts({ filterActiveLabel: e.target.value || undefined })} />
+          </div>
+          <div>
+            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Label "inaktiv"</label>
+            <input className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+              placeholder="Nur inaktive"
+              value={opts.filterInactiveLabel ?? ''}
+              onChange={e => setOpts({ filterInactiveLabel: e.target.value || undefined })} />
+          </div>
         </div>
       </div>
     </>

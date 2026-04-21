@@ -1469,7 +1469,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                 { value: 'compact', label: t('wf.edit.layout.compact') },
                 { value: 'minimal', label: t('wf.edit.layout.minimal') },
                 ...(config.type === 'calendar' ? [{ value: 'agenda', label: t('wf.edit.layout.agenda') }] : []),
-                ...(!['iframe', 'jsontable', 'trash', 'header', 'fill'].includes(config.type) ? [{ value: 'custom', label: 'Custom' }] : []),
+                ...(!['iframe', 'jsontable', 'trash', 'header', 'fill', 'list', 'autolist'].includes(config.type) ? [{ value: 'custom', label: 'Custom' }] : []),
                 ...(config.type === 'evcc' ? [
                   { value: 'flow',        label: 'Nur Fluss' },
                   { value: 'battery',     label: 'Nur Batterie' },

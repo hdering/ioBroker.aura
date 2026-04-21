@@ -23,6 +23,8 @@ export interface StaticListOptions {
   entries: StaticListEntry[];
   /** 'all' = show everything (default), 'active' = only on/> 0, 'inactive' = only off/0 */
   valueFilter?: 'all' | 'active' | 'inactive';
+  filterActiveLabel?: string;
+  filterInactiveLabel?: string;
   showId?: boolean;
   showTitle?: boolean;
   showCount?: boolean;
@@ -44,7 +46,7 @@ function isActive(val: ioBrokerState['val']): boolean {
 }
 
 type FilterMode = 'all' | 'active' | 'inactive';
-const FILTER_LABELS: Record<FilterMode, string> = {
+const DEFAULT_filterLabels: Record<FilterMode, string> = {
   all: 'Alle',
   active: 'Nur aktive',
   inactive: 'Nur inaktive',
@@ -186,6 +188,11 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
   // Value filter (same logic as AutoListWidget)
   const valueFilter = (opts.valueFilter ?? 'all') as FilterMode;
+  const filterLabels: Record<FilterMode, string> = {
+    all: 'Alle',
+    active:   opts.filterActiveLabel   || DEFAULT_filterLabels.active,
+    inactive: opts.filterInactiveLabel || DEFAULT_filterLabels.inactive,
+  };
 
   const visibleEntries = useMemo(() => {
     if (editMode || valueFilter === 'all') return entries;
@@ -227,14 +234,14 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
           }}
           title="Filter">
           <Filter size={10} />
-          {valueFilter !== 'all' && <span>{FILTER_LABELS[valueFilter]}</span>}
+          {valueFilter !== 'all' && <span>{filterLabels[valueFilter]}</span>}
         </button>
         {showFilter && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
             <div className="absolute right-0 top-6 rounded-lg shadow-xl z-20 overflow-hidden min-w-[110px]"
               style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
-              {(Object.keys(FILTER_LABELS) as FilterMode[]).map(mode => (
+              {(Object.keys(filterLabels) as FilterMode[]).map(mode => (
                 <button key={mode}
                   onClick={() => { saveOpts({ valueFilter: mode }); setShowFilter(false); }}
                   className="w-full px-3 py-2 text-xs text-left hover:opacity-80"
@@ -242,7 +249,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     background: valueFilter === mode ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent',
                     color: valueFilter === mode ? 'var(--accent)' : 'var(--text-primary)',
                   }}>
-                  {FILTER_LABELS[mode]}
+                  {filterLabels[mode]}
                 </button>
               ))}
             </div>

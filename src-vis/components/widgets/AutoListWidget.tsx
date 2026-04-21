@@ -30,6 +30,8 @@ export interface AutoListOptions {
   showRoom?: boolean;
   /** 'all' = show everything (default), 'active' = only on/> 0, 'inactive' = only off/0 */
   valueFilter?: 'all' | 'active' | 'inactive';
+  filterActiveLabel?: string;
+  filterInactiveLabel?: string;
   showTitle?: boolean;
   showCount?: boolean;
 }
@@ -382,6 +384,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
   // ── Value filter ───────────────────────────────────────────────────────────
   const valueFilter = opts.valueFilter ?? 'all';
+  const filterActiveLabel   = opts.filterActiveLabel   || 'Nur aktive';
+  const filterInactiveLabel = opts.filterInactiveLabel || 'Nur inaktive';
 
   /** true = value is considered "active" (on / > 0) */
   const isActive = (val: ioBrokerState['val']): boolean => {
@@ -430,8 +434,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
       <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
         {entries.length === 0
           ? `Noch keine Datenpunkte konfiguriert.${editMode ? ' Bearbeiten → Datenpunkte suchen.' : ''}`
-          : valueFilter === 'active' ? 'Alle Datenpunkte inaktiv.'
-          : 'Alle Datenpunkte aktiv.'}
+          : valueFilter === 'active' ? `Alle Datenpunkte "${filterInactiveLabel.replace('Nur ', '')}".`
+          : `Alle Datenpunkte "${filterActiveLabel.replace('Nur ', '')}".`}
       </p>
     </div>
   );
