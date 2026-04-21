@@ -16,24 +16,61 @@ export function detectType(dp: DatapointEntry): { type: WidgetType; unit?: strin
   const name = dp.name.toLowerCase();
   const unit = dp.unit ?? '';
 
+  // Thermostat – writable temperature setpoint
   if (role.includes('thermostat') || role.includes('temp.set') || name.includes('solltemp') || name.includes('setpoint'))
     return { type: 'thermostat' };
+
+  // Temperature sensor
   if (role.includes('temperature') || name.includes('temperatur') || unit === '°C')
     return { type: 'value', unit: unit || '°C' };
-  if (role.includes('level.blind') || role.includes('level.roller') || role === 'blind' || role === 'roller')
-    return { type: 'dimmer', unit: '%' };
+
+  // Roller shutter – dedicated shutter widget
+  if (
+    role.includes('level.blind') || role.includes('level.roller') || role === 'blind' || role === 'roller' ||
+    (unit === '%' && (name.includes('rollade') || name.includes('rollo') || name.includes('jalousie') || name.includes('shutter') || name.includes('blind')))
+  )
+    return { type: 'shutter', unit: '%' };
+
+  // Dimmer / brightness level
   if (role.includes('level.dimmer') || role.includes('level.brightness') || name.includes('dimmer') || name.includes('helligkeit'))
     return { type: 'dimmer' };
+
+  // Power / energy
   if (unit === 'W' || unit === 'VA' || role.includes('value.power'))
     return { type: 'value', unit };
-  if (unit === 'kWh' || role.includes('value.energy'))
+  if (unit === 'kWh' || unit === 'Wh' || role.includes('value.energy'))
     return { type: 'value', unit };
-  if (unit === '%' && (role.includes('level') || name.includes('rollade') || name.includes('rollo') || name.includes('jalousie') || name.includes('shutter') || name.includes('blind')))
-    return { type: 'dimmer', unit: '%' };
-  if (unit === '%' && (role.includes('humid') || name.includes('feuchte')))
+
+  // Humidity
+  if (unit === '%' && (role.includes('humid') || name.includes('feuchte') || name.includes('feuchtigkeit')))
     return { type: 'value', unit: '%' };
+
+  // Battery percentage value
+  if (role.includes('value.battery') || (role.includes('battery') && dp.type === 'number'))
+    return { type: 'value', unit: unit || '%' };
+
+  // Window / door contact sensor
+  if (role.includes('sensor.window') || role.includes('sensor.door'))
+    return { type: 'windowcontact' };
+
+  // Read-only binary indicators: lowbat, maintenance, motion, alarm, lock, …
+  if (
+    role.startsWith('indicator') ||
+    role.includes('sensor.motion') || role === 'motion' ||
+    role.includes('sensor.alarm') || role.includes('sensor.lock') ||
+    role.includes('lowbat')
+  )
+    return { type: 'binarysensor' };
+
+  // Any other read-only boolean → binary sensor
+  if (dp.write === false && dp.type === 'boolean')
+    return { type: 'binarysensor' };
+
+  // Writable boolean / explicit switch/button role
   if (dp.type === 'boolean' || role.includes('switch') || role.includes('button'))
     return { type: 'switch' };
+
+  // Generic numeric value
   if (dp.type === 'number')
     return { type: 'value', unit: unit || undefined };
 
