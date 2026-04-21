@@ -15,6 +15,7 @@ export interface AutoListEntry {
   unit?: string;
   trueLabel?: string;
   falseLabel?: string;
+  writable?: boolean; // false = read-only; undefined/true = writable
 }
 
 export interface AutoListOptions {
@@ -37,6 +38,7 @@ export interface DiscoveredDp {
   role?: string;
   type?: string;
   unit?: string;
+  write?: boolean;
   rooms: string[];
   /** true if the role/type matches a known widget pattern */
   isRelevant: boolean;
@@ -147,6 +149,7 @@ export async function discoverDatapoints(
         role,
         type,
         unit: (obj.common.unit as string | undefined) || undefined,
+        write: obj.common.write !== false ? undefined : false,
         rooms: [...roomsSet],
         isRelevant: isRelevantDp(role, type),
       };
@@ -294,7 +297,6 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
   const { subscribe, setState, getState } = useIoBroker();
   const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
   const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
-  const [writableMap, setWritableMap] = useState<Record<string, boolean>>({});
   const [syncing, setSyncing] = useState(false);
   const syncMs = (opts.syncIntervalMin ?? 5) * 60_000;
   const layout = config.layout ?? 'default';
@@ -313,14 +315,11 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const unsubs = entries.map(e =>
       subscribe(e.id, s => setStates(prev => ({ ...prev, [e.id]: s })))
     );
-    entries.forEach(async (e) => {
+    entries.filter(e => !e.label).forEach(async (e) => {
       const obj = await getObjectDirect(e.id);
-      if (!obj) return;
-      if (!e.label && obj.common?.name) {
-        const name = resolveName(obj.common.name as string | Record<string, string>, e.id.split('.').pop() ?? e.id);
-        setResolvedNames(prev => ({ ...prev, [e.id]: name }));
-      }
-      setWritableMap(prev => ({ ...prev, [e.id]: obj.common?.write !== false }));
+      if (!obj?.common?.name) return;
+      const name = resolveName(obj.common.name as string | Record<string, string>, e.id.split('.').pop() ?? e.id);
+      setResolvedNames(prev => ({ ...prev, [e.id]: name }));
     });
     return () => unsubs.forEach(u => u());
   }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -332,7 +331,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     try {
       const found = await discoverDatapoints(opts);
       const existingIds = new Set(entries.map(e => e.id));
-      const newEntries = found.filter(d => !existingIds.has(d.id)).map(d => ({ id: d.id, label: d.name, rooms: d.rooms, unit: d.unit }));
+      const newEntries = found.filter(d => !existingIds.has(d.id)).map(d => ({ id: d.id, label: d.name, rooms: d.rooms, unit: d.unit, writable: d.write }));
       if (newEntries.length > 0) {
         saveOpts({ entries: [...entries, ...newEntries] });
         saveAll();
@@ -435,7 +434,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                   )}
                   <span className="text-[10px] truncate leading-tight pr-2" style={{ color: 'var(--text-secondary)' }}>{label}</span>
                   <div className="flex items-center justify-center">
-                    <CardEntryValue entry={entry} val={state?.val ?? null} writable={writableMap[entry.id] !== false} setState={setState} />
+                    <CardEntryValue entry={entry} val={state?.val ?? null} writable={entry.writable !== false} setState={setState} />
                   </div>
                   {opts.showRoom && entry.rooms?.length ? (
                     <span className="text-[9px] truncate opacity-50" style={{ color: 'var(--text-secondary)' }}>
@@ -478,7 +477,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     </button>
                   )}
                   <span className="flex-1 text-[11px] truncate min-w-0" style={{ color: 'var(--text-primary)' }}>{label}</span>
-                  <EntryValue entry={entry} val={state?.val ?? null} writable={writableMap[entry.id] !== false} setState={setState} />
+                  <EntryValue entry={entry} val={state?.val ?? null} writable={entry.writable !== false} setState={setState} />
                 </div>
               );
             })}
@@ -500,7 +499,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
               const state = states[entry.id] ?? null;
               const val = state?.val ?? null;
               const label = getLabel(entry);
-              const writable = writableMap[entry.id] !== false;
+              const writable = entry.writable !== false;
               const hasLabels = !!(entry.trueLabel || entry.falseLabel);
               const isBool = typeof val === 'boolean';
               const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1) && hasLabels);
@@ -564,7 +563,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     </div>
                   )}
                 </div>
-                <EntryValue entry={entry} val={state?.val ?? null} writable={writableMap[entry.id] !== false} setState={setState} />
+                <EntryValue entry={entry} val={state?.val ?? null} writable={entry.writable !== false} setState={setState} />
               </div>
             );
           })}

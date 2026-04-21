@@ -14,6 +14,7 @@ export interface StaticListEntry {
   unit?: string;
   trueLabel?: string;
   falseLabel?: string;
+  writable?: boolean; // false = read-only; undefined/true = writable
 }
 
 export interface StaticListOptions {
@@ -133,7 +134,6 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const { subscribe, setState, getState } = useIoBroker();
   const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
   const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
-  const [writableMap, setWritableMap] = useState<Record<string, boolean>>({});
   const [showFilter, setShowFilter] = useState(false);
 
   const saveOpts = useCallback((patch: Partial<StaticListOptions>) => {
@@ -151,14 +151,11 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const unsubs = entries.map(e =>
       subscribe(e.id, s => setStates(prev => ({ ...prev, [e.id]: s })))
     );
-    entries.forEach(async (e) => {
+    entries.filter(e => !e.label).forEach(async (e) => {
       const obj = await getObjectDirect(e.id);
-      if (!obj) return;
-      if (!e.label && obj.common?.name) {
-        const name = resolveName(obj.common.name as string | Record<string, string>, e.id.split('.').pop() ?? e.id);
-        setResolvedNames(prev => ({ ...prev, [e.id]: name }));
-      }
-      setWritableMap(prev => ({ ...prev, [e.id]: obj.common?.write !== false }));
+      if (!obj?.common?.name) return;
+      const name = resolveName(obj.common.name as string | Record<string, string>, e.id.split('.').pop() ?? e.id);
+      setResolvedNames(prev => ({ ...prev, [e.id]: name }));
     });
     return () => unsubs.forEach(u => u());
   }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -299,7 +296,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                   )}
                 </div>
 
-                <EntryValue entry={entry} val={val} writable={writableMap[entry.id] !== false} setState={setState} />
+                <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} />
               </div>
             );
           })}

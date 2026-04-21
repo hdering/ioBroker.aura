@@ -7,6 +7,7 @@ export interface DatapointEntry {
   type?: string;
   unit?: string;
   role?: string;
+  write?: boolean;   // false = read-only (common.write === false)
   rooms: string[];   // labels from enum.rooms.*
   funcs: string[];   // labels from enum.functions.*
   logging: string[]; // enabled logging adapter IDs, e.g. ['history.0', 'influxdb.0']
@@ -134,6 +135,7 @@ async function loadAll(): Promise<DatapointEntry[]> {
       type: row.value.common.type,
       unit: row.value.common.unit,
       role: row.value.common.role,
+      write: row.value.common.write !== false ? undefined : false,
       rooms: [...roomsSet],
       funcs: [...funcsSet],
       logging,

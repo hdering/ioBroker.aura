@@ -261,7 +261,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
       const existing = existingMap.get(id);
       if (existing) return existing; // preserve user-edited label/unit/trueLabel/falseLabel
       const dp = discovered.get(id);
-      return { id, label: dp?.name, rooms: dp?.rooms, unit: dp?.unit };
+      return { id, label: dp?.name, rooms: dp?.rooms, unit: dp?.unit, writable: dp?.write };
     });
     setOpts({
       entries,
