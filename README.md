@@ -175,6 +175,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.70 (2026-04-21)
+- Fix: lint errors in JSX labels and hook dependencies from previous release
+
 ### 0.4.69 (2026-04-21)
 - DatapointPicker: only shows states from enabled adapter instances (common.enabled === true)
 - EChart widget: toggle to hide Y-axis scale, tick marks, and grid lines

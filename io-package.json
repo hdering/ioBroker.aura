@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.69",
+    "version": "0.4.70",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.70": {
+        "en": "Fix: lint errors in JSX labels and hook dependencies from previous release",
+        "de": "Fix: Lint-Fehler in JSX-Labels und Hook-Abhängigkeiten aus dem vorherigen Release",
+        "ru": "Исправление: ошибки lint в JSX-метках и зависимостях хуков из предыдущего релиза",
+        "pt": "Fix: erros de lint em labels JSX e dependências de hooks do release anterior",
+        "nl": "Fix: lint-fouten in JSX-labels en hook-afhankelijkheden van de vorige release",
+        "fr": "Fix: erreurs lint dans les labels JSX et dépendances de hooks de la release précédente",
+        "it": "Fix: errori lint nelle label JSX e dipendenze degli hook dalla release precedente",
+        "es": "Fix: errores lint en etiquetas JSX y dependencias de hooks de la versión anterior",
+        "pl": "Fix: błędy lint w etykietach JSX i zależnościach hooków z poprzedniego wydania",
+        "uk": "Виправлення: помилки lint в JSX-мітках та залежностях хуків з попереднього релізу",
+        "zh-cn": "修复：上个版本中JSX标签和Hook依赖项的lint错误"
+      },
       "0.4.69": {
         "en": "DatapointPicker: only shows states from enabled adapter instances; EChart: toggle to hide Y-axis scale and grid lines; EChart tooltip now shows units and rounds to 2 decimal places",
         "de": "DatapointPicker: zeigt nur States aktiver Adapterinstanzen; EChart: Schalter zum Ausblenden der Y-Achse und Gitternetzlinien; EChart-Tooltip zeigt Einheiten und rundet auf 2 Dezimalstellen",
@@ -183,19 +196,6 @@
         "pl": "Fix: iFrame 'Zachowaj aktywny (bez przeładowania)' teraz poprawnie zachowuje stan przy przełączaniu kart – widoki wypełniające kartę nie powodują już przeładowania",
         "uk": "Виправлення: iFrame 'Підтримувати (без перезавантаження)' тепер коректно зберігає стан при перемиканні вкладок – повноекранні вікна вкладок більше не спричиняють перезавантаження",
         "zh-cn": "修复：iFrame「保持活跃（不重载）」现在在切换标签时正确保留状态 – 填充标签视图不再触发重载"
-      },
-      "0.4.63": {
-        "en": "Admin Settings: multi-column layout reduces scrolling – Language/Editor/PIN/Backup in one row, Frontend/Grid/Guidelines in another, Clients/Expert side by side",
-        "de": "Admin Einstellungen: mehrspaltiges Layout reduziert Scrollen – Sprache/Editor/PIN/Backup in einer Zeile, Frontend/Grid/Hilfslinien nebeneinander, Geräte/Experten Seite an Seite",
-        "ru": "Настройки администратора: многоколоночный макет уменьшает прокрутку – Язык/Редактор/PIN/Резервное копирование в одной строке, Фронтенд/Сетка/Направляющие рядом, Устройства/Эксперт бок о бок",
-        "pt": "Definições de administrador: layout multi-coluna reduz rolagem – Idioma/Editor/PIN/Backup numa linha, Frontend/Grelha/Guias lado a lado, Dispositivos/Especialista lado a lado",
-        "nl": "Admin instellingen: meerkolomsindeling vermindert scrollen – Taal/Editor/PIN/Backup in één rij, Frontend/Raster/Hulplijnen naast elkaar, Apparaten/Expert zij aan zij",
-        "fr": "Paramètres admin: mise en page multi-colonnes réduit le défilement – Langue/Éditeur/PIN/Sauvegarde sur une ligne, Frontend/Grille/Guides côte à côte, Appareils/Expert côte à côte",
-        "it": "Impostazioni admin: layout multi-colonna riduce lo scorrimento – Lingua/Editor/PIN/Backup in una riga, Frontend/Griglia/Guide affiancati, Dispositivi/Esperto affiancati",
-        "es": "Configuración admin: diseño de múltiples columnas reduce el desplazamiento – Idioma/Editor/PIN/Copia de seguridad en una fila, Frontend/Cuadrícula/Guías lado a lado, Dispositivos/Experto lado a lado",
-        "pl": "Ustawienia admina: wielokolumnowy układ zmniejsza przewijanie – Język/Edytor/PIN/Kopia zapasowa w jednym wierszu, Frontend/Siatka/Linie pomocnicze obok siebie, Urządzenia/Ekspert obok siebie",
-        "uk": "Налаштування адміна: багатоколонковий макет зменшує прокрутку – Мова/Редактор/PIN/Резервне копіювання в одному рядку, Фронтенд/Сітка/Допоміжні лінії поруч, Пристрої/Експерт поруч",
-        "zh-cn": "管理员设置：多列布局减少滚动 – 语言/编辑器/PIN/备份在一行，前端/网格/辅助线并排，设备/专家并排"
       }
     }
   },
