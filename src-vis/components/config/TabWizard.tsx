@@ -27,8 +27,11 @@ function matchesTheme(dp: DatapointEntry, theme: ThemeKey): boolean {
   const name = dp.name.toLowerCase();
   switch (theme) {
     case 'battery':
-      return role.includes('bat') || role.includes('lowbat') ||
-             id.includes('lowbat') || id.includes('battery') ||
+      return role === 'indicator.lowbat' ||
+             role === 'value.battery' ||
+             role.startsWith('indicator.battery') ||
+             id.includes('lowbat') ||
+             id.includes('.battery') ||
              name.includes('batterie') || name.includes('battery');
     case 'window':
       return role.includes('window') || role.includes('door') ||
