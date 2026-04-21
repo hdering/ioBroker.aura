@@ -107,17 +107,17 @@
     ],
     "news": {
       "0.4.67": {
-        "en": "Camera widget: auto-detect stream type (MJPEG/iframe/RTSP hint), wake-up datapoint for battery cameras with three trigger modes (auto, on-view, on-click)",
-        "de": "Kamera-Widget: automatische Stream-Erkennung (MJPEG/iframe/RTSP-Hinweis), Wake-Up-Datenpunkt für Akku-Kameras mit drei Auslöse-Modi (automatisch, bei Sicht, bei Klick)",
-        "ru": "Виджет камеры: автоопределение типа потока (MJPEG/iframe/RTSP), точка пробуждения для аккумуляторных камер с тремя режимами (авто, при виде, по клику)",
-        "pt": "Widget câmara: deteção automática do tipo de stream (MJPEG/iframe/RTSP), ponto de wake-up para câmaras a bateria com três modos (auto, ao ver, ao clicar)",
-        "nl": "Camera-widget: automatische streamdetectie (MJPEG/iframe/RTSP), wake-up datapunt voor accucamera's met drie modi (auto, bij zicht, bij klik)",
-        "fr": "Widget caméra: détection automatique du type de flux (MJPEG/iframe/RTSP), point de réveil pour caméras à batterie avec trois modes (auto, à la vue, au clic)",
-        "it": "Widget fotocamera: rilevamento automatico del tipo di stream (MJPEG/iframe/RTSP), punto di wake-up per fotocamere a batteria con tre modalità (auto, alla vista, al clic)",
-        "es": "Widget cámara: detección automática del tipo de stream (MJPEG/iframe/RTSP), punto de activación para cámaras de batería con tres modos (auto, al ver, al hacer clic)",
-        "pl": "Widget kamery: automatyczne wykrywanie typu strumienia (MJPEG/iframe/RTSP), punkt wybudzenia dla kamer bateryjnych z trzema trybami (auto, przy widoku, przy kliknięciu)",
-        "uk": "Віджет камери: автовизначення типу потоку (MJPEG/iframe/RTSP), точка пробудження для акумуляторних камер з трьома режимами (авто, при перегляді, по кліку)",
-        "zh-cn": "摄像头小部件：自动检测流类型（MJPEG/iframe/RTSP提示），电池摄像头唤醒数据点，支持三种触发模式（自动、可见时、点击时）"
+        "en": "Camera widget: stream type auto-detection, wake-up datapoint for battery cameras (3 modes), new layouts (Minimal/Standard/Custom Grid), stream health detection with countdown + error overlay, configurable stream timeout",
+        "de": "Kamera-Widget: automatische Stream-Erkennung, Wake-Up-Datenpunkt für Akku-Kameras (3 Modi), neue Layouts (Minimal/Standard/Custom Grid), Stream-Gesundheitserkennung mit Countdown + Fehler-Overlay, einstellbarer Stream-Timeout",
+        "ru": "Виджет камеры: автоопределение потока, wake-up для аккумуляторных камер (3 режима), новые макеты (минимальный/стандарт/сетка), определение состояния потока с обратным отсчётом и оверлеем ошибки, настраиваемый таймаут",
+        "pt": "Widget câmara: deteção automática de stream, wake-up para câmaras a bateria (3 modos), novos layouts (Minimal/Standard/Custom Grid), deteção de saúde do stream com contagem regressiva + overlay de erro, timeout configurável",
+        "nl": "Camera-widget: automatische streamdetectie, wake-up voor accucamera (3 modi), nieuwe layouts (Minimal/Standaard/Custom Grid), stream-gezondheidsdetectie met aftelling + foutoverlay, instelbare stream-timeout",
+        "fr": "Widget caméra: détection automatique du flux, wake-up pour caméra batterie (3 modes), nouveaux layouts (Minimal/Standard/Custom Grid), détection de santé du flux avec décompte + overlay d'erreur, timeout configurable",
+        "it": "Widget fotocamera: rilevamento automatico stream, wake-up per fotocamere a batteria (3 modalità), nuovi layout (Minimale/Standard/Custom Grid), rilevamento salute stream con conto alla rovescia + overlay errore, timeout configurabile",
+        "es": "Widget cámara: detección automática de stream, wake-up para cámaras de batería (3 modos), nuevos layouts (Minimal/Estándar/Custom Grid), detección de salud del stream con cuenta atrás + overlay de error, timeout configurable",
+        "pl": "Widget kamery: automatyczne wykrywanie strumienia, wybudzanie dla kamer bateryjnych (3 tryby), nowe układy (Minimalny/Standardowy/Custom Grid), wykrywanie zdrowia strumienia z odliczaniem + nakładką błędu, konfigurowalny timeout",
+        "uk": "Віджет камери: автовизначення потоку, wake-up для акумуляторних камер (3 режими), нові макети (Мінімальний/Стандарт/Custom Grid), виявлення стану потоку з відліком + оверлеєм помилки, налаштовуваний тайм-аут",
+        "zh-cn": "摄像头小部件：流类型自动检测，电池摄像头唤醒数据点（3种模式），新布局（最小/标准/自定义网格），流健康检测（倒计时徽章+错误覆盖层），可配置流超时"
       },
       "0.4.66": {
         "en": "Admin PIN is now stored in ioBroker datapoint admin.pinHash – a PIN set on one device or URL applies to all browsers and clients",
@@ -170,32 +170,6 @@
         "pl": "Ustawienia admina: wielokolumnowy układ zmniejsza przewijanie – Język/Edytor/PIN/Kopia zapasowa w jednym wierszu, Frontend/Siatka/Linie pomocnicze obok siebie, Urządzenia/Ekspert obok siebie",
         "uk": "Налаштування адміна: багатоколонковий макет зменшує прокрутку – Мова/Редактор/PIN/Резервне копіювання в одному рядку, Фронтенд/Сітка/Допоміжні лінії поруч, Пристрої/Експерт поруч",
         "zh-cn": "管理员设置：多列布局减少滚动 – 语言/编辑器/PIN/备份在一行，前端/网格/辅助线并排，设备/专家并排"
-      },
-      "0.4.62": {
-        "en": "Per-layout settings: Guidelines, Grid & Mobile, Theme & CSS can now be configured independently per layout – different tablets get different grid sizes, themes and CSS",
-        "de": "Layout-spezifische Einstellungen: Hilfslinien, Grid & Mobil, Theme & CSS sind jetzt je Layout unabhängig konfigurierbar – verschiedene Tablets erhalten unterschiedliche Raster, Themes und CSS",
-        "ru": "Настройки на уровне макета: Hilfslinien, Grid & Mobile, Theme & CSS теперь можно настраивать независимо для каждого макета – разные планшеты получают разные размеры сетки, темы и CSS",
-        "pt": "Definições por layout: Guias, Grid & Mobile, Tema e CSS agora podem ser configurados de forma independente por layout – tablets diferentes recebem tamanhos de grelha, temas e CSS diferentes",
-        "nl": "Lay-outspecifieke instellingen: Hulplijnen, Grid & Mobiel, Thema en CSS zijn nu per lay-out onafhankelijk instelbaar – verschillende tablets krijgen verschillende rastergroottes, thema's en CSS",
-        "fr": "Paramètres par mise en page: Guides, Grille & Mobile, Thème et CSS peuvent désormais être configurés indépendamment par mise en page – différentes tablettes reçoivent des tailles de grille, thèmes et CSS différents",
-        "it": "Impostazioni per layout: Guide, Griglia & Mobile, Tema e CSS ora configurabili indipendentemente per layout – tablet diversi ottengono dimensioni griglia, temi e CSS diversi",
-        "es": "Configuración por diseño: Guías, Cuadrícula y Móvil, Tema y CSS ahora se pueden configurar de forma independiente por diseño – diferentes tablets reciben diferentes tamaños de cuadrícula, temas y CSS",
-        "pl": "Ustawienia na poziomie układu: Linie pomocnicze, Siatka i Mobile, Motyw i CSS można teraz konfigurować niezależnie dla każdego układu – różne tablety uzyskują różne rozmiary siatki, motywy i CSS",
-        "uk": "Налаштування на рівні макету: Допоміжні лінії, Сітка та Мобільний, Тема та CSS тепер можна налаштовувати незалежно для кожного макету – різні планшети отримують різні розміри сітки, теми та CSS",
-        "zh-cn": "按布局的设置：辅助线、网格和移动端、主题和CSS现在可以按布局独立配置 – 不同平板可以获得不同的网格大小、主题和CSS"
-      },
-      "0.4.61": {
-        "en": "Icon picker: switched to Iconify with 9,400+ icons (Lucide + MDI) bundled offline; 7 new MDI categories including garage, heat pump, solar, EV charging, sensors; icon picker dialog taller; full backwards compatibility for existing icon configs",
-        "de": "Icon-Auswahl: Wechsel zu Iconify mit 9.400+ Icons (Lucide + MDI) offline gebündelt; 7 neue MDI-Kategorien inkl. Garage, Wärmepumpe, Solar, E-Laden, Sensoren; Icon-Dialog höher; volle Rückwärtskompatibilität für bestehende Icon-Konfigurationen",
-        "ru": "Выбор иконок: переход на Iconify с 9400+ иконками (Lucide + MDI) в офлайн-бандле; 7 новых категорий MDI включая гараж, тепловой насос, солнечную энергию, зарядку EV, датчики; диалог выбора иконок стал выше; полная обратная совместимость",
-        "pt": "Seletor de ícones: mudança para Iconify com 9.400+ ícones (Lucide + MDI) em bundle offline; 7 novas categorias MDI incluindo garagem, bomba de calor, solar, carregamento EV, sensores; diálogo mais alto; compatibilidade total com configs existentes",
-        "nl": "Icoonselectie: overgestapt naar Iconify met 9.400+ iconen (Lucide + MDI) offline gebundeld; 7 nieuwe MDI-categorieën incl. garage, warmtepomp, zonne-energie, EV-laden, sensoren; dialoog hoger; volledige achterwaartse compatibiliteit",
-        "fr": "Sélecteur d'icônes: passage à Iconify avec 9400+ icônes (Lucide + MDI) en bundle hors ligne; 7 nouvelles catégories MDI dont garage, pompe à chaleur, solaire, charge VE, capteurs; dialogue plus grand; compatibilité totale avec les configs existantes",
-        "it": "Selettore icone: passaggio a Iconify con 9.400+ icone (Lucide + MDI) in bundle offline; 7 nuove categorie MDI incluso garage, pompa di calore, solare, ricarica EV, sensori; dialogo più alto; piena compatibilità con configurazioni esistenti",
-        "es": "Selector de iconos: cambio a Iconify con 9.400+ iconos (Lucide + MDI) en bundle offline; 7 nuevas categorías MDI incluyendo garaje, bomba de calor, solar, carga EV, sensores; diálogo más alto; compatibilidad total con configs existentes",
-        "pl": "Wybór ikon: przejście na Iconify z 9400+ ikonami (Lucide + MDI) w bundle offline; 7 nowych kategorii MDI w tym garaż, pompa ciepła, solar, ładowanie EV, sensory; wyższe okno dialogowe; pełna kompatybilność wsteczna",
-        "uk": "Вибір іконок: перехід на Iconify з 9400+ іконками (Lucide + MDI) у офлайн-бандлі; 7 нових категорій MDI включаючи гараж, тепловий насос, сонячну енергію, зарядку EV, датчики; вище діалогове вікно; повна зворотна сумісність",
-        "zh-cn": "图标选择器：切换到 Iconify，离线捆绑 9400+ 图标（Lucide + MDI）；7 个新 MDI 分类包括车库、热泵、太阳能、电动车充电、传感器；图标对话框更高；完全向后兼容现有图标配置"
       }
     }
   },
