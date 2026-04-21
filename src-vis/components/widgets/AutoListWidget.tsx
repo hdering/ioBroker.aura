@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { RefreshCw, X } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { getObjectViewDirect, getObjectDirect, useIoBroker } from '../../hooks/useIoBroker';
-import { saveAll } from '../../store/persistManager';
+import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import { isRelevantDp } from '../../utils/dpRelevance';
 import { CustomGridView } from './CustomGridView';
 
@@ -307,6 +307,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
       if (newEntries.length > 0) {
         saveOpts({ entries: [...entries, ...newEntries] });
         saveAll();
+        saveToIoBroker();
       }
     } finally {
       setSyncing(false);

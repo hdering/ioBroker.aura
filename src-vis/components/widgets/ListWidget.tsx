@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Filter, X } from 'lucide-react';
 import { useIoBroker, getObjectDirect } from '../../hooks/useIoBroker';
-import { saveAll } from '../../store/persistManager';
+import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { resolveName } from './AutoListWidget';
 import { CustomGridView } from './CustomGridView';
@@ -146,6 +146,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const removeEntry = (id: string) => {
     saveOpts({ entries: entries.filter(e => e.id !== id) });
     saveAll();
+    saveToIoBroker();
   };
 
   const getLabel = (entry: StaticListEntry) =>

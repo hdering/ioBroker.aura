@@ -9,7 +9,7 @@ import { Database, X, ChevronRight, Settings2 } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import type { StaticListEntry, StaticListOptions } from '../widgets/ListWidget';
 import { DatapointPicker } from './DatapointPicker';
-import { saveAll } from '../../store/persistManager';
+import { saveAll, saveToIoBroker } from '../../store/persistManager';
 
 interface Props {
   config: WidgetConfig;
@@ -101,6 +101,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
     const updated = { ...config, options: { ...opts, ...patch } };
     onConfigChange(updated);
     saveAll();
+    saveToIoBroker();
   };
 
   const addEntry = (id: string, name?: string, unit?: string) => {
