@@ -7,6 +7,9 @@ import type { WidgetProps, ioBrokerState } from '../../types';
 import { resolveName } from './AutoListWidget';
 import { getRoleDisplay } from '../../utils/listEntryDisplay';
 import { CustomGridView } from './CustomGridView';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { useT } from '../../i18n';
+import { formatLastChange } from '../../utils/formatLastChange';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -150,11 +153,13 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     [config.options],
   );
   const entries = useMemo<StaticListEntry[]>(() => opts.entries ?? [], [opts.entries]);
+  const t = useT();
   const { subscribe, setState, getState } = useIoBroker();
   const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
   const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
   const [resolvedRooms, setResolvedRooms] = useState<Record<string, string[]>>({});
   const [showFilter, setShowFilter] = useState(false);
+  const [lastChangedTs, setLastChangedTs] = useState(0);
 
   const saveOpts = useCallback((patch: Partial<StaticListOptions>) => {
     onConfigChange({ ...config, options: { ...opts, ...patch } });
@@ -169,7 +174,10 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     if (entries.length === 0) return;
     entries.forEach(e => getState(e.id).then(s => setStates(prev => ({ ...prev, [e.id]: s }))));
     const unsubs = entries.map(e =>
-      subscribe(e.id, s => setStates(prev => ({ ...prev, [e.id]: s })))
+      subscribe(e.id, s => {
+        setStates(prev => ({ ...prev, [e.id]: s }));
+        setLastChangedTs(prev => Math.max(prev, s.lc > 0 ? s.lc : s.ts));
+      })
     );
     entries.filter(e => !e.label).forEach(async (e) => {
       const obj = await getObjectDirect(e.id);
@@ -232,17 +240,39 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     });
   }, [entries, states, valueFilter, editMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const showTitle = opts.showTitle !== false;
+  const hideTitle = !!(config.options as Record<string, unknown>)?.hideTitle;
+  const showTitle = opts.showTitle !== false && !hideTitle;
   const showCount = opts.showCount !== false;
+  const showLastChange = !!(config.options as Record<string, unknown>)?.showLastChange;
+  const lastChangePos  = ((config.options as Record<string, unknown>)?.lastChangePosition as string) ?? 'left';
+
+  const lcOverlay = showLastChange && lastChangedTs > 0 ? (() => {
+    const text = formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lastChangedTs);
+    const posStyle: React.CSSProperties = lastChangePos === 'center'
+      ? { position: 'absolute', bottom: 6, left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap' }
+      : lastChangePos === 'right'
+        ? { position: 'absolute', bottom: 6, right: 8 }
+        : { position: 'absolute', bottom: 6, left: 8 };
+    return (
+      <div className="pointer-events-none text-[8px] opacity-50 whitespace-nowrap"
+        style={{ ...posStyle, color: 'var(--text-secondary)' }}>
+        {text}
+      </div>
+    );
+  })() : null;
 
   const layout = config.layout ?? 'default';
   if (layout === 'custom') return <CustomGridView config={config} value="" />;
+
+  const iconName = (config.options as Record<string, unknown>)?.icon as string | undefined;
+  const HeaderIcon = iconName ? getWidgetIcon(iconName, null!) : null;
 
   // ── Shared header ──────────────────────────────────────────────────────────
   const header = showTitle ? (
     <div className="shrink-0 flex items-center justify-between px-3 py-1.5"
       style={{ borderBottom: '1px solid var(--widget-border)' }}>
-      <span className="text-xs font-semibold truncate" style={{ color: 'var(--text-secondary)' }}>
+      <span className="flex items-center gap-1.5 text-xs font-semibold truncate" style={{ color: 'var(--text-secondary)' }}>
+        {HeaderIcon && <HeaderIcon size={12} className="shrink-0" />}
         {config.title || 'Statische Liste'}
         {showCount && entries.length > 0 && (
           <span className="ml-1 opacity-50">
@@ -300,7 +330,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   // ── KACHELN (card) ─────────────────────────────────────────────────────────
   if (layout === 'card') {
     return (
-      <div className="flex flex-col h-full">
+      <div className="relative flex flex-col h-full">
         {header}
         {empty}
         {visibleEntries.length > 0 && (
@@ -328,6 +358,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
             })}
           </div>
         )}
+        {lcOverlay}
       </div>
     );
   }
@@ -335,7 +366,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   // ── KOMPAKT (compact) — 2-column dense list ────────────────────────────────
   if (layout === 'compact') {
     return (
-      <div className="flex flex-col h-full">
+      <div className="relative flex flex-col h-full">
         {header}
         {empty}
         {visibleEntries.length > 0 && (
@@ -365,6 +396,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
             })}
           </div>
         )}
+        {lcOverlay}
       </div>
     );
   }
@@ -372,7 +404,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   // ── BADGES (minimal) — inline pill per entry ───────────────────────────────
   if (layout === 'minimal') {
     return (
-      <div className="flex flex-col h-full">
+      <div className="relative flex flex-col h-full">
         {header}
         {empty}
         {visibleEntries.length > 0 && (
@@ -416,13 +448,14 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
             })}
           </div>
         )}
+        {lcOverlay}
       </div>
     );
   }
 
   // ── STANDARD (default) — full-width rows ───────────────────────────────────
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative flex flex-col h-full">
       {header}
       {empty}
       {visibleEntries.length > 0 && (
@@ -466,6 +499,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
           })}
         </div>
       )}
+      {lcOverlay}
     </div>
   );
 }
