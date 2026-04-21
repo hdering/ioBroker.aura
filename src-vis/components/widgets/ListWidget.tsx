@@ -461,19 +461,13 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
       {visibleEntries.length > 0 && (
         <div className="aura-scroll flex-1 overflow-y-auto min-h-0">
           {visibleEntries.map(entry => {
-            const val    = states[entry.id]?.val ?? null;
-            const active = isActive(val);
-            const label  = getLabel(entry);
+            const val   = states[entry.id]?.val ?? null;
+            const label = getLabel(entry);
 
             return (
               <div key={entry.id}
                 className="flex items-center gap-2 px-3 py-2"
                 style={{ borderBottom: '1px solid var(--widget-border)' }}>
-                <span className="w-2 h-2 rounded-full shrink-0"
-                  style={{
-                    background: val === null ? 'var(--app-border)'
-                      : active ? 'var(--accent-green)' : 'var(--text-secondary)',
-                  }} />
                 {editMode && (
                   <button onClick={() => removeEntry(entry.id)}
                     className="shrink-0 hover:opacity-70" style={{ color: 'var(--text-secondary)' }}>
