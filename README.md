@@ -175,6 +175,12 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.73 (2026-04-21)
+- Fix: hideTitle, showLastChange overlay and icon now work in static & dynamic list widgets
+- Fix: DP names in list widgets now show parentName › stateName (channel/device resolution)
+- Fix: config panel entry rows show resolved names instead of STATE/LEVEL
+- Fix: remove status dot from static list default layout
+
 ### 0.4.70 (2026-04-21)
 - Fix: lint errors in JSX labels and hook dependencies from previous release
 

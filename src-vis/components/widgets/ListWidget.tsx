@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Filter, X } from 'lucide-react';
-import { useIoBroker, getObjectDirect, getObjectViewDirect } from '../../hooks/useIoBroker';
+import { useIoBroker, getObjectViewDirect } from '../../hooks/useIoBroker';
+import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import type { WidgetProps, ioBrokerState } from '../../types';
@@ -179,11 +180,14 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
         setLastChangedTs(prev => Math.max(prev, s.lc > 0 ? s.lc : s.ts));
       })
     );
-    entries.filter(e => !e.label).forEach(async (e) => {
-      const obj = await getObjectDirect(e.id);
-      if (!obj?.common?.name) return;
-      const name = resolveName(obj.common.name as string | Record<string, string>, e.id.split('.').pop() ?? e.id);
-      setResolvedNames(prev => ({ ...prev, [e.id]: name }));
+    ensureDatapointCache().then(cache => {
+      const updates: Record<string, string> = {};
+      for (const e of entries.filter(en => !en.label)) {
+        const found = cache.find(c => c.id === e.id);
+        if (found?.name) updates[e.id] = found.name;
+      }
+      if (Object.keys(updates).length > 0)
+        setResolvedNames(prev => ({ ...prev, ...updates }));
     });
     return () => unsubs.forEach(u => u());
   }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps

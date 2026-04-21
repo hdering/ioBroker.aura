@@ -4,6 +4,7 @@ import type { WidgetConfig } from '../../types';
 import { discoverDatapoints, loadFilterOptions } from '../widgets/AutoListWidget';
 import type { AutoListOptions, AutoListEntry, DiscoveredDp } from '../widgets/AutoListWidget';
 import { useT } from '../../i18n';
+import { ensureDatapointCache } from '../../hooks/useDatapointList';
 
 // ── MultiSelect dropdown ───────────────────────────────────────────────────────
 
@@ -107,10 +108,12 @@ function MultiSelect({
 
 function EntryConfigRow({
   entry,
+  resolvedName,
   onUpdate,
   onRemove,
 }: {
   entry: AutoListEntry;
+  resolvedName?: string;
   onUpdate: (patch: Partial<AutoListEntry>) => void;
   onRemove: () => void;
 }) {
@@ -127,8 +130,8 @@ function EntryConfigRow({
           style={{ color: 'var(--text-secondary)', transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
           <ChevronRight size={11} />
         </button>
-        <span className="flex-1 text-[10px] truncate font-mono" style={{ color: 'var(--text-primary)' }}>
-          {entry.label || entry.id.split('.').pop() || entry.id}
+        <span className="flex-1 text-[10px] truncate" style={{ color: 'var(--text-primary)' }}>
+          {entry.label || resolvedName || entry.id.split('.').pop() || entry.id}
         </span>
         <button onClick={() => setExpanded(e => !e)} className="shrink-0 hover:opacity-70 p-0.5"
           style={{ color: 'var(--text-secondary)' }} title={t('autolist.settings')}>
@@ -201,6 +204,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
   const [availRooms, setAvailRooms] = useState<string[]>([]);
   const [availFuncs, setAvailFuncs] = useState<string[]>([]);
   const [optLoading, setOptLoading] = useState(true);
+  const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     loadFilterOptions().then(({ roles, rooms, funcs }) => {
@@ -208,6 +212,11 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
       setAvailRooms(rooms);
       setAvailFuncs(funcs);
       setOptLoading(false);
+    });
+    ensureDatapointCache().then(cache => {
+      const map: Record<string, string> = {};
+      for (const e of cache) map[e.id] = e.name;
+      setResolvedNames(map);
     });
   }, []);
 
@@ -406,6 +415,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
               <EntryConfigRow
                 key={e.id}
                 entry={e}
+                resolvedName={resolvedNames[e.id]}
                 onUpdate={patch => updateEntry(e.id, patch)}
                 onRemove={() => removeEntry(e.id)}
               />

@@ -4,12 +4,12 @@
  * Unlike AutoListConfig (filter-based discovery), entries are added
  * manually one at a time via the DatapointPicker (object browser).
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Database, X, ChevronRight, Settings2 } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import type { StaticListEntry, StaticListOptions } from '../widgets/ListWidget';
 import { DatapointPicker } from './DatapointPicker';
-import { lookupDatapointEntry } from '../../hooks/useDatapointList';
+import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
 
 interface Props {
   config: WidgetConfig;
@@ -20,10 +20,12 @@ interface Props {
 
 function EntryRow({
   entry,
+  resolvedName,
   onUpdate,
   onRemove,
 }: {
   entry: StaticListEntry;
+  resolvedName?: string;
   onUpdate: (patch: Partial<StaticListEntry>) => void;
   onRemove: () => void;
 }) {
@@ -40,7 +42,7 @@ function EntryRow({
           <ChevronRight size={11} />
         </button>
         <span className="flex-1 text-[10px] truncate" style={{ color: 'var(--text-primary)' }}>
-          {entry.label || entry.id.split('.').pop() || entry.id}
+          {entry.label || resolvedName || entry.id.split('.').pop() || entry.id}
         </span>
         <button onClick={() => setExpanded(e => !e)} className="shrink-0 hover:opacity-70 p-0.5"
           style={{ color: 'var(--text-secondary)' }}>
@@ -96,6 +98,15 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
   const opts = (config.options ?? { entries: [] }) as unknown as StaticListOptions;
   const entries = opts.entries ?? [];
   const [showPicker, setShowPicker] = useState(false);
+  const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    ensureDatapointCache().then(cache => {
+      const map: Record<string, string> = {};
+      for (const e of cache) map[e.id] = e.name;
+      setResolvedNames(map);
+    });
+  }, []);
 
   const setOpts = (patch: Partial<StaticListOptions>) => {
     onConfigChange({ ...config, options: { ...opts, ...patch } });
@@ -143,6 +154,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                 <EntryRow
                   key={e.id}
                   entry={e}
+                  resolvedName={resolvedNames[e.id]}
                   onUpdate={patch => updateEntry(e.id, patch)}
                   onRemove={() => removeEntry(e.id)}
                 />

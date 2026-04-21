@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { RefreshCw, X, Filter } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
-import { getObjectViewDirect, getObjectDirect, useIoBroker } from '../../hooks/useIoBroker';
+import { getObjectViewDirect, useIoBroker } from '../../hooks/useIoBroker';
+import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import { isRelevantDp } from '../../utils/dpRelevance';
 import { getRoleDisplay } from '../../utils/listEntryDisplay';
@@ -90,10 +91,20 @@ export async function loadFilterOptions(): Promise<{ roles: string[]; rooms: str
 export async function discoverDatapoints(
   opts: Pick<AutoListOptions, 'filterRoles' | 'filterIdPattern' | 'filterRooms' | 'filterFuncs'>,
 ): Promise<DiscoveredDp[]> {
-  const [stateResult, enumResult] = await Promise.all([
+  const [stateResult, channelResult, deviceResult, enumResult] = await Promise.all([
     getObjectViewDirect('state'),
+    getObjectViewDirect('channel'),
+    getObjectViewDirect('device'),
     getObjectViewDirect('enum', 'enum.', 'enum.\u9999'),
   ]);
+
+  // Build parent name map (channels override devices when both exist)
+  const parentNames = new Map<string, string>();
+  for (const { id, value: obj } of [...deviceResult.rows, ...channelResult.rows]) {
+    if (!obj?.common?.name) continue;
+    const n = resolveName(obj.common.name as string | Record<string, string>, '');
+    if (n) parentNames.set(id, n);
+  }
 
   // Build memberId → { rooms, funcs } map.
   // IMPORTANT: index by each member ID so we can do parent-path traversal below.
@@ -153,9 +164,25 @@ export async function discoverDatapoints(
       }
       const role = obj.common.role as string | undefined;
       const type = obj.common.type as string | undefined;
+      const stateName = resolveName(obj.common.name as string | Record<string, string>, '');
+      let parentName = '';
+      for (let i = parts.length - 1; i >= 2; i--) {
+        const pName = parentNames.get(parts.slice(0, i).join('.'));
+        if (pName) { parentName = pName; break; }
+      }
+      let name: string;
+      if (parentName && stateName && parentName !== stateName) {
+        name = `${parentName} › ${stateName}`;
+      } else if (stateName) {
+        name = stateName;
+      } else if (parentName) {
+        name = `${parentName} › ${parts[parts.length - 1]}`;
+      } else {
+        name = parts[parts.length - 1] ?? id;
+      }
       return {
         id,
-        name: resolveName(obj.common.name as string | Record<string, string>, id.split('.').pop() ?? id),
+        name,
         role,
         type,
         unit: (obj.common.unit as string | undefined) || undefined,
@@ -357,11 +384,14 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         setLastChangedTs(prev => Math.max(prev, s.lc > 0 ? s.lc : s.ts));
       })
     );
-    entries.filter(e => !e.label).forEach(async (e) => {
-      const obj = await getObjectDirect(e.id);
-      if (!obj?.common?.name) return;
-      const name = resolveName(obj.common.name as string | Record<string, string>, e.id.split('.').pop() ?? e.id);
-      setResolvedNames(prev => ({ ...prev, [e.id]: name }));
+    ensureDatapointCache().then(cache => {
+      const updates: Record<string, string> = {};
+      for (const e of entries.filter(en => !en.label)) {
+        const found = cache.find(c => c.id === e.id);
+        if (found?.name) updates[e.id] = found.name;
+      }
+      if (Object.keys(updates).length > 0)
+        setResolvedNames(prev => ({ ...prev, ...updates }));
     });
     return () => unsubs.forEach(u => u());
   }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps

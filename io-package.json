@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.70",
+    "version": "0.4.73",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.73": {
+        "en": "Static & dynamic list: fix hideTitle, showLastChange overlay, icon display, DP name resolution (parentName › stateName), remove status dot",
+        "de": "Statische & dynamische Liste: Fix hideTitle, Letzte-Änderung-Overlay, Icon-Anzeige, DP-Namenauflösung (Elternname › Statusname), Statuspunkt entfernt",
+        "ru": "Статический и динамический список: исправление hideTitle, оверлей последнего изменения, отображение иконки, разрешение имён (родитель › состояние), удалена цветная точка",
+        "pt": "Lista estática e dinâmica: corrige hideTitle, overlay da última alteração, ícone, resolução de nomes (pai › estado), ponto de status removido",
+        "nl": "Statische & dynamische lijst: fix hideTitle, overlay laatste wijziging, icoondisplay, DP-naamresolutie (ouder › toestand), statuspunt verwijderd",
+        "fr": "Liste statique & dynamique: correction hideTitle, overlay dernière modification, affichage icône, résolution des noms (parent › état), point de statut supprimé",
+        "it": "Lista statica & dinamica: fix hideTitle, overlay ultima modifica, icona, risoluzione nomi (genitore › stato), punto di stato rimosso",
+        "es": "Lista estática y dinámica: fix hideTitle, overlay última modificación, icono, resolución de nombres (padre › estado), punto de estado eliminado",
+        "pl": "Lista statyczna i dynamiczna: fix hideTitle, nakładka ostatniej zmiany, ikona, rozwiązywanie nazw (rodzic › stan), usunięto kropkę statusu",
+        "uk": "Статичний та динамічний список: виправлення hideTitle, оверлей останньої зміни, іконка, розпізнавання імен (батько › стан), точку статусу видалено",
+        "zh-cn": "静态和动态列表：修复hideTitle、最后更改覆盖层、图标显示、DP名称解析（父名称›状态名称），移除状态点"
+      },
       "0.4.70": {
         "en": "Fix: lint errors in JSX labels and hook dependencies from previous release",
         "de": "Fix: Lint-Fehler in JSX-Labels und Hook-Abhängigkeiten aus dem vorherigen Release",
@@ -183,19 +196,6 @@
         "pl": "DatapointPicker: rozwiązywanie nazw uwzględnia teraz nazwy nadrzędnych kanałów/urządzeń dla adapterów innych niż Homematic (Zigbee, Shelly, Hue itp.)",
         "uk": "DatapointPicker: розпізнавання імен тепер включає імена батьківського каналу/пристрою для не-Homematic адаптерів (Zigbee, Shelly, Hue тощо)",
         "zh-cn": "DatapointPicker：名称解析现在包含非 Homematic 适配器（Zigbee、Shelly、Hue 等）的父通道/设备名称"
-      },
-      "0.4.64": {
-        "en": "Fix: iframe 'Keep Alive (no reload)' now correctly preserves state across tab switches – fill-tab views no longer cause iframes to reload",
-        "de": "Fix: iFrame 'Aufrechterhalten (kein Reload)' behält den Zustand beim Tab-Wechsel korrekt bei – Tab-füllende Ansichten lösen kein Neuladen mehr aus",
-        "ru": "Исправление: iFrame 'Без перезагрузки' теперь корректно сохраняет состояние при переключении вкладок – полноэкранные виды вкладок больше не вызывают перезагрузку",
-        "pt": "Fix: iFrame 'Manter ativo (sem recarga)' agora preserva corretamente o estado ao trocar de abas – vistas de aba completa já não causam recarregamento",
-        "nl": "Fix: iFrame 'Behouden (geen herlaad)' behoudt nu correct de staat bij het wisselen van tabbladen – tabvullende weergaven veroorzaken geen herlaad meer",
-        "fr": "Fix: iFrame 'Maintenir actif (sans rechargement)' préserve maintenant correctement l'état lors du changement d'onglets – les vues en plein onglet ne déclenchent plus de rechargement",
-        "it": "Fix: iFrame 'Mantieni attivo (senza ricarica)' ora preserva correttamente lo stato al cambio di schede – le viste a scheda piena non causano più ricaricamento",
-        "es": "Fix: iFrame 'Mantener activo (sin recarga)' ahora preserva correctamente el estado al cambiar de pestañas – las vistas de pestaña completa ya no provocan recargas",
-        "pl": "Fix: iFrame 'Zachowaj aktywny (bez przeładowania)' teraz poprawnie zachowuje stan przy przełączaniu kart – widoki wypełniające kartę nie powodują już przeładowania",
-        "uk": "Виправлення: iFrame 'Підтримувати (без перезавантаження)' тепер коректно зберігає стан при перемиканні вкладок – повноекранні вікна вкладок більше не спричиняють перезавантаження",
-        "zh-cn": "修复：iFrame「保持活跃（不重载）」现在在切换标签时正确保留状态 – 填充标签视图不再触发重载"
       }
     }
   },
