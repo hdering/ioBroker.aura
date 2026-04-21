@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.73",
+    "version": "0.4.74",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.74": {
+        "en": "Fix: switching tabs in admin no longer reverts after ioBroker config sync",
+        "de": "Fix: Tab-Wechsel im Backend wird nicht mehr durch ioBroker-Config-Sync zurückgesetzt",
+        "ru": "Исправление: переключение вкладок в бэкенде больше не сбрасывается синхронизацией конфига ioBroker",
+        "pt": "Fix: mudar de aba no backend já não reverte após sincronização de config ioBroker",
+        "nl": "Fix: wisselen van tabs in backend wordt niet meer teruggezet door ioBroker config-sync",
+        "fr": "Fix: changer d'onglet dans le backend n'est plus annulé par la synchronisation de la config ioBroker",
+        "it": "Fix: il cambio scheda nel backend non viene più annullato dalla sincronizzazione config ioBroker",
+        "es": "Fix: cambiar de pestaña en el backend ya no se revierte tras la sincronización de config ioBroker",
+        "pl": "Fix: przełączanie zakładek w backendzie nie jest już cofane przez synchronizację konfiguracji ioBroker",
+        "uk": "Виправлення: перемикання вкладок у бекенді більше не скасовується синхронізацією конфігурації ioBroker",
+        "zh-cn": "修复：在管理后台切换标签页后不再因ioBroker配置同步而回退"
+      },
       "0.4.73": {
         "en": "Static & dynamic list: fix hideTitle, showLastChange overlay, icon display, DP name resolution (parentName › stateName), remove status dot",
         "de": "Statische & dynamische Liste: Fix hideTitle, Letzte-Änderung-Overlay, Icon-Anzeige, DP-Namenauflösung (Elternname › Statusname), Statuspunkt entfernt",
@@ -183,19 +196,6 @@
         "pl": "PIN administratora jest teraz przechowywany w punkcie danych ioBroker admin.pinHash – PIN ustawiony na jednym urządzeniu lub URL obowiązuje dla wszystkich przeglądarek i klientów",
         "uk": "PIN адміністратора тепер зберігається в точці даних ioBroker admin.pinHash – PIN, встановлений на одному пристрої або URL, діє для всіх браузерів і клієнтів",
         "zh-cn": "管理员 PIN 现在存储在 ioBroker 数据点 admin.pinHash 中 – 在一个设备或 URL 上设置的 PIN 适用于所有浏览器和客户端"
-      },
-      "0.4.65": {
-        "en": "DatapointPicker: name resolution now includes parent channel/device names for non-Homematic adapters (Zigbee, Shelly, Hue, etc.) – shows e.g. \"Living Room Lamp › on\" instead of just \"on\"",
-        "de": "DatapointPicker: Namensauflösung berücksichtigt jetzt übergeordnete Kanal-/Geräteobjekte für Nicht-Homematic-Adapter (Zigbee, Shelly, Hue usw.) – zeigt z.B. \"Wohnzimmer Lampe › on\" statt nur \"on\"",
-        "ru": "DatapointPicker: разрешение имён теперь включает имена родительских каналов/устройств для не-Homematic адаптеров (Zigbee, Shelly, Hue и др.)",
-        "pt": "DatapointPicker: resolução de nomes agora inclui nomes de canal/dispositivo pai para adaptadores não-Homematic (Zigbee, Shelly, Hue, etc.)",
-        "nl": "DatapointPicker: naamresolutie bevat nu namen van bovenliggende kanaal-/apparaatobjecten voor niet-Homematic adapters (Zigbee, Shelly, Hue, etc.)",
-        "fr": "DatapointPicker: la résolution de noms inclut désormais les noms de canal/appareil parent pour les adaptateurs non-Homematic (Zigbee, Shelly, Hue, etc.)",
-        "it": "DatapointPicker: la risoluzione dei nomi include ora i nomi del canale/dispositivo padre per adattatori non-Homematic (Zigbee, Shelly, Hue, ecc.)",
-        "es": "DatapointPicker: la resolución de nombres ahora incluye nombres de canal/dispositivo padre para adaptadores no-Homematic (Zigbee, Shelly, Hue, etc.)",
-        "pl": "DatapointPicker: rozwiązywanie nazw uwzględnia teraz nazwy nadrzędnych kanałów/urządzeń dla adapterów innych niż Homematic (Zigbee, Shelly, Hue itp.)",
-        "uk": "DatapointPicker: розпізнавання імен тепер включає імена батьківського каналу/пристрою для не-Homematic адаптерів (Zigbee, Shelly, Hue тощо)",
-        "zh-cn": "DatapointPicker：名称解析现在包含非 Homematic 适配器（Zigbee、Shelly、Hue 等）的父通道/设备名称"
       }
     }
   },

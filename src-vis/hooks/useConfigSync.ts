@@ -29,7 +29,31 @@ export function useConfigSync(connected: boolean, configLoaded: React.MutableRef
       SYNC_STORE_KEYS.forEach((key) => {
         const remoteVal = remote[key];
         if (!remoteVal) return;
-        const remoteStr = typeof remoteVal === 'string' ? remoteVal : JSON.stringify(remoteVal);
+        let remoteStr = typeof remoteVal === 'string' ? remoteVal : JSON.stringify(remoteVal);
+
+        // Preserve in-memory activeTabId/activeLayoutId – these are UI navigation
+        // state that is flushed directly to localStorage (not via ioBroker sync),
+        // so the remote copy may lag behind and must not overwrite the local value.
+        if (key === 'aura-dashboard') {
+          try {
+            const parsed = JSON.parse(remoteStr) as Record<string, unknown>;
+            const current = useDashboardStore.getState();
+            if (parsed.state && typeof parsed.state === 'object') {
+              const state = parsed.state as Record<string, unknown>;
+              state.activeLayoutId = current.activeLayoutId;
+              if (Array.isArray(state.layouts)) {
+                const currentLayouts = current.layouts;
+                state.layouts = (state.layouts as Array<Record<string, unknown>>).map((l) => {
+                  const cur = currentLayouts.find((cl) => cl.id === l.id);
+                  return cur ? { ...l, activeTabId: cur.activeTabId } : l;
+                });
+              }
+              parsed.state = state;
+              remoteStr = JSON.stringify(parsed);
+            }
+          } catch { /* leave remoteStr unchanged */ }
+        }
+
         if (remoteStr && remoteStr !== localStorage.getItem(key)) {
           localStorage.setItem(key, remoteStr);
           changed = true;

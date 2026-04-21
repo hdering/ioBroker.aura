@@ -175,6 +175,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.74 (2026-04-21)
+- Fix: switching tabs in admin no longer reverts after ioBroker config sync
+
 ### 0.4.73 (2026-04-21)
 - Fix: hideTitle, showLastChange overlay and icon now work in static & dynamic list widgets
 - Fix: DP names in list widgets now show parentName › stateName (channel/device resolution)
