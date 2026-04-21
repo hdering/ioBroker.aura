@@ -79,8 +79,6 @@ export function JsonTableWidget({ config }: WidgetProps) {
   const showHeader     = (opts.showHeader     as boolean) ?? true;
   const showSearch     = (opts.showSearch     as boolean) ?? false;
   const fontSize       = (opts.fontSize       as number)  ?? 12;
-  const colDefs        = (opts.columns        as JsonColumnDef[] | undefined) ?? [];
-
   const [query, setQuery] = useState('');
 
   const tableData = useMemo(() => parseJson(value), [value]);
@@ -88,6 +86,7 @@ export function JsonTableWidget({ config }: WidgetProps) {
   // Build ordered, filtered column list from raw headers + colDefs
   const columns = useMemo<JsonColumnDef[]>(() => {
     if (!tableData) return [];
+    const colDefs = (opts.columns as JsonColumnDef[] | undefined) ?? [];
     const defMap = new Map(colDefs.map((d) => [d.key, d]));
     // Start from all raw headers, apply colDef overrides
     const all: JsonColumnDef[] = tableData.headers.map((h, i) => ({
@@ -101,7 +100,7 @@ export function JsonTableWidget({ config }: WidgetProps) {
     return all
       .filter((c) => !c.hidden)
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-  }, [tableData, colDefs]);
+  }, [tableData, opts.columns]);
 
   // Filter rows by search query (searches all visible column values)
   const filteredRows = useMemo(() => {

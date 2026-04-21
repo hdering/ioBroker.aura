@@ -175,7 +175,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
         </div>
         <div className="grid grid-cols-2 gap-1.5 mt-1.5">
           <div>
-            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Label "aktiv"</label>
+            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Label &quot;aktiv&quot;</label>
             <input className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
               style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
               placeholder="Nur aktive"
@@ -183,7 +183,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
               onChange={e => setOpts({ filterActiveLabel: e.target.value || undefined })} />
           </div>
           <div>
-            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Label "inaktiv"</label>
+            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Label &quot;inaktiv&quot;</label>
             <input className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
               style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
               placeholder="Nur inaktive"

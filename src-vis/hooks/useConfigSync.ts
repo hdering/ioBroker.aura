@@ -68,5 +68,5 @@ export function useConfigSync(connected: boolean, configLoaded: React.MutableRef
     return () => {
       if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
     };
-  }, [connected, applyRemoteConfigRaw]);
+  }, [connected, applyRemoteConfigRaw]); // eslint-disable-line react-hooks/exhaustive-deps -- configLoaded is a ref, intentionally excluded
 }
