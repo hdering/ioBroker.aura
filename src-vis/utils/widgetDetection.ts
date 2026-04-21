@@ -150,7 +150,7 @@ export function scoreDatapoint(dp: DatapointEntry, topic: string): number {
   );
 }
 
-function cleanTitle(dp: DatapointEntry): string {
+export function cleanTitle(dp: DatapointEntry): string {
   if (dp.name && dp.name !== dp.id.split('.').pop()) return dp.name;
   const segs = dp.id.split('.');
   return segs.slice(-2).join(' › ');
