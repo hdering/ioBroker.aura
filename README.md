@@ -175,8 +175,11 @@ npm run build:adapter
 
 ## Changelog
 
-### 0.4.74 (2026-04-21)
-- Fix: switching tabs in admin no longer reverts after ioBroker config sync
+### 0.4.77 (2026-04-21)
+- Fix: preserve activeTabId during ioBroker config sync to prevent tab revert
+- Fix: tab switching no longer marks config as dirty
+- Fix: DP name filter applied per-part of 'parent › state' names and to widget title in picker
+- Fix(list): auto-sync only adds relevant DPs by default; filter hides unloaded entries
 
 ### 0.4.73 (2026-04-21)
 - Fix: hideTitle, showLastChange overlay and icon now work in static & dynamic list widgets

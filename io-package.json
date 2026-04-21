@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.74",
+    "version": "0.4.77",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,18 +106,18 @@
       }
     ],
     "news": {
-      "0.4.74": {
-        "en": "Fix: switching tabs in admin no longer reverts after ioBroker config sync",
-        "de": "Fix: Tab-Wechsel im Backend wird nicht mehr durch ioBroker-Config-Sync zurückgesetzt",
-        "ru": "Исправление: переключение вкладок в бэкенде больше не сбрасывается синхронизацией конфига ioBroker",
-        "pt": "Fix: mudar de aba no backend já não reverte após sincronização de config ioBroker",
-        "nl": "Fix: wisselen van tabs in backend wordt niet meer teruggezet door ioBroker config-sync",
-        "fr": "Fix: changer d'onglet dans le backend n'est plus annulé par la synchronisation de la config ioBroker",
-        "it": "Fix: il cambio scheda nel backend non viene più annullato dalla sincronizzazione config ioBroker",
-        "es": "Fix: cambiar de pestaña en el backend ya no se revierte tras la sincronización de config ioBroker",
-        "pl": "Fix: przełączanie zakładek w backendzie nie jest już cofane przez synchronizację konfiguracji ioBroker",
-        "uk": "Виправлення: перемикання вкладок у бекенді більше не скасовується синхронізацією конфігурації ioBroker",
-        "zh-cn": "修复：在管理后台切换标签页后不再因ioBroker配置同步而回退"
+      "0.4.77": {
+        "en": "Fix: tab switching and DP name filter fixes – activeTabId preserved on config sync, tab switch no longer marks config dirty, name filter applied per name-part and in widget title picker, list auto-sync adds only relevant DPs",
+        "de": "Fix: Tab-Wechsel und DP-Namensfilter – activeTabId bleibt bei Config-Sync erhalten, Tab-Wechsel markiert Config nicht mehr als geändert, Namensfilter greift pro Namensteil und im Widget-Titel-Picker, Listen-Auto-Sync fügt nur relevante DPs hinzu",
+        "ru": "Исправления: activeTabId сохраняется при синхронизации конфига, переключение вкладок не помечает конфиг как изменённый, фильтр имён применяется к каждой части имени и в пикере заголовка виджета, автосинхронизация списка добавляет только актуальные DP",
+        "pt": "Fix: activeTabId preservado na sincronização de config, troca de aba não marca config como alterada, filtro de nomes aplicado por parte do nome e no picker de título do widget, auto-sync da lista adiciona apenas DPs relevantes",
+        "nl": "Fix: activeTabId behouden bij config-sync, tab-wissel markeert config niet meer als gewijzigd, naamfilter toegepast per naamdeel en in widget-titelpicker, lijst-auto-sync voegt alleen relevante DPs toe",
+        "fr": "Fix: activeTabId préservé lors de la synchronisation de config, le changement d'onglet ne marque plus la config comme modifiée, filtre de noms appliqué par partie du nom et dans le sélecteur de titre de widget, auto-sync liste n'ajoute que les DP pertinents",
+        "it": "Fix: activeTabId preservato durante la sincronizzazione della config, il cambio scheda non segna più la config come modificata, filtro nomi applicato per parte del nome e nel selettore del titolo widget, auto-sync lista aggiunge solo DP rilevanti",
+        "es": "Fix: activeTabId preservado en la sincronización de config, cambiar de pestaña ya no marca la config como modificada, filtro de nombres aplicado por parte del nombre y en el selector de título del widget, auto-sync de lista añade solo DPs relevantes",
+        "pl": "Fix: activeTabId zachowane przy synchronizacji konfiguracji, przełączanie zakładek nie oznacza już konfiguracji jako zmienionej, filtr nazw stosowany na każdą część nazwy i w wyborze tytułu widgetu, auto-sync listy dodaje tylko istotne DP",
+        "uk": "Виправлення: activeTabId зберігається при синхронізації конфігурації, перемикання вкладок не позначає конфіг як змінений, фільтр імен застосовується до кожної частини імені та в пікері заголовка віджету, автосинхронізація списку додає лише актуальні DP",
+        "zh-cn": "修复：配置同步时保留activeTabId，切换标签页不再将配置标记为已修改，名称过滤器应用于名称各部分及小部件标题选择器，列表自动同步仅添加相关DP"
       },
       "0.4.73": {
         "en": "Static & dynamic list: fix hideTitle, showLastChange overlay, icon display, DP name resolution (parentName › stateName), remove status dot",
@@ -144,19 +144,6 @@
         "pl": "Fix: błędy lint w etykietach JSX i zależnościach hooków z poprzedniego wydania",
         "uk": "Виправлення: помилки lint в JSX-мітках та залежностях хуків з попереднього релізу",
         "zh-cn": "修复：上个版本中JSX标签和Hook依赖项的lint错误"
-      },
-      "0.4.69": {
-        "en": "DatapointPicker: only shows states from enabled adapter instances; EChart: toggle to hide Y-axis scale and grid lines; EChart tooltip now shows units and rounds to 2 decimal places",
-        "de": "DatapointPicker: zeigt nur States aktiver Adapterinstanzen; EChart: Schalter zum Ausblenden der Y-Achse und Gitternetzlinien; EChart-Tooltip zeigt Einheiten und rundet auf 2 Dezimalstellen",
-        "ru": "DatapointPicker: показывает только состояния активных экземпляров адаптеров; EChart: переключатель скрытия оси Y и линий сетки; Tooltip показывает единицы и округляет до 2 знаков",
-        "pt": "DatapointPicker: mostra apenas estados de instâncias de adaptadores ativas; EChart: botão para ocultar escala do eixo Y e linhas de grelha; tooltip mostra unidades e arredonda para 2 casas decimais",
-        "nl": "DatapointPicker: toont alleen states van actieve adapterinstanties; EChart: schakelaar om Y-as en rasterlijnen te verbergen; tooltip toont eenheden en rondt af op 2 decimalen",
-        "fr": "DatapointPicker: n'affiche que les états des instances d'adaptateurs actives; EChart: bouton pour masquer l'axe Y et les lignes de grille; tooltip affiche les unités et arrondit à 2 décimales",
-        "it": "DatapointPicker: mostra solo gli stati delle istanze di adattatori attive; EChart: interruttore per nascondere l'asse Y e le linee della griglia; il tooltip mostra le unità e arrotonda a 2 decimali",
-        "es": "DatapointPicker: muestra solo estados de instancias de adaptadores activas; EChart: interruptor para ocultar escala del eje Y y líneas de cuadrícula; tooltip muestra unidades y redondea a 2 decimales",
-        "pl": "DatapointPicker: wyświetla tylko stany aktywnych instancji adapterów; EChart: przełącznik ukrywania osi Y i linii siatki; tooltip pokazuje jednostki i zaokrągla do 2 miejsc po przecinku",
-        "uk": "DatapointPicker: показує лише стани активних екземплярів адаптерів; EChart: перемикач приховування осі Y та ліній сітки; tooltip показує одиниці та округлює до 2 знаків",
-        "zh-cn": "DatapointPicker：仅显示已启用适配器实例的状态；EChart：切换按钮隐藏Y轴刻度和网格线；EChart工具提示显示单位并四舍五入到2位小数"
       },
       "0.4.68": {
         "en": "Camera widget: stream type auto-detection, wake-up datapoint for battery cameras (3 modes), new layouts (Minimal/Standard/Custom Grid), stream health detection with countdown + error overlay, configurable stream timeout",
