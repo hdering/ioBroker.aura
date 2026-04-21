@@ -309,6 +309,17 @@ function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; o
                 className="w-8 h-6 rounded cursor-pointer p-0.5"
                 style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }} />
             </div>
+            {/* importantOnly toggle */}
+            <div className="flex items-center justify-between">
+              <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>Nur wichtige Termine anzeigen</span>
+              <button
+                onClick={() => setOpts({ importantOnly: !o.importantOnly })}
+                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                style={{ background: o.importantOnly ? 'var(--accent)' : 'var(--app-border)' }}>
+                <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                  style={{ left: o.importantOnly ? '14px' : '2px' }} />
+              </button>
+            </div>
           </div>
         )}
       </div>

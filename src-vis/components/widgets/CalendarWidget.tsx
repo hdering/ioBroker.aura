@@ -337,17 +337,22 @@ export function CalendarWidget({ config }: WidgetProps) {
 
   const sources = getSources(options);
   const layout = config.layout ?? 'default';
-  const visibleEvents = events.slice(0, maxEvents);
   const calFontScale    = (options.calFontScale as number) ?? 1;
   const highlightEnabled  = options.highlightEnabled !== false;
   const highlightPriority = options.highlightPriority !== false;
   const highlightColor    = (options.highlightColor as string) || '#f59e0b';
   const highlightKeywords: string[] = ((options.highlightKeywords as string) ?? '')
     .split(',').map((s) => s.trim()).filter(Boolean);
+  const importantOnly = !!(options.importantOnly) && highlightEnabled;
 
   const fs = (px: number) => `calc(${px}px * var(--font-scale, 1) * ${calFontScale})`;
   const imp = (ev: CalEventTagged) =>
     highlightEnabled && isImportant(ev, highlightKeywords, highlightPriority);
+
+  const filteredEvents = importantOnly
+    ? events.filter((ev) => isImportant(ev, highlightKeywords, highlightPriority))
+    : events;
+  const visibleEvents = filteredEvents.slice(0, maxEvents);
 
   // ── no sources configured ────────────────────────────────────────────────
   if (sources.length === 0) {
