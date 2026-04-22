@@ -16,6 +16,8 @@ import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { useConfigStore } from '../../store/configStore';
 import { exportWidget } from '../../utils/widgetExportImport';
 import { detectType } from '../../utils/widgetDetection';
+import { findMainDpForSecondary } from '../../utils/dpTemplates';
+import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 
 // ── Meta (derived from central registry) ─────────────────────────────────────
@@ -838,6 +840,11 @@ function NewWidgetDialog({
                 setType(det.type);
                 if (!unit && !dpUnit && det.unit) setUnit(det.unit);
               }
+              // If selected DP is secondary (e.g. ACTUAL_TEMPERATURE), promote primary (SET_TEMPERATURE)
+              void ensureDatapointCache().then((entries) => {
+                const upgrade = findMainDpForSecondary(id, entries);
+                if (upgrade) { setDatapoint(upgrade.mainDpId); setType(upgrade.template.widgetType); }
+              }).catch(() => {});
             }}
             onClose={() => setShowPicker(false)}
           />

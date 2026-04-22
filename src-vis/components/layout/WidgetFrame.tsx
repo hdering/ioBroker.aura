@@ -17,7 +17,7 @@ import { getObjectDirect, subscribeStateDirect, getStateDirect } from '../../hoo
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
 import { WIDGET_REGISTRY, WIDGET_GROUPS, WIDGET_BY_TYPE } from '../../widgetRegistry';
 import { detectType } from '../../utils/widgetDetection';
-import { DP_TEMPLATES } from '../../utils/dpTemplates';
+import { DP_TEMPLATES, findMainDpForSecondary } from '../../utils/dpTemplates';
 import { AutoListConfig } from '../config/AutoListConfig';
 import { StaticListConfig } from '../config/StaticListConfig';
 import { type CameraSlot, type CameraSlotType, type CameraTemplateId, CAMERA_TEMPLATES, SLOT_TYPE_OPTIONS } from '../widgets/CameraWidget';
@@ -3611,8 +3611,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               onConfigChange(updatedConfig);
               // Auto-fill secondary DPs (actualDatapoint, batteryDp, unreachDp …)
               const activeTemplate = DP_TEMPLATES.find((tpl) => tpl.widgetType === effectiveType && tpl.secondaryDps.length > 0);
-              if (activeTemplate) {
-                void ensureDatapointCache().then((entries) => {
+              void ensureDatapointCache().then((entries) => {
+                if (activeTemplate) {
+                  // Normal path: selected DP is primary → discover secondary siblings
                   const parts = id.split('.');
                   const parent = parts.slice(0, -1).join('.');
                   const parentUp = parts.slice(0, -2).join('.');
@@ -3626,8 +3627,31 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                   }
                   if (Object.keys(secondaryDpOptions).length > 0)
                     onConfigChange({ ...updatedConfig, options: { ...updatedConfig.options, ...secondaryDpOptions } });
-                }).catch(() => { /* ignore */ });
-              }
+                } else {
+                  // Reverse path: selected DP might be secondary (e.g. ACTUAL_TEMPERATURE)
+                  // → find primary sibling (e.g. SET_TEMPERATURE) and upgrade widget type
+                  const upgrade = findMainDpForSecondary(id, entries);
+                  if (!upgrade) return;
+                  const parts = upgrade.mainDpId.split('.');
+                  const parent = parts.slice(0, -1).join('.');
+                  const parentUp = parts.slice(0, -2).join('.');
+                  const sibs   = entries.filter((e) => e.id.startsWith(parent + '.'));
+                  const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.'));
+                  const upgradeOptions: Record<string, unknown> = { [upgrade.selectedOptionKey]: id };
+                  for (const sdp of upgrade.template.secondaryDps) {
+                    if (sdp.optionKey === upgrade.selectedOptionKey) continue;
+                    const found = sdp.siblingNames.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean)
+                      ?? sdp.siblingNames.map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}`)?.id).find(Boolean);
+                    if (found) upgradeOptions[sdp.optionKey] = found;
+                  }
+                  onConfigChange({
+                    ...updatedConfig,
+                    type: upgrade.template.widgetType,
+                    datapoint: upgrade.mainDpId,
+                    options: { ...updatedConfig.options, ...upgradeOptions },
+                  });
+                }
+              }).catch(() => { /* ignore */ });
             } else if (pickerTarget === 'localTempDatapoint') {
               onConfigChange({ ...config, options: { ...config.options, localTempDatapoint: id } });
             } else if (pickerTarget === 'shutter_activityDp') {

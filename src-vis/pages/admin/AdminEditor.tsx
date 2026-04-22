@@ -15,7 +15,7 @@ import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { useConfigStore } from '../../store/configStore';
 import { useT } from '../../i18n';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
-import { DP_TEMPLATES, DP_TEMPLATE_CATEGORIES, detectWidgetTypeFromRole, findTemplateByRole } from '../../utils/dpTemplates';
+import { DP_TEMPLATES, DP_TEMPLATE_CATEGORIES, detectWidgetTypeFromRole, findTemplateByRole, findMainDpForSecondary } from '../../utils/dpTemplates';
 import { slugify } from '../../utils/slugify';
 
 // Layout labels are resolved inside components via t() to support i18n
@@ -440,6 +440,12 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
               setDatapoint(id);
               if (!title.trim() && dpName) setTitle(applyDpNameFilter(dpName));
               if (!unit.trim() && dpUnit) setUnit(dpUnit);
+              // If the selected DP is a secondary (e.g. ACTUAL_TEMPERATURE),
+              // redirect to the primary (e.g. SET_TEMPERATURE) so type detection works.
+              void ensureDatapointCache().then((entries) => {
+                const upgrade = findMainDpForSecondary(id, entries);
+                if (upgrade) setDatapoint(upgrade.mainDpId);
+              }).catch(() => {});
             }}
             onClose={() => setShowPicker(false)}
           />
@@ -608,6 +614,10 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
             setDatapoint(id);
             if (!title.trim() && dpName) setTitle(dpName);
             if (!unit.trim() && dpUnit) setUnit(dpUnit);
+            void ensureDatapointCache().then((entries) => {
+              const upgrade = findMainDpForSecondary(id, entries);
+              if (upgrade) setDatapoint(upgrade.mainDpId);
+            }).catch(() => {});
           }}
           onClose={() => setShowPicker(false)}
         />

@@ -96,6 +96,13 @@ export interface DpTemplate {
     optionKey: string;
     siblingNames: string[];
   }[];
+  /**
+   * Names of the writable PRIMARY sibling DP (the main datapoint for this widget).
+   * When the user selects a DP whose last segment matches a secondaryDps siblingName,
+   * the system looks for one of these in the same channel and promotes it to be the
+   * main datapoint (e.g. user selects ACTUAL_TEMPERATURE → promotes SET_TEMPERATURE).
+   */
+  primarySiblingNames?: string[];
 }
 
 export const DP_TEMPLATES: DpTemplate[] = [
@@ -155,6 +162,13 @@ export const DP_TEMPLATES: DpTemplate[] = [
     icon: '🌡',
     widgetType: 'thermostat',
     category: 'climate',
+    primarySiblingNames: [
+      'SET_TEMPERATURE', 'set_temperature', 'SET_TEMP', 'set_temp',
+      'SOLLTEMPERATUR', 'solltemperatur', 'Solltemperatur',
+      'setpoint', 'SETPOINT', 'Setpoint',
+      'target_temperature', 'TARGET_TEMPERATURE', 'targetTemperature', 'TARGET_TEMP',
+      'desired_temperature', 'DESIRED_TEMPERATURE',
+    ],
     secondaryDps: [
       {
         // HomeMatic: ACTUAL_TEMPERATURE  |  generic: ACTUAL, TEMPERATURE
@@ -369,7 +383,7 @@ export function findTemplateByRole(role?: string, valueType?: string): DpTemplat
   if (r === 'switch' || r.startsWith('switch.') || r === 'button' || r.startsWith('indicator.') || r.startsWith('sensor.') || valueType === 'boolean')
     return DP_TEMPLATES.find((t) => t.id === 'switch')!;
 
-  // Value sub-types
+  // Value sub-types — note: value.temperature is a plain sensor, NOT a thermostat setpoint
   if (r === 'value.temperature' || r === 'temperature')
     return DP_TEMPLATES.find((t) => t.id === 'value_temperature')!;
   if (r === 'value.humidity' || r === 'humidity')
@@ -379,5 +393,53 @@ export function findTemplateByRole(role?: string, valueType?: string): DpTemplat
   if (r.startsWith('value.') || r === 'value' || valueType === 'number')
     return DP_TEMPLATES.find((t) => t.id === 'value')!;
 
+  return null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Reverse-lookup: selected DP is secondary → find the primary main DP
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface MainDpUpgrade {
+  /** The writable primary DP that should become the widget's main datapoint */
+  mainDpId: string;
+  /** The option key under which the originally selected DP should be stored */
+  selectedOptionKey: string;
+  template: DpTemplate;
+}
+
+/**
+ * When the user selects a DP that is a secondary (e.g. ACTUAL_TEMPERATURE) of a
+ * template that has a primary sibling (e.g. SET_TEMPERATURE), return upgrade info
+ * so the caller can swap the main datapoint and set the correct widget type.
+ *
+ * Returns null when the selected DP is not recognised as a secondary or no primary
+ * sibling exists in the same channel.
+ */
+export function findMainDpForSecondary(
+  selectedDpId: string,
+  entries: { id: string }[],
+): MainDpUpgrade | null {
+  const lastSeg  = selectedDpId.split('.').pop() ?? '';
+  const parent   = selectedDpId.split('.').slice(0, -1).join('.');
+  const parentUp = selectedDpId.split('.').slice(0, -2).join('.');
+  const sibs   = entries.filter((e) => e.id.startsWith(parent + '.') && e.id !== selectedDpId);
+  const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.'));
+
+  for (const tpl of DP_TEMPLATES) {
+    if (!tpl.primarySiblingNames?.length) continue;
+
+    let matchedOptionKey: string | null = null;
+    for (const sdp of tpl.secondaryDps) {
+      if (sdp.siblingNames.includes(lastSeg)) { matchedOptionKey = sdp.optionKey; break; }
+    }
+    if (!matchedOptionKey) continue;
+
+    const mainDpId =
+      tpl.primarySiblingNames.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean) ??
+      tpl.primarySiblingNames.map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}`)?.id).find(Boolean);
+
+    if (mainDpId) return { mainDpId, selectedOptionKey: matchedOptionKey, template: tpl };
+  }
   return null;
 }
