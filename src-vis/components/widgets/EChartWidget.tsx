@@ -71,20 +71,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
 
   if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
-  const filteredDataMap = useMemo(() => {
-    return new Map(
-      echartSeries.map((s) => {
-        let data = seriesDataMap.get(s.id)?.data ?? [];
-        if (fixedTimeRange) {
-          data = data.filter(([ts]) => ts >= fixedTimeRange.start && ts <= fixedTimeRange.end);
-        }
-        return [s.id, data] as [string, [number, number][]];
-      }),
-    );
-  }, [echartSeries, seriesDataMap, fixedTimeRange]);
-
   const allLoading = echartSeries.length > 0 && echartSeries.every((s) => seriesDataMap.get(s.id)?.loading);
-  const hasAnyData = echartSeries.some((s) => (filteredDataMap.get(s.id)?.length ?? 0) > 0);
+  const hasAnyData = echartSeries.some((s) => (seriesDataMap.get(s.id)?.data.length ?? 0) > 0);
 
   if (allLoading) {
     return (
@@ -201,7 +189,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     : { show: false };
 
   const seriesList = echartSeries.map((s, idx) => {
-    const data = filteredDataMap.get(s.id) ?? [];
+    const data = seriesDataMap.get(s.id)?.data ?? [];
     return {
       name: s.name,
       type: s.chartType === 'area' ? 'line' : s.chartType,
@@ -252,6 +240,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     },
     xAxis: {
       type: 'time',
+      ...(fixedTimeRange ? { min: fixedTimeRange.start, max: Math.min(fixedTimeRange.end, Date.now()) } : {}),
       axisLabel: { color: '#888', fontSize: 10 },
       axisLine: { lineStyle: { color: '#444' } },
       splitLine: { show: false },
