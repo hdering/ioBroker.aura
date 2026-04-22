@@ -14,6 +14,7 @@ import { TabBar } from './components/layout/TabBar';
 import { useIframeStore } from './store/iframeStore';
 import { useEffectiveSettings, useEffectiveThemeId, useEffectiveCustomVars } from './hooks/useEffectiveSettings';
 import { useT } from './i18n';
+import { applyCustomFormat, fmtTime, fmtDate } from './utils/clockUtils';
 import type { Tab } from './store/dashboardStore';
 import type { FrontendSettings } from './store/configStore';
 
@@ -26,38 +27,6 @@ const STORE_REHYDRATORS: Record<string, () => void> = {
   'aura-groups':    () => useGroupStore.persist.rehydrate(),
   'aura-config':    () => useConfigStore.persist.rehydrate(),
 };
-
-// ── Shared clock helpers (mirrors ClockWidget) ─────────────────────────────
-
-type TFn = ReturnType<typeof useT>;
-
-function pad(n: number) { return String(n).padStart(2, '0'); }
-
-function applyCustomFormat(date: Date, fmt: string, t: TFn): string {
-  return fmt
-    .replace('EEEE', t(`clock.day.${date.getDay()}` as Parameters<TFn>[0]))
-    .replace('EE', t(`cal.day.${date.getDay()}` as Parameters<TFn>[0]))
-    .replace('MMMM', t(`clock.month.${date.getMonth()}` as Parameters<TFn>[0]))
-    .replace('yyyy', String(date.getFullYear()))
-    .replace('yy', String(date.getFullYear()).slice(-2))
-    .replace('MM', pad(date.getMonth() + 1))
-    .replace('dd', pad(date.getDate()))
-    .replace('HH', pad(date.getHours()))
-    .replace('hh', pad(date.getHours() % 12 || 12))
-    .replace('mm', pad(date.getMinutes()))
-    .replace('ss', pad(date.getSeconds()));
-}
-
-function fmtTime(date: Date, showSeconds: boolean) {
-  return `${pad(date.getHours())}:${pad(date.getMinutes())}${showSeconds ? ':' + pad(date.getSeconds()) : ''}`;
-}
-
-function fmtDate(date: Date, length: 'short' | 'long', t: TFn) {
-  if (length === 'long') {
-    return `${t(`clock.day.${date.getDay()}` as Parameters<TFn>[0])}, ${date.getDate()}. ${t(`clock.month.${date.getMonth()}` as Parameters<TFn>[0])} ${date.getFullYear()}`;
-  }
-  return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
-}
 
 // ── HeaderClock ────────────────────────────────────────────────────────────
 

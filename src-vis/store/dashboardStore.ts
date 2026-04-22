@@ -5,6 +5,34 @@ import { slugify } from '../utils/slugify';
 import type { WidgetConfig } from '../types';
 import type { ThemeVars } from '../themes';
 
+// ── Tab bar items (clock / datapoint / static text) ───────────────────────────
+
+export interface TabBarItem {
+  id: string;
+  type: 'clock' | 'datapoint' | 'text';
+  position: 'left' | 'center' | 'right';
+  // clock
+  clockDisplay?: 'time' | 'date' | 'datetime';
+  clockShowSeconds?: boolean;
+  clockDateLength?: 'short' | 'long';
+  clockCustomFormat?: string;
+  // datapoint
+  datapointId?: string;
+  datapointTemplate?: string;
+  // static text
+  text?: string;
+}
+
+export interface TabBarSettings {
+  height?: number;                                   // px, default ~40
+  background?: string;                               // CSS color or var(--...)
+  activeColor?: string;                              // active tab text + indicator
+  inactiveColor?: string;                            // inactive tab text
+  indicatorStyle?: 'underline' | 'filled' | 'pills';
+  fontSize?: 'sm' | 'md' | 'lg';
+  items?: TabBarItem[];
+}
+
 // ── Per-layout overrideable settings ──────────────────────────────────────────
 // All fields are optional; undefined = inherit from global.
 export interface LayoutSettings {
@@ -28,6 +56,8 @@ export interface LayoutSettings {
   guidelinesWidth?: number;
   guidelinesHeight?: number;
   guidelinesShowInFrontend?: boolean;
+  // Tab bar appearance & items
+  tabBar?: TabBarSettings;
 }
 
 export interface Tab {
