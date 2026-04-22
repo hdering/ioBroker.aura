@@ -90,10 +90,9 @@ export function useMultiSeriesData(
 
       const range = s.historyRange ?? '24h';
       const now   = Date.now();
-      // Fixed range: fetch exact window, no aggregation (avoids issues with non-numeric datapoints)
-      const end   = fixedTimeRange ? Math.min(fixedTimeRange.end, now) : now;
-      const start = fixedTimeRange ? fixedTimeRange.start : end - RANGE_MS[range];
-      const step  = fixedTimeRange ? undefined : RANGE_STEP[range];
+      const end   = now;
+      const start = end - RANGE_MS[range];
+      const step  = RANGE_STEP[range];
 
       getHistoryDirect(s.datapointId, {
         instance: s.historyInstance,
