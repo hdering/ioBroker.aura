@@ -243,7 +243,6 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
       axisLabel: { color: '#888', fontSize: 10 },
       axisLine: { lineStyle: { color: '#444' } },
       splitLine: { show: false },
-      ...(fixedTimeRange ? { min: fixedTimeRange.start, max: fixedTimeRange.end } : {}),
     },
     yAxis: [leftAxis, rightAxis],
     series: seriesList,
