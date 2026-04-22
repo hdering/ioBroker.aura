@@ -5,7 +5,6 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfigStore } from '../../store/configStore';
 import { useChartHistory, type ChartTimeRange, RANGE_LABELS } from '../../hooks/useChartHistory';
 import type { WidgetProps } from '../../types';
-import { CustomGridView } from './CustomGridView';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
@@ -113,18 +112,6 @@ export function ChartWidget({ config }: WidgetProps) {
     </div>
   ) : null;
 
-  if (layout === 'custom') return (
-    <CustomGridView
-      config={config}
-      value={current !== null ? current.toLocaleString('de-DE') : '–'}
-      unit={o.unit as string | undefined}
-      extraFields={{
-        current: current !== null ? current.toLocaleString('de-DE') : '–',
-        unit:    (o.unit as string | undefined) || '–',
-      }}
-    />
-  );
-
   // ── CARD ─────────────────────────────────────────────────────────────────
   if (layout === 'card') {
     return (
@@ -162,50 +149,6 @@ export function ChartWidget({ config }: WidgetProps) {
             </ResponsiveContainer>
           ) : noData}
         </div>
-      </div>
-    );
-  }
-
-  // ── COMPACT ───────────────────────────────────────────────────────────────
-  if (layout === 'compact') {
-    return (
-      <div className="flex items-center gap-2.5 h-full">
-        <TrendingUp size={14} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-        {showTitle && <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>}
-        {!showTitle && <span className="flex-1" />}
-        {current !== null && (
-          <span className="text-sm font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>
-            {current.toLocaleString('de-DE')}
-            {unit && <span className="text-xs ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
-          </span>
-        )}
-        <div className="w-14 h-full shrink-0" style={{ minHeight: 1 }}>
-          {history.length > 1 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={history}>
-                <Line type="monotone" dataKey="v" stroke="var(--accent)" strokeWidth={1.5}
-                  dot={false} isAnimationActive={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : loading
-            ? <div className="flex items-center justify-center h-full"><Loader size={12} className="animate-spin" style={{ color: 'var(--text-secondary)' }} /></div>
-            : null}
-        </div>
-      </div>
-    );
-  }
-
-  // ── MINIMAL ───────────────────────────────────────────────────────────────
-  if (layout === 'minimal') {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        {current !== null
-          ? <span className="font-black text-center" style={{ color: 'var(--accent)', fontSize: 'calc(clamp(1.5rem, 3vw, 2.5rem) * var(--font-scale, 1))' }}>
-              {current.toLocaleString('de-DE')}
-              {unit && <span className="text-base ml-1" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
-            </span>
-          : <BarChart2 size={24} style={{ color: 'var(--text-secondary)' }} />}
-        {showTitle && <span className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>}
       </div>
     );
   }

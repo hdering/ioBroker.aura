@@ -66,6 +66,7 @@ function InlineEditForm({
   const isList       = config.type === 'list';
   const isThermostat = config.type === 'thermostat';
   const isGauge      = config.type === 'gauge';
+  const isChart      = config.type === 'chart';
   const needsDatapoint = !isClock && !isCalendar && !isHeader && !isList;
 
   return (
@@ -97,8 +98,8 @@ function InlineEditForm({
             >
               <option value="default">{t('editor.layouts.standard')}</option>
               {!isGauge && <option value="card">{t('editor.layouts.card')}</option>}
-              {!isGauge && <option value="compact">{t('editor.layouts.compact')}</option>}
-              {!isGauge && <option value="minimal">{t('editor.layouts.minimal')}</option>}
+              {!isGauge && !isChart && <option value="compact">{t('editor.layouts.compact')}</option>}
+              {!isGauge && !isChart && <option value="minimal">{t('editor.layouts.minimal')}</option>}
               {isCalendar && <option value="agenda">{t('editor.layouts.agenda')}</option>}
             </select>
           </div>
@@ -769,8 +770,8 @@ function NewWidgetDialog({
               className={inputCls} style={inputStyle}>
               <option value="default">{t('editor.layouts.standard')}</option>
               {type !== 'gauge' && <option value="card">{t('editor.layouts.card')}</option>}
-              {type !== 'gauge' && <option value="compact">{t('editor.layouts.compact')}</option>}
-              {type !== 'gauge' && <option value="minimal">{t('editor.layouts.minimal')}</option>}
+              {type !== 'gauge' && type !== 'chart' && <option value="compact">{t('editor.layouts.compact')}</option>}
+              {type !== 'gauge' && type !== 'chart' && <option value="minimal">{t('editor.layouts.minimal')}</option>}
             </select>
           </div>
         </div>
