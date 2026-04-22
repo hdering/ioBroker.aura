@@ -4,6 +4,19 @@ import type { ioBrokerState } from '../types';
 
 export type EChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d';
 
+export interface FixedTimeRange {
+  start: number;
+  end: number;
+}
+
+function stepForRangeMs(rangeMs: number): number | undefined {
+  if (rangeMs <= 3_600_000)   return undefined;
+  if (rangeMs <= 21_600_000)  return 300_000;
+  if (rangeMs <= 86_400_000)  return 900_000;
+  if (rangeMs <= 604_800_000) return 3_600_000;
+  return 21_600_000;
+}
+
 export interface EChartSeriesConfig {
   id: string;
   name: string;
@@ -43,6 +56,7 @@ export function useMultiSeriesData(
   series: EChartSeriesConfig[],
   connected: boolean,
   subscribe: (id: string, cb: (state: ioBrokerState) => void) => () => void,
+  fixedTimeRange?: FixedTimeRange,
 ): Map<string, SeriesDataResult> {
   const [resultsMap, setResultsMap] = useState<Map<string, SeriesDataResult>>(new Map());
   const mountedRef = useRef(true);
@@ -53,9 +67,10 @@ export function useMultiSeriesData(
   }, []);
 
   // Dep key to detect when series config changes meaningfully
-  const depKey = JSON.stringify(
+  const depKey = JSON.stringify([
     series.map((s) => [s.id, s.datapointId, s.historyInstance, s.historyRange]),
-  );
+    fixedTimeRange,
+  ]);
 
   // Fetch history for all series
   useEffect(() => {
@@ -83,9 +98,9 @@ export function useMultiSeriesData(
       }
 
       const range = s.historyRange ?? '24h';
-      const end = Date.now();
-      const start = end - RANGE_MS[range];
-      const step = RANGE_STEP[range];
+      const end   = fixedTimeRange ? fixedTimeRange.end   : Date.now();
+      const start = fixedTimeRange ? fixedTimeRange.start : end - RANGE_MS[range];
+      const step  = fixedTimeRange ? stepForRangeMs(end - start) : RANGE_STEP[range];
 
       getHistoryDirect(s.datapointId, {
         instance: s.historyInstance,
@@ -135,7 +150,7 @@ export function useMultiSeriesData(
             const existing = next.get(s.id);
             let newData: [number, number][];
             if (s.historyInstance && existing) {
-              const cutoff = Date.now() - cutoffMs;
+              const cutoff = fixedTimeRange ? fixedTimeRange.start : Date.now() - cutoffMs;
               const trimmed = existing.data.filter((p) => p[0] >= cutoff);
               if (trimmed.length > 0 && trimmed[trimmed.length - 1][0] === state.ts) {
                 newData = trimmed;

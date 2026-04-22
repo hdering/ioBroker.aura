@@ -49,7 +49,10 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
   const echartLeftMax = (o.echartLeftMax as string | undefined) ?? '';
   const echartRightMin = (o.echartRightMin as string | undefined) ?? '';
   const echartRightMax = (o.echartRightMax as string | undefined) ?? '';
-  const echartJsonExtra = (o.echartJsonExtra as string | undefined) ?? '';
+  const echartJsonExtra   = (o.echartJsonExtra   as string  | undefined) ?? '';
+  const echartFixedRange  = (o.echartFixedRange  as boolean | undefined) ?? false;
+  const echartFixedStart  = (o.echartFixedStart  as string  | undefined) ?? '00:00';
+  const echartFixedEnd    = (o.echartFixedEnd    as string  | undefined) ?? '24:00';
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [pickerForSeries, setPickerForSeries] = useState<string | null>(null);
@@ -404,7 +407,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                           </select>
                         </div>
                       )}
-                      {s.historyInstance && (
+                      {s.historyInstance && !echartFixedRange && (
                         <div className="mt-1.5">
                           <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('echart.timeRange')}</label>
                           <div className="flex gap-1 flex-wrap">
@@ -425,6 +428,11 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                             ))}
                           </div>
                         </div>
+                      )}
+                      {s.historyInstance && echartFixedRange && (
+                        <p className="mt-1.5 text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                          Zeitraum wird global festgelegt.
+                        </p>
                       )}
                     </div>
                   </div>
@@ -469,6 +477,47 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
             />
           </button>
         </div>
+
+        {/* Fixed time range */}
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Fester Zeitraum</label>
+          <button
+            onClick={() => setO({ echartFixedRange: !echartFixedRange })}
+            className="relative w-9 h-5 rounded-full transition-colors"
+            style={{ background: echartFixedRange ? 'var(--accent)' : 'var(--app-border)' }}
+          >
+            <span
+              className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+              style={{ left: echartFixedRange ? '18px' : '2px' }}
+            />
+          </button>
+        </div>
+        {echartFixedRange && (
+          <div className="flex gap-1.5 mb-2">
+            <div className="flex-1">
+              <label className="text-[10px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Start</label>
+              <input
+                type="text"
+                value={echartFixedStart}
+                onChange={(e) => setO({ echartFixedStart: e.target.value })}
+                placeholder="00:00"
+                className={inputCls}
+                style={inputStyle}
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-[10px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Ende</label>
+              <input
+                type="text"
+                value={echartFixedEnd}
+                onChange={(e) => setO({ echartFixedEnd: e.target.value })}
+                placeholder="24:00"
+                className={inputCls}
+                style={inputStyle}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Left Y-Axis */}
         <div className="mb-2">
