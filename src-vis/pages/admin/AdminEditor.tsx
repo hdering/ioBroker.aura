@@ -88,6 +88,8 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
   const addMode = WIDGET_BY_TYPE[type].addMode;
   const isList = addMode === 'group';
   const isCalendar = type === 'calendar';
+  const isGauge    = type === 'gauge';
+  const isChart    = type === 'chart';
   const isEchart = type === 'echart';
   const isEvcc = type === 'evcc';
   const isWeather = type === 'weather';
@@ -556,7 +558,13 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
             <div className="space-y-1.5">
               <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Layout</label>
               <div className="flex flex-wrap gap-1.5">
-                {(isCalendar ? CALENDAR_LAYOUTS : LAYOUTS).map((l) => (
+                {(isCalendar ? CALENDAR_LAYOUTS : LAYOUTS)
+                  .filter((l) => {
+                    if (isGauge && l.id !== 'default') return false;
+                    if (isChart && (l.id === 'compact' || l.id === 'minimal')) return false;
+                    return true;
+                  })
+                  .map((l) => (
                   <button key={l.id} onClick={() => setLayout(l.id)}
                     className="px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
                     style={{
