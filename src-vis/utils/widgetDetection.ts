@@ -17,7 +17,11 @@ export function detectType(dp: DatapointEntry): { type: WidgetType; unit?: strin
   const unit = dp.unit ?? '';
 
   // Thermostat – writable temperature setpoint
-  if (role.includes('thermostat') || role.includes('temp.set') || name.includes('solltemp') || name.includes('setpoint'))
+  // level.temperature is the standard ioBroker role for a writable setpoint (e.g. Homematic SET_TEMPERATURE)
+  if (
+    role.includes('thermostat') || role === 'level.temperature' || role.includes('temp.set') ||
+    name.includes('solltemp') || name.includes('setpoint') || name.includes('set_temperature')
+  )
     return { type: 'thermostat' };
 
   // Temperature sensor

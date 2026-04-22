@@ -17,6 +17,7 @@ import { getObjectDirect, subscribeStateDirect, getStateDirect } from '../../hoo
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
 import { WIDGET_REGISTRY, WIDGET_GROUPS, WIDGET_BY_TYPE } from '../../widgetRegistry';
 import { detectType } from '../../utils/widgetDetection';
+import { DP_TEMPLATES } from '../../utils/dpTemplates';
 import { AutoListConfig } from '../config/AutoListConfig';
 import { StaticListConfig } from '../config/StaticListConfig';
 import { type CameraSlot, type CameraSlotType, type CameraTemplateId, CAMERA_TEMPLATES, SLOT_TYPE_OPTIONS } from '../widgets/CameraWidget';
@@ -3606,7 +3607,27 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
               const resolvedUnit = unit || detected?.unit;
               const unitPatch = supportsUnit && !unitAlreadySet && resolvedUnit ? { unit: resolvedUnit } : {};
               const titlePatch = !config.title?.trim() && name ? { title: name } : {};
-              onConfigChange({ ...config, ...typePatch, ...titlePatch, datapoint: id, options: { ...config.options, ...unitPatch } });
+              const updatedConfig = { ...config, ...typePatch, ...titlePatch, datapoint: id, options: { ...config.options, ...unitPatch } };
+              onConfigChange(updatedConfig);
+              // Auto-fill secondary DPs (actualDatapoint, batteryDp, unreachDp …)
+              const activeTemplate = DP_TEMPLATES.find((tpl) => tpl.widgetType === effectiveType && tpl.secondaryDps.length > 0);
+              if (activeTemplate) {
+                void ensureDatapointCache().then((entries) => {
+                  const parts = id.split('.');
+                  const parent = parts.slice(0, -1).join('.');
+                  const parentUp = parts.slice(0, -2).join('.');
+                  const sibs   = entries.filter((e) => e.id.startsWith(parent + '.'));
+                  const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.'));
+                  const secondaryDpOptions: Record<string, unknown> = {};
+                  for (const sdp of activeTemplate.secondaryDps) {
+                    const found = sdp.siblingNames.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean)
+                      ?? sdp.siblingNames.map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}`)?.id).find(Boolean);
+                    if (found) secondaryDpOptions[sdp.optionKey] = found;
+                  }
+                  if (Object.keys(secondaryDpOptions).length > 0)
+                    onConfigChange({ ...updatedConfig, options: { ...updatedConfig.options, ...secondaryDpOptions } });
+                }).catch(() => { /* ignore */ });
+              }
             } else if (pickerTarget === 'localTempDatapoint') {
               onConfigChange({ ...config, options: { ...config.options, localTempDatapoint: id } });
             } else if (pickerTarget === 'shutter_activityDp') {
