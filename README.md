@@ -175,6 +175,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.82 (2026-04-22)
+- Fix: per-layout theme and CSS variables now correctly applied in frontend (global theme no longer overwrites per-layout settings)
+
 ### 0.4.81 (2026-04-22)
 - Feat(custom-layout): image cells – insert any image via URL or base64 data URI; choose between contain, cover and fill fitting
 - Feat(custom-layout): text-overflow option – allow cell text to spill into adjacent empty cells instead of being clipped

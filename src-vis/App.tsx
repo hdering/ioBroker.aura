@@ -254,15 +254,15 @@ export default function App() {
     styleRef.current.textContent = enabled ? css : '';
   }, [effectiveSettings.customCSS, effectiveSettings.customCSSEnabled, frontend.customCSS, frontend.customCSSEnabled]);
 
-  // Apply per-layout theme overrides on top of global ThemeProvider vars
+  // Apply per-layout theme overrides on top of global ThemeProvider vars.
+  // Written as a scoped <style> rule ([data-aura-app="frontend"] { ... }) so that
+  // CSS custom-property inheritance overrides :root values without conflicting with
+  // ThemeProvider's effect on document.documentElement (parent effects run after child effects).
   const layoutThemeRef = useRef<HTMLStyleElement | null>(null);
   useEffect(() => {
     const ls = layout?.settings;
     if (!ls?.themeId && !ls?.customVars && !ls?.fontScale) {
-      // No layout-specific theme — remove any previous override
-      if (layoutThemeRef.current) {
-        layoutThemeRef.current.textContent = '';
-      }
+      if (layoutThemeRef.current) layoutThemeRef.current.textContent = '';
       return;
     }
     if (!layoutThemeRef.current) {
@@ -270,11 +270,13 @@ export default function App() {
       layoutThemeRef.current.id = 'aura-layout-theme';
       document.head.appendChild(layoutThemeRef.current);
     }
-    const root = document.documentElement;
     const vars = { ...currentTheme.vars, ...effectiveCustomVars };
-    Object.entries(vars).forEach(([k, v]) => { if (v) root.style.setProperty(k, v); });
-    if (ls?.fontScale !== undefined) root.style.setProperty('--font-scale', String(ls.fontScale));
-    root.classList.toggle('dark', currentTheme.dark);
+    const declarations = Object.entries(vars)
+      .filter(([, v]) => v)
+      .map(([k, v]) => `  ${k}: ${v};`)
+      .join('\n');
+    const fontScaleDecl = ls?.fontScale !== undefined ? `\n  --font-scale: ${ls.fontScale};` : '';
+    layoutThemeRef.current.textContent = `[data-aura-app="frontend"] {\n${declarations}${fontScaleDecl}\n}`;
   }, [layout?.id, layout?.settings, currentTheme, effectiveCustomVars]);
 
   // ── Load config from ioBroker on first connect ─────────────────────────────

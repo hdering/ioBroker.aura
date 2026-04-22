@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.81",
+    "version": "0.4.82",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.82": {
+        "en": "Fix: per-layout theme and CSS variables now correctly applied in the frontend (global theme no longer overwrites per-layout settings)",
+        "de": "Fix: Layout-spezifische Theme- und CSS-Variablen werden im Frontend jetzt korrekt angewendet (globales Theme überschreibt nicht mehr die Layout-Einstellungen)",
+        "ru": "Исправление: тема и CSS-переменные для отдельного макета теперь корректно применяются во фронтенде (глобальная тема больше не перезаписывает настройки макета)",
+        "pt": "Fix: tema e variáveis CSS por layout agora aplicados corretamente no frontend (o tema global não sobrescreve mais as configurações do layout)",
+        "nl": "Fix: per-layout thema en CSS-variabelen worden nu correct toegepast in de frontend (globaal thema overschrijft layout-instellingen niet meer)",
+        "fr": "Fix: le thème et les variables CSS par mise en page sont maintenant correctement appliqués dans le frontend (le thème global n'écrase plus les paramètres de la mise en page)",
+        "it": "Fix: tema e variabili CSS per layout ora applicati correttamente nel frontend (il tema globale non sovrascrive più le impostazioni del layout)",
+        "es": "Fix: el tema y las variables CSS por diseño ahora se aplican correctamente en el frontend (el tema global ya no sobreescribe la configuración del diseño)",
+        "pl": "Fix: motyw i zmienne CSS per-layout są teraz poprawnie stosowane we frontendzie (globalny motyw nie nadpisuje już ustawień layoutu)",
+        "uk": "Виправлення: тема та CSS-змінні для окремого макету тепер коректно застосовуються у фронтенді (глобальна тема більше не перезаписує налаштування макету)",
+        "zh-cn": "修复：每个布局的主题和CSS变量现在在前端正确应用（全局主题不再覆盖布局设置）"
+      },
       "0.4.81": {
         "en": "Feat(custom-layout): image cells (URL or base64 data URI) with contain/cover/fill fitting; text-overflow option to let cell content spill into adjacent empty cells",
         "de": "Neu(Custom-Layout): Bild-Zellen (URL oder Base64) mit Einpassen/Ausfüllen/Strecken-Optionen; Text-Überlauf-Option, damit Zellinhalt in benachbarte leere Zellen hineinragt",
@@ -183,19 +196,6 @@
         "pl": "Lista statyczna i dynamiczna: fix hideTitle, nakładka ostatniej zmiany, ikona, rozwiązywanie nazw (rodzic › stan), usunięto kropkę statusu",
         "uk": "Статичний та динамічний список: виправлення hideTitle, оверлей останньої зміни, іконка, розпізнавання імен (батько › стан), точку статусу видалено",
         "zh-cn": "静态和动态列表：修复hideTitle、最后更改覆盖层、图标显示、DP名称解析（父名称›状态名称），移除状态点"
-      },
-      "0.4.70": {
-        "en": "Fix: lint errors in JSX labels and hook dependencies from previous release",
-        "de": "Fix: Lint-Fehler in JSX-Labels und Hook-Abhängigkeiten aus dem vorherigen Release",
-        "ru": "Исправление: ошибки lint в JSX-метках и зависимостях хуков из предыдущего релиза",
-        "pt": "Fix: erros de lint em labels JSX e dependências de hooks do release anterior",
-        "nl": "Fix: lint-fouten in JSX-labels en hook-afhankelijkheden van de vorige release",
-        "fr": "Fix: erreurs lint dans les labels JSX et dépendances de hooks de la release précédente",
-        "it": "Fix: errori lint nelle label JSX e dipendenze degli hook dalla release precedente",
-        "es": "Fix: errores lint en etiquetas JSX y dependencias de hooks de la versión anterior",
-        "pl": "Fix: błędy lint w etykietach JSX i zależnościach hooków z poprzedniego wydania",
-        "uk": "Виправлення: помилки lint в JSX-мітках та залежностях хуків з попереднього релізу",
-        "zh-cn": "修复：上个版本中JSX标签和Hook依赖项的lint错误"
       }
     }
   },
