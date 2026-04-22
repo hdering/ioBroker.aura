@@ -30,7 +30,7 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
   const [role, setRole] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
-  const [size, setSize] = useState({ w: 672, h: 600 });
+  const [size, setSize] = useState({ w: 900, h: 600 });
   const resizeOrigin = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
 
   const onResizeMouseDown = useCallback((e: React.MouseEvent) => {
@@ -159,91 +159,85 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
           </button>
         </div>
 
-        {/* Filter bar */}
-        <div className="px-5 py-3 shrink-0 space-y-2" style={{ borderBottom: '1px solid var(--app-border)' }}>
-          <div className="flex gap-2">
-            <div
-              className="flex items-center gap-2 flex-1 rounded-lg px-3 py-2"
-              style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-            >
-              <Search size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-              <input
-                autoFocus
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t('dp.picker.search')}
-                className="flex-1 text-sm bg-transparent focus:outline-none"
-                style={{ color: 'var(--text-primary)' }}
-              />
-              {search && (
-                <button onClick={() => setSearch('')} className="hover:opacity-60" style={{ color: 'var(--text-secondary)' }}>
-                  <X size={12} />
-                </button>
-              )}
-            </div>
-            {adapters.length > 0 && (
-              <select
-                value={adapter}
-                onChange={(e) => setAdapter(e.target.value)}
-                className="rounded-lg px-3 py-2 text-sm focus:outline-none"
-                style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
-              >
-                <option value="">{t('dp.picker.allAdapters')}</option>
-                {adapters.map((a) => (
-                  <option key={a} value={a}>{a}</option>
-                ))}
-              </select>
+        {/* Filter bar – single row: search · adapter · room · func · role · type */}
+        <div className="px-5 py-3 shrink-0 flex items-center gap-2" style={{ borderBottom: '1px solid var(--app-border)' }}>
+          <div
+            className="flex items-center gap-2 flex-1 min-w-0 rounded-lg px-3 py-2"
+            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+          >
+            <Search size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+            <input
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t('dp.picker.search')}
+              className="flex-1 min-w-0 text-sm bg-transparent focus:outline-none"
+              style={{ color: 'var(--text-primary)' }}
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="hover:opacity-60" style={{ color: 'var(--text-secondary)' }}>
+                <X size={12} />
+              </button>
             )}
           </div>
-          {(rooms.length > 0 || funcs.length > 0 || roles.length > 0 || types.length > 1 || allowedTypes?.length === 1) && (
-            <div className="flex gap-2 flex-wrap items-center">
-              {rooms.length > 0 && (
-                <select value={room} onChange={(e) => setRoom(e.target.value)}
-                  className="rounded-lg px-3 py-1.5 text-xs focus:outline-none"
-                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
-                  <option value="">{t('dp.picker.allRooms')}</option>
-                  {rooms.map((r) => <option key={r} value={r}>{r}</option>)}
-                </select>
-              )}
-              {funcs.length > 0 && (
-                <select value={func} onChange={(e) => setFunc(e.target.value)}
-                  className="rounded-lg px-3 py-1.5 text-xs focus:outline-none"
-                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
-                  <option value="">{t('dp.picker.allFuncs')}</option>
-                  {funcs.map((f) => <option key={f} value={f}>{f}</option>)}
-                </select>
-              )}
-              {roles.length > 0 && (
-                <select value={role} onChange={(e) => setRole(e.target.value)}
-                  className="rounded-lg px-3 py-1.5 text-xs focus:outline-none"
-                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
-                  <option value="">{t('dp.picker.allRoles')}</option>
-                  {roles.map((r) => <option key={r} value={r}>{r}</option>)}
-                </select>
-              )}
-              {types.length > 1 && (
-                <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
-                  className="rounded-lg px-3 py-1.5 text-xs focus:outline-none"
-                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
-                  <option value="">{t('dp.picker.allTypes')}</option>
-                  {types.map((ty) => {
-                    const tc = ty === 'boolean' ? '#f59e0b' : ty === 'number' ? '#3b82f6' : ty === 'string' ? '#8b5cf6' : 'var(--text-primary)';
-                    return <option key={ty} value={ty} style={{ color: tc }}>{ty}</option>;
-                  })}
-                </select>
-              )}
-              {allowedTypes?.length === 1 && (() => {
-                const ty = allowedTypes[0];
-                const tc = ty === 'boolean' ? '#f59e0b' : ty === 'number' ? '#3b82f6' : ty === 'string' ? '#8b5cf6' : 'var(--accent)';
-                return (
-                  <span className="text-[10px] px-2 py-1 rounded font-medium"
-                    style={{ background: tc + '22', color: tc }}>
-                    {t('dp.picker.typeHint', { type: ty })}
-                  </span>
-                );
-              })()}
-            </div>
+          {adapters.length > 0 && (
+            <select
+              value={adapter}
+              onChange={(e) => setAdapter(e.target.value)}
+              className="rounded-lg px-3 py-2 text-xs focus:outline-none shrink-0"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+            >
+              <option value="">{t('dp.picker.allAdapters')}</option>
+              {adapters.map((a) => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
           )}
+          {rooms.length > 0 && (
+            <select value={room} onChange={(e) => setRoom(e.target.value)}
+              className="rounded-lg px-3 py-2 text-xs focus:outline-none shrink-0"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
+              <option value="">{t('dp.picker.allRooms')}</option>
+              {rooms.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+          )}
+          {funcs.length > 0 && (
+            <select value={func} onChange={(e) => setFunc(e.target.value)}
+              className="rounded-lg px-3 py-2 text-xs focus:outline-none shrink-0"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
+              <option value="">{t('dp.picker.allFuncs')}</option>
+              {funcs.map((f) => <option key={f} value={f}>{f}</option>)}
+            </select>
+          )}
+          {roles.length > 0 && (
+            <select value={role} onChange={(e) => setRole(e.target.value)}
+              className="rounded-lg px-3 py-2 text-xs focus:outline-none shrink-0"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
+              <option value="">{t('dp.picker.allRoles')}</option>
+              {roles.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+          )}
+          {types.length > 1 && (
+            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
+              className="rounded-lg px-3 py-2 text-xs focus:outline-none shrink-0"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
+              <option value="">{t('dp.picker.allTypes')}</option>
+              {types.map((ty) => {
+                const tc = ty === 'boolean' ? '#f59e0b' : ty === 'number' ? '#3b82f6' : ty === 'string' ? '#8b5cf6' : 'var(--text-primary)';
+                return <option key={ty} value={ty} style={{ color: tc }}>{ty}</option>;
+              })}
+            </select>
+          )}
+          {allowedTypes?.length === 1 && (() => {
+            const ty = allowedTypes[0];
+            const tc = ty === 'boolean' ? '#f59e0b' : ty === 'number' ? '#3b82f6' : ty === 'string' ? '#8b5cf6' : 'var(--accent)';
+            return (
+              <span className="text-[10px] px-2 py-1 rounded font-medium shrink-0"
+                style={{ background: tc + '22', color: tc }}>
+                {t('dp.picker.typeHint', { type: ty })}
+              </span>
+            );
+          })()}
         </div>
 
         {/* Count + multi-select controls */}
