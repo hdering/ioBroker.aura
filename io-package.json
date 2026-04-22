@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.83",
+    "version": "0.4.84",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.84": {
+        "en": "Feat(tab-wizard): added intro step explaining the wizard flow (select datapoints → review widget types → create tab)",
+        "de": "Neu(Tab-Wizard): Intro-Schritt hinzugefügt, der den Wizard-Ablauf erklärt (Datenpunkte auswählen → Widget-Typen prüfen → Tab erstellen)",
+        "ru": "Новое(Tab-Wizard): добавлен вводный шаг с объяснением процесса (выбор точек данных → проверка типов виджетов → создание вкладки)",
+        "pt": "Novo(Tab-Wizard): adicionado passo introdutório explicando o fluxo do wizard (selecionar pontos de dados → revisar tipos de widget → criar aba)",
+        "nl": "Nieuw(Tab-Wizard): introductiestap toegevoegd die de wizard-flow uitlegt (datapunten selecteren → widget-types controleren → tab aanmaken)",
+        "fr": "Nouveau(Tab-Wizard): étape d'introduction ajoutée expliquant le flux du wizard (sélectionner des points de données → vérifier les types de widget → créer un onglet)",
+        "it": "Nuovo(Tab-Wizard): aggiunto passo introduttivo che spiega il flusso del wizard (seleziona punti dati → verifica tipi widget → crea scheda)",
+        "es": "Nuevo(Tab-Wizard): añadido paso introductorio que explica el flujo del wizard (seleccionar puntos de datos → revisar tipos de widget → crear pestaña)",
+        "pl": "Nowe(Tab-Wizard): dodano krok wprowadzający wyjaśniający przepływ kreatora (wybierz punkty danych → sprawdź typy widgetów → utwórz zakładkę)",
+        "uk": "Нове(Tab-Wizard): додано вступний крок з поясненням процесу (вибір точок даних → перевірка типів віджетів → створення вкладки)",
+        "zh-cn": "新增(标签向导)：添加了介绍步骤，说明向导流程（选择数据点→检查小部件类型→创建标签页）"
+      },
       "0.4.83": {
         "en": "Feat(tab-wizard): starts directly in datapoint picker; new review step with per-DP widget type selection, editable names, DP removal, and layout choice; layout-generator no longer stretches the last widget in a row",
         "de": "Neu(Tab-Wizard): startet direkt im Datapicker; neuer Review-Schritt mit Widget-Typ-Auswahl pro Datenpunkt, editierbaren Namen, DP-Entfernen und Layout-Wahl; Layout-Generator streckt das letzte Widget einer Zeile nicht mehr auf volle Breite",
@@ -183,19 +196,6 @@
         "pl": "Nowe: wybór ikony dla każdego punktu danych na liście statycznej; usunięto niedziałające przyciski usuwania z widgetów list; widget kalendarza ponawia próbę co 45 s po ponownym uruchomieniu adaptera",
         "uk": "Нове: вибір іконки для кожної точки даних у статичному списку; видалено непрацюючі кнопки видалення з віджетів списків; віджет календаря повторює запит кожні 45 с після перезапуску адаптера",
         "zh-cn": "新增：静态列表中每个数据点的图标选择器；从列表小部件中删除了无效的删除按钮；日历小部件在适配器重启后每45秒自动重试"
-      },
-      "0.4.77": {
-        "en": "Fix: tab switching and DP name filter fixes – activeTabId preserved on config sync, tab switch no longer marks config dirty, name filter applied per name-part and in widget title picker, list auto-sync adds only relevant DPs",
-        "de": "Fix: Tab-Wechsel und DP-Namensfilter – activeTabId bleibt bei Config-Sync erhalten, Tab-Wechsel markiert Config nicht mehr als geändert, Namensfilter greift pro Namensteil und im Widget-Titel-Picker, Listen-Auto-Sync fügt nur relevante DPs hinzu",
-        "ru": "Исправления: activeTabId сохраняется при синхронизации конфига, переключение вкладок не помечает конфиг как изменённый, фильтр имён применяется к каждой части имени и в пикере заголовка виджета, автосинхронизация списка добавляет только актуальные DP",
-        "pt": "Fix: activeTabId preservado na sincronização de config, troca de aba não marca config como alterada, filtro de nomes aplicado por parte do nome e no picker de título do widget, auto-sync da lista adiciona apenas DPs relevantes",
-        "nl": "Fix: activeTabId behouden bij config-sync, tab-wissel markeert config niet meer als gewijzigd, naamfilter toegepast per naamdeel en in widget-titelpicker, lijst-auto-sync voegt alleen relevante DPs toe",
-        "fr": "Fix: activeTabId préservé lors de la synchronisation de config, le changement d'onglet ne marque plus la config comme modifiée, filtre de noms appliqué par partie du nom et dans le sélecteur de titre de widget, auto-sync liste n'ajoute que les DP pertinents",
-        "it": "Fix: activeTabId preservato durante la sincronizzazione della config, il cambio scheda non segna più la config come modificata, filtro nomi applicato per parte del nome e nel selettore del titolo widget, auto-sync lista aggiunge solo DP rilevanti",
-        "es": "Fix: activeTabId preservado en la sincronización de config, cambiar de pestaña ya no marca la config como modificada, filtro de nombres aplicado por parte del nombre y en el selector de título del widget, auto-sync de lista añade solo DPs relevantes",
-        "pl": "Fix: activeTabId zachowane przy synchronizacji konfiguracji, przełączanie zakładek nie oznacza już konfiguracji jako zmienionej, filtr nazw stosowany na każdą część nazwy i w wyborze tytułu widgetu, auto-sync listy dodaje tylko istotne DP",
-        "uk": "Виправлення: activeTabId зберігається при синхронізації конфігурації, перемикання вкладок не позначає конфіг як змінений, фільтр імен застосовується до кожної частини імені та в пікері заголовка віджету, автосинхронізація списку додає лише актуальні DP",
-        "zh-cn": "修复：配置同步时保留activeTabId，切换标签页不再将配置标记为已修改，名称过滤器应用于名称各部分及小部件标题选择器，列表自动同步仅添加相关DP"
       }
     }
   },

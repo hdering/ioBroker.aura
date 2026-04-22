@@ -175,6 +175,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.84 (2026-04-22)
+- Feat(tab-wizard): added intro step explaining the wizard flow
+
 ### 0.4.83 (2026-04-22)
 - Feat(tab-wizard): starts directly in datapoint picker; new review step with per-DP widget type selection, editable names, DP removal, and layout choice
 - Fix(tab-wizard): type filter dependency missing in useMemo caused filter to not react

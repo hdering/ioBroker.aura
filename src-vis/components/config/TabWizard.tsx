@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   Wand2, ChevronRight, ChevronLeft, Search,
-  Check, X,
+  Check, X, ListFilter, SlidersHorizontal, LayoutDashboard,
 } from 'lucide-react';
 import type { WidgetConfig, WidgetType } from '../../types';
 import { useDatapointList } from '../../hooks/useDatapointList';
@@ -15,7 +15,7 @@ import { WIDGET_REGISTRY, WIDGET_BY_TYPE } from '../../widgetRegistry';
 
 // ── types ──────────────────────────────────────────────────────────────────
 
-type Step = 'datapoints' | 'review';
+type Step = 'intro' | 'datapoints' | 'review';
 
 const MAX_DISPLAY = 250;
 
@@ -43,7 +43,7 @@ interface TabWizardProps {
 export function TabWizard({ onAdd, onClose }: TabWizardProps) {
   const t = useT();
 
-  const [step, setStep]                         = useState<Step>('datapoints');
+  const [step, setStep]                         = useState<Step>('intro');
   const [tabName, setTabName]                   = useState('');
   const [selectedLayoutId, setSelectedLayoutId] = useState('standard');
 
@@ -133,8 +133,14 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
     setStep('review');
   };
 
-  const goNext = () => { if (step === 'datapoints') enterReview(); };
-  const goBack = () => { if (step === 'review') setStep('datapoints'); };
+  const goNext = () => {
+    if (step === 'intro')       setStep('datapoints');
+    else if (step === 'datapoints') enterReview();
+  };
+  const goBack = () => {
+    if (step === 'datapoints') setStep('intro');
+    else if (step === 'review')     setStep('datapoints');
+  };
 
   // ── create tab ─────────────────────────────────────────────────────────
 
@@ -157,11 +163,11 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
 
   // ── step progress ──────────────────────────────────────────────────────
 
-  const steps: Step[] = ['datapoints', 'review'];
+  const steps: Step[] = ['intro', 'datapoints', 'review'];
   const stepIdx = steps.indexOf(step);
   const isLastStep = stepIdx === steps.length - 1;
 
-  const canNext   = step === 'datapoints' && checkedIds.size > 0;
+  const canNext   = step === 'intro' || (step === 'datapoints' && checkedIds.size > 0);
   const canCreate = selectedDps.length > 0;
 
   // ── render ─────────────────────────────────────────────────────────────
@@ -217,6 +223,51 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
 
         {/* Content */}
         <div className="aura-scroll flex-1 overflow-y-auto p-6 min-h-0">
+
+          {/* ── STEP: intro ── */}
+          {step === 'intro' && (
+            <div className="space-y-5">
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                Der Tab-Wizard erstellt einen neuen Tab und befüllt ihn automatisch mit passenden Widgets.
+              </p>
+              <div className="space-y-3">
+                {[
+                  {
+                    icon: <ListFilter size={18} />,
+                    title: '1. Datenpunkte auswählen',
+                    desc: 'Filtere nach Adapter, Raum, Funktion, Rolle oder Typ und wähle die gewünschten Datenpunkte aus.',
+                  },
+                  {
+                    icon: <SlidersHorizontal size={18} />,
+                    title: '2. Widget-Typen prüfen',
+                    desc: 'Für jeden Datenpunkt wird automatisch ein passender Widget-Typ vorgeschlagen – du kannst ihn anpassen, den Namen bearbeiten oder Datenpunkte entfernen.',
+                  },
+                  {
+                    icon: <LayoutDashboard size={18} />,
+                    title: '3. Tab erstellen',
+                    desc: 'Wähle das Layout (Kompakt, Standard oder Großzügig), vergib einen Namen und leg den Tab an.',
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.title}
+                    className="flex gap-4 px-4 py-3 rounded-xl"
+                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                  >
+                    <div
+                      className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
+                      style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}
+                    >
+                      {item.icon}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-0.5" style={{ color: 'var(--text-primary)' }}>{item.title}</p>
+                      <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* ── STEP: datapoints ── */}
           {step === 'datapoints' && (
@@ -478,11 +529,11 @@ export function TabWizard({ onAdd, onClose }: TabWizardProps) {
         {/* Footer */}
         <div className="px-6 py-4 shrink-0 flex items-center gap-3" style={{ borderTop: '1px solid var(--app-border)' }}>
           <button
-            onClick={step === 'datapoints' ? onClose : goBack}
+            onClick={step === 'intro' ? onClose : goBack}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm hover:opacity-80"
             style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
           >
-            {step === 'datapoints'
+            {step === 'intro'
               ? <><X size={14} /> {t('wizard.tab.cancel')}</>
               : <><ChevronLeft size={14} /> {t('wizard.tab.back')}</>}
           </button>
