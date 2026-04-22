@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { getObjectListDirect } from '../../hooks/useIoBroker';
+import { getObjectViewDirect } from '../../hooks/useIoBroker';
 import type { WidgetConfig } from '../../types';
 
 interface Props {
@@ -24,14 +24,15 @@ export function EChartsPresetConfig({ config, onConfigChange }: Props) {
 
   const loadPresets = () => {
     setLoading(true);
-    getObjectListDirect('echarts.', 'echarts.香')
+    // Timeout as safety net in case the socket command is not supported
+    const timer = setTimeout(() => setLoading(false), 5000);
+    getObjectViewDirect('chart', 'echarts.', 'echarts.香')
       .then((result) => {
-        const ids = result.rows
-          .map((r) => r.id)
-          .filter((id) => /^echarts\.\d+\./.test(id) && !id.includes('info.') && !id.startsWith('system.'));
+        clearTimeout(timer);
+        const ids = result.rows.map((r) => r.id).filter((id) => /^echarts\.\d+\./.test(id));
         setPresets(ids);
       })
-      .catch(() => setPresets([]))
+      .catch(() => { clearTimeout(timer); setPresets([]); })
       .finally(() => setLoading(false));
   };
 
