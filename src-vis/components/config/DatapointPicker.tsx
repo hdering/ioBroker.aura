@@ -30,9 +30,9 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
   const [role, setRole] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
-  const [size, setSize] = useState({ w: 900, h: 600 });
+  const [size, setSize] = useState({ w: 1080, h: 600 });
   const [pos, setPos] = useState(() => ({
-    x: Math.round((window.innerWidth  - 900) / 2),
+    x: Math.round((window.innerWidth  - 1080) / 2),
     y: Math.round((window.innerHeight - 600) / 2),
   }));
   // Refs hold snapshot values captured at drag/resize start to avoid stale closures.
@@ -220,7 +220,7 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
           </div>
           {/* Row 2 – filter dropdowns */}
           {(adapters.length > 0 || rooms.length > 0 || funcs.length > 0 || roles.length > 0 || types.length > 1 || allowedTypes?.length === 1) && (
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
           {adapters.length > 0 && (
             <select
               value={adapter}
