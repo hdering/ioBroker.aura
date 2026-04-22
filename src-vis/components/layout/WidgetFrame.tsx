@@ -1475,6 +1475,11 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                 { value: 'minimal', label: 'Minimal' },
                 { value: 'default', label: 'Standard' },
                 { value: 'custom',  label: 'Custom Grid' },
+              ] : config.type === 'gauge' ? [
+                { value: 'default', label: t('wf.edit.layout.standard') },
+              ] : config.type === 'chart' ? [
+                { value: 'default', label: t('wf.edit.layout.standard') },
+                { value: 'card',    label: t('wf.edit.layout.card') },
               ] : [
                 { value: 'default', label: t('wf.edit.layout.standard') },
                 { value: 'card',    label: t('wf.edit.layout.card') },
