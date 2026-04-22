@@ -116,6 +116,10 @@ export const en: Record<TranslationKey, string> = {
   'settings.tabBar.clockSeconds':       'Seconds',
   'settings.tabBar.clockDateLen':       'Date format',
   'settings.tabBar.clockCustom':        'Custom format',
+  'settings.tabBar.tabsAlignment':      'Menu Position',
+  'settings.tabBar.alignLeft':          'Left',
+  'settings.tabBar.alignCenter':        'Center',
+  'settings.tabBar.alignRight':         'Right',
   'settings.tabBar.clearAll':           '↩ Reset all',
 
   'settings.grid.title':        'Grid & Mobile',

@@ -114,6 +114,10 @@ export const de = {
   'settings.tabBar.clockSeconds':       'Sekunden',
   'settings.tabBar.clockDateLen':       'Datumsformat',
   'settings.tabBar.clockCustom':        'Eigenes Format',
+  'settings.tabBar.tabsAlignment':      'Menü-Position',
+  'settings.tabBar.alignLeft':          'Links',
+  'settings.tabBar.alignCenter':        'Mitte',
+  'settings.tabBar.alignRight':         'Rechts',
   'settings.tabBar.clearAll':           '↩ Alles zurücksetzen',
 
   'settings.grid.title':         'Grid & Mobil',

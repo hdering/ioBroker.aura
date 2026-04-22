@@ -30,6 +30,7 @@ export interface TabBarSettings {
   inactiveColor?: string;                            // inactive tab text
   indicatorStyle?: 'underline' | 'filled' | 'pills';
   fontSize?: 'sm' | 'md' | 'lg';
+  tabsAlignment?: 'left' | 'center' | 'right';      // navigation tabs position
   items?: TabBarItem[];
 }
 

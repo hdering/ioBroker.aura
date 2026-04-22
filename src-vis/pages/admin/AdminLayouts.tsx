@@ -461,6 +461,12 @@ function TabBarCard() {
     { key: 'lg', label: t('settings.tabBar.fontLg') },
   ];
 
+  const alignOptions: Array<{ key: TabBarSettings['tabsAlignment']; label: string }> = [
+    { key: 'left',   label: t('settings.tabBar.alignLeft') },
+    { key: 'center', label: t('settings.tabBar.alignCenter') },
+    { key: 'right',  label: t('settings.tabBar.alignRight') },
+  ];
+
   return (
     <div className="rounded-xl p-4 space-y-4" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
       {/* Header */}
@@ -539,6 +545,23 @@ function TabBarCard() {
                 const active = (tbs.fontSize ?? 'md') === key;
                 return (
                   <button key={key} onClick={() => update({ fontSize: key })}
+                    className="flex-1 py-1.5 rounded-lg text-xs font-medium hover:opacity-80"
+                    style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Menu alignment */}
+          <div>
+            <p className="text-sm mb-2" style={{ color: 'var(--text-primary)' }}>{t('settings.tabBar.tabsAlignment')}</p>
+            <div className="flex gap-1.5">
+              {alignOptions.map(({ key, label }) => {
+                const active = (tbs.tabsAlignment ?? 'left') === key;
+                return (
+                  <button key={key} onClick={() => update({ tabsAlignment: key })}
                     className="flex-1 py-1.5 rounded-lg text-xs font-medium hover:opacity-80"
                     style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
                     {label}

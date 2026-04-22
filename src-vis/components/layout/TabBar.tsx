@@ -361,8 +361,18 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
-  // With center/right items: use CSS grid for proper centering
-  if (hasExtras) {
+  const tabsAlignment = tbSettings?.tabsAlignment ?? 'left';
+  const needsGrid = hasExtras || tabsAlignment !== 'left';
+
+  const addTabBtn = !readonly && editMode && (
+    <button onClick={() => addTab(`Tab ${tabs.length + 1}`)}
+      className="px-3 py-2.5 text-sm transition-colors whitespace-nowrap hover:opacity-80"
+      style={{ color: 'var(--text-secondary)' }}>
+      {t('tabBar.addTab')}
+    </button>
+  );
+
+  if (needsGrid) {
     return (
       <>
         <div
@@ -374,27 +384,33 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
             alignItems: 'stretch',
           }}
         >
-          {/* Zone 1: left items + tabs */}
+          {/* Zone 1: left items + tabs when alignment=left */}
           <div className="aura-scroll flex items-center gap-1 px-2 overflow-x-auto" style={{ minWidth: 0 }}>
             {leftItems.map(renderTabBarItem)}
-            {leftItems.length > 0 && <div className="w-px self-stretch mx-1 shrink-0" style={{ background: 'var(--app-border)' }} />}
-            {renderTabs()}
-            {!readonly && editMode && (
-              <button onClick={() => addTab(`Tab ${tabs.length + 1}`)}
-                className="px-3 py-2.5 text-sm transition-colors whitespace-nowrap hover:opacity-80"
-                style={{ color: 'var(--text-secondary)' }}>
-                {t('tabBar.addTab')}
-              </button>
+            {tabsAlignment === 'left' && leftItems.length > 0 && (
+              <div className="w-px self-stretch mx-1 shrink-0" style={{ background: 'var(--app-border)' }} />
             )}
+            {tabsAlignment === 'left' && renderTabs()}
+            {tabsAlignment === 'left' && addTabBtn}
           </div>
 
-          {/* Zone 2: center items */}
-          <div className="flex items-center justify-center gap-3 px-4 shrink-0">
+          {/* Zone 2: center items + tabs when alignment=center */}
+          <div className="aura-scroll flex items-center justify-center gap-1 px-2 overflow-x-auto shrink-0">
+            {tabsAlignment === 'center' && renderTabs()}
+            {tabsAlignment === 'center' && addTabBtn}
+            {tabsAlignment === 'center' && centerItems.length > 0 && (
+              <div className="w-px self-stretch mx-2 shrink-0" style={{ background: 'var(--app-border)' }} />
+            )}
             {centerItems.map(renderTabBarItem)}
           </div>
 
-          {/* Zone 3: right items */}
-          <div className="flex items-center justify-end gap-3 px-4 shrink-0">
+          {/* Zone 3: right items + tabs when alignment=right */}
+          <div className="aura-scroll flex items-center justify-end gap-1 px-2 overflow-x-auto shrink-0">
+            {tabsAlignment === 'right' && renderTabs()}
+            {tabsAlignment === 'right' && addTabBtn}
+            {tabsAlignment === 'right' && rightItems.length > 0 && (
+              <div className="w-px self-stretch mx-2 shrink-0" style={{ background: 'var(--app-border)' }} />
+            )}
             {rightItems.map(renderTabBarItem)}
           </div>
         </div>
@@ -403,7 +419,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
     );
   }
 
-  // Default layout (no center/right items)
+  // Simple layout: alignment=left, no center/right items
   return (
     <>
       <div
@@ -413,13 +429,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
         {leftItems.map(renderTabBarItem)}
         {leftItems.length > 0 && <div className="w-px self-stretch mx-1 shrink-0" style={{ background: 'var(--app-border)' }} />}
         {renderTabs()}
-        {!readonly && editMode && (
-          <button onClick={() => addTab(`Tab ${tabs.length + 1}`)}
-            className="px-3 py-2.5 text-sm transition-colors whitespace-nowrap hover:opacity-80"
-            style={{ color: 'var(--text-secondary)' }}>
-            {t('tabBar.addTab')}
-          </button>
-        )}
+        {addTabBtn}
       </div>
       {settingsPanel}
     </>
