@@ -291,12 +291,22 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
             isResizable={editMode}
             draggableCancel=".nodrag"
             onLayoutChange={(newLayout) => {
+              let hasRealChange = false;
               const updated = children.map((c) => {
                 const pos = newLayout.find((l) => l.i === c.id);
                 if (!pos) return c;
+                // Compare against what we actually passed to RGL (clamped display values).
+                // If RGL just reflected our own clamped values back, nothing really changed —
+                // don't overwrite the stored gridPos and don't trigger a dirty flag.
+                const displayX = Math.min(c.gridPos.x, cols - 1);
+                const displayW = Math.min(c.gridPos.w, cols);
+                if (pos.x === displayX && pos.y === c.gridPos.y && pos.w === displayW && pos.h === c.gridPos.h) {
+                  return c;
+                }
+                hasRealChange = true;
                 return { ...c, gridPos: { x: pos.x, y: pos.y, w: pos.w, h: pos.h } };
               });
-              setChildren(updated);
+              if (hasRealChange) setChildren(updated);
             }}
             margin={[CHILD_MARGIN, CHILD_MARGIN]}
             containerPadding={[0, 0]}
