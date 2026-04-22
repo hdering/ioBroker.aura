@@ -512,6 +512,8 @@ export const en: Record<TranslationKey, string> = {
   'dp.picker.allRooms':    'All Rooms',
   'dp.picker.allFuncs':    'All Functions',
   'dp.picker.allRoles':    'All Roles',
+  'dp.picker.allTypes':    'All Types',
+  'dp.picker.typeHint':    '{type} only',
   'dp.picker.loading':  'Loading datapoints…',
   'dp.picker.showing':  'Showing {max} of {count}',
   'dp.picker.count':    '{count} datapoints',

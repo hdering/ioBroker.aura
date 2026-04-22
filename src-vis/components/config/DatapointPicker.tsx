@@ -12,11 +12,13 @@ interface DatapointPickerProps {
   /** When true: show checkboxes + confirm button instead of immediate single-select */
   multiSelect?: boolean;
   onMultiSelect?: (picks: DatapointEntry[]) => void;
+  /** Restrict selectable datapoints to these types (e.g. ['boolean']) */
+  allowedTypes?: string[];
 }
 
 const MAX_DISPLAY = 250;
 
-export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, onMultiSelect }: DatapointPickerProps) {
+export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, onMultiSelect, allowedTypes }: DatapointPickerProps) {
   const t = useT();
   const { datapoints, loading, loaded, load } = useDatapointList();
   // Pre-fill search with the current value so the DP is immediately visible.
@@ -26,6 +28,7 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
   const [room, setRoom] = useState('');
   const [func, setFunc] = useState('');
   const [role, setRole] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [size, setSize] = useState({ w: 672, h: 600 });
   const resizeOrigin = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
@@ -67,19 +70,25 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
   const rooms = useMemo(() => Array.from(new Set(datapoints.flatMap((dp) => dp.rooms))).sort(), [datapoints]);
   const funcs = useMemo(() => Array.from(new Set(datapoints.flatMap((dp) => dp.funcs))).sort(), [datapoints]);
   const roles = useMemo(() => Array.from(new Set(datapoints.map((dp) => dp.role).filter(Boolean) as string[])).sort(), [datapoints]);
+  const types = useMemo(() => {
+    const all = Array.from(new Set(datapoints.map((dp) => dp.type).filter(Boolean) as string[])).sort();
+    return allowedTypes?.length ? all.filter((ty) => allowedTypes.includes(ty)) : all;
+  }, [datapoints, allowedTypes]);
 
   const filtered = useMemo(() => {
     let list = datapoints;
+    if (allowedTypes?.length) list = list.filter((dp) => dp.type != null && allowedTypes.includes(dp.type));
     if (adapter) list = list.filter((dp) => dp.id.startsWith(adapter + '.'));
     if (room) list = list.filter((dp) => dp.rooms.includes(room));
     if (func) list = list.filter((dp) => dp.funcs.includes(func));
     if (role) list = list.filter((dp) => dp.role === role);
+    if (typeFilter) list = list.filter((dp) => dp.type === typeFilter);
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((dp) => dp.id.toLowerCase().includes(q) || dp.name.toLowerCase().includes(q));
     }
     return list;
-  }, [datapoints, search, adapter, room, func, role]);
+  }, [datapoints, search, adapter, room, func, role, typeFilter, allowedTypes]);
 
   const shown = useMemo(() => filtered.slice(0, MAX_DISPLAY), [filtered]);
 
@@ -186,8 +195,8 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
               </select>
             )}
           </div>
-          {(rooms.length > 0 || funcs.length > 0 || roles.length > 0) && (
-            <div className="flex gap-2 flex-wrap">
+          {(rooms.length > 0 || funcs.length > 0 || roles.length > 0 || types.length > 1 || allowedTypes?.length === 1) && (
+            <div className="flex gap-2 flex-wrap items-center">
               {rooms.length > 0 && (
                 <select value={room} onChange={(e) => setRoom(e.target.value)}
                   className="rounded-lg px-3 py-1.5 text-xs focus:outline-none"
@@ -212,6 +221,27 @@ export function DatapointPicker({ currentValue, onSelect, onClose, multiSelect, 
                   {roles.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
               )}
+              {types.length > 1 && (
+                <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
+                  className="rounded-lg px-3 py-1.5 text-xs focus:outline-none"
+                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
+                  <option value="">{t('dp.picker.allTypes')}</option>
+                  {types.map((ty) => {
+                    const tc = ty === 'boolean' ? '#f59e0b' : ty === 'number' ? '#3b82f6' : ty === 'string' ? '#8b5cf6' : 'var(--text-primary)';
+                    return <option key={ty} value={ty} style={{ color: tc }}>{ty}</option>;
+                  })}
+                </select>
+              )}
+              {allowedTypes?.length === 1 && (() => {
+                const ty = allowedTypes[0];
+                const tc = ty === 'boolean' ? '#f59e0b' : ty === 'number' ? '#3b82f6' : ty === 'string' ? '#8b5cf6' : 'var(--accent)';
+                return (
+                  <span className="text-[10px] px-2 py-1 rounded font-medium"
+                    style={{ background: tc + '22', color: tc }}>
+                    {t('dp.picker.typeHint', { type: ty })}
+                  </span>
+                );
+              })()}
             </div>
           )}
         </div>

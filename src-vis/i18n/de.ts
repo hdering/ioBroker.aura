@@ -510,6 +510,8 @@ export const de = {
   'dp.picker.allRooms':    'Alle Räume',
   'dp.picker.allFuncs':    'Alle Funktionen',
   'dp.picker.allRoles':    'Alle Rollen',
+  'dp.picker.allTypes':    'Alle Typen',
+  'dp.picker.typeHint':    'Nur {type}',
   'dp.picker.loading':  'Lade Datenpunkte…',
   'dp.picker.showing':  '{max} von {count} angezeigt',
   'dp.picker.count':    '{count} Datenpunkte',

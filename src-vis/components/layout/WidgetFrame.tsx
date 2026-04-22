@@ -3509,6 +3509,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
       {/* Datapoint Picker Modal */}
       {pickerTarget && (
         <DatapointPicker
+          allowedTypes={pickerTarget === 'datapoint' && config.type === 'stateimage' ? ['boolean'] : undefined}
           currentValue={
             pickerTarget === 'datapoint'           ? config.datapoint :
             pickerTarget === 'localTempDatapoint'  ? ((config.options?.localTempDatapoint as string) ?? '') :
