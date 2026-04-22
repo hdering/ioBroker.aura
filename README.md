@@ -175,6 +175,11 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.85 (2026-04-22)
+- Feat: tab bar design settings per layout – height, background color, active/inactive tab colors, indicator style (underline/filled/pills), font size
+- Feat: tab bar items (clock, datapoint, static text) with left/center/right positioning in the tab bar
+- Feat: layouts page uses full width (removed max-width constraint)
+
 ### 0.4.84 (2026-04-22)
 - Feat(tab-wizard): added intro step explaining the wizard flow
 
