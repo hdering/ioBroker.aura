@@ -3075,7 +3075,22 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               {/* ── Custom-Grid editor (all widgets except excluded) ── */}
               {!['iframe', 'jsontable', 'trash', 'header', 'fill', 'camera'].includes(config.type) && (config.layout ?? 'default') === 'custom' && (() => {
                 const CELL_LABELS: Record<string, string> = {
-                  empty: '–', title: 'Titel', value: 'Wert', unit: 'Einheit', text: 'Text', dp: 'DP', field: 'Feld',
+                  empty: '–', title: 'Titel', value: 'Wert', unit: 'Einheit', text: 'Text', dp: 'DP', field: 'Feld', component: 'Aktion',
+                };
+                const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
+                  dimmer:       [{ key: 'slider',    label: 'Dimmer-Slider' }],
+                  switch:       [{ key: 'toggle',    label: 'Schalter' }],
+                  shutter:      [
+                    { key: 'btn-up',   label: '▲ Hoch' },
+                    { key: 'btn-stop', label: '■ Stop' },
+                    { key: 'btn-down', label: '▼ Runter' },
+                  ],
+                  thermostat:   [
+                    { key: 'btn-plus',  label: '+ Temperatur' },
+                    { key: 'btn-minus', label: '− Temperatur' },
+                  ],
+                  binarysensor: [{ key: 'icon', label: 'Status-Icon' }],
+                  stateimage:   [{ key: 'icon', label: 'Zustands-Icon' }],
                 };
                 const o   = config.options ?? {};
                 const cells: CustomGrid = (o.customGrid as CustomGrid | undefined) ?? DEFAULT_CUSTOM_GRID;
@@ -3140,6 +3155,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             <option value="dp">Weiterer Datenpunkt</option>
                             <option value="field">Widget-Feld</option>
                             <option value="image">Bild (URL / Base64)</option>
+                            {COMPONENT_OPTIONS[config.type] && (
+                              <option value="component">Aktion / Icon</option>
+                            )}
                           </select>
                         </div>
 
@@ -3294,6 +3312,26 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           );
                         })()}
 
+                        {/* Component key selector */}
+                        {selCell.type === 'component' && (() => {
+                          const options = COMPONENT_OPTIONS[config.type] ?? [];
+                          return (
+                            <div>
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Aktion / Icon</label>
+                              <select
+                                value={selCell.componentKey ?? ''}
+                                onChange={(e) => setCell(sel, { componentKey: e.target.value })}
+                                className={inputCls} style={inputSty}
+                              >
+                                <option value="">– wählen –</option>
+                                {options.map(({ key, label }) => (
+                                  <option key={key} value={key}>{label}</option>
+                                ))}
+                              </select>
+                            </div>
+                          );
+                        })()}
+
                         {/* Additional DP selector */}
                         {selCell.type === 'dp' && (
                           <div>
@@ -3346,7 +3384,43 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           </div>
                         )}
 
-                        {selCell.type !== 'empty' && (
+                        {/* Alignment for component cells */}
+                        {selCell.type === 'component' && (
+                          <>
+                            <div>
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Ausrichtung</label>
+                              <div className="flex gap-1">
+                                {(['left', 'center', 'right'] as const).map((a) => {
+                                  const active = (selCell.align ?? 'center') === a;
+                                  return (
+                                    <button key={a} onClick={() => setCell(sel, { align: a })}
+                                      className="flex-1 text-[10px] py-1 rounded"
+                                      style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
+                                      {a === 'left' ? 'Links' : a === 'center' ? 'Mitte' : 'Rechts'}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Vertikale Ausrichtung</label>
+                              <div className="flex gap-1">
+                                {(['top', 'middle', 'bottom'] as const).map((v) => {
+                                  const active = (selCell.valign ?? 'middle') === v;
+                                  return (
+                                    <button key={v} onClick={() => setCell(sel, { valign: v })}
+                                      className="flex-1 text-[10px] py-1 rounded"
+                                      style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
+                                      {v === 'top' ? 'Oben' : v === 'middle' ? 'Mitte' : 'Unten'}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </>
+                        )}
+
+                        {selCell.type !== 'empty' && selCell.type !== 'component' && (
                           <>
                             {/* Font size */}
                             <div className="flex items-center gap-2">

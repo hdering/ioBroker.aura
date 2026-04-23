@@ -18,7 +18,26 @@ export function SwitchWidget({ config }: WidgetProps) {
   const showTitle = o.showTitle !== false;
   const showLabel = o.showLabel !== false;
 
-  if (layout === 'custom') return <CustomGridView config={config} value={isOn ? 'AN' : 'AUS'} />;
+  if (layout === 'custom') return (
+    <CustomGridView
+      config={config}
+      value={isOn ? 'AN' : 'AUS'}
+      extraComponents={{
+        toggle: (
+          <button
+            onClick={toggle}
+            className="nodrag relative w-10 h-5 rounded-full transition-colors focus:outline-none"
+            style={{ background: isOn ? 'var(--accent)' : 'var(--app-border)' }}
+          >
+            <span
+              className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+              style={{ left: isOn ? '22px' : '2px' }}
+            />
+          </button>
+        ),
+      }}
+    />
+  );
 
   // --- CARD: Vollflächige farbige Karte mit großem Icon ---
   if (layout === 'card') {

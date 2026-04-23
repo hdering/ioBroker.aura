@@ -83,6 +83,21 @@ function ImageCellView({ cell, index }: { cell: CustomCell; index: number }) {
   );
 }
 
+/** Renders a widget-supplied React node (interactive element or icon). */
+function ComponentCellView({ cell, index, extraComponents }: {
+  cell: CustomCell;
+  index: number;
+  extraComponents?: Record<string, React.ReactNode>;
+}) {
+  const node = extraComponents?.[cell.componentKey ?? ''];
+  if (!node) return <div className={`aura-custom-cell-${index}`} />;
+  return (
+    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell), padding: '2px' }}>
+      {node}
+    </div>
+  );
+}
+
 /** Renders static / widget-derived content (title, value, unit, free text, extra field). */
 function StaticCellView({
   cell, index, title, value, unit, extraFields,
@@ -129,9 +144,14 @@ interface CustomGridViewProps {
    * 'time', 'date' for clock).
    */
   extraFields?: Record<string, string>;
+  /**
+   * Optional pre-rendered React nodes for 'component' type cells.
+   * Keys are widget-specific (e.g. 'slider' for dimmer, 'toggle' for switch).
+   */
+  extraComponents?: Record<string, React.ReactNode>;
 }
 
-export function CustomGridView({ config, value, unit, extraFields }: CustomGridViewProps) {
+export function CustomGridView({ config, value, unit, extraFields, extraComponents }: CustomGridViewProps) {
   const cells: CustomGrid = (config.options?.customGrid as CustomGrid | undefined) ?? DEFAULT_CUSTOM_GRID;
   return (
     <div
@@ -143,7 +163,9 @@ export function CustomGridView({ config, value, unit, extraFields }: CustomGridV
           ? <DpCellView key={i} cell={cell} index={i} />
           : cell.type === 'image'
             ? <ImageCellView key={i} cell={cell} index={i} />
-            : <StaticCellView key={i} cell={cell} index={i} title={config.title} value={value} unit={unit} extraFields={extraFields} />
+            : cell.type === 'component'
+              ? <ComponentCellView key={i} cell={cell} index={i} extraComponents={extraComponents} />
+              : <StaticCellView key={i} cell={cell} index={i} title={config.title} value={value} unit={unit} extraFields={extraFields} />
       )}
     </div>
   );

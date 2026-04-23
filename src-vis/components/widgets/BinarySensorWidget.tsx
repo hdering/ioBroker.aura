@@ -49,6 +49,9 @@ export function BinarySensorWidget({ config }: WidgetProps) {
         labelOff: labelOff,
         active:   isActive ? 'Ja' : 'Nein',
       }}
+      extraComponents={{
+        icon: <Icon size={20} style={{ color, flexShrink: 0 }} />,
+      }}
     />
   );
 

@@ -61,7 +61,15 @@ export function StateImageWidget({ config }: WidgetProps) {
 
   const cfg = isActive ? trueCfg : falseCfg;
 
-  if (layout === 'custom') return <CustomGridView config={config} value={cfg.label} />;
+  if (layout === 'custom') return (
+    <CustomGridView
+      config={config}
+      value={cfg.label}
+      extraComponents={{
+        icon: <StateDisplay cfg={cfg} size={24} />,
+      }}
+    />
+  );
 
   // ── CARD ──────────────────────────────────────────────────────────────────
   if (layout === 'card') {

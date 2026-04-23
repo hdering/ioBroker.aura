@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Thermometer, Flame, Wind, X, Snowflake } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
@@ -232,17 +232,24 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
   const layout = config.layout ?? 'default';
   const wrapperCls = `${clickable && !editMode ? 'cursor-pointer' : ''}`;
 
-  if (layout === 'custom') return (
-    <CustomGridView
-      config={config}
-      value={typeof rawTarget === 'number' ? rawTarget.toFixed(1) : '–'}
-      extraFields={{
-        setpoint: typeof rawTarget === 'number' ? rawTarget.toFixed(1) : '–',
-        actual:   actual !== null ? actual.toFixed(1) : '–',
-        status:   isHeating ? 'Heizend' : isCooling ? 'Kühlend' : 'Inaktiv',
-      }}
-    />
-  );
+  if (layout === 'custom') {
+    const btnSty: React.CSSProperties = { background: 'var(--app-border)', color: 'var(--text-primary)', borderRadius: 6, width: 28, height: 28, fontWeight: 'bold', fontSize: 16, cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+    return (
+      <CustomGridView
+        config={config}
+        value={typeof rawTarget === 'number' ? rawTarget.toFixed(1) : '–'}
+        extraFields={{
+          setpoint: typeof rawTarget === 'number' ? rawTarget.toFixed(1) : '–',
+          actual:   actual !== null ? actual.toFixed(1) : '–',
+          status:   isHeating ? 'Heizend' : isCooling ? 'Kühlend' : 'Inaktiv',
+        }}
+        extraComponents={{
+          'btn-plus':  <button className="nodrag" style={btnSty} onClick={() => setTemp(target + step)}>+</button>,
+          'btn-minus': <button className="nodrag" style={btnSty} onClick={() => setTemp(target - step)}>−</button>,
+        }}
+      />
+    );
+  }
 
   // ── CARD ──────────────────────────────────────────────────────────────────
   if (layout === 'card') {

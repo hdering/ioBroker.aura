@@ -44,6 +44,15 @@ export function DimmerWidget({ config }: WidgetProps) {
         status: level === 0 ? 'Aus' : level === 100 ? 'Voll' : `${level}%`,
         on:     level > 0 ? 'Ein' : 'Aus',
       }}
+      extraComponents={{
+        slider: (
+          <input type="range" min={0} max={100} step={1} value={level}
+            onChange={(e) => setState(config.datapoint, Number(e.target.value))}
+            style={{ accentColor: 'var(--accent)', width: '100%' }}
+            className="nodrag h-1.5 rounded-full appearance-none cursor-pointer"
+          />
+        ),
+      }}
     />
   );
 
