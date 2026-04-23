@@ -1657,8 +1657,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               );
             })()}
 
-            {/* Icon picker */}
-            {(() => {
+            {/* Icon picker (not for stateimage – icons are per-state) */}
+            {config.type !== 'stateimage' && (() => {
               const currentIconName = config.options?.icon as string | undefined;
               const CurrentIcon = currentIconName
                 ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))

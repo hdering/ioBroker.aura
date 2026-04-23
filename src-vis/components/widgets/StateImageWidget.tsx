@@ -44,17 +44,16 @@ export function StateImageWidget({ config }: WidgetProps) {
   const showLabel = opts.showLabel !== false;
   const iconSize  = (opts.iconSize as number) || 48;
 
-  const globalIcon = opts.icon as string | undefined;
   const trueCfg: StateCfg = {
     type:   (opts.trueType   as 'icon' | 'base64') ?? 'icon',
-    icon:   (opts.trueIcon   as string | undefined) ?? globalIcon,
+    icon:    opts.trueIcon   as string | undefined,
     color:  (opts.trueColor  as string) || '#22c55e',
     base64:  opts.trueBase64 as string | undefined,
     label:  (opts.trueLabel  as string) || 'Offen',
   };
   const falseCfg: StateCfg = {
     type:   (opts.falseType   as 'icon' | 'base64') ?? 'icon',
-    icon:   (opts.falseIcon   as string | undefined) ?? globalIcon,
+    icon:    opts.falseIcon   as string | undefined,
     color:  (opts.falseColor  as string) || '#6b7280',
     base64:  opts.falseBase64 as string | undefined,
     label:  (opts.falseLabel  as string) || 'Geschlossen',
@@ -86,10 +85,10 @@ export function StateImageWidget({ config }: WidgetProps) {
   // ── COMPACT ──────────────────────────────────────────────────────────────
   if (layout === 'compact') {
     return (
-      <div className="flex items-center gap-3 h-full" style={{ position: 'relative' }}>
-        <StateDisplay cfg={cfg} size={iconSize} />
+      <div className="flex items-center gap-2 h-full" style={{ position: 'relative' }}>
+        <StateDisplay cfg={cfg} size={16} />
         {showTitle && (
-          <span className="flex-1 text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+          <span className="flex-1 text-sm truncate" style={{ color: 'var(--text-secondary)' }}>
             {config.title}
           </span>
         )}
