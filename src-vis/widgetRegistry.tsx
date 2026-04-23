@@ -139,7 +139,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
   },
   {
     type: 'autolist',
-    label: 'Dynamische Liste', shortLabel: 'Dyn. Liste',
+    label: 'Dynamische Liste', shortLabel: 'Dynamische Liste',
     Icon: List,             iconName: 'List',       color: '#14b8a6',
     defaultW: 10,           defaultH: 6,
     addMode: 'free',        widgetGroup: 'control',
