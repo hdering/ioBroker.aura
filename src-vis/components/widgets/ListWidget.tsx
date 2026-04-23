@@ -34,6 +34,8 @@ export interface StaticListOptions {
   showRoom?: boolean;
   showTitle?: boolean;
   showCount?: boolean;
+  sortBy?: 'none' | 'label' | 'value';
+  sortOrder?: 'asc' | 'desc';
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -49,6 +51,14 @@ function isActive(val: ioBrokerState['val']): boolean {
   if (typeof val === 'number')  return val > 0;
   if (typeof val === 'string')  return val !== '' && val !== '0' && val.toLowerCase() !== 'false';
   return false;
+}
+
+function compareVals(a: ioBrokerState['val'], b: ioBrokerState['val']): number {
+  if (a === null || a === undefined) return 1;
+  if (b === null || b === undefined) return -1;
+  if (typeof a === 'boolean' && typeof b === 'boolean') return (a ? 1 : 0) - (b ? 1 : 0);
+  if (typeof a === 'number' && typeof b === 'number') return a - b;
+  return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
 }
 
 type FilterMode = 'all' | 'active' | 'inactive';
@@ -230,13 +240,25 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   };
 
   const visibleEntries = useMemo(() => {
-    if (editMode || valueFilter === 'all') return entries;
-    return entries.filter(e => {
-      const val = states[e.id]?.val ?? null;
-      if (val === null) return false;
-      return valueFilter === 'active' ? isActive(val) : !isActive(val);
-    });
-  }, [entries, states, valueFilter, editMode]); // eslint-disable-line react-hooks/exhaustive-deps
+    let result = editMode || valueFilter === 'all'
+      ? entries
+      : entries.filter(e => {
+          const val = states[e.id]?.val ?? null;
+          if (val === null) return false;
+          return valueFilter === 'active' ? isActive(val) : !isActive(val);
+        });
+    const sortBy = opts.sortBy ?? 'none';
+    const sortOrder = opts.sortOrder ?? 'asc';
+    if (sortBy !== 'none') {
+      result = [...result].sort((a, b) => {
+        const cmp = sortBy === 'label'
+          ? getLabel(a).localeCompare(getLabel(b), undefined, { numeric: true, sensitivity: 'base' })
+          : compareVals(states[a.id]?.val ?? null, states[b.id]?.val ?? null);
+        return sortOrder === 'desc' ? -cmp : cmp;
+      });
+    }
+    return result;
+  }, [entries, states, valueFilter, editMode, opts.sortBy, opts.sortOrder, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const hideTitle = !!(config.options as Record<string, unknown>)?.hideTitle;
   const showTitle = opts.showTitle !== false && !hideTitle;

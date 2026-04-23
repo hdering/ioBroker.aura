@@ -44,6 +44,8 @@ export interface AutoListOptions {
   filterInactiveLabel?: string;
   showTitle?: boolean;
   showCount?: boolean;
+  sortBy?: 'none' | 'label' | 'value';
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface DiscoveredDp {
@@ -59,6 +61,14 @@ export interface DiscoveredDp {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+function compareVals(a: ioBrokerState['val'], b: ioBrokerState['val']): number {
+  if (a === null || a === undefined) return 1;
+  if (b === null || b === undefined) return -1;
+  if (typeof a === 'boolean' && typeof b === 'boolean') return (a ? 1 : 0) - (b ? 1 : 0);
+  if (typeof a === 'number' && typeof b === 'number') return a - b;
+  return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+}
 
 function isDimmerRole(role?: string) {
   const r = (role ?? '').toLowerCase();
@@ -454,13 +464,25 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
   // In edit mode always show all entries so the user can manage them.
   const visibleEntries = useMemo(() => {
-    if (editMode || valueFilter === 'all') return entries;
-    return entries.filter(e => {
-      const val = states[e.id]?.val ?? null;
-      if (val === null) return false;
-      return valueFilter === 'active' ? isActive(val) : !isActive(val);
-    });
-  }, [entries, states, valueFilter, editMode]); // eslint-disable-line react-hooks/exhaustive-deps
+    let result = editMode || valueFilter === 'all'
+      ? entries
+      : entries.filter(e => {
+          const val = states[e.id]?.val ?? null;
+          if (val === null) return false;
+          return valueFilter === 'active' ? isActive(val) : !isActive(val);
+        });
+    const sortBy = opts.sortBy ?? 'none';
+    const sortOrder = opts.sortOrder ?? 'asc';
+    if (sortBy !== 'none') {
+      result = [...result].sort((a, b) => {
+        const cmp = sortBy === 'label'
+          ? getLabel(a).localeCompare(getLabel(b), undefined, { numeric: true, sensitivity: 'base' })
+          : compareVals(states[a.id]?.val ?? null, states[b.id]?.val ?? null);
+        return sortOrder === 'desc' ? -cmp : cmp;
+      });
+    }
+    return result;
+  }, [entries, states, valueFilter, editMode, opts.sortBy, opts.sortOrder, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const hideTitle = !!(config.options as Record<string, unknown>)?.hideTitle;
   const showTitle = opts.showTitle !== false && !hideTitle;
