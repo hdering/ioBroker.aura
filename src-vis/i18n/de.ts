@@ -798,6 +798,7 @@ export const de = {
   'group.mobileOrder': 'Mobile Reihenfolge',
   'group.noWidgets':   'Keine Widgets vorhanden',
   'group.dropHere':    'Widget hier ablegen',
+  'group.fitHeight':   'Höhe an Inhalt anpassen',
 
   // ── EVCC Widget ───────────────────────────────────────────────────────────────
   'evcc.solar':        'Solar',

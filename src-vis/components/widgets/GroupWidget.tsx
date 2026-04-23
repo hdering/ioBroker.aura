@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import ReactGridLayout from 'react-grid-layout';
-import { Plus, X, GripVertical, Smartphone } from 'lucide-react';
+import { Plus, X, GripVertical, Smartphone, Minimize2 } from 'lucide-react';
 import type { WidgetProps, WidgetConfig, WidgetType } from '../../types';
 import { useConfigStore } from '../../store/configStore';
 import { WIDGET_BY_TYPE, WIDGET_REGISTRY, WIDGET_GROUPS } from '../../widgetRegistry';
@@ -191,6 +191,23 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
             <Plus size={11} /> {t('group.addWidget')}
           </button>
           <button
+            title={t('group.fitHeight')}
+            onClick={() => {
+              if (children.length === 0) return;
+              const OUTER_MARGIN = 6;
+              const maxBottom = Math.max(...children.map((c) => c.gridPos.y + c.gridPos.h));
+              const innerH = maxBottom * (cellSize + CHILD_MARGIN) - CHILD_MARGIN + 8; // p-1 top+bottom
+              const titleBarH = config.title ? 28 : 0;
+              const totalH = titleBarH + innerH;
+              const newH = Math.ceil((totalH + OUTER_MARGIN) / (cellSize + OUTER_MARGIN));
+              onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
+            }}
+            className="flex items-center gap-1 text-[10px] hover:opacity-80 px-2 py-1 rounded-lg"
+            style={{ color: 'var(--text-secondary)', background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+          >
+            <Minimize2 size={11} />
+          </button>
+          <button
             onClick={() => { setShowMobileOrder((v) => !v); setShowTypePicker(false); }}
             className="flex items-center gap-1 text-[10px] hover:opacity-80 px-2 py-1 rounded-lg ml-auto"
             style={{
@@ -258,7 +275,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
   // ── Mobile layout ──────────────────────────────────────────────────────────
   if (isMobile) {
     return (
-      <div className="relative flex flex-col h-full" {...dragHandlers}>
+      <div className="relative flex flex-col" {...dragHandlers}>
         {isDragOver && (
           <div className="nodrag pointer-events-none absolute inset-0 z-20 rounded-[inherit] border-2 border-dashed flex items-center justify-center"
             style={{ borderColor: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 10%, transparent)' }}>
@@ -376,7 +393,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
       </div>
 
       {addBar && (
-        <div className="absolute bottom-0 left-0 right-0" style={{ zIndex: 5, background: 'var(--app-surface)' }}>
+        <div className="absolute bottom-0 left-0 right-0" style={{ background: 'var(--app-surface)' }}>
           {addBar}
         </div>
       )}

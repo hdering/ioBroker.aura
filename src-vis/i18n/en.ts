@@ -800,6 +800,7 @@ export const en: Record<TranslationKey, string> = {
   'group.mobileOrder': 'Mobile order',
   'group.noWidgets':   'No widgets yet',
   'group.dropHere':    'Drop widget here',
+  'group.fitHeight':   'Fit height to content',
 
   // ── EVCC Widget ───────────────────────────────────────────────────────────────
   'evcc.solar':        'Solar',

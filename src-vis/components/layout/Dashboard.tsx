@@ -184,7 +184,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
                 ) : (
                   <div className="flex flex-col" style={{ gap: MARGIN }}>
                     {sorted.map((w) => (
-                      <div key={w.id} style={{ height: w.gridPos.h * cellSize + (w.gridPos.h - 1) * MARGIN }}>
+                      <div key={w.id} style={w.type === 'group' ? undefined : { height: w.gridPos.h * cellSize + (w.gridPos.h - 1) * MARGIN }}>
                         <WidgetFrame config={w} editMode={false} onRemove={removeWidget} onConfigChange={(cfg) => updateWidget(cfg.id, cfg)} />
                       </div>
                     ))}
