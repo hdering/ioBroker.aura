@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.92",
+    "version": "0.4.93",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.93": {
+        "en": "Fix: theme toggle now clears per-layout theme override so all themes (light, lovelace, etc.) apply correctly on devices with layout-specific overrides",
+        "de": "Fix: Hell/Dunkel-Toggle löscht jetzt das Layout-eigene Theme-Override, sodass alle Themes (hell, lovelace, etc.) auch auf Geräten mit Layout-spezifischem Override korrekt wirken",
+        "ru": "Исправление: переключатель темы теперь удаляет переопределение темы макета, чтобы все темы (светлые, lovelace и др.) корректно применялись на устройствах с переопределением темы макета",
+        "pt": "Correção: o alternador de tema agora limpa o tema por layout para que todos os temas (claro, lovelace, etc.) sejam aplicados corretamente em dispositivos com substituições de tema por layout",
+        "nl": "Fix: thema-schakelaar verwijdert nu het per-layout thema-override zodat alle thema's (licht, lovelace, etc.) correct worden toegepast op apparaten met layout-specifieke overrides",
+        "fr": "Correction: le bouton de thème efface maintenant le thème par mise en page afin que tous les thèmes (clair, lovelace, etc.) s'appliquent correctement sur les appareils avec des substitutions par mise en page",
+        "it": "Fix: il toggle del tema ora cancella il tema per layout in modo che tutti i temi (chiaro, lovelace, ecc.) vengano applicati correttamente sui dispositivi con override del tema per layout",
+        "es": "Corrección: el botón de tema ahora borra el tema por layout para que todos los temas (claro, lovelace, etc.) se apliquen correctamente en dispositivos con anulaciones de tema por layout",
+        "pl": "Poprawka: przełącznik motywu teraz usuwa nadpisanie motywu układu, aby wszystkie motywy (jasny, lovelace itp.) były poprawnie stosowane na urządzeniach z nadpisaniami motywu układu",
+        "uk": "Виправлення: перемикач теми тепер видаляє власне переопределення теми макету, щоб усі теми (світлі, lovelace тощо) коректно застосовувались на пристроях із власним override теми макету",
+        "zh-cn": "修复：明暗切换按钮现在会清除每个布局的主题覆盖，使所有主题（亮色、lovelace 等）在具有布局特定覆盖的设备上正确生效"
+      },
       "0.4.92": {
         "en": "Fix: theme toggle now correctly switches per-layout theme override when a layout has its own theme set",
         "de": "Fix: Hell/Dunkel-Toggle schaltet jetzt korrekt das Layout-eigene Theme um, wenn ein Layout ein eigenes Theme-Override hat",
@@ -183,19 +196,6 @@
         "pl": "Wydajność: wstępne ładowanie stanów przed pierwszym renderem – wszystkie punkty danych ładowane równolegle przy połączeniu; widgety inicjalizują się z pamięci podręcznej (brak null-flash); dashboard pojawia się stopniowo po załadowaniu danych; poprawka wysokości dashboardu",
         "uk": "Продуктивність: попереднє завантаження станів перед першим рендером – усі точки даних завантажуються паралельно при підключенні; віджети ініціалізуються з кешу (без null-мерехтіння); дашборд плавно з'являється після завантаження даних; виправлення висоти дашборду",
         "zh-cn": "性能优化：首次渲染前预加载状态——连接时并行加载所有数据点；组件从缓存初始化（无空值闪烁）；数据准备好后仪表盘淡入显示；修复包装器更改后仪表盘高度问题"
-      },
-      "0.4.86": {
-        "en": "Feat: eChartsPreset widget – title overlay, fullscreen button, fixed last-change overlay z-index; EChart – dataMin/dataMax auto option for Y-axis",
-        "de": "Neu: eChartsPreset-Widget – Titel-Overlay, Vollbild-Schaltfläche, z-Index-Fix für Letzte-Änderung-Overlay; EChart – dataMin/dataMax Auto-Option für Y-Achse",
-        "ru": "Новое: виджет eChartsPreset – наложение заголовка, кнопка полного экрана, исправление z-index для наложения последнего изменения; EChart – автоопция dataMin/dataMax для оси Y",
-        "pt": "Novo: widget eChartsPreset – sobreposição de título, botão de tela cheia, correção z-index para sobreposição de última alteração; EChart – opção automática dataMin/dataMax para eixo Y",
-        "nl": "Nieuw: eChartsPreset-widget – titeloverlay, volledig scherm-knop, z-index-fix voor laatste-wijziging-overlay; EChart – automatische optie dataMin/dataMax voor Y-as",
-        "fr": "Nouveau: widget eChartsPreset – superposition de titre, bouton plein écran, correction z-index pour la superposition de dernière modification; EChart – option automatique dataMin/dataMax pour l'axe Y",
-        "it": "Nuovo: widget eChartsPreset – sovrapposizione titolo, pulsante schermo intero, correzione z-index per sovrapposizione ultima modifica; EChart – opzione automatica dataMin/dataMax per asse Y",
-        "es": "Nuevo: widget eChartsPreset – superposición de título, botón de pantalla completa, corrección z-index para superposición de último cambio; EChart – opción automática dataMin/dataMax para el eje Y",
-        "pl": "Nowe: widget eChartsPreset – nakładka tytułu, przycisk pełnego ekranu, poprawka z-index dla nakładki ostatniej zmiany; EChart – opcja automatyczna dataMin/dataMax dla osi Y",
-        "uk": "Нове: віджет eChartsPreset – накладення заголовка, кнопка повноекранного режиму, виправлення z-index для накладення останньої зміни; EChart – автоматична опція dataMin/dataMax для осі Y",
-        "zh-cn": "新功能：eChartsPreset 组件 – 标题叠加、全屏按钮、修复最后更改叠加层的 z-index；EChart – Y 轴 dataMin/dataMax 自动选项"
       }
     }
   },

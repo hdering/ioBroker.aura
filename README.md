@@ -175,6 +175,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.93 (2026-04-23)
+- Fix: theme toggle now clears per-layout theme override so all themes (light, lovelace, etc.) apply correctly on devices with layout-specific overrides
+
 ### 0.4.92 (2026-04-23)
 - Fix: theme toggle now correctly switches per-layout theme when a layout has its own theme override set
 
