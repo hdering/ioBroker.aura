@@ -331,7 +331,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
             width={width}
             isDraggable={editMode}
             isResizable={editMode}
-            compactType={null}
+            compactType={editMode ? 'vertical' : null}
             draggableCancel=".nodrag"
             onLayoutChange={(newLayout) => {
               if (!editMode) return;
