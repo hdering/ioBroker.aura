@@ -13,7 +13,6 @@ import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
 import { useDashboardMobile } from '../../contexts/DashboardMobileContext';
 
 const CHILD_MARGIN = 6;
-const ADD_BAR_HEIGHT = 36; // collapsed addBar height in editMode (px)
 
 function makeChild(type: WidgetType, existing: WidgetConfig[]): WidgetConfig {
   const maxY = existing.reduce((m, c) => Math.max(m, c.gridPos.y + c.gridPos.h), 0);
@@ -319,7 +318,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
       <div
         ref={containerRef}
         className="aura-scroll flex-1 overflow-auto min-h-0 p-1"
-        style={{ scrollbarGutter: 'stable both-edges', paddingBottom: editMode ? `${ADD_BAR_HEIGHT + 4}px` : undefined }}
+        style={{ scrollbarGutter: 'stable both-edges' }}
         onMouseDown={editMode ? (e) => e.stopPropagation() : undefined}
         onPointerDown={editMode ? (e) => e.stopPropagation() : undefined}
       >
