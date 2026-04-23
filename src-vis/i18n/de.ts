@@ -381,6 +381,7 @@ export const de = {
   'wf.menu.copyHere':         'Hier duplizieren',
   'wf.menu.duplicateInGroup': 'In Gruppe duplizieren',
   'wf.menu.dragToGroup':      'In Gruppe ziehen',
+  'wf.menu.dragOutOfGroup':   'Aus Gruppe herausziehen',
   'wf.menu.move':             'Verschieben',
   'wf.menu.delete':           'Löschen',
   'wf.menu.confirm':          'Bestätigen',

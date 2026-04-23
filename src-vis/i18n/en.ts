@@ -383,6 +383,7 @@ export const en: Record<TranslationKey, string> = {
   'wf.menu.copyHere':         'Duplicate here',
   'wf.menu.duplicateInGroup': 'Duplicate in group',
   'wf.menu.dragToGroup':      'Drag into group',
+  'wf.menu.dragOutOfGroup':   'Drag out of group',
   'wf.menu.move':             'Move',
   'wf.menu.delete':           'Delete',
   'wf.menu.confirm':          'Confirm',

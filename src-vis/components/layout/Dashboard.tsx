@@ -10,6 +10,7 @@ import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
 import type { WidgetConfig } from '../../types';
 import type { Tab } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
+import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
 
 // Default gap — overridden by config at runtime
 const DEFAULT_MARGIN = 10;
@@ -29,7 +30,7 @@ interface DashboardProps {
 export function Dashboard({ readonly = false, editMode = false, onLayoutChange, viewTabs, viewActiveTabId, layoutId }: DashboardProps) {
   const t = useT();
   const activeLayout = useActiveLayout();
-  const { updateWidget, updateLayouts, removeWidget } = useDashboardStore();
+  const { updateWidget, updateLayouts, removeWidget, addWidgetToLayoutTab } = useDashboardStore();
 
   // Use per-layout effective settings (falls back to global when no override)
   const effectiveLayoutId = layoutId ?? activeLayout.id;
@@ -253,8 +254,24 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
               );
             }
 
+            const dropHandlers = isActive && editMode ? {
+              onDragOver: (e: React.DragEvent) => { if (getDragBridge()) e.preventDefault(); },
+              onDrop: (e: React.DragEvent) => {
+                const bridge = getDragBridge();
+                if (!bridge) return;
+                e.preventDefault();
+                addWidgetToLayoutTab(activeLayout.id, tab.id, {
+                  ...bridge.widget,
+                  id: `w-${Date.now()}`,
+                  gridPos: { ...bridge.widget.gridPos, y: 9999 },
+                });
+                bridge.remove(bridge.widget.id);
+                setDragBridge(null);
+              },
+            } : {};
+
             return (
-              <div key={tab.id} data-tab={tab.slug} className={`aura-tab aura-tab-${tab.slug}`} style={{ display: isActive ? undefined : 'none' }}>
+              <div key={tab.id} data-tab={tab.slug} className={`aura-tab aura-tab-${tab.slug}`} style={{ display: isActive ? undefined : 'none' }} {...dropHandlers}>
                 <ReactGridLayout
                   className="layout"
                   layout={tabLayout}

@@ -1057,22 +1057,20 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           onMouseDown={stopDrag}
           onPointerDown={stopDrag}
         >
-          {!onDuplicate && (
-            <div
-              draggable
-              onDragStart={(e) => {
-                e.stopPropagation();
-                setDragBridge({ widget: config, remove: onRemove });
-                e.dataTransfer.effectAllowed = 'move';
-              }}
-              onDragEnd={() => setDragBridge(null)}
-              className="cursor-grab w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
-              title={t('wf.menu.dragToGroup')}
-              style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-            >
-              <Layers2 size={12} />
-            </div>
-          )}
+          <div
+            draggable
+            onDragStart={(e) => {
+              e.stopPropagation();
+              setDragBridge({ widget: config, remove: onRemove });
+              e.dataTransfer.effectAllowed = 'move';
+            }}
+            onDragEnd={() => setDragBridge(null)}
+            className="cursor-grab w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+            title={t(onDuplicate ? 'wf.menu.dragOutOfGroup' : 'wf.menu.dragToGroup')}
+            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+          >
+            <Layers2 size={12} />
+          </div>
           <button
             ref={menuBtnRef}
             onClick={() => { openPanelFor(openPanel === 'menu' ? null : 'menu'); setConfirmDelete(false); }}
