@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Settings, X, GripVertical } from 'lucide-react';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
-import type { Tab, TabBarItem, TabBarSettings } from '../../store/dashboardStore';
+import type { Tab, TabBarItem, TabBarSettings, DashboardLayout } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import { Icon } from '@iconify/react';
 import { CURATED_ICON_IDS, getWidgetIcon } from '../../utils/widgetIconMap';
@@ -17,6 +17,7 @@ interface TabBarProps {
   viewActiveTabId?: string;
   onViewTabClick?: (tab: Tab) => void;
   layoutUrlBase?: string;
+  layoutId?: string;
 }
 
 const iCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
@@ -146,14 +147,18 @@ function tabStyle(
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabClick, layoutUrlBase = '' }: TabBarProps) {
+export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabClick, layoutUrlBase = '', layoutId }: TabBarProps) {
   const t = useT();
   const activeLayout = useActiveLayout();
+  const specificLayout = useDashboardStore((s) =>
+    layoutId ? (s.layouts.find((l) => l.id === layoutId) ?? null) : null,
+  ) as DashboardLayout | null;
+  const layout = specificLayout ?? activeLayout;
   const { setActiveTab, addTab, removeTab, renameTab, updateTab, reorderTabs, editMode } = useDashboardStore();
 
-  const tabs = viewTabs ?? activeLayout.tabs;
-  const activeTabId = viewActiveTabId ?? activeLayout.activeTabId;
-  const tbSettings = activeLayout.settings?.tabBar;
+  const tabs = viewTabs ?? layout.tabs;
+  const activeTabId = viewActiveTabId ?? layout.activeTabId;
+  const tbSettings = layout.settings?.tabBar;
   const items = tbSettings?.items ?? [];
 
   const leftItems   = items.filter((i) => i.position === 'left');

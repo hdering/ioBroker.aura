@@ -413,6 +413,7 @@ export default function App() {
       )}
       <TabBar
         readonly
+        layoutId={layout?.id}
         viewTabs={tabs}
         viewActiveTabId={activeTabId}
         onViewTabClick={(tab) => {
