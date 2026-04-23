@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useT, t } from '../../i18n';
-import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Download, ArrowRightLeft, Copy } from 'lucide-react';
+import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Download, ArrowRightLeft, Copy, Layers2 } from 'lucide-react';
+import { setDragBridge } from '../../utils/dragBridge';
 import { exportWidget } from '../../utils/widgetExportImport';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
@@ -566,6 +567,8 @@ interface WidgetFrameProps {
   editMode: boolean;
   onRemove: (id: string) => void;
   onConfigChange: (config: WidgetConfig) => void;
+  /** When set, widget is inside a group. "Kopieren" duplicates within the group. */
+  onDuplicate?: () => void;
 }
 
 // Dropdown als Portal – rendert außerhalb des Grid-Containers
@@ -900,7 +903,7 @@ function CameraSlotEditorRow({ slot, idx, label, cCls, cSty, onChange, onRemove,
   );
 }
 
-export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: WidgetFrameProps) {
+export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDuplicate }: WidgetFrameProps) {
   const t = useT();
   const [openPanel, setOpenPanel] = useState<'menu' | 'edit' | 'conditions' | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -1050,10 +1053,26 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
 
       {editMode && (
         <div
-          className="nodrag absolute top-1.5 right-1.5 z-10"
+          className="nodrag absolute top-1.5 right-1.5 z-10 flex items-center gap-1"
           onMouseDown={stopDrag}
           onPointerDown={stopDrag}
         >
+          {!onDuplicate && (
+            <div
+              draggable
+              onDragStart={(e) => {
+                e.stopPropagation();
+                setDragBridge({ widget: config, remove: onRemove });
+                e.dataTransfer.effectAllowed = 'move';
+              }}
+              onDragEnd={() => setDragBridge(null)}
+              className="cursor-grab w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+              title={t('wf.menu.dragToGroup')}
+              style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+            >
+              <Layers2 size={12} />
+            </div>
+          )}
           <button
             ref={menuBtnRef}
             onClick={() => { openPanelFor(openPanel === 'menu' ? null : 'menu'); setConfirmDelete(false); }}
@@ -1153,30 +1172,41 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
             </button>
 
             {/* Kopieren */}
-            <button
-              onClick={() => {
-                if (moveTargets.length === 0) {
-                  // No other tabs – duplicate directly on same tab
-                  addWidgetToLayoutTab(activeLayoutId, activeTabId, {
-                    ...config,
-                    id: `w-${Date.now()}`,
-                    gridPos: { ...config.gridPos, y: 9999 },
-                  });
-                  openPanelFor(null);
-                } else {
-                  setShowCopyMenu((v) => !v);
-                  setShowMoveMenu(false);
-                }
-              }}
-              className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              <Copy size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-              {t('wf.menu.copy')}
-              {moveTargets.length > 0 && (
-                <ChevronDown size={11} className="ml-auto transition-transform" style={{ color: 'var(--text-secondary)', transform: showCopyMenu ? 'rotate(180deg)' : 'none' }} />
-              )}
-            </button>
+            {onDuplicate ? (
+              <button
+                onClick={() => { onDuplicate(); openPanelFor(null); }}
+                className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                <Copy size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                {t('wf.menu.duplicateInGroup')}
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  if (moveTargets.length === 0) {
+                    // No other tabs – duplicate directly on same tab
+                    addWidgetToLayoutTab(activeLayoutId, activeTabId, {
+                      ...config,
+                      id: `w-${Date.now()}`,
+                      gridPos: { ...config.gridPos, y: 9999 },
+                    });
+                    openPanelFor(null);
+                  } else {
+                    setShowCopyMenu((v) => !v);
+                    setShowMoveMenu(false);
+                  }
+                }}
+                className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                <Copy size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                {t('wf.menu.copy')}
+                {moveTargets.length > 0 && (
+                  <ChevronDown size={11} className="ml-auto transition-transform" style={{ color: 'var(--text-secondary)', transform: showCopyMenu ? 'rotate(180deg)' : 'none' }} />
+                )}
+              </button>
+            )}
             {showCopyMenu && moveTargets.length > 0 && (
               <div className="mx-1 mb-0.5 rounded-md overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
                 {/* Same tab: duplicate */}

@@ -376,16 +376,18 @@ export const en: Record<TranslationKey, string> = {
   'editor.tabMgmt.delete':    'Delete Tab',
 
   // ── WidgetFrame menu & edit modal ─────────────────────────────────────────────
-  'wf.menu.edit':       'Edit',
-  'wf.menu.conditions': 'Conditions',
-  'wf.menu.export':     'Export',
-  'wf.menu.copy':       'Copy',
-  'wf.menu.copyHere':   'Duplicate here',
-  'wf.menu.move':       'Move',
-  'wf.menu.delete':     'Delete',
-  'wf.menu.confirm':    'Confirm',
-  'wf.menu.hidden':     'Hidden',
-  'wf.menu.options':    'Widget Options',
+  'wf.menu.edit':             'Edit',
+  'wf.menu.conditions':       'Conditions',
+  'wf.menu.export':           'Export',
+  'wf.menu.copy':             'Copy',
+  'wf.menu.copyHere':         'Duplicate here',
+  'wf.menu.duplicateInGroup': 'Duplicate in group',
+  'wf.menu.dragToGroup':      'Drag into group',
+  'wf.menu.move':             'Move',
+  'wf.menu.delete':           'Delete',
+  'wf.menu.confirm':          'Confirm',
+  'wf.menu.hidden':           'Hidden',
+  'wf.menu.options':          'Widget Options',
 
   'wf.edit.title':          'Edit Widget',
   'wf.edit.name':           'Name',
@@ -796,6 +798,7 @@ export const en: Record<TranslationKey, string> = {
   'group.addWidget':   'Add widget',
   'group.mobileOrder': 'Mobile order',
   'group.noWidgets':   'No widgets yet',
+  'group.dropHere':    'Drop widget here',
 
   // ── EVCC Widget ───────────────────────────────────────────────────────────────
   'evcc.solar':        'Solar',

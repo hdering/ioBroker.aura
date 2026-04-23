@@ -9,6 +9,7 @@ import { WIDGET_BY_TYPE, WIDGET_REGISTRY, WIDGET_GROUPS } from '../../widgetRegi
 import { WidgetFrame } from '../layout/WidgetFrame';
 import { useT, type TranslationKey } from '../../i18n';
 import { CustomGridView } from './CustomGridView';
+import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
 
 const CHILD_MARGIN = 6;
 
@@ -45,6 +46,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const mobileBreakpoint = useConfigStore((s) => s.frontend.mobileBreakpoint ?? 600);
   const [showTypePicker, setShowTypePicker] = useState(false);
   const [showMobileOrder, setShowMobileOrder] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   // Drag state for mobile-order reordering
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -77,6 +79,31 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
   const updateChild = (updated: WidgetConfig) =>
     setChildren(children.map((c) => (c.id === updated.id ? updated : c)));
+
+  const duplicateChild = (child: WidgetConfig) => {
+    const maxY = children.reduce((m, c) => Math.max(m, c.gridPos.y + c.gridPos.h), 0);
+    setChildren([...children, {
+      ...child,
+      id: `child-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      gridPos: { ...child.gridPos, x: 0, y: maxY },
+    }]);
+  };
+
+  const handleGroupDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const bridge = getDragBridge();
+    if (!bridge) return;
+    const meta = WIDGET_BY_TYPE[bridge.widget.type as WidgetType];
+    const maxY = children.reduce((m, c) => Math.max(m, c.gridPos.y + c.gridPos.h), 0);
+    setChildren([...children, {
+      ...bridge.widget,
+      id: `child-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      gridPos: { x: 0, y: maxY, w: meta?.defaultW ?? bridge.widget.gridPos.w, h: meta?.defaultH ?? bridge.widget.gridPos.h },
+    }]);
+    bridge.remove(bridge.widget.id);
+    setDragBridge(null);
+  };
 
   // ── Mobile order helpers ───────────────────────────────────────────────────
   const sorted = mobileSort(children);
@@ -220,10 +247,23 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     </div>
   ) : null;
 
+  const dragHandlers = editMode ? {
+    onDragOver:  (e: React.DragEvent) => { if (getDragBridge()) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setIsDragOver(true); } },
+    onDragEnter: (e: React.DragEvent) => { if (getDragBridge()) { e.preventDefault(); setIsDragOver(true); } },
+    onDragLeave: (e: React.DragEvent) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragOver(false); },
+    onDrop: handleGroupDrop,
+  } : {};
+
   // ── Mobile layout ──────────────────────────────────────────────────────────
   if (isMobile) {
     return (
-      <div className="flex flex-col h-full">
+      <div className="relative flex flex-col h-full" {...dragHandlers}>
+        {isDragOver && (
+          <div className="nodrag pointer-events-none absolute inset-0 z-20 rounded-[inherit] border-2 border-dashed flex items-center justify-center"
+            style={{ borderColor: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 10%, transparent)' }}>
+            <p className="text-sm font-medium" style={{ color: 'var(--accent)' }}>{t('group.dropHere')}</p>
+          </div>
+        )}
         {titleBar}
         <div className="aura-scroll flex-1 overflow-auto min-h-0 p-1" style={{ scrollbarGutter: 'stable both-edges' }}>
           <div className="flex flex-col gap-1.5">
@@ -237,6 +277,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                   editMode={false}
                   onRemove={onRemove}
                   onConfigChange={updateChild}
+                  onDuplicate={() => duplicateChild(child)}
                 />
               </div>
             ))}
@@ -262,7 +303,13 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
   }));
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative flex flex-col h-full" {...dragHandlers}>
+      {isDragOver && (
+        <div className="nodrag pointer-events-none absolute inset-0 z-20 rounded-[inherit] border-2 border-dashed flex items-center justify-center"
+          style={{ borderColor: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 10%, transparent)' }}>
+          <p className="text-sm font-medium" style={{ color: 'var(--accent)' }}>{t('group.dropHere')}</p>
+        </div>
+      )}
       {titleBar}
 
       {/* Inner scrollable grid area – stop propagation so outer RGL doesn't
@@ -311,6 +358,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                   editMode={editMode}
                   onRemove={onRemove}
                   onConfigChange={updateChild}
+                  onDuplicate={() => duplicateChild(child)}
                 />
               </div>
             ))}

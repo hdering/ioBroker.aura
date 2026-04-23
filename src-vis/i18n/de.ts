@@ -374,16 +374,18 @@ export const de = {
   'editor.tabMgmt.delete':    'Tab löschen',
 
   // ── WidgetFrame menu & edit modal ─────────────────────────────────────────────
-  'wf.menu.edit':       'Bearbeiten',
-  'wf.menu.conditions': 'Bedingungen',
-  'wf.menu.export':     'Exportieren',
-  'wf.menu.copy':       'Kopieren',
-  'wf.menu.copyHere':   'Hier duplizieren',
-  'wf.menu.move':       'Verschieben',
-  'wf.menu.delete':     'Löschen',
-  'wf.menu.confirm':    'Bestätigen',
-  'wf.menu.hidden':     'Versteckt',
-  'wf.menu.options':    'Widget-Optionen',
+  'wf.menu.edit':             'Bearbeiten',
+  'wf.menu.conditions':       'Bedingungen',
+  'wf.menu.export':           'Exportieren',
+  'wf.menu.copy':             'Kopieren',
+  'wf.menu.copyHere':         'Hier duplizieren',
+  'wf.menu.duplicateInGroup': 'In Gruppe duplizieren',
+  'wf.menu.dragToGroup':      'In Gruppe ziehen',
+  'wf.menu.move':             'Verschieben',
+  'wf.menu.delete':           'Löschen',
+  'wf.menu.confirm':          'Bestätigen',
+  'wf.menu.hidden':           'Versteckt',
+  'wf.menu.options':          'Widget-Optionen',
 
   'wf.edit.title':          'Widget bearbeiten',
   'wf.edit.name':           'Name',
@@ -794,6 +796,7 @@ export const de = {
   'group.addWidget':   'Widget hinzufügen',
   'group.mobileOrder': 'Mobile Reihenfolge',
   'group.noWidgets':   'Keine Widgets vorhanden',
+  'group.dropHere':    'Widget hier ablegen',
 
   // ── EVCC Widget ───────────────────────────────────────────────────────────────
   'evcc.solar':        'Solar',
