@@ -175,6 +175,11 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.91 (2026-04-23)
+- Feat: new HTML widget – display HTML from a datapoint or static input; optional title/icon header
+- Feat(autolist): new "Count" layout showing entry count as large centered number
+- Fix: switch widget icon now displayed in all layouts (default, compact, minimal, card)
+
 ### 0.4.90 (2026-04-22)
 - Fix: consistent icon size (16px) and gap-2 spacing in all compact widget layouts
 - Fix: removed bold title font in switch compact layout

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.90",
+    "version": "0.4.91",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.91": {
+        "en": "Feat: new HTML widget (display HTML from datapoint or static input); Feat(autolist): new 'Count' layout showing entry count as large number; Fix: switch widget icon displayed in all layouts",
+        "de": "Neu: HTML-Widget (HTML aus Datenpunkt oder statischer Eingabe anzeigen); Neu(Dyn. Liste): neues Layout 'Anzahl' zeigt Eintragsanzahl als große Zahl; Fix: Schalter-Widget-Icon wird in allen Layouts angezeigt",
+        "ru": "Новое: виджет HTML (отображение HTML из точки данных или статического ввода); Новое(Дин. список): новый макет 'Количество', отображающий количество записей крупной цифрой; Исправление: иконка виджета выключателя отображается во всех макетах",
+        "pt": "Novo: widget HTML (exibir HTML de ponto de dados ou entrada estática); Novo(Lista din.): novo layout 'Contagem' mostrando a contagem de entradas como número grande; Correção: ícone do widget de interruptor exibido em todos os layouts",
+        "nl": "Nieuw: HTML-widget (HTML weergeven vanuit datapunt of statische invoer); Nieuw(Dyn. Lijst): nieuwe layout 'Aantal' toont het aantal items als groot getal; Fix: schakelaar-widget-icoon weergegeven in alle layouts",
+        "fr": "Nouveau: widget HTML (afficher du HTML depuis un point de données ou une saisie statique); Nouveau(Liste dyn.): nouveau layout 'Nombre' affichant le nombre d'entrées en grand; Correction: icône du widget interrupteur affichée dans tous les layouts",
+        "it": "Nuovo: widget HTML (visualizzare HTML da datapoint o input statico); Nuovo(Lista din.): nuovo layout 'Conteggio' mostra il numero di voci come numero grande; Fix: icona del widget interruttore visualizzata in tutti i layout",
+        "es": "Nuevo: widget HTML (mostrar HTML desde un punto de datos o entrada estática); Nuevo(Lista din.): nuevo layout 'Cantidad' muestra el conteo de entradas como número grande; Corrección: icono del widget interruptor mostrado en todos los layouts",
+        "pl": "Nowe: widget HTML (wyświetlanie HTML z punktu danych lub wejścia statycznego); Nowe(Lista dyn.): nowy układ 'Liczba' pokazuje liczbę wpisów jako dużą cyfrę; Poprawka: ikona widgetu przełącznika wyświetlana we wszystkich układach",
+        "uk": "Нове: віджет HTML (відображення HTML з точки даних або статичного вводу); Нове(Дин. список): новий макет 'Кількість', який показує кількість записів великою цифрою; Виправлення: іконка віджета вимикача відображається у всіх макетах",
+        "zh-cn": "新增：HTML 组件（从数据点或静态输入显示 HTML）；新增（动态列表）：新的'数量'布局将条目数量显示为大数字；修复：开关组件图标在所有布局中均可显示"
+      },
       "0.4.90": {
         "en": "Fix: consistent icon size and spacing in compact widget layouts; removed bold title in switch compact layout; symmetric inner padding in group widgets",
         "de": "Fix: einheitliche Icon-Größe und Abstände in allen compact-Widget-Layouts; fette Titelschrift im Schalter-compact-Layout entfernt; symmetrischer Innenabstand in Widget-Gruppen",
@@ -183,19 +196,6 @@
         "pl": "Nowe: ustawienia wyglądu paska kart na układ (wysokość, tło, kolor aktywny/nieaktywny, styl: podkreślenie/wypełniony/pill, rozmiar czcionki); elementy paska kart (zegar, punkt danych, tekst) z pozycją lewa/środek/prawa; strona układów używa pełnej szerokości",
         "uk": "Нове: налаштування дизайну панелі вкладок на рівні макету (висота, фон, колір активної/неактивної вкладки, стиль: підкреслення/заливка/pill, розмір шрифту); елементи панелі вкладок (годинник, точка даних, текст) з позицією зліва/по центру/справа; сторінка макетів займає всю ширину",
         "zh-cn": "新增：每个布局可配置标签栏外观（高度、背景色、激活/非激活颜色、样式：下划线/填充/胶囊、字体大小）；标签栏元素（时钟、数据点、静态文本）支持左/中/右定位；布局页面使用全宽显示"
-      },
-      "0.4.84": {
-        "en": "Feat(tab-wizard): added intro step explaining the wizard flow (select datapoints → review widget types → create tab)",
-        "de": "Neu(Tab-Wizard): Intro-Schritt hinzugefügt, der den Wizard-Ablauf erklärt (Datenpunkte auswählen → Widget-Typen prüfen → Tab erstellen)",
-        "ru": "Новое(Tab-Wizard): добавлен вводный шаг с объяснением процесса (выбор точек данных → проверка типов виджетов → создание вкладки)",
-        "pt": "Novo(Tab-Wizard): adicionado passo introdutório explicando o fluxo do wizard (selecionar pontos de dados → revisar tipos de widget → criar aba)",
-        "nl": "Nieuw(Tab-Wizard): introductiestap toegevoegd die de wizard-flow uitlegt (datapunten selecteren → widget-types controleren → tab aanmaken)",
-        "fr": "Nouveau(Tab-Wizard): étape d'introduction ajoutée expliquant le flux du wizard (sélectionner des points de données → vérifier les types de widget → créer un onglet)",
-        "it": "Nuovo(Tab-Wizard): aggiunto passo introduttivo che spiega il flusso del wizard (seleziona punti dati → verifica tipi widget → crea scheda)",
-        "es": "Nuevo(Tab-Wizard): añadido paso introductorio que explica el flujo del wizard (seleccionar puntos de datos → revisar tipos de widget → crear pestaña)",
-        "pl": "Nowe(Tab-Wizard): dodano krok wprowadzający wyjaśniający przepływ kreatora (wybierz punkty danych → sprawdź typy widgetów → utwórz zakładkę)",
-        "uk": "Нове(Tab-Wizard): додано вступний крок з поясненням процесу (вибір точок даних → перевірка типів віджетів → створення вкладки)",
-        "zh-cn": "新增(标签向导)：添加了介绍步骤，说明向导流程（选择数据点→检查小部件类型→创建标签页）"
       }
     }
   },
