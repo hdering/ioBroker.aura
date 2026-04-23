@@ -7,6 +7,7 @@ import { WidgetFrame } from './WidgetFrame';
 import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
+import { DashboardMobileContext } from '../../contexts/DashboardMobileContext';
 import type { WidgetConfig } from '../../types';
 import type { Tab } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
@@ -148,6 +149,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
   // ── mobile: single-column stack ───────────────────────────────────────
   if (containerWidth > 0 && containerWidth < mobileBreakpoint) {
     return (
+      <DashboardMobileContext.Provider value={true}>
       <ActiveLayoutContext.Provider value={effectiveLayoutId}>
       <div className="flex-1 min-h-0 relative">
         {fillTabWidget && (
@@ -195,6 +197,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
         {showIframeOverlay && <IframeOverlay data={iframeFullscreen!} onClose={() => setIframeFullscreen(null)} />}
       </div>
       </ActiveLayoutContext.Provider>
+      </DashboardMobileContext.Provider>
     );
   }
 

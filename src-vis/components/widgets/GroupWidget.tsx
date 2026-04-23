@@ -10,6 +10,7 @@ import { WidgetFrame } from '../layout/WidgetFrame';
 import { useT, type TranslationKey } from '../../i18n';
 import { CustomGridView } from './CustomGridView';
 import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
+import { useDashboardMobile } from '../../contexts/DashboardMobileContext';
 
 const CHILD_MARGIN = 6;
 
@@ -43,7 +44,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const children = (config.options?.children as WidgetConfig[] | undefined) ?? [];
   const transparent = !!(config.options?.transparent);
   const cellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);
-  const mobileBreakpoint = useConfigStore((s) => s.frontend.mobileBreakpoint ?? 600);
+  const dashboardIsMobile = useDashboardMobile();
   const [showTypePicker, setShowTypePicker] = useState(false);
   const [showMobileOrder, setShowMobileOrder] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -68,7 +69,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
   if (configLayout === 'custom') return <CustomGridView config={config} value="" />;
 
-  const isMobile = !editMode && width > 0 && mobileBreakpoint > 0 && width < mobileBreakpoint;
+  const isMobile = !editMode && dashboardIsMobile;
 
   const cols = !isMobile && width > 0
     ? Math.max(2, Math.floor((width - CHILD_MARGIN) / (cellSize + CHILD_MARGIN)))
