@@ -736,7 +736,7 @@ function MobileOrderPanel({ layoutId, tabId }: { layoutId: string; tabId: string
 
 export function AdminEditor() {
   const t = useT();
-  const { layouts, activeLayoutId, setActiveLayout, addWidget, addTab, setActiveTab, renameTab, removeTab, setTabSlug, updateTab } = useDashboardStore();
+  const { layouts, activeLayoutId, setActiveLayout, addWidget, addTab, setActiveTab, renameTab, removeTab, setTabSlug, updateTab, reorderTabs } = useDashboardStore();
   const activeLayout = layouts.find((l) => l.id === activeLayoutId) ?? layouts[0];
   const tabs = activeLayout.tabs;
   const activeTabId = activeLayout.activeTabId;
@@ -752,6 +752,8 @@ export function AdminEditor() {
   const [settingsTabId, setSettingsTabId] = useState<string | null>(null);
   const [panelPos, setPanelPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const settingsBtnRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const [tabDragIdx, setTabDragIdx] = useState<number | null>(null);
+  const [tabDragOverIdx, setTabDragOverIdx] = useState<number | null>(null);
 
   const commitRenameWithSlug = (tabId: string, newName: string) => {
     const tab = tabs.find((t) => t.id === tabId);
@@ -840,10 +842,24 @@ export function AdminEditor() {
       {/* Tab-Verwaltung */}
       <div className="flex items-center gap-2 px-6 py-2 shrink-0 flex-wrap"
         style={{ background: 'var(--app-bg)', borderBottom: '1px solid var(--app-border)' }}>
-        {tabs.map((tab) => {
+        {tabs.map((tab, idx) => {
           const isActive = tab.id === activeTabId;
+          const isDragTarget = tabDragOverIdx === idx && tabDragIdx !== null && tabDragIdx !== idx;
           return (
-            <div key={tab.id} className="flex items-center gap-1">
+            <div key={tab.id}
+              className="flex items-center gap-1"
+              style={isDragTarget ? { boxShadow: '-2px 0 0 0 var(--accent)' } : undefined}
+              onDragOver={(e) => { e.preventDefault(); setTabDragOverIdx(idx); }}
+              onDragEnter={(e) => { e.preventDefault(); setTabDragOverIdx(idx); }}
+              onDragLeave={() => setTabDragOverIdx(null)}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (tabDragIdx !== null && tabDragIdx !== idx) reorderTabs(tabDragIdx, idx);
+                setTabDragIdx(null);
+                setTabDragOverIdx(null);
+              }}
+            >
               {renamingId === tab.id ? (
                 <div className="flex items-center gap-1">
                   <input autoFocus value={renamingValue}
@@ -862,7 +878,25 @@ export function AdminEditor() {
               ) : (
                 <div className="flex flex-col gap-0.5">
                   <div className="flex items-center gap-1 rounded-lg px-2 py-1"
-                    style={{ background: isActive ? 'var(--accent)22' : 'var(--app-surface)', border: `1px solid ${isActive ? 'var(--accent)' : 'var(--app-border)'}` }}>
+                    style={{
+                      background: isActive ? 'var(--accent)22' : 'var(--app-surface)',
+                      border: `1px solid ${isActive ? 'var(--accent)' : 'var(--app-border)'}`,
+                      opacity: tabDragIdx === idx ? 0.4 : 1,
+                    }}>
+                    <span
+                      draggable
+                      onDragStart={(e) => {
+                        e.stopPropagation();
+                        setTabDragIdx(idx);
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', String(idx));
+                      }}
+                      onDragEnd={() => { setTabDragIdx(null); setTabDragOverIdx(null); }}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ cursor: 'grab', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}
+                    >
+                      <GripVertical size={11} />
+                    </span>
                     {/* Tab icon */}
                     {tab.icon && (() => {
                       const TabIcon = getWidgetIcon(tab.icon, null as never);
