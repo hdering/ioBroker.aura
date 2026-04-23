@@ -148,6 +148,7 @@ interface DashboardState {
   updateTab: (id: string, patch: Partial<Pick<Tab, 'name' | 'slug' | 'icon' | 'hideLabel'>>) => void;
   setTabSlug: (id: string, slug: string) => void;
   setActiveTab: (id: string) => void;
+  reorderTabs: (fromIndex: number, toIndex: number) => void;
   setDefaultTab: (layoutId: string, tabId: string) => void;
 
   // ── Widget CRUD ──────────────────────────────────────────────────────────
@@ -279,6 +280,16 @@ export const useDashboardStore = create<DashboardState>()(
         );
         flushKey('aura-dashboard');
       },
+
+      reorderTabs: (fromIndex, toIndex) =>
+        set((s) =>
+          ({ layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => {
+            const tabs = [...l.tabs];
+            const [moved] = tabs.splice(fromIndex, 1);
+            tabs.splice(toIndex, 0, moved);
+            return { ...l, tabs };
+          }) })
+        ),
 
       setDefaultTab: (layoutId, tabId) =>
         set((s) => ({ layouts: patchLayout(s.layouts, layoutId, (l) => ({ ...l, defaultTabId: tabId })) })),

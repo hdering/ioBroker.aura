@@ -149,7 +149,7 @@ function tabStyle(
 export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabClick, layoutUrlBase = '' }: TabBarProps) {
   const t = useT();
   const activeLayout = useActiveLayout();
-  const { setActiveTab, addTab, removeTab, renameTab, updateTab, editMode } = useDashboardStore();
+  const { setActiveTab, addTab, removeTab, renameTab, updateTab, reorderTabs, editMode } = useDashboardStore();
 
   const tabs = viewTabs ?? activeLayout.tabs;
   const activeTabId = viewActiveTabId ?? activeLayout.activeTabId;
@@ -178,6 +178,10 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
   const [settingsTabId, setSettingsTabId] = useState<string | null>(null);
   const [panelPos, setPanelPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const settingsBtnRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const dragDidMoveRef = useRef(false);
 
   useEffect(() => {
     if (editingId && inputRef.current) { inputRef.current.focus(); inputRef.current.select(); }
@@ -229,17 +233,46 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
   };
 
   // ── Tab rendering ────────────────────────────────────────────────────────────
-  const renderTabs = () => tabs.map((tab) => {
+  const renderTabs = () => tabs.map((tab, idx) => {
     const isActive = tab.id === activeTabId;
     const TabIconComp = tab.icon ? getWidgetIcon(tab.icon, null as never) : null;
     const ts = tabStyle(isActive, tbSettings);
     const indicatorStyle = tbSettings?.indicatorStyle ?? 'underline';
 
+    const isDraggingThis = editMode && !readonly && dragIdx === idx;
+    const isDragTarget   = editMode && !readonly && dragOverIdx === idx && dragIdx !== idx;
+
+    const dragHandlers = editMode && !readonly ? {
+      draggable: true,
+      onDragStart: (e: React.DragEvent) => {
+        dragDidMoveRef.current = false;
+        setDragIdx(idx);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(idx));
+      },
+      onDragEnd: () => { setDragIdx(null); setDragOverIdx(null); },
+      onDragOver: (e: React.DragEvent) => { e.preventDefault(); dragDidMoveRef.current = true; setDragOverIdx(idx); },
+      onDragEnter: (e: React.DragEvent) => { e.preventDefault(); setDragOverIdx(idx); },
+      onDragLeave: () => { setDragOverIdx((prev) => (prev === idx ? null : prev)); },
+      onDrop: (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (dragIdx !== null && dragIdx !== idx) reorderTabs(dragIdx, idx);
+        setDragIdx(null);
+        setDragOverIdx(null);
+      },
+    } : {};
+
     return (
       <div key={tab.id}
-        className={`group relative flex items-center gap-1.5 px-3 cursor-pointer transition-colors whitespace-nowrap ${indicatorStyle === 'underline' ? 'py-2.5 border-b-2' : 'py-1.5'}`}
-        style={ts}
-        onClick={() => { setConfirmDeleteId(null); handleTabClick(tab.id); }}
+        {...dragHandlers}
+        className={`group relative flex items-center gap-1.5 px-3 transition-colors whitespace-nowrap select-none ${indicatorStyle === 'underline' ? 'py-2.5 border-b-2' : 'py-1.5'} ${editMode && !readonly ? 'cursor-grab' : 'cursor-pointer'}`}
+        style={{
+          ...ts,
+          opacity: isDraggingThis ? 0.4 : 1,
+          ...(isDragTarget ? { boxShadow: '-2px 0 0 0 var(--accent)' } : {}),
+        }}
+        onClick={() => { if (dragDidMoveRef.current) return; setConfirmDeleteId(null); handleTabClick(tab.id); }}
       >
         {TabIconComp && (
           <TabIconComp size={14} style={{ color: 'currentColor', flexShrink: 0 }} />
