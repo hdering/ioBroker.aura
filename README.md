@@ -175,6 +175,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.92 (2026-04-23)
+- Fix: theme toggle now correctly switches per-layout theme when a layout has its own theme override set
+
 ### 0.4.91 (2026-04-23)
 - Feat: new HTML widget – display HTML from a datapoint or static input; optional title/icon header
 - Feat(autolist): new "Count" layout showing entry count as large centered number

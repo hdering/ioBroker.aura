@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.91",
+    "version": "0.4.92",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.92": {
+        "en": "Fix: theme toggle now correctly switches per-layout theme override when a layout has its own theme set",
+        "de": "Fix: Hell/Dunkel-Toggle schaltet jetzt korrekt das Layout-eigene Theme um, wenn ein Layout ein eigenes Theme-Override hat",
+        "ru": "Исправление: переключатель темы теперь корректно переключает переопределение темы макета, если для макета установлена собственная тема",
+        "pt": "Correção: o alternador de tema agora muda corretamente o tema por layout quando um layout tem seu próprio tema definido",
+        "nl": "Fix: thema-schakelaar wisselt nu correct het per-layout thema-override wanneer een layout een eigen thema heeft",
+        "fr": "Correction: le bouton de thème change maintenant correctement le thème par mise en page lorsqu'une mise en page a son propre thème défini",
+        "it": "Fix: il toggle del tema ora cambia correttamente il tema per layout quando un layout ha il proprio tema impostato",
+        "es": "Corrección: el botón de tema ahora cambia correctamente el tema por layout cuando un layout tiene su propio tema configurado",
+        "pl": "Poprawka: przełącznik motywu teraz poprawnie przełącza nadpisanie motywu układu, gdy układ ma własny motyw",
+        "uk": "Виправлення: перемикач теми тепер коректно перемикає власне переопределення теми макету, якщо для макету встановлена власна тема",
+        "zh-cn": "修复：当布局有自己的主题设置时，明暗切换按钮现在能正确切换该布局的主题覆盖"
+      },
       "0.4.91": {
         "en": "Feat: new HTML widget (display HTML from datapoint or static input); Feat(autolist): new 'Count' layout showing entry count as large number; Fix: switch widget icon displayed in all layouts",
         "de": "Neu: HTML-Widget (HTML aus Datenpunkt oder statischer Eingabe anzeigen); Neu(Dyn. Liste): neues Layout 'Anzahl' zeigt Eintragsanzahl als große Zahl; Fix: Schalter-Widget-Icon wird in allen Layouts angezeigt",
@@ -183,19 +196,6 @@
         "pl": "Nowe: widget eChartsPreset – nakładka tytułu, przycisk pełnego ekranu, poprawka z-index dla nakładki ostatniej zmiany; EChart – opcja automatyczna dataMin/dataMax dla osi Y",
         "uk": "Нове: віджет eChartsPreset – накладення заголовка, кнопка повноекранного режиму, виправлення z-index для накладення останньої зміни; EChart – автоматична опція dataMin/dataMax для осі Y",
         "zh-cn": "新功能：eChartsPreset 组件 – 标题叠加、全屏按钮、修复最后更改叠加层的 z-index；EChart – Y 轴 dataMin/dataMax 自动选项"
-      },
-      "0.4.85": {
-        "en": "Feat: tab bar design settings per layout (height, background, active/inactive color, indicator style: underline/filled/pills, font size); tab bar items (clock, datapoint, static text) with left/center/right positioning; layouts page uses full width",
-        "de": "Neu: Tableisten-Design pro Layout einstellbar (Höhe, Hintergrund, Aktiv-/Inaktiv-Farbe, Tab-Stil: Unterstrich/Gefüllt/Pill, Schriftgröße); Tableisten-Elemente (Uhrzeit, Datenpunkt, Text) mit Position links/mitte/rechts; Layouts-Seite nutzt volle Breite",
-        "ru": "Новое: настройки дизайна панели вкладок на уровне макета (высота, фон, цвет активной/неактивной вкладки, стиль: подчёркивание/заливка/pill, размер шрифта); элементы панели вкладок (часы, точка данных, текст) с позицией слева/по центру/справа; страница макетов теперь занимает всю ширину",
-        "pt": "Novo: configurações de design da barra de abas por layout (altura, fundo, cor ativa/inativa, estilo: sublinhado/preenchido/pill, tamanho de fonte); itens na barra de abas (relógio, ponto de dados, texto) com posição esquerda/centro/direita; página de layouts usa largura total",
-        "nl": "Nieuw: tabblad-balk-ontwerp per layout instelbaar (hoogte, achtergrond, actieve/inactieve kleur, stijl: onderstrepen/gevuld/pill, lettergrootte); tabblad-balk-items (klok, datapunt, tekst) met positie links/midden/rechts; layouts-pagina gebruikt volledige breedte",
-        "fr": "Nouveau: paramètres de design de la barre d'onglets par mise en page (hauteur, arrière-plan, couleur active/inactive, style: soulignement/rempli/pill, taille de police); éléments dans la barre d'onglets (horloge, point de données, texte) avec position gauche/centre/droite; page des mises en page utilise toute la largeur",
-        "it": "Nuovo: impostazioni design barra schede per layout (altezza, sfondo, colore attivo/inattivo, stile: sottolineato/pieno/pill, dimensione font); elementi nella barra schede (orologio, punto dati, testo) con posizione sinistra/centro/destra; pagina layout usa tutta la larghezza",
-        "es": "Nuevo: configuración de diseño de la barra de pestañas por diseño (altura, fondo, color activo/inactivo, estilo: subrayado/relleno/pill, tamaño de fuente); elementos en la barra de pestañas (reloj, punto de datos, texto) con posición izquierda/centro/derecha; página de diseños usa ancho completo",
-        "pl": "Nowe: ustawienia wyglądu paska kart na układ (wysokość, tło, kolor aktywny/nieaktywny, styl: podkreślenie/wypełniony/pill, rozmiar czcionki); elementy paska kart (zegar, punkt danych, tekst) z pozycją lewa/środek/prawa; strona układów używa pełnej szerokości",
-        "uk": "Нове: налаштування дизайну панелі вкладок на рівні макету (висота, фон, колір активної/неактивної вкладки, стиль: підкреслення/заливка/pill, розмір шрифту); елементи панелі вкладок (годинник, точка даних, текст) з позицією зліва/по центру/справа; сторінка макетів займає всю ширину",
-        "zh-cn": "新增：每个布局可配置标签栏外观（高度、背景色、激活/非激活颜色、样式：下划线/填充/胶囊、字体大小）；标签栏元素（时钟、数据点、静态文本）支持左/中/右定位；布局页面使用全宽显示"
       }
     }
   },
