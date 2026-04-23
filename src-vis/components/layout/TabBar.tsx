@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Settings, X } from 'lucide-react';
+import { Settings, X, GripVertical } from 'lucide-react';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import type { Tab, TabBarItem, TabBarSettings } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
@@ -181,7 +181,6 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
 
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
-  const dragDidMoveRef = useRef(false);
 
   useEffect(() => {
     if (editingId && inputRef.current) { inputRef.current.focus(); inputRef.current.select(); }
@@ -239,41 +238,46 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
     const ts = tabStyle(isActive, tbSettings);
     const indicatorStyle = tbSettings?.indicatorStyle ?? 'underline';
 
-    const isDraggingThis = editMode && !readonly && dragIdx === idx;
-    const isDragTarget   = editMode && !readonly && dragOverIdx === idx && dragIdx !== idx;
-
-    const dragHandlers = editMode && !readonly ? {
-      draggable: true,
-      onDragStart: (e: React.DragEvent) => {
-        dragDidMoveRef.current = false;
-        setDragIdx(idx);
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', String(idx));
-      },
-      onDragEnd: () => { setDragIdx(null); setDragOverIdx(null); },
-      onDragOver: (e: React.DragEvent) => { e.preventDefault(); dragDidMoveRef.current = true; setDragOverIdx(idx); },
-      onDragEnter: (e: React.DragEvent) => { e.preventDefault(); setDragOverIdx(idx); },
-      onDragLeave: () => { setDragOverIdx((prev) => (prev === idx ? null : prev)); },
-      onDrop: (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (dragIdx !== null && dragIdx !== idx) reorderTabs(dragIdx, idx);
-        setDragIdx(null);
-        setDragOverIdx(null);
-      },
-    } : {};
+    const isDraggingThis = dragIdx === idx;
+    const isDragTarget   = dragOverIdx === idx && dragIdx !== null && dragIdx !== idx;
 
     return (
       <div key={tab.id}
-        {...dragHandlers}
-        className={`group relative flex items-center gap-1.5 px-3 transition-colors whitespace-nowrap select-none ${indicatorStyle === 'underline' ? 'py-2.5 border-b-2' : 'py-1.5'} ${editMode && !readonly ? 'cursor-grab' : 'cursor-pointer'}`}
+        className={`group relative flex items-center gap-1.5 px-3 cursor-pointer transition-colors whitespace-nowrap select-none ${indicatorStyle === 'underline' ? 'py-2.5 border-b-2' : 'py-1.5'}`}
         style={{
           ...ts,
           opacity: isDraggingThis ? 0.4 : 1,
           ...(isDragTarget ? { boxShadow: '-2px 0 0 0 var(--accent)' } : {}),
         }}
-        onClick={() => { if (dragDidMoveRef.current) return; setConfirmDeleteId(null); handleTabClick(tab.id); }}
+        onDragOver={editMode && !readonly ? (e) => { e.preventDefault(); setDragOverIdx(idx); } : undefined}
+        onDragEnter={editMode && !readonly ? (e) => { e.preventDefault(); setDragOverIdx(idx); } : undefined}
+        onDragLeave={editMode && !readonly ? () => setDragOverIdx(null) : undefined}
+        onDrop={editMode && !readonly ? (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (dragIdx !== null && dragIdx !== idx) reorderTabs(dragIdx, idx);
+          setDragIdx(null);
+          setDragOverIdx(null);
+        } : undefined}
+        onClick={() => { setConfirmDeleteId(null); handleTabClick(tab.id); }}
       >
+        {editMode && !readonly && (
+          <span
+            draggable
+            onDragStart={(e) => {
+              e.stopPropagation();
+              setDragIdx(idx);
+              e.dataTransfer.effectAllowed = 'move';
+              e.dataTransfer.setData('text/plain', String(idx));
+            }}
+            onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
+            onClick={(e) => e.stopPropagation()}
+            style={{ cursor: 'grab', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+          >
+            <GripVertical size={12} />
+          </span>
+        )}
+
         {TabIconComp && (
           <TabIconComp size={14} style={{ color: 'currentColor', flexShrink: 0 }} />
         )}
