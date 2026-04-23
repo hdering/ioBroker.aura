@@ -1,6 +1,7 @@
 interface Props {
   options: Record<string, unknown>;
   onChange: (patch: Record<string, unknown>) => void;
+  onOpenPicker: () => void;
 }
 
 const iCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
@@ -17,7 +18,7 @@ function Toggle({ value, onToggle }: { value: boolean; onToggle: () => void }) {
   );
 }
 
-export function HtmlConfig({ options: o, onChange }: Props) {
+export function HtmlConfig({ options: o, onChange, onOpenPicker }: Props) {
   const set = (patch: Record<string, unknown>) => onChange(patch);
 
   return (
@@ -27,14 +28,19 @@ export function HtmlConfig({ options: o, onChange }: Props) {
         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
           Datenpunkt (optional)
         </label>
-        <input
-          type="text"
-          value={(o.htmlDatapoint as string) ?? ''}
-          onChange={(e) => set({ htmlDatapoint: e.target.value || undefined })}
-          placeholder="z.B. javascript.0.myHtml"
-          className={iCls}
-          style={iSty}
-        />
+        <div className="flex gap-1">
+          <input
+            type="text"
+            value={(o.htmlDatapoint as string) ?? ''}
+            onChange={(e) => set({ htmlDatapoint: e.target.value || undefined })}
+            placeholder="z.B. javascript.0.myHtml"
+            className={iCls + ' flex-1 font-mono min-w-0'}
+            style={iSty}
+          />
+          <button type="button" onClick={onOpenPicker}
+            className="px-2 rounded-lg shrink-0"
+            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>…</button>
+        </div>
         <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
           Wenn gesetzt, wird der DP-Wert als HTML angezeigt (überschreibt statisches HTML).
         </p>

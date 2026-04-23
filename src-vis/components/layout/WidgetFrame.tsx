@@ -962,7 +962,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       setOpenPanel(panel);
     }
   };
-  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | 'html_dp' | null>(null);
   const [cameraSlotPickerIdx, setCameraSlotPickerIdx] = useState(0);
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [iconPickerTrueOpen,  setIconPickerTrueOpen]  = useState(false);
@@ -2083,6 +2083,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 <HtmlConfig
                   options={config.options ?? {}}
                   onChange={(patch) => onConfigChange({ ...config, options: { ...(config.options ?? {}), ...patch } })}
+                  onOpenPicker={() => setPickerTarget('html_dp')}
                 />
               )}
 
@@ -3646,6 +3647,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             pickerTarget === 'status_batteryDp'         ? ((config.options?.batteryDp  as string) ?? '') :
             pickerTarget === 'status_unreachDp'         ? ((config.options?.unreachDp  as string) ?? '') :
             pickerTarget === 'camera_wakeUpDp'          ? ((config.options?.wakeUpDp   as string) ?? '') :
+            pickerTarget === 'html_dp'                  ? ((config.options?.htmlDatapoint as string) ?? '') :
             pickerTarget === 'camera_slot' ? (() => {
               const key = (config.layout ?? 'minimal') === 'default' ? 'infoItems' : 'customSlots';
               const arr = (config.options?.[key] as CameraSlot[]) ?? [];
@@ -3739,6 +3741,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               onConfigChange({ ...config, options: { ...config.options, unreachDp: id } });
             } else if (pickerTarget === 'camera_wakeUpDp') {
               onConfigChange({ ...config, options: { ...config.options, wakeUpDp: id } });
+            } else if (pickerTarget === 'html_dp') {
+              onConfigChange({ ...config, options: { ...config.options, htmlDatapoint: id } });
             } else if (pickerTarget === 'camera_slot') {
               const key = (config.layout ?? 'minimal') === 'default' ? 'infoItems' : 'customSlots';
               const arr = [...((config.options?.[key] as CameraSlot[]) ?? [])];
