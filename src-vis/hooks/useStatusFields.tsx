@@ -30,6 +30,8 @@ interface StatusFields {
   reach: string;
   batteryIcon: React.ReactNode;
   reachIcon: React.ReactNode;
+  /** All configured status badge icons in a single flex row. */
+  statusBadges: React.ReactNode;
 }
 
 /**
@@ -89,5 +91,9 @@ export function useStatusFields(config: WidgetConfig): StatusFields {
     ? <Badge color={reachColor}>{isUnreach ? <WifiOff size={10} style={{ color: reachColor }} /> : <Wifi size={10} style={{ color: reachColor }} />}</Badge>
     : null;
 
-  return { battery, reach, batteryIcon, reachIcon };
+  const statusBadges: React.ReactNode = (batteryIcon || reachIcon)
+    ? <span className="flex items-center gap-0.5">{batteryIcon}{reachIcon}</span>
+    : null;
+
+  return { battery, reach, batteryIcon, reachIcon, statusBadges };
 }
