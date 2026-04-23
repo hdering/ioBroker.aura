@@ -46,7 +46,7 @@ export interface AutoListOptions {
   showCount?: boolean;
   sortBy?: 'none' | 'label' | 'value';
   sortOrder?: 'asc' | 'desc';
-  filterAdapters?: string[];
+  filterAdapters?: string;
 }
 
 export interface DiscoveredDp {
@@ -82,16 +82,19 @@ export function resolveName(name: string | Record<string, string> | undefined, f
   return name.de ?? name.en ?? Object.values(name)[0] ?? fallback;
 }
 
-export async function loadFilterOptions(): Promise<{ roles: string[]; rooms: string[]; funcs: string[]; types: string[] }> {
+export async function loadFilterOptions(): Promise<{ roles: string[]; rooms: string[]; funcs: string[]; types: string[]; adapters: string[] }> {
   const [stateResult, enumResult] = await Promise.all([
     getObjectViewDirect('state'),
     getObjectViewDirect('enum', 'enum.', 'enum.\u9999'),
   ]);
   const rolesSet = new Set<string>();
   const typesSet = new Set<string>();
-  for (const { value: obj } of stateResult.rows) {
+  const adaptersSet = new Set<string>();
+  for (const { id, value: obj } of stateResult.rows) {
     if (obj?.common?.role) rolesSet.add(obj.common.role);
     if (obj?.common?.type) typesSet.add(obj.common.type);
+    const parts = id.split(".");
+    if (parts.length >= 2) adaptersSet.add(`${parts[0]}.${parts[1]}`);
   }
   const rooms: string[] = [];
   const funcs: string[] = [];
@@ -101,11 +104,11 @@ export async function loadFilterOptions(): Promise<{ roles: string[]; rooms: str
     if (obj._id.startsWith('enum.rooms.')) rooms.push(label);
     else if (obj._id.startsWith('enum.functions.')) funcs.push(label);
   }
-  return { roles: Array.from(rolesSet).sort(), rooms: rooms.sort(), funcs: funcs.sort(), types: Array.from(typesSet).sort() };
+  return { roles: Array.from(rolesSet).sort(), rooms: rooms.sort(), funcs: funcs.sort(), types: Array.from(typesSet).sort(), adapters: Array.from(adaptersSet).sort() };
 }
 
 export async function discoverDatapoints(
-  opts: Pick<AutoListOptions, 'filterRoles' | 'filterIdPattern' | 'filterRooms' | 'filterFuncs' | 'filterTypes' | 'excludeIdPatterns' | 'excludeIds'>,
+  opts: Pick<AutoListOptions, 'filterRoles' | 'filterIdPattern' | 'filterRooms' | 'filterFuncs' | 'filterTypes' | 'excludeIdPatterns' | 'excludeIds' | 'filterAdapters'>,
 ): Promise<DiscoveredDp[]> {
   const [stateResult, channelResult, deviceResult, enumResult] = await Promise.all([
     getObjectViewDirect('state'),
@@ -148,6 +151,7 @@ export async function discoverDatapoints(
   const roomFilter    = (opts.filterRooms ?? '').split(',').map(s => s.trim()).filter(Boolean);
   const funcFilter    = (opts.filterFuncs ?? '').split(',').map(s => s.trim()).filter(Boolean);
   const typeFilter    = (opts.filterTypes ?? '').split(',').map(s => s.trim()).filter(Boolean);
+  const adapterFilter = (opts.filterAdapters ?? '').split(',').map(s => s.trim()).filter(Boolean);
   const excludePats   = (opts.excludeIdPatterns ?? '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
   const excludeIdsSet = new Set<string>(opts.excludeIds ?? []);
 
@@ -156,6 +160,10 @@ export async function discoverDatapoints(
       const role = obj.common.role ?? '';
       if (roleFilter.length > 0 && !roleFilter.includes(role)) return false;
       if (idPattern && !id.toLowerCase().includes(idPattern)) return false;
+      if (adapterFilter.length > 0) {
+        const prefix = id.split('.').slice(0, 2).join('.');
+        if (!adapterFilter.includes(prefix)) return false;
+      }
       const type = (obj.common.type as string | undefined) ?? '';
       if (typeFilter.length > 0 && !typeFilter.includes(type)) return false;
       if (excludeIdsSet.has(id)) return false;
@@ -421,7 +429,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
   }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const runSync = useCallback(async () => {
-    const hasFilter = opts.filterRoles || opts.filterIdPattern || opts.filterRooms || opts.filterFuncs || opts.filterTypes;
+    const hasFilter = opts.filterRoles || opts.filterIdPattern || opts.filterRooms || opts.filterFuncs || opts.filterTypes || opts.filterAdapters;
     if (!hasFilter) return;
     setSyncing(true);
     try {
@@ -472,10 +480,6 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
           if (val === null) return false;
           return valueFilter === 'active' ? isActive(val) : !isActive(val);
         });
-    const filterAdapters = opts.filterAdapters ?? [];
-    if (!editMode && filterAdapters.length > 0) {
-      result = result.filter(e => filterAdapters.some(a => e.id === a || e.id.startsWith(a + '.')));
-    }
     const sortBy = opts.sortBy ?? 'none';
     const sortOrder = opts.sortOrder ?? 'asc';
     if (sortBy !== 'none') {
@@ -487,7 +491,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
       });
     }
     return result;
-  }, [entries, states, valueFilter, editMode, opts.sortBy, opts.sortOrder, opts.filterAdapters, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [entries, states, valueFilter, editMode, opts.sortBy, opts.sortOrder, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const hideTitle = !!(config.options as Record<string, unknown>)?.hideTitle;
   const showTitle = opts.showTitle !== false && !hideTitle;

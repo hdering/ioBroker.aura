@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.95",
+    "version": "0.4.96",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,18 +106,9 @@
       }
     ],
     "news": {
-      "0.4.95": {
-        "en": "Feat(windowcontact): per-state icon/image configuration (icon picker or base64 image, custom color and label for each state: closed/tilted/open)",
-        "de": "Neu(Fensterkontakt): pro-Zustand Icon/Bild-Konfiguration (Icon-Auswahl oder Base64-Bild, eigene Farbe und Beschriftung für jeden Zustand: geschlossen/gekippt/offen)",
-        "ru": "Новое(Оконный контакт): настройка иконки/изображения для каждого состояния (выбор иконки или изображение base64, цвет и подпись для каждого состояния: закрыто/наклонено/открыто)",
-        "pt": "Novo(Contato de janela): configuração de ícone/imagem por estado (seletor de ícones ou imagem base64, cor e rótulo personalizados para cada estado: fechado/inclinado/aberto)",
-        "nl": "Nieuw(Raamcontact): per-staat icoon/afbeelding configuratie (icoonkiezer of base64-afbeelding, aangepaste kleur en label voor elke staat: gesloten/gekanteld/open)",
-        "fr": "Nouveau(Contact fenêtre): configuration d'icône/image par état (sélecteur d'icônes ou image base64, couleur et libellé personnalisés pour chaque état: fermé/incliné/ouvert)",
-        "it": "Nuovo(Contatto finestra): configurazione icona/immagine per stato (selettore icone o immagine base64, colore ed etichetta personalizzati per ogni stato: chiuso/inclinato/aperto)",
-        "es": "Nuevo(Contacto de ventana): configuración de icono/imagen por estado (selector de iconos o imagen base64, color y etiqueta personalizados para cada estado: cerrado/inclinado/abierto)",
-        "pl": "Nowe(Kontakt okienny): konfiguracja ikony/obrazu dla każdego stanu (wybór ikony lub obraz base64, niestandardowy kolor i etykieta dla każdego stanu: zamknięty/uchylony/otwarty)",
-        "uk": "Нове(Контакт вікна): налаштування іконки/зображення для кожного стану (вибір іконки або зображення base64, власний колір та мітка для кожного стану: закрито/нахилено/відкрито)",
-        "zh-cn": "新增（窗/门触点）：每个状态可独立配置图标/图片（图标选择器或 Base64 图片，以及自定义颜色和标签，适用于：关闭/倾斜/打开）"
+      "0.4.96": {
+        "en": "Dynamic list: adapter as discovery filter (first in filter order)",
+        "de": "Dynamische Liste: Adapter als Entdeckungsfilter (erster in der Filterreihenfolge)"
       },
       "0.4.94": {
         "en": "Feat(calendar): configurable icon for important appointments (custom icon picker) and option to hide the icon entirely",

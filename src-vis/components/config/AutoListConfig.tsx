@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { RefreshCw, Search, Check, X, ChevronDown, Settings2, ChevronRight, ChevronUp, Ban, Plus } from 'lucide-react';
 import { MultiSelect } from './MultiSelect';
 import { DatapointPicker } from './DatapointPicker';
@@ -108,15 +108,17 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
   const [availRooms, setAvailRooms] = useState<string[]>([]);
   const [availFuncs, setAvailFuncs] = useState<string[]>([]);
   const [availTypes, setAvailTypes] = useState<string[]>([]);
+  const [availAdapters, setAvailAdapters] = useState<string[]>([]);
   const [optLoading, setOptLoading] = useState(true);
   const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    loadFilterOptions().then(({ roles, rooms, funcs, types }) => {
+    loadFilterOptions().then(({ roles, rooms, funcs, types, adapters }) => {
       setAvailRoles(roles);
       setAvailRooms(rooms);
       setAvailFuncs(funcs);
       setAvailTypes(types);
+      setAvailAdapters(adapters);
       setOptLoading(false);
     });
     ensureDatapointCache().then(cache => {
@@ -131,6 +133,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
   const [selRooms, setSelRooms] = useState<string[]>(toArr(opts.filterRooms));
   const [selFuncs, setSelFuncs] = useState<string[]>(toArr(opts.filterFuncs));
   const [selTypes, setSelTypes] = useState<string[]>(toArr(opts.filterTypes));
+  const [selAdapters, setSelAdapters] = useState<string[]>(toArr(opts.filterAdapters));
   const [idPat, setIdPat]       = useState(opts.filterIdPattern ?? '');
 
   // Exclude state
@@ -152,16 +155,11 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
     onConfigChange({ ...config, options: { ...opts, ...patch } });
   };
 
-  const availableAdapters = useMemo(() => {
-    const entries = opts.entries ?? [];
-    const set = new Set(entries.map(e => e.id.split('.').slice(0, 2).join('.')));
-    return [...set].sort();
-  }, [opts.entries]);
-
   const search = async () => {
     setLoading(true);
     try {
       const found = await discoverDatapoints({
+        filterAdapters: toCsv(selAdapters),
         filterRoles: toCsv(selRoles),
         filterIdPattern: idPat || undefined,
         filterRooms: toCsv(selRooms),
@@ -192,6 +190,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
     });
     setOpts({
       entries,
+      filterAdapters: toCsv(selAdapters),
       filterRoles: toCsv(selRoles),
       filterIdPattern: idPat || undefined,
       filterRooms: toCsv(selRooms),
@@ -213,12 +212,16 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
 
   const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' } as React.CSSProperties;
   const iCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
-  const canSearch = selRoles.length > 0 || selRooms.length > 0 || selFuncs.length > 0 || selTypes.length > 0 || !!idPat;
+  const canSearch = selRoles.length > 0 || selRooms.length > 0 || selFuncs.length > 0 || selTypes.length > 0 || selAdapters.length > 0 || !!idPat;
 
   return (
     <>
       {/* ── Filters ── */}
       <div className="grid grid-cols-2 gap-2">
+        <div className="col-span-2">
+          <MultiSelect label="Adapter" options={availAdapters} selected={selAdapters}
+            onChange={v => { setSelAdapters(v); resetSearch(); }} loading={optLoading} />
+        </div>
         <MultiSelect label={t('autolist.roles')} options={availRoles} selected={selRoles}
           onChange={v => { setSelRoles(v); resetSearch(); }} loading={optLoading} />
         <MultiSelect label={t('autolist.room')} options={availRooms} selected={selRooms}
@@ -482,16 +485,6 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
           </div>
         </div>
       </div>
-
-      {/* ── Adapter-Filter ── */}
-      {availableAdapters.length > 1 && (
-        <MultiSelect
-          label="Adapter-Filter"
-          options={availableAdapters}
-          selected={opts.filterAdapters ?? []}
-          onChange={v => setOpts({ filterAdapters: v.length ? v : undefined })}
-        />
-      )}
 
       {/* ── Sortierung ── */}
       <div>

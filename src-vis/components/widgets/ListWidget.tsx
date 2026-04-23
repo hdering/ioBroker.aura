@@ -36,7 +36,6 @@ export interface StaticListOptions {
   showCount?: boolean;
   sortBy?: 'none' | 'label' | 'value';
   sortOrder?: 'asc' | 'desc';
-  filterAdapters?: string[];
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -248,10 +247,6 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
           if (val === null) return false;
           return valueFilter === 'active' ? isActive(val) : !isActive(val);
         });
-    const filterAdapters = opts.filterAdapters ?? [];
-    if (!editMode && filterAdapters.length > 0) {
-      result = result.filter(e => filterAdapters.some(a => e.id === a || e.id.startsWith(a + '.')));
-    }
     const sortBy = opts.sortBy ?? 'none';
     const sortOrder = opts.sortOrder ?? 'asc';
     if (sortBy !== 'none') {
@@ -263,7 +258,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
       });
     }
     return result;
-  }, [entries, states, valueFilter, editMode, opts.sortBy, opts.sortOrder, opts.filterAdapters, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [entries, states, valueFilter, editMode, opts.sortBy, opts.sortOrder, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const hideTitle = !!(config.options as Record<string, unknown>)?.hideTitle;
   const showTitle = opts.showTitle !== false && !hideTitle;

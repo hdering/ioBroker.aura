@@ -4,13 +4,12 @@
  * Unlike AutoListConfig (filter-based discovery), entries are added
  * manually one at a time via the DatapointPicker (object browser).
  */
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Database, X, ChevronRight, Settings2 } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../types';
 import type { StaticListEntry, StaticListOptions } from '../widgets/ListWidget';
 import { DatapointPicker } from './DatapointPicker';
-import { MultiSelect } from './MultiSelect';
 import { IconPickerModal } from './IconPickerModal';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
@@ -155,11 +154,6 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
     onConfigChange({ ...config, options: { ...opts, ...patch } });
   };
 
-  const availableAdapters = useMemo(() => {
-    const set = new Set(entries.map(e => e.id.split('.').slice(0, 2).join('.')));
-    return [...set].sort();
-  }, [entries]);
-
   const addEntry = (id: string, _name?: string, unit?: string) => {
     if (entries.find(e => e.id === id)) return;
     const dp = lookupDatapointEntry(id);
@@ -282,16 +276,6 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
           </div>
         </div>
       </div>
-
-      {/* ── Adapter-Filter ── */}
-      {availableAdapters.length > 1 && (
-        <MultiSelect
-          label="Adapter-Filter"
-          options={availableAdapters}
-          selected={opts.filterAdapters ?? []}
-          onChange={v => setOpts({ filterAdapters: v.length ? v : undefined })}
-        />
-      )}
 
       {/* ── Sortierung ── */}
       <div>
