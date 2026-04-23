@@ -175,6 +175,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.98 (2026-04-23)
+- Fix(lint): unescaped quotes in JSX label strings replaced with HTML entities
+
 ### 0.4.97 (2026-04-23)
 - Feat(windowcontact): flexible state value mapping with presets (HmIP, Boolean, 0/7, String) and custom mode; optional lock DP badge; configurable battery (boolean/percent) and reach (unreachable/available) interpretation
 - Feat(customGrid): widget icon selectable as component in custom grid for all widget types (switch, dimmer, thermostat, shutter)

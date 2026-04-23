@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.97",
+    "version": "0.4.98",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.98": {
+        "en": "Fix(lint): unescaped quotes in JSX label strings replaced with HTML entities",
+        "de": "Fix(Lint): Anführungszeichen in JSX-Labels durch HTML-Entities ersetzt",
+        "ru": "Исправление(lint): неэкранированные кавычки в JSX-строках заменены HTML-сущностями",
+        "pt": "Correção(lint): aspas não escapadas em strings JSX substituídas por entidades HTML",
+        "nl": "Fix(lint): niet-escaped aanhalingstekens in JSX-labels vervangen door HTML-entiteiten",
+        "fr": "Correction(lint): guillemets non échappés dans les chaînes JSX remplacés par des entités HTML",
+        "it": "Fix(lint): virgolette non escapate nelle stringhe JSX sostituite con entità HTML",
+        "es": "Corrección(lint): comillas sin escapar en cadenas JSX reemplazadas por entidades HTML",
+        "pl": "Poprawka(lint): nieeskejpowane cudzysłowy w ciągach JSX zastąpione encjami HTML",
+        "uk": "Виправлення(lint): неекрановані лапки в рядках JSX замінені HTML-сутностями",
+        "zh-cn": "修复(lint)：JSX标签字符串中未转义的引号替换为HTML实体"
+      },
       "0.4.97": {
         "en": "WindowContact: flexible state mapping & lock DP; custom grid: widget icon, battery/reach as text or icon, combined status-badges; value widget custom grid support; fix: icon size flicker",
         "de": "Fensterkontakt: flexibles Wertemapping & Schloss-DP; Custom-Raster: Widget-Icon, Batterie/Erreichbarkeit als Text oder Icon, kombinierte Status-Badges; Wert-Widget Custom-Raster; Fix: Icon-Größen-Flimmern",
@@ -183,19 +196,6 @@
         "pl": "Nowe: widget HTML (wyświetlanie HTML z punktu danych lub wejścia statycznego); Nowe(Lista dyn.): nowy układ 'Liczba' pokazuje liczbę wpisów jako dużą cyfrę; Poprawka: ikona widgetu przełącznika wyświetlana we wszystkich układach",
         "uk": "Нове: віджет HTML (відображення HTML з точки даних або статичного вводу); Нове(Дин. список): новий макет 'Кількість', який показує кількість записів великою цифрою; Виправлення: іконка віджета вимикача відображається у всіх макетах",
         "zh-cn": "新增：HTML 组件（从数据点或静态输入显示 HTML）；新增（动态列表）：新的'数量'布局将条目数量显示为大数字；修复：开关组件图标在所有布局中均可显示"
-      },
-      "0.4.90": {
-        "en": "Fix: consistent icon size and spacing in compact widget layouts; removed bold title in switch compact layout; symmetric inner padding in group widgets",
-        "de": "Fix: einheitliche Icon-Größe und Abstände in allen compact-Widget-Layouts; fette Titelschrift im Schalter-compact-Layout entfernt; symmetrischer Innenabstand in Widget-Gruppen",
-        "ru": "Исправление: единый размер иконок и отступы в компактных макетах виджетов; убран жирный шрифт заголовка в компактном макете выключателя; симметричные внутренние отступы в группах виджетов",
-        "pt": "Correção: tamanho de ícone e espaçamento consistentes em layouts compactos de widgets; título em negrito removido no layout compacto do interruptor; espaçamento interno simétrico em grupos de widgets",
-        "nl": "Fix: consistente icoongrootte en -afstand in compacte widget-layouts; vetgedrukte titel verwijderd in compacte schakelaar-layout; symmetrische binnenafstand in widget-groepen",
-        "fr": "Correction: taille d'icône et espacement cohérents dans les mises en page compactes des widgets; titre en gras supprimé dans la mise en page compacte de l'interrupteur; rembourrage interne symétrique dans les groupes de widgets",
-        "it": "Fix: dimensione icona e spaziatura coerenti nei layout compatti dei widget; titolo in grassetto rimosso nel layout compatto dell'interruttore; spaziatura interna simmetrica nei gruppi di widget",
-        "es": "Corrección: tamaño de icono y espaciado consistentes en diseños compactos de widgets; título en negrita eliminado en el diseño compacto del interruptor; relleno interno simétrico en grupos de widgets",
-        "pl": "Poprawka: spójny rozmiar ikony i odstępy w kompaktowych układach widgetów; usunięto pogrubiony tytuł w kompaktowym układzie przełącznika; symetryczne wewnętrzne dopełnienie w grupach widgetów",
-        "uk": "Виправлення: однаковий розмір іконок та відступи у компактних макетах віджетів; прибрано жирний заголовок у компактному макеті вимикача; симетричні внутрішні відступи у групах віджетів",
-        "zh-cn": "修复：所有紧凑型组件布局中图标大小和间距统一；移除开关紧凑布局中的粗体标题；组件组内边距对称"
       }
     }
   },
