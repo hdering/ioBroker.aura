@@ -2957,7 +2957,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           {(['closed', 'tilted', 'open'] as const).map(st => (
                             <div key={st}>
                               <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>
-                                Werte „{WC_DEFAULTS[st].label}" (kommagetrennt)
+                                Werte &bdquo;{WC_DEFAULTS[st].label}&ldquo; (kommagetrennt)
                               </label>
                               <input type="text"
                                 value={(o[`stateValues${st.charAt(0).toUpperCase() + st.slice(1)}`] as string) ?? WC_PRESETS.hmip[st]}
@@ -3001,7 +3001,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       {(o.lockDp as string) && (
                         <div>
                           <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>
-                            Wert „Abgeschlossen" (kommagetrennt)
+                            Wert &bdquo;Abgeschlossen&ldquo; (kommagetrennt)
                           </label>
                           <input type="text"
                             value={(o.lockLockedValues as string) ?? 'true,1'}
@@ -3371,7 +3371,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             {battMode === 'percent' && (
                               <div>
                                 <div className="flex items-center justify-between mb-1">
-                                  <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Schwellwert „Niedrig"</label>
+                                  <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Schwellwert &bdquo;Niedrig&ldquo;</label>
                                   <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>
                                     {(o.batteryLowThreshold as number) ?? 20}%
                                   </span>
@@ -3421,7 +3421,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             </div>
                             <div>
                               <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>
-                                Werte für „{reachMode === 'unreachable' ? 'nicht erreichbar' : 'erreichbar'}" (kommagetrennt)
+                                Werte für &bdquo;{reachMode === 'unreachable' ? 'nicht erreichbar' : 'erreichbar'}&ldquo; (kommagetrennt)
                               </label>
                               <input type="text"
                                 value={(o.reachTrueValues as string) ?? 'true,1'}
