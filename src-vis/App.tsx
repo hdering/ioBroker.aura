@@ -158,7 +158,7 @@ export default function App() {
   const navigate = useNavigate();
   const { frontend } = useConfigStore();
   const { setTheme } = useThemeStore();
-  const updateLayoutSettings = useDashboardStore((s) => s.updateLayoutSettings);
+  const clearLayoutSettings = useDashboardStore((s) => s.clearLayoutSettings);
   const { connected, subscribe } = useIoBroker();
   const { clientId, clientName } = useConnectionStore();
 
@@ -404,12 +404,8 @@ export default function App() {
             <button
               onClick={() => {
                 const nextId = currentTheme.dark ? 'light' : 'dark';
-                const hasLayoutOverride = !!(layout?.settings?.themeId);
-                if (hasLayoutOverride && layout) {
-                  updateLayoutSettings(layout.id, { themeId: nextId });
-                } else {
-                  setTheme(nextId);
-                }
+                setTheme(nextId);
+                if (layout?.settings?.themeId) clearLayoutSettings(layout.id, 'themeId');
               }}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
               style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
