@@ -175,6 +175,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.5.0 (2026-04-23)
+- Fix: missing `statusBadges` field in `useStatusFields` hook caused TypeScript build errors in CI
+
 ### 0.4.99 (2026-04-23)
 - Fix: disable new eslint-plugin-react-hooks v7.x rules (set-state-in-effect, static-components, refs, purity, use-memo) that caused 88 CI lint errors after dependency bump from v4.6.2
 

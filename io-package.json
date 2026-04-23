@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.99",
+    "version": "0.5.0",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.0": {
+        "en": "Fix: missing statusBadges field in useStatusFields hook caused TypeScript build errors in CI",
+        "de": "Fix: fehlendes statusBadges-Feld im useStatusFields-Hook verursachte TypeScript-Buildfehler in CI",
+        "ru": "Исправление: отсутствующее поле statusBadges в хуке useStatusFields вызывало ошибки TypeScript при сборке в CI",
+        "pt": "Correção: campo statusBadges ausente no hook useStatusFields causava erros de build TypeScript no CI",
+        "nl": "Fix: ontbrekend statusBadges-veld in useStatusFields hook veroorzaakte TypeScript-buildfouten in CI",
+        "fr": "Correction: champ statusBadges manquant dans le hook useStatusFields causait des erreurs de build TypeScript en CI",
+        "it": "Fix: campo statusBadges mancante nel hook useStatusFields causava errori di build TypeScript in CI",
+        "es": "Corrección: campo statusBadges faltante en el hook useStatusFields causaba errores de compilación TypeScript en CI",
+        "pl": "Poprawka: brakujące pole statusBadges w hooku useStatusFields powodowało błędy kompilacji TypeScript w CI",
+        "uk": "Виправлення: відсутнє поле statusBadges у хуку useStatusFields спричиняло помилки збірки TypeScript у CI",
+        "zh-cn": "修复：useStatusFields hook 中缺少 statusBadges 字段导致 CI 中 TypeScript 构建错误"
+      },
       "0.4.99": {
         "en": "Fix: disable new eslint-plugin-react-hooks v7.x rules (set-state-in-effect, static-components, refs, purity, use-memo) that were not present in v4.x",
         "de": "Fix: neue eslint-plugin-react-hooks v7.x Regeln deaktiviert, die in v4.x nicht vorhanden waren",
@@ -183,19 +196,6 @@
         "pl": "Poprawka: przełącznik motywu teraz usuwa nadpisanie motywu układu, aby wszystkie motywy (jasny, lovelace itp.) były poprawnie stosowane na urządzeniach z nadpisaniami motywu układu",
         "uk": "Виправлення: перемикач теми тепер видаляє власне переопределення теми макету, щоб усі теми (світлі, lovelace тощо) коректно застосовувались на пристроях із власним override теми макету",
         "zh-cn": "修复：明暗切换按钮现在会清除每个布局的主题覆盖，使所有主题（亮色、lovelace 等）在具有布局特定覆盖的设备上正确生效"
-      },
-      "0.4.92": {
-        "en": "Fix: theme toggle now correctly switches per-layout theme override when a layout has its own theme set",
-        "de": "Fix: Hell/Dunkel-Toggle schaltet jetzt korrekt das Layout-eigene Theme um, wenn ein Layout ein eigenes Theme-Override hat",
-        "ru": "Исправление: переключатель темы теперь корректно переключает переопределение темы макета, если для макета установлена собственная тема",
-        "pt": "Correção: o alternador de tema agora muda corretamente o tema por layout quando um layout tem seu próprio tema definido",
-        "nl": "Fix: thema-schakelaar wisselt nu correct het per-layout thema-override wanneer een layout een eigen thema heeft",
-        "fr": "Correction: le bouton de thème change maintenant correctement le thème par mise en page lorsqu'une mise en page a son propre thème défini",
-        "it": "Fix: il toggle del tema ora cambia correttamente il tema per layout quando un layout ha il proprio tema impostato",
-        "es": "Corrección: el botón de tema ahora cambia correctamente el tema por layout cuando un layout tiene su propio tema configurado",
-        "pl": "Poprawka: przełącznik motywu teraz poprawnie przełącza nadpisanie motywu układu, gdy układ ma własny motyw",
-        "uk": "Виправлення: перемикач теми тепер коректно перемикає власне переопределення теми макету, якщо для макету встановлена власна тема",
-        "zh-cn": "修复：当布局有自己的主题设置时，明暗切换按钮现在能正确切换该布局的主题覆盖"
       }
     }
   },
