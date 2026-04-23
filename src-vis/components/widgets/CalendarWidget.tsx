@@ -3,6 +3,7 @@ import { RefreshCw, CalendarDays, MapPin, AlertCircle, Star } from 'lucide-react
 import type { WidgetProps } from '../../types';
 import { getSocket, subscribeStateDirect, setStateDirect } from '../../hooks/useIoBroker';
 import { useT } from '../../i18n';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CustomGridView } from './CustomGridView';
 
 // ── CalendarSource ─────────────────────────────────────────────────────────
@@ -358,6 +359,9 @@ export function CalendarWidget({ config }: WidgetProps) {
   const highlightKeywords: string[] = ((options.highlightKeywords as string) ?? '')
     .split(',').map((s) => s.trim()).filter(Boolean);
   const importantOnly = !!(options.importantOnly) && highlightEnabled;
+  const hideImportantIcon = !!(options.hideImportantIcon);
+  const importantIconName = (options.importantIcon as string) || '';
+  const ImportantIcon = importantIconName ? getWidgetIcon(importantIconName, Star) : Star;
 
   const fs = (px: number) => `calc(${px}px * var(--font-scale, 1) * ${calFontScale})`;
   const imp = (ev: CalEventTagged) =>
@@ -441,8 +445,8 @@ export function CalendarWidget({ config }: WidgetProps) {
         className={`flex items-center gap-2 h-full${meta ? ` ${meta.className}` : ''}`}
         data-calendar-event={meta?.dataAttr}
       >
-        {important
-          ? <Star size={14} style={{ color, flexShrink: 0 }} />
+        {important && !hideImportantIcon
+          ? <ImportantIcon size={14} style={{ color, flexShrink: 0 }} />
           : <CalendarDays size={14} style={{ color, flexShrink: 0 }} />}
         {showCalName && next?.showSourceName && (
           <span className="shrink-0 font-medium" style={{ color: next.sourceColor, fontSize: fs(9) }}>{next.sourceName}</span>
@@ -491,7 +495,7 @@ export function CalendarWidget({ config }: WidgetProps) {
               )}
               {showSummary && (
                 <p className="font-bold leading-tight" style={{ color: important ? highlightColor : 'var(--accent)', fontSize: fs(20) }}>
-                  {important && <Star size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />}
+                  {important && !hideImportantIcon && <ImportantIcon size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />}
                   {next.summary}
                 </p>
               )}
@@ -569,7 +573,7 @@ export function CalendarWidget({ config }: WidgetProps) {
                     )}
                     <p className="flex-1 truncate min-w-0"
                       style={{ color: important ? highlightColor : 'var(--text-primary)', fontWeight: important || meta.isNext ? 700 : 500, fontSize: fs(11) }}>
-                      {important && <Star size={9} style={{ display: 'inline', marginRight: 3, verticalAlign: 'middle' }} />}
+                      {important && !hideImportantIcon && <ImportantIcon size={9} style={{ display: 'inline', marginRight: 3, verticalAlign: 'middle' }} />}
                       {ev.summary}
                     </p>
                     {showDate && (
@@ -645,7 +649,7 @@ export function CalendarWidget({ config }: WidgetProps) {
                     )}
                     <p className="leading-tight truncate"
                       style={{ color: important ? highlightColor : 'var(--text-primary)', fontWeight: important || meta.isNext ? 700 : 500, fontSize: fs(11) }}>
-                      {important && <Star size={9} style={{ display: 'inline', marginRight: 3, verticalAlign: 'middle' }} />}
+                      {important && !hideImportantIcon && <ImportantIcon size={9} style={{ display: 'inline', marginRight: 3, verticalAlign: 'middle' }} />}
                       {ev.summary}
                     </p>
                     {showDate && (

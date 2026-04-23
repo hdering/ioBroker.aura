@@ -119,6 +119,7 @@ function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; o
   const [newUrl, setNewUrl] = useState('');
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState(DEFAULT_CAL_COLORS[sources.length % DEFAULT_CAL_COLORS.length]);
+  const [importantIconPickerOpen, setImportantIconPickerOpen] = useState(false);
 
   const setOpts = (patch: Record<string, unknown>) =>
     onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -329,6 +330,49 @@ function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; o
                   style={{ left: o.importantOnly ? '14px' : '2px' }} />
               </button>
             </div>
+            {/* hideImportantIcon toggle */}
+            <div className="flex items-center justify-between">
+              <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>Icon ausblenden</span>
+              <button
+                onClick={() => setOpts({ hideImportantIcon: !o.hideImportantIcon })}
+                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                style={{ background: o.hideImportantIcon ? 'var(--accent)' : 'var(--app-border)' }}>
+                <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                  style={{ left: o.hideImportantIcon ? '14px' : '2px' }} />
+              </button>
+            </div>
+            {/* importantIcon picker */}
+            {!o.hideImportantIcon && (() => {
+              const currentIconName = o.importantIcon as string | undefined;
+              const CurrentIcon = currentIconName
+                ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))
+                : null;
+              return (
+                <div>
+                  <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Icon für wichtige Termine</label>
+                  <button
+                    onClick={() => setImportantIconPickerOpen(true)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}
+                  >
+                    {CurrentIcon
+                      ? <CurrentIcon size={14} style={{ flexShrink: 0 }} />
+                      : <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />}
+                    <span className="flex-1 truncate" style={{ color: currentIconName ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                      {currentIconName ?? 'Standard (Stern)'}
+                    </span>
+                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>›</span>
+                  </button>
+                  {importantIconPickerOpen && (
+                    <IconPickerModal
+                      current={currentIconName ?? ''}
+                      onSelect={(name) => setOpts({ importantIcon: name || undefined })}
+                      onClose={() => setImportantIconPickerOpen(false)}
+                    />
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>
