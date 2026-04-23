@@ -50,7 +50,7 @@ import { TrashWidget, TrashConfig } from '../widgets/TrashWidget';
 import { AutoListWidget } from '../widgets/AutoListWidget';
 import { ShutterWidget } from '../widgets/ShutterWidget';
 import { JsonTableWidget } from '../widgets/JsonTableWidget';
-import { WindowContactWidget } from '../widgets/WindowContactWidget';
+import { WindowContactWidget, WC_PRESETS, WC_PRESET_LABELS } from '../widgets/WindowContactWidget';
 import { BinarySensorWidget, BINARY_SENSOR_PRESETS } from '../widgets/BinarySensorWidget';
 import { StateImageWidget } from '../widgets/StateImageWidget';
 import { EChartsPresetWidget } from '../widgets/EChartsPresetWidget';
@@ -1006,7 +1006,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       setOpenPanel(panel);
     }
   };
-  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | 'html_dp' | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | 'html_dp' | null>(null);
   const [cameraSlotPickerIdx, setCameraSlotPickerIdx] = useState(0);
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [iconPickerTrueOpen,  setIconPickerTrueOpen]  = useState(false);
@@ -2912,9 +2912,11 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
                 const iconSize = (o.iconSize as number) || 36;
                 const displayIconSize = draftIconSize ?? iconSize;
+                const currentPreset = (o.statePreset as string) ?? 'hmip';
 
                 return (
                   <>
+                    {/* Icon size */}
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Größe</label>
@@ -2927,11 +2929,89 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         style={{ accentColor: 'var(--accent)' }} />
                     </div>
                     <div className="h-px" style={{ background: 'var(--app-border)' }} />
+
+                    {/* Preset / value mapping */}
+                    <div className="space-y-2">
+                      <div>
+                        <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>Wertemapping</label>
+                        <select
+                          value={currentPreset}
+                          onChange={(e) => {
+                            const next = e.target.value;
+                            if (next !== 'custom') {
+                              setO({ statePreset: next, stateValuesClosed: undefined, stateValuesTilted: undefined, stateValuesOpen: undefined });
+                            } else {
+                              const cur = WC_PRESETS[currentPreset] ?? WC_PRESETS.hmip;
+                              setO({ statePreset: 'custom', stateValuesClosed: cur.closed, stateValuesTilted: cur.tilted, stateValuesOpen: cur.open });
+                            }
+                          }}
+                          className="w-full text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
+                          style={wcInputStyle}>
+                          {Object.entries(WC_PRESET_LABELS).map(([k, lbl]) => (
+                            <option key={k} value={k}>{lbl}</option>
+                          ))}
+                        </select>
+                      </div>
+                      {currentPreset === 'custom' && (
+                        <>
+                          {(['closed', 'tilted', 'open'] as const).map(st => (
+                            <div key={st}>
+                              <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>
+                                Werte „{WC_DEFAULTS[st].label}" (kommagetrennt)
+                              </label>
+                              <input type="text"
+                                value={(o[`stateValues${st.charAt(0).toUpperCase() + st.slice(1)}`] as string) ?? WC_PRESETS.hmip[st]}
+                                onChange={(e) => setO({ [`stateValues${st.charAt(0).toUpperCase() + st.slice(1)}`]: e.target.value })}
+                                placeholder={WC_PRESETS.hmip[st] || '–'}
+                                className="w-full text-xs rounded-lg px-2.5 py-1.5 focus:outline-none font-mono"
+                                style={wcInputStyle} />
+                            </div>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
+
+                    {/* State appearance */}
                     {renderStateSection('closed', 'Geschlossen')}
                     <div className="h-px" style={{ background: 'var(--app-border)' }} />
                     {renderStateSection('tilted', 'Gekippt')}
                     <div className="h-px" style={{ background: 'var(--app-border)' }} />
                     {renderStateSection('open', 'Offen')}
+                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
+
+                    {/* Lock DP */}
+                    <div className="space-y-2">
+                      <p className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Schloss (optional)</p>
+                      <div>
+                        <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>Datenpunkt</label>
+                        <div className="flex gap-1">
+                          <input type="text" value={(o.lockDp as string) ?? ''}
+                            onChange={(e) => setO({ lockDp: e.target.value || undefined })}
+                            placeholder="optional"
+                            className="flex-1 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none font-mono min-w-0"
+                            style={wcInputStyle} />
+                          <button onClick={() => setPickerTarget('wc_lockDp')}
+                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                            <Database size={13} />
+                          </button>
+                        </div>
+                      </div>
+                      {(o.lockDp as string) && (
+                        <div>
+                          <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>
+                            Wert „Abgeschlossen" (kommagetrennt)
+                          </label>
+                          <input type="text"
+                            value={(o.lockLockedValues as string) ?? 'true,1'}
+                            onChange={(e) => setO({ lockLockedValues: e.target.value })}
+                            placeholder="true,1"
+                            className="w-full text-xs rounded-lg px-2.5 py-1.5 focus:outline-none font-mono"
+                            style={wcInputStyle} />
+                        </div>
+                      )}
+                    </div>
                   </>
                 );
               })()}
@@ -3243,6 +3323,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       </div>
                     </div>
                     <div className="space-y-2">
+                      {/* Battery DP */}
                       <div>
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Batterie-DP (z.B. LOWBAT)</label>
                         <div className="flex gap-1">
@@ -3257,8 +3338,57 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           </button>
                         </div>
                       </div>
+                      {/* Battery config (shown only when batteryDp is set) */}
+                      {(o.batteryDp as string) && (() => {
+                        const battMode = (o.batteryMode as 'boolean' | 'percent') ?? 'boolean';
+                        return (
+                          <div className="space-y-1.5 pl-2" style={{ borderLeft: '2px solid var(--app-border)' }}>
+                            <div className="flex gap-1">
+                              {(['boolean', 'percent'] as const).map(mode => (
+                                <button key={mode} onClick={() => setO({ batteryMode: mode })}
+                                  className="flex-1 text-[10px] py-1 rounded-lg transition-colors"
+                                  style={{
+                                    background: battMode === mode ? 'var(--accent)' : 'var(--app-bg)',
+                                    color: battMode === mode ? '#fff' : 'var(--text-secondary)',
+                                    border: `1px solid ${battMode === mode ? 'var(--accent)' : 'var(--app-border)'}`,
+                                  }}>
+                                  {mode === 'boolean' ? 'Boolean' : 'Prozent (%)'}
+                                </button>
+                              ))}
+                            </div>
+                            {battMode === 'boolean' && (
+                              <div className="flex items-center justify-between">
+                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Invertiert (true=OK)</label>
+                                <button
+                                  onClick={() => setO({ batteryInvert: !o.batteryInvert })}
+                                  className="relative w-8 h-4 rounded-full transition-colors"
+                                  style={{ background: o.batteryInvert ? 'var(--accent)' : 'var(--app-border)' }}>
+                                  <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                    style={{ left: o.batteryInvert ? '17px' : '2px' }} />
+                                </button>
+                              </div>
+                            )}
+                            {battMode === 'percent' && (
+                              <div>
+                                <div className="flex items-center justify-between mb-1">
+                                  <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Schwellwert „Niedrig"</label>
+                                  <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                                    {(o.batteryLowThreshold as number) ?? 20}%
+                                  </span>
+                                </div>
+                                <input type="range" min={1} max={50} step={1}
+                                  value={(o.batteryLowThreshold as number) ?? 20}
+                                  onChange={(e) => setO({ batteryLowThreshold: Number(e.target.value) })}
+                                  className="w-full h-1"
+                                  style={{ accentColor: 'var(--accent)' }} />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                      {/* Reach DP */}
                       <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Unreach-DP (z.B. UNREACH)</label>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Erreichbarkeits-DP (z.B. UNREACH)</label>
                         <div className="flex gap-1">
                           <input type="text" value={(o.unreachDp as string) ?? ''}
                             onChange={(e) => setO({ unreachDp: e.target.value || undefined })}
@@ -3271,6 +3401,37 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           </button>
                         </div>
                       </div>
+                      {/* Reach config (shown only when unreachDp is set) */}
+                      {(o.unreachDp as string) && (() => {
+                        const reachMode = (o.reachMode as 'unreachable' | 'available') ?? 'unreachable';
+                        return (
+                          <div className="space-y-1.5 pl-2" style={{ borderLeft: '2px solid var(--app-border)' }}>
+                            <div className="flex gap-1">
+                              {(['unreachable', 'available'] as const).map(mode => (
+                                <button key={mode} onClick={() => setO({ reachMode: mode })}
+                                  className="flex-1 text-[10px] py-1 rounded-lg transition-colors"
+                                  style={{
+                                    background: reachMode === mode ? 'var(--accent)' : 'var(--app-bg)',
+                                    color: reachMode === mode ? '#fff' : 'var(--text-secondary)',
+                                    border: `1px solid ${reachMode === mode ? 'var(--accent)' : 'var(--app-border)'}`,
+                                  }}>
+                                  {mode === 'unreachable' ? 'Unreachable-DP' : 'Available-DP'}
+                                </button>
+                              ))}
+                            </div>
+                            <div>
+                              <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>
+                                Werte für „{reachMode === 'unreachable' ? 'nicht erreichbar' : 'erreichbar'}" (kommagetrennt)
+                              </label>
+                              <input type="text"
+                                value={(o.reachTrueValues as string) ?? 'true,1'}
+                                onChange={(e) => setO({ reachTrueValues: e.target.value })}
+                                placeholder="true,1"
+                                className={`w-full ${stInputCls} font-mono`} style={stInputStyle} />
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 );
@@ -3293,8 +3454,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     { key: 'btn-plus',  label: '+ Temperatur' },
                     { key: 'btn-minus', label: '− Temperatur' },
                   ],
-                  binarysensor: [{ key: 'icon', label: 'Status-Icon' }],
-                  stateimage:   [{ key: 'icon', label: 'Zustands-Icon' }],
+                  windowcontact: [{ key: 'icon', label: 'Status-Icon' }],
+                  binarysensor:  [{ key: 'icon', label: 'Status-Icon' }],
+                  stateimage:    [{ key: 'icon', label: 'Zustands-Icon' }],
                 };
                 const o   = config.options ?? {};
                 const cells: CustomGrid = (o.customGrid as CustomGrid | undefined) ?? DEFAULT_CUSTOM_GRID;
@@ -3455,10 +3617,13 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               { key: 'unit',    label: 'Einheit' },
                             ],
                             windowcontact: [
-                              { key: 'label',  label: 'Status-Text' },
-                              { key: 'open',   label: 'Geöffnet' },
-                              { key: 'tilted', label: 'Gekippt' },
-                              { key: 'closed', label: 'Geschlossen' },
+                              { key: 'label',   label: 'Status-Text' },
+                              { key: 'open',    label: 'Geöffnet' },
+                              { key: 'tilted',  label: 'Gekippt' },
+                              { key: 'closed',  label: 'Geschlossen' },
+                              { key: 'lock',    label: 'Schloss' },
+                              { key: 'battery', label: 'Batterie' },
+                              { key: 'reach',   label: 'Erreichbarkeit' },
                             ],
                             binarysensor: [
                               { key: 'label',    label: 'Status-Text' },
@@ -3836,6 +4001,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             pickerTarget === 'gauge_pointer2Dp'         ? ((config.options?.pointer2Datapoint as string) ?? '') :
             pickerTarget === 'gauge_pointer3Dp'         ? ((config.options?.pointer3Datapoint as string) ?? '') :
             pickerTarget === 'windowcontact_batteryDp'  ? ((config.options?.batteryDp  as string) ?? '') :
+            pickerTarget === 'wc_lockDp'                ? ((config.options?.lockDp      as string) ?? '') :
             pickerTarget === 'status_batteryDp'         ? ((config.options?.batteryDp  as string) ?? '') :
             pickerTarget === 'status_unreachDp'         ? ((config.options?.unreachDp  as string) ?? '') :
             pickerTarget === 'camera_wakeUpDp'          ? ((config.options?.wakeUpDp   as string) ?? '') :
@@ -3927,6 +4093,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               onConfigChange({ ...config, options: { ...config.options, pointer2Datapoint: id } });
             } else if (pickerTarget === 'gauge_pointer3Dp') {
               onConfigChange({ ...config, options: { ...config.options, pointer3Datapoint: id } });
+            } else if (pickerTarget === 'wc_lockDp') {
+              onConfigChange({ ...config, options: { ...config.options, lockDp: id } });
             } else if (pickerTarget === 'windowcontact_batteryDp' || pickerTarget === 'status_batteryDp') {
               onConfigChange({ ...config, options: { ...config.options, batteryDp: id } });
             } else if (pickerTarget === 'status_unreachDp') {

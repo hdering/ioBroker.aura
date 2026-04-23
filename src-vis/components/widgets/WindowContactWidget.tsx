@@ -18,6 +18,25 @@ export type StateCfg = {
   label: string;
 };
 
+// ─── presets ──────────────────────────────────────────────────────────────────
+
+export const WC_PRESETS: Record<string, { closed: string; tilted: string; open: string }> = {
+  hmip:             { closed: '0',        tilted: '1',      open: '2,3,4,5,6,7' },
+  boolean:          { closed: 'false,0',  tilted: '',       open: 'true,1'       },
+  boolean_inverted: { closed: 'true,1',   tilted: '',       open: 'false,0'      },
+  '0_7':            { closed: '0',        tilted: '',       open: '7'            },
+  string_hmip:      { closed: 'closed',   tilted: 'tilted', open: 'open'         },
+};
+
+export const WC_PRESET_LABELS: Record<string, string> = {
+  hmip:             'HmIP (0=zu, 1=gekippt, 2+=offen)',
+  boolean:          'Boolean (false=zu, true=offen)',
+  boolean_inverted: 'Boolean invertiert (true=zu, false=offen)',
+  '0_7':            'Numerisch 0 / 7',
+  string_hmip:      'String (CLOSED / TILTED / OPEN)',
+  custom:           'Benutzerdefiniert',
+};
+
 // ─── fallbacks ────────────────────────────────────────────────────────────────
 
 export const WC_FALLBACK: Record<ContactState, { Icon: typeof CheckCircle2; color: string; label: string }> = {
@@ -26,21 +45,27 @@ export const WC_FALLBACK: Record<ContactState, { Icon: typeof CheckCircle2; colo
   open:   { Icon: XCircle,       color: '#ef4444', label: 'Offen'       },
 };
 
-// ─── state helpers ────────────────────────────────────────────────────────────
+// ─── helpers ──────────────────────────────────────────────────────────────────
 
-function resolveState(value: unknown): ContactState {
-  if (typeof value === 'boolean') return value ? 'open' : 'closed';
-  if (typeof value === 'number') {
-    if (value === 0) return 'closed';
-    if (value === 1) return 'tilted';
-    return 'open';
-  }
-  // string values from hmip: "CLOSED" / "TILTED" / "OPEN"
-  if (typeof value === 'string') {
-    const v = value.toUpperCase();
-    if (v === 'CLOSED' || v === 'FALSE' || v === '0') return 'closed';
-    if (v === 'TILTED') return 'tilted';
-  }
+export function matchesValues(value: unknown, valList: string): boolean {
+  if (!valList.trim()) return false;
+  const str = String(value ?? '').toLowerCase().trim();
+  return valList.split(',').map(v => v.trim().toLowerCase()).filter(Boolean).some(v => v === str);
+}
+
+export function resolveContactState(
+  value: unknown,
+  preset: string,
+  customValues: { closed: string; tilted: string; open: string },
+): ContactState {
+  const mapping = preset === 'custom' ? customValues : (WC_PRESETS[preset] ?? WC_PRESETS.hmip);
+  if (matchesValues(value, mapping.closed)) return 'closed';
+  if (mapping.tilted && matchesValues(value, mapping.tilted)) return 'tilted';
+  if (matchesValues(value, mapping.open)) return 'open';
+  // Backward-compat fallback for existing widgets without statePreset
+  if (value === false || value === 0) return 'closed';
+  if (value === 1) return 'tilted';
+  if (value === true) return 'open';
   return 'open';
 }
 
@@ -82,11 +107,18 @@ function StateDisplay({
 // ─── widget ───────────────────────────────────────────────────────────────────
 
 export function WindowContactWidget({ config }: WidgetProps) {
+  const o = config.options ?? {};
+
   const { value } = useDatapoint(config.datapoint);
 
-  const state = resolveState(value);
-  const layout = config.layout ?? 'default';
-  const o = config.options ?? {};
+  const preset = (o.statePreset as string) ?? 'hmip';
+  const state = resolveContactState(value, preset, {
+    closed: (o.stateValuesClosed as string) ?? WC_PRESETS.hmip.closed,
+    tilted: (o.stateValuesTilted as string) ?? WC_PRESETS.hmip.tilted,
+    open:   (o.stateValuesOpen   as string) ?? WC_PRESETS.hmip.open,
+  });
+
+  const layout    = config.layout ?? 'default';
   const showTitle = o.showTitle !== false;
   const showLabel = o.showLabel !== false;
   const iconSize  = (o.iconSize as number) || 36;
@@ -94,15 +126,60 @@ export function WindowContactWidget({ config }: WidgetProps) {
   const cfg = getWcCfg(o, state);
   const fb  = WC_FALLBACK[state];
 
+  // Extra DPs for custom layout extraFields – hooks must always run unconditionally
+  const battDpId  = (o.batteryDp as string) ?? '';
+  const lockDpId  = (o.lockDp    as string) ?? '';
+  const reachDpId = (o.unreachDp as string) ?? '';
+  const { value: battRaw  } = useDatapoint(battDpId);
+  const { value: lockRaw  } = useDatapoint(lockDpId);
+  const { value: reachRaw } = useDatapoint(reachDpId);
+
+  // Battery string
+  const battMode      = (o.batteryMode as 'percent' | 'boolean') ?? 'boolean';
+  const battInvert    = o.batteryInvert === true;
+  let battStr = '';
+  if (battDpId) {
+    if (battMode === 'percent') {
+      const num = typeof battRaw === 'number' ? battRaw : parseFloat(String(battRaw ?? ''));
+      battStr = isNaN(num) ? '–' : `${Math.round(num)}%`;
+    } else {
+      const low = matchesValues(battRaw, 'true,1');
+      battStr = (battInvert ? !low : low) ? 'Niedrig' : 'OK';
+    }
+  }
+
+  // Lock string
+  const lockLockedValues = (o.lockLockedValues as string) ?? 'true,1';
+  const lockStr = lockDpId
+    ? matchesValues(lockRaw, lockLockedValues) ? 'Abgeschlossen' : 'Offen'
+    : '';
+
+  // Reach string
+  const reachMode       = (o.reachMode as 'unreachable' | 'available') ?? 'unreachable';
+  const reachTrueValues = (o.reachTrueValues as string) ?? 'true,1';
+  let reachStr = '';
+  if (reachDpId) {
+    const rawBool   = matchesValues(reachRaw, reachTrueValues);
+    const isUnreach = reachMode === 'unreachable' ? rawBool : !rawBool;
+    reachStr = isUnreach ? 'Nicht erreichbar' : 'Erreichbar';
+  }
+
+  // ── custom layout ─────────────────────────────────────────────────────────
   if (layout === 'custom') return (
     <CustomGridView
       config={config}
       value={cfg.label}
       extraFields={{
-        label:  cfg.label,
-        open:   state === 'open'   ? 'Ja' : 'Nein',
-        tilted: state === 'tilted' ? 'Ja' : 'Nein',
-        closed: state === 'closed' ? 'Ja' : 'Nein',
+        label:   cfg.label,
+        open:    state === 'open'   ? 'Ja' : 'Nein',
+        tilted:  state === 'tilted' ? 'Ja' : 'Nein',
+        closed:  state === 'closed' ? 'Ja' : 'Nein',
+        lock:    lockStr,
+        battery: battStr,
+        reach:   reachStr,
+      }}
+      extraComponents={{
+        icon: <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />,
       }}
     />
   );
