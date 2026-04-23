@@ -7,7 +7,7 @@ import { WIDGET_BY_TYPE, WIDGET_REGISTRY, WIDGET_GROUPS } from '../../widgetRegi
 // WidgetFrame is imported here — circular dep is safe because GroupWidget only
 // uses WidgetFrame inside its render function, never at module-init time.
 import { WidgetFrame } from '../layout/WidgetFrame';
-import { useT } from '../../i18n';
+import { useT, type TranslationKey } from '../../i18n';
 import { CustomGridView } from './CustomGridView';
 
 const CHILD_MARGIN = 6;
@@ -149,7 +149,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                       className="text-[10px] px-2 py-1 rounded-lg hover:opacity-80"
                       style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
                     >
-                      {t(`widget.${m.type}` as never)}
+                      {t(`widget.${m.type}` as TranslationKey)}
                     </button>
                   ))}
                 </div>
