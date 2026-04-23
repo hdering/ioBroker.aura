@@ -2644,59 +2644,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange }: Widg
                 );
               })()}
 
-              {config.type === 'windowcontact' && (() => {
-                const o = config.options ?? {};
-                const setO = (patch: Record<string, unknown>) =>
-                  onConfigChange({ ...config, options: { ...o, ...patch } });
-                const wInputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono';
-                const wInputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
-                const autoFillContact = async () => {
-                  if (!config.datapoint) return;
-                  const parts = config.datapoint.split('.');
-                  const parent = parts.slice(0, -1).join('.');
-                  const entries = await ensureDatapointCache();
-                  const sibs = entries.filter((e) => e.id.startsWith(parent + '.'));
-                  const find = (...names: string[]) => names.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
-                  // Also check one level up (channel → device) for battery
-                  const parentUp = parts.slice(0, -2).join('.');
-                  const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.'));
-                  const findUp = (...names: string[]) => names.map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}` || e.id === `${parentUp}.${n}`)?.id).find(Boolean);
-                  const patch: Record<string, unknown> = {};
-                  { const v = find('LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow')
-                           ?? findUp('LOWBAT', 'LOW_BAT');
-                    if (v) patch.batteryDp = v; }
-                  if (Object.keys(patch).length) setO(patch);
-                };
-                return (
-                  <>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Batterie-DP (z.B. LOWBAT)</label>
-                        <button onClick={() => void autoFillContact()}
-                          className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
-                          style={{ background: 'var(--accent)22', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
-                          Auto-Erkennen
-                        </button>
-                      </div>
-                      <div className="flex gap-1">
-                        <input type="text" value={(o.batteryDp as string) ?? ''}
-                          onChange={(e) => setO({ batteryDp: e.target.value || undefined })}
-                          placeholder="optional"
-                          className={`flex-1 ${wInputCls} min-w-0`} style={wInputStyle} />
-                        <button onClick={() => setPickerTarget('windowcontact_batteryDp')}
-                          className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                          style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                          <Database size={13} />
-                        </button>
-                      </div>
-                      <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                        Boolean-DP für Batterie-Warnanzeige (z.B. hm-rpc …0.LOWBAT)
-                      </p>
-                    </div>
-                  </>
-                );
-              })()}
-
               {config.type === 'binarysensor' && (() => {
                 const o = config.options ?? {};
                 const setO = (patch: Record<string, unknown>) =>
