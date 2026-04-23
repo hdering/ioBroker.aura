@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.93",
+    "version": "0.4.94",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.4.94": {
+        "en": "Feat(calendar): configurable icon for important appointments (custom icon picker) and option to hide the icon entirely",
+        "de": "Neu(Kalender): konfigurierbares Icon für wichtige Termine (Icon-Auswahl) und Option zum vollständigen Ausblenden des Icons",
+        "ru": "Новое(Календарь): настраиваемая иконка для важных событий (выбор иконки) и возможность полностью скрыть иконку",
+        "pt": "Novo(Calendário): ícone configurável para compromissos importantes (seletor de ícones) e opção para ocultar o ícone completamente",
+        "nl": "Nieuw(Kalender): configureerbaar icoon voor belangrijke afspraken (icoonkiezer) en optie om het icoon volledig te verbergen",
+        "fr": "Nouveau(Calendrier): icône configurable pour les rendez-vous importants (sélecteur d'icônes) et option pour masquer complètement l'icône",
+        "it": "Nuovo(Calendario): icona configurabile per gli appuntamenti importanti (selettore icone) e opzione per nascondere completamente l'icona",
+        "es": "Nuevo(Calendario): icono configurable para citas importantes (selector de iconos) y opción para ocultar el icono completamente",
+        "pl": "Nowe(Kalendarz): konfigurowalna ikona dla ważnych terminów (wybór ikony) i opcja całkowitego ukrycia ikony",
+        "uk": "Нове(Календар): налаштовувана іконка для важливих подій (вибір іконки) та опція повного приховування іконки",
+        "zh-cn": "新增（日历）：可为重要日程配置自定义图标（图标选择器），并可选择完全隐藏图标"
+      },
       "0.4.93": {
         "en": "Fix: theme toggle now clears per-layout theme override so all themes (light, lovelace, etc.) apply correctly on devices with layout-specific overrides",
         "de": "Fix: Hell/Dunkel-Toggle löscht jetzt das Layout-eigene Theme-Override, sodass alle Themes (hell, lovelace, etc.) auch auf Geräten mit Layout-spezifischem Override korrekt wirken",
@@ -183,19 +196,6 @@
         "pl": "Nowe: ekran ładowania HTML wyświetlany natychmiast przy ładowaniu strony przed parsowaniem bundle JS; spinner z licznikiem punktów danych w czasie rzeczywistym (bezpośrednie aktualizacje DOM omijają batching React)",
         "uk": "Нове: HTML-екран завантаження відображається негайно при завантаженні сторінки до парсингу JS-бандлу; спінер завантаження з лічильником точок даних у реальному часі (прямі оновлення DOM обходять батчинг React)",
         "zh-cn": "新功能：页面加载时立即显示 HTML 启动屏幕（在 JS 包解析之前）；带有实时数据点计数器的加载动画（直接 DOM 更新绕过 React 批处理）"
-      },
-      "0.4.87": {
-        "en": "Perf: state prefetch before first render – all datapoints loaded in parallel on connect; widgets initialize from cache (no null-flash); dashboard fades in after data is ready; fix dashboard height after prefetch wrapper change",
-        "de": "Performance: State-Prefetch vor dem ersten Render – alle Datenpunkte werden beim Verbinden parallel geladen; Widgets initialisieren aus dem Cache (kein Null-Flash); Dashboard blendet sich nach dem Laden ein; Fix für Dashboard-Höhe nach Wrapper-Änderung",
-        "ru": "Производительность: предварительная загрузка состояний перед первым рендером — все точки данных загружаются параллельно при подключении; виджеты инициализируются из кэша (без null-мигания); дашборд плавно появляется после загрузки данных; исправление высоты дашборда",
-        "pt": "Performance: pré-carregamento de estados antes do primeiro render – todos os datapoints carregados em paralelo na conexão; widgets inicializam do cache (sem null-flash); dashboard aparece gradualmente após os dados estarem prontos; correção de altura do dashboard",
-        "nl": "Prestaties: state prefetch voor eerste render – alle datapunten parallel geladen bij verbinding; widgets initialiseren vanuit cache (geen null-flash); dashboard verschijnt na laden van data; fix voor dashboard-hoogte na wrapper-aanpassing",
-        "fr": "Performance: préchargement des états avant le premier rendu – tous les points de données chargés en parallèle à la connexion; les widgets s'initialisent depuis le cache (pas de null-flash); le tableau de bord apparaît progressivement après le chargement; correction de la hauteur du tableau de bord",
-        "it": "Performance: pre-caricamento degli stati prima del primo render – tutti i datapoint caricati in parallelo alla connessione; i widget si inizializzano dalla cache (nessun null-flash); il dashboard appare gradualmente dopo il caricamento dei dati; correzione altezza dashboard",
-        "es": "Rendimiento: precarga de estados antes del primer render – todos los datapoints cargados en paralelo al conectar; los widgets se inicializan desde la caché (sin null-flash); el dashboard aparece gradualmente tras cargar los datos; corrección de altura del dashboard",
-        "pl": "Wydajność: wstępne ładowanie stanów przed pierwszym renderem – wszystkie punkty danych ładowane równolegle przy połączeniu; widgety inicjalizują się z pamięci podręcznej (brak null-flash); dashboard pojawia się stopniowo po załadowaniu danych; poprawka wysokości dashboardu",
-        "uk": "Продуктивність: попереднє завантаження станів перед першим рендером – усі точки даних завантажуються паралельно при підключенні; віджети ініціалізуються з кешу (без null-мерехтіння); дашборд плавно з'являється після завантаження даних; виправлення висоти дашборду",
-        "zh-cn": "性能优化：首次渲染前预加载状态——连接时并行加载所有数据点；组件从缓存初始化（无空值闪烁）；数据准备好后仪表盘淡入显示；修复包装器更改后仪表盘高度问题"
       }
     }
   },

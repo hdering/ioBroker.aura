@@ -175,6 +175,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.94 (2026-04-23)
+- Feat(calendar): configurable icon for important appointments via icon picker; new toggle to hide the icon entirely
+
 ### 0.4.93 (2026-04-23)
 - Fix: theme toggle now clears per-layout theme override so all themes (light, lovelace, etc.) apply correctly on devices with layout-specific overrides
 
