@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.4.96",
+    "version": "0.4.97",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,9 +106,31 @@
       }
     ],
     "news": {
+      "0.4.97": {
+        "en": "WindowContact: flexible state mapping & lock DP; custom grid: widget icon, battery/reach as text or icon, combined status-badges; value widget custom grid support; fix: icon size flicker",
+        "de": "Fensterkontakt: flexibles Wertemapping & Schloss-DP; Custom-Raster: Widget-Icon, Batterie/Erreichbarkeit als Text oder Icon, kombinierte Status-Badges; Wert-Widget Custom-Raster; Fix: Icon-Größen-Flimmern",
+        "ru": "Оконный контакт: гибкое сопоставление значений и DP замка; пользовательская сетка: иконка виджета, батарея/доступность как текст или иконка, объединённые статус-значки; поддержка Custom-Grid в виджете значений; исправлено мерцание при изменении размера иконки",
+        "pt": "Contato de janela: mapeamento flexível de estados e DP de bloqueio; grade personalizada: ícone de widget, bateria/alcance como texto ou ícone, status-badges combinados; suporte à grade personalizada no widget de valor; correção: tremulação do tamanho do ícone",
+        "nl": "Raamcontact: flexibele waardemapping & slot-DP; aangepast raster: widget-icoon, batterij/bereik als tekst of icoon, gecombineerde statusbadges; waarde-widget ondersteuning voor aangepast raster; fix: flikkering icoongrootte",
+        "fr": "Contact de fenêtre: mappage d'état flexible et DP de verrou; grille personnalisée: icône de widget, batterie/portée en texte ou icône, status-badges combinés; support de la grille personnalisée pour le widget valeur; correction: scintillement de la taille d'icône",
+        "it": "Contatto finestra: mappatura flessibile degli stati e DP blocco; griglia personalizzata: icona widget, batteria/portata come testo o icona, status-badges combinati; supporto griglia personalizzata widget valore; fix: sfarfallio dimensione icona",
+        "es": "Contacto de ventana: mapeo flexible de estados y DP de cerradura; cuadrícula personalizada: icono de widget, batería/alcance como texto o icono, status-badges combinados; soporte de cuadrícula personalizada en widget de valor; corrección: parpadeo del tamaño del icono",
+        "pl": "Kontakt okienny: elastyczne mapowanie wartości i DP zamka; siatka niestandardowa: ikona widgetu, bateria/zasięg jako tekst lub ikona, połączone odznaki statusu; obsługa niestandardowej siatki w widgecie wartości; poprawka: migotanie rozmiaru ikony",
+        "uk": "Контакт вікна: гнучке зіставлення значень і DP замка; власна сітка: іконка віджета, батарея/доступність як текст або іконка, об'єднані значки статусу; підтримка власної сітки у віджеті значень; виправлено мерехтіння розміру іконки",
+        "zh-cn": "窗户接触器：灵活状态映射和锁定DP；自定义网格：组件图标、电池/可达性作为文本或图标、组合状态徽章；数值组件完整自定义网格支持；修复：图标大小闪烁"
+      },
       "0.4.96": {
-        "en": "Dynamic list: adapter as discovery filter (first in filter order)",
-        "de": "Dynamische Liste: Adapter als Entdeckungsfilter (erster in der Filterreihenfolge)"
+        "en": "Dynamic list: adapter as discovery filter; adapter multi-select filter for static and dynamic lists; sorting by name or value (asc/desc)",
+        "de": "Dynamische Liste: Adapter als Entdeckungsfilter; Adapter-Mehrfachauswahl-Filter für statische und dynamische Listen; Sortierung nach Name oder Wert (auf-/absteigend)",
+        "ru": "Динамический список: адаптер как фильтр обнаружения; мультиселект-фильтр адаптеров для статических и динамических списков; сортировка по имени или значению (по возрастанию/убыванию)",
+        "pt": "Lista dinâmica: adaptador como filtro de descoberta; filtro de seleção múltipla de adaptadores para listas estáticas e dinâmicas; classificação por nome ou valor (asc/desc)",
+        "nl": "Dynamische lijst: adapter als ontdekkingsfilter; adapter multi-select filter voor statische en dynamische lijsten; sortering op naam of waarde (oplopend/aflopend)",
+        "fr": "Liste dynamique: adaptateur comme filtre de découverte; filtre de sélection multiple d'adaptateurs pour les listes statiques et dynamiques; tri par nom ou valeur (croissant/décroissant)",
+        "it": "Lista dinamica: adattatore come filtro di scoperta; filtro multi-selezione adattatori per liste statiche e dinamiche; ordinamento per nome o valore (asc/desc)",
+        "es": "Lista dinámica: adaptador como filtro de descubrimiento; filtro de selección múltiple de adaptadores para listas estáticas y dinámicas; ordenación por nombre o valor (asc/desc)",
+        "pl": "Lista dynamiczna: adapter jako filtr odkrywania; filtr wielokrotnego wyboru adapterów dla list statycznych i dynamicznych; sortowanie według nazwy lub wartości (rosnąco/malejąco)",
+        "uk": "Динамічний список: адаптер як фільтр виявлення; мультиселект-фільтр адаптерів для статичних та динамічних списків; сортування за назвою або значенням (за зростанням/спаданням)",
+        "zh-cn": "动态列表：适配器作为发现过滤器；静态和动态列表的适配器多选过滤器；按名称或值排序（升序/降序）"
       },
       "0.4.94": {
         "en": "Feat(calendar): configurable icon for important appointments (custom icon picker) and option to hide the icon entirely",
@@ -174,19 +196,6 @@
         "pl": "Poprawka: spójny rozmiar ikony i odstępy w kompaktowych układach widgetów; usunięto pogrubiony tytuł w kompaktowym układzie przełącznika; symetryczne wewnętrzne dopełnienie w grupach widgetów",
         "uk": "Виправлення: однаковий розмір іконок та відступи у компактних макетах віджетів; прибрано жирний заголовок у компактному макеті вимикача; симетричні внутрішні відступи у групах віджетів",
         "zh-cn": "修复：所有紧凑型组件布局中图标大小和间距统一；移除开关紧凑布局中的粗体标题；组件组内边距对称"
-      },
-      "0.4.89": {
-        "en": "Feat(tabBar): navigation menu position (left/center/right) configurable in layout settings",
-        "de": "Neu(Tableiste): Menü-Position (links/Mitte/rechts) in den Layout-Einstellungen konfigurierbar",
-        "ru": "Новое(панель вкладок): позиция навигационного меню (слева/по центру/справа) настраивается в настройках макета",
-        "pt": "Novo(barra de abas): posição do menu de navegação (esquerda/centro/direita) configurável nas definições de layout",
-        "nl": "Nieuw(tabbladbalk): positie van het navigatiemenu (links/midden/rechts) configureerbaar in de layoutinstellingen",
-        "fr": "Nouveau(barre d'onglets): position du menu de navigation (gauche/centre/droite) configurable dans les paramètres de mise en page",
-        "it": "Nuovo(barra schede): posizione del menu di navigazione (sinistra/centro/destra) configurabile nelle impostazioni layout",
-        "es": "Nuevo(barra de pestañas): posición del menú de navegación (izquierda/centro/derecha) configurable en los ajustes de diseño",
-        "pl": "Nowe(pasek kart): pozycja menu nawigacyjnego (lewo/środek/prawo) konfigurowalna w ustawieniach układu",
-        "uk": "Нове(панель вкладок): позиція навігаційного меню (зліва/по центру/справа) настроюється в налаштуваннях макету",
-        "zh-cn": "新功能(标签栏)：可在布局设置中配置导航菜单位置（左/中/右）"
       }
     }
   },

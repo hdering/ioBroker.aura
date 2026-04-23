@@ -175,6 +175,19 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.4.97 (2026-04-23)
+- Feat(windowcontact): flexible state value mapping with presets (HmIP, Boolean, 0/7, String) and custom mode; optional lock DP badge; configurable battery (boolean/percent) and reach (unreachable/available) interpretation
+- Feat(customGrid): widget icon selectable as component in custom grid for all widget types (switch, dimmer, thermostat, shutter)
+- Feat(customGrid): battery and reach available as text field or icon badge in custom grid for all StatusBadges widgets
+- Feat(customGrid): combined `status-badges` component showing all configured badges (battery + reach + lock) in a single cell
+- Feat(value-widget): full custom grid support with icon, battery, reach, unit fields and status-badges component
+- Fix(widgetFrame): icon size slider no longer triggers global widget re-render (flickering in other widgets)
+
+### 0.4.96 (2026-04-23)
+- Feat(autoList): adapter as discovery filter in dynamic list (first in filter order)
+- Feat(list): adapter multi-select filter for static and dynamic lists
+- Feat(list): sorting by name or value (ascending/descending) for static and dynamic lists
+
 ### 0.4.95 (2026-04-23)
 - Feat(windowcontact): per-state icon/image configuration – icon picker or base64 image, custom color and label for each state (closed/tilted/open)
 
