@@ -1011,6 +1011,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [iconPickerTrueOpen,  setIconPickerTrueOpen]  = useState(false);
   const [iconPickerFalseOpen, setIconPickerFalseOpen] = useState(false);
+  const [wcIconPickerState, setWcIconPickerState] = useState<'closed' | 'tilted' | 'open' | null>(null);
   const [selectedCustomCell,   setSelectedCustomCell]   = useState<number | null>(null);
   const [customCellPickerOpen, setCustomCellPickerOpen] = useState(false);
   const menuBtnRef = useRef<HTMLButtonElement>(null);
@@ -1705,8 +1706,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               );
             })()}
 
-            {/* Icon picker (not for stateimage – icons are per-state) */}
-            {config.type !== 'stateimage' && (() => {
+            {/* Icon picker (not for stateimage/windowcontact – icons are per-state) */}
+            {config.type !== 'stateimage' && config.type !== 'windowcontact' && (() => {
               const currentIconName = config.options?.icon as string | undefined;
               const CurrentIcon = currentIconName
                 ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))
@@ -2787,6 +2788,147 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
                       </div>
                     </div>
+                  </>
+                );
+              })()}
+
+              {config.type === 'windowcontact' && (() => {
+                const o = config.options ?? {};
+                const setO = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const wcInputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                const WC_DEFAULTS: Record<string, { color: string; label: string; iconName: string }> = {
+                  closed: { color: '#22c55e', label: 'Geschlossen', iconName: 'CheckCircle2' },
+                  tilted: { color: '#f59e0b', label: 'Gekippt',      iconName: 'TriangleAlert' },
+                  open:   { color: '#ef4444', label: 'Offen',        iconName: 'XCircle' },
+                };
+
+                const renderStateSection = (st: 'closed' | 'tilted' | 'open', stateLabel: string) => {
+                  const d = WC_DEFAULTS[st];
+                  const currentType   = (o[`${st}Type`]   as 'icon' | 'base64') ?? 'icon';
+                  const currentIcon   =  o[`${st}Icon`]   as string | undefined;
+                  const currentColor  = (o[`${st}Color`]  as string) || d.color;
+                  const currentLabel  = (o[`${st}Label`]  as string) ?? d.label;
+                  const currentBase64 =  o[`${st}Base64`] as string | undefined;
+                  const CurrentIcon   = currentIcon
+                    ? getWidgetIcon(currentIcon, (() => null) as unknown as import('lucide-react').LucideIcon)
+                    : null;
+
+                  return (
+                    <div key={st} className="space-y-2">
+                      <p className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>{stateLabel}</p>
+                      {/* Type selector */}
+                      <div className="flex gap-1">
+                        {(['icon', 'base64'] as const).map(btnType => (
+                          <button key={btnType} onClick={() => setO({ [`${st}Type`]: btnType })}
+                            className="flex-1 text-[10px] py-1 rounded-lg transition-colors"
+                            style={{
+                              background: currentType === btnType ? 'var(--accent)' : 'var(--app-bg)',
+                              color: currentType === btnType ? '#fff' : 'var(--text-secondary)',
+                              border: `1px solid ${currentType === btnType ? 'var(--accent)' : 'var(--app-border)'}`,
+                            }}>
+                            {btnType === 'icon' ? 'Icon' : 'Bild'}
+                          </button>
+                        ))}
+                      </div>
+                      {/* Icon + color */}
+                      {currentType === 'icon' && (
+                        <div className="flex gap-1 items-start">
+                          <div className="flex-1 min-w-0">
+                            <button
+                              onClick={() => setWcIconPickerState(st)}
+                              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+                              style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}>
+                              {CurrentIcon
+                                ? <CurrentIcon size={14} style={{ flexShrink: 0, color: currentColor }} />
+                                : <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />}
+                              <span className="flex-1 truncate text-[11px]"
+                                style={{ color: currentIcon ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                {currentIcon ?? `Standard (${d.iconName})`}
+                              </span>
+                            </button>
+                            {wcIconPickerState === st && (
+                              <IconPickerModal
+                                current={currentIcon ?? ''}
+                                onSelect={(name) => { setO({ [`${st}Icon`]: name || undefined }); setWcIconPickerState(null); }}
+                                onClose={() => setWcIconPickerState(null)}
+                              />
+                            )}
+                          </div>
+                          <input type="color" value={currentColor}
+                            onChange={(e) => setO({ [`${st}Color`]: e.target.value })}
+                            title="Farbe"
+                            className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
+                            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }} />
+                        </div>
+                      )}
+                      {/* Base64 image */}
+                      {currentType === 'base64' && (
+                        <div className="space-y-1.5">
+                          <input type="file" accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const reader = new FileReader();
+                              reader.onload = () => setO({ [`${st}Base64`]: reader.result as string });
+                              reader.readAsDataURL(file);
+                            }}
+                            className="w-full text-[11px] cursor-pointer"
+                            style={{ color: 'var(--text-secondary)' }} />
+                          <textarea
+                            rows={2}
+                            value={currentBase64 ?? ''}
+                            onChange={(e) => {
+                              const v = e.target.value.trim();
+                              setO({ [`${st}Base64`]: v || undefined });
+                            }}
+                            placeholder="oder data:image/… einfügen"
+                            className="w-full text-[10px] rounded-lg px-2.5 py-1.5 focus:outline-none resize-none font-mono"
+                            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }} />
+                          {currentBase64 && (
+                            <div className="flex items-center gap-2">
+                              <img src={currentBase64}
+                                style={{ width: 32, height: 32, objectFit: 'contain', border: '1px solid var(--app-border)', borderRadius: 4 }}
+                                alt="" />
+                              <button onClick={() => setO({ [`${st}Base64`]: undefined })}
+                                className="text-[10px] hover:opacity-70"
+                                style={{ color: 'var(--accent-red, #ef4444)' }}>
+                                Entfernen
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {/* Label */}
+                      <input type="text" value={currentLabel}
+                        onChange={(e) => setO({ [`${st}Label`]: e.target.value })}
+                        placeholder={d.label}
+                        className="w-full text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
+                        style={wcInputStyle} />
+                    </div>
+                  );
+                };
+
+                const iconSize = (o.iconSize as number) || 36;
+
+                return (
+                  <>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Größe</label>
+                        <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{iconSize} px</span>
+                      </div>
+                      <input type="range" min={16} max={512} step={4} value={iconSize}
+                        onChange={(e) => setO({ iconSize: Number(e.target.value) })}
+                        className="w-full h-1"
+                        style={{ accentColor: 'var(--accent)' }} />
+                    </div>
+                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                    {renderStateSection('closed', 'Geschlossen')}
+                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                    {renderStateSection('tilted', 'Gekippt')}
+                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                    {renderStateSection('open', 'Offen')}
                   </>
                 );
               })()}

@@ -6,9 +6,27 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 
-// ─── state helpers ────────────────────────────────────────────────────────────
+// ─── types ────────────────────────────────────────────────────────────────────
 
 type ContactState = 'closed' | 'tilted' | 'open';
+
+export type StateCfg = {
+  type: 'icon' | 'base64';
+  icon?: string;
+  color: string;
+  base64?: string;
+  label: string;
+};
+
+// ─── fallbacks ────────────────────────────────────────────────────────────────
+
+export const WC_FALLBACK: Record<ContactState, { Icon: typeof CheckCircle2; color: string; label: string }> = {
+  closed: { Icon: CheckCircle2,  color: '#22c55e', label: 'Geschlossen' },
+  tilted: { Icon: TriangleAlert, color: '#f59e0b', label: 'Gekippt'     },
+  open:   { Icon: XCircle,       color: '#ef4444', label: 'Offen'       },
+};
+
+// ─── state helpers ────────────────────────────────────────────────────────────
 
 function resolveState(value: unknown): ContactState {
   if (typeof value === 'boolean') return value ? 'open' : 'closed';
@@ -26,23 +44,39 @@ function resolveState(value: unknown): ContactState {
   return 'open';
 }
 
-const STATE_LABEL: Record<ContactState, string> = {
-  closed: 'Geschlossen',
-  tilted: 'Gekippt',
-  open: 'Offen',
-};
+export function getWcCfg(o: Record<string, unknown>, st: ContactState): StateCfg {
+  const fb = WC_FALLBACK[st];
+  return {
+    type:   (o[`${st}Type`]   as 'icon' | 'base64') ?? 'icon',
+    icon:    o[`${st}Icon`]   as string | undefined,
+    color:  (o[`${st}Color`]  as string) || fb.color,
+    base64:  o[`${st}Base64`] as string | undefined,
+    label:  (o[`${st}Label`]  as string) || fb.label,
+  };
+}
 
-const STATE_COLOR: Record<ContactState, string> = {
-  closed: 'var(--accent-green)',
-  tilted: '#f59e0b',
-  open: 'var(--accent-red, #ef4444)',
-};
+// ─── StateDisplay ─────────────────────────────────────────────────────────────
 
-function StateIcon({ state, size, customIcon }: { state: ContactState; size: number; customIcon?: string }) {
-  const color = STATE_COLOR[state];
-  const fallback = state === 'closed' ? CheckCircle2 : state === 'tilted' ? TriangleAlert : XCircle;
-  const Icon = getWidgetIcon(customIcon, fallback);
-  return <Icon size={size} style={{ color, flexShrink: 0 }} />;
+function StateDisplay({
+  cfg,
+  fallback: Fallback,
+  size,
+}: {
+  cfg: StateCfg;
+  fallback: typeof CheckCircle2;
+  size: number;
+}) {
+  if (cfg.type === 'base64' && cfg.base64) {
+    return (
+      <img
+        src={cfg.base64}
+        style={{ width: size, height: size, objectFit: 'contain', flexShrink: 0 }}
+        alt=""
+      />
+    );
+  }
+  const Icon = getWidgetIcon(cfg.icon, Fallback);
+  return <Icon size={size} style={{ color: cfg.color, flexShrink: 0 }} />;
 }
 
 // ─── widget ───────────────────────────────────────────────────────────────────
@@ -51,21 +85,22 @@ export function WindowContactWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
 
   const state = resolveState(value);
-  const stateColor = STATE_COLOR[state];
-  const label = STATE_LABEL[state];
   const layout = config.layout ?? 'default';
   const o = config.options ?? {};
   const showTitle = o.showTitle !== false;
   const showLabel = o.showLabel !== false;
-  const customIcon = o.icon as string | undefined;
+  const iconSize  = (o.iconSize as number) || 36;
+
+  const cfg = getWcCfg(o, state);
+  const fb  = WC_FALLBACK[state];
 
   if (layout === 'custom') return (
     <CustomGridView
       config={config}
-      value={label}
+      value={cfg.label}
       extraFields={{
-        label:  label,
-        open:   state === 'open' ? 'Ja' : 'Nein',
+        label:  cfg.label,
+        open:   state === 'open'   ? 'Ja' : 'Nein',
         tilted: state === 'tilted' ? 'Ja' : 'Nein',
         closed: state === 'closed' ? 'Ja' : 'Nein',
       }}
@@ -78,17 +113,13 @@ export function WindowContactWidget({ config }: WidgetProps) {
       <div className="w-full h-full flex flex-col items-center justify-center gap-2 rounded-widget"
         style={{
           position: 'relative',
-          background: state === 'closed'
-            ? 'linear-gradient(135deg, var(--accent-green), color-mix(in srgb, var(--accent-green) 60%, black))'
-            : state === 'tilted'
-              ? 'linear-gradient(135deg, #f59e0b, color-mix(in srgb, #f59e0b 60%, black))'
-              : 'linear-gradient(135deg, var(--accent-red, #ef4444), color-mix(in srgb, var(--accent-red, #ef4444) 60%, black))',
-          border: `2px solid ${stateColor}`,
+          background: `linear-gradient(135deg, ${cfg.color}, color-mix(in srgb, ${cfg.color} 60%, black))`,
+          border: `2px solid ${cfg.color}`,
         }}>
-        <StateIcon state={state} size={36} customIcon={customIcon} />
+        <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />
         <div className="text-center">
           {showTitle && <p className="font-bold text-sm" style={{ color: '#fff' }}>{config.title}</p>}
-          {showLabel && <p className="text-xs opacity-80" style={{ color: '#fff' }}>{label}</p>}
+          {showLabel && <p className="text-xs opacity-80" style={{ color: '#fff' }}>{cfg.label}</p>}
         </div>
         <StatusBadges config={config} />
       </div>
@@ -99,7 +130,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
   if (layout === 'compact') {
     return (
       <div className="flex items-center gap-3 h-full" style={{ position: 'relative' }}>
-        <StateIcon state={state} size={18} customIcon={customIcon} />
+        <StateDisplay cfg={cfg} fallback={fb.Icon} size={18} />
         {showTitle && (
           <span className="flex-1 text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
             {config.title}
@@ -108,8 +139,8 @@ export function WindowContactWidget({ config }: WidgetProps) {
         {!showTitle && <span className="flex-1" />}
         {showLabel && (
           <span className="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
-            style={{ background: `${stateColor}22`, color: stateColor, border: `1px solid ${stateColor}55` }}>
-            {label}
+            style={{ background: `${cfg.color}22`, color: cfg.color, border: `1px solid ${cfg.color}55` }}>
+            {cfg.label}
           </span>
         )}
         <StatusBadges config={config} />
@@ -121,8 +152,8 @@ export function WindowContactWidget({ config }: WidgetProps) {
   if (layout === 'minimal') {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-1" style={{ position: 'relative' }}>
-        <StateIcon state={state} size={36} customIcon={customIcon} />
-        {showLabel && <span className="text-xs font-medium" style={{ color: stateColor }}>{label}</span>}
+        <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />
+        {showLabel && <span className="text-xs font-medium" style={{ color: cfg.color }}>{cfg.label}</span>}
         {showTitle && <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>}
         <StatusBadges config={config} />
       </div>
@@ -136,11 +167,11 @@ export function WindowContactWidget({ config }: WidgetProps) {
     <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
       {showTitle && (
         <div className="flex items-center gap-2">
-          <StateIcon state={state} size={14} customIcon={customIcon} />
+          <StateDisplay cfg={cfg} fallback={fb.Icon} size={14} />
           <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
         </div>
       )}
-      {showLabel && <span className="text-2xl font-bold" style={{ color: stateColor }}>{label}</span>}
+      {showLabel && <span className="text-2xl font-bold" style={{ color: cfg.color }}>{cfg.label}</span>}
       <StatusBadges config={config} />
     </div>
   );
