@@ -257,7 +257,7 @@ export const useDashboardStore = create<DashboardState>()(
       setLayoutSlug: (id, slug) =>
         set((s) => ({ layouts: patchLayout(s.layouts, id, (l) => ({ ...l, slug })) })),
 
-      setActiveLayout: (id) => set({ activeLayoutId: id }),
+      setActiveLayout: (id) => { set({ activeLayoutId: id }); flushKey('aura-dashboard'); },
 
       // ── Tab CRUD ───────────────────────────────────────────────────────────
 
