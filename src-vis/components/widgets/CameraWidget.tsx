@@ -586,9 +586,11 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
   }, [wakeUpDp, wakeUpMode]);
 
   useEffect(() => {
-    if (!wakeUpDp || !streamUrl) { setStreamReady(true); return; }
-    // Wake-up DP is configured → never auto-start; explicitly clear any stale streamReady=true
-    // that may have been set during an earlier render when wakeUpDp/streamUrl were not yet loaded.
+    // No wake-up DP + URL present → stream always ready (no on-demand control needed).
+    if (!wakeUpDp && streamUrl) { setStreamReady(true); return; }
+    // URL missing or wake-up DP configured but URL not yet loaded → ensure not ready.
+    if (!streamUrl || !wakeUpDp) { setStreamReady(false); return; }
+    // Both wake-up DP and URL are present → use wake-up mode.
     if (wakeUpMode !== 'auto') { setStreamReady(false); return; }
     doWake();
     return () => doSleep();
