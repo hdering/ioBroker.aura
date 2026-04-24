@@ -175,6 +175,12 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.5.2 (2026-04-24)
+- Fix(group): copying GROUP widgets no longer causes QuotaExceededError or stuck save button (children moved to separate `aura-group-defs` store)
+- Fix(dashboard): switching layouts no longer spuriously activates the save button
+- Fix(sync): prevent data loss when ioBroker has config data but localStorage is empty on first connect
+- Feat(backup): automatic rolling backup to `aura.0.config.dashboard_backup` after every save; configurable count (1–20) and restore UI in admin settings
+
 ### 0.5.1 (2026-04-24)
 - Fix(camera): remove on-mount reset of wake-up DP to prevent spurious stream starts via go2rtc RTSP reconnects
 

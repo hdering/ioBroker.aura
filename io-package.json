@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.1",
+    "version": "0.5.2",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.2": {
+        "en": "Fix: copying GROUP widgets no longer causes QuotaExceededError or stuck save button (children moved to separate store); layout switch no longer activates save button; prevent data loss when localStorage is empty on first connect; feat: automatic rolling backup to ioBroker after every save with restore UI",
+        "de": "Fix: Kopieren von GROUP-Widgets verursacht keine QuotaExceededError mehr (Kinder in separaten Store ausgelagert); Layoutwechsel markiert Speichern nicht mehr als geändert; Datenverlust bei leerem localStorage beim ersten Verbinden behoben; Neu: automatisches Rolling-Backup in ioBroker nach jedem Speichern mit Wiederherstellungs-UI",
+        "ru": "Исправление: копирование GROUP-виджетов больше не вызывает QuotaExceededError (дочерние элементы перенесены в отдельное хранилище); переключение макета больше не активирует кнопку сохранения; предотвращена потеря данных при пустом localStorage при первом подключении; новое: автоматическое ротирующееся резервное копирование в ioBroker после каждого сохранения с UI восстановления",
+        "pt": "Correção: copiar widgets GROUP não causa mais QuotaExceededError (filhos movidos para store separado); trocar layout não ativa mais o botão salvar; evitada perda de dados quando localStorage está vazio na primeira conexão; novo: backup automático rotativo no ioBroker após cada save com UI de restauração",
+        "nl": "Fix: kopiëren van GROUP-widgets veroorzaakt geen QuotaExceededError meer (kinderen verplaatst naar aparte store); layoutwissel activeert opslaan niet meer; dataverlies voorkomen bij lege localStorage bij eerste verbinding; nieuw: automatische rolling backup naar ioBroker na elke opslag met herstel-UI",
+        "fr": "Correction: la copie des widgets GROUP ne cause plus QuotaExceededError (enfants déplacés dans un store séparé); le changement de mise en page n'active plus le bouton de sauvegarde; perte de données évitée quand localStorage est vide à la première connexion; nouveau: sauvegarde automatique rotative vers ioBroker après chaque sauvegarde avec UI de restauration",
+        "it": "Fix: copiare widget GROUP non causa più QuotaExceededError (figli spostati in store separato); il cambio layout non attiva più il pulsante salva; evitata perdita di dati quando localStorage è vuoto alla prima connessione; nuovo: backup automatico rotante su ioBroker dopo ogni salvataggio con UI di ripristino",
+        "es": "Corrección: copiar widgets GROUP ya no causa QuotaExceededError (hijos movidos a store separado); el cambio de layout ya no activa el botón guardar; evitada pérdida de datos cuando localStorage está vacío en la primera conexión; nuevo: copia de seguridad automática rotativa en ioBroker tras cada guardado con UI de restauración",
+        "pl": "Poprawka: kopiowanie widgetów GROUP nie powoduje już QuotaExceededError (dzieci przeniesione do osobnego store); zmiana układu nie aktywuje już przycisku zapisu; zapobieganie utracie danych gdy localStorage jest pusty przy pierwszym połączeniu; nowe: automatyczny rolling backup do ioBroker po każdym zapisie z UI przywracania",
+        "uk": "Виправлення: копіювання GROUP-віджетів більше не викликає QuotaExceededError (дочірні елементи перенесено до окремого сховища); перемикання макета більше не активує кнопку збереження; запобігання втраті даних при порожньому localStorage при першому підключенні; нове: автоматичне ротаційне резервне копіювання в ioBroker після кожного збереження з UI відновлення",
+        "zh-cn": "修复：复制GROUP组件不再导致QuotaExceededError（子元素已移至独立store）；切换布局不再激活保存按钮；修复首次连接时localStorage为空导致数据丢失；新增：每次保存后自动循环备份至ioBroker，支持可配置数量和恢复界面"
+      },
       "0.5.1": {
         "en": "Fix(camera): remove on-mount reset of wake-up DP to prevent spurious stream starts via go2rtc RTSP reconnects",
         "de": "Fix(Kamera): Reset des Wake-up-Datenpunkts beim Mount entfernt, um ungewollte Stream-Starts durch go2rtc RTSP-Wiederverbindungen zu verhindern",
@@ -183,19 +196,6 @@
         "pl": "Lista dynamiczna: adapter jako filtr odkrywania; filtr wielokrotnego wyboru adapterów dla list statycznych i dynamicznych; sortowanie według nazwy lub wartości (rosnąco/malejąco)",
         "uk": "Динамічний список: адаптер як фільтр виявлення; мультиселект-фільтр адаптерів для статичних та динамічних списків; сортування за назвою або значенням (за зростанням/спаданням)",
         "zh-cn": "动态列表：适配器作为发现过滤器；静态和动态列表的适配器多选过滤器；按名称或值排序（升序/降序）"
-      },
-      "0.4.94": {
-        "en": "Feat(calendar): configurable icon for important appointments (custom icon picker) and option to hide the icon entirely",
-        "de": "Neu(Kalender): konfigurierbares Icon für wichtige Termine (Icon-Auswahl) und Option zum vollständigen Ausblenden des Icons",
-        "ru": "Новое(Календарь): настраиваемая иконка для важных событий (выбор иконки) и возможность полностью скрыть иконку",
-        "pt": "Novo(Calendário): ícone configurável para compromissos importantes (seletor de ícones) e opção para ocultar o ícone completamente",
-        "nl": "Nieuw(Kalender): configureerbaar icoon voor belangrijke afspraken (icoonkiezer) en optie om het icoon volledig te verbergen",
-        "fr": "Nouveau(Calendrier): icône configurable pour les rendez-vous importants (sélecteur d'icônes) et option pour masquer complètement l'icône",
-        "it": "Nuovo(Calendario): icona configurabile per gli appuntamenti importanti (selettore icone) e opzione per nascondere completamente l'icona",
-        "es": "Nuevo(Calendario): icono configurable para citas importantes (selector de iconos) y opción para ocultar el icono completamente",
-        "pl": "Nowe(Kalendarz): konfigurowalna ikona dla ważnych terminów (wybór ikony) i opcja całkowitego ukrycia ikony",
-        "uk": "Нове(Календар): налаштовувана іконка для важливих подій (вибір іконки) та опція повного приховування іконки",
-        "zh-cn": "新增（日历）：可为重要日程配置自定义图标（图标选择器），并可选择完全隐藏图标"
       }
     }
   },
