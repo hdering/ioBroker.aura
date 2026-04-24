@@ -41,7 +41,8 @@ export type WidgetType =
   | 'binarysensor'
   | 'stateimage'
   | 'echartsPreset'
-  | 'html';
+  | 'html'
+  | 'datepicker';
 
 export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda' | 'flow' | 'battery' | 'production' | 'consumption' | 'loadpoints' | 'custom' | 'count';
 

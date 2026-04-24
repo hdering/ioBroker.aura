@@ -13,7 +13,7 @@
 import {
   Zap, TrendingUp, SlidersHorizontal, Thermometer, BarChart2, List,
   Clock, CalendarDays, Heading2, Layers2, Cloud, Gauge, Camera, ImageIcon, MonitorDot, Droplets, Truck, AlignJustify, Table2,
-  DoorOpen, ShieldAlert, ToggleRight, LineChart, Code2,
+  DoorOpen, ShieldAlert, ToggleRight, LineChart, Code2, CalendarClock,
   type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -272,6 +272,14 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     defaultW: 10,           defaultH: 5,
     addMode: 'free',        widgetGroup: 'special',
     mock: { t: 'HTML', v: '' },
+  },
+  {
+    type: 'datepicker',
+    label: 'Datumswähler',  shortLabel: 'Datum',
+    Icon: CalendarClock,    iconName: 'CalendarClock', color: '#6366f1',
+    defaultW: 10,           defaultH: 4,
+    addMode: 'datapoint',   widgetGroup: 'special',
+    mock: { t: 'Datum', v: '01.01.2025' },
   },
 ];
 

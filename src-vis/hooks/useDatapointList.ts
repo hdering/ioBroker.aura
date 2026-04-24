@@ -80,6 +80,8 @@ async function loadAll(): Promise<DatapointEntry[]> {
       enabledPrefixes.add(id.slice('system.adapter.'.length));
     }
   }
+  // 0_userdata.0 is the ioBroker user data namespace — not an adapter instance but always present
+  enabledPrefixes.add('0_userdata.0');
 
   // Build parent name map: id → resolved name (devices first, then channels so channels win)
   const parentNames = new Map<string, string>();

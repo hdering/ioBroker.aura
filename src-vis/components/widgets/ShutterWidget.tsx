@@ -134,6 +134,7 @@ export function ShutterWidget({ config }: WidgetProps) {
   const showValue    = opts.showValue    !== false;
   const showControls = opts.showControls !== false;
   const showSlider   = opts.showSlider   !== false;
+  const iconSize     = (opts.iconSize as number) || 36;
   const customIconName = opts.icon as string | undefined;
   const CustomIcon = customIconName ? getWidgetIcon(customIconName, Square) : null;
 
@@ -165,8 +166,8 @@ export function ShutterWidget({ config }: WidgetProps) {
         }}
         extraComponents={{
           icon: CustomIcon
-            ? <CustomIcon size={20} style={{ color: accentColor, flexShrink: 0 }} />
-            : <ShutterViz closedFrac={closedFrac} accentColor={accentColor} isMoving={isMoving} style={{ width: 20, height: 20, flexShrink: 0 }} />,
+            ? <CustomIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />
+            : <ShutterViz closedFrac={closedFrac} accentColor={accentColor} isMoving={isMoving} style={{ width: iconSize, height: iconSize, flexShrink: 0 }} />,
           'btn-up':        <button className="nodrag" style={btnStyle} onClick={openFully}><ChevronUp   size={14} /></button>,
           'btn-stop':      <button className="nodrag" style={btnStyle} onClick={stop}><Square      size={14} /></button>,
           'btn-down':      <button className="nodrag" style={btnStyle} onClick={closeFully}><ChevronDown size={14} /></button>,
@@ -206,9 +207,9 @@ export function ShutterWidget({ config }: WidgetProps) {
     return (
       <div className="flex items-center gap-2 h-full" style={{ position: 'relative' }}>
         {CustomIcon
-          ? <CustomIcon size={16} style={{ color: accentColor, flexShrink: 0 }} />
+          ? <CustomIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />
           : <ShutterViz closedFrac={closedFrac} accentColor={accentColor} isMoving={isMoving}
-              style={{ width: 22, height: 22, flexShrink: 0 }} />
+              style={{ width: iconSize, height: iconSize, flexShrink: 0 }} />
         }
         {showTitle && <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>}
         {!showTitle && <span className="flex-1" />}
@@ -260,7 +261,7 @@ export function ShutterWidget({ config }: WidgetProps) {
       {showTitle && (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 min-w-0">
-            {CustomIcon && <CustomIcon size={13} style={{ color: accentColor, flexShrink: 0 }} />}
+            {CustomIcon && <CustomIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />}
             <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
           </div>
           {isMoving && <span className="text-[10px] animate-pulse shrink-0" style={{ color: 'var(--accent-yellow)' }}>

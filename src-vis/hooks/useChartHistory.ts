@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getObjectDirect, getHistoryDirect, type HistoryEntry } from './useIoBroker';
+import { getObjectDirect, getHistoryDirect, getStateDirect, type HistoryEntry } from './useIoBroker';
 import type { ioBrokerState } from '../types';
 
 export type ChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d' | 'custom';
@@ -76,7 +76,16 @@ export function useChartHistory(
     });
   }, [datapointId]);
 
-  // ── 2. Verlaufsdaten laden ────────────────────────────────────────────────
+  // ── 2. Echten aktuellen Wert direkt vom Datenpunkt laden ─────────────────
+  useEffect(() => {
+    if (!datapointId || !connected) return;
+    getStateDirect(datapointId).then((state) => {
+      if (!mountedRef.current) return;
+      if (typeof state?.val === 'number') setCurrent(state.val);
+    });
+  }, [datapointId, connected]);
+
+  // ── 3. Verlaufsdaten laden ────────────────────────────────────────────────
   useEffect(() => {
     if (!datapointId || !historyInstance || !connected) return;
     setLoading(true);
@@ -100,14 +109,13 @@ export function useChartHistory(
         .map((d) => ({ t: d.ts, v: d.val as number }))
         .sort((a, b) => a.t - b.t);
       setHistory(points);
-      if (points.length > 0) setCurrent(points[points.length - 1].v);
       setLoading(false);
     }).catch(() => {
       if (mountedRef.current) setLoading(false);
     });
   }, [datapointId, historyInstance, timeRange, customRangeMs, connected]);
 
-  // ── 3. Live-Updates abonnieren ────────────────────────────────────────────
+  // ── 4. Live-Updates abonnieren ────────────────────────────────────────────
   useEffect(() => {
     if (!datapointId || !connected) return;
     const cutoffMs = timeRange === 'custom'

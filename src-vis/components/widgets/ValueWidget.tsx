@@ -21,6 +21,7 @@ export function ValueWidget({ config }: WidgetProps) {
   const showTitle = o.showTitle !== false;
   const showValue = o.showValue !== false;
   const showUnit  = o.showUnit  !== false;
+  const iconSize  = (o.iconSize as number) || 36;
 
   const displayValue = value === null ? '–'
     : typeof value === 'number' ? value.toLocaleString('de-DE')
@@ -51,7 +52,7 @@ export function ValueWidget({ config }: WidgetProps) {
       unit={unit}
       extraFields={{ unit: unit ?? '', battery, reach }}
       extraComponents={{
-        icon:            <DefaultIcon size={20} style={{ color: accentColor, flexShrink: 0 }} />,
+        icon:            <DefaultIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />,
         'battery-icon':  batteryIcon,
         'reach-icon':    reachIcon,
         'status-badges': statusBadges,
@@ -78,7 +79,7 @@ export function ValueWidget({ config }: WidgetProps) {
         <div className="flex flex-col justify-between flex-1">
           {showTitle && (
             <div className="flex items-center gap-2">
-              <CardIcon size={14} style={{ color: accentColor }} />
+              <CardIcon size={iconSize} style={{ color: accentColor }} />
               <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
             </div>
           )}
@@ -100,7 +101,7 @@ export function ValueWidget({ config }: WidgetProps) {
       <div className="flex items-center justify-between h-full gap-2" style={{ position: 'relative' }}>
         {showTitle && (
           <div className="flex items-center gap-2 min-w-0">
-            <CompactIcon size={16} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+            <CompactIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
             <span className="text-sm truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>
           </div>
         )}
@@ -140,7 +141,7 @@ export function ValueWidget({ config }: WidgetProps) {
     <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
       {showTitle && (
         <div className="flex items-center gap-2" style={titleStyle}>
-          <DefaultIcon size={14} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+          <DefaultIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
           <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{config.title}</p>
         </div>
       )}

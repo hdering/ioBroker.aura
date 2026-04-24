@@ -58,6 +58,7 @@ import { EChartsPresetConfig } from '../config/EChartsPresetConfig';
 import { JsonTableConfig } from '../config/JsonTableConfig';
 import { HtmlWidget } from '../widgets/HtmlWidget';
 import { HtmlConfig } from '../config/HtmlConfig';
+import { DatePickerWidget, FORMAT_LABELS, type DateOutputFormat } from '../widgets/DatePickerWidget';
 import { IconPickerModal } from '../config/IconPickerModal';
 
 // Stable empty array – avoids creating a new reference on every render when no conditions are set
@@ -93,6 +94,7 @@ function getWidgetMap() {
     binarysensor:  BinarySensorWidget,
     stateimage:    StateImageWidget,
     echartsPreset: EChartsPresetWidget,
+    datepicker:    DatePickerWidget,
   } as const;
 }
 
@@ -405,10 +407,14 @@ function ChartHistoryConfig({ config, onConfigChange }: { config: WidgetConfig; 
     setChecking(true);
     getObjectDirect(dp).then((obj) => {
       const custom = obj?.common?.custom;
-      setAdapters(custom ? detectHistoryAdapters(custom as Record<string, { enabled?: boolean }>) : []);
+      const detected = custom ? detectHistoryAdapters(custom as Record<string, { enabled?: boolean }>) : [];
+      setAdapters(detected);
       setChecking(false);
+      if (detected.length === 1 && !o.historyInstance) {
+        set({ historyInstance: detected[0].instance });
+      }
     }).catch(() => setChecking(false));
-  }, [dp]);
+  }, [dp]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedInstance  = o.historyInstance as string | undefined;
   const selectedRange     = (o.historyRange as ChartTimeRange | undefined) ?? '24h';
@@ -504,6 +510,16 @@ function ChartHistoryConfig({ config, onConfigChange }: { config: WidgetConfig; 
               className="rounded"
             />
             <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.history.lockRange')}</span>
+          </label>
+          {/* Durchschnittslinie */}
+          <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={(o.showAverage as boolean | undefined) ?? false}
+              onChange={(e) => set({ showAverage: e.target.checked })}
+              className="rounded"
+            />
+            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Durchschnittslinie anzeigen</span>
           </label>
         </div>
       )}
@@ -1585,7 +1601,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'minimal', label: t('wf.edit.layout.minimal') },
                 ...(config.type === 'calendar' ? [{ value: 'agenda', label: t('wf.edit.layout.agenda') }] : []),
                 ...(config.type === 'autolist' ? [{ value: 'count', label: 'Anzahl' }] : []),
-                ...(!['iframe', 'jsontable', 'html', 'trash', 'header', 'fill', 'list', 'autolist'].includes(config.type) ? [{ value: 'custom', label: 'Custom' }] : []),
+                ...(!['iframe', 'jsontable', 'html', 'trash', 'header', 'fill', 'list', 'autolist', 'datepicker'].includes(config.type) ? [{ value: 'custom', label: 'Custom' }] : []),
                 ...(config.type === 'evcc' ? [
                   { value: 'flow',        label: 'Nur Fluss' },
                   { value: 'battery',     label: 'Nur Batterie' },
@@ -1609,6 +1625,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   case 'weather':       return [{ key: 'showTitle', label: 'Titel' }];
                   case 'windowcontact': return [{ key: 'showTitle', label: 'Titel' }, { key: 'showLabel', label: 'Status-Text' }];
                   case 'binarysensor':  return [{ key: 'showTitle', label: 'Titel' }, { key: 'showLabel', label: 'Status-Text' }];
+                  case 'datepicker':   return [{ key: 'showTitle', label: 'Titel' }, { key: 'showCurrentValue', label: 'Gesetzter Wert' }];
                   case 'stateimage':    return [{ key: 'showTitle', label: 'Titel' }, { key: 'showLabel', label: 'Status-Text' }];
                   case 'chart':         return [{ key: 'showTitle', label: 'Titel' }];
                   case 'echart':        return [{ key: 'showTitle', label: 'Titel' }];
@@ -1741,6 +1758,29 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       onClose={() => setIconPickerOpen(false)}
                     />
                   )}
+                </div>
+              );
+            })()}
+
+            {/* Icon-Größe */}
+            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'evcc', 'weather', 'group'].includes(config.type) && (() => {
+              const o = config.options ?? {};
+              const iconSize = (o.iconSize as number) || 36;
+              const displayIconSize = draftIconSize ?? iconSize;
+              return (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon-Größe</label>
+                    <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{displayIconSize} px</span>
+                  </div>
+                  <input type="range" min={12} max={128} step={4} value={displayIconSize}
+                    onChange={(e) => setDraftIconSize(Number(e.target.value))}
+                    onPointerUp={(e) => {
+                      onConfigChange({ ...config, options: { ...o, iconSize: Number((e.target as HTMLInputElement).value) } });
+                      setDraftIconSize(null);
+                    }}
+                    className="w-full h-1"
+                    style={{ accentColor: 'var(--accent)' }} />
                 </div>
               );
             })()}
@@ -2919,26 +2959,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   );
                 };
 
-                const iconSize = (o.iconSize as number) || 36;
-                const displayIconSize = draftIconSize ?? iconSize;
                 const currentPreset = (o.statePreset as string) ?? 'hmip';
 
                 return (
                   <>
-                    {/* Icon size */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Größe</label>
-                        <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{displayIconSize} px</span>
-                      </div>
-                      <input type="range" min={16} max={512} step={4} value={displayIconSize}
-                        onChange={(e) => setDraftIconSize(Number(e.target.value))}
-                        onPointerUp={(e) => { setO({ iconSize: Number((e.target as HTMLInputElement).value) }); setDraftIconSize(null); }}
-                        className="w-full h-1"
-                        style={{ accentColor: 'var(--accent)' }} />
-                    </div>
-                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
-
                     {/* Preset / value mapping */}
                     <div className="space-y-2">
                       <div>
@@ -3140,24 +3164,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   );
                 };
 
-                const iconSize = (o.iconSize as number) || 48;
-                const displayIconSize = draftIconSize ?? iconSize;
-
                 return (
                   <>
-                    {/* Icon size */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Größe</label>
-                        <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{displayIconSize} px</span>
-                      </div>
-                      <input type="range" min={16} max={512} step={4} value={displayIconSize}
-                        onChange={(e) => setDraftIconSize(Number(e.target.value))}
-                        onPointerUp={(e) => { setO({ iconSize: Number((e.target as HTMLInputElement).value) }); setDraftIconSize(null); }}
-                        className="w-full h-1"
-                        style={{ accentColor: 'var(--accent)' }} />
-                    </div>
-                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
                     {renderStateSection('true', 'Wahr (true)')}
                     <div className="h-px" style={{ background: 'var(--app-border)' }} />
                     {renderStateSection('false', 'Falsch (false)')}
@@ -3447,7 +3455,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               })()}
 
               {/* ── Custom-Grid editor (all widgets except excluded) ── */}
-              {!['iframe', 'jsontable', 'html', 'trash', 'header', 'fill', 'camera'].includes(config.type) && (config.layout ?? 'default') === 'custom' && (() => {
+              {!['iframe', 'jsontable', 'html', 'trash', 'header', 'fill', 'camera', 'datepicker'].includes(config.type) && (config.layout ?? 'default') === 'custom' && (() => {
                 const CELL_LABELS: Record<string, string> = {
                   empty: '–', title: 'Titel', value: 'Wert', unit: 'Einheit', text: 'Text', dp: 'DP', field: 'Feld', component: 'Aktion',
                 };
@@ -3502,8 +3510,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     </div>
 
                     {/* Per-cell editor */}
-                    {sel !== null && selCell && (
-                      <div className="space-y-2 pt-2" style={{ borderTop: '1px solid var(--app-border)' }}>
+                    <div className="space-y-2 pt-2" style={{ borderTop: '1px solid var(--app-border)', minHeight: 48 }}>
+                      {sel !== null && selCell ? (<>
                         <p className="text-[10px] font-medium" style={{ color: 'var(--text-secondary)' }}>
                           Zeile {Math.floor(sel / 3) + 1}, Spalte {(sel % 3) + 1} · CSS: .aura-custom-cell-{sel}
                         </p>
@@ -3937,8 +3945,12 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             </div>
                           </>
                         )}
-                      </div>
-                    )}
+                      </>) : (
+                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.45 }}>
+                          Zelle auswählen, um sie zu konfigurieren …
+                        </p>
+                      )}
+                    </div>
 
                     {/* Reset grid */}
                     <button
@@ -3949,6 +3961,42 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       Raster zurücksetzen
                     </button>
                   </div>
+                );
+              })()}
+
+              {/* ── Datumswähler ── */}
+              {config.type === 'datepicker' && (() => {
+                const o = config.options ?? {};
+                const set = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const fmt = (o.outputFormat as DateOutputFormat) ?? 'timestamp_ms';
+                const inputCls2 = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
+                const inputSty2 = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                return (
+                  <>
+                    {/* Uhrzeit anzeigen */}
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Uhrzeit-Eingabe anzeigen</label>
+                      <button
+                        onClick={() => set({ showTime: !o.showTime })}
+                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                        style={{ background: o.showTime ? 'var(--accent)' : 'var(--app-border)' }}
+                      >
+                        <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                          style={{ left: o.showTime ? '14px' : '2px' }} />
+                      </button>
+                    </div>
+                    {/* Ausgabeformat */}
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Ausgabeformat</label>
+                      <select value={fmt} onChange={(e) => set({ outputFormat: e.target.value })}
+                        className={inputCls2} style={inputSty2}>
+                        {(Object.entries(FORMAT_LABELS) as [DateOutputFormat, string][]).map(([key, label]) => (
+                          <option key={key} value={key}>{label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
                 );
               })()}
 

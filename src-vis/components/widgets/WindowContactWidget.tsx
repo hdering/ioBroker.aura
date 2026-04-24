@@ -150,6 +150,11 @@ export function WindowContactWidget({ config }: WidgetProps) {
       </span>
     ) : null;
 
+  // Combined row: lock + battery + reach (only configured icons)
+  const statusBadges = (lockIcon || batteryIcon || reachIcon)
+    ? <span className="flex items-center gap-0.5">{lockIcon}{batteryIcon}{reachIcon}</span>
+    : null;
+
   // ── custom layout ─────────────────────────────────────────────────────────
   if (layout === 'custom') return (
     <CustomGridView
@@ -165,10 +170,11 @@ export function WindowContactWidget({ config }: WidgetProps) {
         reach:   reach,
       }}
       extraComponents={{
-        icon:           <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />,
-        'battery-icon': batteryIcon,
-        'reach-icon':   reachIcon,
-        'lock-icon':    lockIcon,
+        icon:            <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />,
+        'battery-icon':  batteryIcon,
+        'reach-icon':    reachIcon,
+        'lock-icon':     lockIcon,
+        'status-badges': statusBadges,
       }}
     />
   );
@@ -196,7 +202,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
   if (layout === 'compact') {
     return (
       <div className="flex items-center gap-3 h-full" style={{ position: 'relative' }}>
-        <StateDisplay cfg={cfg} fallback={fb.Icon} size={18} />
+        <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />
         {showTitle && (
           <span className="flex-1 text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
             {config.title}
@@ -233,7 +239,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
     <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
       {showTitle && (
         <div className="flex items-center gap-2">
-          <StateDisplay cfg={cfg} fallback={fb.Icon} size={14} />
+          <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />
           <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
         </div>
       )}

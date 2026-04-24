@@ -39,8 +39,9 @@ export function BinarySensorWidget({ config }: WidgetProps) {
   const Icon = getWidgetIcon(opts.icon as string | undefined, isActive ? ShieldAlert : CheckCircle2);
   const showTitle = opts.showTitle !== false;
   const showLabel = opts.showLabel !== false;
+  const iconSize  = (opts.iconSize as number) || 36;
 
-  const { battery, reach, batteryIcon, reachIcon } = useStatusFields(config);
+  const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
   if (layout === 'custom') return (
     <CustomGridView
@@ -55,9 +56,10 @@ export function BinarySensorWidget({ config }: WidgetProps) {
         reach,
       }}
       extraComponents={{
-        icon:           <Icon size={20} style={{ color, flexShrink: 0 }} />,
-        'battery-icon': batteryIcon,
-        'reach-icon':   reachIcon,
+        icon:            <Icon size={iconSize} style={{ color, flexShrink: 0 }} />,
+        'battery-icon':  batteryIcon,
+        'reach-icon':    reachIcon,
+        'status-badges': statusBadges,
       }}
     />
   );
@@ -73,7 +75,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
             : 'var(--app-bg)',
           border: `2px solid ${color}`,
         }}>
-        <Icon size={36} style={{ color: isActive ? '#fff' : color }} />
+        <Icon size={iconSize} style={{ color: isActive ? '#fff' : color }} />
         <div className="text-center">
           {showTitle && <p className="font-bold text-sm" style={{ color: isActive ? '#fff' : 'var(--text-primary)' }}>{config.title}</p>}
           {showLabel && <p className="text-xs opacity-80" style={{ color: isActive ? '#fff' : color }}>{label}</p>}
@@ -87,7 +89,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
   if (layout === 'compact') {
     return (
       <div className="flex items-center gap-2 h-full" style={{ position: 'relative' }}>
-        <Icon size={16} style={{ color, flexShrink: 0 }} />
+        <Icon size={iconSize} style={{ color, flexShrink: 0 }} />
         {showTitle && (
           <span className="flex-1 text-sm truncate" style={{ color: 'var(--text-secondary)' }}>
             {config.title}
@@ -109,7 +111,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
   if (layout === 'minimal') {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-1" style={{ position: 'relative' }}>
-        <Icon size={36} style={{ color }} />
+        <Icon size={iconSize} style={{ color }} />
         {showLabel && <span className="text-xs font-medium" style={{ color }}>{label}</span>}
         {showTitle && <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>}
         <StatusBadges config={config} />
@@ -124,7 +126,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
     <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
       {showTitle && (
         <div className="flex items-center gap-2">
-          <Icon size={14} style={{ color, flexShrink: 0 }} />
+          <Icon size={iconSize} style={{ color, flexShrink: 0 }} />
           <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
         </div>
       )}

@@ -572,6 +572,15 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
   }, [streamSecondsLeft]);
 
   // ── Wake-up effects ────────────────────────────────────────────────────────────
+
+  // For non-auto modes: reset the DP to false on mount so a stale true from a
+  // previous session (e.g. browser closed without cleanup) never triggers the camera.
+  useEffect(() => {
+    if (!wakeUpDp || wakeUpMode === 'auto') return;
+    setStateDirect(wakeUpDp, false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wakeUpDp, wakeUpMode]);
+
   useEffect(() => {
     if (!wakeUpDp || !streamUrl) { setStreamReady(true); return; }
     if (wakeUpMode !== 'auto') return;

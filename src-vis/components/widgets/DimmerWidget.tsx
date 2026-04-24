@@ -18,6 +18,7 @@ export function DimmerWidget({ config }: WidgetProps) {
   const showTitle  = o.showTitle  !== false;
   const showValue  = o.showValue  !== false;
   const showSlider = o.showSlider !== false;
+  const iconSize   = (o.iconSize as number) || 36;
 
   const thresholds = o.colorThresholds as Array<[number, string]> | undefined;
   const thresholdColor = useMemo(() => {
@@ -50,7 +51,7 @@ export function DimmerWidget({ config }: WidgetProps) {
         reach,
       }}
       extraComponents={{
-        icon:            <CompactIcon size={20} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }} />,
+        icon:            <CompactIcon size={iconSize} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }} />,
         'battery-icon':  batteryIcon,
         'reach-icon':    reachIcon,
         'status-badges': statusBadges,
@@ -72,7 +73,7 @@ export function DimmerWidget({ config }: WidgetProps) {
       <div className="flex flex-col h-full justify-between" style={{ position: 'relative' }}>
         {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>}
         <div className="flex flex-col items-center gap-3 flex-1 justify-center">
-          <Sun size={40} strokeWidth={1.5}
+          <Sun size={iconSize} strokeWidth={1.5}
             style={{ color: 'var(--accent-yellow)', opacity, filter: level > 0 ? `drop-shadow(0 0 ${level / 10}px var(--accent-yellow))` : 'none', transition: 'all 0.3s' }} />
           {showValue && <span className="text-2xl font-bold" style={{ color: valueColor }}>{level}%</span>}
         </div>
@@ -87,7 +88,7 @@ export function DimmerWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col justify-center h-full gap-1.5" style={{ position: 'relative' }}>
         <div className="flex items-center gap-2">
-          <CompactIcon size={16} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }} />
+          <CompactIcon size={iconSize} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }} />
           {showTitle && <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)' }}>{config.title}</span>}
           {!showTitle && <span className="flex-1" />}
           {showValue && <span className="text-sm font-bold shrink-0" style={{ color: valueColor }}>{level}%</span>}
@@ -119,7 +120,7 @@ export function DimmerWidget({ config }: WidgetProps) {
     <div className="flex flex-col h-full justify-between" style={{ position: 'relative' }}>
       {showTitle && (
         <div className="flex items-center gap-2">
-          <SunDim size={14} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)' }} />
+          <SunDim size={iconSize} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)' }} />
           <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
         </div>
       )}

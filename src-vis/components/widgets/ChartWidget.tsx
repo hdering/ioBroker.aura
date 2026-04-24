@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LineChart, Line, AreaChart, Area, ResponsiveContainer, Tooltip, YAxis, XAxis } from 'recharts';
+import { LineChart, Line, AreaChart, Area, ResponsiveContainer, Tooltip, YAxis, XAxis, ReferenceLine } from 'recharts';
 import { TrendingUp, BarChart2, Loader } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfigStore } from '../../store/configStore';
@@ -37,6 +37,7 @@ export function ChartWidget({ config }: WidgetProps) {
     ? customVal * (customUnit === 'd' ? 86_400_000 : 3_600_000)
     : undefined;
   const lockRange       = o.lockRange === true;
+  const showAverage     = o.showAverage === true;
   const layout          = config.layout ?? 'default';
 
   // ── Frontend-local range selection (starts from admin config, switchable at runtime) ──
@@ -58,6 +59,10 @@ export function ChartWidget({ config }: WidgetProps) {
     subscribe,
     activeCustomMs,
   );
+
+  const avg = showAverage && history.length > 1
+    ? Math.round((history.reduce((sum, p) => sum + p.v, 0) / history.length) * 100) / 100
+    : null;
 
   const tooltipStyle = {
     background:   'var(--app-surface)',
@@ -146,6 +151,10 @@ export function ChartWidget({ config }: WidgetProps) {
                   formatter={(v: number) => `${v.toLocaleString('de-DE')}${unit ? ` ${unit}` : ''}`} />
                 <Area type="monotone" dataKey="v" stroke="var(--accent)" strokeWidth={2}
                   fill="url(#grad)" dot={false} isAnimationActive={false} />
+                {avg !== null && (
+                  <ReferenceLine y={avg} stroke="var(--accent)" strokeDasharray="4 3" strokeWidth={1.5}
+                    label={{ value: `Ø ${avg.toLocaleString('de-DE')}${unit ? ` ${unit}` : ''}`, position: 'insideTopRight', fill: 'var(--accent)', fontSize: 10 }} />
+                )}
               </AreaChart>
             </ResponsiveContainer>
           ) : noData}
@@ -186,6 +195,10 @@ export function ChartWidget({ config }: WidgetProps) {
                 formatter={(v: number) => `${v.toLocaleString('de-DE')}${unit ? ` ${unit}` : ''}`} />
               <Line type="monotone" dataKey="v" stroke="var(--accent)" strokeWidth={2}
                 dot={false} isAnimationActive={false} />
+              {avg !== null && (
+                <ReferenceLine y={avg} stroke="var(--accent)" strokeDasharray="4 3" strokeWidth={1.5}
+                  label={{ value: `Ø ${avg.toLocaleString('de-DE')}${unit ? ` ${unit}` : ''}`, position: 'insideTopRight', fill: 'var(--accent)', fontSize: 10 }} />
+              )}
             </LineChart>
           </ResponsiveContainer>
         ) : noData}

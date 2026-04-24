@@ -184,6 +184,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
   const showActualTemp = o.showActualTemp !== false;
   const showControls   = o.showControls   !== false;
   const ThermoIcon = getWidgetIcon(o.icon as string | undefined, Thermometer);
+  const iconSize   = (o.iconSize as number) || 36;
 
   const target = typeof rawTarget === 'number' ? rawTarget : 20;
   const actual = typeof rawActual === 'number' ? rawActual : null;
@@ -248,7 +249,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
           reach,
         }}
         extraComponents={{
-          icon:            <ThermoIcon size={20} style={{ color: accentColor, flexShrink: 0 }} />,
+          icon:            <ThermoIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />,
           'btn-plus':      <button className="nodrag" style={btnSty} onClick={() => setTemp(target + step)}>+</button>,
           'btn-minus':     <button className="nodrag" style={btnSty} onClick={() => setTemp(target - step)}>−</button>,
           'battery-icon':  batteryIcon,
@@ -309,7 +310,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
     return (
       <>
         <div className={`flex items-center gap-2 h-full ${wrapperCls}`} style={{ position: 'relative' }} onClick={handleClick}>
-          <ThermoIcon size={16} style={{ color: accentColor, flexShrink: 0 }} />
+          <ThermoIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />
           {showTitle && <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)' }}>{displayTitle}</span>}
           {!showTitle && <span className="flex-1" />}
           {showSetpoint && (
@@ -344,7 +345,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
     return (
       <>
         <div className={`flex flex-col items-center justify-center h-full gap-2 ${wrapperCls}`} style={{ position: 'relative' }} onClick={handleClick}>
-          <ThermoIcon size={22} style={{ color: accentColor }} />
+          <ThermoIcon size={iconSize} style={{ color: accentColor }} />
           {showSetpoint && (
             <span className="font-black" style={{ fontSize: 'calc(2.5rem * var(--font-scale, 1))', color: valueColor, lineHeight: 1 }}>
               {target.toFixed(1)}°
@@ -378,7 +379,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
         {showTitle && (
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 min-w-0">
-              <ThermoIcon size={13} style={{ color: accentColor, flexShrink: 0 }} />
+              <ThermoIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />
               <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{displayTitle}</p>
             </div>
             <StatusIcon />
