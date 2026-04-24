@@ -607,10 +607,14 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
     if (!wakeUpDp || !streamUrl || wakeUpMode !== 'onView') return;
     const el = containerRef.current;
     if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) doWake(); else doSleep(); },
-      { threshold: 0.1 },
-    );
+    // Skip the initial callback that fires synchronously when observe() is called.
+    // We only want to react to the widget *entering* the viewport after page load,
+    // not to "it was already visible when the page loaded".
+    let initialFire = true;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (initialFire) { initialFire = false; return; }
+      if (entry.isIntersecting) doWake(); else doSleep();
+    }, { threshold: 0.1 });
     obs.observe(el);
     return () => { obs.disconnect(); doSleep(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
