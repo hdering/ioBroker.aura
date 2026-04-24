@@ -62,7 +62,7 @@ export function StateImageWidget({ config }: WidgetProps) {
 
   const cfg = isActive ? trueCfg : falseCfg;
 
-  const { battery, reach, batteryIcon, reachIcon } = useStatusFields(config);
+  const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
   if (layout === 'custom') return (
     <CustomGridView
@@ -74,9 +74,10 @@ export function StateImageWidget({ config }: WidgetProps) {
         reach,
       }}
       extraComponents={{
-        icon:           <StateDisplay cfg={cfg} size={24} />,
-        'battery-icon': batteryIcon,
-        'reach-icon':   reachIcon,
+        icon:            <StateDisplay cfg={cfg} size={iconSize} />,
+        'battery-icon':  batteryIcon,
+        'reach-icon':    reachIcon,
+        'status-badges': statusBadges,
       }}
     />
   );
@@ -104,7 +105,7 @@ export function StateImageWidget({ config }: WidgetProps) {
   if (layout === 'compact') {
     return (
       <div className="flex items-center gap-2 h-full" style={{ position: 'relative' }}>
-        <StateDisplay cfg={cfg} size={16} />
+        <StateDisplay cfg={cfg} size={iconSize} />
         {showTitle && (
           <span className="flex-1 text-sm truncate" style={{ color: 'var(--text-secondary)' }}>
             {config.title}
