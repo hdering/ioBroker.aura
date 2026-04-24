@@ -278,70 +278,6 @@ function SegmentsViz({
   );
 }
 
-// ── Arc gauge ──────────────────────────────────────────────────────────────
-function ArcViz({
-  pct, value, min, max, unit, decimals, fillColor, colorZones, showValue,
-}: Pick<TankProps, 'pct' | 'value' | 'min' | 'max' | 'unit' | 'decimals' | 'fillColor' | 'colorZones' | 'showValue'>) {
-  const cx = 60, cy = 60, r = 46, sw = 10;
-  const circ = 2 * Math.PI * r;
-  const arcLen = circ * 0.75; // 270°
-  const filled = arcLen * (pct / 100);
-  const rotation = 135; // start at 7:30
-
-  const displayVal = isNaN(value) ? '–'
-    : decimals === 0 ? String(Math.round(value))
-    : value.toFixed(decimals);
-
-  const arcColor = colorZones ? fillColor
-    : pct <= 25 ? '#ef4444' : pct <= 58 ? '#f59e0b' : '#22c55e';
-
-  return (
-    <svg viewBox="0 0 120 115" style={{ width: '100%', height: '100%' }}>
-      {/* Track */}
-      <circle cx={cx} cy={cy} r={r} fill="none"
-        stroke="var(--app-border)" strokeWidth={sw}
-        strokeDasharray={`${arcLen} ${circ}`}
-        strokeLinecap="round"
-        transform={`rotate(${rotation}, ${cx}, ${cy})`}
-        opacity={0.3}
-      />
-      {/* Fill */}
-      {pct > 0 && (
-        <circle cx={cx} cy={cy} r={r} fill="none"
-          stroke={arcColor} strokeWidth={sw}
-          strokeDasharray={`${filled} ${circ}`}
-          strokeLinecap="round"
-          transform={`rotate(${rotation}, ${cx}, ${cy})`}
-        />
-      )}
-      {/* Min/max labels */}
-      <text x={cx - r + 2} y={cy + r + 12} fontSize={7} textAnchor="middle"
-        fill="var(--text-secondary)" opacity={0.7}>
-        {decimals === 0 ? Math.round(min) : min.toFixed(1)}
-      </text>
-      <text x={cx + r - 2} y={cy + r + 12} fontSize={7} textAnchor="middle"
-        fill="var(--text-secondary)" opacity={0.7}>
-        {decimals === 0 ? Math.round(max) : max.toFixed(1)}
-      </text>
-      {/* Value centered */}
-      {showValue && (
-        <>
-          <text x={cx} y={cy + 6} fontSize={18} fontWeight="bold"
-            textAnchor="middle" fill={arcColor}>
-            {displayVal}
-          </text>
-          {unit && (
-            <text x={cx} y={cy + 18} fontSize={9}
-              textAnchor="middle" fill="var(--text-secondary)">
-              {unit}
-            </text>
-          )}
-        </>
-      )}
-    </svg>
-  );
-}
-
 // ── Wave ───────────────────────────────────────────────────────────────────
 function WaveViz({
   pct, value, unit, decimals, fillColor, colorZones, showValue, uid,
@@ -554,24 +490,6 @@ export function FillWidget({ config }: WidgetProps) {
             pct={pct} value={safeVal} unit={unit} decimals={decimals}
             fillColor={fillColor} zones={zones} colorZones={colorZones}
             showValue={showValue}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  if (layout === 'arc') {
-    return (
-      <div className="flex flex-col h-full">
-        {showTitle && config.title && (
-          <p className="text-xs mb-1 truncate shrink-0" style={{ color: 'var(--text-secondary)' }}>
-            {config.title}
-          </p>
-        )}
-        <div className="flex-1 flex items-center justify-center min-h-0 min-w-0">
-          <ArcViz
-            pct={pct} value={safeVal} min={min} max={max} unit={unit} decimals={decimals}
-            fillColor={fillColor} colorZones={colorZones} showValue={showValue}
           />
         </div>
       </div>

@@ -1570,7 +1570,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'default',  label: 'Tank' },
                 { value: 'battery',  label: 'Batterie' },
                 { value: 'segments', label: 'LED-Segmente' },
-                { value: 'arc',      label: 'Kreisbogen' },
                 { value: 'wave',     label: 'Welle' },
               ] : config.type === 'gauge' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
