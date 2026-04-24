@@ -1560,12 +1560,16 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             </div>
 
             {/* ── Layout & Sichtbare Felder (kombiniert, eingeklappt) ── */}
-            {config.type !== 'header' && config.type !== 'iframe' && config.type !== 'fill' && config.type !== 'jsontable' && config.type !== 'html' && (() => {
+            {config.type !== 'header' && config.type !== 'iframe' && config.type !== 'jsontable' && config.type !== 'html' && (() => {
               const activeLayout = config.layout ?? 'default';
               const layouts: { value: string; label: string }[] = config.type === 'camera' ? [
                 { value: 'minimal', label: 'Minimal' },
                 { value: 'default', label: 'Standard' },
                 { value: 'custom',  label: 'Custom Grid' },
+              ] : config.type === 'fill' ? [
+                { value: 'default', label: 'Tank' },
+                { value: 'battery', label: 'Batterie' },
+                { value: 'compact', label: t('wf.edit.layout.compact') },
               ] : config.type === 'gauge' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
               ] : config.type === 'chart' ? [
@@ -2510,6 +2514,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 return (
                   <>
                     {hdr('Anzeige')}
+                    {(config.layout ?? 'default') === 'default' && (<>
                     <div className="flex items-center justify-between">
                       <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Orientierung</label>
                       <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
@@ -2534,6 +2539,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         onChange={(e) => set({ barSize: Number(e.target.value) })}
                         className={fCls} style={fSty} />
                     </div>
+                    </>)}
                     <div className="flex items-center justify-between">
                       <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Skala anzeigen</label>
                       <button onClick={() => set({ showTicks: !(o.showTicks ?? true) })}

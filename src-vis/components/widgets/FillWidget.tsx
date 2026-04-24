@@ -233,6 +233,68 @@ function TankHorizontal({
   );
 }
 
+// ── Battery layout ─────────────────────────────────────────────────────────
+function BatteryViz({
+  pct, value, unit, decimals, fillColor, showValue, uid,
+}: Pick<TankProps, 'pct' | 'value' | 'unit' | 'decimals' | 'fillColor' | 'showValue' | 'uid'>) {
+  const bx = 5, by = 12, bw = 218, bh = 66, br = 9;
+  const nubW = 12, nubH = 30;
+  const fillW  = Math.max(0, (pct / 100) * bw);
+  const clipId = `bat-${uid}`;
+
+  const displayVal = isNaN(value) ? '–'
+    : decimals === 0 ? String(Math.round(value))
+    : value.toFixed(decimals);
+
+  // When fill covers more than 40% of the body the text sits on the fill – use white
+  const textOnFill = fillW > bw * 0.4;
+
+  return (
+    <svg viewBox="0 0 260 90" style={{ width: '100%', height: '100%' }}>
+      <defs>
+        <clipPath id={clipId}>
+          <rect x={bx} y={by} width={bw} height={bh} rx={br} />
+        </clipPath>
+      </defs>
+
+      {/* Body background */}
+      <rect x={bx} y={by} width={bw} height={bh} rx={br}
+        fill="var(--widget-bg)" stroke="var(--app-border)" strokeWidth={2} />
+
+      {/* Positive terminal nub */}
+      <rect x={bx + bw + 3} y={by + (bh - nubH) / 2} width={nubW} height={nubH} rx={5}
+        fill="var(--app-border)" />
+
+      {/* Fill */}
+      {fillW > 0 && (
+        <rect x={bx} y={by} width={fillW} height={bh}
+          fill={fillColor} clipPath={`url(#${clipId})`} />
+      )}
+
+      {/* Segment dividers at 25 / 50 / 75 % */}
+      {[0.25, 0.5, 0.75].map((t, i) => (
+        <line key={i}
+          x1={bx + t * bw} y1={by} x2={bx + t * bw} y2={by + bh}
+          stroke="var(--app-bg)" strokeWidth={2.5} clipPath={`url(#${clipId})`} />
+      ))}
+
+      {/* Border on top of fill */}
+      <rect x={bx} y={by} width={bw} height={bh} rx={br}
+        fill="none" stroke="var(--app-border)" strokeWidth={2} />
+
+      {/* Value label centered in body */}
+      {showValue && (
+        <text x={bx + bw / 2} y={by + bh / 2 + 6}
+          fontSize={20} fontWeight="bold" textAnchor="middle"
+          fill={textOnFill ? '#fff' : fillColor}>
+          {displayVal}
+          {unit && <tspan fontSize={12} dx={2} fill={textOnFill ? 'rgba(255,255,255,0.8)' : 'var(--text-secondary)'}>{unit}</tspan>}
+        </text>
+      )}
+    </svg>
+  );
+}
+
 // ── Main widget ────────────────────────────────────────────────────────────
 export function FillWidget({ config }: WidgetProps) {
   const opts = config.options ?? {};
@@ -274,15 +336,40 @@ export function FillWidget({ config }: WidgetProps) {
     fillColor   = match ? match.color : zones[zones.length - 1].color;
   }
 
+  const layout = (config.layout ?? 'default') as string;
+
+  // Battery layout uses automatic traffic-light color unless colorZones is on
+  const batteryFillColor = colorZones ? fillColor
+    : pct <= 20 ? '#ef4444'
+    : pct <= 50 ? '#f59e0b'
+    : '#22c55e';
+
   const tankProps: TankProps = {
     pct, value: safeVal, min, max, unit, decimals,
     fillColor, zones, colorZones, showTicks, showValue, uid,
   };
 
-  const layout = (config.layout ?? 'default') as string;
   const showTitle = opts.showTitle !== false;
 
   if (layout === 'custom') return <CustomGridView config={config} value={value !== null ? (decimals === 0 ? String(Math.round(safeVal)) : safeVal.toFixed(decimals)) : '–'} unit={unit} />;
+
+  if (layout === 'battery') {
+    return (
+      <div className="flex flex-col h-full">
+        {showTitle && config.title && (
+          <p className="text-xs mb-1 truncate shrink-0" style={{ color: 'var(--text-secondary)' }}>
+            {config.title}
+          </p>
+        )}
+        <div className="flex-1 flex items-center justify-center min-h-0 min-w-0" style={{ padding: '4px 0' }}>
+          <BatteryViz
+            pct={pct} value={safeVal} unit={unit} decimals={decimals}
+            fillColor={batteryFillColor} showValue={showValue} uid={uid}
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (layout === 'compact') {
     const displayVal = decimals === 0 ? String(Math.round(safeVal)) : safeVal.toFixed(decimals);
