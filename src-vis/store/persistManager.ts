@@ -1,11 +1,19 @@
 import type { StateStorage } from 'zustand/middleware';
-import { setStateDirect } from '../hooks/useIoBroker';
+import { setStateDirect, getStateDirect } from '../hooks/useIoBroker';
 
 const IOBROKER_CONFIG_KEY = 'aura.0.config.dashboard';
 const IOBROKER_BACKUP_KEY = 'aura.0.config.dashboard_backup';
 const SYNC_STORE_KEYS = ['aura-dashboard', 'aura-theme', 'aura-groups', 'aura-config', 'aura-global-settings', 'aura-group-defs'] as const;
 
 export const BACKUP_TS_KEY = '_ts';
+
+// Configurable max number of backups to keep (default 5, set by AdminLayout on mount)
+let maxBackups = 5;
+
+/** Call once on admin startup to sync the user-configured backup count. */
+export function configureBackup(opts: { maxBackups: number }): void {
+  maxBackups = Math.max(1, Math.min(20, opts.maxBackups));
+}
 
 // All writes from managed stores go here instead of directly to localStorage
 const pending = new Map<string, string>();
@@ -60,11 +68,35 @@ export function revertAll(rehydrateFns: Array<() => void>): void {
   notify();
 }
 
+/** Read the current backup list from ioBroker, prepend a new entry, trim to
+ *  maxBackups, and write back.  Runs fire-and-forget — errors are silenced. */
+async function writeBackup(payload: Record<string, unknown>): Promise<void> {
+  try {
+    const state = await getStateDirect(IOBROKER_BACKUP_KEY);
+    let backups: Array<Record<string, unknown>> = [];
+    if (state?.val) {
+      try {
+        const parsed = JSON.parse(String(state.val)) as Record<string, unknown>;
+        if (Array.isArray(parsed.backups)) {
+          // Current multi-backup format
+          backups = parsed.backups as Array<Record<string, unknown>>;
+        } else if (parsed[BACKUP_TS_KEY]) {
+          // Old single-backup format – migrate to list
+          backups = [parsed];
+        }
+      } catch { /* start fresh */ }
+    }
+    const entry = { [BACKUP_TS_KEY]: new Date().toISOString(), ...payload };
+    backups = [entry, ...backups].slice(0, maxBackups);
+    setStateDirect(IOBROKER_BACKUP_KEY, JSON.stringify({ backups }));
+  } catch { /* socket not connected – silently skip */ }
+}
+
 /**
  * Write all managed store blobs to ioBroker so any browser connecting to
  * the same ioBroker instance gets the current config.
  * Must be called AFTER saveAll() so localStorage is up-to-date.
- * Also writes a timestamped backup to aura.0.config.dashboard_backup.
+ * Also appends a timestamped entry to the rolling backup list.
  */
 export function saveToIoBroker(): void {
   const payload: Record<string, unknown> = {};
@@ -75,7 +107,7 @@ export function saveToIoBroker(): void {
   });
   try {
     setStateDirect(IOBROKER_CONFIG_KEY, JSON.stringify(payload, null, 2));
-    setStateDirect(IOBROKER_BACKUP_KEY, JSON.stringify({ ...payload, [BACKUP_TS_KEY]: new Date().toISOString() }, null, 2));
+    void writeBackup(payload);
   } catch { /* socket not yet connected – silently skip */ }
 }
 

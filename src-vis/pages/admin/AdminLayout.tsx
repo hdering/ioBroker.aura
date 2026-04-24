@@ -7,7 +7,7 @@ import { LayoutDashboard, Palette, Settings, LogOut, PenSquare, Save, Undo2, Lay
 import { useAuthStore, logout } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
 import { getTheme, ADMIN_DARK_THEME } from '../../themes';
-import { isDirty, saveAll, revertAll, subscribeDirty, saveToIoBroker } from '../../store/persistManager';
+import { isDirty, saveAll, revertAll, subscribeDirty, saveToIoBroker, configureBackup } from '../../store/persistManager';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useGroupStore } from '../../store/groupStore';
 import { useConfigStore } from '../../store/configStore';
@@ -69,7 +69,9 @@ export function AdminLayout() {
   const { adminThemeId, setAdminTheme } = useThemeStore();
   const frontendUrl = useFrontendUrl();
   const { connected } = useIoBroker();
-  const { autoSave, autoSaveDelay } = useAdminPrefsStore();
+  const { autoSave, autoSaveDelay, backupCount } = useAdminPrefsStore();
+
+  useEffect(() => { configureBackup({ maxBackups: backupCount }); }, [backupCount]);
 
   // Auto-sync on first connect: three cases
   //   1. Remote has data, local is empty  → apply remote immediately (avoids 10 s poll wait)

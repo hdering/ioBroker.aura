@@ -154,6 +154,8 @@ export const en: Record<TranslationKey, string> = {
   'settings.autobackup.success':        'Restored',
   'settings.autobackup.error':          'Restore failed',
   'settings.autobackup.noData':         'Backup contains no data',
+  'settings.autobackup.count':          'Number of backups',
+  'settings.autobackup.latest':         'latest',
 
   'settings.expert.title':    'Expert',
   'settings.expert.locked':   'Access with Admin PIN',

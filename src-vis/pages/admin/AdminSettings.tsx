@@ -100,77 +100,100 @@ function SliderSetting({
 
 const BACKUP_SYNC_KEYS = ['aura-dashboard', 'aura-theme', 'aura-groups', 'aura-config', 'aura-global-settings', 'aura-group-defs'] as const;
 
+interface BackupEntry { ts: string; payload: Record<string, unknown>; }
+
+function fmtTs(iso: string): string {
+  try { return new Intl.DateTimeFormat(undefined, { dateStyle: 'short', timeStyle: 'medium' }).format(new Date(iso)); }
+  catch { return iso; }
+}
+
+function applyBackupEntry(entry: BackupEntry): boolean {
+  let changed = false;
+  BACKUP_SYNC_KEYS.forEach((key) => {
+    const val = entry.payload[key];
+    if (!val) return;
+    const str = typeof val === 'string' ? val : JSON.stringify(val);
+    if (str.length > 2) { localStorage.setItem(key, str); changed = true; }
+  });
+  if (!changed) return false;
+  useDashboardStore.persist.rehydrate();
+  useThemeStore.persist.rehydrate();
+  useGroupStore.persist.rehydrate();
+  useConfigStore.persist.rehydrate();
+  useGroupDefsStore.persist.rehydrate();
+  useGlobalSettingsStore.persist.rehydrate();
+  try { saveAll(); saveToIoBroker(); } catch { /* quota – non-fatal */ }
+  return true;
+}
+
 function AutoBackupCard() {
   const t = useT();
-  const [ts, setTs] = useState<string | null>(null);
+  const { backupCount, setBackupCount } = useAdminPrefsStore();
+  const [backups, setBackups] = useState<BackupEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [confirm, setConfirm] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'restoring' | 'success' | 'error' | 'nodata'>('idle');
+  const [confirmIdx, setConfirmIdx] = useState<number | null>(null);
+  const [restoringIdx, setRestoringIdx] = useState<number | null>(null);
+  const [status, setStatus] = useState<'idle' | 'success' | 'error' | 'nodata'>('idle');
 
-  const loadTs = useCallback(async () => {
+  const loadBackups = useCallback(async () => {
     setLoading(true);
     try {
       const state = await getStateDirect('aura.0.config.dashboard_backup');
       if (state?.val) {
         const parsed = JSON.parse(String(state.val)) as Record<string, unknown>;
-        setTs(parsed[BACKUP_TS_KEY] ? String(parsed[BACKUP_TS_KEY]) : null);
-      } else {
-        setTs(null);
-      }
-    } catch { setTs(null); }
+        if (Array.isArray(parsed.backups)) {
+          setBackups((parsed.backups as Array<Record<string, unknown>>).map((b) => ({
+            ts: String(b[BACKUP_TS_KEY] ?? ''),
+            payload: b,
+          })));
+        } else if (parsed[BACKUP_TS_KEY]) {
+          // Old single-backup format
+          setBackups([{ ts: String(parsed[BACKUP_TS_KEY]), payload: parsed }]);
+        } else {
+          setBackups([]);
+        }
+      } else { setBackups([]); }
+    } catch { setBackups([]); }
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { void loadTs(); }, [loadTs]);
+  useEffect(() => { void loadBackups(); }, [loadBackups]);
 
-  const doRestore = async () => {
-    setStatus('restoring');
-    setConfirm(false);
+  const doRestore = async (idx: number) => {
+    setRestoringIdx(idx);
+    setConfirmIdx(null);
+    setStatus('idle');
     try {
-      const state = await getStateDirect('aura.0.config.dashboard_backup');
-      if (!state?.val) { setStatus('nodata'); return; }
-      const backup = JSON.parse(String(state.val)) as Record<string, unknown>;
-      let changed = false;
-      BACKUP_SYNC_KEYS.forEach((key) => {
-        const val = backup[key];
-        if (!val) return;
-        const str = typeof val === 'string' ? val : JSON.stringify(val);
-        if (str.length > 2) { localStorage.setItem(key, str); changed = true; }
-      });
-      if (!changed) { setStatus('nodata'); return; }
-      useDashboardStore.persist.rehydrate();
-      useThemeStore.persist.rehydrate();
-      useGroupStore.persist.rehydrate();
-      useConfigStore.persist.rehydrate();
-      useGroupDefsStore.persist.rehydrate();
-      useGlobalSettingsStore.persist.rehydrate();
-      // Persist restored state back to main config + new backup
-      try { saveAll(); saveToIoBroker(); } catch { /* quota – non-fatal */ }
-      setStatus('success');
+      const entry = backups[idx];
+      if (!entry) { setStatus('nodata'); return; }
+      const ok = applyBackupEntry(entry);
+      setStatus(ok ? 'success' : 'nodata');
     } catch { setStatus('error'); }
-  };
-
-  const fmtTs = (iso: string) => {
-    try {
-      return new Intl.DateTimeFormat(undefined, { dateStyle: 'short', timeStyle: 'medium' }).format(new Date(iso));
-    } catch { return iso; }
+    finally { setRestoringIdx(null); }
   };
 
   return (
     <Card title={t('settings.autobackup.title')}>
       <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('settings.autobackup.description')}</p>
 
-      <div className="flex items-center gap-2 py-1">
-        <History size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('settings.autobackup.lastBackup')}:</span>
-        <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
-          {loading ? '…' : ts ? fmtTs(ts) : t('settings.autobackup.noBackup')}
-        </span>
-        <button onClick={loadTs} disabled={loading} className="ml-auto flex items-center justify-center w-6 h-6 rounded hover:opacity-80 disabled:opacity-40" style={{ color: 'var(--text-secondary)' }}>
+      {/* Count setting */}
+      <div className="flex items-center gap-2 pt-1 pb-2 border-b" style={{ borderColor: 'var(--app-border)' }}>
+        <span className="text-xs flex-1" style={{ color: 'var(--text-secondary)' }}>{t('settings.autobackup.count')}</span>
+        <div className="flex items-center gap-1">
+          <button onClick={() => setBackupCount(backupCount - 1)} disabled={backupCount <= 1}
+            className="w-6 h-6 rounded flex items-center justify-center text-sm font-bold hover:opacity-80 disabled:opacity-30"
+            style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>−</button>
+          <span className="w-6 text-center text-xs font-mono font-bold" style={{ color: 'var(--accent)' }}>{backupCount}</span>
+          <button onClick={() => setBackupCount(backupCount + 1)} disabled={backupCount >= 20}
+            className="w-6 h-6 rounded flex items-center justify-center text-sm font-bold hover:opacity-80 disabled:opacity-30"
+            style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>+</button>
+        </div>
+        <button onClick={loadBackups} disabled={loading} className="flex items-center justify-center w-6 h-6 rounded hover:opacity-80 disabled:opacity-40" style={{ color: 'var(--text-secondary)' }}>
           <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
         </button>
       </div>
 
+      {/* Status feedback */}
       {status === 'success' && (
         <p className="text-xs font-medium" style={{ color: 'var(--accent-green)' }}>{t('settings.autobackup.success')}</p>
       )}
@@ -180,27 +203,46 @@ function AutoBackupCard() {
         </p>
       )}
 
-      {!confirm ? (
-        <button
-          onClick={() => { setConfirm(true); setStatus('idle'); }}
-          disabled={!ts || status === 'restoring'}
-          className="px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 disabled:opacity-40"
-          style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-        >
-          {status === 'restoring' ? t('settings.autobackup.restoring') : t('settings.autobackup.restore')}
-        </button>
+      {/* Backup list */}
+      {loading ? (
+        <p className="text-xs text-center py-3" style={{ color: 'var(--text-secondary)' }}>…</p>
+      ) : backups.length === 0 ? (
+        <p className="text-xs text-center py-3" style={{ color: 'var(--text-secondary)' }}>{t('settings.autobackup.noBackup')}</p>
       ) : (
-        <div className="flex gap-2">
-          <button onClick={doRestore}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-80"
-            style={{ background: 'var(--accent)' }}>
-            {t('settings.autobackup.restoreConfirm')}
-          </button>
-          <button onClick={() => setConfirm(false)}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80"
-            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-            {t('common.cancel')}
-          </button>
+        <div className="rounded-lg overflow-hidden mt-1" style={{ border: '1px solid var(--app-border)' }}>
+          {backups.map((b, i) => (
+            <div key={b.ts} className="border-b last:border-b-0" style={{ borderColor: 'var(--app-border)' }}>
+              <div className="flex items-center gap-2 px-3 py-2" style={{ background: 'var(--app-bg)' }}>
+                <History size={11} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>{fmtTs(b.ts)}</p>
+                  {i === 0 && <p className="text-[10px]" style={{ color: 'var(--accent)' }}>{t('settings.autobackup.latest')}</p>}
+                </div>
+                {confirmIdx === i ? (
+                  <div className="flex gap-1.5 shrink-0">
+                    <button onClick={() => void doRestore(i)}
+                      className="px-2 py-1 rounded text-[11px] font-medium text-white hover:opacity-80"
+                      style={{ background: 'var(--accent)' }}>
+                      {t('settings.autobackup.restoreConfirm')}
+                    </button>
+                    <button onClick={() => setConfirmIdx(null)}
+                      className="px-2 py-1 rounded text-[11px] font-medium hover:opacity-80"
+                      style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                      {t('common.cancel')}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { setConfirmIdx(i); setStatus('idle'); }}
+                    disabled={restoringIdx !== null}
+                    className="px-2 py-1 rounded text-[11px] font-medium hover:opacity-80 disabled:opacity-40 shrink-0"
+                    style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                    {restoringIdx === i ? t('settings.autobackup.restoring') : t('settings.autobackup.restore')}
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </Card>

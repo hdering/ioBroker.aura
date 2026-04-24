@@ -152,6 +152,8 @@ export const de = {
   'settings.autobackup.success':        'Wiederhergestellt',
   'settings.autobackup.error':          'Fehler beim Wiederherstellen',
   'settings.autobackup.noData':         'Backup enthält keine Daten',
+  'settings.autobackup.count':          'Anzahl Backups',
+  'settings.autobackup.latest':         'aktuellstes',
 
   'settings.expert.title':    'Experten',
   'settings.expert.locked':   'Zugang mit Admin-PIN',
