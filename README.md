@@ -175,6 +175,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.5.1 (2026-04-24)
+- Fix(camera): remove on-mount reset of wake-up DP to prevent spurious stream starts via go2rtc RTSP reconnects
+
 ### 0.5.0 (2026-04-23)
 - Fix: missing `statusBadges` field in `useStatusFields` hook caused TypeScript build errors in CI
 

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.1": {
+        "en": "Fix(camera): remove on-mount reset of wake-up DP to prevent spurious stream starts via go2rtc RTSP reconnects",
+        "de": "Fix(Kamera): Reset des Wake-up-Datenpunkts beim Mount entfernt, um ungewollte Stream-Starts durch go2rtc RTSP-Wiederverbindungen zu verhindern",
+        "ru": "Исправление(камера): удалён сброс wake-up DP при монтировании, предотвращающий случайные запуски потока через переподключения go2rtc RTSP",
+        "pt": "Correção(câmera): removida redefinição do DP de wake-up no mount para evitar iniciações de stream indevidas via reconexões RTSP do go2rtc",
+        "nl": "Fix(camera): reset van wake-up DP bij mount verwijderd om ongewenste stream-starts via go2rtc RTSP-herverbindingen te voorkomen",
+        "fr": "Correction(caméra): suppression de la réinitialisation du DP de réveil au montage pour éviter les démarrages de flux indésirables via les reconnexions RTSP de go2rtc",
+        "it": "Fix(camera): rimosso reset del DP di wake-up al mount per evitare avvii di stream indesiderati tramite riconnessioni RTSP di go2rtc",
+        "es": "Corrección(cámara): eliminado el reset del DP de wake-up al montar para evitar inicios de stream no deseados mediante reconexiones RTSP de go2rtc",
+        "pl": "Poprawka(kamera): usunięto reset DP wake-up przy montowaniu, aby zapobiec niechcianym uruchomieniom strumienia przez ponowne połączenia RTSP go2rtc",
+        "uk": "Виправлення(камера): видалено скидання wake-up DP при монтуванні для запобігання випадковим запускам потоку через повторні підключення RTSP go2rtc",
+        "zh-cn": "修复(摄像头)：移除挂载时重置唤醒DP的操作，防止通过go2rtc RTSP重连导致的意外流启动"
+      },
       "0.5.0": {
         "en": "Fix: missing statusBadges field in useStatusFields hook caused TypeScript build errors in CI",
         "de": "Fix: fehlendes statusBadges-Feld im useStatusFields-Hook verursachte TypeScript-Buildfehler in CI",
@@ -183,19 +196,6 @@
         "pl": "Nowe(Kalendarz): konfigurowalna ikona dla ważnych terminów (wybór ikony) i opcja całkowitego ukrycia ikony",
         "uk": "Нове(Календар): налаштовувана іконка для важливих подій (вибір іконки) та опція повного приховування іконки",
         "zh-cn": "新增（日历）：可为重要日程配置自定义图标（图标选择器），并可选择完全隐藏图标"
-      },
-      "0.4.93": {
-        "en": "Fix: theme toggle now clears per-layout theme override so all themes (light, lovelace, etc.) apply correctly on devices with layout-specific overrides",
-        "de": "Fix: Hell/Dunkel-Toggle löscht jetzt das Layout-eigene Theme-Override, sodass alle Themes (hell, lovelace, etc.) auch auf Geräten mit Layout-spezifischem Override korrekt wirken",
-        "ru": "Исправление: переключатель темы теперь удаляет переопределение темы макета, чтобы все темы (светлые, lovelace и др.) корректно применялись на устройствах с переопределением темы макета",
-        "pt": "Correção: o alternador de tema agora limpa o tema por layout para que todos os temas (claro, lovelace, etc.) sejam aplicados corretamente em dispositivos com substituições de tema por layout",
-        "nl": "Fix: thema-schakelaar verwijdert nu het per-layout thema-override zodat alle thema's (licht, lovelace, etc.) correct worden toegepast op apparaten met layout-specifieke overrides",
-        "fr": "Correction: le bouton de thème efface maintenant le thème par mise en page afin que tous les thèmes (clair, lovelace, etc.) s'appliquent correctement sur les appareils avec des substitutions par mise en page",
-        "it": "Fix: il toggle del tema ora cancella il tema per layout in modo che tutti i temi (chiaro, lovelace, ecc.) vengano applicati correttamente sui dispositivi con override del tema per layout",
-        "es": "Corrección: el botón de tema ahora borra el tema por layout para que todos los temas (claro, lovelace, etc.) se apliquen correctamente en dispositivos con anulaciones de tema por layout",
-        "pl": "Poprawka: przełącznik motywu teraz usuwa nadpisanie motywu układu, aby wszystkie motywy (jasny, lovelace itp.) były poprawnie stosowane na urządzeniach z nadpisaniami motywu układu",
-        "uk": "Виправлення: перемикач теми тепер видаляє власне переопределення теми макету, щоб усі теми (світлі, lovelace тощо) коректно застосовувались на пристроях із власним override теми макету",
-        "zh-cn": "修复：明暗切换按钮现在会清除每个布局的主题覆盖，使所有主题（亮色、lovelace 等）在具有布局特定覆盖的设备上正确生效"
       }
     }
   },
