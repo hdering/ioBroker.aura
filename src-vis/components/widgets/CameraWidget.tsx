@@ -463,7 +463,11 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
   const showTimestamp   = (opts.showTimestamp   as boolean)             ?? true;
   const wakeUpDp        = (opts.wakeUpDp        as string)              ?? '';
   const wakeUpDelay     = (opts.wakeUpDelay     as number)              ?? 3;
-  const wakeUpMode      = (opts.wakeUpMode      as WakeUpMode)          ?? 'onClick';
+  // When a wake-up DP is configured, never auto-start. Treat stored 'auto' as 'onClick'.
+  const _rawWakeUpMode  = opts.wakeUpMode as WakeUpMode | undefined;
+  const wakeUpMode: WakeUpMode = wakeUpDp
+    ? (_rawWakeUpMode === 'onView' ? 'onView' : 'onClick')
+    : 'auto';
   const streamTimeout   = (opts.streamTimeout   as number)              ?? 60;
   const videoRatio      = (opts.videoRatio      as number)              ?? 60;
   const infoItems       = (opts.infoItems       as CameraSlot[])        ?? [];

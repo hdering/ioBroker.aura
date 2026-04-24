@@ -2247,10 +2247,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       <>
                         <div>
                           <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Wake-Up Auslöser</label>
-                          <select value={(o.wakeUpMode as string) ?? 'onClick'} onChange={(e) => set({ wakeUpMode: e.target.value })} className={cCls} style={cSty}>
+                          <select value={(o.wakeUpMode as string) === 'onView' ? 'onView' : 'onClick'} onChange={(e) => set({ wakeUpMode: e.target.value })} className={cCls} style={cSty}>
                             <option value="onClick">Manuell (bei Klick)</option>
                             <option value="onView">Bei Sicht (Viewport)</option>
-                            <option value="auto">Automatisch (beim Laden)</option>
                           </select>
                         </div>
                         <div>
