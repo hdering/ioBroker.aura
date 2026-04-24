@@ -12,7 +12,7 @@ import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useGroupStore } from '../../store/groupStore';
 import { useConfigStore } from '../../store/configStore';
 import { useAdminPrefsStore } from '../../store/adminPrefsStore';
-import { useIoBroker } from '../../hooks/useIoBroker';
+import { useIoBroker, getStateDirect } from '../../hooks/useIoBroker';
 import { useT } from '../../i18n';
 
 function useSaveState() {
@@ -57,15 +57,28 @@ export function AdminLayout() {
   const { autoSave, autoSaveDelay } = useAdminPrefsStore();
 
   // Auto-push localStorage config to ioBroker on first connect.
-  // Ensures other browsers get the current config even if the user never
-  // explicitly clicks "Speichern" after an upgrade.
+  // Loads ioBroker first – only pushes localStorage if ioBroker is empty
+  // or if there are unsaved local changes, preventing a stale/empty
+  // localStorage from overwriting a valid remote config.
   const autoSyncedRef = useRef(false);
   const adminConfigLoadedRef = useRef(false);
   useEffect(() => {
     if (!connected || autoSyncedRef.current) return;
     autoSyncedRef.current = true;
-    adminConfigLoadedRef.current = true;
-    saveToIoBroker();
+    void getStateDirect('aura.0.config.dashboard').then((state) => {
+      adminConfigLoadedRef.current = true;
+      const remoteRaw = state?.val ? String(state.val) : '';
+      let remoteHasData = false;
+      try {
+        const parsed = JSON.parse(remoteRaw) as Record<string, unknown>;
+        remoteHasData = Object.values(parsed).some(
+          v => v && typeof v === 'string' && v !== '{}' && v.length > 10,
+        );
+      } catch { /* ignore */ }
+      // Push localStorage → ioBroker only when ioBroker is empty or local
+      // edits are pending; otherwise let useConfigSync pull the remote config.
+      if (!remoteHasData || isDirty()) saveToIoBroker();
+    });
   }, [connected]);
 
   // React to external changes on aura.0.config.dashboard (subscription + polling)
