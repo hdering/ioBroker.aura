@@ -235,8 +235,8 @@ function TankHorizontal({
 
 // ── LED Segments ──────────────────────────────────────────────────────────
 function SegmentsViz({
-  pct, value, unit, decimals, fillColor, zones, colorZones, showValue,
-}: Pick<TankProps, 'pct' | 'value' | 'unit' | 'decimals' | 'fillColor' | 'zones' | 'colorZones' | 'showValue'>) {
+  pct, value, min, max, unit, decimals, fillColor, zones, colorZones, showValue,
+}: Pick<TankProps, 'pct' | 'value' | 'min' | 'max' | 'unit' | 'decimals' | 'fillColor' | 'zones' | 'colorZones' | 'showValue'>) {
   const SEGS = 12;
   const gap = 3;
   const totalW = 240;
@@ -250,9 +250,12 @@ function SegmentsViz({
 
   const segColor = (i: number) => {
     if (i >= lit) return undefined;
-    if (colorZones && zones.length > 0) return fillColor;
-    const segPct = ((i + 1) / SEGS) * 100;
-    return segPct <= 25 ? '#ef4444' : segPct <= 58 ? '#f59e0b' : '#22c55e';
+    if (colorZones && zones.length > 0) {
+      const segVal = min + ((i + 0.5) / SEGS) * (max - min);
+      const match = zones.find(z => segVal <= z.max);
+      return match ? match.color : zones[zones.length - 1].color;
+    }
+    return fillColor;
   };
 
   return (
@@ -269,7 +272,7 @@ function SegmentsViz({
       })}
       {showValue && (
         <text x={totalW + 14} y={4 + segH / 2 + 6} fontSize={16} fontWeight="bold"
-          textAnchor="start" fill={colorZones ? fillColor : (pct <= 25 ? '#ef4444' : pct <= 58 ? '#f59e0b' : '#22c55e')}>
+          textAnchor="start" fill={fillColor}>
           {displayVal}
           {unit && <tspan fontSize={10} dx={2} fill="var(--text-secondary)">{unit}</tspan>}
         </text>
@@ -280,13 +283,12 @@ function SegmentsViz({
 
 // ── Wave ───────────────────────────────────────────────────────────────────
 function WaveViz({
-  pct, value, unit, decimals, fillColor, colorZones, showValue, uid,
-}: Pick<TankProps, 'pct' | 'value' | 'unit' | 'decimals' | 'fillColor' | 'colorZones' | 'showValue' | 'uid'>) {
+  pct, value, unit, decimals, fillColor, showValue, uid,
+}: Pick<TankProps, 'pct' | 'value' | 'unit' | 'decimals' | 'fillColor' | 'showValue' | 'uid'>) {
   const clipId = `wave-${uid}`;
   const fillY  = 100 - pct;
   const amp = 5;
-  const waveColor = colorZones ? fillColor
-    : pct <= 25 ? '#ef4444' : pct <= 58 ? '#f59e0b' : '#22c55e';
+  const waveColor = fillColor;
   const textOnFill = pct > 50;
 
   const displayVal = isNaN(value) ? '–'
@@ -444,12 +446,6 @@ export function FillWidget({ config }: WidgetProps) {
 
   const layout = (config.layout ?? 'default') as string;
 
-  // Battery layout uses automatic traffic-light color unless colorZones is on
-  const batteryFillColor = colorZones ? fillColor
-    : pct <= 20 ? '#ef4444'
-    : pct <= 50 ? '#f59e0b'
-    : '#22c55e';
-
   const tankProps: TankProps = {
     pct, value: safeVal, min, max, unit, decimals,
     fillColor, zones, colorZones, showTicks, showValue, uid,
@@ -470,7 +466,7 @@ export function FillWidget({ config }: WidgetProps) {
         <div className="flex-1 flex items-center justify-center min-h-0 min-w-0" style={{ padding: '4px 0' }}>
           <BatteryViz
             pct={pct} value={safeVal} unit={unit} decimals={decimals}
-            fillColor={batteryFillColor} showValue={showValue} uid={uid}
+            fillColor={fillColor} showValue={showValue} uid={uid}
           />
         </div>
       </div>
@@ -487,7 +483,7 @@ export function FillWidget({ config }: WidgetProps) {
         )}
         <div className="flex-1 flex items-center justify-center min-h-0 min-w-0">
           <SegmentsViz
-            pct={pct} value={safeVal} unit={unit} decimals={decimals}
+            pct={pct} value={safeVal} min={min} max={max} unit={unit} decimals={decimals}
             fillColor={fillColor} zones={zones} colorZones={colorZones}
             showValue={showValue}
           />
@@ -507,7 +503,7 @@ export function FillWidget({ config }: WidgetProps) {
         <div className="flex-1 flex items-center justify-center min-h-0 min-w-0">
           <WaveViz
             pct={pct} value={safeVal} unit={unit} decimals={decimals}
-            fillColor={fillColor} colorZones={colorZones} showValue={showValue} uid={uid}
+            fillColor={fillColor} showValue={showValue} uid={uid}
           />
         </div>
       </div>
