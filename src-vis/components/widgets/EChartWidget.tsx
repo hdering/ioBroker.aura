@@ -71,12 +71,17 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  // Keep chart sized correctly when container transitions from display:none to visible (tab switch).
+  // Resize chart when container becomes visible again (tab switch back from display:none).
+  // Guard: skip resize when dimensions are 0 (tab is being hidden) to avoid ECharts warning.
   useEffect(() => {
     if (!hasSize) return;
     const el = containerRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(() => { chartRef.current?.getEchartsInstance?.()?.resize?.(); });
+    const ro = new ResizeObserver(() => {
+      const w = containerRef.current?.clientWidth ?? 0;
+      const h = containerRef.current?.clientHeight ?? 0;
+      if (w > 0 && h > 0) chartRef.current?.getEchartsInstance?.()?.resize?.();
+    });
     ro.observe(el);
     return () => ro.disconnect();
   }, [hasSize]);
