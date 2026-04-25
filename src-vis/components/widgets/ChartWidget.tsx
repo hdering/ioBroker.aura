@@ -64,17 +64,20 @@ export function ChartWidget({ config }: WidgetProps) {
     ? Math.round((history.reduce((sum, p) => sum + p.v, 0) / history.length) * 100) / 100
     : null;
 
-  // Delay ResponsiveContainer mount until the widget has non-zero dimensions.
-  // Widgets on inactive tabs (display:none) report 0×0 and trigger a recharts warning.
+  // Mount/unmount ResponsiveContainer based on container visibility.
+  // Recharts' internal ResizeObserver fires when display:none collapses the container to 0×0
+  // and logs a warning. Toggle hasSize bidirectionally so the chart unmounts on hide and
+  // remounts on show (isAnimationActive=false means no flicker).
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasSize, setHasSize] = useState(false);
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    if (el.clientWidth > 0 && el.clientHeight > 0) { setHasSize(true); return; }
+    setHasSize(el.clientWidth > 0 && el.clientHeight > 0);
     const ro = new ResizeObserver(() => {
-      if ((containerRef.current?.clientWidth ?? 0) > 0 && (containerRef.current?.clientHeight ?? 0) > 0)
-        setHasSize(true);
+      const w = containerRef.current?.clientWidth ?? 0;
+      const h = containerRef.current?.clientHeight ?? 0;
+      setHasSize(w > 0 && h > 0);
     });
     ro.observe(el);
     return () => ro.disconnect();
