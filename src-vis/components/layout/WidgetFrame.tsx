@@ -525,6 +525,46 @@ function ChartHistoryConfig({ config, onConfigChange }: { config: WidgetConfig; 
           </label>
         </div>
       )}
+
+      {/* ── Farben ── */}
+      <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
+      <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Farben</p>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Linie / Fläche</span>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="color"
+              value={(o.lineColor as string | undefined) ?? '#3b82f6'}
+              onChange={(e) => set({ lineColor: e.target.value })}
+              className="w-7 h-7 rounded cursor-pointer border-0 p-0"
+              style={{ background: 'none' }}
+            />
+            <button
+              onClick={() => set({ lineColor: undefined })}
+              className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
+              style={{ background: 'var(--app-border)', color: 'var(--text-secondary)' }}
+            >Reset</button>
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Durchschnittslinie</span>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="color"
+              value={(o.avgColor as string | undefined) ?? (o.lineColor as string | undefined) ?? '#3b82f6'}
+              onChange={(e) => set({ avgColor: e.target.value })}
+              className="w-7 h-7 rounded cursor-pointer border-0 p-0"
+              style={{ background: 'none' }}
+            />
+            <button
+              onClick={() => set({ avgColor: undefined })}
+              className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
+              style={{ background: 'var(--app-border)', color: 'var(--text-secondary)' }}
+            >Reset</button>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

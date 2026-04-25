@@ -175,6 +175,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.5.5 (2026-04-25)
+- Feat(chart): configurable line/area color and average line color; icon now shown in both card and default layout (uses configured icon, falls back to TrendingUp); unit color defaults to black
+
 ### 0.5.4 (2026-04-25)
 - Fix(save): admin save no longer freezes the UI for 8–10 s (backup JSON with aura-group-defs could reach 50 MB; now excluded from backup entries and discarded on migration)
 - Fix(save): changes no longer revert after saving (useConfigSync blocked for 5 s after save; ioBroker state pushed on admin startup)

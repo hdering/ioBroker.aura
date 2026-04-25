@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.4",
+    "version": "0.5.5",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.5": {
+        "en": "Feat(chart): configurable line/area and average line colors; fixed icon in card and default layout; unit color defaults to black",
+        "de": "Neu(Diagramm): einstellbare Linien-/Flächenfarbe und Durchschnittslinienfarbe; Icon in Karten- und Standard-Layout korrigiert; Einheitenfarbe standardmäßig schwarz",
+        "ru": "Новое(график): настраиваемые цвета линии/области и линии среднего; исправлен значок в макетах карточки и стандартном; цвет единицы по умолчанию чёрный",
+        "pt": "Novo(gráfico): cores configuráveis de linha/área e linha de média; ícone corrigido nos layouts cartão e padrão; cor da unidade preta por padrão",
+        "nl": "Nieuw(grafiek): instelbare lijn-/vlakkleur en gemiddeldelijkleur; pictogram gecorrigeerd in kaart- en standaardlayout; eenheidskleur standaard zwart",
+        "fr": "Nouveau(graphique): couleurs de ligne/zone et de ligne moyenne configurables; icône corrigée dans les mises en page carte et standard; couleur de l'unité noire par défaut",
+        "it": "Nuovo(grafico): colori configurabili per linea/area e linea media; icona corretta nei layout scheda e standard; colore unità nero per impostazione predefinita",
+        "es": "Nuevo(gráfico): colores configurables de línea/área y línea de promedio; icono corregido en diseños tarjeta y estándar; color de unidad negro por defecto",
+        "pl": "Nowe(wykres): konfigurowalne kolory linii/obszaru i linii średniej; poprawiona ikona w układach karty i standardowym; kolor jednostki domyślnie czarny",
+        "uk": "Нове(графік): налаштовувані кольори лінії/області та лінії середнього; виправлено іконку в макетах картки та стандартному; колір одиниці чорний за замовчуванням",
+        "zh-cn": "新功能(图表)：可配置折线/面积和平均线颜色；修复卡片和默认布局中的图标；单位颜色默认黑色"
+      },
       "0.5.4": {
         "en": "Fix: admin save no longer freezes UI (backup excluded aura-group-defs); changes no longer revert after save; advanced chart no longer blank; getHistory error for string datapoints fixed; iframe sandbox escape vector removed; widget ID copy to clipboard",
         "de": "Fix: Speichern friert UI nicht mehr ein (Backup ohne aura-group-defs); Änderungen werden nach dem Speichern nicht mehr zurückgesetzt; erweitertes Diagramm nicht mehr leer; getHistory-Fehler bei String-Datenpunkten behoben; iframe-Sandbox-Sicherheitslücke geschlossen; Widget-ID per Klick in Zwischenablage kopieren",
@@ -183,19 +196,6 @@
         "pl": "Poprawka: nowe reguły eslint-plugin-react-hooks v7.x wyłączone (nieobecne w v4.x)",
         "uk": "Виправлення: нові правила eslint-plugin-react-hooks v7.x відключені (відсутні в v4.x)",
         "zh-cn": "修复：禁用 eslint-plugin-react-hooks v7.x 中新增的规则（v4.x 中不存在）"
-      },
-      "0.4.98": {
-        "en": "Fix(lint): unescaped quotes in JSX label strings replaced with HTML entities",
-        "de": "Fix(Lint): Anführungszeichen in JSX-Labels durch HTML-Entities ersetzt",
-        "ru": "Исправление(lint): неэкранированные кавычки в JSX-строках заменены HTML-сущностями",
-        "pt": "Correção(lint): aspas não escapadas em strings JSX substituídas por entidades HTML",
-        "nl": "Fix(lint): niet-escaped aanhalingstekens in JSX-labels vervangen door HTML-entiteiten",
-        "fr": "Correction(lint): guillemets non échappés dans les chaînes JSX remplacés par des entités HTML",
-        "it": "Fix(lint): virgolette non escapate nelle stringhe JSX sostituite con entità HTML",
-        "es": "Corrección(lint): comillas sin escapar en cadenas JSX reemplazadas por entidades HTML",
-        "pl": "Poprawka(lint): nieeskejpowane cudzysłowy w ciągach JSX zastąpione encjami HTML",
-        "uk": "Виправлення(lint): неекрановані лапки в рядках JSX замінені HTML-сутностями",
-        "zh-cn": "修复(lint)：JSX标签字符串中未转义的引号替换为HTML实体"
       }
     }
   },

@@ -4,6 +4,7 @@ import { TrendingUp, BarChart2, Loader } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfigStore } from '../../store/configStore';
 import { useChartHistory, type ChartTimeRange, RANGE_LABELS } from '../../hooks/useChartHistory';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { WidgetProps } from '../../types';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
@@ -39,6 +40,10 @@ export function ChartWidget({ config }: WidgetProps) {
   const lockRange       = o.lockRange === true;
   const showAverage     = o.showAverage === true;
   const layout          = config.layout ?? 'default';
+  const lineColor       = (o.lineColor  as string | undefined) ?? 'var(--accent)';
+  const unitColor       = (o.unitColor  as string | undefined) ?? '#000000';
+  const avgColor        = (o.avgColor   as string | undefined) ?? lineColor;
+  const WidgetIcon      = getWidgetIcon(o.icon as string | undefined, TrendingUp);
 
   // ── Frontend-local range selection (starts from admin config, switchable at runtime) ──
   const [activeRange, setActiveRange]       = useState<ChartTimeRange>(cfgRange);
@@ -142,16 +147,18 @@ export function ChartWidget({ config }: WidgetProps) {
     return (
       <div ref={containerRef} className="flex flex-col h-full">
         <div className="flex items-start justify-between mb-1">
-          <div>
-            {showTitle && <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>}
-            {current !== null && (
-              <p className="text-3xl font-black leading-tight" style={{ color: 'var(--text-primary)' }}>
-                {current.toLocaleString('de-DE')}
-                {unit && <span className="text-lg ml-1 font-medium" style={{ color: 'var(--accent)' }}>{unit}</span>}
-              </p>
-            )}
+          <div className="flex items-start gap-1.5 min-w-0">
+            <WidgetIcon size={16} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0, marginTop: 2 }} />
+            <div className="min-w-0">
+              {showTitle && <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>}
+              {current !== null && (
+                <p className="text-3xl font-black leading-tight" style={{ color: 'var(--text-primary)' }}>
+                  {current.toLocaleString('de-DE')}
+                  {unit && <span className="text-lg ml-1 font-medium" style={{ color: unitColor }}>{unit}</span>}
+                </p>
+              )}
+            </div>
           </div>
-          <TrendingUp size={18} style={{ color: 'var(--accent)' }} />
         </div>
         {rangeSelector && <div className="mb-1.5">{rangeSelector}</div>}
         <div className="flex-1" style={{ minHeight: 1 }}>
@@ -160,20 +167,20 @@ export function ChartWidget({ config }: WidgetProps) {
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={history}>
                 <defs>
-                  <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="var(--accent)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="var(--accent)" stopOpacity={0} />
+                  <linearGradient id={`grad-${config.id}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor={lineColor} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <YAxis domain={['auto', 'auto']} hide />
                 <XAxis dataKey="t" type="number" domain={['dataMin', 'dataMax']} scale="time" hide />
                 <Tooltip contentStyle={tooltipStyle} labelFormatter={formatLabel}
                   formatter={(v: number) => `${v.toLocaleString('de-DE')}${unit ? ` ${unit}` : ''}`} />
-                <Area type="monotone" dataKey="v" stroke="var(--accent)" strokeWidth={2}
-                  fill="url(#grad)" dot={false} isAnimationActive={false} />
+                <Area type="monotone" dataKey="v" stroke={lineColor} strokeWidth={2}
+                  fill={`url(#grad-${config.id})`} dot={false} isAnimationActive={false} />
                 {avg !== null && (
-                  <ReferenceLine y={avg} stroke="var(--accent)" strokeDasharray="4 3" strokeWidth={1.5}
-                    label={{ value: `Ø ${avg.toLocaleString('de-DE')}${unit ? ` ${unit}` : ''}`, position: 'insideTopRight', fill: 'var(--accent)', fontSize: 10 }} />
+                  <ReferenceLine y={avg} stroke={avgColor} strokeDasharray="4 3" strokeWidth={1.5}
+                    label={{ value: `Ø ${avg.toLocaleString('de-DE')}${unit ? ` ${unit}` : ''}`, position: 'insideTopRight', fill: avgColor, fontSize: 10 }} />
                 )}
               </AreaChart>
             </ResponsiveContainer>
@@ -188,7 +195,10 @@ export function ChartWidget({ config }: WidgetProps) {
   return (
     <div ref={containerRef} className="flex flex-col h-full">
       <div className="flex justify-between items-start mb-1">
-        {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>}
+        <div className="flex items-center gap-1 min-w-0">
+          <WidgetIcon size={13} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0 }} />
+          {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>}
+        </div>
         {current !== null && (
           <span className="font-bold text-sm shrink-0 ml-2" style={{ color: 'var(--text-primary)' }}>
             {current.toLocaleString('de-DE')}{unit ? ` ${unit}` : ''}
@@ -215,11 +225,11 @@ export function ChartWidget({ config }: WidgetProps) {
               />
               <Tooltip contentStyle={tooltipStyle} labelFormatter={formatLabel}
                 formatter={(v: number) => `${v.toLocaleString('de-DE')}${unit ? ` ${unit}` : ''}`} />
-              <Line type="monotone" dataKey="v" stroke="var(--accent)" strokeWidth={2}
+              <Line type="monotone" dataKey="v" stroke={lineColor} strokeWidth={2}
                 dot={false} isAnimationActive={false} />
               {avg !== null && (
-                <ReferenceLine y={avg} stroke="var(--accent)" strokeDasharray="4 3" strokeWidth={1.5}
-                  label={{ value: `Ø ${avg.toLocaleString('de-DE')}${unit ? ` ${unit}` : ''}`, position: 'insideTopRight', fill: 'var(--accent)', fontSize: 10 }} />
+                <ReferenceLine y={avg} stroke={avgColor} strokeDasharray="4 3" strokeWidth={1.5}
+                  label={{ value: `Ø ${avg.toLocaleString('de-DE')}${unit ? ` ${unit}` : ''}`, position: 'insideTopRight', fill: avgColor, fontSize: 10 }} />
               )}
             </LineChart>
           </ResponsiveContainer>
