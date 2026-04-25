@@ -9,6 +9,7 @@ import { useDashboardStore, useLayoutBySlug } from './store/dashboardStore';
 import { useThemeStore } from './store/themeStore';
 import { getTheme } from './themes';
 import { useGroupStore } from './store/groupStore';
+import { useGroupDefsStore } from './store/groupDefsStore';
 import { Dashboard } from './components/layout/Dashboard';
 import { TabBar } from './components/layout/TabBar';
 import { useIframeStore } from './store/iframeStore';
@@ -19,13 +20,14 @@ import type { Tab } from './store/dashboardStore';
 import type { FrontendSettings } from './store/configStore';
 
 const IOBROKER_CONFIG_KEY = 'aura.0.config.dashboard';
-const SYNC_STORE_KEYS = ['aura-dashboard', 'aura-theme', 'aura-groups', 'aura-config'] as const;
+const SYNC_STORE_KEYS = ['aura-dashboard', 'aura-theme', 'aura-groups', 'aura-config', 'aura-group-defs'] as const;
 
 const STORE_REHYDRATORS: Record<string, () => void> = {
-  'aura-dashboard': () => useDashboardStore.persist.rehydrate(),
-  'aura-theme':     () => useThemeStore.persist.rehydrate(),
-  'aura-groups':    () => useGroupStore.persist.rehydrate(),
-  'aura-config':    () => useConfigStore.persist.rehydrate(),
+  'aura-dashboard':  () => useDashboardStore.persist.rehydrate(),
+  'aura-theme':      () => useThemeStore.persist.rehydrate(),
+  'aura-groups':     () => useGroupStore.persist.rehydrate(),
+  'aura-config':     () => useConfigStore.persist.rehydrate(),
+  'aura-group-defs': () => useGroupDefsStore.persist.rehydrate(),
 };
 
 // ── HeaderClock ────────────────────────────────────────────────────────────
@@ -331,6 +333,7 @@ export default function App() {
           useThemeStore.persist.rehydrate();
           useGroupStore.persist.rehydrate();
           useConfigStore.persist.rehydrate();
+          useGroupDefsStore.persist.rehydrate();
         }
       } catch { /* ignore malformed JSON */ }
     });
