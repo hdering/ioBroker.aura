@@ -118,22 +118,22 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
     ? Math.max(2, Math.floor((rglWidth - MARGIN) / (snapX + MARGIN)))
     : 12;
 
-  // ── in readonly (frontend) mode: prevent widget repositioning ──────────
+  // ── prevent widget repositioning in both frontend and admin ──────────────
   // Keep cols ≥ the maximum column used across all tabs so RGL never clamps
-  // widget positions. If the browser is narrower than the design width, the
-  // grid overflows and the container scrolls horizontally instead.
-  const minCols = useMemo(() => {
-    if (!readonly) return 2;
-    return tabs.reduce((max, tab) =>
+  // widget positions. If the window is narrower than the design width (frontend)
+  // or opened small (admin), the grid overflows and the container scrolls
+  // horizontally instead of reflowing widgets.
+  const minCols = useMemo(() =>
+    tabs.reduce((max, tab) =>
       (tab.widgets ?? []).reduce((m, w) => Math.max(m, w.gridPos.x + w.gridPos.w), max),
       2,
-    );
-  }, [readonly, tabs]);
+    )
+  , [tabs]);
 
-  const effectiveCols = readonly ? Math.max(cols, minCols) : cols;
-  // When the effective col count exceeds what fits in the viewport, use the
-  // minimum required width so cell sizes stay consistent with the design.
-  const effectiveRglWidth = (readonly && effectiveCols > cols)
+  const effectiveCols = Math.max(cols, minCols);
+  // When effectiveCols exceeds what fits in rglWidth, compute a wider virtual
+  // width so RGL cell sizes stay consistent with the original design.
+  const effectiveRglWidth = effectiveCols > cols
     ? effectiveCols * (snapX + MARGIN) + MARGIN
     : rglWidth;
 
@@ -209,7 +209,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
         <WidgetFrame config={fillTabWidget} editMode={editMode} onRemove={removeWidget} onConfigChange={(cfg) => updateWidget(cfg.id, cfg)} />
       </div>
     )}
-    <div ref={containerRefCallback} className="aura-scroll absolute inset-0 overflow-auto p-2 sm:p-4" style={{ scrollbarGutter: 'stable both-edges', ...((editMode && rglWidth > containerWidth) || (readonly && effectiveRglWidth > containerWidth) ? { overflowX: 'auto' } : {}) }}>
+    <div ref={containerRefCallback} className="aura-scroll absolute inset-0 overflow-auto p-2 sm:p-4" style={{ scrollbarGutter: 'stable both-edges', ...(effectiveRglWidth > containerWidth ? { overflowX: 'auto' } : {}) }}>
       {showGuidelines && <GuidelinesOverlay width={guidelinesWidth} height={guidelinesHeight} />}
       {rglWidth > 0 && (
         <>
