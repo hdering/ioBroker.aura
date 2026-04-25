@@ -14,10 +14,13 @@ export function useDatapoint(id: string) {
   useEffect(() => {
     if (!id || !connected) return;
 
-    // Initialen Wert holen
-    getState(id).then((initialState) => {
-      if (initialState) setDatapointState(initialState);
-    });
+    // Skip the socket round-trip when the prefetch already populated the cache.
+    // The subscribe callback below delivers any subsequent value changes.
+    if (!getStateFromCache(id)) {
+      getState(id).then((initialState) => {
+        if (initialState) setDatapointState(initialState);
+      });
+    }
 
     // Live-Updates abonnieren
     const unsubscribe = subscribe(id, (newState) => {

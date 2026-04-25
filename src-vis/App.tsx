@@ -153,6 +153,22 @@ function ConnectionIndicator({ showBadge }: { showBadge: boolean }) {
   );
 }
 
+// Scan widget options for ioBroker DP IDs to warm the prefetch cache.
+// Recognizes values in keys whose name ends with "Dp", "Datapoint", or equals "datapoint"/"dpId".
+function collectOptionDps(obj: unknown, ids: Set<string>): void {
+  if (!obj || typeof obj !== 'object') return;
+  if (Array.isArray(obj)) { obj.forEach((item) => collectOptionDps(item, ids)); return; }
+  for (const [key, val] of Object.entries(obj as Record<string, unknown>)) {
+    const k = key.toLowerCase();
+    if (typeof val === 'string' && val &&
+        (k === 'datapoint' || k === 'dpid' || k.endsWith('dp') || k.endsWith('datapoint'))) {
+      ids.add(val);
+    } else if (val && typeof val === 'object') {
+      collectOptionDps(val, ids);
+    }
+  }
+}
+
 export default function App() {
   const { tabSlug, layoutSlug } = useParams<{ tabSlug?: string; layoutSlug?: string }>();
   const navigate = useNavigate();
@@ -189,6 +205,7 @@ export default function App() {
     tabs.forEach((tab) => {
       (tab.widgets ?? []).forEach((w) => {
         if (w.datapoint) ids.add(w.datapoint);
+        if (w.options) collectOptionDps(w.options, ids);
       });
     });
     return [...ids];
