@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, AreaChart, Area, ResponsiveContainer, Tooltip, YAxis, XAxis, ReferenceLine } from 'recharts';
 import { TrendingUp, BarChart2, Loader } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
@@ -64,6 +64,22 @@ export function ChartWidget({ config }: WidgetProps) {
     ? Math.round((history.reduce((sum, p) => sum + p.v, 0) / history.length) * 100) / 100
     : null;
 
+  // Delay ResponsiveContainer mount until the widget has non-zero dimensions.
+  // Widgets on inactive tabs (display:none) report 0×0 and trigger a recharts warning.
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [hasSize, setHasSize] = useState(false);
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    if (el.clientWidth > 0 && el.clientHeight > 0) { setHasSize(true); return; }
+    const ro = new ResizeObserver(() => {
+      if ((containerRef.current?.clientWidth ?? 0) > 0 && (containerRef.current?.clientHeight ?? 0) > 0)
+        setHasSize(true);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const tooltipStyle = {
     background:   'var(--app-surface)',
     border:       '1px solid var(--app-border)',
@@ -121,7 +137,7 @@ export function ChartWidget({ config }: WidgetProps) {
   // ── CARD ─────────────────────────────────────────────────────────────────
   if (layout === 'card') {
     return (
-      <div className="flex flex-col h-full">
+      <div ref={containerRef} className="flex flex-col h-full">
         <div className="flex items-start justify-between mb-1">
           <div>
             {showTitle && <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>}
@@ -137,6 +153,7 @@ export function ChartWidget({ config }: WidgetProps) {
         {rangeSelector && <div className="mb-1.5">{rangeSelector}</div>}
         <div className="flex-1" style={{ minHeight: 1 }}>
           {history.length > 1 ? (
+            hasSize ? (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={history}>
                 <defs>
@@ -157,6 +174,7 @@ export function ChartWidget({ config }: WidgetProps) {
                 )}
               </AreaChart>
             </ResponsiveContainer>
+            ) : null
           ) : noData}
         </div>
       </div>
@@ -165,7 +183,7 @@ export function ChartWidget({ config }: WidgetProps) {
 
   // ── DEFAULT ───────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full">
+    <div ref={containerRef} className="flex flex-col h-full">
       <div className="flex justify-between items-start mb-1">
         {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>}
         {current !== null && (
@@ -177,6 +195,7 @@ export function ChartWidget({ config }: WidgetProps) {
       {rangeSelector && <div className="mb-1">{rangeSelector}</div>}
       <div className="flex-1" style={{ minHeight: 1 }}>
         {history.length > 1 ? (
+          hasSize ? (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={history}>
               <YAxis domain={['auto', 'auto']} hide />
@@ -201,6 +220,7 @@ export function ChartWidget({ config }: WidgetProps) {
               )}
             </LineChart>
           </ResponsiveContainer>
+          ) : null
         ) : noData}
       </div>
     </div>
