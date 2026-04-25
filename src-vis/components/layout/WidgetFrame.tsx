@@ -4039,8 +4039,20 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 const inputSty2 = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
                 return (
                   <>
-                    {/* Uhrzeit anzeigen */}
+                    {/* Nur Uhrzeit */}
                     <div className="flex items-center justify-between">
+                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Nur Uhrzeit (kein Datum)</label>
+                      <button
+                        onClick={() => set({ timeOnly: !o.timeOnly, showTime: !o.timeOnly ? true : o.showTime })}
+                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                        style={{ background: o.timeOnly ? 'var(--accent)' : 'var(--app-border)' }}
+                      >
+                        <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                          style={{ left: o.timeOnly ? '14px' : '2px' }} />
+                      </button>
+                    </div>
+                    {/* Uhrzeit anzeigen — nur wenn nicht timeOnly */}
+                    {!o.timeOnly && <div className="flex items-center justify-between">
                       <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Uhrzeit-Eingabe anzeigen</label>
                       <button
                         onClick={() => set({ showTime: !o.showTime })}
@@ -4050,7 +4062,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
                           style={{ left: o.showTime ? '14px' : '2px' }} />
                       </button>
-                    </div>
+                    </div>}
                     {/* Ausgabeformat */}
                     <div>
                       <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Ausgabeformat</label>

@@ -316,6 +316,23 @@ export default function App() {
   // React to external changes on aura.0.config.dashboard (subscription + polling)
   useConfigSync(connected, ioBrokerConfigLoaded);
 
+  // ── Browser-theme sync ────────────────────────────────────────────────────
+  // Subscribes to the theme store so it re-applies the correct theme whenever
+  // a config sync rehydrates the store and overwrites themeId.
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const applyIfFollowing = () => {
+      const { followBrowser: fb, browserDarkThemeId: dark, browserLightThemeId: light, themeId } = useThemeStore.getState();
+      if (!fb) return;
+      const desired = mq.matches ? dark : light;
+      if (themeId !== desired) setTheme(desired);
+    };
+    applyIfFollowing();
+    mq.addEventListener('change', applyIfFollowing);
+    const unsub = useThemeStore.subscribe(applyIfFollowing);
+    return () => { mq.removeEventListener('change', applyIfFollowing); unsub(); };
+  }, [setTheme]);
+
   // Activate tab when URL slug changes
   useEffect(() => {
     if (!tabSlug || !tabs.length) return;

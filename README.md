@@ -175,6 +175,12 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.5.8 (2026-04-25)
+- Feat(json-table): auto-height option — widget height adjusts automatically to row count
+- Feat(theme): follow browser dark/light mode preference (admin → Theme → "Theme folgt Browser")
+- Feat(datepicker): time-only mode (no date input, only time picker)
+- Fix: group widget changes now correctly activate the save button
+
 ### 0.5.7 (2026-04-25)
 - Fix(group): adding widgets inside a group now correctly marks config as dirty and enables the save button (groupDefsStore subscribe → markDirty)
 

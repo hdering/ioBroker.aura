@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CalendarClock, CalendarDays } from 'lucide-react';
+import { CalendarClock, CalendarDays, Clock } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
@@ -14,7 +14,9 @@ export type DateOutputFormat =
   | 'date'
   | 'datetime_local'
   | 'de_date'
-  | 'de_datetime';
+  | 'de_datetime'
+  | 'time_hhmm'
+  | 'time_hhmmss';
 
 export const FORMAT_LABELS: Record<DateOutputFormat, string> = {
   timestamp_ms:   'Timestamp (ms)',
@@ -24,6 +26,8 @@ export const FORMAT_LABELS: Record<DateOutputFormat, string> = {
   datetime_local: 'Datum+Zeit (2025-01-15T13:30)',
   de_date:        'Datum (15.01.2025)',
   de_datetime:    'Datum+Zeit (15.01.2025 13:30)',
+  time_hhmm:      'Uhrzeit (13:30)',
+  time_hhmmss:    'Uhrzeit (13:30:00)',
 };
 
 function pad(n: number) { return String(n).padStart(2, '0'); }
@@ -57,6 +61,8 @@ function formatDate(d: Date, fmt: DateOutputFormat): string | number {
     case 'datetime_local': return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
     case 'de_date':        return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;
     case 'de_datetime':    return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    case 'time_hhmm':      return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    case 'time_hhmmss':    return `${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
   }
 }
 
@@ -70,13 +76,15 @@ function toTimeInputValue(d: Date) {
 
 export function DatePickerWidget({ config }: WidgetProps) {
   const o           = config.options ?? {};
-  const showTime    = o.showTime === true;
+  const timeOnly    = o.timeOnly === true;
+  const showTime    = timeOnly || o.showTime === true;
   const outputFmt   = (o.outputFormat as DateOutputFormat) ?? 'timestamp_ms';
   const showTitle   = o.showTitle !== false;
   const showCurrent = o.showCurrentValue !== false;
   const layout      = config.layout ?? 'default';
   const iconSize    = (o.iconSize as number) || 36;
-  const WidgetIcon  = getWidgetIcon(o.icon as string | undefined, showTime ? CalendarClock : CalendarDays);
+  const defaultIcon = timeOnly ? Clock : showTime ? CalendarClock : CalendarDays;
+  const WidgetIcon  = getWidgetIcon(o.icon as string | undefined, defaultIcon);
 
   const { value } = useDatapoint(config.datapoint);
   const { setState } = useIoBroker();
@@ -84,16 +92,38 @@ export function DatePickerWidget({ config }: WidgetProps) {
   const currentDate = parseValue(value);
 
   const [dateVal, setDateVal] = useState(() => currentDate ? toDateInputValue(currentDate) : '');
-  const [timeVal, setTimeVal] = useState(() => currentDate ? toTimeInputValue(currentDate) : '00:00');
+  const [timeVal, setTimeVal] = useState(() => {
+    if (currentDate) return toTimeInputValue(currentDate);
+    // For timeOnly, parse HH:mm string directly
+    if (timeOnly && typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) return value.slice(0, 5);
+    return '00:00';
+  });
 
   // Sync when DP value changes externally
   useEffect(() => {
+    if (timeOnly) {
+      // timeOnly: value may be "HH:mm" or "HH:mm:ss" string
+      if (typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) {
+        setTimeVal(value.slice(0, 5));
+      } else if (currentDate) {
+        setTimeVal(toTimeInputValue(currentDate));
+      }
+      return;
+    }
     if (!currentDate) return;
     setDateVal(toDateInputValue(currentDate));
     setTimeVal(toTimeInputValue(currentDate));
   }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const writeValue = (date: string, time: string) => {
+    if (timeOnly) {
+      // Write time directly without a date component
+      if (!time) return;
+      const [h, mi] = time.split(':').map(Number);
+      const dt = new Date(1970, 0, 1, h ?? 0, mi ?? 0);
+      setState(config.datapoint, formatDate(dt, outputFmt));
+      return;
+    }
     if (!date) return;
     const [y, mo, d] = date.split('-').map(Number);
     const [h, mi]    = time.split(':').map(Number);
@@ -107,11 +137,13 @@ export function DatePickerWidget({ config }: WidgetProps) {
   const handleDate = (v: string) => { setDateVal(v); writeValue(v, timeVal); };
   const handleTime = (v: string) => { setTimeVal(v); writeValue(dateVal, v); };
 
-  const currentDisplay = currentDate
-    ? (showTime
-        ? currentDate.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-        : currentDate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }))
-    : '–';
+  const currentDisplay = (() => {
+    if (timeOnly) return timeVal || '–';
+    if (!currentDate) return '–';
+    return showTime
+      ? currentDate.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : currentDate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  })();
 
   const inputSty: React.CSSProperties = {
     background: 'var(--app-bg)',
@@ -124,10 +156,10 @@ export function DatePickerWidget({ config }: WidgetProps) {
     flexShrink: 0,
   };
 
-  const dateInput = (
+  const dateInput = !timeOnly ? (
     <input type="date" value={dateVal} onChange={(e) => handleDate(e.target.value)}
       className="nodrag focus:outline-none" style={inputSty} />
-  );
+  ) : null;
 
   const timeInput = showTime ? (
     <input type="time" value={timeVal} onChange={(e) => handleTime(e.target.value)}

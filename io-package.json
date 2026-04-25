@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.7",
+    "version": "0.5.8",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.8": {
+        "en": "Feat(json-table): auto-height option — widget height adjusts automatically to row count; feat(theme): follow browser dark/light mode preference; feat(datepicker): time-only mode; fix: group widget changes now correctly activate save button",
+        "de": "Neu(JSON-Tabelle): Auto-Höhe — Widget-Höhe passt sich automatisch der Zeilenanzahl an; Neu(Theme): Browser Hell/Dunkel-Einstellung folgen; Neu(Datumswähler): Nur-Uhrzeit-Modus; Fix: Änderungen in Gruppen-Widgets aktivieren jetzt korrekt den Speichern-Button",
+        "ru": "Новое(JSON-таблица): авто-высота — высота виджета автоматически подстраивается под количество строк; новое(тема): следовать настройке браузера тёмный/светлый; новое(выбор даты): режим только времени; исправление: изменения в виджетах группы теперь корректно активируют кнопку сохранения",
+        "pt": "Novo(tabela JSON): altura automática — altura do widget ajusta automaticamente ao número de linhas; novo(tema): seguir preferência claro/escuro do navegador; novo(seletor de data): modo apenas hora; correção: alterações em widgets de grupo agora ativam corretamente o botão salvar",
+        "nl": "Nieuw(JSON-tabel): auto-hoogte — widgethoogte past zich automatisch aan het aantal rijen aan; nieuw(thema): browser licht/donker voorkeur volgen; nieuw(datumkiezer): alleen-tijd modus; fix: wijzigingen in groepswidgets activeren nu correct de opslaanknop",
+        "fr": "Nouveau(tableau JSON): hauteur automatique — la hauteur du widget s'adapte automatiquement au nombre de lignes; nouveau(thème): suivre la préférence clair/sombre du navigateur; nouveau(sélecteur de date): mode heure uniquement; correction: les modifications dans les widgets de groupe activent maintenant correctement le bouton de sauvegarde",
+        "it": "Nuovo(tabella JSON): altezza automatica — l'altezza del widget si adatta automaticamente al numero di righe; nuovo(tema): seguire la preferenza chiaro/scuro del browser; nuovo(selettore data): modalità solo ora; fix: le modifiche nei widget di gruppo ora attivano correttamente il pulsante di salvataggio",
+        "es": "Nuevo(tabla JSON): altura automática — la altura del widget se ajusta automáticamente al número de filas; nuevo(tema): seguir preferencia claro/oscuro del navegador; nuevo(selector de fecha): modo solo hora; corrección: los cambios en widgets de grupo ahora activan correctamente el botón guardar",
+        "pl": "Nowe(tabela JSON): auto-wysokość — wysokość widgetu automatycznie dostosowuje się do liczby wierszy; nowe(motyw): śledzenie preferencji jasny/ciemny przeglądarki; nowe(wybieracz daty): tryb tylko godzina; poprawka: zmiany w widgetach grup teraz poprawnie aktywują przycisk zapisu",
+        "uk": "Нове(JSON-таблиця): авто-висота — висота віджета автоматично підлаштовується під кількість рядків; нове(тема): слідувати налаштуванню браузера світлий/темний; нове(вибір дати): режим лише час; виправлення: зміни у віджетах групи тепер коректно активують кнопку збереження",
+        "zh-cn": "新功能(JSON表格)：自动高度——组件高度自动适应行数；新功能(主题)：跟随浏览器深色/浅色偏好；新功能(日期选择器)：纯时间模式；修复：组组件的更改现在正确激活保存按钮"
+      },
       "0.5.7": {
         "en": "Fix: adding widgets inside a group now correctly marks the config as dirty and enables the save button",
         "de": "Fix: Widgets zu einer Gruppe hinzufügen markiert die Konfiguration jetzt korrekt als geändert und aktiviert den Speichern-Button",
@@ -183,19 +196,6 @@
         "pl": "Poprawka: kopiowanie widgetów GROUP nie powoduje już QuotaExceededError (dzieci przeniesione do osobnego store); zmiana układu nie aktywuje już przycisku zapisu; zapobieganie utracie danych gdy localStorage jest pusty przy pierwszym połączeniu; nowe: automatyczny rolling backup do ioBroker po każdym zapisie z UI przywracania",
         "uk": "Виправлення: копіювання GROUP-віджетів більше не викликає QuotaExceededError (дочірні елементи перенесено до окремого сховища); перемикання макета більше не активує кнопку збереження; запобігання втраті даних при порожньому localStorage при першому підключенні; нове: автоматичне ротаційне резервне копіювання в ioBroker після кожного збереження з UI відновлення",
         "zh-cn": "修复：复制GROUP组件不再导致QuotaExceededError（子元素已移至独立store）；切换布局不再激活保存按钮；修复首次连接时localStorage为空导致数据丢失；新增：每次保存后自动循环备份至ioBroker，支持可配置数量和恢复界面"
-      },
-      "0.5.1": {
-        "en": "Fix(camera): remove on-mount reset of wake-up DP to prevent spurious stream starts via go2rtc RTSP reconnects",
-        "de": "Fix(Kamera): Reset des Wake-up-Datenpunkts beim Mount entfernt, um ungewollte Stream-Starts durch go2rtc RTSP-Wiederverbindungen zu verhindern",
-        "ru": "Исправление(камера): удалён сброс wake-up DP при монтировании, предотвращающий случайные запуски потока через переподключения go2rtc RTSP",
-        "pt": "Correção(câmera): removida redefinição do DP de wake-up no mount para evitar iniciações de stream indevidas via reconexões RTSP do go2rtc",
-        "nl": "Fix(camera): reset van wake-up DP bij mount verwijderd om ongewenste stream-starts via go2rtc RTSP-herverbindingen te voorkomen",
-        "fr": "Correction(caméra): suppression de la réinitialisation du DP de réveil au montage pour éviter les démarrages de flux indésirables via les reconnexions RTSP de go2rtc",
-        "it": "Fix(camera): rimosso reset del DP di wake-up al mount per evitare avvii di stream indesiderati tramite riconnessioni RTSP di go2rtc",
-        "es": "Corrección(cámara): eliminado el reset del DP de wake-up al montar para evitar inicios de stream no deseados mediante reconexiones RTSP de go2rtc",
-        "pl": "Poprawka(kamera): usunięto reset DP wake-up przy montowaniu, aby zapobiec niechcianym uruchomieniom strumienia przez ponowne połączenia RTSP go2rtc",
-        "uk": "Виправлення(камера): видалено скидання wake-up DP при монтуванні для запобігання випадковим запускам потоку через повторні підключення RTSP go2rtc",
-        "zh-cn": "修复(摄像头)：移除挂载时重置唤醒DP的操作，防止通过go2rtc RTSP重连导致的意外流启动"
       }
     }
   },

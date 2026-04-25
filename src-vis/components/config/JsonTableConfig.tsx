@@ -116,6 +116,15 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
 
   return (
     <>
+      {/* Auto-height */}
+      <div className="flex items-center justify-between">
+        <div>
+          <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Höhe automatisch anpassen</label>
+          <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Widget-Höhe folgt der Anzahl der Zeilen</p>
+        </div>
+        <Toggle value={boolOpt('autoHeight', false)} onToggle={() => toggleOpt('autoHeight', false)} />
+      </div>
+
       {/* Search */}
       <div className="flex items-center justify-between">
         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Suche anzeigen</label>

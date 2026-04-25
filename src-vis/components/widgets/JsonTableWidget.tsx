@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { Table2, Search, X } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
+import { useDashboardStore } from '../../store/dashboardStore';
 import type { WidgetProps } from '../../types';
 
 // ── Column definition (stored in options.columns) ─────────────────────────────
@@ -66,7 +67,7 @@ function cellText(v: unknown): string {
 }
 
 // ── Main widget ────────────────────────────────────────────────────────────────
-export function JsonTableWidget({ config }: WidgetProps) {
+export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
   const opts = config.options ?? {};
   const { value } = useDatapoint(config.datapoint);
 
@@ -79,7 +80,11 @@ export function JsonTableWidget({ config }: WidgetProps) {
   const showHeader     = (opts.showHeader     as boolean) ?? true;
   const showSearch     = (opts.showSearch     as boolean) ?? false;
   const fontSize       = (opts.fontSize       as number)  ?? 12;
+  const autoHeight     = (opts.autoHeight     as boolean) ?? false;
   const [query, setQuery] = useState('');
+
+  const contentRef = useRef<HTMLDivElement>(null);
+  const lastHRef = useRef<number>(config.gridPos.h);
 
   const tableData = useMemo(() => parseJson(value), [value]);
 
@@ -112,6 +117,29 @@ export function JsonTableWidget({ config }: WidgetProps) {
     );
   }, [tableData, columns, query]);
 
+  // Auto-height: measure content and update gridPos.h when data changes
+  useEffect(() => {
+    if (!autoHeight || !contentRef.current) return;
+    const el = contentRef.current;
+    const update = () => {
+      const { layouts } = useDashboardStore.getState();
+      const layout = layouts.find((l) => l.tabs.some((t) => (t.widgets ?? []).some((w) => w.id === config.id)));
+      const cellSize = layout?.settings?.gridRowHeight ?? 20;
+      const margin   = layout?.settings?.gridGap ?? 10;
+      const naturalH = el.scrollHeight + margin; // extra bottom padding = 1 margin unit
+      const newH = Math.max(1, Math.ceil((naturalH + margin) / (cellSize + margin)));
+      if (newH !== lastHRef.current) {
+        lastHRef.current = newH;
+        onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
+      }
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoHeight, filteredRows.length, columns.length, showHeader, showSearch, fontSize, config.id]);
+
   const fs = fontSize;
   const pad = `${Math.round(fs * 0.35)}px ${Math.round(fs * 0.6)}px`;
 
@@ -141,7 +169,7 @@ export function JsonTableWidget({ config }: WidgetProps) {
   }
 
   return (
-    <div className="flex flex-col h-full gap-1">
+    <div ref={contentRef} className={`flex flex-col gap-1 ${autoHeight ? '' : 'h-full'}`}>
       {/* Title */}
       {config.title && !opts.hideTitle && (
         <p className="shrink-0 truncate" style={{ fontSize: fs - 1, color: 'var(--text-secondary)' }}>
@@ -171,7 +199,7 @@ export function JsonTableWidget({ config }: WidgetProps) {
       )}
 
       {/* Table */}
-      <div className="flex-1 overflow-auto min-h-0 min-w-0">
+      <div className={autoHeight ? 'overflow-x-auto min-w-0' : 'flex-1 overflow-auto min-h-0 min-w-0'}>
         <table className="border-collapse" style={{ fontSize: fs, width: '100%', tableLayout: 'auto' }}>
           {showHeader && columns.length > 0 && (
             <thead>

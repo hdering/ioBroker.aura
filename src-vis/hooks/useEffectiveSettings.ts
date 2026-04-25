@@ -42,10 +42,14 @@ export function useEffectiveSettings(layoutId?: string): FrontendSettings {
 
 /** Effective theme ID for a layout (falls back to global). */
 export function useEffectiveThemeId(layoutId?: string): string {
-  const globalId = useThemeStore((s) => s.themeId);
+  const globalId    = useThemeStore((s) => s.themeId);
+  const followBrowser = useThemeStore((s) => s.followBrowser);
   const ls = useDashboardStore(
     (s) => layoutId ? s.layouts.find((l) => l.id === layoutId)?.settings : undefined,
   );
+  // When followBrowser is active, the global themeId is already managed by the
+  // browser-sync effect — layout overrides must not fight it.
+  if (followBrowser) return globalId;
   return ls?.themeId ?? globalId;
 }
 
