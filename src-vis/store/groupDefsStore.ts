@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { registerExternalReader } from './persistManager';
+import { registerExternalReader, markDirty } from './persistManager';
 import type { WidgetConfig } from '../types';
 
 export interface GroupDefsState {
@@ -30,6 +30,9 @@ function serialise(): string {
   return JSON.stringify({ state: { defs: useGroupDefsStore.getState().defs }, version: 0 });
 }
 registerExternalReader('aura-group-defs', serialise);
+
+// Mark dirty whenever the store changes so the save button activates
+useGroupDefsStore.subscribe(() => markDirty('aura-group-defs'));
 
 /** Load group-defs from a raw JSON string (Zustand persist format or plain {defs:...}). */
 export function hydrateGroupDefs(raw: string): void {

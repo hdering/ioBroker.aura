@@ -33,6 +33,13 @@ export function registerExternalReader(key: string, reader: () => string | null)
   externalReaders.set(key, reader);
 }
 
+/** Mark a key as dirty without buffering a value — used by RAM-only stores
+ *  that provide their data via registerExternalReader at save time. */
+export function markDirty(key: string): void {
+  pending.set(key, '\x00'); // sentinel — replaced by externalReader at save time
+  notify();
+}
+
 function notify() { subscribers.forEach((fn) => fn()); }
 
 export function subscribeDirty(fn: () => void): () => void {
@@ -74,9 +81,14 @@ export function revertAll(rehydrateFns: Array<() => void>): void {
   notify();
 }
 
-/** Read raw value for a key: pending → externalReader → localStorage */
+/** Read raw value for a key: externalReader (if registered) → pending → localStorage */
 function getRaw(key: SyncStoreKey): string | null {
-  return pending.get(key) ?? externalReaders.get(key)?.() ?? localStorage.getItem(key) ?? null;
+  // externalReaders always have the live in-memory value — prefer over pending sentinel
+  const external = externalReaders.get(key)?.();
+  if (external !== undefined && external !== null) return external;
+  const p = pending.get(key);
+  if (p && p !== '\x00') return p;
+  return localStorage.getItem(key) ?? null;
 }
 
 async function writeBackup(): Promise<void> {

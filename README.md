@@ -175,6 +175,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.5.7 (2026-04-25)
+- Fix(group): adding widgets inside a group now correctly marks config as dirty and enables the save button (groupDefsStore subscribe → markDirty)
+
 ### 0.5.6 (2026-04-25)
 - Perf: dashboard now visible immediately after socket connect — no loading bar, no blocking on datapoint prefetch
 - Perf: only active tab datapoints prefetched on start; other tabs prefetched silently in background; per-tab prefetch on first visit

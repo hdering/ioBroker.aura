@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.6",
+    "version": "0.5.7",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.7": {
+        "en": "Fix: adding widgets inside a group now correctly marks the config as dirty and enables the save button",
+        "de": "Fix: Widgets zu einer Gruppe hinzufügen markiert die Konfiguration jetzt korrekt als geändert und aktiviert den Speichern-Button",
+        "ru": "Исправление: добавление виджетов в группу теперь корректно помечает конфигурацию как изменённую и активирует кнопку сохранения",
+        "pt": "Correção: adicionar widgets a um grupo agora marca corretamente a configuração como alterada e ativa o botão de salvar",
+        "nl": "Fix: widgets toevoegen aan een groep markeert de configuratie nu correct als gewijzigd en activeert de opslaanknop",
+        "fr": "Correction: l'ajout de widgets dans un groupe marque maintenant correctement la configuration comme modifiée et active le bouton de sauvegarde",
+        "it": "Fix: aggiungere widget a un gruppo ora segna correttamente la configurazione come modificata e attiva il pulsante di salvataggio",
+        "es": "Corrección: añadir widgets a un grupo ahora marca correctamente la configuración como modificada y activa el botón de guardar",
+        "pl": "Poprawka: dodawanie widgetów do grupy teraz poprawnie oznacza konfigurację jako zmienioną i aktywuje przycisk zapisu",
+        "uk": "Виправлення: додавання віджетів до групи тепер коректно позначає конфігурацію як змінену та активує кнопку збереження",
+        "zh-cn": "修复：向组内添加组件现在能正确标记配置为已更改并启用保存按钮"
+      },
       "0.5.6": {
         "en": "Perf: dashboard now visible immediately after connect (no loading bar); only active tab datapoints prefetched on start; other tabs loaded in background. Feat: config split into separate ioBroker states per store key; automatic migration from old blob format",
         "de": "Perf: Dashboard erscheint sofort nach Verbindung (kein Ladebalken mehr); nur aktiver Tab wird beim Start vorgeladen, andere Tabs im Hintergrund. Neu: Konfiguration auf separate ioBroker-States aufgeteilt; automatische Migration vom alten Format",
@@ -183,19 +196,6 @@
         "pl": "Poprawka(kamera): usunięto reset DP wake-up przy montowaniu, aby zapobiec niechcianym uruchomieniom strumienia przez ponowne połączenia RTSP go2rtc",
         "uk": "Виправлення(камера): видалено скидання wake-up DP при монтуванні для запобігання випадковим запускам потоку через повторні підключення RTSP go2rtc",
         "zh-cn": "修复(摄像头)：移除挂载时重置唤醒DP的操作，防止通过go2rtc RTSP重连导致的意外流启动"
-      },
-      "0.5.0": {
-        "en": "Fix: missing statusBadges field in useStatusFields hook caused TypeScript build errors in CI",
-        "de": "Fix: fehlendes statusBadges-Feld im useStatusFields-Hook verursachte TypeScript-Buildfehler in CI",
-        "ru": "Исправление: отсутствующее поле statusBadges в хуке useStatusFields вызывало ошибки TypeScript при сборке в CI",
-        "pt": "Correção: campo statusBadges ausente no hook useStatusFields causava erros de build TypeScript no CI",
-        "nl": "Fix: ontbrekend statusBadges-veld in useStatusFields hook veroorzaakte TypeScript-buildfouten in CI",
-        "fr": "Correction: champ statusBadges manquant dans le hook useStatusFields causait des erreurs de build TypeScript en CI",
-        "it": "Fix: campo statusBadges mancante nel hook useStatusFields causava errori di build TypeScript in CI",
-        "es": "Corrección: campo statusBadges faltante en el hook useStatusFields causaba errores de compilación TypeScript en CI",
-        "pl": "Poprawka: brakujące pole statusBadges w hooku useStatusFields powodowało błędy kompilacji TypeScript w CI",
-        "uk": "Виправлення: відсутнє поле statusBadges у хуку useStatusFields спричиняло помилки збірки TypeScript у CI",
-        "zh-cn": "修复：useStatusFields hook 中缺少 statusBadges 字段导致 CI 中 TypeScript 构建错误"
       }
     }
   },
