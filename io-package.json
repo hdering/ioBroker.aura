@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.8",
+    "version": "0.5.9",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.9": {
+        "en": "Same as 0.5.8 — re-release to fix npm beta tag (CI workflow fix)",
+        "de": "Wie 0.5.8 — Neu-Release zur Korrektur des npm Beta-Tags (CI-Workflow-Fix)",
+        "ru": "То же, что 0.5.8 — переиздание для исправления npm beta-тега",
+        "pt": "Igual ao 0.5.8 — re-lançamento para corrigir tag beta npm",
+        "nl": "Zelfde als 0.5.8 — heruitgave om npm beta-tag te corrigeren",
+        "fr": "Identique à 0.5.8 — re-publication pour corriger le tag beta npm",
+        "it": "Uguale a 0.5.8 — re-release per correggere il tag beta npm",
+        "es": "Igual que 0.5.8 — re-publicación para corregir la etiqueta beta de npm",
+        "pl": "Tak samo jak 0.5.8 — ponowne wydanie w celu naprawy tagu beta npm",
+        "uk": "Те саме, що 0.5.8 — повторний реліз для виправлення npm beta-тегу",
+        "zh-cn": "与0.5.8相同——重新发布以修复npm beta标签"
+      },
       "0.5.8": {
         "en": "Feat(json-table): auto-height option — widget height adjusts automatically to row count; feat(theme): follow browser dark/light mode preference; feat(datepicker): time-only mode; fix: group widget changes now correctly activate save button",
         "de": "Neu(JSON-Tabelle): Auto-Höhe — Widget-Höhe passt sich automatisch der Zeilenanzahl an; Neu(Theme): Browser Hell/Dunkel-Einstellung folgen; Neu(Datumswähler): Nur-Uhrzeit-Modus; Fix: Änderungen in Gruppen-Widgets aktivieren jetzt korrekt den Speichern-Button",
@@ -183,19 +196,6 @@
         "pl": "Perf: szybsze przełączanie kart, szybsze wyświetlanie wartości DP po przeładowaniu; poprawka: widżety wykresów nie ostrzegają już o rozmiarze 0 na nieaktywnych kartach; poprawka: siatka admina nie przesuwa już widżetów przy otwieraniu w małym oknie; nowe: zwijana pasek boczny admina dla wąskich okien",
         "uk": "Продуктивність: швидше перемикання вкладок, швидше відображення значень DP після перезавантаження; виправлення: віджети графіків більше не попереджають про розмір 0 на неактивних вкладках; виправлення: сітка адміна більше не переміщує віджети при відкритті у малому вікні; нове: згортувана бічна панель адміна для вузьких вікон",
         "zh-cn": "性能：更快的标签切换、重新加载后更快的数据点值显示；修复：图表组件不再在非活动标签上警告0尺寸；修复：在小窗口中打开时，管理网格不再重新定位组件；新增：窄窗口下管理侧边栏可折叠"
-      },
-      "0.5.2": {
-        "en": "Fix: copying GROUP widgets no longer causes QuotaExceededError or stuck save button (children moved to separate store); layout switch no longer activates save button; prevent data loss when localStorage is empty on first connect; feat: automatic rolling backup to ioBroker after every save with restore UI",
-        "de": "Fix: Kopieren von GROUP-Widgets verursacht keine QuotaExceededError mehr (Kinder in separaten Store ausgelagert); Layoutwechsel markiert Speichern nicht mehr als geändert; Datenverlust bei leerem localStorage beim ersten Verbinden behoben; Neu: automatisches Rolling-Backup in ioBroker nach jedem Speichern mit Wiederherstellungs-UI",
-        "ru": "Исправление: копирование GROUP-виджетов больше не вызывает QuotaExceededError (дочерние элементы перенесены в отдельное хранилище); переключение макета больше не активирует кнопку сохранения; предотвращена потеря данных при пустом localStorage при первом подключении; новое: автоматическое ротирующееся резервное копирование в ioBroker после каждого сохранения с UI восстановления",
-        "pt": "Correção: copiar widgets GROUP não causa mais QuotaExceededError (filhos movidos para store separado); trocar layout não ativa mais o botão salvar; evitada perda de dados quando localStorage está vazio na primeira conexão; novo: backup automático rotativo no ioBroker após cada save com UI de restauração",
-        "nl": "Fix: kopiëren van GROUP-widgets veroorzaakt geen QuotaExceededError meer (kinderen verplaatst naar aparte store); layoutwissel activeert opslaan niet meer; dataverlies voorkomen bij lege localStorage bij eerste verbinding; nieuw: automatische rolling backup naar ioBroker na elke opslag met herstel-UI",
-        "fr": "Correction: la copie des widgets GROUP ne cause plus QuotaExceededError (enfants déplacés dans un store séparé); le changement de mise en page n'active plus le bouton de sauvegarde; perte de données évitée quand localStorage est vide à la première connexion; nouveau: sauvegarde automatique rotative vers ioBroker après chaque sauvegarde avec UI de restauration",
-        "it": "Fix: copiare widget GROUP non causa più QuotaExceededError (figli spostati in store separato); il cambio layout non attiva più il pulsante salva; evitata perdita di dati quando localStorage è vuoto alla prima connessione; nuovo: backup automatico rotante su ioBroker dopo ogni salvataggio con UI di ripristino",
-        "es": "Corrección: copiar widgets GROUP ya no causa QuotaExceededError (hijos movidos a store separado); el cambio de layout ya no activa el botón guardar; evitada pérdida de datos cuando localStorage está vacío en la primera conexión; nuevo: copia de seguridad automática rotativa en ioBroker tras cada guardado con UI de restauración",
-        "pl": "Poprawka: kopiowanie widgetów GROUP nie powoduje już QuotaExceededError (dzieci przeniesione do osobnego store); zmiana układu nie aktywuje już przycisku zapisu; zapobieganie utracie danych gdy localStorage jest pusty przy pierwszym połączeniu; nowe: automatyczny rolling backup do ioBroker po każdym zapisie z UI przywracania",
-        "uk": "Виправлення: копіювання GROUP-віджетів більше не викликає QuotaExceededError (дочірні елементи перенесено до окремого сховища); перемикання макета більше не активує кнопку збереження; запобігання втраті даних при порожньому localStorage при першому підключенні; нове: автоматичне ротаційне резервне копіювання в ioBroker після кожного збереження з UI відновлення",
-        "zh-cn": "修复：复制GROUP组件不再导致QuotaExceededError（子元素已移至独立store）；切换布局不再激活保存按钮；修复首次连接时localStorage为空导致数据丢失；新增：每次保存后自动循环备份至ioBroker，支持可配置数量和恢复界面"
       }
     }
   },

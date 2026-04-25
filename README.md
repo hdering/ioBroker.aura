@@ -175,6 +175,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.5.9 (2026-04-25)
+- Re-release of 0.5.8 to fix npm beta tag (CI workflow fix)
+
 ### 0.5.8 (2026-04-25)
 - Feat(json-table): auto-height option — widget height adjusts automatically to row count
 - Feat(theme): follow browser dark/light mode preference (admin → Theme → "Theme folgt Browser")
