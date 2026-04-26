@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
-import { useT, t } from '../../i18n';
-import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Download, ArrowRightLeft, Copy, Layers2 } from 'lucide-react';
+import { useT, t, type TranslationKey } from '../../i18n';
+import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Download, ArrowRightLeft, Copy, Layers2, Minimize2, Smartphone, GripVertical } from 'lucide-react';
 import { setDragBridge } from '../../utils/dragBridge';
 import { exportWidget } from '../../utils/widgetExportImport';
 import { copyToClipboard } from '../../utils/clipboard';
@@ -10,10 +10,11 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useStoreWithEqualityFn } from 'zustand/traditional';
-import { cloneGroupDef } from '../../store/groupDefsStore';
+import { cloneGroupDef, useGroupDefsStore } from '../../store/groupDefsStore';
+import { useConfigStore } from '../../store/configStore';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
-import type { WidgetConfig, WidgetCondition, CustomCell, CustomGrid } from '../../types';
+import type { WidgetConfig, WidgetCondition, CustomCell, CustomGrid, WidgetType } from '../../types';
 import { DEFAULT_CUSTOM_GRID } from '../widgets/CustomGridView';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
@@ -1019,13 +1020,82 @@ function CameraSlotEditorRow({ slot, idx, label, cCls, cSty, onChange, onRemove,
   );
 }
 
+function GroupMobileOrderPanel({ defId }: { defId: string }) {
+  const children = useGroupDefsStore((s) => s.defs[defId] ?? []);
+  const setChildren = (next: WidgetConfig[]) => useGroupDefsStore.getState().setDef(defId, next);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [overIdx, setOverIdx] = useState<number | null>(null);
+
+  const sorted = [...children].sort((a, b) => {
+    const oa = a.mobileOrder ?? (a.gridPos.y * 1000 + a.gridPos.x);
+    const ob = b.mobileOrder ?? (b.gridPos.y * 1000 + b.gridPos.x);
+    return oa - ob;
+  });
+
+  const applyOrder = (reordered: WidgetConfig[]) =>
+    setChildren(children.map((c) => {
+      const idx = reordered.findIndex((r) => r.id === c.id);
+      return idx === -1 ? c : { ...c, mobileOrder: idx };
+    }));
+
+  const moveItem = (from: number, to: number) => {
+    if (to < 0 || to >= sorted.length) return;
+    const r = [...sorted]; const [m] = r.splice(from, 1); r.splice(to, 0, m); applyOrder(r);
+  };
+
+  const handleDrop = (targetIdx: number) => {
+    if (dragIdx === null || dragIdx === targetIdx) { setDragIdx(null); setOverIdx(null); return; }
+    const r = [...sorted]; const [m] = r.splice(dragIdx, 1); r.splice(targetIdx, 0, m);
+    applyOrder(r); setDragIdx(null); setOverIdx(null);
+  };
+
+  return (
+    <div className="rounded-lg overflow-hidden min-w-[260px]" style={{ border: '1px solid var(--app-border)' }}>
+      {sorted.map((child, i) => (
+        <div
+          key={child.id}
+          draggable
+          onDragStart={() => setDragIdx(i)}
+          onDragOver={(e) => { e.preventDefault(); setOverIdx(i); }}
+          onDragLeave={() => setOverIdx(null)}
+          onDrop={() => handleDrop(i)}
+          onDragEnd={() => { setDragIdx(null); setOverIdx(null); }}
+          className="flex items-center gap-1.5 px-2 py-1.5 select-none"
+          style={{
+            background: dragIdx === i ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : overIdx === i ? 'color-mix(in srgb, var(--accent) 6%, var(--app-bg))' : 'var(--app-bg)',
+            borderBottom: '1px solid var(--app-border)',
+            borderLeft: overIdx === i ? '2px solid var(--accent)' : '2px solid transparent',
+            opacity: dragIdx === i ? 0.5 : 1,
+            cursor: 'grab',
+          }}
+        >
+          <GripVertical size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+          <span className="text-xs font-mono w-4 shrink-0 text-center" style={{ color: 'var(--text-secondary)' }}>{i + 1}</span>
+          <span className="flex-1 text-xs truncate" style={{ color: 'var(--text-primary)' }}>
+            {child.title || child.type}
+          </span>
+          <div className="flex flex-col gap-0.5 shrink-0">
+            <button onClick={() => moveItem(i, i - 1)} disabled={i === 0}
+              className="w-5 h-4 flex items-center justify-center rounded text-[9px] hover:opacity-80 disabled:opacity-20"
+              style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>▲</button>
+            <button onClick={() => moveItem(i, i + 1)} disabled={i === sorted.length - 1}
+              className="w-5 h-4 flex items-center justify-center rounded text-[9px] hover:opacity-80 disabled:opacity-20"
+              style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>▼</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDuplicate }: WidgetFrameProps) {
   const t = useT();
-  const [openPanel, setOpenPanel] = useState<'menu' | 'edit' | 'conditions' | null>(null);
+  const [openPanel, setOpenPanel] = useState<'menu' | 'edit' | 'conditions' | 'group-mobile-order' | null>(null);
   const [idCopied, setIdCopied] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showMoveMenu, setShowMoveMenu] = useState(false);
   const [showCopyMenu, setShowCopyMenu] = useState(false);
+  const [showGroupTypePicker, setShowGroupTypePicker] = useState(false);
   const { addWidgetToLayoutTab, removeWidgetFromLayoutTab } = useDashboardStore();
   const activeLayoutId = useDashboardStore((s) => s.activeLayoutId);
   const { activeTabId, tabs: activeTabs } = useActiveLayout();
@@ -1085,6 +1155,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       setOpenPanel(null);
       setShowMoveMenu(false);
       setShowCopyMenu(false);
+      setShowGroupTypePicker(false);
       releasePanel(config.id);
     } else {
       claimPanel(config.id, () => setOpenPanel(null));
@@ -1151,6 +1222,45 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   const isHeader    = config.type === 'header';
   const isGroup     = config.type === 'group';
   const isTransparent = !!(config.options?.transparent);
+
+  // ── Group-specific hooks (always called, conditionally used) ───────────────
+  const groupDefId = isGroup ? (config.options?.defId as string | undefined) : undefined;
+  const groupChildren = useGroupDefsStore((s) => groupDefId ? (s.defs[groupDefId] ?? []) : []);
+  const groupCellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);
+  const groupGridGap  = useConfigStore((s) => s.frontend.gridGap ?? 10);
+
+  const fitGroupHeight = () => {
+    if (!groupDefId || groupChildren.length === 0) return;
+    const maxBottom = Math.max(...groupChildren.map((c) => c.gridPos.y + c.gridPos.h));
+    const innerH = maxBottom * (groupCellSize + groupGridGap) - groupGridGap;
+    const titleBarH = config.title ? 28 : 0;
+    const newH = Math.ceil((titleBarH + innerH + groupGridGap) / (groupCellSize + groupGridGap));
+    onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
+  };
+
+  const addGroupChild = (type: WidgetType) => {
+    if (!groupDefId) return;
+    const meta = WIDGET_BY_TYPE[type];
+    const maxY = groupChildren.reduce((m, c) => Math.max(m, c.gridPos.y + c.gridPos.h), 0);
+    const newChild: WidgetConfig = {
+      id: `child-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      type, title: 'Widget', datapoint: '',
+      gridPos: { x: 0, y: maxY, w: meta?.defaultW ?? 2, h: meta?.defaultH ?? 2 },
+      options: { icon: meta?.iconName },
+    };
+    const next = [...groupChildren, newChild];
+    useGroupDefsStore.getState().setDef(groupDefId, next);
+    // auto-fit height
+    const maxBottom = Math.max(...next.map((c) => c.gridPos.y + c.gridPos.h));
+    const innerH = maxBottom * (groupCellSize + groupGridGap) - groupGridGap;
+    const titleBarH = config.title ? 28 : 0;
+    const newH = Math.ceil((titleBarH + innerH + groupGridGap) / (groupCellSize + groupGridGap));
+    onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
+    setShowGroupTypePicker(false);
+    openPanelFor(null);
+  };
+  // ──────────────────────────────────────────────────────────────────────────
+
   const activeLayoutIdCtx = useActiveLayoutId();
   const effectiveSettings = useEffectiveSettings(activeLayoutIdCtx);
   const widgetPadding = effectiveSettings.widgetPadding ?? 16;
@@ -1302,6 +1412,64 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 </span>
               )}
             </button>
+
+            {/* Gruppe – Widget hinzufügen / Höhe anpassen / Mobile Reihenfolge */}
+            {isGroup && editMode && (
+              <>
+                <div className="my-0.5 mx-1 border-t" style={{ borderColor: 'var(--app-border)' }} />
+                <button
+                  onClick={() => setShowGroupTypePicker((v) => !v)}
+                  className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity w-full"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  <Plus size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                  {t('group.addWidget')}
+                  <ChevronDown size={11} className="ml-auto transition-transform" style={{ color: 'var(--text-secondary)', transform: showGroupTypePicker ? 'rotate(180deg)' : 'none' }} />
+                </button>
+                {showGroupTypePicker && (
+                  <div className="mx-1 mb-0.5 rounded-md overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+                    {WIDGET_GROUPS.map((g) => {
+                      const types = WIDGET_REGISTRY.filter((m) => m.widgetGroup === g.id && m.type !== 'calendar');
+                      if (types.length === 0) return null;
+                      return (
+                        <div key={g.id} className="p-1.5">
+                          <div className="text-[9px] uppercase tracking-wider px-0.5 pb-0.5" style={{ color: 'var(--text-secondary)' }}>{g.label}</div>
+                          <div className="flex flex-wrap gap-1">
+                            {types.map((m) => (
+                              <button
+                                key={m.type}
+                                onClick={() => addGroupChild(m.type as WidgetType)}
+                                className="text-[10px] px-2 py-1 rounded-lg hover:opacity-80"
+                                style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                              >
+                                {t(`widget.${m.type}` as TranslationKey)}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                <button
+                  onClick={() => { fitGroupHeight(); openPanelFor(null); }}
+                  className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity w-full"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  <Minimize2 size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                  {t('group.fitHeight')}
+                </button>
+                <button
+                  onClick={() => openPanelFor('group-mobile-order')}
+                  className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity w-full"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  <Smartphone size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                  {t('group.mobileOrder')}
+                </button>
+                <div className="my-0.5 mx-1 border-t" style={{ borderColor: 'var(--app-border)' }} />
+              </>
+            )}
 
             {/* Exportieren */}
             <button
@@ -4321,6 +4489,12 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       })()}
 
       {/* Conditions Modal */}
+      {openPanel === 'group-mobile-order' && groupDefId && (
+        <CenteredModal title={t('group.mobileOrder')} onClose={() => openPanelFor(null)}>
+          <GroupMobileOrderPanel defId={groupDefId} />
+        </CenteredModal>
+      )}
+
       {openPanel === 'conditions' && (
         <CenteredModal title="Bedingungen" onClose={() => openPanelFor(null)}>
           <ConditionEditor

@@ -52,6 +52,7 @@ html, body, #root {
 }
 .aura-scroll::-webkit-scrollbar-corner { background: transparent; }
 
+
 /* Arbitrary px sizes used in some widgets */
 [data-aura-app="frontend"] .text-\[9px\]  { font-size: calc(9px        * var(--font-scale, 1)); }
 [data-aura-app="frontend"] .text-\[10px\] { font-size: calc(10px       * var(--font-scale, 1)); }

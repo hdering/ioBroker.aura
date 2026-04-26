@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 import { X } from 'lucide-react';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
+import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { useIframeStore, type IframeFullscreenData } from '../../store/iframeStore';
 import { WidgetFrame } from './WidgetFrame';
 import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
@@ -40,6 +41,7 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
   const cellSize = settings.gridRowHeight ?? 20;
   const snapX    = settings.gridSnapX ?? settings.gridRowHeight ?? 20;
   const MARGIN = settings.gridGap ?? DEFAULT_MARGIN;
+  const groupDefs = useGroupDefsStore((s) => s.defs);
   const mobileBreakpoint = settings.mobileBreakpoint ?? 600;
   const guidelinesEnabled      = settings.guidelinesEnabled ?? false;
   const guidelinesWidth        = settings.guidelinesWidth ?? 1280;
@@ -234,13 +236,27 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
             const tabWidgets = tab.widgets ?? [];
             // Exclude the fillTab widget from the grid — it is rendered as an absolute overlay above
             const tabGridWidgets = tabWidgets.filter((w) => !reflowHiddenIds.has(w.id) && !(fillTabWidget && w.id === fillTabWidget.id));
-            const tabLayout = tabGridWidgets.map((w) => ({
-              i: w.id,
-              x: Math.min(w.gridPos.x ?? 0, effectiveCols - 1),
-              y: w.gridPos.y ?? 9999,
-              w: Math.min(w.gridPos.w ?? 2, effectiveCols),
-              h: w.gridPos.h ?? 2,
-            }));
+            const tabLayout = tabGridWidgets.map((w) => {
+              let minH = 1;
+              if (editMode && w.type === 'group') {
+                const defId = w.options?.defId as string | undefined;
+                const children = defId ? (groupDefs[defId] ?? []) : [];
+                if (children.length > 0) {
+                  const maxBottom = Math.max(...children.map((c) => c.gridPos.y + c.gridPos.h));
+                  const innerH = maxBottom * (cellSize + MARGIN) - MARGIN;
+                  const titleBarH = w.title ? 28 : 0;
+                  minH = Math.ceil((titleBarH + innerH + MARGIN) / (cellSize + MARGIN));
+                }
+              }
+              return {
+                i: w.id,
+                x: Math.min(w.gridPos.x ?? 0, effectiveCols - 1),
+                y: w.gridPos.y ?? 9999,
+                w: Math.min(w.gridPos.w ?? 2, effectiveCols),
+                h: w.gridPos.h ?? 2,
+                minH,
+              };
+            });
             const buildTabUpdated = (newLayout: { i: string; x: number; y: number; w: number; h: number }[]) =>
               tabWidgets.map((w) => {
                 if (reflowHiddenIds.has(w.id)) return w;
