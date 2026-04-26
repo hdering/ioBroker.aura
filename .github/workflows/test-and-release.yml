@@ -72,21 +72,26 @@ jobs:
         run: |
           VERSION="${{ github.event.release.tag_name }}"
           VERSION="${VERSION#v}"
+
           # Tag the new version as beta
           npm dist-tag add iobroker.aura@${VERSION} beta
-          # Find the last stable version (highest non-prerelease on npm) and restore latest
-          STABLE=$(npm view iobroker.aura versions --json | node -e "
-            const v=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
-            const stable=v.filter(x=>!x.includes('-')).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
-            const current='${VERSION}';
-            const prev=stable.filter(x=>x!==current).pop();
-            console.log(prev||'');
-          ")
-          if [ -n "$STABLE" ] && [ "$STABLE" != "$VERSION" ]; then
+          echo "Set beta → $VERSION"
+
+          # Find last stable version from GitHub releases (authoritative source for prerelease flag)
+          STABLE=$(gh release list --repo "${{ github.repository }}" --limit 50 --json tagName,isPrerelease \
+            | node -e "
+              const releases = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+              const cur = process.env.VERSION;
+              const found = releases.find(r => !r.isPrerelease && r.tagName !== 'v'+cur);
+              console.log(found ? found.tagName.replace(/^v/,'') : '');
+            " VERSION="$VERSION")
+
+          if [ -n "$STABLE" ]; then
             npm dist-tag add iobroker.aura@${STABLE} latest
-            echo "Restored latest → $STABLE, set beta → $VERSION"
+            echo "Restored latest → $STABLE"
           else
-            echo "No previous stable version found, beta → $VERSION only"
+            echo "No stable release found, skipping latest restore"
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
