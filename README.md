@@ -175,6 +175,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.5.11 (2026-04-26)
+- CI: npm beta tag now set automatically and correctly via GitHub releases; no manual dist-tag needed after beta releases
+
 ### 0.5.10 (2026-04-26)
 - Fix: clipboard copy (widget ID, URL) now works over HTTP — fallback via `execCommand` for non-secure contexts
 - Feat(switch): momentary/pulse mode — sends `true` then automatically `false` after configurable delay (ms)

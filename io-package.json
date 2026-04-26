@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.10",
+    "version": "0.5.11",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.11": {
+        "en": "CI: npm beta tag now set automatically and correctly via GitHub releases; no manual dist-tag needed after beta releases",
+        "de": "CI: npm Beta-Tag wird jetzt automatisch und korrekt über GitHub Releases gesetzt; kein manuelles dist-tag nach Beta-Releases nötig",
+        "ru": "CI: npm beta-тег теперь устанавливается автоматически и корректно через GitHub Releases",
+        "pt": "CI: tag beta npm agora definida automaticamente via GitHub Releases",
+        "nl": "CI: npm beta-tag wordt nu automatisch correct ingesteld via GitHub Releases",
+        "fr": "CI: le tag beta npm est maintenant défini automatiquement via GitHub Releases",
+        "it": "CI: il tag beta npm ora viene impostato automaticamente tramite GitHub Releases",
+        "es": "CI: la etiqueta beta de npm ahora se establece automáticamente via GitHub Releases",
+        "pl": "CI: tag beta npm jest teraz ustawiany automatycznie przez GitHub Releases",
+        "uk": "CI: npm beta-тег тепер встановлюється автоматично через GitHub Releases",
+        "zh-cn": "CI：npm beta标签现在通过GitHub Releases自动正确设置"
+      },
       "0.5.10": {
         "en": "Fix: clipboard copy (widget ID, URL) now works over HTTP (non-secure context fallback); feat(switch): momentary/pulse mode — sends true then false after configurable delay",
         "de": "Fix: Zwischenablage-Kopieren (Widget-ID, URL) funktioniert jetzt auch über HTTP; Neu(Schalter): Taster-Modus — sendet true, danach nach konfigurierbarer Zeit false",
@@ -183,19 +196,6 @@
         "pl": "Nowe(wykres): konfigurowalne kolory linii/obszaru i linii średniej; poprawiona ikona w układach karty i standardowym; kolor jednostki domyślnie czarny",
         "uk": "Нове(графік): налаштовувані кольори лінії/області та лінії середнього; виправлено іконку в макетах картки та стандартному; колір одиниці чорний за замовчуванням",
         "zh-cn": "新功能(图表)：可配置折线/面积和平均线颜色；修复卡片和默认布局中的图标；单位颜色默认黑色"
-      },
-      "0.5.4": {
-        "en": "Fix: admin save no longer freezes UI (backup excluded aura-group-defs); changes no longer revert after save; advanced chart no longer blank; getHistory error for string datapoints fixed; iframe sandbox escape vector removed; widget ID copy to clipboard",
-        "de": "Fix: Speichern friert UI nicht mehr ein (Backup ohne aura-group-defs); Änderungen werden nach dem Speichern nicht mehr zurückgesetzt; erweitertes Diagramm nicht mehr leer; getHistory-Fehler bei String-Datenpunkten behoben; iframe-Sandbox-Sicherheitslücke geschlossen; Widget-ID per Klick in Zwischenablage kopieren",
-        "ru": "Исправление: сохранение в админе больше не зависает (backup без aura-group-defs); изменения больше не откатываются после сохранения; расширенный график больше не пустой; ошибка getHistory для строковых датапоинтов исправлена; уязвимость sandbox iframe устранена; копирование ID виджета в буфер обмена",
-        "pt": "Correção: salvar no admin não congela mais a UI (backup sem aura-group-defs); alterações não revertem mais após salvar; gráfico avançado não fica mais em branco; erro getHistory para datapoints string corrigido; vulnerabilidade sandbox iframe removida; copiar ID do widget para área de transferência",
-        "nl": "Fix: opslaan in admin bevriest UI niet meer (backup zonder aura-group-defs); wijzigingen keren niet meer terug na opslaan; geavanceerde grafiek niet meer leeg; getHistory-fout voor string-datapunten opgelost; iframe sandbox beveiligingslek verwijderd; widget-ID naar klembord kopiëren",
-        "fr": "Correction: la sauvegarde dans l'admin ne gèle plus l'UI (backup sans aura-group-defs); les modifications ne reviennent plus après la sauvegarde; le graphique avancé n'est plus vide; erreur getHistory pour les datapoints string corrigée; faille sandbox iframe supprimée; copie de l'ID du widget dans le presse-papiers",
-        "it": "Fix: il salvataggio nell'admin non blocca più l'UI (backup senza aura-group-defs); le modifiche non vengono più annullate dopo il salvataggio; il grafico avanzato non è più vuoto; errore getHistory per datapoint string corretto; vulnerabilità sandbox iframe rimossa; copia ID widget negli appunti",
-        "es": "Corrección: guardar en admin ya no congela la UI (backup sin aura-group-defs); los cambios ya no revierten tras guardar; el gráfico avanzado ya no queda en blanco; error getHistory para datapoints string corregido; vulnerabilidad sandbox iframe eliminada; copiar ID del widget al portapapeles",
-        "pl": "Poprawka: zapisywanie w adminie nie zawiesza już UI (backup bez aura-group-defs); zmiany nie są już cofane po zapisaniu; zaawansowany wykres nie jest już pusty; błąd getHistory dla datapointów string naprawiony; luka bezpieczeństwa sandbox iframe usunięta; kopiowanie ID widżetu do schowka",
-        "uk": "Виправлення: збереження в адміні більше не заморожує UI (backup без aura-group-defs); зміни більше не скасовуються після збереження; розширений графік більше не порожній; помилка getHistory для рядкових датапоінтів виправлена; вразливість sandbox iframe усунута; копіювання ID віджета в буфер обміну",
-        "zh-cn": "修复：后台保存不再冻结UI（备份排除aura-group-defs）；保存后更改不再回滚；高级图表不再空白；字符串数据点的getHistory错误已修复；iframe沙箱安全漏洞已移除；点击复制组件ID到剪贴板"
       }
     }
   },

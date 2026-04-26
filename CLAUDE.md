@@ -137,16 +137,31 @@ The user will explicitly say "neues release" (or similar) when a release is want
      ```
      "/c/Program Files/GitHub CLI/gh.exe" release create vX.Y.Z --title "vX.Y.Z" --notes "..." --prerelease
      ```
-     → GitHub Actions publishes with `npm publish --tag beta`
    - **Stable** (tested, ready for all users):
      ```
      "/c/Program Files/GitHub CLI/gh.exe" release create vX.Y.Z --title "vX.Y.Z" --notes "..."
      ```
-     → GitHub Actions publishes with `npm publish` (tag `latest`)
    - **Promote existing pre-release to stable:**
      ```
      "/c/Program Files/GitHub CLI/gh.exe" release edit vX.Y.Z --prerelease=false
      ```
+
+### npm tag behaviour (CI workflow)
+
+`ioBroker/testing-action-deploy@v1` always publishes to `latest` regardless of the GitHub prerelease flag. The workflow (`.github/workflows/test-and-release.yml`) contains a fix step that runs after the deploy for prereleases:
+
+1. Tags the new version as `beta` via `npm dist-tag add`
+2. Finds the last stable version by querying **GitHub releases** (`isPrerelease: false`) — **not** npm versions, because npm may contain mislabeled betas
+3. Restores `latest` to that stable version
+
+**This is fully automatic — no manual `npm dist-tag` needed after a beta release.**
+
+If `latest` is ever wrong (e.g. after a failed CI run), fix manually:
+```bash
+npm dist-tag add iobroker.aura@X.Y.Z latest   # restore stable
+npm dist-tag add iobroker.aura@X.Y.Z beta     # set beta
+```
+Note: npm 2FA (OTP) is required for manual dist-tag commands.
 
 ### When to ask about release type
 
