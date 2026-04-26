@@ -13,9 +13,20 @@ export function SwitchWidget({ config }: WidgetProps) {
   const { setState } = useIoBroker();
   const isOn = Boolean(value);
   const layout = config.layout ?? 'default';
-  const toggle = () => setState(config.datapoint, !isOn);
-  const WidgetIcon = getWidgetIcon(config.options?.icon as string | undefined, Power);
   const o = config.options ?? {};
+  const momentary      = (o.momentary      as boolean) ?? false;
+  const momentaryDelay = (o.momentaryDelay as number)  ?? 500;
+
+  const toggle = () => {
+    if (momentary) {
+      setState(config.datapoint, true);
+      setTimeout(() => setState(config.datapoint, false), momentaryDelay);
+    } else {
+      setState(config.datapoint, !isOn);
+    }
+  };
+
+  const WidgetIcon = getWidgetIcon(config.options?.icon as string | undefined, Power);
   const showTitle = o.showTitle !== false;
   const showLabel = o.showLabel !== false;
 

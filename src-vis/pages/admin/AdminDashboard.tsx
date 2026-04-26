@@ -3,6 +3,7 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import { Layers, Wifi, WifiOff, Layout, Hash, Navigation, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
 import { useT } from '../../i18n';
+import { copyToClipboard } from '../../utils/clipboard';
 
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) {
   return (
@@ -22,7 +23,7 @@ function CopyButton({ text }: { text: string }) {
   const t = useT();
   const [copied, setCopied] = useState(false);
   const copy = () => {
-    navigator.clipboard.writeText(text);
+    copyToClipboard(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.9",
+    "version": "0.5.10",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.10": {
+        "en": "Fix: clipboard copy (widget ID, URL) now works over HTTP (non-secure context fallback); feat(switch): momentary/pulse mode — sends true then false after configurable delay",
+        "de": "Fix: Zwischenablage-Kopieren (Widget-ID, URL) funktioniert jetzt auch über HTTP; Neu(Schalter): Taster-Modus — sendet true, danach nach konfigurierbarer Zeit false",
+        "ru": "Исправление: копирование в буфер обмена (ID виджета, URL) теперь работает по HTTP; новое(переключатель): режим тактовой кнопки — отправляет true, затем false после настраиваемой задержки",
+        "pt": "Correção: copiar para área de transferência (ID do widget, URL) agora funciona via HTTP; novo(interruptor): modo momentâneo — envia true depois false após delay configurável",
+        "nl": "Fix: klembord kopiëren (widget-ID, URL) werkt nu ook via HTTP; nieuw(schakelaar): drukknop-modus — stuurt true dan false na instelbare vertraging",
+        "fr": "Correction: copie dans le presse-papiers (ID widget, URL) fonctionne maintenant via HTTP; nouveau(interrupteur): mode impulsionnel — envoie true puis false après délai configurable",
+        "it": "Fix: copia negli appunti (ID widget, URL) ora funziona via HTTP; nuovo(interruttore): modalità impulso — invia true poi false dopo ritardo configurabile",
+        "es": "Corrección: copiar al portapapeles (ID widget, URL) ahora funciona vía HTTP; nuevo(interruptor): modo pulsador — envía true luego false tras retardo configurable",
+        "pl": "Poprawka: kopiowanie do schowka (ID widgetu, URL) działa teraz przez HTTP; nowe(przełącznik): tryb przycisku chwilowego — wysyła true potem false po konfigurowalnym opóźnieniu",
+        "uk": "Виправлення: копіювання в буфер обміну (ID віджета, URL) тепер працює через HTTP; нове(перемикач): режим кнопки-тактора — надсилає true потім false після налаштованої затримки",
+        "zh-cn": "修复：剪贴板复制（组件ID、URL）现在通过HTTP也能工作；新功能(开关)：点动模式——发送true后在可配置延迟后发送false"
+      },
       "0.5.9": {
         "en": "Same as 0.5.8 — re-release to fix npm beta tag (CI workflow fix)",
         "de": "Wie 0.5.8 — Neu-Release zur Korrektur des npm Beta-Tags (CI-Workflow-Fix)",
@@ -183,19 +196,6 @@
         "pl": "Poprawka: zapisywanie w adminie nie zawiesza już UI (backup bez aura-group-defs); zmiany nie są już cofane po zapisaniu; zaawansowany wykres nie jest już pusty; błąd getHistory dla datapointów string naprawiony; luka bezpieczeństwa sandbox iframe usunięta; kopiowanie ID widżetu do schowka",
         "uk": "Виправлення: збереження в адміні більше не заморожує UI (backup без aura-group-defs); зміни більше не скасовуються після збереження; розширений графік більше не порожній; помилка getHistory для рядкових датапоінтів виправлена; вразливість sandbox iframe усунута; копіювання ID віджета в буфер обміну",
         "zh-cn": "修复：后台保存不再冻结UI（备份排除aura-group-defs）；保存后更改不再回滚；高级图表不再空白；字符串数据点的getHistory错误已修复；iframe沙箱安全漏洞已移除；点击复制组件ID到剪贴板"
-      },
-      "0.5.3": {
-        "en": "Perf: faster tab switches, faster DP value display after reload; fix: chart widgets no longer warn about 0-size on inactive tabs; fix: admin grid no longer repositions widgets when opened in a small window; feat: collapsible admin sidebar for narrow windows",
-        "de": "Perf: schnellere Tab-Wechsel, schnellere DP-Wertanzeige nach Reload; Fix: Chart-Widgets warnen nicht mehr über 0-Größe bei inaktiven Tabs; Fix: Admin-Grid verschiebt Widgets nicht mehr bei kleinem Fenster; Neu: einklappbare Admin-Sidebar bei schmalen Fenstern",
-        "ru": "Производительность: более быстрое переключение вкладок, более быстрое отображение значений DP после перезагрузки; исправление: виджеты графиков больше не предупреждают о размере 0 на неактивных вкладках; исправление: административная сетка больше не перемещает виджеты при открытии в маленьком окне; новое: сворачиваемая боковая панель администратора для узких окон",
-        "pt": "Perf: troca de abas mais rápida, exibição mais rápida de valores DP após recarregamento; correção: widgets de gráfico não avisam mais sobre tamanho 0 em abas inativas; correção: grade do admin não reposiciona mais widgets ao abrir em janela pequena; novo: barra lateral do admin recolhível para janelas estreitas",
-        "nl": "Perf: snellere tabwisselingen, snellere weergave van DP-waarden na herladen; fix: grafiekwidgets waarschuwen niet meer over grootte 0 op inactieve tabbladen; fix: admin-raster verplaatst widgets niet meer bij openen in klein venster; nieuw: inklapbare admin-zijbalk voor smalle vensters",
-        "fr": "Perf: changements d'onglets plus rapides, affichage plus rapide des valeurs DP après rechargement; correction: les widgets graphiques n'avertissent plus de la taille 0 sur les onglets inactifs; correction: la grille admin ne repositionne plus les widgets lorsqu'elle est ouverte dans une petite fenêtre; nouveau: barre latérale admin repliable pour les fenêtres étroites",
-        "it": "Perf: cambio schede più veloce, visualizzazione più rapida dei valori DP dopo il ricaricamento; fix: i widget grafici non avvertono più della dimensione 0 sulle schede inattive; fix: la griglia admin non riposiziona più i widget quando aperta in una finestra piccola; nuovo: barra laterale admin comprimibile per finestre strette",
-        "es": "Perf: cambios de pestañas más rápidos, visualización más rápida de valores DP tras recargar; corrección: los widgets de gráficos ya no advierten sobre tamaño 0 en pestañas inactivas; corrección: la cuadrícula del admin ya no reposiciona widgets al abrir en ventana pequeña; nuevo: barra lateral del admin plegable para ventanas estrechas",
-        "pl": "Perf: szybsze przełączanie kart, szybsze wyświetlanie wartości DP po przeładowaniu; poprawka: widżety wykresów nie ostrzegają już o rozmiarze 0 na nieaktywnych kartach; poprawka: siatka admina nie przesuwa już widżetów przy otwieraniu w małym oknie; nowe: zwijana pasek boczny admina dla wąskich okien",
-        "uk": "Продуктивність: швидше перемикання вкладок, швидше відображення значень DP після перезавантаження; виправлення: віджети графіків більше не попереджають про розмір 0 на неактивних вкладках; виправлення: сітка адміна більше не переміщує віджети при відкритті у малому вікні; нове: згортувана бічна панель адміна для вузьких вікон",
-        "zh-cn": "性能：更快的标签切换、重新加载后更快的数据点值显示；修复：图表组件不再在非活动标签上警告0尺寸；修复：在小窗口中打开时，管理网格不再重新定位组件；新增：窄窗口下管理侧边栏可折叠"
       }
     }
   },

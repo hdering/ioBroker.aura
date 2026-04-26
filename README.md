@@ -175,6 +175,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.5.10 (2026-04-26)
+- Fix: clipboard copy (widget ID, URL) now works over HTTP — fallback via `execCommand` for non-secure contexts
+- Feat(switch): momentary/pulse mode — sends `true` then automatically `false` after configurable delay (ms)
+
 ### 0.5.9 (2026-04-25)
 - Re-release of 0.5.8 to fix npm beta tag (CI workflow fix)
 

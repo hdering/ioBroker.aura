@@ -5,6 +5,7 @@ import { useT, t } from '../../i18n';
 import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Download, ArrowRightLeft, Copy, Layers2 } from 'lucide-react';
 import { setDragBridge } from '../../utils/dragBridge';
 import { exportWidget } from '../../utils/widgetExportImport';
+import { copyToClipboard } from '../../utils/clipboard';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
@@ -1482,7 +1483,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       {/* Edit Modal */}
       {openPanel === 'edit' && (
         <CenteredModal
-          title={<>{t('wf.edit.title')} <span className="relative inline-flex items-center"><span className="text-[10px] font-mono opacity-40 ml-1 font-normal cursor-pointer hover:opacity-70 active:opacity-50 select-none" title="ID kopieren" onClick={() => { navigator.clipboard.writeText(config.id); setIdCopied(true); setTimeout(() => setIdCopied(false), 1500); }}>({config.id})</span>{idCopied && <span className="absolute left-full ml-1 whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-sans font-normal" style={{ background: 'var(--accent)', color: '#fff', opacity: 1 }}>Kopiert!</span>}</span></>}
+          title={<>{t('wf.edit.title')} <span className="relative inline-flex items-center"><span className="text-[10px] font-mono opacity-40 ml-1 font-normal cursor-pointer hover:opacity-70 active:opacity-50 select-none" title="ID kopieren" onClick={() => { copyToClipboard(config.id); setIdCopied(true); setTimeout(() => setIdCopied(false), 1500); }}>({config.id})</span>{idCopied && <span className="absolute left-full ml-1 whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-sans font-normal" style={{ background: 'var(--accent)', color: '#fff', opacity: 1 }}>Kopiert!</span>}</span></>}
           wide={config.type === 'echart' || config.type === 'autolist' || config.type === 'list' || config.type === 'trash'}
           onClose={() => openPanelFor(null)}
         >
@@ -2003,6 +2004,42 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   </p>
                 </div>
               )}
+              {config.type === 'switch' && (() => {
+                const o   = config.options ?? {};
+                const set = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const momentary = (o.momentary as boolean) ?? false;
+                const delay     = (o.momentaryDelay as number) ?? 500;
+                return (
+                  <>
+                    <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>Taster-Modus</label>
+                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Kurz true, danach automatisch false</p>
+                      </div>
+                      <button onClick={() => set({ momentary: !momentary })}
+                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                        style={{ background: momentary ? 'var(--accent)' : 'var(--app-border)' }}>
+                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                          style={{ left: momentary ? '18px' : '2px' }} />
+                      </button>
+                    </div>
+                    {momentary && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Impulsdauer (ms)</label>
+                        <input
+                          type="number" min={50} max={10000} step={50} value={delay}
+                          onChange={(e) => set({ momentaryDelay: Math.max(50, Number(e.target.value)) })}
+                          className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                          style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                        />
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+
               {config.type === 'chart' && (
                 <ChartHistoryConfig config={config} onConfigChange={onConfigChange} />
               )}
