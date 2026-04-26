@@ -48,6 +48,24 @@ jobs:
       contents: write
 
     steps:
+      # For prereleases: snapshot the current "latest" npm tag BEFORE the deploy
+      # action overwrites it. We restore it afterwards.
+      - name: Setup node (snapshot latest)
+        if: github.event.release.prerelease == true
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Snapshot current latest
+        if: github.event.release.prerelease == true
+        id: snapshot
+        run: echo "latest=$(npm view iobroker.aura dist-tags.latest 2>/dev/null || echo '')" >> $GITHUB_OUTPUT
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # ioBroker/testing-action-deploy@v1 always publishes with tag "latest",
+      # ignoring the GitHub release prerelease flag. We fix the tags afterwards.
       - uses: ioBroker/testing-action-deploy@v1
         with:
           node-version: '20.x'
@@ -56,42 +74,28 @@ jobs:
           build-command: 'npm run build:adapter'
           install-command: 'npm ci --legacy-peer-deps'
 
-      # ioBroker/testing-action-deploy@v1 always publishes with tag "latest",
-      # ignoring the GitHub release prerelease flag. This step fixes npm tags:
-      # - prerelease → move to "beta", restore "latest" to last stable
-      # - stable     → already on "latest" (correct, nothing to do)
-      - name: Fix npm dist-tag for prerelease
+      - name: Setup node (fix tags)
         if: github.event.release.prerelease == true
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Move prerelease from latest → beta
+      - name: Fix npm tags — move to beta, restore latest
         if: github.event.release.prerelease == true
         run: |
           VERSION="${{ github.event.release.tag_name }}"
           VERSION="${VERSION#v}"
+          PREV_LATEST="${{ steps.snapshot.outputs.latest }}"
 
-          # Tag the new version as beta
           npm dist-tag add iobroker.aura@${VERSION} beta
           echo "Set beta → $VERSION"
 
-          # Find last stable version from GitHub releases (authoritative source for prerelease flag)
-          STABLE=$(gh release list --repo "${{ github.repository }}" --limit 50 --json tagName,isPrerelease \
-            | node -e "
-              const releases = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
-              const cur = process.env.VERSION;
-              const found = releases.find(r => !r.isPrerelease && r.tagName !== 'v'+cur);
-              console.log(found ? found.tagName.replace(/^v/,'') : '');
-            " VERSION="$VERSION")
-
-          if [ -n "$STABLE" ]; then
-            npm dist-tag add iobroker.aura@${STABLE} latest
-            echo "Restored latest → $STABLE"
+          if [ -n "$PREV_LATEST" ] && [ "$PREV_LATEST" != "$VERSION" ]; then
+            npm dist-tag add iobroker.aura@${PREV_LATEST} latest
+            echo "Restored latest → $PREV_LATEST"
           else
-            echo "No stable release found, skipping latest restore"
+            echo "No previous latest to restore (was: $PREV_LATEST)"
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

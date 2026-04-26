@@ -148,11 +148,11 @@ The user will explicitly say "neues release" (or similar) when a release is want
 
 ### npm tag behaviour (CI workflow)
 
-`ioBroker/testing-action-deploy@v1` always publishes to `latest` regardless of the GitHub prerelease flag. The workflow (`.github/workflows/test-and-release.yml`) contains a fix step that runs after the deploy for prereleases:
+`ioBroker/testing-action-deploy@v1` always publishes to `latest` AND promotes GitHub prereleases to full releases. The workflow (`.github/workflows/test-and-release.yml`) works around this:
 
-1. Tags the new version as `beta` via `npm dist-tag add`
-2. Finds the last stable version by querying **GitHub releases** (`isPrerelease: false`) — **not** npm versions, because npm may contain mislabeled betas
-3. Restores `latest` to that stable version
+1. **Before deploy**: snapshots the current `latest` npm tag
+2. **Deploy runs**: publishes the new version to `latest` (wrong for betas)
+3. **After deploy**: tags the new version as `beta`, restores `latest` to the snapshotted previous value
 
 **This is fully automatic — no manual `npm dist-tag` needed after a beta release.**
 
