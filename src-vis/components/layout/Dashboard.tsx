@@ -301,7 +301,15 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
                   isResizable={isActive && editMode}
                   draggableCancel=".nodrag"
                   onLayoutChange={(nl) => { if (isActive) onLayoutChange?.(buildTabUpdated(nl)); }}
-                  onDragStop={(nl) => { if (isActive && !readonly) updateLayouts(buildTabUpdated(nl)); }}
+                  onDragStop={(nl) => {
+                    if (!isActive || readonly) return;
+                    // Skip if nothing moved (click without drag fires onDragStop too)
+                    const moved = nl.some(({ i, x, y, w: nw, h: nh }) => {
+                      const widget = tabGridWidgets.find((tw) => tw.id === i);
+                      return !widget || widget.gridPos.x !== x || widget.gridPos.y !== y || widget.gridPos.w !== nw || widget.gridPos.h !== nh;
+                    });
+                    if (moved) updateLayouts(buildTabUpdated(nl));
+                  }}
                   onResizeStop={(nl) => { if (isActive && !readonly) updateLayouts(buildTabUpdated(nl)); }}
                   margin={[MARGIN, MARGIN]}
                   containerPadding={[0, 0]}

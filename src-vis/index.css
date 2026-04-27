@@ -52,6 +52,20 @@ html, body, #root {
 }
 .aura-scroll::-webkit-scrollbar-corner { background: transparent; }
 
+/* ── React-Grid-Layout drag placeholder ──────────────────────────────────────
+   The placeholder always mounts on mousedown (even without actual drag movement).
+   Adding an animation-delay of 120 ms means clicks that resolve faster than that
+   never show the red ghost — only real drags become visible.
+   ─────────────────────────────────────────────────────────────────────────── */
+.react-grid-placeholder {
+  background: var(--accent, #3b82f6) !important;
+  opacity: 0 !important;
+  animation: rgl-placeholder-in 150ms 120ms forwards !important;
+}
+@keyframes rgl-placeholder-in {
+  to { opacity: 0.25; }
+}
+
 
 /* Arbitrary px sizes used in some widgets */
 [data-aura-app="frontend"] .text-\[9px\]  { font-size: calc(9px        * var(--font-scale, 1)); }

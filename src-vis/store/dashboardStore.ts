@@ -302,10 +302,14 @@ export const useDashboardStore = create<DashboardState>()(
         ),
 
       setActiveTab: (id) => {
-        set((s) =>
-          ({ layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({ ...l, activeTabId: id })) })
-        );
-        setTimeout(() => flushKey('aura-dashboard'), 0);
+        let changed = false;
+        set((s) => {
+          const layout = s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0];
+          if (layout?.activeTabId === id) return s;
+          changed = true;
+          return { layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({ ...l, activeTabId: id })) };
+        });
+        if (changed) setTimeout(() => flushKey('aura-dashboard'), 0);
       },
 
       reorderTabs: (fromIndex, toIndex) =>
