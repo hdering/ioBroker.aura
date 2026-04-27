@@ -175,6 +175,13 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.5.12 (2026-04-27)
+- Fix(group): auto-expand on add/duplicate, auto-compact and shrink on delete, correct height after drag/resize
+- Fix(group): verticalCompact on add/drop/duplicate so stored positions match RGL display
+- Fix(group): clamp h to minH in tabLayout so resize and fit-height work correctly
+- Fix(group): increase title bar height to 36px so edit buttons fit; update titleBarH formula
+- Feat(group): fit-height button moved to toolbar next to drag handle
+
 ### 0.5.11 (2026-04-26)
 - CI: npm beta tag now set automatically and correctly via GitHub releases; no manual dist-tag needed after beta releases
 

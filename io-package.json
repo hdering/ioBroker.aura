@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.11",
+    "version": "0.5.12",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.12": {
+        "en": "Fix(group): auto-expand on add/duplicate, auto-compact and shrink on delete, correct height after drag/resize; fit-height button moved to toolbar",
+        "de": "Fix(Gruppe): automatische Vergrößerung beim Hinzufügen/Duplizieren, automatische Kompaktierung und Verkleinerung beim Löschen, korrekte Höhe nach Drag/Resize; Höhe-anpassen-Button in die Toolbar verschoben",
+        "ru": "Fix(группа): авто-расширение при добавлении/дублировании, авто-компактирование и сжатие при удалении, корректная высота после перемещения/изменения размера; кнопка подгонки высоты перемещена на панель",
+        "pt": "Fix(grupo): expansão automática ao adicionar/duplicar, compactação e redução automáticas ao excluir, altura correta após arrastar/redimensionar; botão de ajuste de altura movido para barra de ferramentas",
+        "nl": "Fix(groep): automatisch uitbreiden bij toevoegen/dupliceren, automatisch comprimeren en verkleinen bij verwijderen, correcte hoogte na slepen/vergroten; hoogte-aanpassen-knop verplaatst naar werkbalk",
+        "fr": "Fix(groupe): expansion automatique à l'ajout/duplication, compactage et réduction automatiques à la suppression, hauteur correcte après glisser/redimensionner; bouton d'ajustement de hauteur déplacé dans la barre d'outils",
+        "it": "Fix(gruppo): espansione automatica all'aggiunta/duplicazione, compattamento e riduzione automatici all'eliminazione, altezza corretta dopo trascinamento/ridimensionamento; pulsante regola-altezza spostato nella barra degli strumenti",
+        "es": "Fix(grupo): expansión automática al añadir/duplicar, compactación y reducción automáticas al eliminar, altura correcta tras arrastrar/redimensionar; botón ajustar-altura movido a la barra de herramientas",
+        "pl": "Fix(grupa): automatyczne rozszerzanie przy dodawaniu/duplikowaniu, automatyczne kompaktowanie i zmniejszanie przy usuwaniu, poprawna wysokość po przeciąganiu/zmianie rozmiaru; przycisk dopasowania wysokości przeniesiony do paska narzędzi",
+        "uk": "Fix(група): авто-розширення при додаванні/дублюванні, авто-компактування та зменшення при видаленні, коректна висота після переміщення/зміни розміру; кнопку підгонки висоти перенесено на панель",
+        "zh-cn": "修复(组)：添加/复制时自动扩展，删除时自动压缩和缩小，拖动/调整大小后高度正确；适应高度按钮移至工具栏"
+      },
       "0.5.11": {
         "en": "CI: npm beta tag now set automatically and correctly via GitHub releases; no manual dist-tag needed after beta releases",
         "de": "CI: npm Beta-Tag wird jetzt automatisch und korrekt über GitHub Releases gesetzt; kein manuelles dist-tag nach Beta-Releases nötig",
@@ -183,19 +196,6 @@
         "pl": "Perf: dashboard widoczny natychmiast po połączeniu (bez paska ładowania); tylko aktywna karta ładowana przy starcie, pozostałe w tle. Nowe: konfiguracja podzielona na osobne stany ioBroker z automatyczną migracją",
         "uk": "Продуктивність: дашборд відображається одразу після з'єднання (без смуги завантаження); лише активна вкладка завантажується при старті, інші — у фоні. Нове: конфігурація розділена на окремі стани ioBroker з автоміграцією",
         "zh-cn": "性能：连接后立即显示仪表板（无加载条）；启动时仅预加载活动标签页，其他标签页后台加载。新功能：配置拆分为独立的ioBroker状态，自动从旧格式迁移"
-      },
-      "0.5.5": {
-        "en": "Feat(chart): configurable line/area and average line colors; fixed icon in card and default layout; unit color defaults to black",
-        "de": "Neu(Diagramm): einstellbare Linien-/Flächenfarbe und Durchschnittslinienfarbe; Icon in Karten- und Standard-Layout korrigiert; Einheitenfarbe standardmäßig schwarz",
-        "ru": "Новое(график): настраиваемые цвета линии/области и линии среднего; исправлен значок в макетах карточки и стандартном; цвет единицы по умолчанию чёрный",
-        "pt": "Novo(gráfico): cores configuráveis de linha/área e linha de média; ícone corrigido nos layouts cartão e padrão; cor da unidade preta por padrão",
-        "nl": "Nieuw(grafiek): instelbare lijn-/vlakkleur en gemiddeldelijkleur; pictogram gecorrigeerd in kaart- en standaardlayout; eenheidskleur standaard zwart",
-        "fr": "Nouveau(graphique): couleurs de ligne/zone et de ligne moyenne configurables; icône corrigée dans les mises en page carte et standard; couleur de l'unité noire par défaut",
-        "it": "Nuovo(grafico): colori configurabili per linea/area e linea media; icona corretta nei layout scheda e standard; colore unità nero per impostazione predefinita",
-        "es": "Nuevo(gráfico): colores configurables de línea/área y línea de promedio; icono corregido en diseños tarjeta y estándar; color de unidad negro por defecto",
-        "pl": "Nowe(wykres): konfigurowalne kolory linii/obszaru i linii średniej; poprawiona ikona w układach karty i standardowym; kolor jednostki domyślnie czarny",
-        "uk": "Нове(графік): налаштовувані кольори лінії/області та лінії середнього; виправлено іконку в макетах картки та стандартному; колір одиниці чорний за замовчуванням",
-        "zh-cn": "新功能(图表)：可配置折线/面积和平均线颜色；修复卡片和默认布局中的图标；单位颜色默认黑色"
       }
     }
   },
