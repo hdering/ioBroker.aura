@@ -6,7 +6,8 @@ import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import type { Tab, TabBarItem, TabBarSettings, DashboardLayout } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import { Icon } from '@iconify/react';
-import { CURATED_ICON_IDS, getWidgetIcon } from '../../utils/widgetIconMap';
+import { CURATED_ICON_IDS } from '../../utils/widgetIconMap';
+import { loadIconSets, areIconSetsLoaded } from '../../utils/iconifyLoader';
 import { useT } from '../../i18n';
 import { subscribeStateDirect } from '../../hooks/useIoBroker';
 import { applyCustomFormat, fmtTime, fmtDate } from '../../utils/clockUtils';
@@ -174,6 +175,11 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
     return () => window.removeEventListener('resize', check);
   }, [mobileBreakpoint]);
 
+  const [iconsReady, setIconsReady] = useState(areIconSetsLoaded);
+  useEffect(() => {
+    if (!iconsReady) loadIconSets().then(() => setIconsReady(true));
+  }, []);
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -239,7 +245,6 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
   // ── Tab rendering ────────────────────────────────────────────────────────────
   const renderTabs = () => tabs.map((tab, idx) => {
     const isActive = tab.id === activeTabId;
-    const TabIconComp = tab.icon ? getWidgetIcon(tab.icon, null as never) : null;
     const ts = tabStyle(isActive, tbSettings);
     const indicatorStyle = tbSettings?.indicatorStyle ?? 'underline';
 
@@ -283,8 +288,10 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
           </span>
         )}
 
-        {TabIconComp && (
-          <TabIconComp size={14} style={{ color: 'currentColor', flexShrink: 0 }} />
+        {tab.icon && (
+          <span style={{ width: 14, height: 14, flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}>
+            {iconsReady && <Icon icon={tab.icon} width={14} height={14} style={{ color: 'currentColor' }} />}
+          </span>
         )}
 
         {!readonly && editingId === tab.id ? (

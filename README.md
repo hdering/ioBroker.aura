@@ -175,6 +175,9 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.5.13 (2026-04-27)
+- Fix(tab bar): icons no longer flicker when switching views — placeholder reserves space and Icon component reference is stable
+
 ### 0.5.12 (2026-04-27)
 - Fix(group): auto-expand on add/duplicate, auto-compact and shrink on delete, correct height after drag/resize
 - Fix(group): verticalCompact on add/drop/duplicate so stored positions match RGL display

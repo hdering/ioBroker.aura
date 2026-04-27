@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.12",
+    "version": "0.5.13",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.13": {
+        "en": "Fix(tab bar): icons no longer flicker when switching views — placeholder reserves space and Icon component reference is stable",
+        "de": "Fix(Tab-Leiste): Icons flackern beim Wechseln zwischen Ansichten nicht mehr — Platzhalter reserviert den Platz und die Icon-Komponente ist stabil",
+        "ru": "Исправление(панель вкладок): иконки больше не мигают при переключении видов — заполнитель резервирует место, ссылка на компонент иконки стабильна",
+        "pt": "Correção(barra de abas): ícones não piscam mais ao trocar de vista — espaço reservado pelo placeholder e referência do componente de ícone estável",
+        "nl": "Fix(tabbalk): pictogrammen flikkeren niet meer bij het wisselen van weergave — placeholder reserveert de ruimte en de Icon-componentreferentie is stabiel",
+        "fr": "Correction(barre d'onglets): les icônes ne clignotent plus lors du changement de vue — l'espace est réservé et la référence du composant Icon est stable",
+        "it": "Fix(barra schede): le icone non lampeggiano più quando si cambia vista — il segnaposto riserva lo spazio e il riferimento del componente Icon è stabile",
+        "es": "Corrección(barra de pestañas): los iconos ya no parpadean al cambiar de vista — el marcador reserva el espacio y la referencia del componente Icon es estable",
+        "pl": "Poprawka(pasek zakładek): ikony nie migają już przy przełączaniu widoków — placeholder rezerwuje miejsce, a referencja komponentu Icon jest stabilna",
+        "uk": "Виправлення(панель вкладок): іконки більше не мигають при перемиканні видів — заповнювач резервує місце, посилання на компонент іконки стабільне",
+        "zh-cn": "修复(标签栏)：切换视图时图标不再闪烁——占位符保留空间，图标组件引用稳定"
+      },
       "0.5.12": {
         "en": "Fix(group): auto-expand on add/duplicate, auto-compact and shrink on delete, correct height after drag/resize; fit-height button moved to toolbar",
         "de": "Fix(Gruppe): automatische Vergrößerung beim Hinzufügen/Duplizieren, automatische Kompaktierung und Verkleinerung beim Löschen, korrekte Höhe nach Drag/Resize; Höhe-anpassen-Button in die Toolbar verschoben",
@@ -183,19 +196,6 @@
         "pl": "Poprawka: dodawanie widgetów do grupy teraz poprawnie oznacza konfigurację jako zmienioną i aktywuje przycisk zapisu",
         "uk": "Виправлення: додавання віджетів до групи тепер коректно позначає конфігурацію як змінену та активує кнопку збереження",
         "zh-cn": "修复：向组内添加组件现在能正确标记配置为已更改并启用保存按钮"
-      },
-      "0.5.6": {
-        "en": "Perf: dashboard now visible immediately after connect (no loading bar); only active tab datapoints prefetched on start; other tabs loaded in background. Feat: config split into separate ioBroker states per store key; automatic migration from old blob format",
-        "de": "Perf: Dashboard erscheint sofort nach Verbindung (kein Ladebalken mehr); nur aktiver Tab wird beim Start vorgeladen, andere Tabs im Hintergrund. Neu: Konfiguration auf separate ioBroker-States aufgeteilt; automatische Migration vom alten Format",
-        "ru": "Производительность: дашборд отображается сразу после подключения (без полосы загрузки); только активная вкладка загружается при старте, остальные — в фоне. Новое: конфигурация разделена на отдельные состояния ioBroker с автомиграцией",
-        "pt": "Perf: dashboard visível imediatamente após conexão (sem barra de carregamento); apenas a aba ativa é pré-carregada; outras abas carregadas em segundo plano. Novo: config dividida em estados ioBroker separados com migração automática",
-        "nl": "Perf: dashboard direct zichtbaar na verbinding (geen laadbalk meer); alleen actieve tab voorgeladen bij start, andere tabs op achtergrond. Nieuw: config gesplitst in aparte ioBroker-states met automatische migratie",
-        "fr": "Perf: tableau de bord visible immédiatement après connexion (sans barre de chargement); seul l'onglet actif est préchargé au démarrage, les autres en arrière-plan. Nouveau: config divisée en états ioBroker séparés avec migration automatique",
-        "it": "Perf: dashboard visibile subito dopo la connessione (nessuna barra di caricamento); solo la scheda attiva viene precaricata all'avvio, le altre in background. Nuovo: config suddivisa in stati ioBroker separati con migrazione automatica",
-        "es": "Perf: dashboard visible inmediatamente tras conexión (sin barra de carga); solo pestaña activa precargada al inicio, otras en segundo plano. Nuevo: config dividida en estados ioBroker separados con migración automática",
-        "pl": "Perf: dashboard widoczny natychmiast po połączeniu (bez paska ładowania); tylko aktywna karta ładowana przy starcie, pozostałe w tle. Nowe: konfiguracja podzielona na osobne stany ioBroker z automatyczną migracją",
-        "uk": "Продуктивність: дашборд відображається одразу після з'єднання (без смуги завантаження); лише активна вкладка завантажується при старті, інші — у фоні. Нове: конфігурація розділена на окремі стани ioBroker з автоміграцією",
-        "zh-cn": "性能：连接后立即显示仪表板（无加载条）；启动时仅预加载活动标签页，其他标签页后台加载。新功能：配置拆分为独立的ioBroker状态，自动从旧格式迁移"
       }
     }
   },
