@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Sun, SunDim } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
@@ -15,10 +15,24 @@ export function DimmerWidget({ config }: WidgetProps) {
   const layout = config.layout ?? 'default';
   const CompactIcon = getWidgetIcon(config.options?.icon as string | undefined, SunDim);
   const o = config.options ?? {};
-  const showTitle  = o.showTitle  !== false;
-  const showValue  = o.showValue  !== false;
-  const showSlider = o.showSlider !== false;
-  const iconSize   = (o.iconSize as number) || 36;
+  const showTitle      = o.showTitle      !== false;
+  const showValue      = o.showValue      !== false;
+  const showSlider     = o.showSlider     !== false;
+  const sendOnRelease  = o.sendOnRelease  !== false;
+  const iconSize       = (o.iconSize as number) || 36;
+
+  const [dragValue, setDragValue] = useState<number | null>(null);
+  const displayLevel = dragValue ?? level;
+
+  const handleSliderChange = (v: number) => {
+    if (sendOnRelease) { setDragValue(v); } else { setState(config.datapoint, v); }
+  };
+  const handleSliderRelease = () => {
+    if (sendOnRelease && dragValue !== null) {
+      setState(config.datapoint, dragValue);
+      setDragValue(null);
+    }
+  };
 
   const thresholds = o.colorThresholds as Array<[number, string]> | undefined;
   const thresholdColor = useMemo(() => {
@@ -31,8 +45,9 @@ export function DimmerWidget({ config }: WidgetProps) {
   const valueColor = thresholdColor ?? 'var(--text-primary)';
 
   const slider = (
-    <input type="range" min={0} max={100} value={level}
-      onChange={(e) => setState(config.datapoint, Number(e.target.value))}
+    <input type="range" min={0} max={100} value={displayLevel}
+      onChange={(e) => handleSliderChange(Number(e.target.value))}
+      onMouseUp={handleSliderRelease} onTouchEnd={handleSliderRelease}
       style={{ accentColor: 'var(--accent-yellow)' }}
       className="w-full h-2 rounded-lg appearance-none cursor-pointer" />
   );
@@ -56,8 +71,9 @@ export function DimmerWidget({ config }: WidgetProps) {
         'reach-icon':    reachIcon,
         'status-badges': statusBadges,
         slider: (
-          <input type="range" min={0} max={100} step={1} value={level}
-            onChange={(e) => setState(config.datapoint, Number(e.target.value))}
+          <input type="range" min={0} max={100} step={1} value={displayLevel}
+            onChange={(e) => handleSliderChange(Number(e.target.value))}
+            onMouseUp={handleSliderRelease} onTouchEnd={handleSliderRelease}
             style={{ accentColor: 'var(--accent)', width: '100%' }}
             className="nodrag h-1.5 rounded-full appearance-none cursor-pointer"
           />
@@ -94,8 +110,9 @@ export function DimmerWidget({ config }: WidgetProps) {
           {showValue && <span className="text-sm font-bold shrink-0" style={{ color: valueColor }}>{level}%</span>}
         </div>
         {showSlider && (
-          <input type="range" min={0} max={100} step={1} value={level}
-            onChange={(e) => setState(config.datapoint, Number(e.target.value))}
+          <input type="range" min={0} max={100} step={1} value={displayLevel}
+            onChange={(e) => handleSliderChange(Number(e.target.value))}
+            onMouseUp={handleSliderRelease} onTouchEnd={handleSliderRelease}
             style={{ accentColor: 'var(--accent-yellow)' }}
             className="ml-6 h-1.5 rounded-full appearance-none cursor-pointer" />
         )}

@@ -1855,9 +1855,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 switch (config.type) {
                   case 'switch':        return [{ key: 'showTitle', label: 'Titel' }, { key: 'showLabel', label: 'Status (AN/AUS)' }];
                   case 'value':         return [{ key: 'showTitle', label: 'Titel' }, { key: 'showValue', label: 'Wert' }, { key: 'showUnit', label: 'Einheit' }];
-                  case 'dimmer':        return [{ key: 'showTitle', label: 'Titel' }, { key: 'showValue', label: 'Prozentwert' }, { key: 'showSlider', label: 'Schieberegler' }];
+                  case 'dimmer':        return [{ key: 'showTitle', label: 'Titel' }, { key: 'showValue', label: 'Prozentwert' }, { key: 'showSlider', label: 'Schieberegler' }, { key: 'sendOnRelease', label: 'Erst bei Loslassen senden' }];
                   case 'thermostat':    return [{ key: 'showTitle', label: 'Titel' }, { key: 'showSetpoint', label: 'Solltemperatur' }, { key: 'showActualTemp', label: 'Isttemperatur' }, { key: 'showControls', label: 'Tasten ±' }];
-                  case 'shutter':       return [{ key: 'showTitle', label: 'Titel' }, { key: 'showValue', label: 'Position %' }, { key: 'showControls', label: 'Steuerknöpfe' }, { key: 'showSlider', label: 'Schieberegler' }];
+                  case 'shutter':       return [{ key: 'showTitle', label: 'Titel' }, { key: 'showValue', label: 'Position %' }, { key: 'showControls', label: 'Steuerknöpfe' }, { key: 'showSlider', label: 'Schieberegler' }, { key: 'sendOnRelease', label: 'Erst bei Loslassen senden' }];
                   case 'gauge':         return [{ key: 'showTitle', label: 'Titel' }];
                   case 'clock':         return [{ key: 'showTitle', label: 'Titel' }];
                   case 'weather':       return [{ key: 'showTitle', label: 'Titel' }];

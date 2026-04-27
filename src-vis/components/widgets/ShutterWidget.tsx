@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronUp, ChevronDown, Square } from 'lucide-react';
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useState } from 'react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
@@ -130,11 +130,25 @@ export function ShutterWidget({ config }: WidgetProps) {
   }, [thresholds, pos]);
   const valueColor = thresholdColor ?? 'var(--text-primary)';
 
-  const showTitle    = opts.showTitle    !== false;
-  const showValue    = opts.showValue    !== false;
-  const showControls = opts.showControls !== false;
-  const showSlider   = opts.showSlider   !== false;
-  const iconSize     = (opts.iconSize as number) || 36;
+  const showTitle     = opts.showTitle     !== false;
+  const showValue     = opts.showValue     !== false;
+  const showControls  = opts.showControls  !== false;
+  const showSlider    = opts.showSlider    !== false;
+  const sendOnRelease = opts.sendOnRelease !== false;
+  const iconSize      = (opts.iconSize as number) || 36;
+
+  const [dragPos, setDragPos] = useState<number | null>(null);
+  const displayPos = dragPos ?? pos;
+
+  const handleSliderChange = (v: number) => {
+    if (sendOnRelease) { setDragPos(v); } else { writePos(v); }
+  };
+  const handleSliderRelease = () => {
+    if (sendOnRelease && dragPos !== null) {
+      writePos(dragPos);
+      setDragPos(null);
+    }
+  };
   const customIconName = opts.icon as string | undefined;
   const CustomIcon = customIconName ? getWidgetIcon(customIconName, Square) : null;
 
@@ -143,8 +157,9 @@ export function ShutterWidget({ config }: WidgetProps) {
     : pos === 100 ? 'Geöffnet' : pos === 0 ? 'Geschlossen' : `${pos}% geöffnet`;
 
   const slider = (
-    <input type="range" min={0} max={100} step={1} value={pos}
-      onChange={(e) => writePos(Number(e.target.value))}
+    <input type="range" min={0} max={100} step={1} value={displayPos}
+      onChange={(e) => handleSliderChange(Number(e.target.value))}
+      onMouseUp={handleSliderRelease} onTouchEnd={handleSliderRelease}
       style={{ accentColor: 'var(--accent)' }}
       className="w-full h-1.5 rounded-full appearance-none cursor-pointer" />
   );
