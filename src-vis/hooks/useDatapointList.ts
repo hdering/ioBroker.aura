@@ -64,13 +64,20 @@ function resolveName(name: string | Record<string, string> | undefined, fallback
 }
 
 async function loadAll(): Promise<DatapointEntry[]> {
-  const [stateResult, channelResult, deviceResult, enumResult, instanceResult] = await Promise.all([
+  const [stateResult, aliasStateResult, channelResult, deviceResult, enumResult, instanceResult] = await Promise.all([
     getObjectViewDirect('state'),
+    getObjectViewDirect('state', 'alias.', 'alias.\u9999'),
     getObjectViewDirect('channel'),
     getObjectViewDirect('device'),
     getObjectViewDirect('enum', 'enum.', 'enum.\u9999'),
     getObjectViewDirect('instance', 'system.adapter.', 'system.adapter.\u9999'),
   ]);
+
+  // Merge alias states into stateResult (deduplicate by id)
+  const seenIds = new Set(stateResult.rows.map((r) => r.id));
+  for (const row of aliasStateResult.rows) {
+    if (!seenIds.has(row.id)) stateResult.rows.push(row);
+  }
 
   // Build set of enabled instance prefixes: "hm-rpc.0", "history.0", …
   const enabledPrefixes = new Set<string>();
@@ -83,6 +90,7 @@ async function loadAll(): Promise<DatapointEntry[]> {
   // 0_userdata.0 and alias.0 are built-in ioBroker namespaces, not adapter instances
   enabledPrefixes.add('0_userdata.0');
   enabledPrefixes.add('alias.0');
+
 
   // Build parent name map: id → resolved name (devices first, then channels so channels win)
   const parentNames = new Map<string, string>();
