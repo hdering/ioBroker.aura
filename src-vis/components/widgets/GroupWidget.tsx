@@ -48,6 +48,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+  const pendingDeleteRef = useRef(false);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -113,7 +114,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const sorted = mobileSort(children);
 
   // ── Shared remove + configChange handlers ──────────────────────────────────
-  const onRemove = (id: string) => setChildren(children.filter((c) => c.id !== id));
+  const onRemove = (id: string) => {
+    pendingDeleteRef.current = true;
+    setChildren(children.filter((c) => c.id !== id));
+  };
 
   // ── Title bar (always shown in editMode as outer-grid drag handle) ─────────
   const titleBar = (config.title || editMode) ? (
@@ -233,6 +237,26 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 return { ...c, gridPos: { x: pos.x, y: pos.y, w: pos.w, h: pos.h } };
               });
               if (changed) setChildren(updated);
+            }}
+            onLayoutChange={(newLayout) => {
+              if (!editMode || !pendingDeleteRef.current) return;
+              pendingDeleteRef.current = false;
+              // Sync compacted positions to store (RGL already compacted upward)
+              const fresh = useGroupDefsStore.getState().defs[defId] ?? [];
+              const updated = fresh.map((c) => {
+                const pos = newLayout.find((l) => l.i === c.id);
+                if (!pos) return c;
+                return { ...c, gridPos: { x: pos.x, y: pos.y, w: pos.w, h: pos.h } };
+              });
+              setChildren(updated);
+              if (updated.length === 0) return;
+              const maxBottom = Math.max(...updated.map((c) => c.gridPos.y + c.gridPos.h));
+              const innerH = maxBottom * (cellSize + gridGap) - gridGap;
+              const titleBarH = config.title ? 28 : 0;
+              const newH = Math.ceil((titleBarH + innerH + 8 + gridGap) / (cellSize + gridGap));
+              if (newH !== config.gridPos.h) {
+                onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
+              }
             }}
             margin={[gridGap, gridGap]}
             containerPadding={[0, 0]}
