@@ -67,6 +67,18 @@ html, body, #root {
 }
 
 
+/* ── React-Grid-Layout position transitions ───────────────────────────────────
+   Only animate item positions when an actual drag is in progress.
+   Without this guard, switching tabs (display:none → visible) triggers
+   the 200ms transform transition on all grid items, causing visible flickering.
+   ─────────────────────────────────────────────────────────────────────────── */
+.react-grid-layout:not(:has(.react-draggable-dragging)) .react-grid-item.cssTransforms {
+  transition: none !important;
+}
+.react-grid-layout:not(:has(.react-draggable-dragging)) {
+  transition: none !important;
+}
+
 /* Arbitrary px sizes used in some widgets */
 [data-aura-app="frontend"] .text-\[9px\]  { font-size: calc(9px        * var(--font-scale, 1)); }
 [data-aura-app="frontend"] .text-\[10px\] { font-size: calc(10px       * var(--font-scale, 1)); }

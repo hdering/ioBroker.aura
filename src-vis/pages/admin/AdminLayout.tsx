@@ -8,7 +8,7 @@ import { useAuthStore, logout } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
 import { getTheme, ADMIN_DARK_THEME } from '../../themes';
 import { isDirty, saveAll, revertAll, subscribeDirty, saveToIoBroker, configureBackup } from '../../store/persistManager';
-import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
+import { useDashboardStore } from '../../store/dashboardStore';
 import { useGroupStore } from '../../store/groupStore';
 import { useConfigStore } from '../../store/configStore';
 import { loadConfigFromIoBroker, applyRaw } from '../../utils/configLoader';
@@ -47,18 +47,18 @@ function useSaveState() {
 }
 
 function useFrontendUrl(): string {
-  const activeLayout = useActiveLayout();
-  const { layouts } = useDashboardStore();
-  const isFirst = layouts[0]?.id === activeLayout.id;
-  const activeTab = activeLayout.tabs.find((t) => t.id === activeLayout.activeTabId) ?? activeLayout.tabs[0];
-  const tabSlug = activeTab?.slug ?? activeTab?.id ?? '';
-
-  if (isFirst) {
-    return tabSlug && activeLayout.tabs.length > 1 ? `#/tab/${tabSlug}` : '#/';
-  }
-  return tabSlug && activeLayout.tabs.length > 1
-    ? `#/view/${activeLayout.slug}/tab/${tabSlug}`
-    : `#/view/${activeLayout.slug}`;
+  return useDashboardStore((s) => {
+    const layout = s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0];
+    const isFirst = s.layouts[0]?.id === layout.id;
+    const activeTab = layout.tabs.find((t) => t.id === layout.activeTabId) ?? layout.tabs[0];
+    const tabSlug = activeTab?.slug ?? activeTab?.id ?? '';
+    if (isFirst) {
+      return tabSlug && layout.tabs.length > 1 ? `#/tab/${tabSlug}` : '#/';
+    }
+    return tabSlug && layout.tabs.length > 1
+      ? `#/view/${layout.slug}/tab/${tabSlug}`
+      : `#/view/${layout.slug}`;
+  });
 }
 
 export function AdminLayout() {
