@@ -1855,9 +1855,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 switch (config.type) {
                   case 'switch':        return [{ key: 'showTitle', label: 'Titel' }, { key: 'showLabel', label: 'Status (AN/AUS)' }];
                   case 'value':         return [{ key: 'showTitle', label: 'Titel' }, { key: 'showValue', label: 'Wert' }, { key: 'showUnit', label: 'Einheit' }];
-                  case 'dimmer':        return [{ key: 'showTitle', label: 'Titel' }, { key: 'showValue', label: 'Prozentwert' }, { key: 'showSlider', label: 'Schieberegler' }, { key: 'sendOnRelease', label: 'Erst bei Loslassen senden' }];
+                  case 'dimmer':        return [{ key: 'showTitle', label: 'Titel' }, { key: 'showValue', label: 'Prozentwert' }, { key: 'showSlider', label: 'Schieberegler' }];
                   case 'thermostat':    return [{ key: 'showTitle', label: 'Titel' }, { key: 'showSetpoint', label: 'Solltemperatur' }, { key: 'showActualTemp', label: 'Isttemperatur' }, { key: 'showControls', label: 'Tasten ±' }];
-                  case 'shutter':       return [{ key: 'showTitle', label: 'Titel' }, { key: 'showValue', label: 'Position %' }, { key: 'showControls', label: 'Steuerknöpfe' }, { key: 'showSlider', label: 'Schieberegler' }, { key: 'sendOnRelease', label: 'Erst bei Loslassen senden' }];
+                  case 'shutter':       return [{ key: 'showTitle', label: 'Titel' }, { key: 'showValue', label: 'Position %' }, { key: 'showControls', label: 'Steuerknöpfe' }, { key: 'showSlider', label: 'Schieberegler' }];
                   case 'gauge':         return [{ key: 'showTitle', label: 'Titel' }];
                   case 'clock':         return [{ key: 'showTitle', label: 'Titel' }];
                   case 'weather':       return [{ key: 'showTitle', label: 'Titel' }];
@@ -1880,6 +1880,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 }
               })();
               return (
+                <>
                 <details className="group">
                   <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                     {/* Layout buttons in the summary row – always clickable */}
@@ -1929,6 +1930,22 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     </div>
                   )}
                 </details>
+
+                {/* sendOnRelease toggle – dimmer & shutter only */}
+                {(config.type === 'dimmer' || config.type === 'shutter') && (
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>Erst bei Loslassen senden</span>
+                    <button
+                      onClick={() => setO({ sendOnRelease: o.sendOnRelease === false ? true : false })}
+                      className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                      style={{ background: o.sendOnRelease !== false ? 'var(--accent)' : 'var(--app-border)' }}
+                    >
+                      <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                        style={{ left: o.sendOnRelease !== false ? '14px' : '2px' }} />
+                    </button>
+                  </div>
+                )}
+                </>
               );
             })()}
 
