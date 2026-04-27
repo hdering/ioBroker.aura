@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.14": {
+        "en": "Feat(iframe): server-side proxy to bypass X-Frame-Options — enable 'Use Proxy' toggle in iframe widget settings; fix: add proxy route to Vite dev server and remove <base> injection that caused origin:null CORS errors",
+        "de": "Neu(iFrame): serverseitiger Proxy zum Umgehen von X-Frame-Options — 'Proxy nutzen'-Schalter in den iFrame-Widget-Einstellungen aktivieren; Fix: Proxy-Route im Vite-Dev-Server ergänzt und <base>-Injektion entfernt, die origin:null CORS-Fehler verursachte",
+        "ru": "Новое(iFrame): серверный прокси для обхода X-Frame-Options — включите 'Использовать прокси' в настройках виджета iFrame; исправление: добавлен маршрут прокси в Vite dev-сервер, удалена инъекция <base>, вызывавшая ошибки CORS",
+        "pt": "Novo(iFrame): proxy server-side para contornar X-Frame-Options — ative 'Usar Proxy' nas configurações do widget iFrame; correção: rota proxy adicionada ao Vite dev server, injeção <base> removida",
+        "nl": "Nieuw(iFrame): server-side proxy om X-Frame-Options te omzeilen — schakel 'Proxy gebruiken' in de iFrame-widget-instellingen in; fix: proxy-route toegevoegd aan Vite dev-server, <base>-injectie verwijderd",
+        "fr": "Nouveau(iFrame): proxy côté serveur pour contourner X-Frame-Options — activez 'Utiliser le proxy' dans les paramètres du widget iFrame; correction: route proxy ajoutée au serveur Vite dev, injection <base> supprimée",
+        "it": "Nuovo(iFrame): proxy lato server per aggirare X-Frame-Options — attiva 'Usa proxy' nelle impostazioni del widget iFrame; fix: route proxy aggiunta al server Vite dev, rimossa iniezione <base>",
+        "es": "Nuevo(iFrame): proxy del lado servidor para eludir X-Frame-Options — activa 'Usar proxy' en la configuración del widget iFrame; corrección: ruta proxy añadida al servidor Vite dev, eliminada inyección <base>",
+        "pl": "Nowe(iFrame): proxy po stronie serwera do ominięcia X-Frame-Options — włącz 'Użyj proxy' w ustawieniach widgetu iFrame; poprawka: dodano trasę proxy do serwera Vite dev, usunięto iniekcję <base>",
+        "uk": "Нове(iFrame): серверний проксі для обходу X-Frame-Options — увімкніть 'Використати проксі' у налаштуваннях віджета iFrame; виправлення: додано маршрут проксі до Vite dev-сервера, видалено ін'єкцію <base>",
+        "zh-cn": "新功能(iFrame)：服务端代理绕过X-Frame-Options——在iFrame组件设置中启用'使用代理'开关；修复：为Vite开发服务器添加代理路由，移除导致origin:null CORS错误的<base>注入"
+      },
       "0.5.13": {
         "en": "Fix(tab bar): icons no longer flicker when switching views — placeholder reserves space and Icon component reference is stable",
         "de": "Fix(Tab-Leiste): Icons flackern beim Wechseln zwischen Ansichten nicht mehr — Platzhalter reserviert den Platz und die Icon-Komponente ist stabil",

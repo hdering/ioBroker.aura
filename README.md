@@ -175,6 +175,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.5.14 (2026-04-27)
+- Feat(iframe): server-side proxy to bypass X-Frame-Options — enable 'Use Proxy' toggle in iframe widget settings
+- Fix(iframe-proxy): add proxy route to Vite dev server; remove `<base>` injection that caused `origin:null` CORS errors
+
 ### 0.5.13 (2026-04-27)
 - Fix(tab bar): icons no longer flicker when switching views — placeholder reserves space and Icon component reference is stable
 
