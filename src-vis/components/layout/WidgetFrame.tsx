@@ -1880,7 +1880,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 }
               })();
               return (
-                <>
                 <details className="group">
                   <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                     {/* Layout buttons in the summary row – always clickable */}
@@ -1930,22 +1929,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     </div>
                   )}
                 </details>
-
-                {/* sendOnRelease toggle – dimmer & shutter only */}
-                {(config.type === 'dimmer' || config.type === 'shutter') && (
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>Erst bei Loslassen senden</span>
-                    <button
-                      onClick={() => setO({ sendOnRelease: o.sendOnRelease === false ? true : false })}
-                      className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                      style={{ background: o.sendOnRelease !== false ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                      <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                        style={{ left: o.sendOnRelease !== false ? '14px' : '2px' }} />
-                    </button>
-                  </div>
-                )}
-                </>
               );
             })()}
 
@@ -2990,6 +2973,25 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 <TrashConfig config={config} onConfigChange={onConfigChange} />
               )}
 
+              {config.type === 'dimmer' && (() => {
+                const o = config.options ?? {};
+                const setO = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                return (
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Erst bei Loslassen senden</label>
+                    <button
+                      onClick={() => setO({ sendOnRelease: !(o.sendOnRelease !== false) })}
+                      className="relative w-9 h-5 rounded-full transition-colors"
+                      style={{ background: o.sendOnRelease !== false ? 'var(--accent)' : 'var(--app-border)' }}
+                    >
+                      <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                        style={{ left: o.sendOnRelease !== false ? '18px' : '2px' }} />
+                    </button>
+                  </div>
+                );
+              })()}
+
               {config.type === 'shutter' && (() => {
                 const o = config.options ?? {};
                 const setO = (patch: Record<string, unknown>) =>
@@ -3074,6 +3076,17 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       >
                         <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
                           style={{ left: (o.invertPosition ?? false) ? '18px' : '2px' }} />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Erst bei Loslassen senden</label>
+                      <button
+                        onClick={() => setO({ sendOnRelease: !(o.sendOnRelease !== false) })}
+                        className="relative w-9 h-5 rounded-full transition-colors"
+                        style={{ background: o.sendOnRelease !== false ? 'var(--accent)' : 'var(--app-border)' }}
+                      >
+                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                          style={{ left: o.sendOnRelease !== false ? '18px' : '2px' }} />
                       </button>
                     </div>
                   </>
