@@ -4,6 +4,7 @@ import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useT, t, type TranslationKey } from '../../i18n';
 import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Download, ArrowRightLeft, Copy, Layers2, Minimize2, Smartphone, GripVertical } from 'lucide-react';
 import { setDragBridge } from '../../utils/dragBridge';
+import { verticalCompact } from '../../utils/gridCompact';
 import { exportWidget } from '../../utils/widgetExportImport';
 import { copyToClipboard } from '../../utils/clipboard';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -1248,9 +1249,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       gridPos: { x: 0, y: maxY, w: meta?.defaultW ?? 2, h: meta?.defaultH ?? 2 },
       options: { icon: meta?.iconName },
     };
-    const next = [...groupChildren, newChild];
+    const next = verticalCompact([...groupChildren, newChild]);
     useGroupDefsStore.getState().setDef(groupDefId, next);
-    // auto-fit height
+    // auto-fit height using compacted positions
     const maxBottom = Math.max(...next.map((c) => c.gridPos.y + c.gridPos.h));
     const innerH = maxBottom * (groupCellSize + groupGridGap) - groupGridGap;
     const titleBarH = config.title ? 28 : 0;

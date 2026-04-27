@@ -11,23 +11,7 @@ import { CustomGridView } from './CustomGridView';
 import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
 import { useDashboardMobile } from '../../contexts/DashboardMobileContext';
 import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
-
-function verticalCompact(items: WidgetConfig[]): WidgetConfig[] {
-  const sorted = [...items].sort((a, b) =>
-    a.gridPos.y !== b.gridPos.y ? a.gridPos.y - b.gridPos.y : a.gridPos.x - b.gridPos.x
-  );
-  const placed: WidgetConfig[] = [];
-  for (const item of sorted) {
-    let newY = 0;
-    while (placed.some((p) => {
-      const { x: px, y: py, w: pw, h: ph } = p.gridPos;
-      const { x: ix, w: iw, h: ih } = item.gridPos;
-      return px < ix + iw && px + pw > ix && py < newY + ih && py + ph > newY;
-    })) newY++;
-    placed.push({ ...item, gridPos: { ...item.gridPos, y: newY } });
-  }
-  return placed;
-}
+import { verticalCompact } from '../../utils/gridCompact';
 
 function mobileSort(children: WidgetConfig[]): WidgetConfig[] {
   return [...children].sort((a, b) => {
@@ -112,11 +96,11 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
   const duplicateChild = (child: WidgetConfig) => {
     const maxY = children.reduce((m, c) => Math.max(m, c.gridPos.y + c.gridPos.h), 0);
-    const next = [...children, {
+    const next = verticalCompact([...children, {
       ...child,
       id: `child-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       gridPos: { ...child.gridPos, x: 0, y: maxY },
-    }];
+    }]);
     setChildren(next);
     fitHeightToChildren(next);
   };
@@ -128,11 +112,11 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     if (!bridge) return;
     const meta = WIDGET_BY_TYPE[bridge.widget.type as WidgetType];
     const maxY = children.reduce((m, c) => Math.max(m, c.gridPos.y + c.gridPos.h), 0);
-    const next = [...children, {
+    const next = verticalCompact([...children, {
       ...bridge.widget,
       id: `child-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       gridPos: { x: 0, y: maxY, w: meta?.defaultW ?? bridge.widget.gridPos.w, h: meta?.defaultH ?? bridge.widget.gridPos.h },
-    }];
+    }]);
     setChildren(next);
     fitHeightToChildren(next);
     bridge.remove(bridge.widget.id);
