@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.17",
+    "version": "0.5.18",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.18": {
+        "en": "Fix(proxy): support POST and all HTTP methods — login forms now work through the iframe proxy",
+        "de": "Fix(Proxy): POST und alle HTTP-Methoden unterstützt — Login-Formulare funktionieren jetzt durch den iFrame-Proxy",
+        "ru": "Исправление(прокси): поддержка POST и всех HTTP-методов — формы входа теперь работают через прокси",
+        "pt": "Correção(proxy): suporte a POST e todos os métodos HTTP — formulários de login funcionam agora pelo proxy",
+        "nl": "Fix(proxy): POST en alle HTTP-methoden ondersteund — loginformulieren werken nu via de iframe-proxy",
+        "fr": "Correction(proxy): support POST et toutes les méthodes HTTP — les formulaires de connexion fonctionnent via le proxy",
+        "it": "Fix(proxy): supporto POST e tutti i metodi HTTP — i moduli di login ora funzionano tramite il proxy",
+        "es": "Corrección(proxy): soporte POST y todos los métodos HTTP — los formularios de inicio de sesión funcionan ahora a través del proxy",
+        "pl": "Poprawka(proxy): obsługa POST i wszystkich metod HTTP — formularze logowania działają teraz przez proxy",
+        "uk": "Виправлення(проксі): підтримка POST і всіх HTTP-методів — форми входу тепер працюють через проксі",
+        "zh-cn": "修复(代理)：支持POST和所有HTTP方法——登录表单现在可以通过iframe代理工作"
+      },
       "0.5.17": {
         "en": "Fix: set webInstance=* in native so iobroker.web loads the proxy extension; auto-migrate existing instances on adapter start",
         "de": "Fix: webInstance=* in native gesetzt damit iobroker.web die Proxy-Extension lädt; bestehende Instanzen werden beim Adapterstart automatisch migriert",
