@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.20",
+    "version": "0.5.21",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.21": {
+        "en": "Fix(proxy): intercept XHR and fetch in proxied pages so API calls are routed through the proxy instead of failing with HTML 404",
+        "de": "Fix(Proxy): XHR und fetch in Proxy-Seiten abfangen, damit API-Aufrufe über den Proxy geleitet werden statt mit HTML-404 zu scheitern",
+        "ru": "Исправление(прокси): перехват XHR и fetch в проксированных страницах для маршрутизации API-вызовов через прокси",
+        "pt": "Correção(proxy): interceptar XHR e fetch em páginas proxy para rotear chamadas API pelo proxy",
+        "nl": "Fix(proxy): XHR en fetch onderscheppen in proxy-pagina's zodat API-aanroepen via de proxy worden gerouteerd",
+        "fr": "Correction(proxy): intercepter XHR et fetch dans les pages proxy pour router les appels API via le proxy",
+        "it": "Fix(proxy): intercettare XHR e fetch nelle pagine proxy per instradare le chiamate API tramite il proxy",
+        "es": "Corrección(proxy): interceptar XHR y fetch en páginas proxy para enrutar llamadas API a través del proxy",
+        "pl": "Poprawka(proxy): przechwytywanie XHR i fetch w stronach proxy aby przekierowywać wywołania API przez proxy",
+        "uk": "Виправлення(проксі): перехоплення XHR та fetch у проксованих сторінках для маршрутизації API-викликів через проксі",
+        "zh-cn": "修复(代理)：在代理页面中拦截XHR和fetch，使API调用通过代理路由而不是返回HTML 404"
+      },
       "0.5.20": {
         "en": "Fix(proxy): WebSocket proxy at /aura/proxyws + JS interceptor injected into HTML; fix CSRF 403 by overriding Referer and forwarding X-CSRFToken",
         "de": "Fix(Proxy): WebSocket-Proxy unter /aura/proxyws + JS-Interceptor in HTML injiziert; CSRF-403-Fix durch Referer-Override und X-CSRFToken-Weiterleitung",
