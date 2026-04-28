@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.16",
+    "version": "0.5.17",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.17": {
+        "en": "Fix: set webInstance=* in native so iobroker.web loads the proxy extension; auto-migrate existing instances on adapter start",
+        "de": "Fix: webInstance=* in native gesetzt damit iobroker.web die Proxy-Extension lädt; bestehende Instanzen werden beim Adapterstart automatisch migriert",
+        "ru": "Исправление: webInstance=* задан в native для загрузки прокси-расширения; существующие экземпляры мигрируются при старте адаптера",
+        "pt": "Correção: webInstance=* definido em native para iobroker.web carregar a extensão proxy; instâncias existentes são migradas automaticamente na inicialização",
+        "nl": "Fix: webInstance=* ingesteld in native zodat iobroker.web de proxy-extensie laadt; bestaande instanties worden automatisch gemigreerd bij adapter-start",
+        "fr": "Correction: webInstance=* défini dans native pour que iobroker.web charge l'extension proxy; les instances existantes sont migrées automatiquement au démarrage",
+        "it": "Fix: webInstance=* impostato in native affinché iobroker.web carichi l'estensione proxy; le istanze esistenti vengono migrate automaticamente all'avvio",
+        "es": "Corrección: webInstance=* establecido en native para que iobroker.web cargue la extensión proxy; las instancias existentes se migran automáticamente al iniciar",
+        "pl": "Poprawka: webInstance=* ustawiony w native aby iobroker.web załadował rozszerzenie proxy; istniejące instancje są migrowane automatycznie przy starcie",
+        "uk": "Виправлення: webInstance=* встановлено в native щоб iobroker.web завантажував proxy-розширення; існуючі екземпляри мігруються автоматично при старті",
+        "zh-cn": "修复：在native中设置webInstance=*使iobroker.web加载代理扩展；现有实例在适配器启动时自动迁移"
+      },
       "0.5.16": {
         "en": "Fix: add lib/ to npm package files — lib/webExtension.js (iframe proxy) was missing from the published package",
         "de": "Fix: lib/ zu npm-Paketdateien hinzugefügt — lib/webExtension.js (iFrame-Proxy) fehlte im veröffentlichten Paket",
@@ -201,7 +214,8 @@
 
   },
   "native": {
-    "customUrl": ""
+    "customUrl": "",
+    "webInstance": "*"
   },
   "objects": [],
   "instanceObjects": [

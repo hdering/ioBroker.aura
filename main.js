@@ -370,15 +370,24 @@ class Aura extends utils.Adapter {
       try {
         const obj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
         if (obj) {
+          let changed = false;
           const curLinks = obj.common.localLinks || {};
           if (JSON.stringify(curLinks) !== JSON.stringify(wantLinks)) {
             obj.common.localLinks = wantLinks;
-            await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, obj);
+            changed = true;
             this.log.info(`localLinks updated${base ? ` to custom URL: ${base}` : ' to defaults'}`);
+          }
+          if (!obj.native?.webInstance) {
+            obj.native = { ...(obj.native || {}), webInstance: '*' };
+            changed = true;
+            this.log.info('webInstance migrated to "*" — restart web adapter to activate proxy extension');
+          }
+          if (changed) {
+            await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, obj);
           }
         }
       } catch (e) {
-        this.log.warn(`Could not update localLinks: ${e.message}`);
+        this.log.warn(`Could not update instance object: ${e.message}`);
       }
     }
 
