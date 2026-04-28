@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.22",
+    "version": "0.5.23",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.23": {
+        "en": "Fix(proxy): intercept location.href, location.assign/replace and dynamic link clicks so logout and other direct navigations are routed through the proxy",
+        "de": "Fix(Proxy): location.href, location.assign/replace und dynamische Link-Klicks abfangen, damit Logout und direkte Navigationen über den Proxy geleitet werden",
+        "ru": "Исправление(прокси): перехват location.href, location.assign/replace и кликов по динамическим ссылкам",
+        "pt": "Correção(proxy): interceptar location.href, location.assign/replace e cliques em links dinâmicos",
+        "nl": "Fix(proxy): location.href, location.assign/replace en dynamische linkklikken onderscheppen",
+        "fr": "Correction(proxy): intercepter location.href, location.assign/replace et les clics sur les liens dynamiques",
+        "it": "Fix(proxy): intercettare location.href, location.assign/replace e click su link dinamici",
+        "es": "Corrección(proxy): interceptar location.href, location.assign/replace y clics en enlaces dinámicos",
+        "pl": "Poprawka(proxy): przechwytywanie location.href, location.assign/replace i kliknięć dynamicznych linków",
+        "uk": "Виправлення(проксі): перехоплення location.href, location.assign/replace та кліків на динамічних посиланнях",
+        "zh-cn": "修复(代理)：拦截location.href、location.assign/replace和动态链接点击，使注销和直接导航通过代理路由"
+      },
       "0.5.22": {
         "en": "Fix(proxy): inject history.replaceState('/') so SPA routers see '/' instead of '/aura/proxy' — prevents Angular/Vue/React 404 on initial load",
         "de": "Fix(Proxy): history.replaceState('/') injizieren, damit SPA-Router '/' statt '/aura/proxy' sehen — verhindert Angular/Vue/React-404 beim ersten Laden",
