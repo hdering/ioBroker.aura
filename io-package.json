@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.18",
+    "version": "0.5.19",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.19": {
+        "en": "Fix(proxy): rewrite HTML/CSS URLs so static assets and links are routed through the proxy instead of loading directly from the internal host",
+        "de": "Fix(Proxy): HTML/CSS-URLs umschreiben, damit statische Ressourcen und Links über den Proxy geleitet werden statt direkt vom internen Host zu laden",
+        "ru": "Исправление(прокси): перезапись URL в HTML/CSS — статические ресурсы теперь маршрутизируются через прокси",
+        "pt": "Correção(proxy): reescrever URLs em HTML/CSS para que assets estáticos sejam roteados pelo proxy",
+        "nl": "Fix(proxy): HTML/CSS-URL's herschrijven zodat statische bestanden via de proxy worden geladen",
+        "fr": "Correction(proxy): réécriture des URL HTML/CSS pour que les ressources statiques passent par le proxy",
+        "it": "Fix(proxy): riscrittura URL HTML/CSS per instradare risorse statiche attraverso il proxy",
+        "es": "Corrección(proxy): reescritura de URLs HTML/CSS para que los recursos estáticos pasen por el proxy",
+        "pl": "Poprawka(proxy): przepisywanie URL w HTML/CSS aby zasoby statyczne były ładowane przez proxy",
+        "uk": "Виправлення(проксі): перезапис URL у HTML/CSS щоб статичні ресурси завантажувались через проксі",
+        "zh-cn": "修复(代理)：重写HTML/CSS中的URL，使静态资源通过代理路由而非直接从内部主机加载"
+      },
       "0.5.18": {
         "en": "Fix(proxy): support POST and all HTTP methods — login forms now work through the iframe proxy",
         "de": "Fix(Proxy): POST und alle HTTP-Methoden unterstützt — Login-Formulare funktionieren jetzt durch den iFrame-Proxy",
