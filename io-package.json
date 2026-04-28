@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.5.21",
+    "version": "0.5.22",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.5.22": {
+        "en": "Fix(proxy): inject history.replaceState('/') so SPA routers see '/' instead of '/aura/proxy' — prevents Angular/Vue/React 404 on initial load",
+        "de": "Fix(Proxy): history.replaceState('/') injizieren, damit SPA-Router '/' statt '/aura/proxy' sehen — verhindert Angular/Vue/React-404 beim ersten Laden",
+        "ru": "Исправление(прокси): инъекция history.replaceState('/') чтобы SPA-роутеры видели '/' вместо '/aura/proxy'",
+        "pt": "Correção(proxy): injetar history.replaceState('/') para SPA routers verem '/' em vez de '/aura/proxy'",
+        "nl": "Fix(proxy): history.replaceState('/') injecteren zodat SPA-routers '/' zien in plaats van '/aura/proxy'",
+        "fr": "Correction(proxy): injecter history.replaceState('/') pour que les routeurs SPA voient '/' au lieu de '/aura/proxy'",
+        "it": "Fix(proxy): iniettare history.replaceState('/') affinché i router SPA vedano '/' invece di '/aura/proxy'",
+        "es": "Corrección(proxy): inyectar history.replaceState('/') para que los routers SPA vean '/' en lugar de '/aura/proxy'",
+        "pl": "Poprawka(proxy): wstrzyknięcie history.replaceState('/') aby routery SPA widziały '/' zamiast '/aura/proxy'",
+        "uk": "Виправлення(проксі): ін'єкція history.replaceState('/') щоб SPA-роутери бачили '/' замість '/aura/proxy'",
+        "zh-cn": "修复(代理)：注入history.replaceState('/')使SPA路由器看到'/'而非'/aura/proxy'，防止Angular/Vue/React初始加载时出现404"
+      },
       "0.5.21": {
         "en": "Fix(proxy): intercept XHR and fetch in proxied pages so API calls are routed through the proxy instead of failing with HTML 404",
         "de": "Fix(Proxy): XHR und fetch in Proxy-Seiten abfangen, damit API-Aufrufe über den Proxy geleitet werden statt mit HTML-404 zu scheitern",
