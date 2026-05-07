@@ -2275,7 +2275,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       setOpenPanel(panel);
     }
   };
-  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | 'iframe_urlDp' | null>(null);
   const [imageFilePicker, setImageFilePicker] = useState(false);
   const [cameraSlotPickerIdx, setCameraSlotPickerIdx] = useState(0);
   const [mpPickerKey, setMpPickerKey] = useState('');
@@ -4019,15 +4019,52 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   onConfigChange({ ...config, options: { ...o, ...patch } });
                 const iCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono';
                 const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                const urlMode = (o.iframeUrlMode as string) ?? 'static';
                 return (
                   <>
                     <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>URL</label>
-                      <input type="text" value={(o.iframeUrl as string) ?? ''}
-                        onChange={(e) => set({ iframeUrl: e.target.value || undefined })}
-                        placeholder="https://…"
-                        className={iCls} style={iSty} />
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>URL-Quelle</label>
+                      <div className="flex gap-1">
+                        {(['static', 'datapoint'] as const).map((m) => (
+                          <button key={m}
+                            onClick={() => set({ iframeUrlMode: m })}
+                            className="flex-1 text-[11px] py-1 rounded-lg transition-colors"
+                            style={{
+                              background: urlMode === m ? 'var(--accent)' : 'var(--app-bg)',
+                              color: urlMode === m ? '#fff' : 'var(--text-secondary)',
+                              border: '1px solid var(--app-border)',
+                            }}>
+                            {m === 'static' ? 'Direkte URL' : 'Datenpunkt'}
+                          </button>
+                        ))}
+                      </div>
                     </div>
+                    {urlMode === 'static' && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>URL</label>
+                        <input type="text" value={(o.iframeUrl as string) ?? ''}
+                          onChange={(e) => set({ iframeUrl: e.target.value || undefined })}
+                          placeholder="https://…"
+                          className={iCls} style={iSty} />
+                      </div>
+                    )}
+                    {urlMode === 'datapoint' && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>URL-Datenpunkt</label>
+                        <div className="flex gap-1">
+                          <input type="text" value={(o.iframeUrlDp as string) ?? ''}
+                            onChange={(e) => set({ iframeUrlDp: e.target.value || undefined })}
+                            placeholder="Datenpunkt-ID"
+                            className={iCls + ' font-mono flex-1 min-w-0'} style={iSty} />
+                          <button type="button" onClick={() => setPickerTarget('iframe_urlDp')}
+                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                            …
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Proxy nutzen</label>
@@ -5997,6 +6034,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             pickerTarget === 'chips_chip' ? (() => { const chips = (config.options?.chips as Array<{ dp: string }>) ?? []; return chips[chipsChipIdx]?.dp ?? ''; })() :
             pickerTarget === 'chips_checkDp' ? ((config.options?.checkDp as string) ?? '') :
             pickerTarget === 'http_response_dp' ? ((config.options?.responseDatapoint as string) ?? '') :
+            pickerTarget === 'iframe_urlDp'     ? ((config.options?.iframeUrlDp as string) ?? '') :
             pickerTarget === 'sl_action' ? (() => { const acts = (config.options?.actions as Array<{ dp: string }>) ?? []; return acts[slActionIdx]?.dp ?? ''; })() :
             pickerTarget === 'camera_slot' ? (() => {
               const key = (config.layout ?? 'minimal') === 'default' ? 'infoItems' : 'customSlots';
@@ -6097,6 +6135,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               onConfigChange({ ...config, options: { ...config.options, humidityDatapoint: id } });
             } else if (pickerTarget === 'climate_targetDp') {
               onConfigChange({ ...config, options: { ...config.options, targetDatapoint: id } });
+            } else if (pickerTarget === 'iframe_urlDp') {
+              onConfigChange({ ...config, options: { ...config.options, iframeUrlDp: id } });
             } else if (pickerTarget === 'http_response_dp') {
               onConfigChange({ ...config, options: { ...config.options, responseDatapoint: id } });
             } else if (pickerTarget === 'html_dp') {

@@ -1,13 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { MonitorDot, Maximize2, AlertTriangle, ExternalLink, X } from 'lucide-react';
 import { useIframeStore } from '../../store/iframeStore';
+import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 
 const LOAD_TIMEOUT_MS = 8000;
 
 export function IframeWidget({ config }: WidgetProps) {
   const opts             = config.options ?? {};
-  const rawUrl           = (opts.iframeUrl        as string)  ?? '';
+  const iframeUrlDp      = (opts.iframeUrlDp      as string)  ?? '';
+  const { value: dpUrl } = useDatapoint(iframeUrlDp);
+  const staticUrl        = (opts.iframeUrl        as string)  ?? '';
+  const rawUrl           = iframeUrlDp && dpUrl != null && dpUrl !== '' ? String(dpUrl) : staticUrl;
   const useProxy         = !!(opts.useProxy        as boolean);
   const url              = useProxy && rawUrl ? `/proxy?url=${encodeURIComponent(rawUrl)}` : rawUrl;
   const keepAlive        = (opts.keepAlive         as boolean) ?? false;
