@@ -30,6 +30,7 @@ import { EChartsPresetWidget } from './EChartsPresetWidget';
 import { DatePickerWidget } from './DatePickerWidget';
 import { MediaplayerWidget } from './MediaplayerWidget';
 import { SliderWidget } from './SliderWidget';
+import { ClimateWidget } from './ClimateWidget';
 
 export function getWidgetMap() {
   return {
@@ -64,6 +65,7 @@ export function getWidgetMap() {
     datepicker:    DatePickerWidget,
     mediaplayer:   MediaplayerWidget,
     slider:        SliderWidget,
+    climate:       ClimateWidget,
   } as const;
 }
 

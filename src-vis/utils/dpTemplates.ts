@@ -176,6 +176,26 @@ export const DP_TEMPLATES: DpTemplate[] = [
     ],
   },
 
+  {
+    id: 'climate',
+    label: 'Raumklima',
+    icon: '🌡️',
+    widgetType: 'climate',
+    category: 'climate',
+    hint: 'Für Temperatur- und Luftfeuchtigkeitssensoren – zeigt Ist-Temp, Feuchte und optionalen Verlauf',
+    secondaryDps: [
+      {
+        optionKey: 'humidityDatapoint',
+        siblingNames: [
+          'HUMIDITY', 'humidity', 'Humidity',
+          'RELATIVE_HUMIDITY', 'relative_humidity',
+          'relativeHumidity', 'hum', 'HUM',
+          'FEUCHTE', 'feuchte',
+        ],
+      },
+    ],
+  },
+
   // ── LICHT ────────────────────────────────────────────────────────────────
   {
     id: 'dimmer',

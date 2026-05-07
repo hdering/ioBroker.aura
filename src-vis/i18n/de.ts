@@ -746,6 +746,7 @@ export const de = {
   'widget.group':         'Gruppe',
   'widget.httpRequest':   'HTTP-Aktion',
   'widget.button':        'Button',
+  'widget.climate':       'Raumklima',
 
   // ── Weather Widget ────────────────────────────────────────────────────────────
   'weather.sunny':       'Sonnig',
@@ -945,6 +946,14 @@ export const de = {
   'cw.chips.activeValue': 'Aktiv-Wert (optional)',
   'cw.confirm.enable':  'Bestätigung vor Aktion erfordern',
   'cw.confirm.text':    'Bestätigungs-Text (optional)',
+
+  // ── Climate Widget ────────────────────────────────────────────────────────────
+  'climate.actualTemp':   'Ist-Temperatur Datenpunkt',
+  'climate.targetTemp':   'Soll-Temperatur Datenpunkt (optional)',
+  'climate.humidity':     'Luftfeuchtigkeits-Datenpunkt (optional)',
+  'climate.unit':         'Temperatur-Einheit',
+  'climate.humidityUnit': 'Feuchtigkeits-Einheit',
+  'climate.lineColor':    'Diagrammfarbe',
 
   // ── Widget Previews ───────────────────────────────────────────────────────────
   'preview.feelsLike':    'Gefühlt {temp}°',

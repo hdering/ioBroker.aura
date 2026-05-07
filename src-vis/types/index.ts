@@ -48,7 +48,8 @@ export type WidgetType =
   | 'chips'
   | 'trashSchedule'
   | 'httpRequest'
-  | 'button';
+  | 'button'
+  | 'climate';
 
 export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda' | 'flow' | 'battery' | 'production' | 'consumption' | 'loadpoints' | 'custom' | 'count';
 

@@ -35,6 +35,7 @@ import { ValueWidget } from '../widgets/ValueWidget';
 import { DimmerWidget } from '../widgets/DimmerWidget';
 import { ThermostatWidget } from '../widgets/ThermostatWidget';
 import { ChartWidget } from '../widgets/ChartWidget';
+import { ClimateWidget } from '../widgets/ClimateWidget';
 import { ListWidget } from '../widgets/ListWidget';
 import { ClockWidget } from '../widgets/ClockWidget';
 import { CalendarWidget, getSources, DEFAULT_CAL_COLORS, type CalendarSource } from '../widgets/CalendarWidget';
@@ -117,6 +118,7 @@ function getWidgetMap() {
     chips:         ChipsWidget,
     httpRequest:   HttpRequestWidget,
     button:        ButtonWidget,
+    climate:       ClimateWidget,
   } as const;
 }
 
@@ -611,6 +613,125 @@ function ChartHistoryConfig({ config, onConfigChange }: { config: WidgetConfig; 
           </div>
         </div>
       </div>
+    </>
+  );
+}
+
+// ── ClimateConfig ─────────────────────────────────────────────────────────────
+function ClimateConfig({
+  config,
+  onConfigChange,
+  onPickerOpen,
+}: {
+  config: WidgetConfig;
+  onConfigChange: (c: WidgetConfig) => void;
+  onPickerOpen: (target: 'climate_humidityDp' | 'climate_targetDp') => void;
+}) {
+  const o   = config.options ?? {};
+  const set = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
+  const inputCls   = 'flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0';
+  const inputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+  const btnStyle   = { background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' };
+
+  return (
+    <>
+      <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
+      <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Datenpunkte</p>
+
+      {/* Soll-Temperatur */}
+      <div className="mb-2">
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Soll-Temperatur (optional)</label>
+        <div className="flex gap-1">
+          <input
+            type="text"
+            value={(o.targetDatapoint as string) ?? ''}
+            onChange={(e) => set({ targetDatapoint: e.target.value || undefined })}
+            placeholder="optional"
+            className={inputCls}
+            style={inputStyle}
+          />
+          <button
+            onClick={() => onPickerOpen('climate_targetDp')}
+            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+            style={btnStyle}
+            title="Aus ioBroker wählen"
+          >
+            <Database size={13} />
+          </button>
+        </div>
+      </div>
+
+      {/* Luftfeuchtigkeit */}
+      <div className="mb-2">
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Luftfeuchtigkeit (optional)</label>
+        <div className="flex gap-1">
+          <input
+            type="text"
+            value={(o.humidityDatapoint as string) ?? ''}
+            onChange={(e) => set({ humidityDatapoint: e.target.value || undefined })}
+            placeholder="optional"
+            className={inputCls}
+            style={inputStyle}
+          />
+          <button
+            onClick={() => onPickerOpen('climate_humidityDp')}
+            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+            style={btnStyle}
+            title="Aus ioBroker wählen"
+          >
+            <Database size={13} />
+          </button>
+        </div>
+      </div>
+
+      {/* Einheiten */}
+      <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
+      <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Einheiten</p>
+      <div className="flex gap-2 mb-2">
+        <div className="flex-1">
+          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Temperatur</label>
+          <input
+            type="text"
+            value={(o.unit as string) ?? '°C'}
+            onChange={(e) => set({ unit: e.target.value || '°C' })}
+            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+            style={inputStyle}
+          />
+        </div>
+        <div className="flex-1">
+          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Feuchtigkeit</label>
+          <input
+            type="text"
+            value={(o.humidityUnit as string) ?? '%'}
+            onChange={(e) => set({ humidityUnit: e.target.value || '%' })}
+            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+            style={inputStyle}
+          />
+        </div>
+      </div>
+
+      {/* Diagrammfarbe */}
+      <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Diagrammfarbe</span>
+        <div className="flex items-center gap-1.5">
+          <input
+            type="color"
+            value={(o.lineColor as string | undefined) ?? '#06b6d4'}
+            onChange={(e) => set({ lineColor: e.target.value })}
+            className="w-7 h-7 rounded cursor-pointer border-0 p-0"
+            style={{ background: 'none' }}
+          />
+          <button
+            onClick={() => set({ lineColor: undefined })}
+            className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
+            style={{ background: 'var(--app-border)', color: 'var(--text-secondary)' }}
+          >Reset</button>
+        </div>
+      </div>
+
+      {/* History-Konfiguration */}
+      <ChartHistoryConfig config={config} onConfigChange={onConfigChange} />
     </>
   );
 }
@@ -2122,7 +2243,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       setOpenPanel(panel);
     }
   };
-  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | null>(null);
   const [imageFilePicker, setImageFilePicker] = useState(false);
   const [cameraSlotPickerIdx, setCameraSlotPickerIdx] = useState(0);
   const [mpPickerKey, setMpPickerKey] = useState('');
@@ -2881,6 +3002,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'default', label: t('wf.edit.layout.standard') },
               ] : config.type === 'mediaplayer' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
+                { value: 'compact', label: t('wf.edit.layout.compact') },
                 { value: 'custom',  label: 'Custom' },
               ] : config.type === 'chips' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
@@ -2935,6 +3057,14 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   case 'datepicker':   return [{ key: 'showTitle', label: 'Titel' }, { key: 'showCurrentValue', label: 'Gesetzter Wert' }];
                   case 'stateimage':    return [{ key: 'showTitle', label: 'Titel' }, { key: 'showLabel', label: 'Status-Text' }];
                   case 'chart':         return [{ key: 'showTitle', label: 'Titel' }];
+                  case 'climate':       return [
+                    { key: 'showTitle',      label: 'Titel' },
+                    { key: 'showActualTemp', label: 'Ist-Temperatur' },
+                    { key: 'showTargetTemp', label: 'Soll-Temperatur' },
+                    { key: 'showHumidity',   label: 'Luftfeuchtigkeit' },
+                    { key: 'showComfort',    label: 'Komfortzone-Anzeige' },
+                    { key: 'showChart',      label: 'Temperaturverlauf' },
+                  ];
                   case 'echart':        return [{ key: 'showTitle', label: 'Titel' }];
                   case 'list':          return [{ key: 'showTitle', label: 'Kopfzeile' }];
                   case 'autolist':      return [{ key: 'showTitle', label: 'Kopfzeile' }];
@@ -3194,6 +3324,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                      config.type === 'stateimage'     ? 'Zustand Datenpunkt (boolean, true = erstes Bild)' :
                      config.type === 'shutter'        ? 'Positions-Datenpunkt (0–100 %)' :
                      config.type === 'dimmer'         ? 'Helligkeits-Datenpunkt (0–100 %)' :
+                     config.type === 'climate'        ? 'Ist-Temperatur Datenpunkt' :
                      t('wf.edit.datapointId')}
                   </label>
                   <div className="flex gap-1">
@@ -3329,6 +3460,13 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
               {config.type === 'chart' && (
                 <ChartHistoryConfig config={config} onConfigChange={onConfigChange} />
+              )}
+              {config.type === 'climate' && (
+                <ClimateConfig
+                  config={config}
+                  onConfigChange={onConfigChange}
+                  onPickerOpen={(t) => setPickerTarget(t)}
+                />
               )}
               {config.type === 'echart' && (
                 <EChartConfig config={config} onConfigChange={onConfigChange} />
@@ -5742,7 +5880,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               })()}
 
               {/* ── Farbschwellen ── */}
-              {(config.type === 'value' || config.type === 'dimmer' || config.type === 'shutter' || config.type === 'thermostat') && (() => {
+              {(config.type === 'value' || config.type === 'dimmer' || config.type === 'shutter' || config.type === 'thermostat' || config.type === 'list' || config.type === 'autolist') && (() => {
                 type CT = [number, string];
                 const thresholds = (config.options?.colorThresholds as CT[]) ?? [];
                 const setThresholds = (next: CT[]) =>
@@ -5921,6 +6059,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               onConfigChange({ ...config, options: { ...config.options, unreachDp: id } });
             } else if (pickerTarget === 'camera_wakeUpDp') {
               onConfigChange({ ...config, options: { ...config.options, wakeUpDp: id } });
+            } else if (pickerTarget === 'climate_humidityDp') {
+              onConfigChange({ ...config, options: { ...config.options, humidityDatapoint: id } });
+            } else if (pickerTarget === 'climate_targetDp') {
+              onConfigChange({ ...config, options: { ...config.options, targetDatapoint: id } });
             } else if (pickerTarget === 'http_response_dp') {
               onConfigChange({ ...config, options: { ...config.options, responseDatapoint: id } });
             } else if (pickerTarget === 'html_dp') {

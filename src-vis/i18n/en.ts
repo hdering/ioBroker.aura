@@ -748,6 +748,7 @@ export const en: Record<TranslationKey, string> = {
   'widget.group':         'Group',
   'widget.httpRequest':   'HTTP Action',
   'widget.button':        'Button',
+  'widget.climate':       'Room Climate',
 
   // ── Weather Widget ────────────────────────────────────────────────────────────
   'weather.sunny':       'Sunny',
@@ -947,6 +948,14 @@ export const en: Record<TranslationKey, string> = {
   'cw.chips.activeValue': 'Active value (optional)',
   'cw.confirm.enable':  'Require confirmation before action',
   'cw.confirm.text':    'Confirmation text (optional)',
+
+  // ── Climate Widget ────────────────────────────────────────────────────────────
+  'climate.actualTemp':   'Actual Temperature Datapoint',
+  'climate.targetTemp':   'Target Temperature Datapoint (optional)',
+  'climate.humidity':     'Humidity Datapoint (optional)',
+  'climate.unit':         'Temperature Unit',
+  'climate.humidityUnit': 'Humidity Unit',
+  'climate.lineColor':    'Chart Color',
 
   // ── Widget Previews ───────────────────────────────────────────────────────────
   'preview.feelsLike':    'Feels like {temp}°',
