@@ -570,6 +570,7 @@ export const en: Record<TranslationKey, string> = {
   'tabBar.conditions':    'Conditions',
   'tabBar.hideTabOnCond': 'Hide tab when condition matches',
   'tabBar.icon':          'Icon',
+  'tabBar.selectIcon':    'Select icon…',
   'tabBar.remove':        'Remove',
   'tabBar.addTab':        '+ Tab',
 

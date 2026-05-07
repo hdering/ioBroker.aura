@@ -568,6 +568,7 @@ export const de = {
   'tabBar.conditions':    'Bedingungen',
   'tabBar.hideTabOnCond': 'Tab verbergen wenn Bedingung zutrifft',
   'tabBar.icon':          'Icon',
+  'tabBar.selectIcon':    'Icon auswählen…',
   'tabBar.remove':        'Entfernen',
   'tabBar.addTab':        '+ Tab',
 

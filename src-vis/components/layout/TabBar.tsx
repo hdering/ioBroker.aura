@@ -6,8 +6,8 @@ import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import type { Tab, TabBarItem, TabBarSettings, DashboardLayout } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import { Icon } from '@iconify/react';
-import { CURATED_ICON_IDS } from '../../utils/widgetIconMap';
 import { loadIconSets, areIconSetsLoaded } from '../../utils/iconifyLoader';
+import { IconPickerModal } from '../config/IconPickerModal';
 import { useT } from '../../i18n';
 import { subscribeStateDirect } from '../../hooks/useIoBroker';
 import { applyCustomFormat, fmtTime, fmtDate } from '../../utils/clockUtils';
@@ -207,6 +207,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
   const [settingsTabId, setSettingsTabId] = useState<string | null>(null);
   const [panelPos, setPanelPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const [conditionsOpen, setConditionsOpen] = useState(false);
+  const [iconPickerTabId, setIconPickerTabId] = useState<string | null>(null);
   const settingsBtnRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -444,23 +445,19 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
                   </button>
                 )}
               </div>
-              <div className="flex flex-wrap gap-1">
-                {CURATED_ICON_IDS.map((iconId) => {
-                  const selected = settingsTab.icon === iconId;
-                  return (
-                    <button key={iconId} title={iconId}
-                      onClick={() => updateTab(settingsTabId, { icon: selected ? undefined : iconId })}
-                      className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
-                      style={{
-                        background: selected ? 'var(--accent)' : 'var(--app-bg)',
-                        color:      selected ? '#fff' : 'var(--text-secondary)',
-                        border:     `1px solid ${selected ? 'var(--accent)' : 'var(--app-border)'}`,
-                      }}>
-                      <Icon icon={iconId} width={13} height={13} />
-                    </button>
-                  );
-                })}
-              </div>
+              <button
+                onClick={() => setIconPickerTabId(settingsTabId)}
+                className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-xs transition-colors hover:opacity-80"
+                style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-secondary)' }}
+              >
+                {settingsTab.icon && iconsReady
+                  ? <Icon icon={settingsTab.icon} width={14} height={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                  : <span className="w-3.5 h-3.5 rounded-sm shrink-0" style={{ background: 'var(--app-border)' }} />
+                }
+                <span className="truncate" style={{ color: settingsTab.icon ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                  {settingsTab.icon ?? t('tabBar.selectIcon')}
+                </span>
+              </button>
             </div>
 
             {/* ── Conditions section ──────────────────────────────────────── */}
@@ -498,6 +495,14 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
         </>,
         document.body,
       )
+    : null;
+
+  const iconPickerModal = iconPickerTabId
+    ? <IconPickerModal
+        current={tabs.find((t) => t.id === iconPickerTabId)?.icon ?? ''}
+        onSelect={(name) => { updateTab(iconPickerTabId, { icon: name || undefined }); setIconPickerTabId(null); }}
+        onClose={() => setIconPickerTabId(null)}
+      />
     : null;
 
   // ── Render ───────────────────────────────────────────────────────────────────
@@ -556,6 +561,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
           </div>
         </div>
         {settingsPanel}
+        {iconPickerModal}
       </>
     );
   }
@@ -573,6 +579,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
         {addTabBtn}
       </div>
       {settingsPanel}
+      {iconPickerModal}
     </>
   );
 }
