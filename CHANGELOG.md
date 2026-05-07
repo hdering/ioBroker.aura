@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.12 (2026-05-07)
+
+- fix: ClimateWidget icon, icon size, title align, layouts, humidity icon, last-change
+- feat: add ClimateWidget (Raumklima)
+
 ## v0.6.11 (2026-05-07)
 
 Release v0.6.11
@@ -171,6 +176,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
