@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.6.13",
+    "version": "0.6.14",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.6.14": {
+        "en": "feat: replace curated icon grid with IconPickerModal in AdminEditor tab settings; feat: replace curated icon grid in tab settings with full IconPickerModal",
+        "de": "feat: replace curated icon grid with IconPickerModal in AdminEditor tab settings; feat: replace curated icon grid in tab settings with full IconPickerModal"
+      },
       "0.6.13": {
         "en": "feat: allow URL datapoint in IframeWidget; fix: show target temp when targetDatapoint is configured",
         "de": "feat: allow URL datapoint in IframeWidget; fix: show target temp when targetDatapoint is configured"
