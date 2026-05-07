@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.6.16 (2026-05-07)
+
+- feat: add colSpan to custom grid component cells for dimmer slider sizing
+
 ## v0.6.15 (2026-05-07)
 
 - fix: create config.popup-config object in onReady
@@ -190,6 +194,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 

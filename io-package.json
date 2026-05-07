@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.6.15",
+    "version": "0.6.16",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.6.16": {
+        "en": "feat: add colSpan to custom grid component cells for dimmer slider sizing",
+        "de": "feat: add colSpan to custom grid component cells for dimmer slider sizing"
+      },
       "0.6.15": {
         "en": "fix: create config.popup-config object in onReady",
         "de": "fix: create config.popup-config object in onReady"
