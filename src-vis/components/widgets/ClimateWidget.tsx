@@ -1,10 +1,11 @@
 import { useRef, useState, useEffect } from 'react';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, YAxis, XAxis } from 'recharts';
-import { Thermometer, Loader, BarChart2 } from 'lucide-react';
+import { Thermometer, Droplets, Loader, BarChart2 } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfigStore } from '../../store/configStore';
 import { useChartHistory, type ChartTimeRange, RANGE_LABELS } from '../../hooks/useChartHistory';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { WidgetProps } from '../../types';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
@@ -47,6 +48,8 @@ export function ClimateWidget({ config }: WidgetProps) {
   const unit            = (o.unit as string | undefined) ?? '°C';
   const humidityUnit    = (o.humidityUnit as string | undefined) ?? '%';
   const lineColor       = (o.lineColor as string | undefined) ?? 'var(--accent)';
+  const iconSize        = (o.iconSize as number) || 16;
+  const titleAlign      = (o.titleAlign as string) ?? 'left';
   const historyInstance = (o.historyInstance as string | undefined);
   const cfgRange        = (o.historyRange as ChartTimeRange | undefined) ?? '24h';
   const customVal       = (o.historyRangeCustomValue as number | undefined) ?? 24;
@@ -55,6 +58,9 @@ export function ClimateWidget({ config }: WidgetProps) {
     ? customVal * (customUnit === 'd' ? 86_400_000 : 3_600_000)
     : undefined;
   const lockRange       = o.lockRange === true;
+
+  const TempIcon     = getWidgetIcon(o.icon as string | undefined, Thermometer);
+  const HumidityIcon = getWidgetIcon(o.humidityIcon as string | undefined, Droplets);
 
   const targetDpId   = (o.targetDatapoint   as string | undefined) ?? '';
   const humidityDpId = (o.humidityDatapoint as string | undefined) ?? '';
@@ -67,7 +73,6 @@ export function ClimateWidget({ config }: WidgetProps) {
   const targetTemp  = typeof rawTarget   === 'number' ? rawTarget   : null;
   const humidity    = typeof rawHumidity === 'number' ? rawHumidity : null;
 
-  // Range selector state
   const [activeRange,    setActiveRange]    = useState<ChartTimeRange>(cfgRange);
   const [activeCustomMs, setActiveCustomMs] = useState<number | undefined>(cfgCustomMs);
   useEffect(() => { setActiveRange(cfgRange); setActiveCustomMs(cfgCustomMs); }, [cfgRange, cfgCustomMs]);
@@ -81,7 +86,6 @@ export function ClimateWidget({ config }: WidgetProps) {
     activeCustomMs,
   );
 
-  // ResizeObserver guard (same pattern as ChartWidget)
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasSize, setHasSize] = useState(false);
   useEffect(() => {
@@ -145,9 +149,9 @@ export function ClimateWidget({ config }: WidgetProps) {
 
       {/* Title */}
       {showTitle && (
-        <div className="flex items-center gap-1 min-w-0">
-          <Thermometer size={13} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0 }} />
-          <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
+        <div className="flex items-center gap-1 min-w-0" style={{ justifyContent: titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'flex-end' : 'flex-start' }}>
+          <TempIcon size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0 }} />
+          <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>
         </div>
       )}
 
@@ -172,8 +176,9 @@ export function ClimateWidget({ config }: WidgetProps) {
               </span>
             )}
             {showHumidity && (
-              <span className="font-medium" style={{ fontSize: Math.round(14 * fontScale), color: 'var(--text-secondary)' }}>
-                💧 {humidity !== null ? humidity.toLocaleString('de-DE') : '–'}{humidityUnit}
+              <span className="flex items-center gap-1 font-medium" style={{ fontSize: Math.round(14 * fontScale), color: 'var(--text-secondary)' }}>
+                <HumidityIcon size={Math.round(14 * fontScale)} strokeWidth={1.5} />
+                {humidity !== null ? humidity.toLocaleString('de-DE') : '–'}{humidityUnit}
               </span>
             )}
           </div>
@@ -186,9 +191,9 @@ export function ClimateWidget({ config }: WidgetProps) {
       {/* Range selector */}
       {rangeSelector && <div>{rangeSelector}</div>}
 
-      {/* Chart */}
+      {/* Chart — isolation:isolate ensures the SVG stacking context doesn't cover the WidgetFrame last-change overlay */}
       {showChartSection && (
-        <div className="flex-1" style={{ minHeight: 1 }}>
+        <div className="flex-1" style={{ minHeight: 1, isolation: 'isolate' }}>
           {history.length > 1 ? (
             hasSize ? (
               <ResponsiveContainer width="100%" height="100%">

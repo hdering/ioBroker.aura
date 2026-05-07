@@ -627,11 +627,18 @@ function ClimateConfig({
   onConfigChange: (c: WidgetConfig) => void;
   onPickerOpen: (target: 'climate_humidityDp' | 'climate_targetDp') => void;
 }) {
+  const [humidityIconPickerOpen, setHumidityIconPickerOpen] = useState(false);
+
   const o   = config.options ?? {};
   const set = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
   const inputCls   = 'flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0';
   const inputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
   const btnStyle   = { background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' };
+
+  const humidityIconName = o.humidityIcon as string | undefined;
+  const HumidityIconPreview = humidityIconName
+    ? getWidgetIcon(humidityIconName, (() => null) as unknown as import('lucide-react').LucideIcon)
+    : null;
 
   return (
     <>
@@ -661,7 +668,7 @@ function ClimateConfig({
         </div>
       </div>
 
-      {/* Luftfeuchtigkeit */}
+      {/* Luftfeuchtigkeit DP */}
       <div className="mb-2">
         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Luftfeuchtigkeit (optional)</label>
         <div className="flex gap-1">
@@ -682,6 +689,31 @@ function ClimateConfig({
             <Database size={13} />
           </button>
         </div>
+      </div>
+
+      {/* Luftfeuchtigkeits-Icon */}
+      <div className="mb-2">
+        <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Luftfeuchtigkeits-Icon</label>
+        <button
+          onClick={() => setHumidityIconPickerOpen(true)}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+          style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}
+        >
+          {HumidityIconPreview
+            ? <HumidityIconPreview size={14} style={{ flexShrink: 0 }} />
+            : <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />}
+          <span className="flex-1 truncate" style={{ color: humidityIconName ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+            {humidityIconName ?? 'Icon auswählen… (Standard: Droplets)'}
+          </span>
+          <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>›</span>
+        </button>
+        {humidityIconPickerOpen && (
+          <IconPickerModal
+            current={humidityIconName ?? ''}
+            onSelect={(name) => { set({ humidityIcon: name || undefined }); setHumidityIconPickerOpen(false); }}
+            onClose={() => setHumidityIconPickerOpen(false)}
+          />
+        )}
       </div>
 
       {/* Einheiten */}
@@ -2998,6 +3030,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               ] : config.type === 'chart' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
                 { value: 'card',    label: t('wf.edit.layout.card') },
+              ] : config.type === 'climate' ? [
+                { value: 'default', label: t('wf.edit.layout.standard') },
               ] : config.type === 'echartsPreset' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
               ] : config.type === 'mediaplayer' ? [
