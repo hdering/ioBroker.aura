@@ -40,7 +40,7 @@ export function ClimateWidget({ config }: WidgetProps) {
   const o               = config.options ?? {};
   const showTitle       = o.showTitle !== false;
   const showActualTemp  = o.showActualTemp !== false;
-  const showTargetTemp  = o.showTargetTemp === true;
+  const showTargetTemp  = o.showTargetTemp !== false && !!(o.targetDatapoint as string | undefined);
   const showHumidity    = o.showHumidity !== false;
   const showComfort     = o.showComfort === true;
   const showChart       = o.showChart !== false;
