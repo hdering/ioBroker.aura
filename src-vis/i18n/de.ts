@@ -400,6 +400,7 @@ export const de = {
   'editor.tabMgmt.icon':         'Icon',
   'editor.tabMgmt.slug':         'URL-Slug',
   'editor.tabMgmt.slugTaken':    'Bereits vergeben',
+  'editor.tabMgmt.selectIcon':   'Icon auswählen…',
   'editor.tabMgmt.remove':       'Entfernen',
   'editor.tabMgmt.delete':       'Tab löschen',
 

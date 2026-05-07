@@ -402,6 +402,7 @@ export const en: Record<TranslationKey, string> = {
   'editor.tabMgmt.icon':         'Icon',
   'editor.tabMgmt.slug':         'URL Slug',
   'editor.tabMgmt.slugTaken':    'Already taken',
+  'editor.tabMgmt.selectIcon':   'Select icon…',
   'editor.tabMgmt.remove':       'Remove',
   'editor.tabMgmt.delete':       'Delete Tab',
 
