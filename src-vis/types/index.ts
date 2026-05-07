@@ -74,6 +74,7 @@ export interface CustomCell {
   align?:         CustomCellAlign;   // default: 'left'
   valign?:        CustomCellValign;  // default: 'middle'
   allowOverflow?: boolean;           // allow text to overflow into adjacent cells
+  colSpan?:       1 | 2 | 3;        // 'component' type: how many grid columns to span
   imageUrl?:      string;            // 'image' type: URL or base64 data URI
   objectFit?:     'contain' | 'cover' | 'fill';  // 'image' type: CSS object-fit
 }

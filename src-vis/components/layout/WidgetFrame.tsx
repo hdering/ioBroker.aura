@@ -5758,15 +5758,15 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               </div>
                             </div>
                             <div>
-                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Überlauf</label>
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Spaltenbreite</label>
                               <div className="flex gap-1">
-                                {([false, true] as const).map((v) => {
-                                  const active = (selCell.allowOverflow ?? false) === v;
+                                {([1, 2, 3] as const).map((v) => {
+                                  const active = (selCell.colSpan ?? 1) === v;
                                   return (
-                                    <button key={String(v)} onClick={() => setCell(sel, { allowOverflow: v || undefined })}
+                                    <button key={v} onClick={() => setCell(sel, { colSpan: v === 1 ? undefined : v })}
                                       className="flex-1 text-[10px] py-1 rounded"
                                       style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
-                                      {v ? 'Überlaufen' : 'Abschneiden'}
+                                      {v === 1 ? '×1' : v === 2 ? '×2' : '×3'}
                                     </button>
                                   );
                                 })}

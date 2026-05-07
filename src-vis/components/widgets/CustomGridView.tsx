@@ -38,13 +38,20 @@ function cellTextStyle(cell: CustomCell, defaultColor: string): React.CSSPropert
   };
 }
 
-function cellWrapStyle(cell: CustomCell): React.CSSProperties {
+function cellWrapStyle(cell: CustomCell, index: number): React.CSSProperties {
+  const col = (index % 3) + 1;
+  const row = Math.floor(index / 3) + 1;
+  const colSpan = Math.min(cell.colSpan ?? 1, 4 - col); // cap to remaining columns
   return {
     display:        'flex',
     overflow:       cell.allowOverflow ? 'visible' : 'hidden',
     alignItems:     cell.valign === 'top' ? 'flex-start' : cell.valign === 'bottom' ? 'flex-end' : 'center',
     justifyContent: cell.align === 'center' ? 'center' : cell.align === 'right' ? 'flex-end' : 'flex-start',
     padding:        '2px',
+    gridRow:        row,
+    gridColumn:     colSpan > 1 ? `${col} / span ${colSpan}` : col,
+    position:       colSpan > 1 ? 'relative' : undefined,
+    zIndex:         colSpan > 1 ? 1 : undefined,
   };
 }
 
@@ -57,9 +64,9 @@ function DpCellView({ cell, index }: { cell: CustomCell; index: number }) {
     : typeof value === 'number' ? value.toLocaleString('de-DE')
     : String(value);
   const content = `${cell.prefix ?? ''}${formatted}${cell.suffix ?? ''}`;
-  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} />;
+  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={{ gridRow: Math.floor(index / 3) + 1, gridColumn: (index % 3) + 1 }} />;
   return (
-    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell)}>
+    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index)}>
       <span style={cellTextStyle(cell, 'var(--text-primary)')}>{content}</span>
     </div>
   );
@@ -67,9 +74,9 @@ function DpCellView({ cell, index }: { cell: CustomCell; index: number }) {
 
 /** Renders an image from a URL or base64 data URI. */
 function ImageCellView({ cell, index }: { cell: CustomCell; index: number }) {
-  if (!cell.imageUrl) return <div className={`aura-custom-cell-${index}`} />;
+  if (!cell.imageUrl) return <div className={`aura-custom-cell-${index}`} style={{ gridRow: Math.floor(index / 3) + 1, gridColumn: (index % 3) + 1 }} />;
   return (
-    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell), padding: 0 }}>
+    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index), padding: 0 }}>
       <img
         src={resolveAssetUrl(cell.imageUrl)}
         alt=""
@@ -91,9 +98,9 @@ function ComponentCellView({ cell, index, extraComponents }: {
   extraComponents?: Record<string, React.ReactNode>;
 }) {
   const node = extraComponents?.[cell.componentKey ?? ''];
-  if (!node) return <div className={`aura-custom-cell-${index}`} />;
+  if (!node) return <div className={`aura-custom-cell-${index}`} style={{ gridRow: Math.floor(index / 3) + 1, gridColumn: (index % 3) + 1 }} />;
   return (
-    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell), padding: '2px' }}>
+    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index), padding: '2px' }}>
       {node}
     </div>
   );
@@ -121,11 +128,11 @@ function StaticCellView({
     }
   })();
 
-  if (cell.type === 'empty' || !content) return <div className={`aura-custom-cell-${index}`} />;
+  if (cell.type === 'empty' || !content) return <div className={`aura-custom-cell-${index}`} style={{ gridRow: Math.floor(index / 3) + 1, gridColumn: (index % 3) + 1 }} />;
 
   const defaultColor = cell.type === 'value' ? 'var(--text-primary)' : 'var(--text-secondary)';
   return (
-    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell)}>
+    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index)}>
       <span style={cellTextStyle(cell, defaultColor)}>{content}</span>
     </div>
   );
