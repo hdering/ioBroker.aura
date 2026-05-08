@@ -140,10 +140,10 @@ export function SwitchWidget({ config }: WidgetProps) {
 
   return (
     <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
-      {showTitle && (
+      {(showTitle || showIcon) && (
         <div className="flex items-center gap-2" style={titleStyle}>
           {showIcon && <WidgetIcon size={iconSize} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} />}
-          <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1', minWidth: 0 }}>{config.title}</p>
+          {showTitle && <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1', minWidth: 0 }}>{config.title}</p>}
         </div>
       )}
       <div className="flex items-center justify-between">

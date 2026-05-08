@@ -283,11 +283,11 @@ export function ShutterWidget({ config }: WidgetProps) {
   // ── DEFAULT ───────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-full gap-2" style={{ position: 'relative' }}>
-      {showTitle && (
+      {(showTitle || (showIcon && CustomIcon)) && (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 min-w-0 flex-1">
             {showIcon && CustomIcon && <CustomIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />}
-            <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>
+            {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
           </div>
           {isMoving && <span className="text-[10px] animate-pulse shrink-0" style={{ color: 'var(--accent-yellow)' }}>
             {movingDir === 'up' ? '▲' : movingDir === 'down' ? '▼' : '↕'}
