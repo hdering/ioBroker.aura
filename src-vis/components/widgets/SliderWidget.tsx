@@ -45,6 +45,7 @@ export function SliderWidget({ config }: WidgetProps) {
   const showUnit        = o.showUnit   !== false;
   const showMinMax      = !!o.showMinMax;
   const showIcon        = o.showIcon   !== false;
+  const iconSize        = (o.iconSize  as number) || 36;
   const actions         = (o.actions as SliderAction[] | undefined) ?? [];
   const titleAlign      = (o.titleAlign as string) ?? 'left';
   const WidgetIcon      = getWidgetIcon(o.icon as string | undefined, SlidersHorizontal);
