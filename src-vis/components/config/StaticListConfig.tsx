@@ -103,7 +103,7 @@ function EntryRow({
                 title={entry.decimals === undefined ? 'Globale Einstellung aktiv – klicken für eigenen Wert' : 'Auf globale Einstellung zurücksetzen'}
                 className="px-1.5 rounded text-[10px] font-bold shrink-0"
                 style={{ background: entry.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: entry.decimals === undefined ? '#fff' : 'var(--text-secondary)' }}>
-                G
+                Global
               </button>
             </div>
           </div>

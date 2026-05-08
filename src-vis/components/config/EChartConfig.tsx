@@ -490,7 +490,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
               className="px-1.5 rounded text-[10px] font-bold shrink-0"
               style={{ background: o.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: o.decimals === undefined ? '#fff' : 'var(--text-secondary)' }}
             >
-              G
+              Global
             </button>
           </div>
         </div>

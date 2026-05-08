@@ -484,7 +484,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
               background: opts.decimals === undefined ? 'var(--accent)' : 'var(--app-border)',
               color: opts.decimals === undefined ? '#fff' : 'var(--text-secondary)',
             }}
-            title="Globale Einstellung verwenden">G</button>
+            title="Globale Einstellung verwenden">Global</button>
         </div>
       </div>
       <div className="flex items-center justify-between">

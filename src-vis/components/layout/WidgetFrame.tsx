@@ -759,7 +759,7 @@ function ClimateConfig({
             title={o.decimals === undefined ? 'Globale Einstellung aktiv – klicken für eigenen Wert' : 'Auf globale Einstellung zurücksetzen'}
             className="px-1.5 rounded text-[10px] font-bold shrink-0"
             style={{ background: o.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: o.decimals === undefined ? '#fff' : 'var(--text-secondary)' }}>
-            G
+            Global
           </button>
         </div>
       </div>
@@ -3454,7 +3454,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       className="px-1.5 rounded text-[10px] font-bold shrink-0"
                       style={{ background: config.options?.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: config.options?.decimals === undefined ? '#fff' : 'var(--text-secondary)' }}
                     >
-                      G
+                      Global
                     </button>
                   </div>
                 </div>
@@ -3601,7 +3601,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             title={o.decimals === undefined ? 'Globale Einstellung aktiv – klicken für eigenen Wert' : 'Auf globale Einstellung zurücksetzen'}
                             className="px-1.5 rounded text-[10px] font-bold shrink-0"
                             style={{ background: o.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: o.decimals === undefined ? '#fff' : 'var(--text-secondary)' }}>
-                            G
+                            Global
                           </button>
                         </div>
                       </div>
@@ -4316,7 +4316,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             title={o.decimals === undefined ? 'Globale Einstellung aktiv – klicken für eigenen Wert' : 'Auf globale Einstellung zurücksetzen'}
                             className="px-1.5 rounded text-[10px] font-bold shrink-0"
                             style={{ background: o.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: o.decimals === undefined ? '#fff' : 'var(--text-secondary)' }}>
-                            G
+                            Global
                           </button>
                         </div>
                       </div>
@@ -5087,7 +5087,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           title={o.decimals === undefined ? 'Globale Einstellung aktiv – klicken für eigenen Wert' : 'Auf globale Einstellung zurücksetzen'}
                           className="px-1.5 rounded text-[10px] font-bold shrink-0"
                           style={{ background: o.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: o.decimals === undefined ? '#fff' : 'var(--text-secondary)' }}>
-                          G
+                          Global
                         </button>
                       </div>
                     </div>
