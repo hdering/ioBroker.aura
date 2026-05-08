@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.20 (2026-05-08)
+
+- fix: rename G-button label from 'G' to 'Global' across all widgets
+- fix: invert shutter slider direction when showClosedPercent is enabled
+
 ## v0.6.19 (2026-05-08)
 
 - fix: swap decimals input and G-button order — value first, button second
@@ -210,6 +215,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
