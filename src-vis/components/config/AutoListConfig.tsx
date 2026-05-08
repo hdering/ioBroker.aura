@@ -471,6 +471,12 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
       <div>
         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Kommastellen</label>
         <div className="flex items-center gap-2">
+          <input
+            type="number" min={0} max={6} step={1}
+            className={iCls} style={{ ...iSty, opacity: opts.decimals === undefined ? 0.4 : 1 }}
+            disabled={opts.decimals === undefined}
+            value={opts.decimals ?? defaultDecimals}
+            onChange={e => setOpts({ decimals: Number(e.target.value) })} />
           <button
             onClick={() => setOpts({ decimals: opts.decimals === undefined ? defaultDecimals : undefined })}
             className="shrink-0 px-2 py-1 rounded text-[10px] font-bold transition-colors"
@@ -479,12 +485,6 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
               color: opts.decimals === undefined ? '#fff' : 'var(--text-secondary)',
             }}
             title="Globale Einstellung verwenden">G</button>
-          <input
-            type="number" min={0} max={6} step={1}
-            className={iCls} style={{ ...iSty, opacity: opts.decimals === undefined ? 0.4 : 1 }}
-            disabled={opts.decimals === undefined}
-            value={opts.decimals ?? defaultDecimals}
-            onChange={e => setOpts({ decimals: Number(e.target.value) })} />
         </div>
       </div>
       <div className="flex items-center justify-between">
