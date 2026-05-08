@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.6.17",
+    "version": "0.6.18",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.6.18": {
+        "en": "feat: add global decimal places support to value, chart and echart widgets; feat: global default decimal places with per-widget override",
+        "de": "feat: add global decimal places support to value, chart and echart widgets; feat: global default decimal places with per-widget override"
+      },
       "0.6.17": {
         "en": "Release v0.6.17",
         "de": "Release v0.6.17"

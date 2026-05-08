@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.18 (2026-05-08)
+
+- feat: add global decimal places support to value, chart and echart widgets
+- feat: global default decimal places with per-widget override
+
 ## v0.6.17 (2026-05-08)
 
 Release v0.6.17
@@ -198,6 +203,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
