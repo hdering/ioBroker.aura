@@ -6,6 +6,8 @@ import { useConfigStore } from '../../store/configStore';
 import { useChartHistory, type ChartTimeRange, RANGE_LABELS } from '../../hooks/useChartHistory';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { WidgetProps } from '../../types';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { formatNum } from '../../utils/formatValue';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
@@ -29,6 +31,8 @@ export function ChartWidget({ config }: WidgetProps) {
 
   const o               = config.options ?? {};
   const showTitle       = o.showTitle !== false;
+  const { defaultDecimals } = useGlobalSettingsStore();
+  const decimals        = (o.decimals as number) ?? defaultDecimals;
   const unit            = (o.unit as string | undefined);
   const historyInstance = (o.historyInstance as string | undefined);
   const cfgRange        = ((o.historyRange as ChartTimeRange | undefined) ?? '24h');
@@ -68,7 +72,7 @@ export function ChartWidget({ config }: WidgetProps) {
   );
 
   const avg = (showAverage || showAverageAsValue) && history.length > 1
-    ? Math.round((history.reduce((sum, p) => sum + p.v, 0) / history.length) * 100) / 100
+    ? history.reduce((sum, p) => sum + p.v, 0) / history.length
     : null;
 
   // Mount/unmount ResponsiveContainer based on container visibility.
@@ -155,13 +159,13 @@ export function ChartWidget({ config }: WidgetProps) {
               {showTitle && <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
               {current !== null && (
                 <p className="text-3xl font-black leading-tight" style={{ color: 'var(--text-primary)' }}>
-                  {current.toLocaleString('de-DE')}
+                  {formatNum(current, decimals)}
                   {unit && <span className="text-lg ml-1 font-medium" style={{ color: unitColor }}>{unit}</span>}
                 </p>
               )}
               {showAverageAsValue && avg !== null && (
                 <p className="text-xs leading-tight mt-0.5" style={{ color: avgColor }}>
-                  Ø {avg.toLocaleString('de-DE')}{unit ? ` ${unit}` : ''}
+                  Ø {formatNum(avg, decimals)}{unit ? ` ${unit}` : ''}
                 </p>
               )}
             </div>
@@ -182,12 +186,12 @@ export function ChartWidget({ config }: WidgetProps) {
                 <YAxis domain={['auto', 'auto']} hide />
                 <XAxis dataKey="t" type="number" domain={['dataMin', 'dataMax']} scale="time" hide />
                 <Tooltip contentStyle={tooltipStyle} labelFormatter={formatLabel}
-                  formatter={(v: number) => `${v.toLocaleString('de-DE')}${unit ? ` ${unit}` : ''}`} />
+                  formatter={(v: number) => `${formatNum(v, decimals)}${unit ? ` ${unit}` : ''}`} />
                 <Area type="monotone" dataKey="v" stroke={lineColor} strokeWidth={2}
                   fill={`url(#grad-${config.id})`} dot={false} isAnimationActive={false} />
                 {showAverage && avg !== null && (
                   <ReferenceLine y={avg} stroke={avgColor} strokeDasharray="4 3" strokeWidth={1.5}
-                    label={{ value: `Ø ${avg.toLocaleString('de-DE')}${unit ? ` ${unit}` : ''}`, position: 'insideTopRight', fill: avgColor, fontSize: 10 }} />
+                    label={{ value: `Ø ${formatNum(avg, decimals)}${unit ? ` ${unit}` : ''}`, position: 'insideTopRight', fill: avgColor, fontSize: 10 }} />
                 )}
               </AreaChart>
             </ResponsiveContainer>
@@ -209,11 +213,11 @@ export function ChartWidget({ config }: WidgetProps) {
         {current !== null && (
           <div className="flex flex-col items-end shrink-0 ml-2">
             <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
-              {current.toLocaleString('de-DE')}{unit ? ` ${unit}` : ''}
+              {formatNum(current, decimals)}{unit ? ` ${unit}` : ''}
             </span>
             {showAverageAsValue && avg !== null && (
               <span className="text-[10px] leading-tight" style={{ color: avgColor }}>
-                Ø {avg.toLocaleString('de-DE')}{unit ? ` ${unit}` : ''}
+                Ø {formatNum(avg, decimals)}{unit ? ` ${unit}` : ''}
               </span>
             )}
           </div>
@@ -238,12 +242,12 @@ export function ChartWidget({ config }: WidgetProps) {
                 minTickGap={40}
               />
               <Tooltip contentStyle={tooltipStyle} labelFormatter={formatLabel}
-                formatter={(v: number) => `${v.toLocaleString('de-DE')}${unit ? ` ${unit}` : ''}`} />
+                formatter={(v: number) => `${formatNum(v, decimals)}${unit ? ` ${unit}` : ''}`} />
               <Line type="monotone" dataKey="v" stroke={lineColor} strokeWidth={2}
                 dot={false} isAnimationActive={false} />
               {avg !== null && (
                 <ReferenceLine y={avg} stroke={avgColor} strokeDasharray="4 3" strokeWidth={1.5}
-                  label={{ value: `Ø ${avg.toLocaleString('de-DE')}${unit ? ` ${unit}` : ''}`, position: 'insideTopRight', fill: avgColor, fontSize: 10 }} />
+                  label={{ value: `Ø ${formatNum(avg, decimals)}${unit ? ` ${unit}` : ''}`, position: 'insideTopRight', fill: avgColor, fontSize: 10 }} />
               )}
             </LineChart>
           </ResponsiveContainer>

@@ -5,6 +5,8 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import { useMultiSeriesData, type EChartSeriesConfig } from '../../hooks/useMultiSeriesData';
 import type { WidgetProps } from '../../types';
 import { CustomGridView } from './CustomGridView';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { formatNum } from '../../utils/formatValue';
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -40,6 +42,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
 
   const o = config.options ?? {};
   const showTitle = o.showTitle !== false;
+  const { defaultDecimals } = useGlobalSettingsStore();
+  const decimals = (o.decimals as number) ?? defaultDecimals;
   const echartSeries = (o.echartSeries as EChartSeriesConfig[] | undefined) ?? [];
   const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? true;
   const echartLeftUnit = (o.echartLeftUnit as string | undefined) ?? '';
@@ -212,7 +216,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
           const seriesCfg = echartSeries[p.seriesIndex];
           const unit = (seriesCfg?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
           const raw = p.value[1];
-          const dispVal = typeof raw === 'number' ? parseFloat(raw.toFixed(2)) : raw;
+          const dispVal = typeof raw === 'number' ? formatNum(raw, decimals) : raw;
           return `${p.marker} ${p.seriesName}: <b>${dispVal}${unit ? '\u202F' + unit : ''}</b>`;
         });
         return `${timeStr}<br/>${lines.join('<br/>')}`;

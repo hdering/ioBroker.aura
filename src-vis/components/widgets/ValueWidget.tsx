@@ -7,6 +7,8 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CustomGridView } from './CustomGridView';
 import { StatusBadges } from './StatusBadges';
 import { useStatusFields } from '../../hooks/useStatusFields';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { formatNum } from '../../utils/formatValue';
 
 export function ValueWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
@@ -23,9 +25,11 @@ export function ValueWidget({ config }: WidgetProps) {
   const showValue = o.showValue !== false;
   const showUnit  = o.showUnit  !== false;
   const iconSize  = (o.iconSize as number) || 36;
+  const { defaultDecimals } = useGlobalSettingsStore();
+  const decimals = (o.decimals as number) ?? defaultDecimals;
 
   const displayValue = value === null ? '–'
-    : typeof value === 'number' ? value.toLocaleString('de-DE')
+    : typeof value === 'number' ? formatNum(value, decimals)
     : String(value);
 
   // Threshold-based color: [[maxExclusive, color], …] sorted ascending

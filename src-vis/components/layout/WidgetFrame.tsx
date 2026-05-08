@@ -3415,6 +3415,29 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   />
                 </div>
               )}
+              {(config.type === 'value' || config.type === 'chart') && (
+                <div>
+                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Dezimalstellen</label>
+                  <div className="flex gap-1">
+                    <input
+                      type="number" min={0} max={4}
+                      disabled={config.options?.decimals === undefined}
+                      value={(config.options?.decimals as number) ?? defaultDecimals}
+                      onChange={(e) => onConfigChange({ ...config, options: { ...config.options, decimals: Number(e.target.value) } })}
+                      className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                      style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)', opacity: config.options?.decimals === undefined ? 0.5 : 1 }}
+                    />
+                    <button
+                      onClick={() => onConfigChange({ ...config, options: { ...config.options, decimals: config.options?.decimals === undefined ? defaultDecimals : undefined } })}
+                      title={config.options?.decimals === undefined ? 'Globale Einstellung aktiv – klicken für eigenen Wert' : 'Auf globale Einstellung zurücksetzen'}
+                      className="px-1.5 rounded text-[10px] font-bold shrink-0"
+                      style={{ background: config.options?.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: config.options?.decimals === undefined ? '#fff' : 'var(--text-secondary)' }}
+                    >
+                      G
+                    </button>
+                  </div>
+                </div>
+              )}
               {config.type === 'value' && (
                 <div>
                   <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>HTML-Template (optional)</label>

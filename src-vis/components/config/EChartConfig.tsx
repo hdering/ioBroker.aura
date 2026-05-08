@@ -6,6 +6,7 @@ import { getObjectDirect } from '../../hooks/useIoBroker';
 import { detectHistoryAdapters, RANGE_LABELS, type DetectedAdapter } from '../../hooks/useChartHistory';
 import type { EChartSeriesConfig, EChartTimeRange } from '../../hooks/useMultiSeriesData';
 import { useT, t } from '../../i18n';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 
 interface EChartConfigProps {
   config: WidgetConfig;
@@ -40,6 +41,7 @@ interface SeriesAdapterState {
 export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
   const t = useT();
   const o = config.options ?? {};
+  const { defaultDecimals } = useGlobalSettingsStore();
   const series = (o.echartSeries as EChartSeriesConfig[] | undefined) ?? [];
   const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? true;
   const echartShowYAxis = (o.echartShowYAxis as boolean | undefined) ?? true;
@@ -468,6 +470,29 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
               style={{ left: echartShowYAxis ? '18px' : '2px' }}
             />
           </button>
+        </div>
+
+        {/* Decimal places */}
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Dezimalstellen (Tooltip)</label>
+          <div className="flex gap-1">
+            <input
+              type="number" min={0} max={4}
+              disabled={o.decimals === undefined}
+              value={(o.decimals as number) ?? defaultDecimals}
+              onChange={(e) => setO({ decimals: Number(e.target.value) })}
+              className="w-14 text-center text-xs rounded-lg px-2 py-1 focus:outline-none"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)', opacity: o.decimals === undefined ? 0.5 : 1 }}
+            />
+            <button
+              onClick={() => setO({ decimals: o.decimals === undefined ? defaultDecimals : undefined })}
+              title={o.decimals === undefined ? 'Globale Einstellung aktiv – klicken für eigenen Wert' : 'Auf globale Einstellung zurücksetzen'}
+              className="px-1.5 rounded text-[10px] font-bold shrink-0"
+              style={{ background: o.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: o.decimals === undefined ? '#fff' : 'var(--text-secondary)' }}
+            >
+              G
+            </button>
+          </div>
         </div>
 
         {/* Left Y-Axis */}
