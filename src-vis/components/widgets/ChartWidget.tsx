@@ -155,10 +155,10 @@ export function ChartWidget({ config }: WidgetProps) {
     return (
       <div ref={containerRef} className="flex flex-col h-full">
         <div className="flex items-start justify-between mb-1">
-          <div className="flex items-start gap-1.5 min-w-0">
+          <div className="flex items-start gap-1.5 min-w-0 flex-1">
             {showIcon && <WidgetIcon size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0, marginTop: 2 }} />}
-            <div className="min-w-0">
-              {showTitle && <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
+            <div className="min-w-0 flex-1">
+              {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
               {current !== null && (
                 <p className="text-3xl font-black leading-tight" style={{ color: 'var(--text-primary)' }}>
                   {formatNum(current, decimals)}
@@ -209,9 +209,9 @@ export function ChartWidget({ config }: WidgetProps) {
     <div ref={containerRef} className="flex flex-col h-full">
       <div className="flex justify-between items-start mb-1">
         {(showTitle || showIcon) && (
-          <div className="flex items-center gap-1 min-w-0">
+          <div className="flex items-center gap-1 min-w-0 flex-1">
             {showIcon && <WidgetIcon size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0 }} />}
-            {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
         )}
         {current !== null && (
