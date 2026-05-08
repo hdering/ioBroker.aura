@@ -2861,6 +2861,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           onClose={() => openPanelFor(null)}
         >
           {/* ─── 1. Name / Titel ──────────────────────────────────────────── */}
+          {config.type !== 'shutter' && (<>
           <div className="space-y-2.5">
             <div>
               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
@@ -2969,7 +2970,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           </div>
 
           <div className="h-px" style={{ background: 'var(--app-border)' }} />
+          </>)}
 
+          {config.type !== 'shutter' && (<>
           {/* ─── 2. Stil (eingeklappt) ─────────────────────────────────────── */}
           <details className="group">
             <summary className="flex items-center justify-between cursor-pointer list-none select-none">
@@ -3015,6 +3018,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           </details>
 
           <div className="h-px" style={{ background: 'var(--app-border)' }} />
+          </>)}
 
           {/* ─── 3. Widget-Typ · Layout · Icon ─────────────────────────────── */}
           <div className="space-y-2.5">
@@ -3105,7 +3109,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   case 'value':         return [{ key: 'showTitle', label: 'Titel' }, { key: 'showValue', label: 'Wert' }, { key: 'showUnit', label: 'Einheit' }];
                   case 'dimmer':        return [{ key: 'showTitle', label: 'Titel' }, { key: 'showValue', label: 'Prozentwert' }, { key: 'showSlider', label: 'Schieberegler' }, { key: 'showToggle', label: 'An/Aus-Schalter' }];
                   case 'thermostat':    return [{ key: 'showTitle', label: 'Titel' }, { key: 'showSetpoint', label: 'Solltemperatur' }, { key: 'showActualTemp', label: 'Isttemperatur' }, { key: 'showControls', label: 'Tasten ±' }];
-                  case 'shutter':       return [{ key: 'showTitle', label: 'Titel' }, { key: 'showValue', label: 'Position %' }, { key: 'showControls', label: 'Steuerknöpfe' }, { key: 'showSlider', label: 'Schieberegler' }];
+                  case 'shutter':       return [];
                   case 'gauge':         return [{ key: 'showTitle', label: 'Titel' }];
                   case 'clock':         return [{ key: 'showTitle', label: 'Titel' }];
                   case 'weather':       return [{ key: 'showTitle', label: 'Titel' }];
@@ -3243,8 +3247,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               );
             })()}
 
-            {/* Icon picker (not for stateimage/windowcontact – icons are per-state) */}
-            {config.type !== 'stateimage' && config.type !== 'windowcontact' && (() => {
+            {/* Icon picker (not for stateimage/windowcontact – icons are per-state; not for shutter – in Darstellung) */}
+            {config.type !== 'stateimage' && config.type !== 'windowcontact' && config.type !== 'shutter' && (() => {
               const currentIconName = config.options?.icon as string | undefined;
               const CurrentIcon = currentIconName
                 ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))
@@ -3277,7 +3281,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             })()}
 
             {/* Icon-Größe */}
-            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group'].includes(config.type) && (() => {
+            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group', 'shutter'].includes(config.type) && (() => {
               const o = config.options ?? {};
               const iconSize = (o.iconSize as number) || 36;
               const displayIconSize = draftIconSize ?? iconSize;
@@ -3299,6 +3303,226 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               );
             })()}
           </div>
+
+          {/* ─── DARSTELLUNG (Rolladen) ──────────────────────────────────────── */}
+          {config.type === 'shutter' && (() => {
+            const o = config.options ?? {};
+            const setO = (patch: Record<string, unknown>) =>
+              onConfigChange({ ...config, options: { ...o, ...patch } });
+            const titleOn = o.showTitle !== false;
+            const iconOn  = o.showIcon !== false;
+            const currentIconName = o.icon as string | undefined;
+            const CurrentIcon = currentIconName
+              ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))
+              : null;
+            const displayIconSize = draftIconSize ?? ((o.iconSize as number) || 36);
+            return (
+              <details className="group" open>
+                <summary className="flex items-center justify-between cursor-pointer list-none select-none">
+                  <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Darstellung</span>
+                  <ChevronDown size={13} className="transition-transform group-open:rotate-180" style={{ color: 'var(--text-secondary)' }} />
+                </summary>
+                <div className="mt-2.5 space-y-2.5">
+                  <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
+                    <input
+                      type="text"
+                      value={config.title}
+                      onChange={(e) => onConfigChange({ ...config, title: e.target.value })}
+                      className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                      style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                    />
+                  </div>
+                  <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>Titel</span>
+                    <div className="flex items-center gap-2">
+                      {titleOn && (
+                        <div className="flex gap-1">
+                          {(['left', 'center', 'right'] as const).map((p) => {
+                            const lbls: Record<string, string> = { left: t('wf.edit.posLeft'), center: t('wf.edit.posCenter'), right: t('wf.edit.posRight') };
+                            const active = ((o.titleAlign as string) ?? 'left') === p;
+                            return (
+                              <button key={p} onClick={() => setO({ titleAlign: p })}
+                                className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
+                                {lbls[p]}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                      <button onClick={() => setO({ showTitle: !titleOn })}
+                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                        style={{ background: titleOn ? 'var(--accent)' : 'var(--app-border)' }}>
+                        <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                          style={{ left: titleOn ? '14px' : '2px' }} />
+                      </button>
+                    </div>
+                  </div>
+                  {([{ key: 'showValue', label: 'Position %' }, { key: 'showControls', label: 'Steuerknöpfe' }, { key: 'showSlider', label: 'Schieberegler' }] as { key: string; label: string }[]).map(({ key, label }) => {
+                    const val = o[key] !== false;
+                    return (
+                      <div key={key} className="flex items-center justify-between">
+                        <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>{label}</span>
+                        <button onClick={() => setO({ [key]: !val })}
+                          className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                          style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}>
+                          <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                            style={{ left: val ? '14px' : '2px' }} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                  <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>Icon</span>
+                    <button onClick={() => setO({ showIcon: !iconOn })}
+                      className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                      style={{ background: iconOn ? 'var(--accent)' : 'var(--app-border)' }}>
+                      <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                        style={{ left: iconOn ? '14px' : '2px' }} />
+                    </button>
+                  </div>
+                  {iconOn && (
+                    <>
+                      <button onClick={() => setIconPickerOpen(true)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+                        style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}>
+                        {CurrentIcon ? <CurrentIcon size={14} style={{ flexShrink: 0 }} /> : <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />}
+                        <span className="flex-1 truncate" style={{ color: currentIconName ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                          {currentIconName ?? 'Icon auswählen…'}
+                        </span>
+                        <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>›</span>
+                      </button>
+                      {iconPickerOpen && (
+                        <IconPickerModal
+                          current={currentIconName ?? ''}
+                          onSelect={(name) => onConfigChange({ ...config, options: { ...o, icon: name || undefined } })}
+                          onClose={() => setIconPickerOpen(false)}
+                        />
+                      )}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon-Größe</label>
+                          <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{displayIconSize} px</span>
+                        </div>
+                        <input type="range" min={12} max={128} step={4} value={displayIconSize}
+                          onChange={(e) => setDraftIconSize(Number(e.target.value))}
+                          onPointerUp={(e) => {
+                            onConfigChange({ ...config, options: { ...o, iconSize: Number((e.target as HTMLInputElement).value) } });
+                            setDraftIconSize(null);
+                          }}
+                          className="w-full h-1"
+                          style={{ accentColor: 'var(--accent)' }} />
+                      </div>
+                    </>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>Transparenz-Modus</label>
+                      <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Hintergrund, Rahmen und Schatten entfernen</p>
+                    </div>
+                    <button
+                      onClick={() => onConfigChange({ ...config, options: { ...o, transparent: !o.transparent } })}
+                      className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                      style={{ background: o.transparent ? 'var(--accent)' : 'var(--app-border)' }}>
+                      <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                        style={{ left: o.transparent ? '18px' : '2px' }} />
+                    </button>
+                  </div>
+                  <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.showLastChange')}</label>
+                    <button onClick={() => setO({ showLastChange: !showLastChange })}
+                      className="relative w-9 h-5 rounded-full transition-colors"
+                      style={{ background: showLastChange ? 'var(--accent)' : 'var(--app-border)' }}>
+                      <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                        style={{ left: showLastChange ? '18px' : '2px' }} />
+                    </button>
+                  </div>
+                  {showLastChange && (
+                    <div className="flex items-center gap-2">
+                      <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.position')}</label>
+                      <div className="flex gap-1">
+                        {(['left', 'center', 'right'] as const).map((p) => {
+                          const lbls: Record<string, string> = { left: t('wf.edit.posLeft'), center: t('wf.edit.posCenter'), right: t('wf.edit.posRight') };
+                          const active = lastChangePos === p;
+                          return (
+                            <button key={p} onClick={() => setO({ lastChangePosition: p })}
+                              className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                              style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
+                              {lbls[p]}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {showLastChange && !config.datapoint && (
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        Datenpunkt <span style={{ opacity: 0.6 }}>(für Zeitstempel, da kein Haupt-Datenpunkt)</span>
+                      </label>
+                      <input type="text"
+                        value={(o.lastChangeDatapoint as string) ?? ''}
+                        onChange={(e) => onConfigChange({ ...config, options: { ...o, lastChangeDatapoint: e.target.value || undefined } })}
+                        placeholder="z.B. evcc.0.status.pvPower"
+                        className="w-full text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none"
+                        style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </details>
+            );
+          })()}
+
+          {/* ─── ERWEITERT (Rolladen) ────────────────────────────────────────── */}
+          {config.type === 'shutter' && (
+            <details className="group">
+              <summary className="flex items-center justify-between cursor-pointer list-none select-none">
+                <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Erweitert</span>
+                <div className="flex items-center gap-2">
+                  {overrides && Object.keys(overrides).length > 0 && (
+                    <button
+                      onClick={(e) => { e.preventDefault(); const { styleOverride: _, ...rest } = config.options ?? {}; onConfigChange({ ...config, options: rest }); }}
+                      className="text-[10px] hover:opacity-70"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
+                      {t('wf.edit.styleReset')}
+                    </button>
+                  )}
+                  <ChevronDown size={13} className="transition-transform group-open:rotate-180" style={{ color: 'var(--text-secondary)' }} />
+                </div>
+              </summary>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-2.5">
+                {STYLE_FIELDS.map(({ key, labelKey, type }) => (
+                  <div key={key}>
+                    <label className="text-[10px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>{t(labelKey as Parameters<typeof t>[0])}</label>
+                    {type === 'color' ? (
+                      <div className="flex gap-1">
+                        <input type="color" value={overrides?.[key] ?? '#3b82f6'}
+                          onChange={(e) => onConfigChange({ ...config, options: { ...config.options, styleOverride: { ...overrides, [key]: e.target.value } } })}
+                          className="w-6 h-[26px] rounded cursor-pointer border-0 p-0 shrink-0" />
+                        <input type="text" value={overrides?.[key] ?? ''}
+                          onChange={(e) => { const val = e.target.value; const next = { ...overrides, [key]: val }; if (!val) delete next[key]; onConfigChange({ ...config, options: { ...config.options, styleOverride: Object.keys(next).length ? next : undefined } }); }}
+                          placeholder="auto"
+                          className="flex-1 text-[10px] rounded px-1.5 py-1 min-w-0 focus:outline-none font-mono"
+                          style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
+                      </div>
+                    ) : (
+                      <input type="text" value={overrides?.[key] ?? ''}
+                        onChange={(e) => { const val = e.target.value; const next = { ...overrides, [key]: val }; if (!val) delete next[key]; onConfigChange({ ...config, options: { ...config.options, styleOverride: Object.keys(next).length ? next : undefined } }); }}
+                        placeholder="auto"
+                        className="w-full text-[10px] rounded px-1.5 py-1 focus:outline-none font-mono"
+                        style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
 
           {/* ─── 4. Widget-spezifische Einstellungen ───────────────────────── */}
           <div
