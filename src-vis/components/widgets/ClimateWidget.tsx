@@ -52,7 +52,8 @@ export function ClimateWidget({ config }: WidgetProps) {
   const unit            = (o.unit as string | undefined) ?? '°C';
   const humidityUnit    = (o.humidityUnit as string | undefined) ?? '%';
   const lineColor       = (o.lineColor as string | undefined) ?? 'var(--accent)';
-  const iconSize        = (o.iconSize as number) || 16;
+  const showIcon        = o.showIcon  !== false;
+  const iconSize        = (o.iconSize as number) || 36;
   const titleAlign      = (o.titleAlign as string) ?? 'left';
   const historyInstance = (o.historyInstance as string | undefined);
   const cfgRange        = (o.historyRange as ChartTimeRange | undefined) ?? '24h';
@@ -152,10 +153,10 @@ export function ClimateWidget({ config }: WidgetProps) {
     <div ref={containerRef} className="flex flex-col h-full gap-1">
 
       {/* Title */}
-      {showTitle && (
-        <div className="flex items-center gap-1 min-w-0" style={{ justifyContent: titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'flex-end' : 'flex-start' }}>
-          <TempIcon size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0 }} />
-          <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>
+      {(showTitle || showIcon) && (
+        <div className="flex items-center gap-1 min-w-0 flex-1" style={{ justifyContent: titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'flex-end' : 'flex-start' }}>
+          {showIcon && <TempIcon size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
 
