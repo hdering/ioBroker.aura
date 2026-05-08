@@ -4407,18 +4407,66 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 const o = config.options ?? {};
                 const setO = (patch: Record<string, unknown>) =>
                   onConfigChange({ ...config, options: { ...o, ...patch } });
+                type QB = { label: string; value: number };
+                const quickButtons = (o.quickButtons as QB[] | undefined) ?? [];
+                const setQB = (next: QB[]) => setO({ quickButtons: next.length ? next : undefined });
                 return (
-                  <div className="flex items-center justify-between">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Erst bei Loslassen senden</label>
-                    <button
-                      onClick={() => setO({ sendOnRelease: !(o.sendOnRelease !== false) })}
-                      className="relative w-9 h-5 rounded-full transition-colors"
-                      style={{ background: o.sendOnRelease !== false ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                      <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                        style={{ left: o.sendOnRelease !== false ? '18px' : '2px' }} />
-                    </button>
-                  </div>
+                  <>
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Erst bei Loslassen senden</label>
+                      <button
+                        onClick={() => setO({ sendOnRelease: !(o.sendOnRelease !== false) })}
+                        className="relative w-9 h-5 rounded-full transition-colors"
+                        style={{ background: o.sendOnRelease !== false ? 'var(--accent)' : 'var(--app-border)' }}
+                      >
+                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                          style={{ left: o.sendOnRelease !== false ? '18px' : '2px' }} />
+                      </button>
+                    </div>
+                    <div style={{ borderTop: '1px solid var(--app-border)', marginTop: 4, paddingTop: 8 }}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Schnellwahl-Buttons</label>
+                        <button
+                          onClick={() => setQB([...quickButtons, { label: 'Aus', value: 0 }])}
+                          className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
+                          style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}
+                        >
+                          + Hinzufügen
+                        </button>
+                      </div>
+                      <div className="space-y-1">
+                        {quickButtons.map((btn, i) => (
+                          <div key={i} className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => setQB(quickButtons.filter((_, j) => j !== i))}
+                              className="text-[11px] w-5 h-5 flex items-center justify-center rounded shrink-0"
+                              style={{ color: 'var(--text-secondary)', background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                            >×</button>
+                            <input
+                              type="text"
+                              value={btn.label}
+                              onChange={(e) => { const n = [...quickButtons]; n[i] = { ...n[i], label: e.target.value }; setQB(n); }}
+                              placeholder="Label"
+                              className="flex-1 text-xs rounded-lg px-2 py-1 focus:outline-none"
+                              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                            />
+                            <input
+                              type="number"
+                              value={btn.value}
+                              min={0} max={100}
+                              onChange={(e) => { const n = [...quickButtons]; n[i] = { ...n[i], value: Number(e.target.value) }; setQB(n); }}
+                              className="w-14 text-xs rounded-lg px-2 py-1 focus:outline-none"
+                              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                            />
+                            <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>%</span>
+                          </div>
+                        ))}
+                      </div>
+                      {quickButtons.length === 0 && (
+                        <p className="text-[10px] italic" style={{ color: 'var(--text-secondary)', opacity: 0.45 }}>Keine Schnellwahl-Buttons konfiguriert</p>
+                      )}
+                    </div>
+                  </>
                 );
               })()}
 

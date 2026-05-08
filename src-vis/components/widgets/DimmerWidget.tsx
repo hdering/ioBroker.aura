@@ -8,6 +8,8 @@ import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 
+type QuickButton = { label: string; value: number };
+
 export function DimmerWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
   const { setState } = useIoBroker();
@@ -21,6 +23,7 @@ export function DimmerWidget({ config }: WidgetProps) {
   const showSlider     = o.showSlider     !== false;
   const sendOnRelease  = o.sendOnRelease  !== false;
   const iconSize       = (o.iconSize as number) || 36;
+  const quickButtons   = (o.quickButtons  as QuickButton[] | undefined) ?? [];
 
   const [dragValue, setDragValue] = useState<number | null>(null);
   const displayLevel = dragValue ?? level;
@@ -44,6 +47,25 @@ export function DimmerWidget({ config }: WidgetProps) {
     return thresholds[thresholds.length - 1][1];
   }, [thresholds, displayLevel]);
   const valueColor = thresholdColor ?? 'var(--text-primary)';
+
+  const quickBtns = quickButtons.length > 0 && (
+    <div className="flex gap-1 flex-wrap">
+      {quickButtons.map((btn, i) => (
+        <button
+          key={i}
+          onClick={() => setState(config.datapoint, btn.value)}
+          className="nodrag px-2 py-0.5 text-xs rounded-full hover:opacity-80 transition-colors"
+          style={{
+            background: displayLevel === btn.value ? 'var(--accent-yellow)' : 'var(--app-surface)',
+            color: displayLevel === btn.value ? '#000' : 'var(--text-secondary)',
+            border: '1px solid var(--app-border)',
+          }}
+        >
+          {btn.label}
+        </button>
+      ))}
+    </div>
+  );
 
   const slider = (
     <input type="range" min={0} max={100} value={displayLevel}
@@ -95,6 +117,7 @@ export function DimmerWidget({ config }: WidgetProps) {
           {showValue && <span className="text-2xl font-bold" style={{ color: valueColor }}>{level}%</span>}
         </div>
         {showSlider && slider}
+        {quickBtns}
         <StatusBadges config={config} />
       </div>
     );
@@ -117,6 +140,7 @@ export function DimmerWidget({ config }: WidgetProps) {
             style={{ '--slider-thumb-color': 'var(--accent-yellow)' } as CSSProperties}
             className="nodrag ml-6 h-1.5 rounded-full appearance-none cursor-pointer" />
         )}
+        {quickBtns}
         <StatusBadges config={config} />
       </div>
     );
@@ -128,6 +152,7 @@ export function DimmerWidget({ config }: WidgetProps) {
       <div className="flex flex-col items-center justify-center h-full gap-3" style={{ position: 'relative' }}>
         {showValue && <span className="text-3xl font-black" style={{ color: thresholdColor ?? (level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)') }}>{level}%</span>}
         {showSlider && slider}
+        {quickBtns}
         <StatusBadges config={config} />
       </div>
     );
@@ -151,6 +176,7 @@ export function DimmerWidget({ config }: WidgetProps) {
           </div>
         )}
         {showSlider && slider}
+        {quickBtns}
       </div>
       <StatusBadges config={config} />
     </div>
