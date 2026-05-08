@@ -2861,7 +2861,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           onClose={() => openPanelFor(null)}
         >
           {/* ─── 1. Name / Titel ──────────────────────────────────────────── */}
-          {!['shutter', 'switch', 'dimmer'].includes(config.type) && (<>
+          {!['shutter', 'switch', 'dimmer', 'slider'].includes(config.type) && (<>
           <div className="space-y-2.5">
             <div>
               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
@@ -2972,7 +2972,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           <div className="h-px" style={{ background: 'var(--app-border)' }} />
           </>)}
 
-          {!['shutter', 'switch', 'dimmer'].includes(config.type) && (<>
+          {!['shutter', 'switch', 'dimmer', 'slider'].includes(config.type) && (<>
           {/* ─── 2. Stil (eingeklappt) ─────────────────────────────────────── */}
           <details className="group">
             <summary className="flex items-center justify-between cursor-pointer list-none select-none">
@@ -3022,7 +3022,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
           {/* ─── 3. Widget-Typ · Layout · Icon ─────────────────────────────── */}
           <div className="space-y-2.5">
-            {['shutter', 'switch', 'dimmer'].includes(config.type) && (
+            {['shutter', 'switch', 'dimmer', 'slider'].includes(config.type) && (
               <div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
                 <input
@@ -3163,11 +3163,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   ];
                   case 'chips':  return [{ key: 'showTitle', label: 'Titel' }];
                   case 'button': return [{ key: 'showTitle', label: 'Titel' }, { key: 'showIcon', label: 'Icon' }];
-                  case 'slider': return [
-                    { key: 'showValue',  label: 'Wert' },
-                    { key: 'showUnit',   label: 'Einheit' },
-                    { key: 'showMinMax', label: 'Min/Max-Beschriftung' },
-                  ];
+                  case 'slider': return [];
                   default: return [];
                 }
               })();
@@ -3259,8 +3255,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               );
             })()}
 
-            {/* Icon picker (not for stateimage/windowcontact – icons are per-state; not for shutter/switch/dimmer – in Darstellung) */}
-            {config.type !== 'stateimage' && config.type !== 'windowcontact' && !['shutter', 'switch', 'dimmer'].includes(config.type) && (() => {
+            {/* Icon picker (not for stateimage/windowcontact – icons are per-state; not for shutter/switch/dimmer/slider – in Darstellung) */}
+            {config.type !== 'stateimage' && config.type !== 'windowcontact' && !['shutter', 'switch', 'dimmer', 'slider'].includes(config.type) && (() => {
               const currentIconName = config.options?.icon as string | undefined;
               const CurrentIcon = currentIconName
                 ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))
@@ -3293,7 +3289,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             })()}
 
             {/* Icon-Größe */}
-            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group', 'shutter', 'switch', 'dimmer'].includes(config.type) && (() => {
+            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group', 'shutter', 'switch', 'dimmer', 'slider'].includes(config.type) && (() => {
               const o = config.options ?? {};
               const iconSize = (o.iconSize as number) || 36;
               const displayIconSize = draftIconSize ?? iconSize;
@@ -3317,7 +3313,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           </div>
 
           {/* ─── DARSTELLUNG ─────────────────────────────────────────────────── */}
-          {['shutter', 'switch', 'dimmer'].includes(config.type) && (() => {
+          {['shutter', 'switch', 'dimmer', 'slider'].includes(config.type) && (() => {
             const o = config.options ?? {};
             const setO = (patch: Record<string, unknown>) =>
               onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -3367,6 +3363,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     ? [{ key: 'showLabel', label: 'Status (AN/AUS)' }]
                     : config.type === 'dimmer'
                     ? [{ key: 'showValue', label: 'Prozentwert' }, { key: 'showSlider', label: 'Schieberegler' }, { key: 'showToggle', label: 'An/Aus-Schalter' }]
+                    : config.type === 'slider'
+                    ? [{ key: 'showValue', label: 'Wert' }, { key: 'showUnit', label: 'Einheit' }, { key: 'showMinMax', label: 'Min/Max-Beschriftung' }]
                     : [] as { key: string; label: string }[]
                   ).map(({ key, label }) => {
                     const val = o[key] !== false;
@@ -3487,7 +3485,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           })()}
 
           {/* ─── ERWEITERT ───────────────────────────────────────────────────── */}
-          {['shutter', 'switch', 'dimmer'].includes(config.type) && (
+          {['shutter', 'switch', 'dimmer', 'slider'].includes(config.type) && (
             <details className="group">
               <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                 <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Erweitert</span>

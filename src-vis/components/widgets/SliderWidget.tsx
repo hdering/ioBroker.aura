@@ -40,11 +40,14 @@ export function SliderWidget({ config }: WidgetProps) {
   const sliderColor     = (o.color as string) || 'var(--accent)';
   const commitOnRelease = !!o.commitOnRelease;
   const unit            = (o.unit as string) ?? '';
+  const showTitle       = o.showTitle  !== false;
   const showValue       = o.showValue  !== false;
   const showUnit        = o.showUnit   !== false;
   const showMinMax      = !!o.showMinMax;
+  const showIcon        = o.showIcon   !== false;
   const actions         = (o.actions as SliderAction[] | undefined) ?? [];
   const titleAlign      = (o.titleAlign as string) ?? 'left';
+  const WidgetIcon      = getWidgetIcon(o.icon as string | undefined, SlidersHorizontal);
   const barStyle        = !!o.barStyle;
   const barSize         = (o.barSize as number) ?? 100;
 
@@ -236,12 +239,15 @@ export function SliderWidget({ config }: WidgetProps) {
 
   return (
     <div className="flex flex-col h-full gap-2" style={{ position: 'relative' }}>
-      <div className="flex items-baseline justify-between">
-        <p className="text-sm font-medium truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>
-        {showValue && (
-          <p className="text-base font-semibold shrink-0 ml-2" style={{ color: 'var(--text-primary)' }}>{valueStr}</p>
-        )}
-      </div>
+      {(showTitle || showIcon || showValue) && (
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            {showIcon && <WidgetIcon size={18} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-sm font-medium truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
+          {showValue && <p className="text-base font-semibold shrink-0" style={{ color: 'var(--text-primary)' }}>{valueStr}</p>}
+        </div>
+      )}
       <div className="flex-1 flex items-center gap-2 min-h-0">
         {showMinMax && <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>{min}</span>}
         {barStyle
