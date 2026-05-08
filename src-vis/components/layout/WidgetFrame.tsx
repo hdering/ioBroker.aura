@@ -9,6 +9,7 @@ import { exportWidget } from '../../utils/widgetExportImport';
 import { copyToClipboard } from '../../utils/clipboard';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useStoreWithEqualityFn } from 'zustand/traditional';
 import { cloneGroupDef, useGroupDefsStore } from '../../store/groupDefsStore';
@@ -2202,6 +2203,7 @@ function ChipsEditPanel({
 
 export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDuplicate }: WidgetFrameProps) {
   const t = useT();
+  const { defaultDecimals } = useGlobalSettingsStore();
   const [openPanel, setOpenPanel] = useState<'menu' | 'edit' | 'conditions' | 'action' | 'group-mobile-order' | null>(null);
   const [popupOpen, setPopupOpen] = useState(false);
   const [idCopied, setIdCopied] = useState(false);
@@ -3544,7 +3546,20 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       </div>
                       <div className="flex-1">
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Dezimalstellen</label>
-                        <input type="number" min={0} max={4} value={(o.decimals as number) ?? 1} onChange={(e) => set({ decimals: Number(e.target.value) })} className={gCls} style={gSty} />
+                        <div className="flex gap-1">
+                          <input type="number" min={0} max={4}
+                            disabled={o.decimals === undefined}
+                            value={(o.decimals as number) ?? defaultDecimals}
+                            onChange={(e) => set({ decimals: Number(e.target.value) })}
+                            className={gCls} style={{ ...gSty, opacity: o.decimals === undefined ? 0.5 : 1 }} />
+                          <button
+                            onClick={() => set({ decimals: o.decimals === undefined ? defaultDecimals : undefined })}
+                            title={o.decimals === undefined ? 'Globale Einstellung aktiv – klicken für eigenen Wert' : 'Auf globale Einstellung zurücksetzen'}
+                            className="px-1.5 rounded text-[10px] font-bold shrink-0"
+                            style={{ background: o.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: o.decimals === undefined ? '#fff' : 'var(--text-secondary)' }}>
+                            G
+                          </button>
+                        </div>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -4246,7 +4261,20 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       </div>
                       <div className="flex-1">
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Dezimalstellen</label>
-                        <input type="number" min={0} max={4} value={(o.decimals as number) ?? 0} onChange={(e) => set({ decimals: Number(e.target.value) })} className={fCls} style={fSty} />
+                        <div className="flex gap-1">
+                          <input type="number" min={0} max={4}
+                            disabled={o.decimals === undefined}
+                            value={(o.decimals as number) ?? defaultDecimals}
+                            onChange={(e) => set({ decimals: Number(e.target.value) })}
+                            className={fCls} style={{ ...fSty, opacity: o.decimals === undefined ? 0.5 : 1 }} />
+                          <button
+                            onClick={() => set({ decimals: o.decimals === undefined ? defaultDecimals : undefined })}
+                            title={o.decimals === undefined ? 'Globale Einstellung aktiv – klicken für eigenen Wert' : 'Auf globale Einstellung zurücksetzen'}
+                            className="px-1.5 rounded text-[10px] font-bold shrink-0"
+                            style={{ background: o.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: o.decimals === undefined ? '#fff' : 'var(--text-secondary)' }}>
+                            G
+                          </button>
+                        </div>
                       </div>
                     </div>
 

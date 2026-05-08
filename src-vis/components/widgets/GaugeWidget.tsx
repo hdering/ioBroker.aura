@@ -2,6 +2,8 @@ import { Gauge } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { formatNum } from '../../utils/formatValue';
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg * Math.PI) / 180;
@@ -59,29 +61,19 @@ function GaugeSVG({
     primaryColor = match ? match.color : zones[zones.length - 1].color;
   }
 
-  const displayVal = isNaN(primary.value)
-    ? '–'
-    : decimals === 0
-      ? String(Math.round(primary.value))
-      : primary.value.toFixed(decimals);
+  const displayVal = isNaN(primary.value) ? '–' : formatNum(primary.value, decimals);
 
   // Needle lengths: primary longest, secondary progressively shorter
   const needleLengths = [r - 8, r - 16, r - 24];
 
   return (
     <svg viewBox="0 0 200 120" style={{ width: 200 * scale, height: 120 * scale, display: 'block' }}>
-      {/* Background track */}
-      <path d={describeArc(cx, cy, r, -180, 0)} fill="none"
-        stroke="var(--app-border)" strokeWidth={strokeWidth} strokeLinecap="round" />
-
-      {/* Color zone arcs or single fill arc */}
       {colorZones && zones.length > 0 ? (
+        /* Zone arcs – cover the full track, no background track underneath */
         <>
           {zones.map((zone, i) => {
-            const prevMax   = i === 0 ? min : zones[i - 1].max;
-            // The last zone always extends to max so the arc covers the full gauge
-            // regardless of what zone.max was set to in the editor.
-            const zoneMax   = i === zones.length - 1 ? max : zone.max;
+            const prevMax    = i === 0 ? min : zones[i - 1].max;
+            const zoneMax    = i === zones.length - 1 ? max : zone.max;
             const startAngle = valueToAngle(prevMax, min, max);
             const endAngle   = valueToAngle(zoneMax, min, max);
             if (endAngle <= startAngle) return null;
@@ -89,17 +81,30 @@ function GaugeSVG({
               <path key={i}
                 d={describeArc(cx, cy, r, startAngle, endAngle)}
                 fill="none" stroke={zone.color}
-                strokeWidth={strokeWidth} strokeLinecap="round" />
+                strokeWidth={strokeWidth} strokeLinecap="butt" />
             );
           })}
-          {/* Primary value overlay */}
-          <path d={describeArc(cx, cy, r, -180, valueToAngle(primary.value, min, max))}
-            fill="none" stroke={primaryColor} strokeWidth={strokeWidth + 2}
-            strokeLinecap="round" opacity="0.4" />
+          {/* Rounded caps at the outer gauge endpoints (first/last zone color) */}
+          {(() => {
+            const p0 = polarToCartesian(cx, cy, r, -180);
+            const p1 = polarToCartesian(cx, cy, r, 0);
+            const cr = strokeWidth / 2;
+            return (
+              <>
+                <circle cx={p0.x} cy={p0.y} r={cr} fill={zones[0].color} />
+                <circle cx={p1.x} cy={p1.y} r={cr} fill={zones[zones.length - 1].color} />
+              </>
+            );
+          })()}
         </>
       ) : (
-        <path d={describeArc(cx, cy, r, -180, valueToAngle(primary.value, min, max))}
-          fill="none" stroke={primaryColor} strokeWidth={strokeWidth} strokeLinecap="round" />
+        /* Background track + value fill when no color zones */
+        <>
+          <path d={describeArc(cx, cy, r, -180, 0)} fill="none"
+            stroke="var(--app-border)" strokeWidth={strokeWidth} strokeLinecap="round" />
+          <path d={describeArc(cx, cy, r, -180, valueToAngle(primary.value, min, max))}
+            fill="none" stroke={primaryColor} strokeWidth={strokeWidth} strokeLinecap="round" />
+        </>
       )}
 
       {/* Needles (render from last to first so primary is on top) */}
@@ -160,8 +165,9 @@ export function GaugeWidget({ config }: WidgetProps) {
   const resolvedMax = maxDp && maxDpVal !== undefined && maxDpVal !== null
     ? parseFloat(String(maxDpVal)) : staticMax;
 
+  const { defaultDecimals } = useGlobalSettingsStore();
   const unit        = (opts.unit        as string)  ?? '';
-  const decimals    = (opts.decimals    as number)  ?? 1;
+  const decimals    = (opts.decimals    as number)  ?? defaultDecimals;
   const strokeWidth = (opts.strokeWidth as number)  ?? 12;
   const colorZones  = (opts.colorZones  as boolean) ?? false;
   const showMinMax  = (opts.showMinMax  as boolean) ?? true;
@@ -215,9 +221,7 @@ export function GaugeWidget({ config }: WidgetProps) {
 
   // Secondary pointer badges
   const secondaryBadges = pointers.slice(1).map((ptr, i) => {
-    const dispVal = isNaN(ptr.value)
-      ? '–'
-      : decimals === 0 ? String(Math.round(ptr.value)) : ptr.value.toFixed(decimals);
+    const dispVal = isNaN(ptr.value) ? '–' : formatNum(ptr.value, decimals);
     return (
       <span key={i}
         className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded"

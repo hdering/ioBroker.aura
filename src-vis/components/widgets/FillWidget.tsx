@@ -3,6 +3,8 @@ import { Droplets } from 'lucide-react'; // used in no-datapoint placeholder
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 import { CustomGridView } from './CustomGridView';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { formatNum } from '../../utils/formatValue';
 
 export interface ColorZone { max: number; color: string; }
 
@@ -35,9 +37,7 @@ function TankVertical({
   const clipId  = `fv-${uid}`;
   const labelY  = Math.max(fillY + 4, by + 12); // clamp so label stays inside viewBox
 
-  const displayVal = isNaN(value) ? '–'
-    : decimals === 0 ? String(Math.round(value))
-    : value.toFixed(decimals);
+  const displayVal = isNaN(value) ? '–' : formatNum(value, decimals);
 
   const TICKS = [0, 0.25, 0.5, 0.75, 1.0];
 
@@ -137,9 +137,7 @@ function TankHorizontal({
   const fillW  = Math.max(0, (pct / 100) * bw);
   const clipId = `fh-${uid}`;
 
-  const displayVal = isNaN(value) ? '–'
-    : decimals === 0 ? String(Math.round(value))
-    : value.toFixed(decimals);
+  const displayVal = isNaN(value) ? '–' : formatNum(value, decimals);
 
   const TICKS = [0, 0.25, 0.5, 0.75, 1.0];
 
@@ -241,9 +239,7 @@ function SegmentsViz({
   const gap  = 3;
   const lit  = Math.round((pct / 100) * SEGS);
 
-  const displayVal = isNaN(value) ? '–'
-    : decimals === 0 ? String(Math.round(value))
-    : value.toFixed(decimals);
+  const displayVal = isNaN(value) ? '–' : formatNum(value, decimals);
 
   const zoneColor = (frac: number) => {
     if (colorZones && zones.length > 0) {
@@ -321,9 +317,7 @@ function WaveViz({
   const waveColor = fillColor;
   const textOnFill = pct > 50;
 
-  const displayVal = isNaN(value) ? '–'
-    : decimals === 0 ? String(Math.round(value))
-    : value.toFixed(decimals);
+  const displayVal = isNaN(value) ? '–' : formatNum(value, decimals);
 
   // Two sine periods across 200 units so animation looks seamless
   const wavePath = `M0,${fillY} `
@@ -375,9 +369,7 @@ function WaveViz({
 function BatteryViz({
   pct, value, unit, decimals, fillColor, showValue, uid, orientation,
 }: Pick<TankProps, 'pct' | 'value' | 'unit' | 'decimals' | 'fillColor' | 'showValue' | 'uid'> & { orientation: Orientation }) {
-  const displayVal = isNaN(value) ? '–'
-    : decimals === 0 ? String(Math.round(value))
-    : value.toFixed(decimals);
+  const displayVal = isNaN(value) ? '–' : formatNum(value, decimals);
 
   if (orientation === 'vertical') {
     const bx = 12, by = 22, bw = 66, bh = 218, br = 9;
@@ -465,12 +457,13 @@ export function FillWidget({ config }: WidgetProps) {
   const uid  = useId().replace(/[^a-zA-Z0-9]/g, '');
 
   const { value } = useDatapoint(config.datapoint);
+  const { defaultDecimals } = useGlobalSettingsStore();
 
   const orientation = (opts.orientation as Orientation) ?? 'vertical';
   const min         = (opts.minValue   as number)      ?? 0;
   const max         = (opts.maxValue   as number)      ?? 100;
   const unit        = (opts.unit       as string)      ?? '%';
-  const decimals    = (opts.decimals   as number)      ?? 0;
+  const decimals    = (opts.decimals   as number)      ?? defaultDecimals;
   const colorZones  = (opts.colorZones as boolean)     ?? false;
   const showTicks   = (opts.showTicks  as boolean)     ?? true;
   const showValue   = (opts.showValue  as boolean)     ?? true;
@@ -510,7 +503,7 @@ export function FillWidget({ config }: WidgetProps) {
   const showTitle  = opts.showTitle  !== false;
   const titleAlign = (opts.titleAlign as string) ?? 'left';
 
-  if (layout === 'custom') return <CustomGridView config={config} value={value !== null ? (decimals === 0 ? String(Math.round(safeVal)) : safeVal.toFixed(decimals)) : '–'} unit={unit} />;
+  if (layout === 'custom') return <CustomGridView config={config} value={value !== null ? formatNum(safeVal, decimals) : '–'} unit={unit} />;
 
   if (layout === 'battery') {
     return (

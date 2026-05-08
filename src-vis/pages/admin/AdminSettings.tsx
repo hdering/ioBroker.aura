@@ -457,6 +457,41 @@ function ExpertSettings() {
 
 
 
+// ── Default Decimals ────────────────────────────────────────────────────────────
+
+function DefaultDecimalsCard() {
+  const { defaultDecimals, setDefaultDecimals } = useGlobalSettingsStore();
+  return (
+    <Card title="Dezimalstellen (global)">
+      <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>
+        Standardwert für alle Widgets. Einzelne Widgets können diesen Wert überschreiben.
+      </p>
+      <div className="flex items-center gap-3">
+        <input
+          type="number" min={0} max={6}
+          value={defaultDecimals}
+          onChange={(e) => setDefaultDecimals(Math.min(6, Math.max(0, Number(e.target.value))))}
+          className="w-20 rounded-lg px-3 py-2 text-sm focus:outline-none text-center"
+          style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+        />
+        <div className="flex gap-1.5">
+          {[0, 1, 2, 3].map((n) => (
+            <button key={n} onClick={() => setDefaultDecimals(n)}
+              className="w-8 h-8 rounded-lg text-sm font-medium hover:opacity-80"
+              style={{
+                background: defaultDecimals === n ? 'var(--accent)' : 'var(--app-bg)',
+                color: defaultDecimals === n ? '#fff' : 'var(--text-secondary)',
+                border: `1px solid ${defaultDecimals === n ? 'var(--accent)' : 'var(--app-border)'}`,
+              }}>
+              {n}
+            </button>
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 // ── DP Name Filter ─────────────────────────────────────────────────────────────
 
 function DpNameFilterCard() {
@@ -685,6 +720,7 @@ export function AdminSettings() {
         <ClientsCard />
         <ExpertSettings />
         <DpNameFilterCard />
+        <DefaultDecimalsCard />
       </div>
 
       {/* Row 3: Auto-Backup */}

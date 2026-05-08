@@ -7,11 +7,14 @@ export interface GlobalSettings {
   dpNameSuffixes: string;
   /** Replace dots with spaces in DP names */
   dpNameReplaceDots: boolean;
+  /** Default number of decimal places for numeric widget values (can be overridden per widget) */
+  defaultDecimals: number;
 }
 
 interface GlobalSettingsState extends GlobalSettings {
   setDpNameSuffixes: (v: string) => void;
   setDpNameReplaceDots: (v: boolean) => void;
+  setDefaultDecimals: (v: number) => void;
 }
 
 export const useGlobalSettingsStore = create<GlobalSettingsState>()(
@@ -19,8 +22,10 @@ export const useGlobalSettingsStore = create<GlobalSettingsState>()(
     (set) => ({
       dpNameSuffixes: '',
       dpNameReplaceDots: false,
+      defaultDecimals: 2,
       setDpNameSuffixes: (v) => set({ dpNameSuffixes: v }),
       setDpNameReplaceDots: (v) => set({ dpNameReplaceDots: v }),
+      setDefaultDecimals: (v) => set({ defaultDecimals: v }),
     }),
     { name: 'aura-global-settings', storage: createJSONStorage(() => managedStorage) },
   ),
