@@ -285,7 +285,7 @@ export function ShutterWidget({ config }: WidgetProps) {
     <div className="flex flex-col h-full gap-2" style={{ position: 'relative' }}>
       {showTitle && (
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
             {showIcon && CustomIcon && <CustomIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />}
             <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>
           </div>
