@@ -5,12 +5,14 @@ import { getObjectViewDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import { isRelevantDp } from '../../utils/dpRelevance';
-import { getRoleDisplay } from '../../utils/listEntryDisplay';
+import { getRoleDisplay, getThresholdColor } from '../../utils/listEntryDisplay';
 import { CustomGridView } from './CustomGridView';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT } from '../../i18n';
 import { formatLastChange } from '../../utils/formatLastChange';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { formatNum } from '../../utils/formatValue';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -35,6 +37,7 @@ export interface AutoListOptions {
   excludeIdPatterns?: string;
   excludeIds?: string[];
   syncIntervalMin?: number;
+  decimals?: number;
   showRoom?: boolean;
   showId?: boolean;
   filterRelevant?: boolean;
@@ -250,11 +253,13 @@ export async function discoverDatapoints(
 
 // ── Value display: row variant ────────────────────────────────────────────────
 
-function EntryValue({ entry, val, writable, setState }: {
+function EntryValue({ entry, val, writable, setState, thresholds, decimals }: {
   entry: AutoListEntry;
   val: ioBrokerState['val'];
   writable: boolean;
   setState: (id: string, v: boolean | number | string) => void;
+  thresholds?: [number, string][];
+  decimals: number;
 }) {
   const hasLabels = !!(entry.trueLabel || entry.falseLabel);
   const isBool = typeof val === 'boolean';
@@ -307,10 +312,13 @@ function EntryValue({ entry, val, writable, setState }: {
     );
   }
 
+  const thresholdColor = getThresholdColor(val, thresholds);
+
   if (typeof val === 'number' && isDimmerRole(entry.id)) {
     if (!writable) {
       return (
-        <span className="shrink-0 text-xs font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
+        <span className="shrink-0 text-xs font-medium tabular-nums"
+          style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
           {Math.round(val)}{entry.unit ?? '%'}
         </span>
       );
@@ -320,27 +328,32 @@ function EntryValue({ entry, val, writable, setState }: {
         <input type="range" min={0} max={100} value={val}
           onChange={e => setState(entry.id, Number(e.target.value))}
           className="w-20 h-1" style={{ accentColor: 'var(--accent)' }} />
-        <span className="text-[10px] w-8 text-right tabular-nums" style={{ color: 'var(--text-secondary)' }}>
+        <span className="text-[10px] w-8 text-right tabular-nums"
+          style={{ color: thresholdColor ?? 'var(--text-secondary)' }}>
           {Math.round(val)}{entry.unit ?? '%'}
         </span>
       </div>
     );
   }
 
+  const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
   return (
-    <span className="shrink-0 text-xs font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
-      {val != null ? `${String(val)}${entry.unit ? ' ' + entry.unit : ''}` : '–'}
+    <span className="shrink-0 text-xs font-medium tabular-nums"
+      style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
+      {val != null ? `${displayVal}${entry.unit ? ' ' + entry.unit : ''}` : '–'}
     </span>
   );
 }
 
 // ── Value display: card variant (larger) ──────────────────────────────────────
 
-function CardEntryValue({ entry, val, writable, setState }: {
+function CardEntryValue({ entry, val, writable, setState, thresholds, decimals }: {
   entry: AutoListEntry;
   val: ioBrokerState['val'];
   writable: boolean;
   setState: (id: string, v: boolean | number | string) => void;
+  thresholds?: [number, string][];
+  decimals: number;
 }) {
   const hasLabels = !!(entry.trueLabel || entry.falseLabel);
   const isBool = typeof val === 'boolean';
@@ -374,10 +387,13 @@ function CardEntryValue({ entry, val, writable, setState }: {
     );
   }
 
+  const thresholdColor = getThresholdColor(val, thresholds);
+
   if (typeof val === 'number' && isDimmerRole(entry.id)) {
     if (!writable) {
       return (
-        <span className="text-xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>
+        <span className="text-xl font-bold tabular-nums"
+          style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
           {Math.round(val)}
           <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>{entry.unit ?? '%'}</span>
         </span>
@@ -385,7 +401,8 @@ function CardEntryValue({ entry, val, writable, setState }: {
     }
     return (
       <div className="w-full flex flex-col items-center gap-1">
-        <span className="text-xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>
+        <span className="text-xl font-bold tabular-nums"
+          style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
           {Math.round(val)}
           <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>{entry.unit ?? '%'}</span>
         </span>
@@ -396,9 +413,11 @@ function CardEntryValue({ entry, val, writable, setState }: {
     );
   }
 
+  const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
   return (
-    <span className="text-2xl font-bold tabular-nums text-center leading-none" style={{ color: 'var(--text-primary)' }}>
-      {val != null ? String(val) : '–'}
+    <span className="text-2xl font-bold tabular-nums text-center leading-none"
+      style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
+      {val != null ? displayVal : '–'}
       {entry.unit && <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>{entry.unit}</span>}
     </span>
   );
@@ -413,6 +432,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
   );
   const entries = useMemo<AutoListEntry[]>(() => opts.entries ?? [], [opts.entries]);
   const t = useT();
+  const { defaultDecimals } = useGlobalSettingsStore();
+  const decimals = (opts.decimals as number) ?? defaultDecimals;
   const { subscribe, setState, getState } = useIoBroker();
   const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
   const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
@@ -538,6 +559,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     );
   })() : null;
 
+  const globalThresholds = (config.options as Record<string, unknown>)?.colorThresholds as [number, string][] | undefined;
   const iconName = (config.options as Record<string, unknown>)?.icon as string | undefined;
   const HeaderIcon = iconName ? getWidgetIcon(iconName, null!) : null;
 
@@ -646,7 +668,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                   style={{ background: 'var(--app-bg)', border: '1px solid var(--widget-border)' }}>
                   <span className="text-[10px] truncate leading-tight" style={{ color: 'var(--text-secondary)' }}>{label}</span>
                   <div className="flex items-center justify-center">
-                    <CardEntryValue entry={entry} val={state?.val ?? null} writable={entry.writable !== false} setState={setState} />
+                    <CardEntryValue entry={entry} val={state?.val ?? null} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} />
                   </div>
                   {opts.showRoom && entry.rooms?.length ? (
                     <span className="text-[9px] truncate opacity-50" style={{ color: 'var(--text-secondary)' }}>
@@ -684,7 +706,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     borderLeft: isRight ? '1px solid var(--widget-border)' : undefined,
                   }}>
                   <span className="flex-1 text-[11px] truncate min-w-0" style={{ color: 'var(--text-primary)' }}>{label}</span>
-                  <EntryValue entry={entry} val={state?.val ?? null} writable={entry.writable !== false} setState={setState} />
+                  <EntryValue entry={entry} val={state?.val ?? null} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} />
                 </div>
               );
             })}
@@ -775,7 +797,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     </div>
                   )}
                 </div>
-                <EntryValue entry={entry} val={state?.val ?? null} writable={entry.writable !== false} setState={setState} />
+                <EntryValue entry={entry} val={state?.val ?? null} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} />
               </div>
             );
           })}

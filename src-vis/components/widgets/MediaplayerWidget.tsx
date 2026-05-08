@@ -401,6 +401,66 @@ export function MediaplayerWidget({ config }: WidgetProps) {
     );
   }
 
+  // ── COMPACT ──────────────────────────────────────────────────────────────────
+  if (layout === 'compact') {
+    return (
+      <div className="flex flex-col h-full gap-1 justify-center">
+        <div className="flex items-center gap-2 min-w-0">
+          {/* Cover thumbnail */}
+          {showCover && (
+            <div className="shrink-0 rounded-md overflow-hidden" style={{ width: 36, height: 36 }}>
+              <CoverImage src={coverStr} Icon={WidgetIcon} iconSize={16} />
+            </div>
+          )}
+
+          {/* Title + Artist */}
+          <div className="flex flex-col flex-1 min-w-0 leading-tight">
+            {showTitle && (
+              <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                {titleStr || '–'}
+              </p>
+            )}
+            {showSubtitle && subtitle && (
+              <p className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
+                {subtitle}
+              </p>
+            )}
+          </div>
+
+          {/* Controls */}
+          <div className="shrink-0 flex items-center gap-0.5">
+            {showPrev  && <IconBtn icon={SkipBack}    onClick={() => trigger(o.prevDp)} />}
+            <PlayPauseBtn playing={isPlaying} onClick={handlePlayPause} />
+            {showNext  && <IconBtn icon={SkipForward} onClick={() => trigger(o.nextDp)} />}
+          </div>
+
+          {/* Volume */}
+          {(showMute || showVolume) && (
+            <div className="shrink-0 flex items-center gap-1">
+              {showMute && (
+                <IconBtn icon={isActuallyMuted ? VolumeX : Volume2} onClick={handleMute} />
+              )}
+              {showVolume && (
+                <VolumeSlider pct={volPct} step={volStep} onChange={writeVol} compact />
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Progress bar */}
+        {showProgress && (
+          <ProgressBar
+            pct={progressPct}
+            progressStr={mediaProgressStr != null ? String(mediaProgressStr) : undefined}
+            durationStr={mediaLengthStr   != null ? String(mediaLengthStr)   : undefined}
+          />
+        )}
+
+        <StatusBadges config={config} />
+      </div>
+    );
+  }
+
   // ── DEFAULT ──────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-full gap-2" style={{ position: 'relative' }}>

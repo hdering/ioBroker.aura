@@ -5,11 +5,13 @@ import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { resolveName } from './AutoListWidget';
-import { getRoleDisplay } from '../../utils/listEntryDisplay';
+import { getRoleDisplay, getThresholdColor } from '../../utils/listEntryDisplay';
 import { CustomGridView } from './CustomGridView';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT } from '../../i18n';
 import { formatLastChange } from '../../utils/formatLastChange';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { formatNum } from '../../utils/formatValue';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -17,11 +19,13 @@ export interface StaticListEntry {
   id: string;
   label?: string;
   unit?: string;
+  decimals?: number;
   role?: string;
   trueLabel?: string;
   falseLabel?: string;
   writable?: boolean; // false = read-only; undefined/true = writable
   icon?: string;
+  colorThresholds?: [number, string][]; // [[maxExclusive, color], …] ascending
 }
 
 export interface StaticListOptions {
@@ -70,11 +74,13 @@ const DEFAULT_filterLabels: Record<FilterMode, string> = {
 
 // ── Value cell ─────────────────────────────────────────────────────────────────
 
-function EntryValue({ entry, val, writable, setState }: {
+function EntryValue({ entry, val, writable, setState, globalThresholds, decimals }: {
   entry: StaticListEntry;
   val: ioBrokerState['val'];
   writable: boolean;
   setState: (id: string, v: boolean | number | string) => void;
+  globalThresholds?: [number, string][];
+  decimals: number;
 }) {
   const hasLabels = !!(entry.trueLabel || entry.falseLabel);
   const isBool    = typeof val === 'boolean';
@@ -127,10 +133,13 @@ function EntryValue({ entry, val, writable, setState }: {
     );
   }
 
+  const thresholdColor = getThresholdColor(val, entry.colorThresholds ?? globalThresholds);
+
   if (typeof val === 'number' && isDimmerRole(entry.id)) {
     if (!writable) {
       return (
-        <span className="shrink-0 text-xs font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
+        <span className="shrink-0 text-xs font-medium tabular-nums"
+          style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
           {Math.round(val)}{entry.unit ?? '%'}
         </span>
       );
@@ -140,7 +149,8 @@ function EntryValue({ entry, val, writable, setState }: {
         <input type="range" min={0} max={100} value={val}
           onChange={e => setState(entry.id, Number(e.target.value))}
           className="w-20 h-1" style={{ accentColor: 'var(--accent)' }} />
-        <span className="text-[10px] w-8 text-right tabular-nums" style={{ color: 'var(--text-secondary)' }}>
+        <span className="text-[10px] w-8 text-right tabular-nums"
+          style={{ color: thresholdColor ?? 'var(--text-secondary)' }}>
           {Math.round(val)}{entry.unit ?? '%'}
         </span>
       </div>
@@ -148,10 +158,11 @@ function EntryValue({ entry, val, writable, setState }: {
   }
 
   const active = isActive(val);
+  const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
   return (
     <span className="shrink-0 text-xs font-medium tabular-nums"
-      style={{ color: active ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-      {val != null ? `${String(val)}${entry.unit ? ' ' + entry.unit : ''}` : '–'}
+      style={{ color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)') }}>
+      {val != null ? `${displayVal}${entry.unit ? ' ' + entry.unit : ''}` : '–'}
     </span>
   );
 }
@@ -165,6 +176,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   );
   const entries = useMemo<StaticListEntry[]>(() => opts.entries ?? [], [opts.entries]);
   const t = useT();
+  const { defaultDecimals } = useGlobalSettingsStore();
   const { subscribe, setState, getState } = useIoBroker();
   const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
   const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
@@ -284,6 +296,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const layout = config.layout ?? 'default';
   if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
+  const globalThresholds = (config.options as Record<string, unknown>)?.colorThresholds as [number, string][] | undefined;
   const iconName = (config.options as Record<string, unknown>)?.icon as string | undefined;
   const HeaderIcon = iconName ? getWidgetIcon(iconName, null!) : null;
 
@@ -369,7 +382,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     {label}
                   </span>
                   <div className="flex items-center justify-center">
-                    <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} />
+                    <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} />
                   </div>
                 </div>
               );
@@ -404,7 +417,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                   }}>
                   {EntryIcon && <EntryIcon size={11} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
                   <span className="flex-1 text-[11px] truncate min-w-0" style={{ color: 'var(--text-primary)' }}>{label}</span>
-                  <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} />
+                  <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} />
                 </div>
               );
             })}
@@ -437,7 +450,8 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 : isBoolLike && hasLabels
                   ? (on ? (entry.trueLabel || 'AN') : (entry.falseLabel || 'AUS'))
                   : val != null ? `${String(val)}${entry.unit ? '\u202f' + entry.unit : ''}` : '–';
-              const pillColor = roleDisplay ? roleDisplay.color : (isBoolLike && on ? 'var(--accent)' : null);
+              const threshColor = !isBoolLike && !roleDisplay ? getThresholdColor(val, entry.colorThresholds ?? globalThresholds) : null;
+              const pillColor = threshColor ?? (roleDisplay ? roleDisplay.color : (isBoolLike && on ? 'var(--accent)' : null));
               const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
 
               return (
@@ -499,7 +513,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     </div>
                   )}
                 </div>
-                <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} />
+                <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} />
               </div>
             );
           })}

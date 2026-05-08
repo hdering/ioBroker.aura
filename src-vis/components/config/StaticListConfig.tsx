@@ -13,6 +13,7 @@ import { DatapointPicker } from './DatapointPicker';
 import { IconPickerModal } from './IconPickerModal';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 
 function toIconifyId(name: string): string {
   return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -30,11 +31,13 @@ function EntryRow({
   resolvedName,
   onUpdate,
   onRemove,
+  defaultDecimals,
 }: {
   entry: StaticListEntry;
   resolvedName?: string;
   onUpdate: (patch: Partial<StaticListEntry>) => void;
   onRemove: () => void;
+  defaultDecimals: number;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
@@ -86,6 +89,24 @@ function EntryRow({
                 onChange={e => onUpdate({ unit: e.target.value || undefined })} />
             </div>
           </div>
+          <div>
+            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Dezimalstellen</label>
+            <div className="flex gap-1">
+              <input type="number" min={0} max={4}
+                disabled={entry.decimals === undefined}
+                value={entry.decimals ?? defaultDecimals}
+                onChange={e => onUpdate({ decimals: Number(e.target.value) })}
+                className="flex-1 text-[10px] rounded px-2 py-1 focus:outline-none text-center"
+                style={{ ...iSty, opacity: entry.decimals === undefined ? 0.5 : 1 }} />
+              <button
+                onClick={() => onUpdate({ decimals: entry.decimals === undefined ? defaultDecimals : undefined })}
+                title={entry.decimals === undefined ? 'Globale Einstellung aktiv – klicken für eigenen Wert' : 'Auf globale Einstellung zurücksetzen'}
+                className="px-1.5 rounded text-[10px] font-bold shrink-0"
+                style={{ background: entry.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: entry.decimals === undefined ? '#fff' : 'var(--text-secondary)' }}>
+                G
+              </button>
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-1.5">
             <div>
               <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Text aktiv</label>
@@ -121,6 +142,67 @@ function EntryRow({
               )}
             </div>
           </div>
+
+          {/* Farbschwellen */}
+          <div style={{ borderTop: '1px solid var(--app-border)', paddingTop: 6, marginTop: 2 }}>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>Farbschwellen</label>
+              <button
+                onClick={() => onUpdate({ colorThresholds: [...(entry.colorThresholds ?? []), [100, '#22c55e']] })}
+                className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-80"
+                style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}>
+                + Hinzufügen
+              </button>
+            </div>
+            {(entry.colorThresholds?.length ?? 0) > 0 && (
+              <p className="text-[9px] mb-1" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                Wert &lt; Schwelle → Farbe · aufsteigend sortieren
+              </p>
+            )}
+            <div className="space-y-1">
+              {(entry.colorThresholds ?? []).map(([thresh, color], i) => (
+                <div key={i} className="flex items-center gap-1">
+                  <button
+                    onClick={() => {
+                      const next = (entry.colorThresholds ?? []).filter((_, j) => j !== i);
+                      onUpdate({ colorThresholds: next.length ? next : undefined });
+                    }}
+                    className="text-[11px] w-5 h-5 flex items-center justify-center rounded shrink-0"
+                    style={{ color: 'var(--text-secondary)', background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
+                    ×
+                  </button>
+                  <input
+                    type="color"
+                    value={color.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#22c55e'}
+                    onChange={e => {
+                      const n = [...(entry.colorThresholds ?? [])];
+                      n[i] = [thresh, e.target.value];
+                      onUpdate({ colorThresholds: n });
+                    }}
+                    className="w-7 h-6 rounded cursor-pointer shrink-0"
+                    style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+                  />
+                  <span className="text-[9px] shrink-0" style={{ color: 'var(--text-secondary)' }}>Wert &lt;</span>
+                  <input
+                    type="number"
+                    value={thresh}
+                    onChange={e => {
+                      const n = [...(entry.colorThresholds ?? [])];
+                      n[i] = [Number(e.target.value), color];
+                      onUpdate({ colorThresholds: n });
+                    }}
+                    className="flex-1 text-[10px] rounded px-1.5 py-0.5 focus:outline-none"
+                    style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                  />
+                </div>
+              ))}
+            </div>
+            {(entry.colorThresholds?.length ?? 0) === 0 && (
+              <p className="text-[9px] italic" style={{ color: 'var(--text-secondary)', opacity: 0.45 }}>
+                Keine Farbschwellen konfiguriert
+              </p>
+            )}
+          </div>
         </div>
       )}
       {iconPickerOpen && (
@@ -141,6 +223,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
   const entries = opts.entries ?? [];
   const [showPicker, setShowPicker] = useState(false);
   const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
+  const { defaultDecimals } = useGlobalSettingsStore();
 
   useEffect(() => {
     ensureDatapointCache().then(cache => {
@@ -199,6 +282,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                   resolvedName={resolvedNames[e.id]}
                   onUpdate={patch => updateEntry(e.id, patch)}
                   onRemove={() => removeEntry(e.id)}
+                  defaultDecimals={defaultDecimals}
                 />
               ))}
             </div>

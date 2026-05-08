@@ -74,3 +74,13 @@ export function getRoleDisplay(role: string | undefined, val: unknown): RoleDisp
 
   return null; // use default toggle / value display
 }
+
+export function getThresholdColor(val: unknown, thresholds?: [number, string][]): string | undefined {
+  if (!thresholds?.length) return undefined;
+  const num = typeof val === 'number' ? val : parseFloat(String(val));
+  if (isNaN(num)) return undefined;
+  for (const [thresh, color] of thresholds) {
+    if (num < thresh) return color;
+  }
+  return thresholds[thresholds.length - 1][1];
+}
