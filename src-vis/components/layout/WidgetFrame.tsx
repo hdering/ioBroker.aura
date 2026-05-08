@@ -3022,6 +3022,18 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
           {/* ─── 3. Widget-Typ · Layout · Icon ─────────────────────────────── */}
           <div className="space-y-2.5">
+            {config.type === 'shutter' && (
+              <div>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
+                <input
+                  type="text"
+                  value={config.title}
+                  onChange={(e) => onConfigChange({ ...config, title: e.target.value })}
+                  className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                />
+              </div>
+            )}
             <div>
               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.widgetType')}</label>
               <select
@@ -3317,23 +3329,12 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               : null;
             const displayIconSize = draftIconSize ?? ((o.iconSize as number) || 36);
             return (
-              <details className="group" open>
+              <details className="group">
                 <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                   <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Darstellung</span>
                   <ChevronDown size={13} className="transition-transform group-open:rotate-180" style={{ color: 'var(--text-secondary)' }} />
                 </summary>
                 <div className="mt-2.5 space-y-2.5">
-                  <div>
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
-                    <input
-                      type="text"
-                      value={config.title}
-                      onChange={(e) => onConfigChange({ ...config, title: e.target.value })}
-                      className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                      style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
-                    />
-                  </div>
-                  <div className="h-px" style={{ background: 'var(--app-border)' }} />
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>Titel</span>
                     <div className="flex items-center gap-2">
