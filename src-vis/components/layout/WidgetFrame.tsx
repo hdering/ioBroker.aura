@@ -2861,7 +2861,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           onClose={() => openPanelFor(null)}
         >
           {/* ─── 1. Name / Titel ──────────────────────────────────────────── */}
-          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value'].includes(config.type) && (<>
+          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge'].includes(config.type) && (<>
           <div className="space-y-2.5">
             <div>
               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
@@ -2972,7 +2972,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           <div className="h-px" style={{ background: 'var(--app-border)' }} />
           </>)}
 
-          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value'].includes(config.type) && (<>
+          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge'].includes(config.type) && (<>
           {/* ─── 2. Stil (eingeklappt) ─────────────────────────────────────── */}
           <details className="group">
             <summary className="flex items-center justify-between cursor-pointer list-none select-none">
@@ -3022,7 +3022,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
           {/* ─── 3. Widget-Typ · Layout · Icon ─────────────────────────────── */}
           <div className="space-y-2.5">
-            {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value'].includes(config.type) && (
+            {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge'].includes(config.type) && (
               <div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
                 <input
@@ -3122,7 +3122,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   case 'dimmer':        return [];
                   case 'thermostat':    return [];
                   case 'shutter':       return [];
-                  case 'gauge':         return [{ key: 'showTitle', label: 'Titel' }];
+                  case 'gauge':         return [];
                   case 'clock':         return [{ key: 'showTitle', label: 'Titel' }];
                   case 'weather':       return [{ key: 'showTitle', label: 'Titel' }];
                   case 'windowcontact': return [{ key: 'showTitle', label: 'Titel' }, { key: 'showLabel', label: 'Status-Text' }];
@@ -3256,7 +3256,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             })()}
 
             {/* Icon picker (not for stateimage/windowcontact – icons are per-state; not for shutter/switch/dimmer/slider – in Darstellung) */}
-            {config.type !== 'stateimage' && config.type !== 'windowcontact' && !['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value'].includes(config.type) && (() => {
+            {config.type !== 'stateimage' && config.type !== 'windowcontact' && !['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge'].includes(config.type) && (() => {
               const currentIconName = config.options?.icon as string | undefined;
               const CurrentIcon = currentIconName
                 ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))
@@ -3313,7 +3313,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           </div>
 
           {/* ─── DARSTELLUNG ─────────────────────────────────────────────────── */}
-          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value'].includes(config.type) && (() => {
+          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge'].includes(config.type) && (() => {
             const o = config.options ?? {};
             const setO = (patch: Record<string, unknown>) =>
               onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -3369,6 +3369,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     ? [{ key: 'showSetpoint', label: 'Solltemperatur' }, { key: 'showActualTemp', label: 'Isttemperatur' }, { key: 'showControls', label: 'Tasten ±' }]
                     : config.type === 'value'
                     ? [{ key: 'showValue', label: 'Wert' }, { key: 'showUnit', label: 'Einheit' }]
+                    : config.type === 'gauge'
+                    ? []
                     : [] as { key: string; label: string }[]
                   ).map(({ key, label }) => {
                     const val = o[key] !== false;
@@ -3489,7 +3491,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           })()}
 
           {/* ─── ERWEITERT ───────────────────────────────────────────────────── */}
-          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value'].includes(config.type) && (
+          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge'].includes(config.type) && (
             <details className="group">
               <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                 <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Erweitert</span>
