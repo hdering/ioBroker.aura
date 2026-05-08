@@ -21,6 +21,7 @@ export function ValueWidget({ config }: WidgetProps) {
 
   const o = config.options ?? {};
   const showTitle = o.showTitle !== false;
+  const showIcon  = o.showIcon  !== false;
   const titleAlign = (o.titleAlign as string) ?? 'left';
   const showValue = o.showValue !== false;
   const showUnit  = o.showUnit  !== false;
@@ -82,10 +83,10 @@ export function ValueWidget({ config }: WidgetProps) {
       <div className="flex h-full gap-3" style={{ position: 'relative' }}>
         <div className="w-1 rounded-full self-stretch" style={{ background: accentColor }} />
         <div className="flex flex-col justify-between flex-1">
-          {showTitle && (
+          {(showTitle || showIcon) && (
             <div className="flex items-center gap-2">
-              <CardIcon size={iconSize} style={{ color: accentColor }} />
-              <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>
+              {showIcon && <CardIcon size={iconSize} style={{ color: accentColor }} />}
+              {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
             </div>
           )}
           {showValue && (
@@ -104,10 +105,10 @@ export function ValueWidget({ config }: WidgetProps) {
   if (layout === 'compact') {
     return (
       <div className="flex items-center justify-between h-full gap-2" style={{ position: 'relative' }}>
-        {showTitle && (
+        {(showTitle || showIcon) && (
           <div className="flex items-center gap-2 min-w-0">
-            <CompactIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-            <span className="text-sm truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</span>
+            {showIcon && <CompactIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <span className="text-sm truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</span>}
           </div>
         )}
         {showValue && (
@@ -143,10 +144,10 @@ export function ValueWidget({ config }: WidgetProps) {
 
   return (
     <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
-      {showTitle && (
+      {(showTitle || showIcon) && (
         <div className="flex items-center gap-2" style={titleStyle}>
-          <DefaultIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-          <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1', minWidth: 0 }}>{config.title}</p>
+          {showIcon && <DefaultIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1', minWidth: 0 }}>{config.title}</p>}
         </div>
       )}
       {showValue && (
