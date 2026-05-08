@@ -2861,7 +2861,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           onClose={() => openPanelFor(null)}
         >
           {/* ─── 1. Name / Titel ──────────────────────────────────────────── */}
-          {config.type !== 'shutter' && (<>
+          {!['shutter', 'switch'].includes(config.type) && (<>
           <div className="space-y-2.5">
             <div>
               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
@@ -2972,7 +2972,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           <div className="h-px" style={{ background: 'var(--app-border)' }} />
           </>)}
 
-          {config.type !== 'shutter' && (<>
+          {!['shutter', 'switch'].includes(config.type) && (<>
           {/* ─── 2. Stil (eingeklappt) ─────────────────────────────────────── */}
           <details className="group">
             <summary className="flex items-center justify-between cursor-pointer list-none select-none">
@@ -3022,7 +3022,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
           {/* ─── 3. Widget-Typ · Layout · Icon ─────────────────────────────── */}
           <div className="space-y-2.5">
-            {config.type === 'shutter' && (
+            {['shutter', 'switch'].includes(config.type) && (
               <div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
                 <input
@@ -3117,7 +3117,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 onConfigChange({ ...config, options: { ...o, ...patch } });
               const visFields: VisField[] = (() => {
                 switch (config.type) {
-                  case 'switch':        return [{ key: 'showTitle', label: 'Titel' }, { key: 'showLabel', label: 'Status (AN/AUS)' }];
+                  case 'switch':        return [];
                   case 'value':         return [{ key: 'showTitle', label: 'Titel' }, { key: 'showValue', label: 'Wert' }, { key: 'showUnit', label: 'Einheit' }];
                   case 'dimmer':        return [{ key: 'showTitle', label: 'Titel' }, { key: 'showValue', label: 'Prozentwert' }, { key: 'showSlider', label: 'Schieberegler' }, { key: 'showToggle', label: 'An/Aus-Schalter' }];
                   case 'thermostat':    return [{ key: 'showTitle', label: 'Titel' }, { key: 'showSetpoint', label: 'Solltemperatur' }, { key: 'showActualTemp', label: 'Isttemperatur' }, { key: 'showControls', label: 'Tasten ±' }];
@@ -3259,8 +3259,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               );
             })()}
 
-            {/* Icon picker (not for stateimage/windowcontact – icons are per-state; not for shutter – in Darstellung) */}
-            {config.type !== 'stateimage' && config.type !== 'windowcontact' && config.type !== 'shutter' && (() => {
+            {/* Icon picker (not for stateimage/windowcontact – icons are per-state; not for shutter/switch – in Darstellung) */}
+            {config.type !== 'stateimage' && config.type !== 'windowcontact' && !['shutter', 'switch'].includes(config.type) && (() => {
               const currentIconName = config.options?.icon as string | undefined;
               const CurrentIcon = currentIconName
                 ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))
@@ -3293,7 +3293,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             })()}
 
             {/* Icon-Größe */}
-            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group', 'shutter'].includes(config.type) && (() => {
+            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group', 'shutter', 'switch'].includes(config.type) && (() => {
               const o = config.options ?? {};
               const iconSize = (o.iconSize as number) || 36;
               const displayIconSize = draftIconSize ?? iconSize;
@@ -3316,8 +3316,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             })()}
           </div>
 
-          {/* ─── DARSTELLUNG (Rolladen) ──────────────────────────────────────── */}
-          {config.type === 'shutter' && (() => {
+          {/* ─── DARSTELLUNG ─────────────────────────────────────────────────── */}
+          {['shutter', 'switch'].includes(config.type) && (() => {
             const o = config.options ?? {};
             const setO = (patch: Record<string, unknown>) =>
               onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -3361,7 +3361,12 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       </button>
                     </div>
                   </div>
-                  {([{ key: 'showValue', label: 'Position %' }, { key: 'showControls', label: 'Steuerknöpfe' }, { key: 'showSlider', label: 'Schieberegler' }] as { key: string; label: string }[]).map(({ key, label }) => {
+                  {(config.type === 'shutter'
+                    ? [{ key: 'showValue', label: 'Position %' }, { key: 'showControls', label: 'Steuerknöpfe' }, { key: 'showSlider', label: 'Schieberegler' }]
+                    : config.type === 'switch'
+                    ? [{ key: 'showLabel', label: 'Status (AN/AUS)' }]
+                    : [] as { key: string; label: string }[]
+                  ).map(({ key, label }) => {
                     const val = o[key] !== false;
                     return (
                       <div key={key} className="flex items-center justify-between">
@@ -3479,8 +3484,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             );
           })()}
 
-          {/* ─── ERWEITERT (Rolladen) ────────────────────────────────────────── */}
-          {config.type === 'shutter' && (
+          {/* ─── ERWEITERT ───────────────────────────────────────────────────── */}
+          {['shutter', 'switch'].includes(config.type) && (
             <details className="group">
               <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                 <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Erweitert</span>

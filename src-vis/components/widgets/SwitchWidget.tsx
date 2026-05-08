@@ -36,6 +36,7 @@ export function SwitchWidget({ config }: WidgetProps) {
   const WidgetIcon = getWidgetIcon(config.options?.icon as string | undefined, Power);
   const showTitle = o.showTitle !== false;
   const showLabel = o.showLabel !== false;
+  const showIcon  = o.showIcon  !== false;
 
   const iconSize = (o.iconSize as number) || 36;
   const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
@@ -47,7 +48,7 @@ export function SwitchWidget({ config }: WidgetProps) {
         value={isOn ? 'AN' : 'AUS'}
         extraFields={{ battery, reach }}
         extraComponents={{
-          icon:            <WidgetIcon size={iconSize} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} />,
+          icon:            showIcon ? <WidgetIcon size={iconSize} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} /> : null,
           'battery-icon':  batteryIcon,
           'reach-icon':    reachIcon,
           'status-badges': statusBadges,
@@ -81,10 +82,10 @@ export function SwitchWidget({ config }: WidgetProps) {
           border: `2px solid ${isOn ? 'var(--accent-green)' : 'var(--app-border)'}`,
         }}
       >
-        <WidgetIcon
+        {showIcon && <WidgetIcon
           size={iconSize}
           style={{ color: isOn ? '#fff' : 'var(--text-secondary)', filter: isOn ? 'drop-shadow(0 0 8px rgba(255,255,255,0.5))' : 'none' }}
-        />
+        />}
         <div className="text-center">
           {showTitle && <p className="font-bold text-sm" style={{ color: isOn ? '#fff' : 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           {showLabel && <p className="text-xs opacity-70" style={{ color: isOn ? '#fff' : 'var(--text-secondary)' }}>{isOn ? 'AN' : 'AUS'}</p>}
@@ -99,7 +100,7 @@ export function SwitchWidget({ config }: WidgetProps) {
   if (layout === 'compact') {
     return (
       <div className="flex items-center gap-2 h-full" style={{ position: 'relative' }}>
-        <WidgetIcon size={iconSize} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} />
+        {showIcon && <WidgetIcon size={iconSize} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} />}
         {showTitle && <span className="flex-1 text-sm truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
         {!showTitle && <span className="flex-1" />}
         <button onClick={handleToggle}
@@ -117,12 +118,14 @@ export function SwitchWidget({ config }: WidgetProps) {
   if (layout === 'minimal') {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-2" style={{ position: 'relative' }}>
-        <button onClick={handleToggle} className="focus:outline-none transition-transform active:scale-95">
-          <WidgetIcon
-            size={iconSize}
-            style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)' }}
-          />
-        </button>
+        {showIcon && (
+          <button onClick={handleToggle} className="focus:outline-none transition-transform active:scale-95">
+            <WidgetIcon
+              size={iconSize}
+              style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)' }}
+            />
+          </button>
+        )}
         {showTitle && <span className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
         <StatusBadges config={config} />
         {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
@@ -139,7 +142,7 @@ export function SwitchWidget({ config }: WidgetProps) {
     <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
       {showTitle && (
         <div className="flex items-center gap-2" style={titleStyle}>
-          <WidgetIcon size={iconSize} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} />
+          {showIcon && <WidgetIcon size={iconSize} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} />}
           <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1', minWidth: 0 }}>{config.title}</p>
         </div>
       )}
