@@ -8,8 +8,6 @@ import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 
-type QuickButton = { label: string; value: number };
-
 export function DimmerWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
   const { setState } = useIoBroker();
@@ -21,9 +19,9 @@ export function DimmerWidget({ config }: WidgetProps) {
   const titleAlign     = (o.titleAlign    as string) ?? 'left';
   const showValue      = o.showValue      !== false;
   const showSlider     = o.showSlider     !== false;
+  const showToggle     = o.showToggle     === true;
   const sendOnRelease  = o.sendOnRelease  !== false;
   const iconSize       = (o.iconSize as number) || 36;
-  const quickButtons   = (o.quickButtons  as QuickButton[] | undefined) ?? [];
 
   const [dragValue, setDragValue] = useState<number | null>(null);
   const displayLevel = dragValue ?? level;
@@ -48,23 +46,17 @@ export function DimmerWidget({ config }: WidgetProps) {
   }, [thresholds, displayLevel]);
   const valueColor = thresholdColor ?? 'var(--text-primary)';
 
-  const quickBtns = quickButtons.length > 0 && (
-    <div className="flex gap-1 flex-wrap">
-      {quickButtons.map((btn, i) => (
-        <button
-          key={i}
-          onClick={() => setState(config.datapoint, btn.value)}
-          className="nodrag px-2 py-0.5 text-xs rounded-full hover:opacity-80 transition-colors"
-          style={{
-            background: displayLevel === btn.value ? 'var(--accent-yellow)' : 'var(--app-surface)',
-            color: displayLevel === btn.value ? '#000' : 'var(--text-secondary)',
-            border: '1px solid var(--app-border)',
-          }}
-        >
-          {btn.label}
-        </button>
-      ))}
-    </div>
+  const isOn = displayLevel > 0;
+  const handleToggle = () => setState(config.datapoint, isOn ? 0 : 100);
+
+  const toggleBtn = showToggle && (
+    <button
+      onClick={handleToggle}
+      className="nodrag relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"
+      style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}
+    >
+      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
+    </button>
   );
 
   const slider = (
@@ -101,6 +93,15 @@ export function DimmerWidget({ config }: WidgetProps) {
             className="nodrag h-1.5 rounded-full appearance-none cursor-pointer"
           />
         ),
+        toggle: (
+          <button
+            onClick={handleToggle}
+            className="nodrag relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"
+            style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
+          </button>
+        ),
       }}
     />
   );
@@ -117,7 +118,7 @@ export function DimmerWidget({ config }: WidgetProps) {
           {showValue && <span className="text-2xl font-bold" style={{ color: valueColor }}>{level}%</span>}
         </div>
         {showSlider && slider}
-        {quickBtns}
+        {toggleBtn && <div className="flex justify-center">{toggleBtn}</div>}
         <StatusBadges config={config} />
       </div>
     );
@@ -132,6 +133,7 @@ export function DimmerWidget({ config }: WidgetProps) {
           {showTitle && <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
           {!showTitle && <span className="flex-1" />}
           {showValue && <span className="text-sm font-bold shrink-0" style={{ color: valueColor }}>{displayLevel}%</span>}
+          {toggleBtn}
         </div>
         {showSlider && (
           <input type="range" min={0} max={100} step={1} value={displayLevel}
@@ -140,7 +142,6 @@ export function DimmerWidget({ config }: WidgetProps) {
             style={{ '--slider-thumb-color': 'var(--accent-yellow)' } as CSSProperties}
             className="nodrag ml-6 h-1.5 rounded-full appearance-none cursor-pointer" />
         )}
-        {quickBtns}
         <StatusBadges config={config} />
       </div>
     );
@@ -152,7 +153,7 @@ export function DimmerWidget({ config }: WidgetProps) {
       <div className="flex flex-col items-center justify-center h-full gap-3" style={{ position: 'relative' }}>
         {showValue && <span className="text-3xl font-black" style={{ color: thresholdColor ?? (level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)') }}>{level}%</span>}
         {showSlider && slider}
-        {quickBtns}
+        {toggleBtn}
         <StatusBadges config={config} />
       </div>
     );
@@ -171,12 +172,15 @@ export function DimmerWidget({ config }: WidgetProps) {
         {showValue && (
           <div className="flex justify-between items-center">
             <span className="text-2xl font-bold" style={{ color: valueColor }}>{level}%</span>
-            <div className="w-3 h-3 rounded-full transition-all"
-              style={{ background: level > 0 ? 'var(--accent-yellow)' : 'var(--app-border)', boxShadow: level > 0 ? '0 0 6px var(--accent-yellow)' : 'none' }} />
+            {showToggle
+              ? toggleBtn
+              : <div className="w-3 h-3 rounded-full transition-all"
+                  style={{ background: level > 0 ? 'var(--accent-yellow)' : 'var(--app-border)', boxShadow: level > 0 ? '0 0 6px var(--accent-yellow)' : 'none' }} />
+            }
           </div>
         )}
+        {!showValue && toggleBtn && <div className="flex justify-end">{toggleBtn}</div>}
         {showSlider && slider}
-        {quickBtns}
       </div>
       <StatusBadges config={config} />
     </div>
