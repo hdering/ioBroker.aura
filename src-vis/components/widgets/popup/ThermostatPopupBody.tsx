@@ -4,6 +4,8 @@ import { useDatapoint } from '../../../hooks/useDatapoint';
 import { useIoBroker } from '../../../hooks/useIoBroker';
 import type { WidgetConfig } from '../../../types';
 import type { ClickAction } from '../../../types';
+import { useGlobalSettingsStore } from '../../../store/globalSettingsStore';
+import { formatNum } from '../../../utils/formatValue';
 
 interface Props {
   widget: WidgetConfig;
@@ -25,6 +27,8 @@ export function ThermostatPopupBody({ widget, action }: Props) {
   const minTemp = (widget.options?.minTemp as number) ?? 10;
   const maxTemp = (widget.options?.maxTemp as number) ?? 30;
   const step    = (widget.options?.step    as number) ?? 0.5;
+  const { defaultDecimals } = useGlobalSettingsStore();
+  const decimals = (widget.options?.decimals as number) ?? defaultDecimals;
 
   const target = typeof rawTarget === 'number' ? rawTarget : 20;
   const actual = typeof rawActual === 'number' ? rawActual : null;
@@ -71,13 +75,13 @@ export function ThermostatPopupBody({ widget, action }: Props) {
       <div className="flex flex-col items-center gap-1">
         <div className="flex items-end gap-2">
           <span className="text-5xl font-bold tabular-nums" style={{ color: accentColor }}>
-            {display.toFixed(1)}
+            {formatNum(display, decimals)}
           </span>
           <span className="text-xl mb-1.5" style={{ color: 'var(--text-secondary)' }}>°C</span>
         </div>
         {actual !== null && (
           <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Ist: {actual.toFixed(1)} °C
+            Ist: {formatNum(actual, decimals)} °C
           </span>
         )}
       </div>

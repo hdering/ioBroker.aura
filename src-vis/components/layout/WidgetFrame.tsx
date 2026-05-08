@@ -5073,6 +5073,24 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         style={tInputStyle}
                       />
                     </div>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Dezimalstellen</label>
+                      <div className="flex gap-1">
+                        <input type="number" min={0} max={4}
+                          disabled={o.decimals === undefined}
+                          value={(o.decimals as number) ?? defaultDecimals}
+                          onChange={(e) => setO({ decimals: Number(e.target.value) })}
+                          className={tInputCls}
+                          style={{ ...tInputStyle, opacity: o.decimals === undefined ? 0.5 : 1 }} />
+                        <button
+                          onClick={() => setO({ decimals: o.decimals === undefined ? defaultDecimals : undefined })}
+                          title={o.decimals === undefined ? 'Globale Einstellung aktiv – klicken für eigenen Wert' : 'Auf globale Einstellung zurücksetzen'}
+                          className="px-1.5 rounded text-[10px] font-bold shrink-0"
+                          style={{ background: o.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: o.decimals === undefined ? '#fff' : 'var(--text-secondary)' }}>
+                          G
+                        </button>
+                      </div>
+                    </div>
                   </>
                 );
               })()}

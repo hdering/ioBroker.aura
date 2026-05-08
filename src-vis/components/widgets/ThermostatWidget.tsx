@@ -10,6 +10,8 @@ import { useT } from '../../i18n';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { formatNum } from '../../utils/formatValue';
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -36,6 +38,8 @@ function ThermostatDetail({ config, onClose }: { config: WidgetConfig; onClose: 
   const maxTemp  = (config.options?.maxTemp  as number) ?? 30;
   const step     = (config.options?.step     as number) ?? 0.5;
   const presets  = (config.options?.presets  as number[]) ?? [18, 20, 22, 24];
+  const { defaultDecimals } = useGlobalSettingsStore();
+  const decimals = (config.options?.decimals as number) ?? defaultDecimals;
 
   const target = typeof rawTarget === 'number' ? rawTarget : 20;
   const actual = typeof rawActual === 'number' ? rawActual : null;
@@ -96,7 +100,7 @@ function ThermostatDetail({ config, onClose }: { config: WidgetConfig; onClose: 
             <div className="text-center">
               <p className="text-xs uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-secondary)' }}>Isttemperatur</p>
               <p className="text-4xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                {actual.toFixed(1)}<span className="text-2xl">°C</span>
+                {formatNum(actual, decimals)}<span className="text-2xl">°C</span>
               </p>
               {/* Progress bar */}
               <div className="w-full h-1.5 rounded-full overflow-hidden mt-3" style={{ background: 'var(--app-border)' }}>
@@ -122,7 +126,7 @@ function ThermostatDetail({ config, onClose }: { config: WidgetConfig; onClose: 
 
               <div className="text-center flex-1">
                 <p className="font-black leading-none" style={{ fontSize: 'calc(3.5rem * var(--font-scale, 1))', color: accentColor }}>
-                  {target.toFixed(1)}
+                  {formatNum(target, decimals)}
                 </p>
                 <p className="text-base" style={{ color: 'var(--text-secondary)' }}>°C</p>
               </div>
@@ -185,6 +189,8 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
   const showControls   = o.showControls   !== false;
   const ThermoIcon = getWidgetIcon(o.icon as string | undefined, Thermometer);
   const iconSize   = (o.iconSize as number) || 36;
+  const { defaultDecimals } = useGlobalSettingsStore();
+  const decimals = (o.decimals as number) ?? defaultDecimals;
 
   const target = typeof rawTarget === 'number' ? rawTarget : 20;
   const actual = typeof rawActual === 'number' ? rawActual : null;
@@ -240,10 +246,10 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
     return (
       <CustomGridView
         config={config}
-        value={typeof rawTarget === 'number' ? rawTarget.toFixed(1) : '–'}
+        value={typeof rawTarget === 'number' ? formatNum(rawTarget, decimals) : '–'}
         extraFields={{
-          setpoint: typeof rawTarget === 'number' ? rawTarget.toFixed(1) : '–',
-          actual:   actual !== null ? actual.toFixed(1) : '–',
+          setpoint: typeof rawTarget === 'number' ? formatNum(rawTarget, decimals) : '–',
+          actual:   actual !== null ? formatNum(actual, decimals) : '–',
           status:   isHeating ? 'Heizend' : isCooling ? 'Kühlend' : 'Inaktiv',
           battery,
           reach,
@@ -276,14 +282,14 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
               {showSetpoint && (
                 <>
                   <p className="font-black leading-none" style={{ fontSize: 'calc(3.5rem * var(--font-scale, 1))', color: valueColor }}>
-                    {target.toFixed(1)}
+                    {formatNum(target, decimals)}
                   </p>
                   <p className="text-base font-light mt-0.5" style={{ color: 'var(--text-secondary)' }}>{t('thermo.setPoint')}</p>
                 </>
               )}
               {showActualTemp && actual !== null && (
                 <p className="text-sm mt-1.5 font-medium" style={{ color: 'var(--text-secondary)' }}>
-                  {t('thermo.actual')}: <span style={{ color: 'var(--text-primary)' }}>{actual.toFixed(1)}°C</span>
+                  {t('thermo.actual')}: <span style={{ color: 'var(--text-primary)' }}>{formatNum(actual, decimals)}°C</span>
                 </p>
               )}
             </div>
@@ -315,10 +321,10 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
           {!showTitle && <span className="flex-1" />}
           {showSetpoint && (
             <span className="text-sm font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>
-              {target.toFixed(1)}°
+              {formatNum(target, decimals)}°
               {showActualTemp && actual !== null && (
                 <span className="font-normal text-xs ml-1" style={{ color: 'var(--text-secondary)' }}>
-                  / {actual.toFixed(1)}°
+                  / {formatNum(actual, decimals)}°
                 </span>
               )}
             </span>
@@ -348,11 +354,11 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
           <ThermoIcon size={iconSize} style={{ color: accentColor }} />
           {showSetpoint && (
             <span className="font-black" style={{ fontSize: 'calc(2.5rem * var(--font-scale, 1))', color: valueColor, lineHeight: 1 }}>
-              {target.toFixed(1)}°
+              {formatNum(target, decimals)}°
             </span>
           )}
           {showActualTemp && actual !== null && (
-            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('thermo.actual')} {actual.toFixed(1)}°</span>
+            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('thermo.actual')} {formatNum(actual, decimals)}°</span>
           )}
           {showControls && (
             <div className="flex gap-2 mt-1" onClick={(e) => e.stopPropagation()}>
@@ -392,14 +398,14 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
             {showSetpoint && (
               <>
                 <p className="font-black leading-none" style={{ fontSize: 'calc(2.8rem * var(--font-scale, 1))', color: valueColor }}>
-                  {target.toFixed(1)}
+                  {formatNum(target, decimals)}
                 </p>
                 <p className="text-sm font-light" style={{ color: 'var(--text-secondary)' }}>{t('thermo.setPoint')}</p>
               </>
             )}
             {showActualTemp && actual !== null && (
               <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                {t('thermo.actual')}: <span style={{ color: 'var(--text-primary)' }}>{actual.toFixed(1)}°C</span>
+                {t('thermo.actual')}: <span style={{ color: 'var(--text-primary)' }}>{formatNum(actual, decimals)}°C</span>
               </p>
             )}
           </div>
