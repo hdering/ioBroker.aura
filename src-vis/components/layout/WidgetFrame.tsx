@@ -632,6 +632,7 @@ function ClimateConfig({
 
   const o   = config.options ?? {};
   const set = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
+  const { defaultDecimals } = useGlobalSettingsStore();
   const inputCls   = 'flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0';
   const inputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
   const btnStyle   = { background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' };
@@ -740,6 +741,26 @@ function ClimateConfig({
             className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
             style={inputStyle}
           />
+        </div>
+      </div>
+
+      {/* Dezimalstellen */}
+      <div className="mb-2">
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Dezimalstellen</label>
+        <div className="flex gap-1">
+          <input type="number" min={0} max={4}
+            disabled={o.decimals === undefined}
+            value={(o.decimals as number) ?? defaultDecimals}
+            onChange={(e) => set({ decimals: Number(e.target.value) })}
+            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+            style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)', opacity: o.decimals === undefined ? 0.5 : 1 }} />
+          <button
+            onClick={() => set({ decimals: o.decimals === undefined ? defaultDecimals : undefined })}
+            title={o.decimals === undefined ? 'Globale Einstellung aktiv – klicken für eigenen Wert' : 'Auf globale Einstellung zurücksetzen'}
+            className="px-1.5 rounded text-[10px] font-bold shrink-0"
+            style={{ background: o.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: o.decimals === undefined ? '#fff' : 'var(--text-secondary)' }}>
+            G
+          </button>
         </div>
       </div>
 

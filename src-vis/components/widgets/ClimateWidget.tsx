@@ -7,6 +7,8 @@ import { useConfigStore } from '../../store/configStore';
 import { useChartHistory, type ChartTimeRange, RANGE_LABELS } from '../../hooks/useChartHistory';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { WidgetProps } from '../../types';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { formatNum } from '../../utils/formatValue';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
@@ -45,6 +47,8 @@ export function ClimateWidget({ config }: WidgetProps) {
   const showComfort     = o.showComfort === true;
   const showChart       = o.showChart !== false;
 
+  const { defaultDecimals } = useGlobalSettingsStore();
+  const decimals        = (o.decimals as number) ?? defaultDecimals;
   const unit            = (o.unit as string | undefined) ?? '°C';
   const humidityUnit    = (o.humidityUnit as string | undefined) ?? '%';
   const lineColor       = (o.lineColor as string | undefined) ?? 'var(--accent)';
@@ -160,7 +164,7 @@ export function ClimateWidget({ config }: WidgetProps) {
         <div className="flex items-end justify-between gap-2">
           {showActualTemp && (
             <span className="font-black leading-none" style={{ fontSize: Math.round(30 * fontScale), color: 'var(--text-primary)' }}>
-              {actualTemp !== null ? actualTemp.toLocaleString('de-DE') : '–'}
+              {actualTemp !== null ? formatNum(actualTemp, decimals) : '–'}
               <span className="ml-0.5 font-medium" style={{ fontSize: Math.round(16 * fontScale), color: 'var(--text-secondary)' }}>
                 {unit}
               </span>
@@ -172,13 +176,13 @@ export function ClimateWidget({ config }: WidgetProps) {
                 className="text-[11px] px-1.5 py-0.5 rounded-full"
                 style={{ background: 'var(--app-border)', color: 'var(--text-secondary)' }}
               >
-                ↑ {targetTemp.toLocaleString('de-DE')}{unit}
+                ↑ {formatNum(targetTemp, decimals)}{unit}
               </span>
             )}
             {showHumidity && (
               <span className="flex items-center gap-1 font-medium" style={{ fontSize: Math.round(14 * fontScale), color: 'var(--text-secondary)' }}>
                 <HumidityIcon size={Math.round(14 * fontScale)} strokeWidth={1.5} />
-                {humidity !== null ? humidity.toLocaleString('de-DE') : '–'}{humidityUnit}
+                {humidity !== null ? formatNum(humidity, decimals) : '–'}{humidityUnit}
               </span>
             )}
           </div>
@@ -209,7 +213,7 @@ export function ClimateWidget({ config }: WidgetProps) {
                   <Tooltip
                     contentStyle={tooltipStyle}
                     labelFormatter={formatLabel}
-                    formatter={(v: number) => `${v.toLocaleString('de-DE')} ${unit}`}
+                    formatter={(v: number) => `${formatNum(v, decimals)} ${unit}`}
                   />
                   <Area
                     type="monotone"
