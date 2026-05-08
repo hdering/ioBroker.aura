@@ -187,6 +187,8 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
   const showSetpoint   = o.showSetpoint   !== false;
   const showActualTemp = o.showActualTemp !== false;
   const showControls   = o.showControls   !== false;
+  const showIcon   = o.showIcon   !== false;
+  const titleAlign = (o.titleAlign as string) ?? 'left';
   const ThermoIcon = getWidgetIcon(o.icon as string | undefined, Thermometer);
   const iconSize   = (o.iconSize as number) || 36;
   const { defaultDecimals } = useGlobalSettingsStore();
@@ -255,7 +257,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
           reach,
         }}
         extraComponents={{
-          icon:            <ThermoIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />,
+          icon:            showIcon ? <ThermoIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} /> : null,
           'btn-plus':      <button className="nodrag" style={btnSty} onClick={() => setTemp(target + step)}>+</button>,
           'btn-minus':     <button className="nodrag" style={btnSty} onClick={() => setTemp(target - step)}>−</button>,
           'battery-icon':  batteryIcon,
@@ -273,7 +275,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
         <div className={`flex flex-col h-full justify-between ${wrapperCls}`} style={{ position: 'relative' }} onClick={handleClick}>
           {showTitle && (
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium truncate" style={{ color: 'var(--text-secondary)' }}>{displayTitle}</p>
+              <p className="text-xs font-medium truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{displayTitle}</p>
               <StatusIcon />
             </div>
           )}
@@ -316,8 +318,8 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
     return (
       <>
         <div className={`flex items-center gap-2 h-full ${wrapperCls}`} style={{ position: 'relative' }} onClick={handleClick}>
-          <ThermoIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />
-          {showTitle && <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)' }}>{displayTitle}</span>}
+          {showIcon && <ThermoIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />}
+          {showTitle && <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{displayTitle}</span>}
           {!showTitle && <span className="flex-1" />}
           {showSetpoint && (
             <span className="text-sm font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>
@@ -351,7 +353,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
     return (
       <>
         <div className={`flex flex-col items-center justify-center h-full gap-2 ${wrapperCls}`} style={{ position: 'relative' }} onClick={handleClick}>
-          <ThermoIcon size={iconSize} style={{ color: accentColor }} />
+          {showIcon && <ThermoIcon size={iconSize} style={{ color: accentColor }} />}
           {showSetpoint && (
             <span className="font-black" style={{ fontSize: 'calc(2.5rem * var(--font-scale, 1))', color: valueColor, lineHeight: 1 }}>
               {formatNum(target, decimals)}°
@@ -382,11 +384,11 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
     <>
       <div className={`flex flex-col h-full gap-2 ${wrapperCls}`} style={{ position: 'relative' }} onClick={handleClick}>
         {/* Title row */}
-        {showTitle && (
+        {(showTitle || showIcon) && (
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <ThermoIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />
-              <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{displayTitle}</p>
+            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+              {showIcon && <ThermoIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />}
+              {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{displayTitle}</p>}
             </div>
             <StatusIcon />
           </div>
