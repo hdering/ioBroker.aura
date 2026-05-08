@@ -1,5 +1,5 @@
 import { useMemo, useState, type CSSProperties } from 'react';
-import { Sun, SunDim } from 'lucide-react';
+import { SunDim } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
@@ -114,7 +114,7 @@ export function DimmerWidget({ config }: WidgetProps) {
       <div className="flex flex-col h-full justify-between" style={{ position: 'relative' }}>
         {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         <div className="flex flex-col items-center gap-3 flex-1 justify-center">
-          {showIcon && <Sun size={iconSize} strokeWidth={1.5}
+          {showIcon && <CompactIcon size={iconSize} strokeWidth={1.5}
             style={{ color: 'var(--accent-yellow)', opacity, filter: level > 0 ? `drop-shadow(0 0 ${level / 10}px var(--accent-yellow))` : 'none', transition: 'all 0.3s' }} />}
           {showValue && <span className="text-2xl font-bold" style={{ color: valueColor }}>{level}%</span>}
         </div>
@@ -165,7 +165,7 @@ export function DimmerWidget({ config }: WidgetProps) {
     <div className="flex flex-col h-full justify-between" style={{ position: 'relative' }}>
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-2">
-          {showIcon && <SunDim size={iconSize} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)' }} />}
+          {showIcon && <CompactIcon size={iconSize} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)' }} />}
           {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
         </div>
       )}
