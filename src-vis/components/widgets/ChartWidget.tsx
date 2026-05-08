@@ -31,6 +31,8 @@ export function ChartWidget({ config }: WidgetProps) {
 
   const o               = config.options ?? {};
   const showTitle       = o.showTitle !== false;
+  const showIcon        = o.showIcon  !== false;
+  const iconSize        = (o.iconSize  as number) || 36;
   const { defaultDecimals } = useGlobalSettingsStore();
   const decimals        = (o.decimals as number) ?? defaultDecimals;
   const unit            = (o.unit as string | undefined);
@@ -154,7 +156,7 @@ export function ChartWidget({ config }: WidgetProps) {
       <div ref={containerRef} className="flex flex-col h-full">
         <div className="flex items-start justify-between mb-1">
           <div className="flex items-start gap-1.5 min-w-0">
-            <WidgetIcon size={16} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0, marginTop: 2 }} />
+            {showIcon && <WidgetIcon size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0, marginTop: 2 }} />}
             <div className="min-w-0">
               {showTitle && <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
               {current !== null && (
@@ -206,10 +208,12 @@ export function ChartWidget({ config }: WidgetProps) {
   return (
     <div ref={containerRef} className="flex flex-col h-full">
       <div className="flex justify-between items-start mb-1">
-        <div className="flex items-center gap-1 min-w-0">
-          <WidgetIcon size={13} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0 }} />
-          {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
-        </div>
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
+          </div>
+        )}
         {current !== null && (
           <div className="flex flex-col items-end shrink-0 ml-2">
             <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
