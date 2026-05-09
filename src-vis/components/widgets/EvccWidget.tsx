@@ -709,9 +709,17 @@ export function EvccWidget({ config }: WidgetProps) {
 
   if (!connected) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2" style={{ color: 'var(--text-secondary)' }}>
-        <Zap size={24} strokeWidth={1.5} />
-        <span className="text-xs">{t('evcc.noConnection')}</span>
+      <div className="flex flex-col h-full">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
+        )}
+        <div className="flex flex-col items-center justify-center flex-1 gap-2" style={{ color: 'var(--text-secondary)' }}>
+          <Zap size={24} strokeWidth={1.5} />
+          <span className="text-xs">{t('evcc.noConnection')}</span>
+        </div>
       </div>
     );
   }
@@ -735,18 +743,54 @@ export function EvccWidget({ config }: WidgetProps) {
   );
 
   // ── Layout: battery only ──────────────────────────────────────────────────
-  if (layout === 'battery') return <BatteryView site={site} />;
+  if (layout === 'battery') return (
+    <div className="flex flex-col h-full">
+      {(showTitle || showIcon) && (
+        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+        </div>
+      )}
+      <div className="flex-1 min-h-0"><BatteryView site={site} /></div>
+    </div>
+  );
 
   // ── Layout: production only ───────────────────────────────────────────────
-  if (layout === 'production') return <ProductionView site={site} />;
+  if (layout === 'production') return (
+    <div className="flex flex-col h-full">
+      {(showTitle || showIcon) && (
+        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+        </div>
+      )}
+      <div className="flex-1 min-h-0"><ProductionView site={site} /></div>
+    </div>
+  );
 
   // ── Layout: consumption only ──────────────────────────────────────────────
-  if (layout === 'consumption') return <ConsumptionView site={site} />;
+  if (layout === 'consumption') return (
+    <div className="flex flex-col h-full">
+      {(showTitle || showIcon) && (
+        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+        </div>
+      )}
+      <div className="flex-1 min-h-0"><ConsumptionView site={site} /></div>
+    </div>
+  );
 
   // ── Layout: loadpoints only ───────────────────────────────────────────────
   if (layout === 'loadpoints') {
     return (
       <div className="aura-scroll flex flex-col gap-2 h-full overflow-auto">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
+        )}
         {visLps.map(({ lp, idx }) => (
           <LoadpointCard key={idx} lp={lp} idx={idx} prefix={prefix} compact={false} />
         ))}
@@ -758,6 +802,12 @@ export function EvccWidget({ config }: WidgetProps) {
   if (layout === 'compact' || layout === 'minimal') {
     return (
       <div className="flex flex-col gap-1.5 h-full justify-center px-1">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
+        )}
         <CompactRow site={site} showBattery={showBattery} />
         {visLps.map(({ lp, idx }) => (
           <LoadpointCard key={idx} lp={lp} idx={idx} prefix={prefix} compact />
