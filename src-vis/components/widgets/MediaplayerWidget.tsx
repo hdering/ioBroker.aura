@@ -25,7 +25,7 @@ type MediaChip = {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function CoverImage({ src, Icon, iconSize }: { src: string; Icon: React.ElementType; iconSize: number }) {
+function CoverImage({ src, Icon, iconSize }: { src: string; Icon: React.ElementType | null; iconSize: number }) {
   if (src) {
     return (
       <img
@@ -40,7 +40,7 @@ function CoverImage({ src, Icon, iconSize }: { src: string; Icon: React.ElementT
       className="w-full h-full rounded-xl flex items-center justify-center"
       style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
     >
-      <Icon size={iconSize} style={{ color: 'var(--text-secondary)' }} />
+      {Icon && <Icon size={iconSize} style={{ color: 'var(--text-secondary)' }} />}
     </div>
   );
 }
@@ -275,8 +275,10 @@ export function MediaplayerWidget({ config }: WidgetProps) {
 
   const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
+  const showIcon   = o.showIcon   !== false;
+  const titleAlign = (o.titleAlign as string) ?? 'left';
   const WidgetIcon = getWidgetIcon(o.icon as string | undefined, Music);
-  const iconSize = (o.iconSize as number) || 32;
+  const iconSize   = (o.iconSize  as number) || 36;
 
   // ── CUSTOM ───────────────────────────────────────────────────────────────────
   if (layout === 'custom') {
@@ -287,7 +289,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
         value={titleStr}
         extraFields={{ title: titleStr, artist: artistStr, album: albumStr, source: sourceStr, volume: `${volPct}%`, battery, reach }}
         extraComponents={{
-          cover:           <CoverImage src={coverStr} Icon={WidgetIcon} iconSize={iconSize} />,
+          cover:           <CoverImage src={coverStr} Icon={showIcon ? WidgetIcon : null} iconSize={iconSize} />,
           'play-pause':    <PlayPauseBtn playing={isPlaying} onClick={handlePlayPause} />,
           prev:            <IconBtn icon={SkipBack}    onClick={() => trigger(o.prevDp)} />,
           next:            <IconBtn icon={SkipForward} onClick={() => trigger(o.nextDp)} />,
@@ -311,7 +313,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
         {/* Cover: halbe Widget-Breite, quadratisch, zentriert */}
         {showCover && (
           <div className="rounded-xl overflow-hidden self-center shrink-0" style={{ width: '50%', aspectRatio: '1 / 1' }}>
-            <CoverImage src={coverStr} Icon={WidgetIcon} iconSize={iconSize} />
+            <CoverImage src={coverStr} Icon={showIcon ? WidgetIcon : null} iconSize={iconSize} />
           </div>
         )}
 
@@ -409,7 +411,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
           {/* Cover thumbnail */}
           {showCover && (
             <div className="shrink-0 rounded-md overflow-hidden" style={{ width: 36, height: 36 }}>
-              <CoverImage src={coverStr} Icon={WidgetIcon} iconSize={16} />
+              <CoverImage src={coverStr} Icon={showIcon ? WidgetIcon : null} iconSize={iconSize} />
             </div>
           )}
 
@@ -470,7 +472,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
         {/* Cover: self-stretch + aspect-ratio → quadratisch, so groß wie die Zeile */}
         {showCover && (
           <div className="shrink-0 self-stretch rounded-xl overflow-hidden" style={{ aspectRatio: '1 / 1' }}>
-            <CoverImage src={coverStr} Icon={WidgetIcon} iconSize={iconSize} />
+            <CoverImage src={coverStr} Icon={showIcon ? WidgetIcon : null} iconSize={iconSize} />
           </div>
         )}
 
@@ -479,7 +481,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
           {/* Track info */}
           <div className="shrink-0 space-y-0.5 min-w-0">
             {showTitle && (
-              <p className="text-sm font-semibold truncate leading-snug" style={{ color: 'var(--text-primary)' }}>
+              <p className="text-sm font-semibold truncate leading-snug" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
                 {titleStr || '–'}
               </p>
             )}
