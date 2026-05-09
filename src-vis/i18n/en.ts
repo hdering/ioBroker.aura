@@ -164,9 +164,6 @@ export const en: Record<TranslationKey, string> = {
   'settings.expert.unlocked': 'Unlocked',
   'settings.expert.unlock':   'Unlock',
   'settings.expert.lock':     'Lock',
-  'settings.expert.url':      'ioBroker Web Adapter URL',
-  'settings.expert.connect':  'Connect',
-
   'settings.reset.title':       'Reset All',
   'settings.reset.description': 'Deletes all dashboards, widgets, themes and settings. Irreversible.',
   'settings.reset.button':      'Reset…',

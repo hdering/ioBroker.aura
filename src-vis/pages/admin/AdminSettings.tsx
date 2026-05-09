@@ -8,7 +8,7 @@ import { useAdminPrefsStore } from '../../store/adminPrefsStore';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 
 import { applyRaw, rehydrateAll } from '../../utils/configLoader';
-import { reconnectSocket, getObjectViewDirect, getStateDirect, setStateDirect } from '../../hooks/useIoBroker';
+import { getObjectViewDirect, getStateDirect, setStateDirect } from '../../hooks/useIoBroker';
 import { saveAll, saveToIoBroker, BACKUP_TS_KEY } from '../../store/persistManager';
 import { Eye, EyeOff, AlertTriangle, RefreshCw, Tablet, Edit3, Check, X, Trash2, History } from 'lucide-react';
 import { useT } from '../../i18n';
@@ -414,47 +414,6 @@ function ClientsCard() {
   );
 }
 
-// ── Expert settings ────────────────────────────────────────────────────────────
-
-function ExpertSettings() {
-  const t = useT();
-  const { ioBrokerUrl, setIoBrokerUrl } = useConnectionStore();
-  const [urlInput, setUrlInput] = useState(ioBrokerUrl);
-  const [saved, setSaved] = useState(false);
-
-  const saveUrl = async () => {
-    const trimmed = urlInput.trim();
-    if (!trimmed) return;
-    setIoBrokerUrl(trimmed);
-    await reconnectSocket(trimmed);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
-  };
-
-  return (
-    <Card title={t('settings.expert.title')}>
-      <div>
-        <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
-          {t('settings.expert.url')}
-        </p>
-        <div className="flex gap-2">
-          <input type="text" value={urlInput}
-            onChange={(e) => { setUrlInput(e.target.value); setSaved(false); }}
-            className="flex-1 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none min-w-0"
-            style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
-          <button onClick={saveUrl}
-            disabled={urlInput.trim() === ioBrokerUrl && !saved}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80 disabled:opacity-40 shrink-0"
-            style={{ background: saved ? 'var(--accent-green)' : 'var(--accent)' }}>
-            <RefreshCw size={12} />
-            {saved ? t('common.ok') : t('settings.expert.connect')}
-          </button>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
 
 
 // ── Default Decimals ────────────────────────────────────────────────────────────
@@ -718,7 +677,6 @@ export function AdminSettings() {
       {/* Row 2: Clients + Expert + DP-Namen */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <ClientsCard />
-        <ExpertSettings />
         <DpNameFilterCard />
         <DefaultDecimalsCard />
       </div>

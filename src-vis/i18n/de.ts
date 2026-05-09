@@ -162,9 +162,6 @@ export const de = {
   'settings.expert.unlocked': 'Entsperrt',
   'settings.expert.unlock':   'Entsperren',
   'settings.expert.lock':     'Sperren',
-  'settings.expert.url':      'ioBroker Web-Adapter URL',
-  'settings.expert.connect':  'Verbinden',
-
   'settings.reset.title':       'Alles zurücksetzen',
   'settings.reset.description': 'Löscht alle Dashboards, Widgets, Themes und Einstellungen. Nicht rückgängig.',
   'settings.reset.button':      'Zurücksetzen…',
