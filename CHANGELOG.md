@@ -1,5 +1,55 @@
 # Changelog
 
+## v0.6.21 (2026-05-09)
+
+- fix: remove showTitle/titleAlign from MediaplayerWidget — track title always visible
+- feat: convert MediaplayerWidget + 8 more widgets to DARSTELLUNG/ERWEITERT template
+- fix: HeaderWidget subtitle toggle and title alignment
+- feat: convert HeaderWidget, GroupWidget, ButtonWidget to DARSTELLUNG/ERWEITERT template
+- feat: convert HtmlWidget and DatePickerWidget to DARSTELLUNG/ERWEITERT template
+- feat: convert IframeWidget and JsonTableWidget to DARSTELLUNG/ERWEITERT template
+- feat: convert TrashWidget and TrashScheduleWidget to DARSTELLUNG/ERWEITERT template
+- feat: ImageWidget template compliance — titleAlign, title/icon row on image, WidgetIcon in placeholder
+- feat: add showTitle/showIcon/titleAlign/WidgetIcon to CameraWidget (all layout states)
+- feat: add showTitle/showIcon to all evcc layouts (battery, production, consumption, loadpoints, compact, no-connection)
+- fix: calendar visFields removed from layout section; iconSize uncapped; no-sources shows title/icon
+- fix: add title/icon to calendar minimal layout; cap header icon size to 14px
+- feat: add showTitle/showIcon/titleAlign to calendar, evcc, camera, image widgets
+- feat: convert WeatherWidget to unified DARSTELLUNG panel
+- feat: convert ClockWidget to unified DARSTELLUNG panel
+- feat: convert HttpRequestWidget to unified DARSTELLUNG panel
+- feat: convert ButtonWidget to unified DARSTELLUNG panel
+- feat: convert ChipsWidget to unified DARSTELLUNG panel
+- feat: convert StateImageWidget to unified DARSTELLUNG panel
+- feat: convert BinarySensorWidget to unified DARSTELLUNG panel
+- feat: convert WindowContactWidget to unified DARSTELLUNG panel
+- feat: convert FillWidget to unified DARSTELLUNG panel structure
+- feat: convert AutoListWidget to new Darstellung/Erweitert panel structure
+- fix: title position not applied in ListWidget
+- feat: convert ListWidget to new Darstellung/Erweitert panel structure
+- fix: show title/icon in EChartsPresetWidget no-preset placeholder
+- feat: convert EChartsPresetWidget to new Darstellung/Erweitert panel structure
+- feat: convert EChartWidget to new Darstellung/Erweitert panel structure
+- feat: convert ClimateWidget to new Darstellung/Erweitert panel structure
+- fix: title position not applied in ChartWidget
+- feat: convert ChartWidget to new Darstellung/Erweitert panel structure
+- feat: convert GaugeWidget to new Darstellung/Erweitert panel structure
+- feat: convert ValueWidget to new Darstellung/Erweitert panel structure
+- feat: convert ThermostatWidget to new Darstellung/Erweitert panel structure
+- fix: define iconSize in SliderWidget
+- fix: use iconSize for WidgetIcon in SliderWidget
+- feat: convert SliderWidget to new Darstellung/Erweitert panel structure
+- fix: use CompactIcon (custom icon) in all DimmerWidget layouts
+- feat: convert DimmerWidget to new Darstellung/Erweitert panel structure
+- fix: decouple icon visibility from title visibility in default layout
+- feat: convert SwitchWidget to new Darstellung/Erweitert panel structure
+- fix: apply titleAlign correctly in ShutterWidget default layout
+- fix: respect showIcon toggle in ShutterWidget across all layouts
+- fix: move Name above Widget-Typ, collapse Darstellung+Erweitert by default
+- feat: add consolidated Darstellung panel for ShutterWidget
+- feat: replace quickButtons with An/Aus toggle in DimmerWidget
+- feat: add quickButtons (Schnellwahl) to DimmerWidget
+
 ## v0.6.20 (2026-05-08)
 
 - fix: rename G-button label from 'G' to 'Global' across all widgets
@@ -215,6 +265,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
