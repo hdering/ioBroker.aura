@@ -86,6 +86,7 @@ interface PopupConfigState {
   typeDefaults: Record<string, string>;  // WidgetType → viewId
   views: PopupView[];
   deletedBuiltinIds: string[];           // builtin IDs the user explicitly deleted
+  removedBuiltinTypeDefaults: string[];  // builtin widget types whose default was explicitly removed
 
   // Type defaults
   setTypeDefault: (widgetType: string, viewId: string) => void;
@@ -111,6 +112,7 @@ export const usePopupConfigStore = create<PopupConfigState>()(
       typeDefaults: {},
       views: [],
       deletedBuiltinIds: [],
+      removedBuiltinTypeDefaults: [],
 
       setTypeDefault: (widgetType, viewId) =>
         set((s) => ({ typeDefaults: { ...s.typeDefaults, [widgetType]: viewId } })),
@@ -119,7 +121,13 @@ export const usePopupConfigStore = create<PopupConfigState>()(
         set((s) => {
           const next = { ...s.typeDefaults };
           delete next[widgetType];
-          return { typeDefaults: next };
+          const isBuiltin = widgetType in BUILTIN_TYPE_DEFAULTS;
+          return {
+            typeDefaults: next,
+            removedBuiltinTypeDefaults: isBuiltin && !s.removedBuiltinTypeDefaults.includes(widgetType)
+              ? [...s.removedBuiltinTypeDefaults, widgetType]
+              : s.removedBuiltinTypeDefaults,
+          };
         }),
 
       addView: (name) => {
@@ -193,9 +201,10 @@ export const usePopupConfigStore = create<PopupConfigState>()(
           const missingViews = BUILTIN_VIEWS.filter(
             (v) => !existingIds.has(v.id) && !deletedSet.has(v.id),
           );
+          const removedTypeSet = new Set(s.removedBuiltinTypeDefaults);
           const defaultsToAdd: Record<string, string> = {};
           for (const [type, viewId] of Object.entries(BUILTIN_TYPE_DEFAULTS)) {
-            if (!s.typeDefaults[type] && !deletedSet.has(viewId)) {
+            if (!s.typeDefaults[type] && !deletedSet.has(viewId) && !removedTypeSet.has(type)) {
               defaultsToAdd[type] = viewId;
             }
           }
@@ -214,10 +223,12 @@ export const usePopupConfigStore = create<PopupConfigState>()(
           for (const [type, vid] of Object.entries(BUILTIN_TYPE_DEFAULTS)) {
             if (vid === viewId && !s.typeDefaults[type]) defaultsToRestore[type] = viewId;
           }
+          const restoredTypes = Object.keys(defaultsToRestore);
           return {
             views: [...s.views, builtin],
             deletedBuiltinIds: s.deletedBuiltinIds.filter((id) => id !== viewId),
             typeDefaults: { ...defaultsToRestore, ...s.typeDefaults },
+            removedBuiltinTypeDefaults: s.removedBuiltinTypeDefaults.filter((t) => !restoredTypes.includes(t)),
           };
         }),
     }),
