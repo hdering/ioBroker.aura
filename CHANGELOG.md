@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.22 (2026-05-09)
+
+- feat: apply global decimals + per-cell override to custom layout
+- fix: add px-2 pt-1 padding to IframeWidget title/icon row
+
 ## v0.6.21 (2026-05-09)
 
 - fix: remove showTitle/titleAlign from MediaplayerWidget — track title always visible
@@ -265,6 +270,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 

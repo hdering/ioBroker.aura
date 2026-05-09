@@ -184,6 +184,11 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.6.22 (2026-05-09)
+- feat: apply global decimals + per-cell override to custom layout
+- fix: add px-2 pt-1 padding to IframeWidget title/icon row
+
+
 ### 0.6.21 (2026-05-09)
 - fix: remove showTitle/titleAlign from MediaplayerWidget — track title always visible
 - feat: convert MediaplayerWidget + 8 more widgets to DARSTELLUNG/ERWEITERT template
@@ -1048,6 +1053,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
