@@ -6100,6 +6100,32 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           </div>
                         )}
 
+                        {/* Dezimalstellen for value or dp */}
+                        {(selCell.type === 'value' || selCell.type === 'dp') && (
+                          <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Dezimalstellen</label>
+                            <div className="flex gap-1">
+                              <input
+                                type="number"
+                                min={0} max={6} step={1}
+                                disabled={selCell.decimals === undefined}
+                                value={selCell.decimals ?? defaultDecimals}
+                                onChange={(e) => setCell(sel, { decimals: Number(e.target.value) })}
+                                className="w-16 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                style={{ ...inputSty, opacity: selCell.decimals === undefined ? 0.5 : 1 }}
+                              />
+                              <button
+                                onClick={() => setCell(sel, { decimals: selCell.decimals === undefined ? defaultDecimals : undefined })}
+                                title={selCell.decimals === undefined ? 'Globale Einstellung aktiv – klicken für eigenen Wert' : 'Auf globale Einstellung zurücksetzen'}
+                                className="text-[10px] px-2 py-1 rounded-lg shrink-0"
+                                style={{ background: selCell.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: selCell.decimals === undefined ? '#fff' : 'var(--text-secondary)', border: 'none' }}
+                              >
+                                Global
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Alignment for component cells */}
                         {selCell.type === 'component' && (
                           <>

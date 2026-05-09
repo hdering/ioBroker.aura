@@ -249,6 +249,7 @@ export function ThermostatWidget({ config, editMode }: WidgetProps) {
       <CustomGridView
         config={config}
         value={typeof rawTarget === 'number' ? formatNum(rawTarget, decimals) : '–'}
+        rawValue={typeof rawTarget === 'number' ? rawTarget : null}
         extraFields={{
           setpoint: typeof rawTarget === 'number' ? formatNum(rawTarget, decimals) : '–',
           actual:   actual !== null ? formatNum(actual, decimals) : '–',

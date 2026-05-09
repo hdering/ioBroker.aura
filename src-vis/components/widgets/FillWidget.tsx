@@ -507,7 +507,7 @@ export function FillWidget({ config }: WidgetProps) {
   const titleAlign = (opts.titleAlign as string) ?? 'left';
   const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, Droplets);
 
-  if (layout === 'custom') return <CustomGridView config={config} value={value !== null ? formatNum(safeVal, decimals) : '–'} unit={unit} />;
+  if (layout === 'custom') return <CustomGridView config={config} value={value !== null ? formatNum(safeVal, decimals) : '–'} rawValue={value !== null ? safeVal : null} unit={unit} />;
 
   if (layout === 'battery') {
     return (

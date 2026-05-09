@@ -74,6 +74,7 @@ export function DimmerWidget({ config }: WidgetProps) {
     <CustomGridView
       config={config}
       value={`${level}`}
+      rawValue={level}
       extraFields={{
         level:  `${level}%`,
         status: level === 0 ? 'Aus' : level === 100 ? 'Voll' : `${level}%`,

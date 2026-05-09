@@ -209,6 +209,7 @@ export function SliderWidget({ config }: WidgetProps) {
       <CustomGridView
         config={{ ...config, options: { ...o, customGrid } }}
         value={valueStr}
+        rawValue={displayVal}
         extraFields={{ value: String(displayVal), unit, min: String(min), max: String(max), battery, reach }}
         extraComponents={{
           slider:          barStyle ? barTrack : sliderEl,

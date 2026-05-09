@@ -180,6 +180,7 @@ export function ShutterWidget({ config }: WidgetProps) {
       <CustomGridView
         config={config}
         value={`${pos}`}
+        rawValue={pos}
         extraFields={{
           position:  `${displayPct}%`,
           status:    statusText,

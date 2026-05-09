@@ -55,6 +55,7 @@ export function ValueWidget({ config }: WidgetProps) {
     <CustomGridView
       config={config}
       value={displayValue}
+      rawValue={typeof value === 'number' ? value : null}
       unit={unit}
       extraFields={{ unit: unit ?? '', battery, reach }}
       extraComponents={{

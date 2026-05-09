@@ -6,6 +6,8 @@ import React from 'react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetConfig, CustomCell, CustomGrid } from '../../types';
 import { resolveAssetUrl } from '../../utils/assetUrl';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { formatNum } from '../../utils/formatValue';
 
 // ── Default grid (title top-left, large value + unit in middle row) ──────────
 
@@ -58,10 +60,11 @@ function cellWrapStyle(cell: CustomCell, index: number): React.CSSProperties {
 // ── Cell sub-components ───────────────────────────────────────────────────────
 
 /** Subscribes to an arbitrary ioBroker DP and renders its value. */
-function DpCellView({ cell, index }: { cell: CustomCell; index: number }) {
+function DpCellView({ cell, index, defaultDecimals }: { cell: CustomCell; index: number; defaultDecimals: number }) {
   const { value } = useDatapoint(cell.dpId ?? '');
+  const decimals = cell.decimals ?? defaultDecimals;
   const formatted = value === null ? '–'
-    : typeof value === 'number' ? value.toLocaleString('de-DE')
+    : typeof value === 'number' ? formatNum(value, decimals)
     : String(value);
   const content = `${cell.prefix ?? ''}${formatted}${cell.suffix ?? ''}`;
   if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={{ gridRow: Math.floor(index / 3) + 1, gridColumn: (index % 3) + 1 }} />;
@@ -108,19 +111,25 @@ function ComponentCellView({ cell, index, extraComponents }: {
 
 /** Renders static / widget-derived content (title, value, unit, free text, extra field). */
 function StaticCellView({
-  cell, index, title, value, unit, extraFields,
+  cell, index, title, value, rawValue, unit, extraFields,
 }: {
   cell: CustomCell;
   index: number;
   title: string;
   value: string;
+  rawValue?: number | null;
   unit?: string;
   extraFields?: Record<string, string>;
 }) {
   const content = (() => {
     switch (cell.type) {
       case 'title': return title;
-      case 'value': return `${cell.prefix ?? ''}${value}${cell.suffix ?? ''}`;
+      case 'value': {
+        const displayVal = cell.decimals !== undefined && rawValue != null
+          ? formatNum(rawValue, cell.decimals)
+          : value;
+        return `${cell.prefix ?? ''}${displayVal}${cell.suffix ?? ''}`;
+      }
       case 'unit':  return unit ?? '';
       case 'text':  return cell.text ?? '';
       case 'field': return extraFields?.[cell.fieldKey ?? ''] ?? '';
@@ -144,6 +153,8 @@ interface CustomGridViewProps {
   config: WidgetConfig;
   /** Widget's main display value (formatted string). Pass '' for complex widgets. */
   value: string;
+  /** Raw numeric value before formatting — enables per-cell decimals override on 'value' cells. */
+  rawValue?: number | null;
   /** Optional unit for 'unit' type cells. */
   unit?: string;
   /**
@@ -159,8 +170,9 @@ interface CustomGridViewProps {
   extraComponents?: Record<string, React.ReactNode>;
 }
 
-export function CustomGridView({ config, value, unit, extraFields, extraComponents }: CustomGridViewProps) {
+export function CustomGridView({ config, value, rawValue, unit, extraFields, extraComponents }: CustomGridViewProps) {
   const cells: CustomGrid = (config.options?.customGrid as CustomGrid | undefined) ?? DEFAULT_CUSTOM_GRID;
+  const { defaultDecimals } = useGlobalSettingsStore();
   return (
     <div
       className="aura-custom-grid"
@@ -168,12 +180,12 @@ export function CustomGridView({ config, value, unit, extraFields, extraComponen
     >
       {cells.map((cell, i) =>
         cell.type === 'dp'
-          ? <DpCellView key={i} cell={cell} index={i} />
+          ? <DpCellView key={i} cell={cell} index={i} defaultDecimals={defaultDecimals} />
           : cell.type === 'image'
             ? <ImageCellView key={i} cell={cell} index={i} />
             : cell.type === 'component'
               ? <ComponentCellView key={i} cell={cell} index={i} extraComponents={extraComponents} />
-              : <StaticCellView key={i} cell={cell} index={i} title={config.title} value={value} unit={unit} extraFields={extraFields} />
+              : <StaticCellView key={i} cell={cell} index={i} title={config.title} value={value} rawValue={rawValue} unit={unit} extraFields={extraFields} />
       )}
     </div>
   );
