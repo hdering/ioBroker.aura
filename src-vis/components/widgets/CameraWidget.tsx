@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Camera, BatteryMedium, Thermometer, Shield, Activity, Building2, RefreshCw, Maximize2, X } from 'lucide-react';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { WidgetProps } from '../../types';
 import { setStateDirect, subscribeStateDirect } from '../../hooks/useIoBroker';
 import type { ioBrokerState } from '../../types';
@@ -473,8 +474,12 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
   const infoItems       = (opts.infoItems       as CameraSlot[])        ?? [];
   const cameraTemplate  = (opts.cameraTemplate  as CameraTemplateId)    ?? 'stream-left';
   const customSlots     = (opts.customSlots     as CameraSlot[])        ?? [];
-  const showTitle       = opts.showTitle !== false;
-  const layout          = config.layout ?? 'minimal';
+  const showTitle    = opts.showTitle !== false;
+  const showIcon     = opts.showIcon  !== false;
+  const iconSize     = (opts.iconSize  as number) || 36;
+  const titleAlign   = (opts.titleAlign as string) ?? 'left';
+  const WidgetIcon   = getWidgetIcon(opts.icon as string | undefined, Camera);
+  const layout       = config.layout ?? 'minimal';
 
   const mode = detectMode(streamUrl);
 
@@ -686,7 +691,12 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
               style={{ background: isReactivate ? 'rgba(239,68,68,0.15)' : 'var(--accent)', opacity: isReactivate ? 1 : 0.85, border: isReactivate ? '1.5px solid #ef4444' : 'none' }}>
               {isReactivate ? <RefreshCw size={18} color="#ef4444" /> : <Camera size={20} color="#fff" />}
             </div>
-            {showTitle && config.title && <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>}
+            {(showTitle || showIcon) && (
+              <div className="flex items-center gap-1 min-w-0 max-w-[80%] justify-center">
+                {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+                {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+              </div>
+            )}
             {stopReason === 'timeout' && <p className="text-[10px]" style={{ color: '#ef4444' }}>Stream beendet</p>}
             {stopReason === 'error'   && <p className="text-[10px]" style={{ color: '#ef4444' }}>Verbindung verloren</p>}
             {!editMode && <p className="text-[10px] opacity-50" style={{ color: 'var(--text-secondary)' }}>{isReactivate ? 'Tippen zum Reaktivieren' : 'Tippen zum Aktivieren'}</p>}
@@ -700,8 +710,8 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
         <>
           <div ref={containerRef} className="flex flex-col items-center justify-center h-full gap-2 rounded-[inherit]"
             style={{ background: 'var(--app-bg)' }}>
-            <Camera size={28} style={{ color: 'var(--text-secondary)' }} />
-            {showTitle && config.title && <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>}
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)' }} />}
+            {showTitle && <p className="text-xs truncate max-w-[80%]" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
           {portal}
         </>
@@ -712,7 +722,8 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
         <>
           <div ref={containerRef} className="flex flex-col items-center justify-center h-full gap-2 rounded-[inherit]"
             style={{ background: 'var(--app-bg)' }}>
-            <Camera size={28} style={{ color: 'var(--accent)' }} />
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--accent)' }} />}
+            {showTitle && <p className="text-xs truncate max-w-[80%]" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
             <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Kamera wird aktiviert…</p>
           </div>
           {portal}
@@ -740,6 +751,12 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
             <StreamCell {...scProps} />
           </div>
           <div style={{ height: `${100 - vidH}%`, overflow: 'hidden auto', display: 'flex', flexDirection: 'column', gap: '2px', padding: '4px' }}>
+            {(showTitle || showIcon) && (
+              <div className="flex items-center gap-1 shrink-0 min-w-0" style={{ paddingBottom: '2px' }}>
+                {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+                {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+              </div>
+            )}
             {infoItems.length === 0
               ? <p className="text-[10px] text-center opacity-40 m-auto" style={{ color: 'var(--text-secondary)' }}>Keine Info-Zeilen konfiguriert</p>
               : infoItems.map((item, i) => (
