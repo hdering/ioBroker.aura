@@ -26,7 +26,7 @@ function clamp(v: number, min: number, max: number, step: number) {
 
 // ── main widget ────────────────────────────────────────────────────────────
 
-export function ThermostatWidget({ config, editMode }: WidgetProps) {
+export function ThermostatWidget({ config }: WidgetProps) {
   const t = useT();
   const actualDpId = (config.options?.actualDatapoint as string) || '';
   const { value: rawActual } = useDatapoint(actualDpId);
