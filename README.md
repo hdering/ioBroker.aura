@@ -184,6 +184,14 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.6.25 (2026-05-09)
+- feat: filter LayoutPicker to only show layouts available for widget type
+- fix: apply admin portal theme vars to LayoutPicker dropdown
+- fix: render LayoutPicker dropdown via portal to escape overflow-hidden clip
+- feat: restrict popup-view type-defaults to specific widget layouts
+- fix: persist removed builtin type-defaults across rehydration
+
+
 ### 0.6.24 (2026-05-09)
 - fix: remove remaining clickable (detail-popup) toggle from WidgetFrame thermostat panel
 - feat: remove clickable (detail-popup) setting from thermostat widget
@@ -1065,6 +1073,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

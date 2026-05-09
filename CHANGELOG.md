@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.6.25 (2026-05-09)
+
+- feat: filter LayoutPicker to only show layouts available for widget type
+- fix: apply admin portal theme vars to LayoutPicker dropdown
+- fix: render LayoutPicker dropdown via portal to escape overflow-hidden clip
+- feat: restrict popup-view type-defaults to specific widget layouts
+- fix: persist removed builtin type-defaults across rehydration
+
 ## v0.6.24 (2026-05-09)
 
 - fix: remove remaining clickable (detail-popup) toggle from WidgetFrame thermostat panel
@@ -282,6 +290,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 

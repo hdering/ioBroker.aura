@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.6.24",
+    "version": "0.6.25",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.6.25": {
+        "en": "feat: filter LayoutPicker to only show layouts available for widget type; fix: apply admin portal theme vars to LayoutPicker dropdown; fix: render LayoutPicker dropdown via portal to escape overflow-hidden clip; feat: restrict popup-view type-defaults to specific widget layouts; fix: persist removed builtin type-defaults across rehydration",
+        "de": "feat: filter LayoutPicker to only show layouts available for widget type; fix: apply admin portal theme vars to LayoutPicker dropdown; fix: render LayoutPicker dropdown via portal to escape overflow-hidden clip; feat: restrict popup-view type-defaults to specific widget layouts; fix: persist removed builtin type-defaults across rehydration"
+      },
       "0.6.24": {
         "en": "fix: remove remaining clickable (detail-popup) toggle from WidgetFrame thermostat panel; feat: remove clickable (detail-popup) setting from thermostat widget; feat: merge Backup & Restore and Auto-Backup into single BackupCard; feat: remove unused ioBroker Web-Adapter URL setting from expert panel",
         "de": "fix: remove remaining clickable (detail-popup) toggle from WidgetFrame thermostat panel; feat: remove clickable (detail-popup) setting from thermostat widget; feat: merge Backup & Restore and Auto-Backup into single BackupCard; feat: remove unused ioBroker Web-Adapter URL setting from expert panel"
