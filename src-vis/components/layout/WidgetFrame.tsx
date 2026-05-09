@@ -3310,7 +3310,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   <ChevronDown size={13} className="transition-transform group-open:rotate-180" style={{ color: 'var(--text-secondary)' }} />
                 </summary>
                 <div className="mt-2.5 space-y-2.5">
-                  <div className="flex items-center justify-between gap-2">
+                  {config.type !== 'mediaplayer' && <div className="flex items-center justify-between gap-2">
                     <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>Titel</span>
                     <div className="flex items-center gap-2">
                       {titleOn && (
@@ -3335,7 +3335,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           style={{ left: titleOn ? '14px' : '2px' }} />
                       </button>
                     </div>
-                  </div>
+                  </div>}
                   {(config.type === 'shutter'
                     ? [{ key: 'showValue', label: 'Position %' }, { key: 'showControls', label: 'Steuerknöpfe' }, { key: 'showSlider', label: 'Schieberegler' }]
                     : config.type === 'switch'

@@ -254,7 +254,6 @@ export function MediaplayerWidget({ config }: WidgetProps) {
 
   // Sichtbarkeits-Defaults (konfigurierbar via options.show*)
   const showCover    = o.showCover    !== false;
-  const showTitle    = o.showTitle    !== false;
   const showSubtitle = o.showSubtitle !== false;
   const showSource   = o.showSource   !== false && !!(o.sourceDp);
   const showShuffle  = o.showShuffle  !== false && !!(o.shuffleDp);
@@ -276,7 +275,6 @@ export function MediaplayerWidget({ config }: WidgetProps) {
   const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
   const showIcon   = o.showIcon   !== false;
-  const titleAlign = (o.titleAlign as string) ?? 'left';
   const WidgetIcon = getWidgetIcon(o.icon as string | undefined, Music);
   const iconSize   = (o.iconSize  as number) || 36;
 
@@ -318,26 +316,22 @@ export function MediaplayerWidget({ config }: WidgetProps) {
         )}
 
         {/* Titel + Untertitel */}
-        {(showTitle || (showSubtitle && subtitle) || (showSource && sourceStr)) && (
-          <div className="shrink-0 space-y-0.5 text-center min-w-0">
-            {showTitle && (
-              <p className="text-base font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
-                {titleStr || '–'}
-              </p>
-            )}
-            {showSubtitle && subtitle && (
-              <p className="text-sm truncate" style={{ color: 'var(--text-secondary)' }}>
-                {subtitle}
-              </p>
-            )}
-            {showSource && sourceStr && (
-              <p className="flex items-center justify-center gap-1 text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
-                <Speaker size={12} />
-                {sourceStr}
-              </p>
-            )}
-          </div>
-        )}
+        <div className="shrink-0 space-y-0.5 text-center min-w-0">
+          <p className="text-base font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+            {titleStr || '–'}
+          </p>
+          {showSubtitle && subtitle && (
+            <p className="text-sm truncate" style={{ color: 'var(--text-secondary)' }}>
+              {subtitle}
+            </p>
+          )}
+          {showSource && sourceStr && (
+            <p className="flex items-center justify-center gap-1 text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
+              <Speaker size={12} />
+              {sourceStr}
+            </p>
+          )}
+        </div>
 
         {/* Fortschritt */}
         {showProgress && (
@@ -417,11 +411,9 @@ export function MediaplayerWidget({ config }: WidgetProps) {
 
           {/* Title + Artist */}
           <div className="flex flex-col flex-1 min-w-0 leading-tight">
-            {showTitle && (
-              <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
-                {titleStr || '–'}
-              </p>
-            )}
+            <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+              {titleStr || '–'}
+            </p>
             {showSubtitle && subtitle && (
               <p className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
                 {subtitle}
@@ -480,11 +472,9 @@ export function MediaplayerWidget({ config }: WidgetProps) {
         <div className="flex flex-col flex-1 min-w-0 gap-1 min-h-0">
           {/* Track info */}
           <div className="shrink-0 space-y-0.5 min-w-0">
-            {showTitle && (
-              <p className="text-sm font-semibold truncate leading-snug" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
-                {titleStr || '–'}
-              </p>
-            )}
+            <p className="text-sm font-semibold truncate leading-snug" style={{ color: 'var(--text-primary)' }}>
+              {titleStr || '–'}
+            </p>
             {showSubtitle && subtitle && (
               <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
                 {subtitle}
