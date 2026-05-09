@@ -3413,7 +3413,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     : config.type === 'html'
                     ? []
                     : config.type === 'header'
-                    ? []
+                    ? [{ key: 'showSubtitle', label: 'Untertitel' }]
                     : config.type === 'group'
                     ? []
                     : [] as { key: string; label: string }[]
