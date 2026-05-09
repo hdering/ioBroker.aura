@@ -16,7 +16,7 @@ import { cloneGroupDef, useGroupDefsStore } from '../../store/groupDefsStore';
 import { useConfigStore } from '../../store/configStore';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
-import type { WidgetConfig, WidgetCondition, CustomCell, CustomGrid, WidgetType, ClickAction } from '../../types';
+import type { WidgetConfig, WidgetCondition, CustomCell, CustomGrid, WidgetType, ClickAction, WidgetLayout } from '../../types';
 import { DEFAULT_CUSTOM_GRID } from '../widgets/CustomGridView';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
@@ -2364,12 +2364,19 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   // Ebene 2: explicit widget-level action (stored in options.clickAction)
   // Ebene 1: type default → resolve via popupConfigStore when no explicit action
   const popupTypeDefaults = usePopupConfigStore((s) => s.typeDefaults);
+  const popupTypeDefaultLayouts = usePopupConfigStore((s) => s.typeDefaultLayouts);
   const storedClickAction = config.options?.clickAction as ClickAction | undefined;
   const rawClickAction = storedClickAction ?? { kind: 'none' as const };
   const clickAction: ClickAction = (() => {
     if (storedClickAction === undefined) {
       const viewId = popupTypeDefaults[config.type];
-      if (viewId) return { kind: 'popup-view', viewId };
+      if (viewId) {
+        const allowed = popupTypeDefaultLayouts[config.type];
+        const wl = currentLayout as WidgetLayout;
+        if (!allowed?.length || allowed.includes(wl)) {
+          return { kind: 'popup-view', viewId };
+        }
+      }
     }
     return rawClickAction;
   })();

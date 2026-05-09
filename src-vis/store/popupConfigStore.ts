@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { managedStorage } from './persistManager';
-import type { WidgetConfig } from '../types';
+import type { WidgetConfig, WidgetLayout } from '../types';
 
 export interface PopupView {
   id: string;
@@ -83,13 +83,15 @@ export const BUILTIN_VIEW_IDS = new Set(BUILTIN_VIEWS.map((v) => v.id));
 // ── Store ─────────────────────────────────────────────────────────────────────
 
 interface PopupConfigState {
-  typeDefaults: Record<string, string>;  // WidgetType → viewId
+  typeDefaults: Record<string, string>;              // WidgetType → viewId
+  typeDefaultLayouts: Record<string, WidgetLayout[]>; // WidgetType → allowed layouts (empty = all)
   views: PopupView[];
   deletedBuiltinIds: string[];           // builtin IDs the user explicitly deleted
   removedBuiltinTypeDefaults: string[];  // builtin widget types whose default was explicitly removed
 
   // Type defaults
   setTypeDefault: (widgetType: string, viewId: string) => void;
+  setTypeDefaultLayouts: (widgetType: string, layouts: WidgetLayout[]) => void;
   removeTypeDefault: (widgetType: string) => void;
 
   // Views
@@ -110,6 +112,7 @@ export const usePopupConfigStore = create<PopupConfigState>()(
   persist(
     (set) => ({
       typeDefaults: {},
+      typeDefaultLayouts: {},
       views: [],
       deletedBuiltinIds: [],
       removedBuiltinTypeDefaults: [],
@@ -117,13 +120,19 @@ export const usePopupConfigStore = create<PopupConfigState>()(
       setTypeDefault: (widgetType, viewId) =>
         set((s) => ({ typeDefaults: { ...s.typeDefaults, [widgetType]: viewId } })),
 
+      setTypeDefaultLayouts: (widgetType, layouts) =>
+        set((s) => ({ typeDefaultLayouts: { ...s.typeDefaultLayouts, [widgetType]: layouts } })),
+
       removeTypeDefault: (widgetType) =>
         set((s) => {
           const next = { ...s.typeDefaults };
           delete next[widgetType];
+          const nextLayouts = { ...s.typeDefaultLayouts };
+          delete nextLayouts[widgetType];
           const isBuiltin = widgetType in BUILTIN_TYPE_DEFAULTS;
           return {
             typeDefaults: next,
+            typeDefaultLayouts: nextLayouts,
             removedBuiltinTypeDefaults: isBuiltin && !s.removedBuiltinTypeDefaults.includes(widgetType)
               ? [...s.removedBuiltinTypeDefaults, widgetType]
               : s.removedBuiltinTypeDefaults,

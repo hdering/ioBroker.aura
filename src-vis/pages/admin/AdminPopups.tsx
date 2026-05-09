@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSuperAdmin } from '../../hooks/useSuperAdmin';
 import { Plus, Trash2, Check, Pencil, Layers, RotateCcw } from 'lucide-react';
 import { usePopupConfigStore, BUILTIN_VIEW_IDS, BUILTIN_VIEWS } from '../../store/popupConfigStore';
 import { WIDGET_REGISTRY } from '../../widgetRegistry';
+import type { WidgetLayout } from '../../types';
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 
@@ -14,6 +15,79 @@ const inputStyle: React.CSSProperties = {
   border: '1px solid var(--app-border)',
 };
 const labelStyle: React.CSSProperties = { color: 'var(--text-secondary)' };
+
+// ── Layout labels ─────────────────────────────────────────────────────────────
+
+const LAYOUT_LABELS: Record<string, string> = {
+  default: 'Standard', card: 'Karte', compact: 'Kompakt', minimal: 'Minimal',
+  agenda: 'Agenda', flow: 'Flow', battery: 'Batterie', production: 'Produktion',
+  consumption: 'Verbrauch', loadpoints: 'Ladepunkte', custom: 'Benutzerdef.', count: 'Anzahl',
+};
+const ALL_LAYOUTS = Object.keys(LAYOUT_LABELS) as WidgetLayout[];
+
+// ── Layout multi-picker ───────────────────────────────────────────────────────
+
+function LayoutPicker({ value, onChange }: { value: WidgetLayout[]; onChange: (v: WidgetLayout[]) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const toggle = (layout: WidgetLayout) => {
+    onChange(value.includes(layout) ? value.filter((l) => l !== layout) : [...value, layout]);
+  };
+
+  const label = value.length === 0
+    ? 'Alle Layouts'
+    : value.map((l) => LAYOUT_LABELS[l] ?? l).join(', ');
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full text-left text-xs rounded-lg px-2.5 py-2 focus:outline-none truncate"
+        style={{ background: 'var(--app-bg)', color: value.length ? 'var(--text-primary)' : 'var(--text-secondary)', border: '1px solid var(--app-border)', minWidth: 0 }}
+        title={label}
+      >
+        {label}
+      </button>
+      {open && (
+        <div
+          className="absolute z-50 left-0 top-full mt-1 rounded-xl p-2 grid grid-cols-2 gap-1"
+          style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', minWidth: 220, boxShadow: '0 4px 16px rgba(0,0,0,.18)' }}
+        >
+          <button
+            className="col-span-2 text-left text-[11px] px-2 py-1 rounded-lg hover:opacity-80 font-medium"
+            style={{ color: value.length === 0 ? 'var(--accent)' : 'var(--text-secondary)', background: value.length === 0 ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent' }}
+            onClick={() => onChange([])}
+          >
+            Alle Layouts (kein Filter)
+          </button>
+          {ALL_LAYOUTS.map((l) => (
+            <button
+              key={l}
+              onClick={() => toggle(l)}
+              className="flex items-center gap-1.5 text-left text-[11px] px-2 py-1 rounded-lg hover:opacity-80"
+              style={{ background: value.includes(l) ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent', color: value.includes(l) ? 'var(--accent)' : 'var(--text-primary)' }}
+            >
+              <span className="w-3 h-3 rounded flex items-center justify-center shrink-0" style={{ border: `1.5px solid ${value.includes(l) ? 'var(--accent)' : 'var(--app-border)'}`, background: value.includes(l) ? 'var(--accent)' : 'transparent' }}>
+                {value.includes(l) && <Check size={8} strokeWidth={3} style={{ color: '#fff' }} />}
+              </span>
+              {LAYOUT_LABELS[l]}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── PopupView picker ──────────────────────────────────────────────────────────
 
@@ -239,7 +313,7 @@ function PopupViewsSection() {
 // ── Type defaults section ─────────────────────────────────────────────────────
 
 function TypeDefaultsSection() {
-  const { typeDefaults, setTypeDefault, removeTypeDefault } = usePopupConfigStore();
+  const { typeDefaults, typeDefaultLayouts, setTypeDefault, setTypeDefaultLayouts, removeTypeDefault } = usePopupConfigStore();
   const [adding, setAdding] = useState(false);
   const [newType, setNewType] = useState('');
   const [newViewId, setNewViewId] = useState('');
@@ -273,9 +347,9 @@ function TypeDefaultsSection() {
       <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
         <div
           className="grid gap-3 px-4 py-2 text-[11px] font-medium"
-          style={{ gridTemplateColumns: '160px 1fr 28px', background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)', color: 'var(--text-secondary)' }}
+          style={{ gridTemplateColumns: '130px 1fr 1fr 28px', background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)', color: 'var(--text-secondary)' }}
         >
-          <span>Widget-Typ</span><span>Popup-View</span><span />
+          <span>Widget-Typ</span><span>Popup-View</span><span>Nur für Layouts</span><span />
         </div>
 
         {configuredTypes.length === 0 && !adding && (
@@ -290,10 +364,14 @@ function TypeDefaultsSection() {
             <div
               key={wType}
               className="grid items-center gap-3 px-4 py-2"
-              style={{ gridTemplateColumns: '160px 1fr 28px', borderBottom: '1px solid var(--app-border)', background: 'var(--app-bg)' }}
+              style={{ gridTemplateColumns: '130px 1fr 1fr 28px', borderBottom: '1px solid var(--app-border)', background: 'var(--app-bg)' }}
             >
               <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{meta?.label ?? wType}</span>
               <ViewSelect value={typeDefaults[wType]} onChange={(v) => setTypeDefault(wType, v)} />
+              <LayoutPicker
+                value={typeDefaultLayouts[wType] ?? []}
+                onChange={(v) => setTypeDefaultLayouts(wType, v)}
+              />
               <button
                 onClick={() => removeTypeDefault(wType)}
                 className="flex items-center justify-center w-7 h-7 rounded-lg hover:opacity-80 transition-opacity"
@@ -308,13 +386,14 @@ function TypeDefaultsSection() {
         {adding && (
           <div
             className="grid items-center gap-3 px-4 py-2"
-            style={{ gridTemplateColumns: '160px 1fr 28px', background: 'var(--app-bg)' }}
+            style={{ gridTemplateColumns: '130px 1fr 1fr 28px', background: 'var(--app-bg)' }}
           >
             <select value={newType} onChange={(e) => setNewType(e.target.value)} className={inputCls} style={inputStyle}>
               <option value="">— Typ wählen —</option>
               {availableTypes.map((m) => <option key={m.type} value={m.type}>{m.label}</option>)}
             </select>
             <ViewSelect value={newViewId} onChange={setNewViewId} />
+            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>nach Speichern konfigurierbar</span>
             <button
               onClick={handleAdd}
               disabled={!newType}
