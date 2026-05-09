@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { RefreshCw, Filter } from 'lucide-react';
+import { RefreshCw, Filter, List } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { getObjectViewDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
@@ -537,12 +537,14 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     return result;
   }, [entries, states, valueFilter, editMode, opts.sortBy, opts.sortOrder, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const hideTitle  = !!(config.options as Record<string, unknown>)?.hideTitle;
-  const showTitle  = opts.showTitle !== false && !hideTitle;
-  const titleAlign = ((config.options as Record<string, unknown>)?.titleAlign as string) ?? 'left';
-  const showCount = opts.showCount !== false;
-  const showLastChange = !!(config.options as Record<string, unknown>)?.showLastChange;
-  const lastChangePos  = ((config.options as Record<string, unknown>)?.lastChangePosition as string) ?? 'left';
+  const o = config.options ?? {};
+  const showTitle  = opts.showTitle !== false;
+  const showIcon   = o.showIcon   !== false;
+  const iconSize   = (o.iconSize   as number) || 36;
+  const titleAlign = (o.titleAlign as string) ?? 'left';
+  const showCount  = opts.showCount !== false;
+  const showLastChange = !!o.showLastChange;
+  const lastChangePos  = (o.lastChangePosition as string) ?? 'left';
 
   const lcOverlay = showLastChange && lastChangedTs > 0 ? (() => {
     const text = formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lastChangedTs);
@@ -559,23 +561,26 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     );
   })() : null;
 
-  const globalThresholds = (config.options as Record<string, unknown>)?.colorThresholds as [number, string][] | undefined;
-  const iconName = (config.options as Record<string, unknown>)?.icon as string | undefined;
-  const HeaderIcon = iconName ? getWidgetIcon(iconName, null!) : null;
+  const globalThresholds = o.colorThresholds as [number, string][] | undefined;
+  const HeaderIcon = getWidgetIcon(o.icon as string | undefined, List);
 
   // ── Shared header ──────────────────────────────────────────────────────────
-  const header = showTitle ? (
+  const header = (showTitle || showIcon) ? (
     <div className="shrink-0 px-3 py-1.5 flex items-center justify-between"
       style={{ borderBottom: '1px solid var(--widget-border)' }}>
-      <span className="flex items-center gap-1.5 text-xs font-semibold truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>
-        {HeaderIcon && <HeaderIcon size={12} className="shrink-0" />}
-        {config.title || 'Dynamische Liste'}
-        {showCount && entries.length > 0 && (
-          <span className="ml-1 opacity-50">
-            ({valueFilter !== 'all' ? `${visibleEntries.length}/` : ''}{entries.length})
-          </span>
+      <div className="flex items-center gap-1.5 min-w-0 flex-1">
+        {showIcon && <HeaderIcon size={iconSize} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
+        {showTitle && (
+          <p className="text-xs font-semibold truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+            {config.title || 'Dynamische Liste'}
+            {showCount && entries.length > 0 && (
+              <span className="ml-1 opacity-50">
+                ({valueFilter !== 'all' ? `${visibleEntries.length}/` : ''}{entries.length})
+              </span>
+            )}
+          </p>
         )}
-      </span>
+      </div>
       <div className="flex items-center gap-1 shrink-0">
         <div className="relative">
           <button
@@ -636,7 +641,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const count = valueFilter === 'all' || editMode ? entries.length : visibleEntries.length;
     return (
       <div className="relative flex flex-col items-center justify-center h-full gap-1">
-        {HeaderIcon && <HeaderIcon size={20} style={{ color: 'var(--text-secondary)', opacity: 0.7 }} />}
+        {showIcon && <HeaderIcon size={iconSize} style={{ color: 'var(--text-secondary)', opacity: 0.7 }} />}
         <span className="font-bold tabular-nums leading-none" style={{ fontSize: 48, color: 'var(--text-primary)' }}>
           {count}
         </span>
