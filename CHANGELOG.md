@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.28 (2026-05-09)
+
+- fix: barTrack height in DimmerWidget default/compact/minimal/card layouts
+- feat: add Bar-Stil to DimmerWidget (copied from SliderWidget)
+
 ## v0.6.27 (2026-05-09)
 
 - fix: remove unused editMode param from ThermostatWidget
@@ -298,6 +303,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
