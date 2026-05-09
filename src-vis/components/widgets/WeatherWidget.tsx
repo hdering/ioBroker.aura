@@ -130,7 +130,7 @@ export function WeatherWidget({ config }: WidgetProps) {
   const layout           = config.layout ?? 'default';
   const showTitle        = opts.showTitle !== false;
   const showIcon         = opts.showIcon  !== false;
-  const iconSize         = (opts.iconSize as number) || 36;
+  const iconSize         = (opts.iconSize as number) || 20;
   const titleAlign       = (opts.titleAlign as string) ?? 'left';
   const WidgetIcon       = getWidgetIcon(opts.icon as string | undefined, Cloud);
 

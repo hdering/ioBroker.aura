@@ -44,7 +44,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
   const showIcon   = o.showIcon   !== false;
   const titleAlign = (o.titleAlign as string) ?? 'left';
   const ThermoIcon = getWidgetIcon(o.icon as string | undefined, Thermometer);
-  const iconSize   = (o.iconSize as number) || 36;
+  const iconSize   = (o.iconSize as number) || 20;
   const { defaultDecimals } = useGlobalSettingsStore();
   const decimals = (o.decimals as number) ?? defaultDecimals;
 

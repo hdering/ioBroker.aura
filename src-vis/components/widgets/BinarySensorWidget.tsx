@@ -41,7 +41,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
   const showIcon   = opts.showIcon  !== false;
   const titleAlign = (opts.titleAlign as string) ?? 'left';
   const showLabel = opts.showLabel !== false;
-  const iconSize  = (opts.iconSize as number) || 36;
+  const iconSize  = (opts.iconSize as number) || 20;
 
   const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 

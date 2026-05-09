@@ -50,6 +50,7 @@ export interface AutoListOptions {
   sortBy?: 'none' | 'label' | 'value';
   sortOrder?: 'asc' | 'desc';
   filterAdapters?: string;
+  cardMinWidth?: number;
 }
 
 export interface DiscoveredDp {
@@ -540,7 +541,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
   const o = config.options ?? {};
   const showTitle  = opts.showTitle !== false;
   const showIcon   = o.showIcon   !== false;
-  const iconSize   = (o.iconSize   as number) || 36;
+  const iconSize   = (o.iconSize   as number) || 20;
   const titleAlign = (o.titleAlign as string) ?? 'left';
   const showCount  = opts.showCount !== false;
   const showLastChange = !!o.showLastChange;
@@ -663,7 +664,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         {empty}
         {visibleEntries.length > 0 && (
           <div className="aura-scroll flex-1 overflow-auto min-h-0 p-2"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 6, alignContent: 'start' }}>
+            style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${opts.cardMinWidth ?? 90}px, 1fr))`, gap: 6, alignContent: 'start' }}>
             {visibleEntries.map(entry => {
               const state = states[entry.id] ?? null;
               const label = getLabel(entry);

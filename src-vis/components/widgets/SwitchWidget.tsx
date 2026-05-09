@@ -38,7 +38,7 @@ export function SwitchWidget({ config }: WidgetProps) {
   const showLabel = o.showLabel !== false;
   const showIcon  = o.showIcon  !== false;
 
-  const iconSize = (o.iconSize as number) || 36;
+  const iconSize = (o.iconSize as number) || 20;
   const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
   if (layout === 'custom') return (

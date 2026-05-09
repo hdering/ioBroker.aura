@@ -139,7 +139,7 @@ export function ShutterWidget({ config }: WidgetProps) {
   const showSlider    = opts.showSlider    !== false;
   const showIcon      = opts.showIcon      !== false;
   const sendOnRelease = opts.sendOnRelease !== false;
-  const iconSize      = (opts.iconSize as number) || 36;
+  const iconSize      = (opts.iconSize as number) || 20;
 
   const [dragPos, setDragPos] = useState<number | null>(null);
   const displayPos = dragPos ?? pos;

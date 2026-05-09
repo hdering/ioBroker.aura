@@ -127,7 +127,7 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
   const TitleIcon   = getWidgetIcon(o.icon as string | undefined, CalendarCheck2);
   const showTitle   = o.showTitle  !== false;
   const showIcon    = o.showIcon   !== false;
-  const iconSize    = (o.iconSize  as number) || 36;
+  const iconSize    = (o.iconSize  as number) || 20;
   const titleAlign  = (o.titleAlign as string) ?? 'left';
   const hiddenNames  = (o.hiddenNames  as string[] | undefined)  ?? [];
   const iconMap      = (o.iconMap      as Record<string, string> | undefined) ?? {};

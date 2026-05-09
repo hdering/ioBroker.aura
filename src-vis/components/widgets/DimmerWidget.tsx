@@ -22,7 +22,7 @@ export function DimmerWidget({ config }: WidgetProps) {
   const showToggle     = o.showToggle     === true;
   const showIcon       = o.showIcon       !== false;
   const sendOnRelease  = o.sendOnRelease  !== false;
-  const iconSize       = (o.iconSize as number) || 36;
+  const iconSize       = (o.iconSize as number) || 20;
   const barStyle       = !!o.barStyle;
   const barSize        = (o.barSize as number) ?? 100;
 

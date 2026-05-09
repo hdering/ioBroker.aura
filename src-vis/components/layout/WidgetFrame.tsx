@@ -3277,7 +3277,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             {/* Icon-Größe */}
             {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group', 'mediaplayer', 'shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'climate'].includes(config.type) && (() => {
               const o = config.options ?? {};
-              const iconSize = (o.iconSize as number) || 36;
+              const iconSize = (o.iconSize as number) || 20;
               const displayIconSize = draftIconSize ?? iconSize;
               return (
                 <div>
@@ -3309,7 +3309,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             const CurrentIcon = currentIconName
               ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))
               : null;
-            const displayIconSize = draftIconSize ?? ((o.iconSize as number) || 36);
+            const displayIconSize = draftIconSize ?? ((o.iconSize as number) || 20);
             return (
               <details className="group">
                 <summary className="flex items-center justify-between cursor-pointer list-none select-none">

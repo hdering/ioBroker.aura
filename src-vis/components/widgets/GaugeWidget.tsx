@@ -235,7 +235,7 @@ export function GaugeWidget({ config }: WidgetProps) {
   const titleAlign = (opts.titleAlign as string) ?? 'left';
   const showTitle = opts.showTitle !== false;
   const showIcon  = opts.showIcon  !== false;
-  const iconSize  = (opts.iconSize  as number) || 36;
+  const iconSize  = (opts.iconSize  as number) || 20;
   const GaugeIcon = getWidgetIcon(opts.icon as string | undefined, Gauge);
 
   return (

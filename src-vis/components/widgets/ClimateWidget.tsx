@@ -53,7 +53,7 @@ export function ClimateWidget({ config }: WidgetProps) {
   const humidityUnit    = (o.humidityUnit as string | undefined) ?? '%';
   const lineColor       = (o.lineColor as string | undefined) ?? 'var(--accent)';
   const showIcon        = o.showIcon  !== false;
-  const iconSize        = (o.iconSize as number) || 36;
+  const iconSize        = (o.iconSize as number) || 20;
   const titleAlign      = (o.titleAlign as string) ?? 'left';
   const historyInstance = (o.historyInstance as string | undefined);
   const cfgRange        = (o.historyRange as ChartTimeRange | undefined) ?? '24h';

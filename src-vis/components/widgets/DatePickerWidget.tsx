@@ -84,7 +84,7 @@ export function DatePickerWidget({ config }: WidgetProps) {
   const titleAlign  = (o.titleAlign as string) ?? 'left';
   const showCurrent = o.showCurrentValue !== false;
   const layout      = config.layout ?? 'default';
-  const iconSize    = (o.iconSize as number) || 36;
+  const iconSize    = (o.iconSize as number) || 20;
   const defaultIcon = timeOnly ? Clock : showTime ? CalendarClock : CalendarDays;
   const WidgetIcon  = getWidgetIcon(o.icon as string | undefined, defaultIcon);
 

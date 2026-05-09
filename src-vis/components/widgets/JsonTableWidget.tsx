@@ -84,7 +84,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
   const autoHeight     = (opts.autoHeight     as boolean) ?? false;
   const showTitle      = opts.showTitle !== false;
   const showIcon       = opts.showIcon  !== false;
-  const iconSize       = (opts.iconSize  as number) || 36;
+  const iconSize       = (opts.iconSize  as number) || 20;
   const titleAlign     = (opts.titleAlign     as string)  ?? 'left';
   const WidgetIcon     = getWidgetIcon(opts.icon as string | undefined, Table2);
   const [query, setQuery] = useState('');

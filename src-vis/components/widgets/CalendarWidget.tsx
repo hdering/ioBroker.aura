@@ -274,7 +274,7 @@ export function CalendarWidget({ config }: WidgetProps) {
 
   const showTitle  = options.showTitle !== false;
   const showIcon   = options.showIcon  !== false;
-  const iconSize   = (options.iconSize as number) || 36;
+  const iconSize   = (options.iconSize as number) || 20;
   const titleAlign = (options.titleAlign as string) ?? 'left';
   const WidgetIcon = getWidgetIcon(options.icon as string | undefined, CalendarDays);
 

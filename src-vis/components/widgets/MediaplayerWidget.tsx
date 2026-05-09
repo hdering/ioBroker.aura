@@ -276,7 +276,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
 
   const showIcon   = o.showIcon   !== false;
   const WidgetIcon = getWidgetIcon(o.icon as string | undefined, Music);
-  const iconSize   = (o.iconSize  as number) || 36;
+  const iconSize   = (o.iconSize  as number) || 20;
 
   // ── CUSTOM ───────────────────────────────────────────────────────────────────
   if (layout === 'custom') {

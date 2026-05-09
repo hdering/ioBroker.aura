@@ -46,7 +46,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const transparent = !!(config.options?.transparent);
   const showTitle  = config.options?.showTitle  !== false;
   const showIcon   = config.options?.showIcon   !== false;
-  const iconSize   = (config.options?.iconSize  as number | undefined) || 36;
+  const iconSize   = (config.options?.iconSize  as number | undefined) || 20;
   const WidgetIcon = getWidgetIcon(config.options?.icon as string | undefined, Layers);
   const cellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);
   const gridGap  = useConfigStore((s) => s.frontend.gridGap ?? 10);

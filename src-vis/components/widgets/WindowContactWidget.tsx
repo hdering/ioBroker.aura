@@ -125,7 +125,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
   const showIcon   = o.showIcon  !== false;
   const titleAlign = (o.titleAlign as string) ?? 'left';
   const showLabel = o.showLabel !== false;
-  const iconSize  = (o.iconSize as number) || 36;
+  const iconSize  = (o.iconSize as number) || 20;
 
   const cfg = getWcCfg(o, state);
   const fb  = WC_FALLBACK[state];

@@ -663,7 +663,7 @@ export function EvccWidget({ config }: WidgetProps) {
   const layout        = config.layout ?? 'default';
   const showTitle     = o.showTitle !== false;
   const showIcon      = o.showIcon  !== false;
-  const iconSize      = (o.iconSize   as number) || 36;
+  const iconSize      = (o.iconSize   as number) || 20;
   const titleAlign    = (o.titleAlign as string) ?? 'left';
   const WidgetIcon    = getWidgetIcon(o.icon as string | undefined, Zap);
 

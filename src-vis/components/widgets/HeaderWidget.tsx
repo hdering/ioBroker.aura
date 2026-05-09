@@ -12,7 +12,7 @@ export function HeaderWidget({ config }: Props) {
   const showTitle   = opts.showTitle   !== false;
   const showSubtitle = opts.showSubtitle !== false;
   const showIcon    = opts.showIcon    !== false;
-  const iconSize    = (opts.iconSize   as number) || 36;
+  const iconSize    = (opts.iconSize   as number) || 20;
   const titleAlign  = (opts.titleAlign as string) ?? 'left';
   const WidgetIcon  = getWidgetIcon(opts.icon as string | undefined, Heading2);
   const layout      = config.layout ?? 'default';

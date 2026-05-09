@@ -32,7 +32,7 @@ export function ChartWidget({ config }: WidgetProps) {
   const o               = config.options ?? {};
   const showTitle       = o.showTitle !== false;
   const showIcon        = o.showIcon  !== false;
-  const iconSize        = (o.iconSize  as number) || 36;
+  const iconSize        = (o.iconSize  as number) || 20;
   const { defaultDecimals } = useGlobalSettingsStore();
   const decimals        = (o.decimals as number) ?? defaultDecimals;
   const unit            = (o.unit as string | undefined);

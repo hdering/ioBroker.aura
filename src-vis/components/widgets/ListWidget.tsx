@@ -275,7 +275,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const o = config.options ?? {};
   const showTitle  = opts.showTitle !== false;
   const showIcon   = o.showIcon   !== false;
-  const iconSize   = (o.iconSize   as number) || 36;
+  const iconSize   = (o.iconSize   as number) || 20;
   const titleAlign = (o.titleAlign as string) ?? 'left';
   const showCount  = opts.showCount !== false;
   const showLastChange = !!o.showLastChange;
