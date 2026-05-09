@@ -306,15 +306,19 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const header = (showTitle || showIcon) ? (
     <div className="shrink-0 flex items-center justify-between px-3 py-1.5"
       style={{ borderBottom: '1px solid var(--widget-border)' }}>
-      <span className="flex items-center gap-1.5 text-xs font-semibold truncate min-w-0 flex-1" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
-        {showIcon && <HeaderIcon size={iconSize} className="shrink-0" />}
-        {showTitle && (config.title || 'Statische Liste')}
-        {showTitle && showCount && entries.length > 0 && (
-          <span className="ml-1 opacity-50">
-            ({valueFilter !== 'all' ? `${visibleEntries.length}/` : ''}{entries.length})
-          </span>
+      <div className="flex items-center gap-1.5 min-w-0 flex-1">
+        {showIcon && <HeaderIcon size={iconSize} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
+        {showTitle && (
+          <p className="text-xs font-semibold truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+            {config.title || 'Statische Liste'}
+            {showCount && entries.length > 0 && (
+              <span className="ml-1 opacity-50">
+                ({valueFilter !== 'all' ? `${visibleEntries.length}/` : ''}{entries.length})
+              </span>
+            )}
+          </p>
         )}
-      </span>
+      </div>
       <div className="relative shrink-0">
         <button
           onClick={() => setShowFilter(v => !v)}
