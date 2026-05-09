@@ -38,6 +38,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
   const color = isActive ? colorOn : colorOff;
   const Icon = getWidgetIcon(opts.icon as string | undefined, isActive ? ShieldAlert : CheckCircle2);
   const showTitle  = opts.showTitle !== false;
+  const showIcon   = opts.showIcon  !== false;
   const titleAlign = (opts.titleAlign as string) ?? 'left';
   const showLabel = opts.showLabel !== false;
   const iconSize  = (opts.iconSize as number) || 36;
@@ -76,7 +77,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
             : 'var(--app-bg)',
           border: `2px solid ${color}`,
         }}>
-        <Icon size={iconSize} style={{ color: isActive ? '#fff' : color }} />
+        {showIcon && <Icon size={iconSize} style={{ color: isActive ? '#fff' : color }} />}
         <div className="text-center">
           {showTitle && <p className="font-bold text-sm" style={{ color: isActive ? '#fff' : 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           {showLabel && <p className="text-xs opacity-80" style={{ color: isActive ? '#fff' : color }}>{label}</p>}
@@ -90,7 +91,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
   if (layout === 'compact') {
     return (
       <div className="flex items-center gap-2 h-full" style={{ position: 'relative' }}>
-        <Icon size={iconSize} style={{ color, flexShrink: 0 }} />
+        {showIcon && <Icon size={iconSize} style={{ color, flexShrink: 0 }} />}
         {showTitle && (
           <span className="flex-1 text-sm truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
             {config.title}
@@ -112,7 +113,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
   if (layout === 'minimal') {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-1" style={{ position: 'relative' }}>
-        <Icon size={iconSize} style={{ color }} />
+        {showIcon && <Icon size={iconSize} style={{ color }} />}
         {showLabel && <span className="text-xs font-medium" style={{ color }}>{label}</span>}
         {showTitle && <span className="text-[10px]" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
         <StatusBadges config={config} />
@@ -125,10 +126,10 @@ export function BinarySensorWidget({ config }: WidgetProps) {
 
   return (
     <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
-      {showTitle && (
+      {(showTitle || showIcon) && (
         <div className="flex items-center gap-2">
-          <Icon size={iconSize} style={{ color, flexShrink: 0 }} />
-          <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>
+          {showIcon && <Icon size={iconSize} style={{ color, flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
       {showLabel && <span className="text-2xl font-bold" style={{ color }}>{label}</span>}
