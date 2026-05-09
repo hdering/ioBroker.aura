@@ -7,6 +7,7 @@ import type { WidgetProps } from '../../types';
 import { CustomGridView } from './CustomGridView';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -35,13 +36,17 @@ function deepMerge(
   return result;
 }
 
-export function EChartWidget({ config, editMode }: WidgetProps) {
+export function EChartWidget({ config }: WidgetProps) {
   const { subscribe, connected } = useIoBroker();
 
   const layout = config.layout ?? 'default';
 
   const o = config.options ?? {};
-  const showTitle = o.showTitle !== false;
+  const showTitle  = o.showTitle !== false;
+  const showIcon   = o.showIcon  !== false;
+  const iconSize   = (o.iconSize  as number) || 36;
+  const titleAlign = (o.titleAlign as string) ?? 'left';
+  const WidgetIcon = getWidgetIcon(o.icon as string | undefined, BarChart2);
   const { defaultDecimals } = useGlobalSettingsStore();
   const decimals = (o.decimals as number) ?? defaultDecimals;
   const echartSeries = (o.echartSeries as EChartSeriesConfig[] | undefined) ?? [];
@@ -130,20 +135,23 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     }
 
     return (
-      <div ref={containerRef} className="relative w-full h-full">
-        {editMode && showTitle && config.title && (
-          <span className="absolute top-1 left-2 text-[10px] font-medium z-10" style={{ color: 'var(--text-secondary)' }}>
-            {config.title}
-          </span>
+      <div ref={containerRef} className="flex flex-col w-full h-full">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
         )}
-        {hasSize && (
-          <ReactECharts
-            ref={chartRef}
-            option={mergedGauge}
-            style={{ width: '100%', height: '100%' }}
-            opts={{ renderer: 'canvas' }}
-          />
-        )}
+        <div className="flex-1 relative min-h-0">
+          {hasSize && (
+            <ReactECharts
+              ref={chartRef}
+              option={mergedGauge}
+              style={{ width: '100%', height: '100%' }}
+              opts={{ renderer: 'canvas' }}
+            />
+          )}
+        </div>
       </div>
     );
   }
@@ -253,12 +261,14 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
   }
 
   return (
-    <div ref={containerRef} className="relative w-full h-full">
-      {editMode && config.title && (
-        <span className="absolute top-1 left-2 text-[10px] font-medium z-10" style={{ color: 'var(--text-secondary)' }}>
-          {config.title}
-        </span>
+    <div ref={containerRef} className="flex flex-col w-full h-full">
+      {(showTitle || showIcon) && (
+        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+        </div>
       )}
+      <div className="flex-1 relative min-h-0">
       {allLoading && (
         <div className="absolute inset-0 flex items-center justify-center" style={{ color: 'var(--text-secondary)' }}>
           <Loader size={20} className="animate-spin" />
@@ -278,6 +288,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
           opts={{ renderer: 'canvas' }}
         />
       )}
+      </div>
     </div>
   );
 }
