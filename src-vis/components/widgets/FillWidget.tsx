@@ -1,10 +1,11 @@
 import { useId } from 'react';
-import { Droplets } from 'lucide-react'; // used in no-datapoint placeholder
+import { Droplets } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 import { CustomGridView } from './CustomGridView';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 export interface ColorZone { max: number; color: string; }
 
@@ -501,17 +502,21 @@ export function FillWidget({ config }: WidgetProps) {
   };
 
   const showTitle  = opts.showTitle  !== false;
+  const showIcon   = opts.showIcon   !== false;
+  const iconSize   = (opts.iconSize  as number) || 36;
   const titleAlign = (opts.titleAlign as string) ?? 'left';
+  const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, Droplets);
 
   if (layout === 'custom') return <CustomGridView config={config} value={value !== null ? formatNum(safeVal, decimals) : '–'} unit={unit} />;
 
   if (layout === 'battery') {
     return (
       <div className="flex flex-col h-full">
-        {showTitle && config.title && (
-          <p className="text-xs mb-1 truncate shrink-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
-            {config.title}
-          </p>
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
         )}
         <div className="flex-1 flex items-center justify-center min-h-0 min-w-0" style={{ padding: '4px 0' }}>
           <div style={orientation === 'vertical' ? { width: `${barSize}%`, height: '100%' } : { width: '100%', height: `${barSize}%` }}>
@@ -529,10 +534,11 @@ export function FillWidget({ config }: WidgetProps) {
   if (layout === 'segments') {
     return (
       <div className="flex flex-col h-full">
-        {showTitle && config.title && (
-          <p className="text-xs mb-1 truncate shrink-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
-            {config.title}
-          </p>
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
         )}
         <div className="flex-1 flex items-center justify-center min-h-0 min-w-0">
           <div style={orientation === 'vertical' ? { width: `${barSize}%`, height: '100%' } : { width: '100%', height: `${barSize}%` }}>
@@ -550,10 +556,11 @@ export function FillWidget({ config }: WidgetProps) {
   if (layout === 'wave') {
     return (
       <div className="flex flex-col h-full">
-        {showTitle && config.title && (
-          <p className="text-xs mb-1 truncate shrink-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
-            {config.title}
-          </p>
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
         )}
         <div className="flex-1 flex items-center justify-center min-h-0 min-w-0">
           <div style={orientation === 'vertical' ? { width: `${barSize}%`, height: '100%' } : { width: '100%', height: `${barSize}%` }}>
@@ -569,24 +576,28 @@ export function FillWidget({ config }: WidgetProps) {
 
   if (!config.datapoint) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2"
-        style={{ color: 'var(--text-secondary)' }}>
-        <Droplets size={32} strokeWidth={1} />
-        <p className="text-xs text-center">
-          {config.title || 'Füllstand'}
-          <br />
-          <span className="text-[10px] opacity-60">Kein Datenpunkt konfiguriert</span>
-        </p>
+      <div className="flex flex-col h-full">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
+        )}
+        <div className="flex flex-col items-center justify-center flex-1 gap-2" style={{ color: 'var(--text-secondary)' }}>
+          <Droplets size={32} strokeWidth={1} />
+          <span className="text-xs opacity-60">Kein Datenpunkt konfiguriert</span>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col h-full">
-      {showTitle && config.title && (
-        <p className="text-xs mb-1 truncate shrink-0" style={{ color: 'var(--text-secondary)' }}>
-          {config.title}
-        </p>
+      {(showTitle || showIcon) && (
+        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+        </div>
       )}
       <div className="flex-1 flex items-center justify-center min-h-0 min-w-0">
         {orientation === 'vertical' ? (
