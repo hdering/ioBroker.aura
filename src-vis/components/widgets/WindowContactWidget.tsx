@@ -122,6 +122,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
 
   const layout    = config.layout ?? 'default';
   const showTitle  = o.showTitle !== false;
+  const showIcon   = o.showIcon  !== false;
   const titleAlign = (o.titleAlign as string) ?? 'left';
   const showLabel = o.showLabel !== false;
   const iconSize  = (o.iconSize as number) || 36;
@@ -190,7 +191,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
           background: `linear-gradient(135deg, ${cfg.color}, color-mix(in srgb, ${cfg.color} 60%, black))`,
           border: `2px solid ${cfg.color}`,
         }}>
-        <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />
+        {showIcon && <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />}
         <div className="text-center">
           {showTitle && <p className="font-bold text-sm" style={{ color: '#fff', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           {showLabel && <p className="text-xs opacity-80" style={{ color: '#fff' }}>{cfg.label}</p>}
@@ -204,7 +205,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
   if (layout === 'compact') {
     return (
       <div className="flex items-center gap-3 h-full" style={{ position: 'relative' }}>
-        <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />
+        {showIcon && <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />}
         {showTitle && (
           <span className="flex-1 text-sm font-medium truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
             {config.title}
@@ -226,7 +227,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
   if (layout === 'minimal') {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-1" style={{ position: 'relative' }}>
-        <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />
+        {showIcon && <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />}
         {showLabel && <span className="text-xs font-medium" style={{ color: cfg.color }}>{cfg.label}</span>}
         {showTitle && <span className="text-[10px]" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
         <StatusBadges config={config} />
@@ -239,10 +240,10 @@ export function WindowContactWidget({ config }: WidgetProps) {
 
   return (
     <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
-      {showTitle && (
+      {(showTitle || showIcon) && (
         <div className="flex items-center gap-2">
-          <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />
-          <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>
+          {showIcon && <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
       {showLabel && <span className="text-2xl font-bold" style={{ color: cfg.color }}>{cfg.label}</span>}
