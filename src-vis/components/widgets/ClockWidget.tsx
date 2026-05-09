@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { Clock } from 'lucide-react';
 import type { WidgetProps } from '../../types';
 import { useT } from '../../i18n';
 import { CustomGridView } from './CustomGridView';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 type TFn = ReturnType<typeof useT>;
 
@@ -49,11 +51,14 @@ export function ClockWidget({ config }: WidgetProps) {
   const opts = config.options ?? {};
   const display = (opts.display as string) ?? 'time';
   const showSeconds = Boolean(opts.showSeconds);
-  const showTitle = opts.showTitle !== false;
+  const showTitle  = opts.showTitle !== false;
+  const showIcon   = opts.showIcon  !== false;
+  const iconSize   = (opts.iconSize as number) || 36;
+  const titleAlign = (opts.titleAlign as string) ?? 'left';
+  const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, Clock);
   const dateLength = (opts.dateLength as 'short' | 'long') ?? 'short';
   const customFormat = opts.customFormat as string | undefined;
   const layout = config.layout ?? 'default';
-  const titleAlign = (opts.titleAlign as string) ?? 'left';
 
   const timeStr = formatTime(now, showSeconds);
   const customStr = customFormat ? applyCustomFormat(now, customFormat, t) : '';
@@ -116,7 +121,12 @@ export function ClockWidget({ config }: WidgetProps) {
           <p className="aura-clock-custom font-black tabular-nums text-center" style={{ color: 'var(--accent)', fontSize: 'calc(clamp(2rem, 6vw, 3.5rem) * var(--font-scale, 1))', lineHeight: 1.1 }}>
             {customStr}
           </p>
-          {showTitle && config.title && <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          {(showTitle || showIcon) && (
+            <div className="flex items-center gap-1 mt-1 min-w-0">
+              {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+              {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+            </div>
+          )}
         </div>
       );
     }
@@ -132,7 +142,12 @@ export function ClockWidget({ config }: WidgetProps) {
             <DateText date={now} length={dateLength} t={t} />
           </p>
         )}
-        {showTitle && config.title && <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 mt-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
+        )}
       </div>
     );
   }
@@ -141,8 +156,11 @@ export function ClockWidget({ config }: WidgetProps) {
   if (customFormat) {
     return (
       <div className="flex flex-col h-full justify-between">
-        {showTitle && config.title && (
-          <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
         )}
         <p className="aura-clock-custom text-3xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>{customStr}</p>
       </div>
@@ -151,8 +169,11 @@ export function ClockWidget({ config }: WidgetProps) {
 
   return (
     <div className="flex flex-col h-full justify-between">
-      {showTitle && config.title && (
-        <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>
+      {(showTitle || showIcon) && (
+        <div className="flex items-center gap-1 shrink-0 min-w-0">
+          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+        </div>
       )}
       <div>
         {display !== 'date' && (
