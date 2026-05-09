@@ -38,10 +38,17 @@ export function EChartsPresetWidget({ config, editMode }: WidgetProps) {
 
   if (!presetId) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2"
-        style={{ color: 'var(--text-secondary)' }}>
-        <BarChart2 size={28} strokeWidth={1.5} />
-        <span className="text-xs">Kein Preset konfiguriert</span>
+      <div className="flex flex-col h-full">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
+        )}
+        <div className="flex flex-col items-center justify-center flex-1 gap-2" style={{ color: 'var(--text-secondary)' }}>
+          <BarChart2 size={28} strokeWidth={1.5} />
+          <span className="text-xs">Kein Preset konfiguriert</span>
+        </div>
       </div>
     );
   }
