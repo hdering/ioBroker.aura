@@ -43,6 +43,7 @@ export function StateImageWidget({ config }: WidgetProps) {
   const layout = config.layout ?? 'default';
 
   const showTitle  = opts.showTitle !== false;
+  const showIcon   = opts.showIcon  !== false;
   const titleAlign = (opts.titleAlign as string) ?? 'left';
   const showLabel = opts.showLabel !== false;
   const iconSize  = (opts.iconSize as number) || 48;
@@ -89,7 +90,7 @@ export function StateImageWidget({ config }: WidgetProps) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center gap-2 rounded-widget"
         style={{ position: 'relative', background: 'var(--app-bg)', border: `2px solid ${cfg.color}` }}>
-        <StateDisplay cfg={cfg} size={iconSize} />
+        {showIcon && <StateDisplay cfg={cfg} size={iconSize} />}
         <div className="text-center">
           {showTitle && (
             <p className="font-bold text-sm" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>
@@ -107,7 +108,7 @@ export function StateImageWidget({ config }: WidgetProps) {
   if (layout === 'compact') {
     return (
       <div className="flex items-center gap-2 h-full" style={{ position: 'relative' }}>
-        <StateDisplay cfg={cfg} size={iconSize} />
+        {showIcon && <StateDisplay cfg={cfg} size={iconSize} />}
         {showTitle && (
           <span className="flex-1 text-sm truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
             {config.title}
@@ -129,7 +130,7 @@ export function StateImageWidget({ config }: WidgetProps) {
   if (layout === 'minimal') {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-1" style={{ position: 'relative' }}>
-        <StateDisplay cfg={cfg} size={iconSize} />
+        {showIcon && <StateDisplay cfg={cfg} size={iconSize} />}
         {showLabel && (
           <span className="text-xs font-medium" style={{ color: cfg.color }}>{cfg.label}</span>
         )}
@@ -145,10 +146,10 @@ export function StateImageWidget({ config }: WidgetProps) {
   const posClass = contentPositionClass(opts.contentPosition as string | undefined);
   return (
     <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
-      {showTitle && (
+      {(showTitle || showIcon) && (
         <div className="flex items-center gap-2">
-          <StateDisplay cfg={cfg} size={iconSize} />
-          <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>
+          {showIcon && <StateDisplay cfg={cfg} size={iconSize} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
       {showLabel && (
