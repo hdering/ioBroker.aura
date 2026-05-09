@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.6.24 (2026-05-09)
+
+- fix: remove remaining clickable (detail-popup) toggle from WidgetFrame thermostat panel
+- feat: remove clickable (detail-popup) setting from thermostat widget
+- feat: merge Backup & Restore and Auto-Backup into single BackupCard
+- feat: remove unused ioBroker Web-Adapter URL setting from expert panel
+
 ## v0.6.23 (2026-05-09)
 
 - fix: revert shutter slider direction — slider mirrors displayed value
@@ -275,6 +282,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 

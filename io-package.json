@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.6.23",
+    "version": "0.6.24",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.6.24": {
+        "en": "fix: remove remaining clickable (detail-popup) toggle from WidgetFrame thermostat panel; feat: remove clickable (detail-popup) setting from thermostat widget; feat: merge Backup & Restore and Auto-Backup into single BackupCard; feat: remove unused ioBroker Web-Adapter URL setting from expert panel",
+        "de": "fix: remove remaining clickable (detail-popup) toggle from WidgetFrame thermostat panel; feat: remove clickable (detail-popup) setting from thermostat widget; feat: merge Backup & Restore and Auto-Backup into single BackupCard; feat: remove unused ioBroker Web-Adapter URL setting from expert panel"
+      },
       "0.6.23": {
         "en": "fix: revert shutter slider direction — slider mirrors displayed value; fix: shutter slider always right=open; replace invertPosition toggle with actor-preset",
         "de": "fix: revert shutter slider direction — slider mirrors displayed value; fix: shutter slider always right=open; replace invertPosition toggle with actor-preset"
