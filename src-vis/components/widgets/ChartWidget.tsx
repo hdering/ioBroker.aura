@@ -249,7 +249,7 @@ export function ChartWidget({ config }: WidgetProps) {
                 formatter={(v: number) => `${formatNum(v, decimals)}${unit ? ` ${unit}` : ''}`} />
               <Line type="monotone" dataKey="v" stroke={lineColor} strokeWidth={2}
                 dot={false} isAnimationActive={false} />
-              {avg !== null && (
+              {showAverage && avg !== null && (
                 <ReferenceLine y={avg} stroke={avgColor} strokeDasharray="4 3" strokeWidth={1.5}
                   label={{ value: `Ø ${formatNum(avg, decimals)}${unit ? ` ${unit}` : ''}`, position: 'insideTopRight', fill: avgColor, fontSize: 10 }} />
               )}
