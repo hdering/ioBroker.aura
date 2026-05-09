@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import React, { useMemo, useState, type CSSProperties } from 'react';
 import { SunDim } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
@@ -23,9 +23,12 @@ export function DimmerWidget({ config }: WidgetProps) {
   const showIcon       = o.showIcon       !== false;
   const sendOnRelease  = o.sendOnRelease  !== false;
   const iconSize       = (o.iconSize as number) || 36;
+  const barStyle       = !!o.barStyle;
+  const barSize        = (o.barSize as number) ?? 100;
 
   const [dragValue, setDragValue] = useState<number | null>(null);
   const displayLevel = dragValue ?? level;
+  const fillRatio = displayLevel / 100;
 
   const handleSliderChange = (v: number) => {
     if (sendOnRelease) { setDragValue(v); } else { setState(config.datapoint, v); }
@@ -35,6 +38,20 @@ export function DimmerWidget({ config }: WidgetProps) {
       setState(config.datapoint, dragValue);
       setDragValue(null);
     }
+  };
+
+  const getBarValue = (e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = (e.clientX - rect.left) / rect.width;
+    return Math.round(Math.max(0, Math.min(1, ratio)) * 100);
+  };
+  const onBarPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    handleSliderChange(getBarValue(e));
+  };
+  const onBarPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!(e.buttons & 1)) return;
+    handleSliderChange(getBarValue(e));
   };
 
   const thresholds = o.colorThresholds as Array<[number, string]> | undefined;
@@ -68,6 +85,35 @@ export function DimmerWidget({ config }: WidgetProps) {
       className="nodrag w-full h-2 rounded-lg appearance-none cursor-pointer" />
   );
 
+  const barTrack = (
+    <div
+      className="nodrag relative rounded-2xl overflow-hidden cursor-pointer select-none"
+      style={{
+        width: '100%',
+        height: `${barSize}%`,
+        background: 'color-mix(in srgb, var(--accent-yellow) 20%, var(--app-bg))',
+      }}
+      onPointerDown={onBarPointerDown}
+      onPointerMove={onBarPointerMove}
+      onPointerUp={handleSliderRelease}
+    >
+      <div
+        className="absolute top-0 left-0 bottom-0 rounded-r-2xl"
+        style={{ width: `${fillRatio * 100}%`, background: 'var(--accent-yellow)' }}
+      />
+      <div
+        className="absolute pointer-events-none rounded-full"
+        style={{
+          left: `${fillRatio * 100}%`,
+          transform: 'translateX(-9px)',
+          top: '20%', bottom: '20%',
+          width: '3px',
+          background: 'rgba(255,255,255,0.85)',
+        }}
+      />
+    </div>
+  );
+
   const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
   if (layout === 'custom') return (
@@ -87,7 +133,7 @@ export function DimmerWidget({ config }: WidgetProps) {
         'battery-icon':  batteryIcon,
         'reach-icon':    reachIcon,
         'status-badges': statusBadges,
-        slider: (
+        slider: barStyle ? barTrack : (
           <input type="range" min={0} max={100} step={1} value={displayLevel}
             onChange={(e) => handleSliderChange(Number(e.target.value))}
             onMouseUp={handleSliderRelease} onTouchEnd={handleSliderRelease}
@@ -119,7 +165,10 @@ export function DimmerWidget({ config }: WidgetProps) {
             style={{ color: 'var(--accent-yellow)', opacity, filter: level > 0 ? `drop-shadow(0 0 ${level / 10}px var(--accent-yellow))` : 'none', transition: 'all 0.3s' }} />}
           {showValue && <span className="text-2xl font-bold" style={{ color: valueColor }}>{level}%</span>}
         </div>
-        {showSlider && slider}
+        {showSlider && (barStyle
+          ? <div className="flex-1 self-stretch flex items-center">{barTrack}</div>
+          : slider
+        )}
         {toggleBtn && <div className="flex justify-center">{toggleBtn}</div>}
         <StatusBadges config={config} />
       </div>
@@ -137,12 +186,13 @@ export function DimmerWidget({ config }: WidgetProps) {
           {showValue && <span className="text-sm font-bold shrink-0" style={{ color: valueColor }}>{displayLevel}%</span>}
           {toggleBtn}
         </div>
-        {showSlider && (
-          <input type="range" min={0} max={100} step={1} value={displayLevel}
-            onChange={(e) => handleSliderChange(Number(e.target.value))}
-            onMouseUp={handleSliderRelease} onTouchEnd={handleSliderRelease}
-            style={{ '--slider-thumb-color': 'var(--accent-yellow)' } as CSSProperties}
-            className="nodrag ml-6 h-1.5 rounded-full appearance-none cursor-pointer" />
+        {showSlider && (barStyle
+          ? <div className="self-stretch flex items-center">{barTrack}</div>
+          : <input type="range" min={0} max={100} step={1} value={displayLevel}
+              onChange={(e) => handleSliderChange(Number(e.target.value))}
+              onMouseUp={handleSliderRelease} onTouchEnd={handleSliderRelease}
+              style={{ '--slider-thumb-color': 'var(--accent-yellow)' } as CSSProperties}
+              className="nodrag ml-6 h-1.5 rounded-full appearance-none cursor-pointer" />
         )}
         <StatusBadges config={config} />
       </div>
@@ -154,7 +204,10 @@ export function DimmerWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-3" style={{ position: 'relative' }}>
         {showValue && <span className="text-3xl font-black" style={{ color: thresholdColor ?? (level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)') }}>{level}%</span>}
-        {showSlider && slider}
+        {showSlider && (barStyle
+          ? <div className="self-stretch flex items-center">{barTrack}</div>
+          : slider
+        )}
         {toggleBtn}
         <StatusBadges config={config} />
       </div>
@@ -182,7 +235,10 @@ export function DimmerWidget({ config }: WidgetProps) {
           </div>
         )}
         {!showValue && toggleBtn && <div className="flex justify-end">{toggleBtn}</div>}
-        {showSlider && slider}
+        {showSlider && (barStyle
+          ? <div className="flex-1 self-stretch flex items-center">{barTrack}</div>
+          : slider
+        )}
       </div>
       <StatusBadges config={config} />
     </div>

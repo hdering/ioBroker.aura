@@ -4701,17 +4701,42 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 const setO = (patch: Record<string, unknown>) =>
                   onConfigChange({ ...config, options: { ...o, ...patch } });
                 return (
-                  <div className="flex items-center justify-between">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Erst bei Loslassen senden</label>
-                    <button
-                      onClick={() => setO({ sendOnRelease: !(o.sendOnRelease !== false) })}
-                      className="relative w-9 h-5 rounded-full transition-colors"
-                      style={{ background: o.sendOnRelease !== false ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                      <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                        style={{ left: o.sendOnRelease !== false ? '18px' : '2px' }} />
-                    </button>
-                  </div>
+                  <>
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Erst bei Loslassen senden</label>
+                      <button
+                        onClick={() => setO({ sendOnRelease: !(o.sendOnRelease !== false) })}
+                        className="relative w-9 h-5 rounded-full transition-colors"
+                        style={{ background: o.sendOnRelease !== false ? 'var(--accent)' : 'var(--app-border)' }}
+                      >
+                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                          style={{ left: o.sendOnRelease !== false ? '18px' : '2px' }} />
+                      </button>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!o.barStyle}
+                        onChange={(e) => setO({ barStyle: e.target.checked || undefined })}
+                        className="rounded"
+                      />
+                      <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>Bar-Stil</span>
+                    </label>
+                    {o.barStyle && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Bar-Breite (%)</span>
+                        <input
+                          type="number"
+                          min={5}
+                          max={100}
+                          value={(o.barSize as number) ?? 100}
+                          onChange={(e) => setO({ barSize: Number(e.target.value) })}
+                          className="text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                          style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)', width: 60 }}
+                        />
+                      </div>
+                    )}
+                  </>
                 );
               })()}
 
