@@ -3,6 +3,7 @@ import { Table2, Search, X } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useDashboardStore } from '../../store/dashboardStore';
 import type { WidgetProps } from '../../types';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 // ── Column definition (stored in options.columns) ─────────────────────────────
 export interface JsonColumnDef {
@@ -81,7 +82,11 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
   const showSearch     = (opts.showSearch     as boolean) ?? false;
   const fontSize       = (opts.fontSize       as number)  ?? 12;
   const autoHeight     = (opts.autoHeight     as boolean) ?? false;
+  const showTitle      = opts.showTitle !== false;
+  const showIcon       = opts.showIcon  !== false;
+  const iconSize       = (opts.iconSize  as number) || 36;
   const titleAlign     = (opts.titleAlign     as string)  ?? 'left';
+  const WidgetIcon     = getWidgetIcon(opts.icon as string | undefined, Table2);
   const [query, setQuery] = useState('');
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -146,25 +151,36 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
 
   if (!config.datapoint) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2"
-        style={{ color: 'var(--text-secondary)' }}>
-        <Table2 size={32} strokeWidth={1} />
-        <p className="text-xs text-center">
-          {config.title || 'JSON-Tabelle'}<br />
-          <span className="text-[10px] opacity-60">Kein Datenpunkt konfiguriert</span>
-        </p>
+      <div className="flex flex-col h-full">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
+        )}
+        <div className="flex flex-col items-center justify-center flex-1 gap-2" style={{ color: 'var(--text-secondary)' }}>
+          <Table2 size={32} strokeWidth={1} />
+          <span className="text-xs opacity-60">Kein Datenpunkt konfiguriert</span>
+        </div>
       </div>
     );
   }
 
   if (!tableData) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2"
-        style={{ color: 'var(--text-secondary)' }}>
-        <Table2 size={24} strokeWidth={1} />
-        <p className="text-xs text-center opacity-60">
-          {value !== undefined && value !== null ? 'Ungültiges JSON' : 'Warte auf Daten…'}
-        </p>
+      <div className="flex flex-col h-full">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
+        )}
+        <div className="flex flex-col items-center justify-center flex-1 gap-2" style={{ color: 'var(--text-secondary)' }}>
+          <Table2 size={24} strokeWidth={1} />
+          <span className="text-xs opacity-60">
+            {value !== undefined && value !== null ? 'Ungültiges JSON' : 'Warte auf Daten…'}
+          </span>
+        </div>
       </div>
     );
   }
@@ -172,10 +188,11 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
   return (
     <div ref={contentRef} className={`flex flex-col gap-1 ${autoHeight ? '' : 'h-full'}`}>
       {/* Title */}
-      {config.title && !opts.hideTitle && (
-        <p className="shrink-0 truncate" style={{ fontSize: fs - 1, color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
-          {config.title}
-        </p>
+      {(showTitle || showIcon) && (
+        <div className="flex items-center gap-1 shrink-0 min-w-0">
+          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+        </div>
       )}
 
       {/* Search bar */}

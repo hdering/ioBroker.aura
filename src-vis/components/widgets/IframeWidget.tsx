@@ -3,6 +3,7 @@ import { MonitorDot, Maximize2, AlertTriangle, ExternalLink, X } from 'lucide-re
 import { useIframeStore } from '../../store/iframeStore';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 const LOAD_TIMEOUT_MS = 8000;
 
@@ -19,6 +20,11 @@ export function IframeWidget({ config }: WidgetProps) {
   const refreshSeconds   = (opts.refreshInterval   as number)  ?? 0;
   const sandboxEnabled   = (opts.sandbox           as boolean) ?? false;
   const fullscreenButton = (opts.fullscreenButton  as boolean) ?? false;
+  const showTitle   = opts.showTitle  !== false;
+  const showIcon    = opts.showIcon   !== false;
+  const iconSize    = (opts.iconSize  as number) || 36;
+  const titleAlign  = (opts.titleAlign as string) ?? 'left';
+  const WidgetIcon  = getWidgetIcon(opts.icon as string | undefined, MonitorDot);
 
   const [tick, setTick]           = useState(0);
   const [loaded, setLoaded]       = useState(false);
@@ -51,13 +57,17 @@ export function IframeWidget({ config }: WidgetProps) {
 
   if (!url) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2"
-        style={{ color: 'var(--text-secondary)' }}>
-        <MonitorDot size={32} strokeWidth={1} />
-        <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
-          {config.title || 'iFrame'}<br />
-          <span className="text-[10px] opacity-60">Keine URL konfiguriert</span>
-        </p>
+      <div className="flex flex-col h-full">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
+        )}
+        <div className="flex flex-col items-center justify-center flex-1 gap-2" style={{ color: 'var(--text-secondary)' }}>
+          <MonitorDot size={32} strokeWidth={1} />
+          <span className="text-xs opacity-60">Keine URL konfiguriert</span>
+        </div>
       </div>
     );
   }
@@ -68,15 +78,13 @@ export function IframeWidget({ config }: WidgetProps) {
     ? 'allow-scripts allow-forms allow-popups allow-presentation'
     : undefined;
 
-  const titleAlign = (opts.titleAlign as string) ?? 'left';
-  const showTitle = config.title && !config.options?.hideTitle;
-
   return (
     <div className="flex flex-col h-full">
-      {showTitle && (
-        <p className="text-xs truncate shrink-0 pb-1" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
-          {config.title}
-        </p>
+      {(showTitle || showIcon) && (
+        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+        </div>
       )}
       <div className="relative flex-1 overflow-hidden group" style={{ borderRadius: 'inherit' }}>
         <iframe
