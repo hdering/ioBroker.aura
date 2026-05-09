@@ -124,9 +124,11 @@ function BinCircle({
 export function TrashScheduleWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
   const o = config.options ?? {};
-  const TitleIcon = getWidgetIcon(o.icon as string | undefined, CalendarCheck2);
-
-  const titleAlign   = (o.titleAlign   as string)               ?? 'left';
+  const TitleIcon   = getWidgetIcon(o.icon as string | undefined, CalendarCheck2);
+  const showTitle   = o.showTitle  !== false;
+  const showIcon    = o.showIcon   !== false;
+  const iconSize    = (o.iconSize  as number) || 36;
+  const titleAlign  = (o.titleAlign as string) ?? 'left';
   const hiddenNames  = (o.hiddenNames  as string[] | undefined)  ?? [];
   const iconMap      = (o.iconMap      as Record<string, string> | undefined) ?? {};
   const showNames    = (o.showNames    as boolean | undefined)    ?? true;
@@ -138,16 +140,19 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
 
   if (!config.datapoint || all.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2"
-        style={{ color: 'var(--text-secondary)' }}>
-        <TitleIcon size={32} strokeWidth={1} style={{ color: 'var(--text-secondary)' }} />
-        <p className="text-xs text-center">
-          {config.title || 'Müllabfuhr-Zeitplan'}
-          <br />
-          <span className="text-[10px] opacity-60">
+      <div className="flex flex-col h-full">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <TitleIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
+        )}
+        <div className="flex flex-col items-center justify-center flex-1 gap-2" style={{ color: 'var(--text-secondary)' }}>
+          <TitleIcon size={32} strokeWidth={1} style={{ color: 'var(--text-secondary)' }} />
+          <span className="text-xs opacity-60">
             {!config.datapoint ? 'Datenpunkt wählen' : 'Keine Einträge im Zeitplan'}
           </span>
-        </p>
+        </div>
       </div>
     );
   }
@@ -158,24 +163,29 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
 
   if (visible.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2"
-        style={{ color: 'var(--text-secondary)' }}>
-        <Truck size={32} strokeWidth={1} />
-        <p className="text-xs text-center opacity-60">Alle Tonnen ausgeblendet</p>
+      <div className="flex flex-col h-full">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <TitleIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
+        )}
+        <div className="flex flex-col items-center justify-center flex-1 gap-2" style={{ color: 'var(--text-secondary)' }}>
+          <Truck size={32} strokeWidth={1} />
+          <span className="text-xs opacity-60">Alle Tonnen ausgeblendet</span>
+        </div>
       </div>
     );
   }
 
-  const iconSize = visible.length <= 2 ? 72 : visible.length <= 4 ? 58 : 44;
+  const binSize = visible.length <= 2 ? 72 : visible.length <= 4 ? 58 : 44;
 
   return (
     <div className="flex flex-col h-full">
-      {config.title && !(o.hideTitle) && (
-        <div className="flex items-center gap-1.5 mb-2 shrink-0 min-w-0">
-          <TitleIcon size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-          <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>
-            {config.title}
-          </p>
+      {(showTitle || showIcon) && (
+        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+          {showIcon && <TitleIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
       <div className="flex-1 flex flex-wrap items-start justify-center gap-3 content-center min-h-0">
@@ -184,7 +194,7 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
             key={entry.name}
             entry={entry}
             iconName={iconMap[entry.name] ?? 'Trash2'}
-            size={iconSize}
+            size={binSize}
             showNames={showNames}
             showDays={showDays}
             showDate={showDate}
