@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Loader } from 'lucide-react';
+import { Cloud, Loader } from 'lucide-react';
 import type { WidgetProps } from '../../types';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useT } from '../../i18n';
 import { CustomGridView } from './CustomGridView';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 // ── Open-Meteo types ──────────────────────────────────────────────────────────
 interface WeatherData {
@@ -127,7 +128,11 @@ export function WeatherWidget({ config }: WidgetProps) {
   const showWarnings     = (opts.showWarnings   as boolean) ?? false;
   const localTempDp      = (opts.localTempDatapoint as string) ?? '';
   const layout           = config.layout ?? 'default';
+  const showTitle        = opts.showTitle !== false;
+  const showIcon         = opts.showIcon  !== false;
+  const iconSize         = (opts.iconSize as number) || 36;
   const titleAlign       = (opts.titleAlign as string) ?? 'left';
+  const WidgetIcon       = getWidgetIcon(opts.icon as string | undefined, Cloud);
 
   // ── Local temperature sensor ──────────────────────────────────────────────
   const { value: localTempRaw } = useDatapoint(localTempDp);
@@ -322,8 +327,11 @@ export function WeatherWidget({ config }: WidgetProps) {
   // ── DEFAULT / CARD ────────────────────────────────────────────────────────
   return (
     <div className="aura-scroll flex flex-col h-full gap-2 overflow-auto">
-      {config.title && opts.showTitle !== false && (
-        <p className="text-xs truncate mb-1" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>
+      {(showTitle || showIcon) && (
+        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+        </div>
       )}
       {/* ── Current weather header ── */}
       <div className="flex items-start gap-3 shrink-0">
