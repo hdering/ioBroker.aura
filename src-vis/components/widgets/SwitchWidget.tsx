@@ -148,7 +148,7 @@ export function SwitchWidget({ config }: WidgetProps) {
       )}
       <div className="flex items-center justify-between">
         {showLabel && (
-          <span className="text-2xl font-bold" style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)' }}>
+          <span className="text-3xl font-bold" style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)' }}>
             {isOn ? 'AN' : 'AUS'}
           </span>
         )}
