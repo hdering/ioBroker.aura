@@ -160,17 +160,6 @@ function InlineEditForm({
         <div className="space-y-3">
           {isThermostat && (
             <>
-              <div className="flex items-center justify-between">
-                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.thermo.clickable')}</label>
-                <button
-                  onClick={() => setO({ clickable: !(o.clickable ?? true) })}
-                  className="relative w-9 h-5 rounded-full transition-colors"
-                  style={{ background: (o.clickable ?? true) ? 'var(--accent)' : 'var(--app-border)' }}
-                >
-                  <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                    style={{ left: (o.clickable ?? true) ? '18px' : '2px' }} />
-                </button>
-              </div>
               <div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.thermo.actualDp')}</label>
                 <div className="flex gap-1">

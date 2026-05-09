@@ -501,7 +501,6 @@ export const de = {
   'wf.gauge.showMinMax':      'Min/Max anzeigen',
 
   // Thermostat config
-  'wf.thermo.clickable':      'Anklickbar (Detail-Popup)',
   'wf.thermo.actualDp':       'Ist-Temperatur Datenpunkt',
   'wf.thermo.minTemp':        'Min °C',
   'wf.thermo.maxTemp':        'Max °C',

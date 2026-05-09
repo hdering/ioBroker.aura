@@ -503,7 +503,6 @@ export const en: Record<TranslationKey, string> = {
   'wf.gauge.showMinMax':     'Show Min/Max',
 
   // Thermostat config
-  'wf.thermo.clickable':  'Clickable (Detail Popup)',
   'wf.thermo.actualDp':   'Actual Temperature Datapoint',
   'wf.thermo.minTemp':    'Min °C',
   'wf.thermo.maxTemp':    'Max °C',
