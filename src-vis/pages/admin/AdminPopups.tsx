@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useSuperAdmin } from '../../hooks/useSuperAdmin';
 import { Plus, Trash2, Check, Pencil, Layers, RotateCcw } from 'lucide-react';
@@ -29,16 +30,29 @@ const ALL_LAYOUTS = Object.keys(LAYOUT_LABELS) as WidgetLayout[];
 
 function LayoutPicker({ value, onChange }: { value: WidgetLayout[]; onChange: (v: WidgetLayout[]) => void }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (
+        btnRef.current && !btnRef.current.contains(e.target as Node) &&
+        dropRef.current && !dropRef.current.contains(e.target as Node)
+      ) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 4, left: r.left });
+    }
+    setOpen((o) => !o);
+  };
 
   const toggle = (layout: WidgetLayout) => {
     onChange(value.includes(layout) ? value.filter((l) => l !== layout) : [...value, layout]);
@@ -49,19 +63,21 @@ function LayoutPicker({ value, onChange }: { value: WidgetLayout[]; onChange: (v
     : value.map((l) => LAYOUT_LABELS[l] ?? l).join(', ');
 
   return (
-    <div ref={ref} className="relative">
+    <>
       <button
-        onClick={() => setOpen((o) => !o)}
+        ref={btnRef}
+        onClick={handleOpen}
         className="w-full text-left text-xs rounded-lg px-2.5 py-2 focus:outline-none truncate"
         style={{ background: 'var(--app-bg)', color: value.length ? 'var(--text-primary)' : 'var(--text-secondary)', border: '1px solid var(--app-border)', minWidth: 0 }}
         title={label}
       >
         {label}
       </button>
-      {open && (
+      {open && createPortal(
         <div
-          className="absolute z-50 left-0 top-full mt-1 rounded-xl p-2 grid grid-cols-2 gap-1"
-          style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', minWidth: 220, boxShadow: '0 4px 16px rgba(0,0,0,.18)' }}
+          ref={dropRef}
+          className="fixed z-[9999] rounded-xl p-2 grid grid-cols-2 gap-1"
+          style={{ top: pos.top, left: pos.left, background: 'var(--app-surface)', border: '1px solid var(--app-border)', minWidth: 220, boxShadow: '0 4px 16px rgba(0,0,0,.18)' }}
         >
           <button
             className="col-span-2 text-left text-[11px] px-2 py-1 rounded-lg hover:opacity-80 font-medium"
@@ -83,9 +99,10 @@ function LayoutPicker({ value, onChange }: { value: WidgetLayout[]; onChange: (v
               {LAYOUT_LABELS[l]}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body,
       )}
-    </div>
+    </>
   );
 }
 
