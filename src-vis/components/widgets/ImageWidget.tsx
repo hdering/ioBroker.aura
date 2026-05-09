@@ -19,7 +19,8 @@ export function ImageWidget({ config }: WidgetProps) {
 
   const showTitle  = opts.showTitle !== false;
   const showIcon   = opts.showIcon  !== false;
-  const iconSize   = (opts.iconSize as number) || 36;
+  const iconSize   = (opts.iconSize  as number) || 36;
+  const titleAlign = (opts.titleAlign as string) ?? 'left';
   const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, ImageIcon);
   const layout = config.layout ?? 'default';
 
@@ -72,27 +73,16 @@ export function ImageWidget({ config }: WidgetProps) {
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
         )}
         <div className="flex flex-col items-center justify-center flex-1 gap-2" style={{ color: 'var(--text-secondary)' }}>
-          <ImageIcon size={32} strokeWidth={1} />
+          <WidgetIcon size={iconSize} strokeWidth={1} />
           <span className="text-xs opacity-60">Keine URL oder Datenpunkt konfiguriert</span>
         </div>
       </div>
     );
   }
-
-  // Container style depends on fit mode
-  const wrapStyle: React.CSSProperties = {
-    width: '100%',
-    height: '100%',
-    overflow: fit === 'none' ? 'auto' : 'hidden',
-    display: 'flex',
-    alignItems: fit === 'none' ? 'flex-start' : 'center',
-    justifyContent: fit === 'none' ? 'flex-start' : 'center',
-    position: 'relative',
-  };
 
   const imgStyle: React.CSSProperties = (() => {
     switch (fit) {
@@ -104,21 +94,37 @@ export function ImageWidget({ config }: WidgetProps) {
   })();
 
   return (
-    <div style={wrapStyle}>
-      <img
-        src={src}
-        alt={config.title || ''}
-        style={imgStyle}
-        onLoad={() => setLoadError(false)}
-        onError={() => setLoadError(true)}
-      />
-      {loadError && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2"
-          style={{ background: 'rgba(0,0,0,0.55)' }}>
-          <ImageIcon size={28} style={{ color: '#ef4444' }} />
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>Ladefehler</p>
+    <div className="flex flex-col h-full">
+      {(showTitle || showIcon) && (
+        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
+      <div style={{
+        flex: '1 1 0',
+        minHeight: 0,
+        overflow: fit === 'none' ? 'auto' : 'hidden',
+        display: 'flex',
+        alignItems: fit === 'none' ? 'flex-start' : 'center',
+        justifyContent: fit === 'none' ? 'flex-start' : 'center',
+        position: 'relative',
+      }}>
+        <img
+          src={src}
+          alt={config.title || ''}
+          style={imgStyle}
+          onLoad={() => setLoadError(false)}
+          onError={() => setLoadError(true)}
+        />
+        {loadError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2"
+            style={{ background: 'rgba(0,0,0,0.55)' }}>
+            <ImageIcon size={28} style={{ color: '#ef4444' }} />
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>Ladefehler</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
