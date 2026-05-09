@@ -4,6 +4,7 @@ import type { WidgetProps } from '../../types';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { CustomGridView } from './CustomGridView';
 import { resolveAssetUrl } from '../../utils/assetUrl';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 type FitMode = 'none' | 'contain' | 'width' | 'height';
 
@@ -16,6 +17,10 @@ export function ImageWidget({ config }: WidgetProps) {
 
   const { value: dpValue } = useDatapoint(datapointId);
 
+  const showTitle  = opts.showTitle !== false;
+  const showIcon   = opts.showIcon  !== false;
+  const iconSize   = (opts.iconSize as number) || 36;
+  const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, ImageIcon);
   const layout = config.layout ?? 'default';
 
   // Incrementing key forces <img> reload on refresh tick
@@ -63,14 +68,17 @@ export function ImageWidget({ config }: WidgetProps) {
 
   if (!src) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2"
-        style={{ color: 'var(--text-secondary)' }}>
-        <ImageIcon size={32} strokeWidth={1} />
-        <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
-          {config.title || 'Bild'}
-          <br />
-          <span className="text-[10px] opacity-60">Keine URL oder Datenpunkt konfiguriert</span>
-        </p>
+      <div className="flex flex-col h-full">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>}
+          </div>
+        )}
+        <div className="flex flex-col items-center justify-center flex-1 gap-2" style={{ color: 'var(--text-secondary)' }}>
+          <ImageIcon size={32} strokeWidth={1} />
+          <span className="text-xs opacity-60">Keine URL oder Datenpunkt konfiguriert</span>
+        </div>
       </div>
     );
   }

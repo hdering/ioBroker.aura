@@ -473,6 +473,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
   const infoItems       = (opts.infoItems       as CameraSlot[])        ?? [];
   const cameraTemplate  = (opts.cameraTemplate  as CameraTemplateId)    ?? 'stream-left';
   const customSlots     = (opts.customSlots     as CameraSlot[])        ?? [];
+  const showTitle       = opts.showTitle !== false;
   const layout          = config.layout ?? 'minimal';
 
   const mode = detectMode(streamUrl);
@@ -685,7 +686,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
               style={{ background: isReactivate ? 'rgba(239,68,68,0.15)' : 'var(--accent)', opacity: isReactivate ? 1 : 0.85, border: isReactivate ? '1.5px solid #ef4444' : 'none' }}>
               {isReactivate ? <RefreshCw size={18} color="#ef4444" /> : <Camera size={20} color="#fff" />}
             </div>
-            {config.title && <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>}
+            {showTitle && config.title && <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>}
             {stopReason === 'timeout' && <p className="text-[10px]" style={{ color: '#ef4444' }}>Stream beendet</p>}
             {stopReason === 'error'   && <p className="text-[10px]" style={{ color: '#ef4444' }}>Verbindung verloren</p>}
             {!editMode && <p className="text-[10px] opacity-50" style={{ color: 'var(--text-secondary)' }}>{isReactivate ? 'Tippen zum Reaktivieren' : 'Tippen zum Aktivieren'}</p>}
@@ -700,7 +701,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
           <div ref={containerRef} className="flex flex-col items-center justify-center h-full gap-2 rounded-[inherit]"
             style={{ background: 'var(--app-bg)' }}>
             <Camera size={28} style={{ color: 'var(--text-secondary)' }} />
-            {config.title && <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>}
+            {showTitle && config.title && <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>}
           </div>
           {portal}
         </>

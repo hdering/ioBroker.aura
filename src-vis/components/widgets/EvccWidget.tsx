@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Sun, Home, Zap, Battery, Car, Plug, PlugZap } from 'lucide-react';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps, WidgetConfig, ioBrokerState } from '../../types';
@@ -660,7 +661,11 @@ export function EvccWidget({ config }: WidgetProps) {
   const loadpointCount = Math.max(1, Math.min(8, (o.loadpointCount as number) ?? 1));
   const showBattery   = (o.showBattery     as boolean) ?? true;
   const layout        = config.layout ?? 'default';
-  const titleAlign    = (o.titleAlign      as string)  ?? 'left';
+  const showTitle     = o.showTitle !== false;
+  const showIcon      = o.showIcon  !== false;
+  const iconSize      = (o.iconSize   as number) || 36;
+  const titleAlign    = (o.titleAlign as string) ?? 'left';
+  const WidgetIcon    = getWidgetIcon(o.icon as string | undefined, Zap);
 
   // Which loadpoints to show (0-based indices); default = all
   const visibleLpIndices: number[] = (() => {
@@ -765,8 +770,11 @@ export function EvccWidget({ config }: WidgetProps) {
   if (layout === 'flow') {
     return (
       <div className="aura-scroll flex flex-col gap-2 h-full overflow-auto">
-        {config.title && !config.options?.hideTitle && (
-          <p className="text-xs truncate shrink-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
         )}
         <div className="shrink-0" style={{ height: showBattery ? 190 : 160 }}>
           <EnergyFlowSVG site={site} loadpoints={loadpoints} showBattery={showBattery} visibleLpIndices={visibleLpIndices} />
@@ -781,8 +789,11 @@ export function EvccWidget({ config }: WidgetProps) {
   // ── Layout: default / card ────────────────────────────────────────────────
   return (
     <div className="aura-scroll flex flex-col gap-2 h-full overflow-auto">
-      {config.title && !config.options?.hideTitle && (
-        <p className="text-xs truncate shrink-0" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
+      {(showTitle || showIcon) && (
+        <div className="flex items-center gap-1 shrink-0 min-w-0">
+          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+        </div>
       )}
       <div className="shrink-0">
         <EnergyFlowRow site={site} showBattery={showBattery} />
