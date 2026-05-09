@@ -166,7 +166,7 @@ export function DimmerWidget({ config }: WidgetProps) {
           {showValue && <span className="text-2xl font-bold" style={{ color: valueColor }}>{level}%</span>}
         </div>
         {showSlider && (barStyle
-          ? <div className="flex-1 self-stretch flex items-center">{barTrack}</div>
+          ? <div style={{ height: 40, width: '100%' }}>{barTrack}</div>
           : slider
         )}
         {toggleBtn && <div className="flex justify-center">{toggleBtn}</div>}
@@ -187,7 +187,7 @@ export function DimmerWidget({ config }: WidgetProps) {
           {toggleBtn}
         </div>
         {showSlider && (barStyle
-          ? <div className="self-stretch flex items-center">{barTrack}</div>
+          ? <div style={{ height: 40, width: '100%' }}>{barTrack}</div>
           : <input type="range" min={0} max={100} step={1} value={displayLevel}
               onChange={(e) => handleSliderChange(Number(e.target.value))}
               onMouseUp={handleSliderRelease} onTouchEnd={handleSliderRelease}
@@ -205,7 +205,7 @@ export function DimmerWidget({ config }: WidgetProps) {
       <div className="flex flex-col items-center justify-center h-full gap-3" style={{ position: 'relative' }}>
         {showValue && <span className="text-3xl font-black" style={{ color: thresholdColor ?? (level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)') }}>{level}%</span>}
         {showSlider && (barStyle
-          ? <div className="self-stretch flex items-center">{barTrack}</div>
+          ? <div style={{ height: 40, width: '100%' }}>{barTrack}</div>
           : slider
         )}
         {toggleBtn}
@@ -236,7 +236,7 @@ export function DimmerWidget({ config }: WidgetProps) {
         )}
         {!showValue && toggleBtn && <div className="flex justify-end">{toggleBtn}</div>}
         {showSlider && (barStyle
-          ? <div className="flex-1 self-stretch flex items-center">{barTrack}</div>
+          ? <div style={{ height: 40, width: '100%' }}>{barTrack}</div>
           : slider
         )}
       </div>
