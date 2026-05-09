@@ -23,6 +23,7 @@ export function ChipsWidget({ config }: WidgetProps) {
   const WidgetIcon = getWidgetIcon(config.options?.icon as string | undefined, Tag);
   const iconSize   = (o.iconSize   as number)        || 16;
   const showTitle  = o.showTitle !== false;
+  const showIcon   = o.showIcon  !== false;
   const titleAlign = (o.titleAlign as string) ?? 'left';
 
   const chips      = (o.chips      as ChipItem[]    | undefined) ?? [];
@@ -93,10 +94,10 @@ export function ChipsWidget({ config }: WidgetProps) {
       className="relative w-full h-full flex flex-col gap-1.5"
       style={{ justifyContent: valignJustify }}
     >
-      {showTitle && (
+      {(showTitle || showIcon) && (
         <div className="flex items-center gap-1.5 shrink-0 min-w-0">
-          <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-          <span className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</span>
+          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="text-sm font-medium truncate flex-1 min-w-0" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
       <div className="nodrag" style={containerStyle}>
