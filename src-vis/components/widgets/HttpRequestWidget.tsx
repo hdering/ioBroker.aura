@@ -25,8 +25,10 @@ export function HttpRequestWidget({ config }: WidgetProps) {
   const showStatus      = (o.showStatus      as boolean) ?? true;
   const confirmAction   = (o.confirmAction   as boolean) ?? false;
   const confirmText     = (o.confirmText     as string)  ?? '';
-  const showTitle       = o.showTitle !== false;
-  const iconSize        = (o.iconSize        as number)  || 32;
+  const showTitle       = o.showTitle  !== false;
+  const showIcon        = o.showIcon   !== false;
+  const titleAlign      = (o.titleAlign as string) ?? 'left';
+  const iconSize        = (o.iconSize   as number)  || 32;
 
   const [status, setStatus]   = useState<RequestStatus>('idle');
   const [statusText, setStatusText] = useState('');
@@ -115,7 +117,7 @@ export function HttpRequestWidget({ config }: WidgetProps) {
     return (
       <div className="flex items-center gap-2 h-full" style={{ position: 'relative' }}>
         {showTitle && (
-          <span className="flex-1 text-sm truncate" style={{ color: 'var(--text-primary)' }}>{config.title}</span>
+          <p className="flex-1 min-w-0 text-sm truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>
         )}
         {!showTitle && <span className="flex-1" />}
         {showStatus && statusLabel && (
@@ -131,12 +133,10 @@ export function HttpRequestWidget({ config }: WidgetProps) {
   const posClass = contentPositionClass(o.contentPosition as string | undefined);
   return (
     <div className={`flex flex-col h-full gap-3 ${posClass}`} style={{ position: 'relative' }}>
-      {showTitle && (
+      {(showTitle || showIcon) && (
         <div className="flex items-center gap-2">
-          <WidgetIcon size={iconSize} style={{ color: buttonColor, flexShrink: 0 }} />
-          <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', flex: '1', minWidth: 0 }}>
-            {config.title}
-          </p>
+          {showIcon && <WidgetIcon size={iconSize} style={{ color: buttonColor, flexShrink: 0 }} />}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
       {btn}
