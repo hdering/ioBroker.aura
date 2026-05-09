@@ -6,6 +6,7 @@ import { Plus, Trash2, Check, Pencil, Layers, RotateCcw } from 'lucide-react';
 import { usePopupConfigStore, BUILTIN_VIEW_IDS, BUILTIN_VIEWS } from '../../store/popupConfigStore';
 import { WIDGET_REGISTRY } from '../../widgetRegistry';
 import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
+import { getAvailableLayouts } from '../../utils/widgetLayouts';
 import type { WidgetLayout } from '../../types';
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
@@ -29,7 +30,7 @@ const ALL_LAYOUTS = Object.keys(LAYOUT_LABELS) as WidgetLayout[];
 
 // ── Layout multi-picker ───────────────────────────────────────────────────────
 
-function LayoutPicker({ value, onChange }: { value: WidgetLayout[]; onChange: (v: WidgetLayout[]) => void }) {
+function LayoutPicker({ value, onChange, available = ALL_LAYOUTS }: { value: WidgetLayout[]; onChange: (v: WidgetLayout[]) => void; available?: WidgetLayout[] }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -88,7 +89,7 @@ function LayoutPicker({ value, onChange }: { value: WidgetLayout[]; onChange: (v
           >
             Alle Layouts (kein Filter)
           </button>
-          {ALL_LAYOUTS.map((l) => (
+          {available.map((l) => (
             <button
               key={l}
               onClick={() => toggle(l)}
@@ -390,6 +391,7 @@ function TypeDefaultsSection() {
               <LayoutPicker
                 value={typeDefaultLayouts[wType] ?? []}
                 onChange={(v) => setTypeDefaultLayouts(wType, v)}
+                available={getAvailableLayouts(wType)}
               />
               <button
                 onClick={() => removeTypeDefault(wType)}
