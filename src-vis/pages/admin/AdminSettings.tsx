@@ -46,7 +46,7 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 }
 
 
-// ── Auto-Backup card ──────────────────────────────────────────────────────────
+// ── Backup card (manual + auto combined) ──────────────────────────────────────
 
 const BACKUP_SYNC_KEYS = ['aura-dashboard', 'aura-theme', 'aura-groups', 'aura-config', 'aura-global-settings', 'aura-group-defs'] as const;
 
@@ -73,8 +73,9 @@ function applyBackupEntry(entry: BackupEntry): boolean {
   return true;
 }
 
-function AutoBackupCard() {
+function BackupCard() {
   const t = useT();
+  const tabs = useActiveLayout().tabs;
   const { backupCount, setBackupCount } = useAdminPrefsStore();
   const [backups, setBackups] = useState<BackupEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,7 +95,6 @@ function AutoBackupCard() {
             payload: b,
           })));
         } else if (parsed[BACKUP_TS_KEY]) {
-          // Old single-backup format
           setBackups([{ ts: String(parsed[BACKUP_TS_KEY]), payload: parsed }]);
         } else {
           setBackups([]);
@@ -119,11 +119,61 @@ function AutoBackupCard() {
     finally { setRestoringIdx(null); }
   };
 
+  const exportConfig = () => {
+    const data = {
+      dashboard: JSON.parse(localStorage.getItem('aura-dashboard') ?? '{}'),
+      theme: JSON.parse(localStorage.getItem('aura-theme') ?? '{}'),
+      config: JSON.parse(localStorage.getItem('aura-config') ?? '{}'),
+      exported: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `aura-backup-${Date.now()}.json`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target?.result as string);
+        if (data.dashboard) localStorage.setItem('aura-dashboard', JSON.stringify(data.dashboard));
+        if (data.theme) localStorage.setItem('aura-theme', JSON.stringify(data.theme));
+        if (data.config) localStorage.setItem('aura-config', JSON.stringify(data.config));
+        window.location.reload();
+      } catch { alert(t('settings.backup.invalidFile')); }
+    };
+    reader.readAsText(file);
+  };
+
+  const tabCount = tabs.length;
+
   return (
-    <Card title={t('settings.autobackup.title')}>
+    <Card title={t('settings.backup.title')}>
+      {/* Manual backup */}
+      <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+        {t('settings.backup.description', { count: tabCount, s: tabCount !== 1 ? 's' : '' })}
+      </p>
+      <div className="flex flex-col gap-2">
+        <button onClick={exportConfig}
+          className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80"
+          style={{ background: 'var(--accent)' }}>
+          {t('settings.backup.download')}
+        </button>
+        <label className="px-4 py-2 rounded-lg text-sm font-medium text-center cursor-pointer hover:opacity-80"
+          style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
+          {t('settings.backup.import')}
+          <input type="file" accept=".json" onChange={importConfig} className="hidden" />
+        </label>
+      </div>
+
+      {/* Divider */}
+      <div className="border-t mt-1" style={{ borderColor: 'var(--app-border)' }} />
+
+      {/* Auto-backup */}
       <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('settings.autobackup.description')}</p>
 
-      {/* Count setting */}
       <div className="flex items-center gap-2 pt-1 pb-2 border-b" style={{ borderColor: 'var(--app-border)' }}>
         <span className="text-xs flex-1" style={{ color: 'var(--text-secondary)' }}>{t('settings.autobackup.count')}</span>
         <div className="flex items-center gap-1">
@@ -140,7 +190,6 @@ function AutoBackupCard() {
         </button>
       </div>
 
-      {/* Status feedback */}
       {status === 'success' && (
         <p className="text-xs font-medium" style={{ color: 'var(--accent-green)' }}>{t('settings.autobackup.success')}</p>
       )}
@@ -150,7 +199,6 @@ function AutoBackupCard() {
         </p>
       )}
 
-      {/* Backup list */}
       {loading ? (
         <p className="text-xs text-center py-3" style={{ color: 'var(--text-secondary)' }}>…</p>
       ) : backups.length === 0 ? (
@@ -490,7 +538,6 @@ function DpNameFilterCard() {
 
 export function AdminSettings() {
   const t = useT();
-  const tabs = useActiveLayout().tabs;
   const { frontend, updateFrontend } = useConfigStore();
   const { autoSave, autoSaveDelay, setAutoSave, setAutoSaveDelay } = useAdminPrefsStore();
   const [newPin, setNewPin] = useState('');
@@ -508,36 +555,6 @@ export function AdminSettings() {
     setNewPin(''); setConfirm('');
     setTimeout(() => setPinMsg(''), 3000);
   };
-
-  const exportConfig = () => {
-    const data = {
-      dashboard: JSON.parse(localStorage.getItem('aura-dashboard') ?? '{}'),
-      theme: JSON.parse(localStorage.getItem('aura-theme') ?? '{}'),
-      config: JSON.parse(localStorage.getItem('aura-config') ?? '{}'),
-      exported: new Date().toISOString(),
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `aura-backup-${Date.now()}.json`; a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const importConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target?.result as string);
-        if (data.dashboard) localStorage.setItem('aura-dashboard', JSON.stringify(data.dashboard));
-        if (data.theme) localStorage.setItem('aura-theme', JSON.stringify(data.theme));
-        if (data.config) localStorage.setItem('aura-config', JSON.stringify(data.config));
-        window.location.reload();
-      } catch { alert(t('settings.backup.invalidFile')); }
-    };
-    reader.readAsText(file);
-  };
-
-  const tabCount = tabs.length;
 
   return (
     <div className="p-5 space-y-4">
@@ -648,24 +665,6 @@ export function AdminSettings() {
           />
         </Card>
 
-        {/* Backup */}
-        <Card title={t('settings.backup.title')}>
-          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-            {t('settings.backup.description', { count: tabCount, s: tabCount !== 1 ? 's' : '' })}
-          </p>
-          <div className="flex flex-col gap-2">
-            <button onClick={exportConfig}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80"
-              style={{ background: 'var(--accent)' }}>
-              {t('settings.backup.download')}
-            </button>
-            <label className="px-4 py-2 rounded-lg text-sm font-medium text-center cursor-pointer hover:opacity-80"
-              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
-              {t('settings.backup.import')}
-              <input type="file" accept=".json" onChange={importConfig} className="hidden" />
-            </label>
-          </div>
-        </Card>
       </div>
 
       {/* Row 1: Browser-Theme + Frontend */}
@@ -681,9 +680,9 @@ export function AdminSettings() {
         <DefaultDecimalsCard />
       </div>
 
-      {/* Row 3: Auto-Backup */}
+      {/* Row 3: Backup */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <AutoBackupCard />
+        <BackupCard />
       </div>
 
       {/* Reset */}
