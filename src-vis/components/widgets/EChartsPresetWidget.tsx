@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { BarChart2, Maximize2, X } from 'lucide-react';
 import type { WidgetProps } from '../../types';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 function getIoBrokerBase(): string {
   const injected = (window as unknown as { __AURA_SOCKET_URL__?: string }).__AURA_SOCKET_URL__;
@@ -12,10 +13,15 @@ function getIoBrokerBase(): string {
 }
 
 export function EChartsPresetWidget({ config, editMode }: WidgetProps) {
-  const opts     = config.options ?? {};
-  const presetId = (opts.presetId as string)  ?? '';
-  const darkMode = (opts.darkMode as boolean) ?? true;
-  const manualBase = (opts.baseUrl as string | undefined)?.replace(/\/$/, '');
+  const opts       = config.options ?? {};
+  const presetId   = (opts.presetId  as string)  ?? '';
+  const darkMode   = (opts.darkMode  as boolean) ?? true;
+  const manualBase = (opts.baseUrl   as string | undefined)?.replace(/\/$/, '');
+  const showTitle  = opts.showTitle  !== false;
+  const showIcon   = opts.showIcon   !== false;
+  const iconSize   = (opts.iconSize  as number) || 36;
+  const titleAlign = (opts.titleAlign as string) ?? 'left';
+  const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, BarChart2);
 
   const [autoBase] = useState(getIoBrokerBase);
   const [fullscreen, setFullscreen] = useState(false);
@@ -45,34 +51,30 @@ export function EChartsPresetWidget({ config, editMode }: WidgetProps) {
 
   return (
     <>
-      <div className="w-full h-full overflow-hidden relative" style={{ borderRadius: 'inherit' }}>
-        <iframe
-          src={url}
-          title={config.title || 'eCharts'}
-          style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-          allow="fullscreen"
-        />
-        {config.title && (
-          <div
-            className="absolute top-0 left-0 right-0 px-3 py-1.5 text-xs font-medium pointer-events-none"
-            style={{
-              background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)',
-              color: '#fff',
-              zIndex: 2,
-            }}
-          >
-            {config.title}
+      <div className="flex flex-col w-full h-full">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
         )}
-        {!editMode && (
-          <button
-            onClick={(e) => { e.stopPropagation(); setFullscreen(true); }}
-            className="absolute bottom-2 right-2 p-1 rounded"
-            style={{ background: 'rgba(0,0,0,0.5)', border: 'none', cursor: 'pointer', color: '#fff', lineHeight: 0, zIndex: 2 }}
-          >
-            <Maximize2 size={14} />
-          </button>
-        )}
+        <div className="flex-1 overflow-hidden relative min-h-0" style={{ borderRadius: 'inherit' }}>
+          <iframe
+            src={url}
+            title={config.title || 'eCharts'}
+            style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+            allow="fullscreen"
+          />
+          {!editMode && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setFullscreen(true); }}
+              className="absolute bottom-2 right-2 p-1 rounded"
+              style={{ background: 'rgba(0,0,0,0.5)', border: 'none', cursor: 'pointer', color: '#fff', lineHeight: 0, zIndex: 2 }}
+            >
+              <Maximize2 size={14} />
+            </button>
+          )}
+        </div>
       </div>
 
       {fullscreen && createPortal(
