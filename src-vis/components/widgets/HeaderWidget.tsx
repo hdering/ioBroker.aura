@@ -1,3 +1,5 @@
+import { Heading2 } from 'lucide-react';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { WidgetConfig } from '../../types';
 
 interface Props {
@@ -5,19 +7,24 @@ interface Props {
 }
 
 export function HeaderWidget({ config }: Props) {
-  const subtitle = config.options?.subtitle as string | undefined;
-  const align = (config.options?.align as string) ?? 'left';
-  const layout = config.layout ?? 'default';
+  const opts       = config.options ?? {};
+  const subtitle   = opts.subtitle  as string | undefined;
+  const showTitle  = opts.showTitle !== false;
+  const showIcon   = opts.showIcon  !== false;
+  const iconSize   = (opts.iconSize  as number) || 36;
+  const titleAlign = (opts.titleAlign as string) ?? 'left';
+  const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, Heading2);
+  const layout     = config.layout ?? 'default';
 
   if (layout === 'minimal') {
     return (
       <div className="flex items-center gap-3 h-full px-1">
-        <span
-          className="text-xs font-semibold tracking-widest uppercase shrink-0"
-          style={{ color: 'var(--text-secondary)' }}
-        >
-          {config.title}
-        </span>
+        {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+        {showTitle && (
+          <span className="text-xs font-semibold tracking-widest uppercase shrink-0" style={{ color: 'var(--text-secondary)' }}>
+            {config.title}
+          </span>
+        )}
         <div className="flex-1 h-px" style={{ background: 'var(--app-border)' }} />
       </div>
     );
@@ -27,9 +34,12 @@ export function HeaderWidget({ config }: Props) {
     return (
       <div className="flex items-center gap-3 h-full">
         <div className="w-1 self-stretch rounded-full" style={{ background: 'var(--accent)' }} />
-        <span className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
-          {config.title}
-        </span>
+        {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-primary)', flexShrink: 0 }} />}
+        {showTitle && (
+          <span className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
+            {config.title}
+          </span>
+        )}
       </div>
     );
   }
@@ -38,17 +48,20 @@ export function HeaderWidget({ config }: Props) {
   return (
     <div
       className="flex flex-col justify-center h-full gap-0.5"
-      style={{ textAlign: align as React.CSSProperties['textAlign'] }}
+      style={{ textAlign: titleAlign as React.CSSProperties['textAlign'] }}
     >
       <div className="flex items-center gap-3">
-        {align === 'left' && (
+        {titleAlign === 'left' && (
           <div className="w-1 self-stretch rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
         )}
-        <h2 className="font-bold text-xl leading-tight" style={{ color: 'var(--text-primary)' }}>
-          {config.title}
-        </h2>
+        {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-primary)', flexShrink: 0 }} />}
+        {showTitle && (
+          <h2 className="font-bold text-xl leading-tight" style={{ color: 'var(--text-primary)' }}>
+            {config.title}
+          </h2>
+        )}
       </div>
-      {subtitle && (
+      {subtitle && showTitle && (
         <p className="text-xs mt-0.5 pl-4" style={{ color: 'var(--text-secondary)' }}>
           {subtitle}
         </p>

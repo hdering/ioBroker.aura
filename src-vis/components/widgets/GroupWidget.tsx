@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import { Layers } from 'lucide-react';
 import ReactGridLayout from 'react-grid-layout';
 import type { WidgetProps, WidgetConfig, WidgetType } from '../../types';
 import { useConfigStore } from '../../store/configStore';
@@ -12,6 +13,7 @@ import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
 import { useDashboardMobile } from '../../contexts/DashboardMobileContext';
 import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
 import { verticalCompact } from '../../utils/gridCompact';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 function mobileSort(children: WidgetConfig[]): WidgetConfig[] {
   return [...children].sort((a, b) => {
@@ -42,6 +44,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
   const children = useGroupDefsStore((s) => s.defs[defId] ?? []);
   const transparent = !!(config.options?.transparent);
+  const showTitle  = config.options?.showTitle  !== false;
+  const showIcon   = config.options?.showIcon   !== false;
+  const iconSize   = (config.options?.iconSize  as number | undefined) || 36;
+  const WidgetIcon = getWidgetIcon(config.options?.icon as string | undefined, Layers);
   const cellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);
   const gridGap  = useConfigStore((s) => s.frontend.gridGap ?? 10);
   const dashboardIsMobile = useDashboardMobile();
@@ -76,7 +82,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     if (next.length === 0) return config.gridPos.h;
     const maxBottom = Math.max(...next.map((c) => c.gridPos.y + c.gridPos.h));
     const innerH = maxBottom * (cellSize + gridGap) - gridGap;
-    const titleBarH = config.title ? 37 : (editMode ? 36 : 0);
+    const titleBarH = (showTitle && config.title) ? 37 : (editMode ? 36 : 0);
     // 10 = p-1 top(4) + bottom(4) + widget border 1px each side(2)
     return Math.ceil((titleBarH + innerH + 10 + gridGap) / (cellSize + gridGap));
   };
@@ -136,17 +142,21 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
   // ── Title bar (always shown in editMode as outer-grid drag handle) ─────────
   const titleAlign = (config.options?.titleAlign as string | undefined) ?? 'left';
-  const titleBar = (config.title || editMode) ? (
+  const titleBar = ((showTitle && config.title) || editMode) ? (
     <div
-      className="shrink-0 px-3 py-2.5 text-xs font-semibold truncate"
+      className="shrink-0 flex items-center gap-1.5 px-3 py-2.5 min-w-0"
       style={{
         color: 'var(--text-secondary)',
         borderBottom: transparent ? 'none' : '1px solid var(--widget-border)',
-        minHeight: editMode && !config.title ? '36px' : undefined,
-        textAlign: titleAlign as React.CSSProperties['textAlign'],
+        minHeight: editMode && !(showTitle && config.title) ? '36px' : undefined,
       }}
     >
-      {config.title}
+      {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+      {showTitle && config.title && (
+        <span className="text-xs font-semibold truncate flex-1 min-w-0" style={{ textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+          {config.title}
+        </span>
+      )}
     </div>
   ) : null;
 
