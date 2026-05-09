@@ -4783,16 +4783,27 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         </p>
                       )}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Position invertieren (0=offen)</label>
-                      <button
-                        onClick={() => setO({ invertPosition: !(o.invertPosition ?? false) })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: (o.invertPosition ?? false) ? 'var(--accent)' : 'var(--app-border)' }}
-                      >
-                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                          style={{ left: (o.invertPosition ?? false) ? '18px' : '2px' }} />
-                      </button>
+                    <div>
+                      <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>Aktor-Konvention</label>
+                      <div className="flex gap-1">
+                        {([
+                          { label: 'HM / Standard (0=zu)', val: false },
+                          { label: 'HmIP (0=auf)', val: true },
+                        ] as const).map(({ label, val }) => (
+                          <button
+                            key={String(val)}
+                            onClick={() => setO({ invertPosition: val })}
+                            className="flex-1 py-1 px-2 rounded-lg text-[10px] font-medium transition-colors"
+                            style={{
+                              background: (o.invertPosition ?? false) === val ? 'var(--accent)' : 'var(--app-bg)',
+                              color:      (o.invertPosition ?? false) === val ? '#fff' : 'var(--text-secondary)',
+                              border: '1px solid var(--app-border)',
+                            }}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <div className="flex items-center justify-between">
                       <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>% geschlossen anzeigen</label>

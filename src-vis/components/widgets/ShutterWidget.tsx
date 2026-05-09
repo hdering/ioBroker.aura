@@ -143,12 +143,11 @@ export function ShutterWidget({ config }: WidgetProps) {
 
   const [dragPos, setDragPos] = useState<number | null>(null);
   const displayPos = dragPos ?? pos;
-  // When showing % closed, invert slider so left=0%closed (open), right=100%closed
-  const sliderPos = showClosedPercent ? 100 - displayPos : displayPos;
+  // Slider always: right=open (100%), left=closed (0%) — independent of showClosedPercent
+  const sliderPos = displayPos;
 
   const handleSliderChange = (v: number) => {
-    const posValue = showClosedPercent ? 100 - v : v;
-    if (sendOnRelease) { setDragPos(posValue); } else { writePos(posValue); }
+    if (sendOnRelease) { setDragPos(v); } else { writePos(v); }
   };
   const handleSliderRelease = () => {
     if (sendOnRelease && dragPos !== null) {
