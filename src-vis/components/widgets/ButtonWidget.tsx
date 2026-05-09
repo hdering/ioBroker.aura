@@ -8,9 +8,10 @@ export function ButtonWidget({ config }: WidgetProps) {
   const label     = (o.buttonLabel as string) || config.title || 'Button';
   const color     = (o.buttonColor as string) || 'var(--accent)';
   const iconSize  = (o.iconSize    as number) || 28;
-  const showTitle = o.showTitle !== false;
-  const showIcon  = o.showIcon  !== false;
-  const layout    = config.layout ?? 'default';
+  const showTitle  = o.showTitle  !== false;
+  const showIcon   = o.showIcon   !== false;
+  const titleAlign = (o.titleAlign as string) ?? 'left';
+  const layout     = config.layout ?? 'default';
 
   const iconName  = o.icon as string | undefined;
   const WidgetIcon = iconName ? getWidgetIcon(iconName, (() => null) as never) : null;
@@ -55,8 +56,8 @@ export function ButtonWidget({ config }: WidgetProps) {
   const posClass = contentPositionClass(o.contentPosition as string | undefined);
   return (
     <div className="flex flex-col h-full gap-1">
-      {showTitle && config.title && (
-        <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{config.title}</p>
+      {showTitle && (
+        <p className="text-xs truncate flex-1 min-w-0 shrink-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>
       )}
       <div className={`flex flex-col gap-2 flex-1 ${posClass}`}>
         {showIcon && WidgetIcon && <WidgetIcon size={iconSize} style={{ color }} />}
