@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Filter } from 'lucide-react';
+import { Filter, List } from 'lucide-react';
 import { useIoBroker, getObjectViewDirect } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
@@ -272,11 +272,14 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     return result;
   }, [entries, states, valueFilter, editMode, opts.sortBy, opts.sortOrder, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const hideTitle = !!(config.options as Record<string, unknown>)?.hideTitle;
-  const showTitle = opts.showTitle !== false && !hideTitle;
-  const showCount = opts.showCount !== false;
-  const showLastChange = !!(config.options as Record<string, unknown>)?.showLastChange;
-  const lastChangePos  = ((config.options as Record<string, unknown>)?.lastChangePosition as string) ?? 'left';
+  const o = config.options ?? {};
+  const showTitle  = opts.showTitle !== false;
+  const showIcon   = o.showIcon   !== false;
+  const iconSize   = (o.iconSize   as number) || 36;
+  const titleAlign = (o.titleAlign as string) ?? 'left';
+  const showCount  = opts.showCount !== false;
+  const showLastChange = !!o.showLastChange;
+  const lastChangePos  = (o.lastChangePosition as string) ?? 'left';
 
   const lcOverlay = showLastChange && lastChangedTs > 0 ? (() => {
     const text = formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lastChangedTs);
@@ -296,18 +299,17 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const layout = config.layout ?? 'default';
   if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
-  const globalThresholds = (config.options as Record<string, unknown>)?.colorThresholds as [number, string][] | undefined;
-  const iconName = (config.options as Record<string, unknown>)?.icon as string | undefined;
-  const HeaderIcon = iconName ? getWidgetIcon(iconName, null!) : null;
+  const globalThresholds = o.colorThresholds as [number, string][] | undefined;
+  const HeaderIcon = getWidgetIcon(o.icon as string | undefined, List);
 
   // ── Shared header ──────────────────────────────────────────────────────────
-  const header = showTitle ? (
+  const header = (showTitle || showIcon) ? (
     <div className="shrink-0 flex items-center justify-between px-3 py-1.5"
       style={{ borderBottom: '1px solid var(--widget-border)' }}>
-      <span className="flex items-center gap-1.5 text-xs font-semibold truncate" style={{ color: 'var(--text-secondary)' }}>
-        {HeaderIcon && <HeaderIcon size={12} className="shrink-0" />}
-        {config.title || 'Statische Liste'}
-        {showCount && entries.length > 0 && (
+      <span className="flex items-center gap-1.5 text-xs font-semibold truncate min-w-0 flex-1" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+        {showIcon && <HeaderIcon size={iconSize} className="shrink-0" />}
+        {showTitle && (config.title || 'Statische Liste')}
+        {showTitle && showCount && entries.length > 0 && (
           <span className="ml-1 opacity-50">
             ({valueFilter !== 'all' ? `${visibleEntries.length}/` : ''}{entries.length})
           </span>
