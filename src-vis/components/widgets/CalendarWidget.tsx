@@ -381,9 +381,17 @@ export function CalendarWidget({ config }: WidgetProps) {
   // ── no sources configured ────────────────────────────────────────────────
   if (sources.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2 text-center">
-        <CalendarDays size={22} style={{ color: 'var(--text-secondary)', opacity: 0.5 }} />
-        <p style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>{t('calendar.configure')}</p>
+      <div className="flex flex-col h-full">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
+        )}
+        <div className="flex flex-col items-center justify-center flex-1 gap-2 text-center">
+          <CalendarDays size={22} style={{ color: 'var(--text-secondary)', opacity: 0.5 }} />
+          <p style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>{t('calendar.configure')}</p>
+        </div>
       </div>
     );
   }
@@ -394,7 +402,7 @@ export function CalendarWidget({ config }: WidgetProps) {
       <div className="flex flex-col h-full gap-1.5 overflow-hidden">
         <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
           <div className="flex items-center gap-1 min-w-0 flex-1">
-            {showIcon && <WidgetIcon size={Math.min(iconSize, 14)} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
             {showTitle && <p className="font-medium truncate flex-1 min-w-0" style={{ color: 'var(--text-primary)', fontSize: fs(11), textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
           <button onClick={fetchEvents} className="hover:opacity-70 shrink-0"><Spinner loading={loading} /></button>
@@ -435,7 +443,7 @@ export function CalendarWidget({ config }: WidgetProps) {
       <div className="flex flex-col h-full">
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-            {showIcon && <WidgetIcon size={Math.min(iconSize, 16)} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
             {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
         )}
@@ -498,7 +506,7 @@ export function CalendarWidget({ config }: WidgetProps) {
         {/* header row */}
         <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
           <div className="flex items-center gap-1 min-w-0 flex-1">
-            {showIcon && <WidgetIcon size={Math.min(iconSize, 14)} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
             {showTitle && <p className="truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', fontSize: fs(11), textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
           <button onClick={fetchEvents} className="hover:opacity-70 shrink-0"><Spinner loading={loading} /></button>
@@ -554,7 +562,7 @@ export function CalendarWidget({ config }: WidgetProps) {
       <div className="flex flex-col h-full gap-1 overflow-hidden">
         <div className="flex items-center justify-between shrink-0 mb-0.5 gap-1 min-w-0">
           <div className="flex items-center gap-1 min-w-0 flex-1">
-            {showIcon && <WidgetIcon size={Math.min(iconSize, 14)} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
             {showTitle && <p className="font-medium truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', fontSize: fs(11), textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
           <button onClick={fetchEvents} className="hover:opacity-70 shrink-0"><Spinner loading={loading} /></button>
@@ -625,7 +633,7 @@ export function CalendarWidget({ config }: WidgetProps) {
     <div className="flex flex-col h-full gap-1.5 overflow-hidden">
       <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
         <div className="flex items-center gap-1 min-w-0 flex-1">
-          {showIcon && <WidgetIcon size={Math.min(iconSize, 14)} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
           {showTitle && <p className="font-medium truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', fontSize: fs(11), textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
         <button onClick={fetchEvents} className="hover:opacity-70 shrink-0">

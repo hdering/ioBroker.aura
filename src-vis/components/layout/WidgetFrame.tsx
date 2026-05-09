@@ -3135,13 +3135,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   case 'list':          return [];
                   case 'autolist':      return [];
                   case 'fill':          return [];
-                  case 'calendar':      return [
-                    { key: 'showCalName',  label: 'Kalender-Name' },
-                    { key: 'showSummary',  label: 'Terminname' },
-                    { key: 'showDate',     label: 'Datum / Uhrzeit' },
-                    { key: 'showLocation', label: 'Ort' },
-                    { key: 'showMore',     label: '+ weitere Termine' },
-                  ];
+                  case 'calendar':      return [];
                   case 'mediaplayer':    return [
                     { key: 'showCover',    label: 'Cover' },
                     { key: 'showTitle',    label: 'Titel' },
