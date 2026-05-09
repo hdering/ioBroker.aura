@@ -5,6 +5,7 @@ import { useSuperAdmin } from '../../hooks/useSuperAdmin';
 import { Plus, Trash2, Check, Pencil, Layers, RotateCcw } from 'lucide-react';
 import { usePopupConfigStore, BUILTIN_VIEW_IDS, BUILTIN_VIEWS } from '../../store/popupConfigStore';
 import { WIDGET_REGISTRY } from '../../widgetRegistry';
+import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import type { WidgetLayout } from '../../types';
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
@@ -33,6 +34,7 @@ function LayoutPicker({ value, onChange }: { value: WidgetLayout[]; onChange: (v
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
+  const themeVars = usePortalThemeVars();
 
   useEffect(() => {
     if (!open) return;
@@ -77,7 +79,7 @@ function LayoutPicker({ value, onChange }: { value: WidgetLayout[]; onChange: (v
         <div
           ref={dropRef}
           className="fixed z-[9999] rounded-xl p-2 grid grid-cols-2 gap-1"
-          style={{ top: pos.top, left: pos.left, background: 'var(--app-surface)', border: '1px solid var(--app-border)', minWidth: 220, boxShadow: '0 4px 16px rgba(0,0,0,.18)' }}
+          style={{ ...themeVars, top: pos.top, left: pos.left, background: 'var(--app-surface)', border: '1px solid var(--app-border)', minWidth: 220, boxShadow: '0 4px 16px rgba(0,0,0,.18)' }}
         >
           <button
             className="col-span-2 text-left text-[11px] px-2 py-1 rounded-lg hover:opacity-80 font-medium"
