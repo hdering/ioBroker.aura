@@ -132,7 +132,7 @@ export function StateImageWidget({ config }: WidgetProps) {
       <div className="flex flex-col items-center justify-center h-full gap-1" style={{ position: 'relative' }}>
         {showIcon && <StateDisplay cfg={cfg} size={iconSize} />}
         {showLabel && (
-          <span className="text-2xl font-bold" style={{ color: cfg.color }}>{cfg.label}</span>
+          <span className="text-xl font-bold" style={{ color: cfg.color }}>{cfg.label}</span>
         )}
         {showTitle && (
           <span className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>
@@ -153,7 +153,7 @@ export function StateImageWidget({ config }: WidgetProps) {
         </div>
       )}
       {showLabel && (
-        <span className="text-3xl font-bold" style={{ color: cfg.color }}>{cfg.label}</span>
+        <span className="text-xl font-bold" style={{ color: cfg.color }}>{cfg.label}</span>
       )}
       <StatusBadges config={config} />
     </div>

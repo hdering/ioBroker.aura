@@ -416,7 +416,7 @@ function CardEntryValue({ entry, val, writable, setState, thresholds, decimals }
 
   const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
   return (
-    <span className="text-2xl font-bold tabular-nums text-center leading-none"
+    <span className="text-xl font-bold tabular-nums text-center leading-none"
       style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
       {val != null ? displayVal : '–'}
       {entry.unit && <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>{entry.unit}</span>}
@@ -643,7 +643,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     return (
       <div className="relative flex flex-col items-center justify-center h-full gap-1">
         {showIcon && <HeaderIcon size={iconSize} style={{ color: 'var(--text-secondary)', opacity: 0.7 }} />}
-        <span className="font-bold tabular-nums leading-none" style={{ fontSize: 48, color: 'var(--text-primary)' }}>
+        <span className="text-xl font-bold tabular-nums leading-none" style={{ color: 'var(--text-primary)' }}>
           {count}
         </span>
         {showTitle && config.title && (

@@ -160,7 +160,7 @@ export function ChartWidget({ config }: WidgetProps) {
             <div className="min-w-0 flex-1">
               {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
               {current !== null && (
-                <p className="text-3xl font-black leading-tight" style={{ color: 'var(--text-primary)' }}>
+                <p className="text-xl font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>
                   {formatNum(current, decimals)}
                   {unit && <span className="text-lg ml-1 font-medium" style={{ color: unitColor }}>{unit}</span>}
                 </p>

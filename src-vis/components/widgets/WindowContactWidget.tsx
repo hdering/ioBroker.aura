@@ -228,7 +228,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-1" style={{ position: 'relative' }}>
         {showIcon && <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} />}
-        {showLabel && <span className="text-2xl font-bold" style={{ color: cfg.color }}>{cfg.label}</span>}
+        {showLabel && <span className="text-xl font-bold" style={{ color: cfg.color }}>{cfg.label}</span>}
         {showTitle && <span className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
         <StatusBadges config={config} />
       </div>
@@ -246,7 +246,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
           {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
-      {showLabel && <span className="text-3xl font-bold" style={{ color: cfg.color }}>{cfg.label}</span>}
+      {showLabel && <span className="text-xl font-bold" style={{ color: cfg.color }}>{cfg.label}</span>}
       <StatusBadges config={config} />
     </div>
   );

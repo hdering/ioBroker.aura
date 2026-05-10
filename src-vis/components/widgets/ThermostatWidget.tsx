@@ -133,7 +133,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
             <div>
               {showSetpoint && (
                 <>
-                  <p className="font-black leading-none" style={{ fontSize: 'calc(3.5rem * var(--font-scale, 1))', color: valueColor }}>
+                  <p className="text-xl font-bold leading-none" style={{ color: valueColor }}>
                     {formatNum(target, decimals)}
                   </p>
                   <p className="text-base font-light mt-0.5" style={{ color: 'var(--text-secondary)' }}>{t('thermo.setPoint')}</p>
@@ -203,7 +203,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
         <div className="flex flex-col items-center justify-center h-full gap-2" style={{ position: 'relative' }}>
           {showIcon && <ThermoIcon size={iconSize} style={{ color: accentColor }} />}
           {showSetpoint && (
-            <span className="font-black" style={{ fontSize: 'calc(2.5rem * var(--font-scale, 1))', color: valueColor, lineHeight: 1 }}>
+            <span className="text-xl font-bold" style={{ color: valueColor, lineHeight: 1 }}>
               {formatNum(target, decimals)}°
             </span>
           )}
@@ -246,7 +246,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
           <div>
             {showSetpoint && (
               <>
-                <p className="font-black leading-none" style={{ fontSize: 'calc(2.8rem * var(--font-scale, 1))', color: valueColor }}>
+                <p className="text-xl font-bold leading-none" style={{ color: valueColor }}>
                   {formatNum(target, decimals)}
                 </p>
                 <p className="text-sm font-light" style={{ color: 'var(--text-secondary)' }}>{t('thermo.setPoint')}</p>

@@ -99,8 +99,8 @@ export function ClockWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-1">
         <p
-          className={`${customFormat ? 'aura-clock-custom' : display === 'date' ? 'aura-clock-date' : 'aura-clock-time'} font-black tabular-nums leading-none text-center`}
-          style={{ color: 'var(--accent)', fontSize: 'calc(clamp(1.8rem, 5vw, 3rem) * var(--font-scale, 1))' }}
+          className={`${customFormat ? 'aura-clock-custom' : display === 'date' ? 'aura-clock-date' : 'aura-clock-time'} text-xl font-bold tabular-nums leading-none text-center`}
+          style={{ color: 'var(--accent)' }}
         >
           {customFormat ? customStr : display === 'date' ? <DateText date={now} length={dateLength} t={t} /> : timeStr}
         </p>
@@ -118,7 +118,7 @@ export function ClockWidget({ config }: WidgetProps) {
     if (customFormat) {
       return (
         <div className="flex flex-col items-center justify-center h-full gap-1">
-          <p className="aura-clock-custom font-black tabular-nums text-center" style={{ color: 'var(--accent)', fontSize: 'calc(clamp(2rem, 6vw, 3.5rem) * var(--font-scale, 1))', lineHeight: 1.1 }}>
+          <p className="aura-clock-custom text-xl font-bold tabular-nums text-center" style={{ color: 'var(--accent)', lineHeight: 1.1 }}>
             {customStr}
           </p>
           {(showTitle || showIcon) && (
@@ -133,7 +133,7 @@ export function ClockWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-1.5">
         {display !== 'date' && (
-          <p className="aura-clock-time font-black tabular-nums leading-none" style={{ color: 'var(--accent)', fontSize: 'calc(clamp(2rem, 6vw, 3.5rem) * var(--font-scale, 1))' }}>
+          <p className="aura-clock-time text-xl font-bold tabular-nums leading-none" style={{ color: 'var(--accent)' }}>
             {timeStr}
           </p>
         )}
@@ -162,7 +162,7 @@ export function ClockWidget({ config }: WidgetProps) {
             {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
         )}
-        <p className="aura-clock-custom text-3xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>{customStr}</p>
+        <p className="aura-clock-custom text-xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>{customStr}</p>
       </div>
     );
   }
@@ -177,12 +177,12 @@ export function ClockWidget({ config }: WidgetProps) {
       )}
       <div>
         {display !== 'date' && (
-          <p className="aura-clock-time text-3xl font-bold tabular-nums leading-none" style={{ color: 'var(--text-primary)' }}>
+          <p className="aura-clock-time text-xl font-bold tabular-nums leading-none" style={{ color: 'var(--text-primary)' }}>
             {timeStr}
           </p>
         )}
         {display !== 'time' && (
-          <p className={`aura-clock-date mt-1 ${display === 'date' ? 'text-2xl font-bold' : 'text-sm'}`} style={{ color: display === 'date' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+          <p className={`aura-clock-date mt-1 ${display === 'date' ? 'text-xl font-bold' : 'text-sm'}`} style={{ color: display === 'date' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
             <DateText date={now} length={dateLength} t={t} />
           </p>
         )}
