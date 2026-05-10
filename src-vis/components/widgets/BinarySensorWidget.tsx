@@ -114,7 +114,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-1" style={{ position: 'relative' }}>
         {showIcon && <Icon size={iconSize} style={{ color }} />}
-        {showLabel && <span className="text-2xl font-bold" style={{ color }}>{label}</span>}
+        {showLabel && <span className="text-3xl font-bold" style={{ color }}>{label}</span>}
         {showTitle && <span className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
         <StatusBadges config={config} />
       </div>

@@ -163,7 +163,7 @@ export function DimmerWidget({ config }: WidgetProps) {
         <div className="flex flex-col items-center gap-3 flex-1 justify-center">
           {showIcon && <CompactIcon size={iconSize} strokeWidth={1.5}
             style={{ color: 'var(--accent-yellow)', opacity, filter: level > 0 ? `drop-shadow(0 0 ${level / 10}px var(--accent-yellow))` : 'none', transition: 'all 0.3s' }} />}
-          {showValue && <span className="text-3xl font-bold" style={{ color: valueColor }}>{level}%</span>}
+          {showValue && <span className="text-4xl font-black" style={{ color: valueColor }}>{level}%</span>}
         </div>
         {showSlider && (barStyle
           ? <div style={{ height: 40, width: '100%' }}>{barTrack}</div>

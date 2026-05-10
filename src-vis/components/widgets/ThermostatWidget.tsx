@@ -171,7 +171,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
           {showTitle && <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{displayTitle}</span>}
           {!showTitle && <span className="flex-1" />}
           {showSetpoint && (
-            <span className="text-sm font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>
+            <span className="text-xl font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>
               {formatNum(target, decimals)}°
               {showActualTemp && actual !== null && (
                 <span className="font-normal text-xs ml-1" style={{ color: 'var(--text-secondary)' }}>

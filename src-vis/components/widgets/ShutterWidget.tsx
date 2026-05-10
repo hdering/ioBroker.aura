@@ -220,7 +220,7 @@ export function ShutterWidget({ config }: WidgetProps) {
         )}
         <ShutterViz closedFrac={closedFrac} accentColor={accentColor} isMoving={isMoving} className="flex-1" />
         <div className="flex items-center justify-between">
-          {showValue && <span className="text-xl font-black" style={{ color: valueColor }}>{displayPct}%</span>}
+          {showValue && <span className="text-3xl font-black" style={{ color: valueColor }}>{displayPct}%</span>}
           {showControls && <BtnRow onUp={openFully} onStop={stop} onDown={closeFully} size="md" />}
         </div>
         {showSlider && slider}
@@ -240,7 +240,7 @@ export function ShutterWidget({ config }: WidgetProps) {
         )}
         {showTitle && <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
         {!showTitle && <span className="flex-1" />}
-        {showValue && <span className="text-sm font-bold shrink-0" style={{ color: thresholdColor ?? (isMoving ? 'var(--accent-yellow)' : 'var(--text-primary)') }}>{displayPct}%</span>}
+        {showValue && <span className="text-xl font-bold shrink-0" style={{ color: thresholdColor ?? (isMoving ? 'var(--accent-yellow)' : 'var(--text-primary)') }}>{displayPct}%</span>}
         {showControls && <BtnRow onUp={openFully} onStop={stop} onDown={closeFully} size="sm" />}
         <StatusBadges config={config} />
       </div>
@@ -259,7 +259,7 @@ export function ShutterWidget({ config }: WidgetProps) {
         )}
         {showValue && (
           <div className="text-center">
-            <p className="text-2xl font-black leading-none" style={{ color: valueColor }}>{displayPct}%</p>
+            <p className="text-3xl font-black leading-none" style={{ color: valueColor }}>{displayPct}%</p>
             {isMoving && <p className="text-[10px] animate-pulse mt-0.5" style={{ color: 'var(--accent-yellow)' }}>
               {movingDir === 'up' ? '▲' : '▼'}
             </p>}
@@ -305,7 +305,7 @@ export function ShutterWidget({ config }: WidgetProps) {
           {showValue && (
             <div className="flex justify-between items-baseline mb-1">
               <span className="text-[11px]" style={{ color: isMoving ? 'var(--accent-yellow)' : 'var(--text-secondary)' }}>{statusText}</span>
-              <span className="text-sm font-bold" style={{ color: valueColor }}>{displayPct}%</span>
+              <span className="text-2xl font-bold" style={{ color: valueColor }}>{displayPct}%</span>
             </div>
           )}
           {showSlider && slider}

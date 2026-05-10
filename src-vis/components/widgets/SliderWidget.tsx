@@ -226,7 +226,7 @@ export function SliderWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col h-full items-center gap-1" style={{ position: 'relative' }}>
         {showValue && (
-          <p className="text-sm font-semibold shrink-0" style={{ color: 'var(--text-primary)' }}>{valueStr}</p>
+          <p className="text-xl font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>{valueStr}</p>
         )}
         {showMinMax && <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>{max}</span>}
         <div className={`flex-1 flex items-center justify-center min-h-0${barStyle ? ' w-full' : ''}`}>
@@ -247,7 +247,7 @@ export function SliderWidget({ config }: WidgetProps) {
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
             {showTitle && <p className="text-sm font-medium truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
-          {showValue && <p className="text-base font-semibold shrink-0" style={{ color: 'var(--text-primary)' }}>{valueStr}</p>}
+          {showValue && <p className="text-xl font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>{valueStr}</p>}
         </div>
       )}
       <div className="flex-1 flex items-center gap-2 min-h-0">
