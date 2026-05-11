@@ -567,7 +567,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
   // ── Shared header ──────────────────────────────────────────────────────────
   const header = (showTitle || showIcon) ? (
-    <div className="shrink-0 px-3 py-1.5 flex items-center justify-between"
+    <div className="shrink-0 py-1.5 flex items-center justify-between"
       style={{ borderBottom: '1px solid var(--widget-border)' }}>
       <div className="flex items-center gap-1.5 min-w-0 flex-1">
         {showIcon && <HeaderIcon size={iconSize} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
