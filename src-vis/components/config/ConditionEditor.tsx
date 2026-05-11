@@ -120,7 +120,7 @@ function ClauseRow({
 
       {/* Value (hidden for true/false operators) */}
       {!op?.noValue ? (
-        <div className="flex gap-0.5 w-32 shrink-0">
+        <div className={`flex gap-0.5 shrink-0 ${isDpValue ? 'flex-1 min-w-0' : 'w-32'}`}>
           <button
             onClick={() => onChange({ ...clause, valueType: isDpValue ? 'static' : 'datapoint', value: '' })}
             className="px-1.5 rounded-lg shrink-0 hover:opacity-80 text-[9px] font-bold"
@@ -156,6 +156,7 @@ function ClauseRow({
       ) : (
         <div className="w-32 shrink-0" />
       )}
+
 
       <button
         onClick={onDelete}
@@ -410,7 +411,7 @@ export function ConditionEditor({ conditions, onChange, context = 'widget', styl
     onChange(conditions.filter((_, j) => j !== i));
 
   return (
-    <div className="p-3 space-y-2.5" style={{ width: '480px', ...style }} onMouseDown={(e) => e.stopPropagation()}>
+    <div className="p-3 space-y-2.5" style={{ width: '100%', ...style }} onMouseDown={(e) => e.stopPropagation()}>
       <div className="flex items-center justify-between mb-1">
         <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{t('cond.rules')}</p>
         <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>

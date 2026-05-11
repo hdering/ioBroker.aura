@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.9 (2026-05-11)
+
+- ui(conditions): wider settings popup with fluid layout for DP comparison
+
 ## v0.7.8 (2026-05-11)
 
 - feat(conditions): allow comparing two datapoints (DP vs DP) in widget conditions

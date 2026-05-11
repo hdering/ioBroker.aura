@@ -6892,7 +6892,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       )}
 
       {openPanel === 'conditions' && (
-        <CenteredModal title="Bedingungen" onClose={() => openPanelFor(null)}>
+        <CenteredModal title="Bedingungen" onClose={() => openPanelFor(null)} wide>
           <ConditionEditor
             conditions={conditions}
             onChange={(next) =>
