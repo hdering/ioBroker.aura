@@ -629,6 +629,8 @@ export const de = {
   'cond.datapointId': 'Datenpunkt-ID',
   'cond.fromIoBroker':'Aus ioBroker wählen',
   'cond.value':       'Wert',
+  'cond.toStatic':    'Auf festen Wert umschalten',
+  'cond.toDatapoint': 'Mit Datenpunkt vergleichen',
   'cond.removeClause':'Klausel entfernen',
   'cond.addClause':   'Klausel hinzufügen',
   'cond.activeStyle': 'Stil wenn aktiv',

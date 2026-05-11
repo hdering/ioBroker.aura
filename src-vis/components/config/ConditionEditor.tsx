@@ -67,7 +67,9 @@ function ClauseRow({
 }) {
   const t = useT();
   const [showPicker, setShowPicker] = useState(false);
+  const [showValuePicker, setShowValuePicker] = useState(false);
   const op = OPERATORS.find((o) => o.value === clause.operator)!;
+  const isDpValue = clause.valueType === 'datapoint';
 
   return (
     <div className="flex items-center gap-1.5">
@@ -118,16 +120,41 @@ function ClauseRow({
 
       {/* Value (hidden for true/false operators) */}
       {!op?.noValue ? (
-        <input
-          type="text"
-          value={clause.value}
-          onChange={(e) => onChange({ ...clause, value: e.target.value })}
-          placeholder={t('cond.value')}
-          className={`${cls} w-20 shrink-0`}
-          style={inputStyle}
-        />
+        <div className="flex gap-0.5 w-32 shrink-0">
+          <button
+            onClick={() => onChange({ ...clause, valueType: isDpValue ? 'static' : 'datapoint', value: '' })}
+            className="px-1.5 rounded-lg shrink-0 hover:opacity-80 text-[9px] font-bold"
+            style={{
+              background: isDpValue ? 'var(--accent)22' : 'var(--app-bg)',
+              color: isDpValue ? 'var(--accent)' : 'var(--text-secondary)',
+              border: `1px solid ${isDpValue ? 'var(--accent)44' : 'var(--app-border)'}`,
+              minWidth: 22,
+            }}
+            title={isDpValue ? t('cond.toStatic') : t('cond.toDatapoint')}
+          >
+            {isDpValue ? 'DP' : '123'}
+          </button>
+          <input
+            type="text"
+            value={clause.value}
+            onChange={(e) => onChange({ ...clause, value: e.target.value })}
+            placeholder={isDpValue ? t('cond.datapointId') : t('cond.value')}
+            className={`${cls} flex-1 min-w-0 ${isDpValue ? 'font-mono' : ''}`}
+            style={inputStyle}
+          />
+          {isDpValue && (
+            <button
+              onClick={() => setShowValuePicker(true)}
+              className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+              title={t('cond.fromIoBroker')}
+            >
+              <Database size={11} />
+            </button>
+          )}
+        </div>
       ) : (
-        <div className="w-20 shrink-0" />
+        <div className="w-32 shrink-0" />
       )}
 
       <button
@@ -144,6 +171,13 @@ function ClauseRow({
           currentValue={clause.datapoint}
           onSelect={(id) => { onChange({ ...clause, datapoint: id }); }}
           onClose={() => setShowPicker(false)}
+        />
+      )}
+      {showValuePicker && (
+        <DatapointPicker
+          currentValue={clause.value}
+          onSelect={(id) => { onChange({ ...clause, value: id }); }}
+          onClose={() => setShowValuePicker(false)}
         />
       )}
     </div>

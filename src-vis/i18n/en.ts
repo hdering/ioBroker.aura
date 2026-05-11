@@ -631,6 +631,8 @@ export const en: Record<TranslationKey, string> = {
   'cond.datapointId': 'Datapoint ID',
   'cond.fromIoBroker':'Select from ioBroker',
   'cond.value':       'Value',
+  'cond.toStatic':    'Switch to static value',
+  'cond.toDatapoint': 'Compare with datapoint',
   'cond.removeClause':'Remove clause',
   'cond.addClause':   'Add clause',
   'cond.activeStyle': 'Style when active',

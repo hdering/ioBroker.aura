@@ -157,6 +157,7 @@ export interface ConditionClause {
   datapoint: string;
   operator: ConditionOperator;
   value: string;        // always string; parsed numerically where needed
+  valueType?: 'static' | 'datapoint'; // when 'datapoint', `value` is the second DP ID
 }
 
 export interface ConditionStyle {

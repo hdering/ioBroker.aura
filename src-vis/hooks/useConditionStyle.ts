@@ -4,28 +4,33 @@ import type { WidgetCondition, ConditionClause, ConditionStyle } from '../types'
 
 // ── Evaluation ────────────────────────────────────────────────────────────────
 
-function evaluateClause(clause: ConditionClause, raw: unknown): boolean {
+function evaluateClause(clause: ConditionClause, raw: unknown, values: Map<string, unknown>): boolean {
   const str = String(raw ?? '');
   const num = Number(raw);
-  const tNum = Number(clause.value);
+
+  // Resolve the comparison value: static string vs second datapoint
+  const isDpCompare = clause.valueType === 'datapoint';
+  const cmpRaw: unknown = isDpCompare ? (values.get(clause.value) ?? null) : clause.value;
+  const cmpStr = isDpCompare ? String(cmpRaw ?? '') : clause.value;
+  const cmpNum = Number(cmpRaw);
 
   switch (clause.operator) {
-    case '==':       return str === clause.value;
-    case '!=':       return str !== clause.value;
-    case '>':        return !isNaN(num) && num > tNum;
-    case '>=':       return !isNaN(num) && num >= tNum;
-    case '<':        return !isNaN(num) && num < tNum;
-    case '<=':       return !isNaN(num) && num <= tNum;
+    case '==':       return str === cmpStr;
+    case '!=':       return str !== cmpStr;
+    case '>':        return !isNaN(num) && !isNaN(cmpNum) && num > cmpNum;
+    case '>=':       return !isNaN(num) && !isNaN(cmpNum) && num >= cmpNum;
+    case '<':        return !isNaN(num) && !isNaN(cmpNum) && num < cmpNum;
+    case '<=':       return !isNaN(num) && !isNaN(cmpNum) && num <= cmpNum;
     case 'true':     return raw === true || raw === 1 || str === 'true' || str === '1';
     case 'false':    return raw === false || raw === 0 || str === 'false' || str === '0';
-    case 'contains': return str.includes(clause.value);
+    case 'contains': return str.includes(cmpStr);
     default:         return false;
   }
 }
 
 function evaluateCondition(cond: WidgetCondition, values: Map<string, unknown>): boolean {
   if (!cond.clauses.length) return false;
-  const results = cond.clauses.map((c) => evaluateClause(c, values.get(c.datapoint) ?? null));
+  const results = cond.clauses.map((c) => evaluateClause(c, values.get(c.datapoint) ?? null, values));
   return cond.logic === 'AND' ? results.every(Boolean) : results.some(Boolean);
 }
 
@@ -105,7 +110,11 @@ export function useConditionStyle(conditions: WidgetCondition[]): ConditionResul
 
     const uniqueIds = [
       ...new Set(
-        conditions.flatMap((c) => c.clauses.map((cl) => cl.datapoint)).filter(Boolean),
+        conditions.flatMap((c) => c.clauses.flatMap((cl) => {
+          const ids = [cl.datapoint];
+          if (cl.valueType === 'datapoint' && cl.value) ids.push(cl.value);
+          return ids;
+        })).filter(Boolean),
       ),
     ];
 
