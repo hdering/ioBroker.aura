@@ -59,7 +59,7 @@ export function IframeWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col h-full">
         {(showTitle || showIcon) && (
-          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-1">
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2">
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
             {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
@@ -81,7 +81,7 @@ export function IframeWidget({ config }: WidgetProps) {
   return (
     <div className="flex flex-col h-full">
       {(showTitle || showIcon) && (
-        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2">
           {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
           {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
