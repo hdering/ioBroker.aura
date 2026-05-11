@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.7.0",
+    "version": "0.7.1",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.7.1": {
+        "en": "feat(autolist): expose cardMinWidth config field in card layout; feat: add list layout and text size options to TrashScheduleWidget",
+        "de": "feat(autolist): expose cardMinWidth config field in card layout; feat: add list layout and text size options to TrashScheduleWidget"
+      },
       "0.7.0": {
         "en": "fix: apply colorThresholds to compact layout thermostat value; fix: add px-2 pt-2 padding to iframe widget title row; fix: pin climate widget title+icon to top (shrink-0); fix: show °C instead of ° in all thermostat layouts; fix: show degree symbol inline with thermostat setpoint, remove unit from label; fix: center button label horizontally and vertically in default layout; fix: center time display in ClockWidget default layout; fix: ChipsWidget title always stays top, valign only affects chip area; fix: align ChipsWidget to template standard + remove old layout duplicates; feat: remove unused layouts from six widgets; fix: remove extra px-3 from list/autolist header — aligns with widget padding; fix: add padding to EChartsPresetWidget title/icon row; fix: move Icon/Icon-Größe from DARSTELLUNG to widget settings for stateimage; fix: remove duplicate Darstellung fields for stateimage/windowcontact/binarysensor; fix: align SliderWidget title font size to standard (text-xs); fix: reduce status-label font size in default layout for boolean/state widgets; Create FUNDING.yml; test: set all widget value font sizes to text-xl font-bold; fix: align font sizes in all widgets per widget-config-template standard; fix: align value font sizes across widgets to ValueWidget standard; fix: change default iconSize from 36px to 20px across all widgets",
         "de": "fix: apply colorThresholds to compact layout thermostat value; fix: add px-2 pt-2 padding to iframe widget title row; fix: pin climate widget title+icon to top (shrink-0); fix: show °C instead of ° in all thermostat layouts; fix: show degree symbol inline with thermostat setpoint, remove unit from label; fix: center button label horizontally and vertically in default layout; fix: center time display in ClockWidget default layout; fix: ChipsWidget title always stays top, valign only affects chip area; fix: align ChipsWidget to template standard + remove old layout duplicates; feat: remove unused layouts from six widgets; fix: remove extra px-3 from list/autolist header — aligns with widget padding; fix: add padding to EChartsPresetWidget title/icon row; fix: move Icon/Icon-Größe from DARSTELLUNG to widget settings for stateimage; fix: remove duplicate Darstellung fields for stateimage/windowcontact/binarysensor; fix: align SliderWidget title font size to standard (text-xs); fix: reduce status-label font size in default layout for boolean/state widgets; Create FUNDING.yml; test: set all widget value font sizes to text-xl font-bold; fix: align font sizes in all widgets per widget-config-template standard; fix: align value font sizes across widgets to ValueWidget standard; fix: change default iconSize from 36px to 20px across all widgets"
