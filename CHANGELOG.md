@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.7.0 (2026-05-11)
+
+- fix: apply colorThresholds to compact layout thermostat value
+- fix: add px-2 pt-2 padding to iframe widget title row
+- fix: pin climate widget title+icon to top (shrink-0)
+- fix: show °C instead of ° in all thermostat layouts
+- fix: show degree symbol inline with thermostat setpoint, remove unit from label
+- fix: center button label horizontally and vertically in default layout
+- fix: center time display in ClockWidget default layout
+- fix: ChipsWidget title always stays top, valign only affects chip area
+- fix: align ChipsWidget to template standard + remove old layout duplicates
+- feat: remove unused layouts from six widgets
+- fix: remove extra px-3 from list/autolist header — aligns with widget padding
+- fix: add padding to EChartsPresetWidget title/icon row
+- fix: move Icon/Icon-Größe from DARSTELLUNG to widget settings for stateimage
+- fix: remove duplicate Darstellung fields for stateimage/windowcontact/binarysensor
+- fix: align SliderWidget title font size to standard (text-xs)
+- fix: reduce status-label font size in default layout for boolean/state widgets
+- Create FUNDING.yml
+- test: set all widget value font sizes to text-xl font-bold
+- fix: align font sizes in all widgets per widget-config-template standard
+- fix: align value font sizes across widgets to ValueWidget standard
+- fix: change default iconSize from 36px to 20px across all widgets
+
 ## v0.6.29 (2026-05-09)
 
 Release v0.6.29
@@ -307,6 +331,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
