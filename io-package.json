@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.7.3",
+    "version": "0.7.4",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.7.4": {
+        "en": "feat(autolist): add secondary sort level as tiebreaker",
+        "de": "feat(autolist): add secondary sort level as tiebreaker"
+      },
       "0.7.3": {
         "en": "feat(trashschedule): add configurable icon sizes for default and list layouts",
         "de": "feat(trashschedule): add configurable icon sizes for default and list layouts"
