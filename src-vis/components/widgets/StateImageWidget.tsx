@@ -153,7 +153,7 @@ export function StateImageWidget({ config }: WidgetProps) {
         </div>
       )}
       {showLabel && (
-        <span className="text-xl font-bold" style={{ color: cfg.color }}>{cfg.label}</span>
+        <span className="text-base font-semibold" style={{ color: cfg.color }}>{cfg.label}</span>
       )}
       <StatusBadges config={config} />
     </div>

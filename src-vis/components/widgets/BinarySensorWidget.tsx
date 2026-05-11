@@ -132,7 +132,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
           {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
-      {showLabel && <span className="text-xl font-bold" style={{ color }}>{label}</span>}
+      {showLabel && <span className="text-base font-semibold" style={{ color }}>{label}</span>}
       <StatusBadges config={config} />
     </div>
   );
