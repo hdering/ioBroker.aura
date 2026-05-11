@@ -3131,8 +3131,11 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'compact', label: t('wf.edit.layout.compact') },
                 { value: 'minimal', label: t('wf.edit.layout.minimal') },
                 { value: 'custom',  label: 'Custom' },
-              ] : config.type === 'trash' || config.type === 'trashSchedule' ? [
+              ] : config.type === 'trash' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
+              ] : config.type === 'trashSchedule' ? [
+                { value: 'default', label: t('wf.edit.layout.standard') },
+                { value: 'list',    label: 'Liste' },
               ] : [
                 { value: 'default', label: t('wf.edit.layout.standard') },
                 { value: 'card',    label: t('wf.edit.layout.card') },

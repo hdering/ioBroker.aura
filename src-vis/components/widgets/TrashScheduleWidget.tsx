@@ -48,7 +48,7 @@ function formatDays(n: number): string {
   return `in ${n} T.`;
 }
 
-// ── Single bin circle ─────────────────────────────────────────────────────
+// ── Single bin circle (default layout) ────────────────────────────────────
 
 function BinCircle({
   entry,
@@ -58,20 +58,25 @@ function BinCircle({
   showDays,
   showDate,
   dateFormat,
+  nameFontSize,
+  daysFontSize,
+  dateFontSize,
 }: {
-  entry:      TrashEntry;
-  iconName:   string;
-  size:       number;
-  showNames:  boolean;
-  showDays:   boolean;
-  showDate:   boolean;
-  dateFormat: string;
+  entry:        TrashEntry;
+  iconName:     string;
+  size:         number;
+  showNames:    boolean;
+  showDays:     boolean;
+  showDate:     boolean;
+  dateFormat:   string;
+  nameFontSize: number;
+  daysFontSize: number;
+  dateFontSize: number;
 }) {
   const color    = entry._color ?? '#6b7280';
   const dimmed   = entry._completed === true;
   const Icon     = ICON_MAP[iconName] ?? Truck;
   const iconPx   = Math.round(size / 2);
-  const lblSize  = size <= 44 ? 9 : size <= 56 ? 10 : 11;
 
   return (
     <div className="flex flex-col items-center gap-1" style={{ maxWidth: size + 16 }}>
@@ -91,7 +96,7 @@ function BinCircle({
       {showNames && (
         <span
           className="text-center leading-tight truncate w-full"
-          style={{ fontSize: lblSize, color: 'var(--text-secondary)' }}
+          style={{ fontSize: nameFontSize, color: 'var(--text-secondary)' }}
           title={entry.name}
         >
           {entry.name}
@@ -102,7 +107,7 @@ function BinCircle({
         <span
           className="text-center font-medium leading-none"
           style={{
-            fontSize: lblSize,
+            fontSize: daysFontSize,
             color: entry.daysLeft <= 1 ? 'var(--accent)' : 'var(--text-primary)',
           }}
         >
@@ -111,10 +116,100 @@ function BinCircle({
       )}
 
       {showDate && (
-        <span className="text-center leading-none" style={{ fontSize: lblSize - 1, color: 'var(--text-secondary)' }}>
+        <span className="text-center leading-none" style={{ fontSize: dateFontSize, color: 'var(--text-secondary)' }}>
           {formatDate(entry.nextDate, dateFormat)}
         </span>
       )}
+    </div>
+  );
+}
+
+// ── Single bin row (list layout) ───────────────────────────────────────────
+
+function BinRow({
+  entry,
+  iconName,
+  circleSize,
+  showNames,
+  showDays,
+  showDate,
+  dateFormat,
+  nameFontSize,
+  daysFontSize,
+  dateFontSize,
+}: {
+  entry:        TrashEntry;
+  iconName:     string;
+  circleSize:   number;
+  showNames:    boolean;
+  showDays:     boolean;
+  showDate:     boolean;
+  dateFormat:   string;
+  nameFontSize: number;
+  daysFontSize: number;
+  dateFontSize: number;
+}) {
+  const color  = entry._color ?? '#6b7280';
+  const dimmed = entry._completed === true;
+  const Icon   = ICON_MAP[iconName] ?? Truck;
+  const iconPx = Math.round(circleSize / 2);
+
+  return (
+    <div className="flex items-center gap-3">
+      <div
+        className="rounded-full flex items-center justify-center shrink-0"
+        style={{
+          width:      circleSize,
+          height:     circleSize,
+          background: dimmed ? 'transparent' : color,
+          border:     `2.5px solid ${color}`,
+          opacity:    dimmed ? 0.45 : 1,
+        }}
+      >
+        <Icon size={iconPx} color={dimmed ? color : '#ffffff'} strokeWidth={2} />
+      </div>
+      <div className="flex flex-col min-w-0 flex-1 gap-0.5">
+        {showNames && (
+          <span
+            className="truncate leading-tight"
+            style={{ fontSize: nameFontSize, color: 'var(--text-secondary)' }}
+            title={entry.name}
+          >
+            {entry.name}
+          </span>
+        )}
+        {showDays && (
+          <span
+            className="font-medium leading-tight"
+            style={{ fontSize: daysFontSize, color: entry.daysLeft <= 1 ? 'var(--accent)' : 'var(--text-primary)' }}
+          >
+            {formatDays(entry.daysLeft)}
+          </span>
+        )}
+        {showDate && (
+          <span className="leading-none" style={{ fontSize: dateFontSize, color: 'var(--text-secondary)' }}>
+            {formatDate(entry.nextDate, dateFormat)}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Shared title row ───────────────────────────────────────────────────────
+
+function TitleRow({ config, TitleIcon, iconSize, titleAlign, showTitle, showIcon }: {
+  config: WidgetConfig;
+  TitleIcon: React.ElementType;
+  iconSize: number;
+  titleAlign: string;
+  showTitle: boolean;
+  showIcon: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+      {showIcon && <TitleIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+      {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
     </div>
   );
 }
@@ -135,6 +230,10 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
   const showDays     = (o.showDays     as boolean | undefined)    ?? true;
   const showDate     = (o.showDate     as boolean | undefined)    ?? true;
   const dateFormat   = (o.dateFormat   as string | undefined)     ?? 'dd.MM.';
+  const layout       = (config.layout  as string | undefined)     ?? 'default';
+  const nameFontSize = (o.nameFontSize as number | undefined)     ?? 10;
+  const daysFontSize = (o.daysFontSize as number | undefined)     ?? 10;
+  const dateFontSize = (o.dateFontSize as number | undefined)     ?? 9;
 
   const all = parseEntries(value);
 
@@ -142,10 +241,7 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col h-full">
         {(showTitle || showIcon) && (
-          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-            {showIcon && <TitleIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
-          </div>
+          <TitleRow config={config} TitleIcon={TitleIcon} iconSize={iconSize} titleAlign={titleAlign} showTitle={showTitle} showIcon={showIcon} />
         )}
         <div className="flex flex-col items-center justify-center flex-1 gap-2" style={{ color: 'var(--text-secondary)' }}>
           <TitleIcon size={32} strokeWidth={1} style={{ color: 'var(--text-secondary)' }} />
@@ -165,10 +261,7 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col h-full">
         {(showTitle || showIcon) && (
-          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-            {showIcon && <TitleIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
-          </div>
+          <TitleRow config={config} TitleIcon={TitleIcon} iconSize={iconSize} titleAlign={titleAlign} showTitle={showTitle} showIcon={showIcon} />
         )}
         <div className="flex flex-col items-center justify-center flex-1 gap-2" style={{ color: 'var(--text-secondary)' }}>
           <Truck size={32} strokeWidth={1} />
@@ -178,15 +271,41 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
     );
   }
 
+  // ── LIST layout ───────────────────────────────────────────────────────────
+  if (layout === 'list') {
+    return (
+      <div className="flex flex-col h-full">
+        {(showTitle || showIcon) && (
+          <TitleRow config={config} TitleIcon={TitleIcon} iconSize={iconSize} titleAlign={titleAlign} showTitle={showTitle} showIcon={showIcon} />
+        )}
+        <div className="flex-1 flex flex-col gap-2 overflow-y-auto min-h-0">
+          {visible.map((entry) => (
+            <BinRow
+              key={entry.name}
+              entry={entry}
+              iconName={iconMap[entry.name] ?? 'Trash2'}
+              circleSize={36}
+              showNames={showNames}
+              showDays={showDays}
+              showDate={showDate}
+              dateFormat={dateFormat}
+              nameFontSize={nameFontSize}
+              daysFontSize={daysFontSize}
+              dateFontSize={dateFontSize}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── DEFAULT layout ────────────────────────────────────────────────────────
   const binSize = visible.length <= 2 ? 72 : visible.length <= 4 ? 58 : 44;
 
   return (
     <div className="flex flex-col h-full">
       {(showTitle || showIcon) && (
-        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-          {showIcon && <TitleIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
-        </div>
+        <TitleRow config={config} TitleIcon={TitleIcon} iconSize={iconSize} titleAlign={titleAlign} showTitle={showTitle} showIcon={showIcon} />
       )}
       <div className="flex-1 flex flex-wrap items-start justify-center gap-3 content-center min-h-0">
         {visible.map((entry) => (
@@ -199,6 +318,9 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
             showDays={showDays}
             showDate={showDate}
             dateFormat={dateFormat}
+            nameFontSize={nameFontSize}
+            daysFontSize={daysFontSize}
+            dateFontSize={dateFontSize}
           />
         ))}
       </div>
@@ -226,12 +348,15 @@ export function TrashScheduleConfig({
   const { value } = useDatapoint(config.datapoint);
 
   const o           = config.options ?? {};
-  const hiddenNames = (o.hiddenNames as string[] | undefined)  ?? [];
-  const iconMap     = (o.iconMap     as Record<string, string> | undefined) ?? {};
-  const showNames   = (o.showNames   as boolean | undefined)   ?? true;
-  const showDays    = (o.showDays    as boolean | undefined)   ?? true;
-  const showDate    = (o.showDate    as boolean | undefined)   ?? true;
-  const dateFormat  = (o.dateFormat  as string | undefined)    ?? 'dd.MM.';
+  const hiddenNames = (o.hiddenNames  as string[] | undefined)  ?? [];
+  const iconMap     = (o.iconMap      as Record<string, string> | undefined) ?? {};
+  const showNames   = (o.showNames    as boolean | undefined)   ?? true;
+  const showDays    = (o.showDays     as boolean | undefined)   ?? true;
+  const showDate    = (o.showDate     as boolean | undefined)   ?? true;
+  const dateFormat  = (o.dateFormat   as string | undefined)    ?? 'dd.MM.';
+  const nameFontSize = (o.nameFontSize as number | undefined)   ?? 10;
+  const daysFontSize = (o.daysFontSize as number | undefined)   ?? 10;
+  const dateFontSize = (o.dateFontSize as number | undefined)   ?? 9;
 
   const setO = (patch: Record<string, unknown>) =>
     onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -423,6 +548,54 @@ export function TrashScheduleConfig({
             </div>
           )}
         </div>
+
+        {/* ── Textgrößen ── */}
+        {(showNames || showDays || showDate) && (
+          <div className="space-y-2.5">
+            <label className="text-[11px] mb-1 block font-medium" style={{ color: 'var(--text-secondary)' }}>
+              Textgrößen
+            </label>
+            {showNames && (
+              <div>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                  Namen ({nameFontSize}px)
+                </label>
+                <input
+                  type="range" min={8} max={18} step={1}
+                  value={nameFontSize}
+                  onChange={(e) => setO({ nameFontSize: Number(e.target.value) })}
+                  className="w-full accent-[var(--accent)]"
+                />
+              </div>
+            )}
+            {showDays && (
+              <div>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                  Tage ({daysFontSize}px)
+                </label>
+                <input
+                  type="range" min={8} max={18} step={1}
+                  value={daysFontSize}
+                  onChange={(e) => setO({ daysFontSize: Number(e.target.value) })}
+                  className="w-full accent-[var(--accent)]"
+                />
+              </div>
+            )}
+            {showDate && (
+              <div>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                  Datum ({dateFontSize}px)
+                </label>
+                <input
+                  type="range" min={8} max={18} step={1}
+                  value={dateFontSize}
+                  onChange={(e) => setO({ dateFontSize: Number(e.target.value) })}
+                  className="w-full accent-[var(--accent)]"
+                />
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </>
   );
