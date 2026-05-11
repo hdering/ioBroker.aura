@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.7.7",
+    "version": "0.7.8",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.7.8": {
+        "en": "feat(conditions): allow comparing two datapoints (DP vs DP) in widget conditions",
+        "de": "feat(conditions): zwei Datenpunkte miteinander vergleichen (DP vs DP) in Widget-Bedingungen"
+      },
       "0.7.7": {
         "en": "fix(chart): tighten Y-axis width in compact mode (22px) vs full (36px)",
         "de": "fix(chart): tighten Y-axis width in compact mode (22px) vs full (36px)"

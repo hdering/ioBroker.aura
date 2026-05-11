@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.8 (2026-05-11)
+
+- feat(conditions): allow comparing two datapoints (DP vs DP) in widget conditions
+
 ## v0.7.7 (2026-05-11)
 
 - fix(chart): tighten Y-axis width in compact mode (22px) vs full (36px)
