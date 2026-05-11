@@ -3132,10 +3132,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   case 'gauge':         return [];
                   case 'clock':         return [{ key: 'showTitle', label: 'Titel' }];
                   case 'weather':       return [{ key: 'showTitle', label: 'Titel' }];
-                  case 'windowcontact': return [{ key: 'showTitle', label: 'Titel' }, { key: 'showLabel', label: 'Status-Text' }];
-                  case 'binarysensor':  return [{ key: 'showTitle', label: 'Titel' }, { key: 'showLabel', label: 'Status-Text' }];
+                  case 'windowcontact': return [];
+                  case 'binarysensor':  return [];
                   case 'datepicker':   return [];
-                  case 'stateimage':    return [{ key: 'showTitle', label: 'Titel' }, { key: 'showLabel', label: 'Status-Text' }];
+                  case 'stateimage':    return [];
                   case 'chart':         return [];
                   case 'climate':       return [];
                   case 'echart':        return [];
@@ -3275,7 +3275,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             })()}
 
             {/* Icon-Größe */}
-            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group', 'mediaplayer', 'shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'climate'].includes(config.type) && (() => {
+            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group', 'mediaplayer', 'shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'climate', 'windowcontact', 'binarysensor', 'stateimage', 'button', 'chips', 'httpRequest', 'datepicker'].includes(config.type) && (() => {
               const o = config.options ?? {};
               const iconSize = (o.iconSize as number) || 20;
               const displayIconSize = draftIconSize ?? iconSize;
