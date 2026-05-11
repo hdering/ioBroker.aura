@@ -212,7 +212,7 @@ export function ChartWidget({ config }: WidgetProps) {
                   tick={tickStyle}
                   tickLine={false}
                   axisLine={false}
-                  width={showYAxis ? 32 : 0}
+                  width={showYAxis ? (yAxisCompact ? 22 : 36) : 0}
                   tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact)}
                 />
                 <XAxis dataKey="t" type="number" domain={['dataMin', 'dataMax']} scale="time" hide />
@@ -268,7 +268,7 @@ export function ChartWidget({ config }: WidgetProps) {
                 tick={tickStyle}
                 tickLine={false}
                 axisLine={false}
-                width={showYAxis ? 32 : 0}
+                width={showYAxis ? (yAxisCompact ? 22 : 36) : 0}
                 tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact)}
               />
               <XAxis
