@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.7.5 (2026-05-11)
+
+- feat(weather): expose tomorrow's symbol & values in custom layout
+- feat(weather): responsive scaling, temperature color scale & custom-layout components
+
 ## v0.7.4 (2026-05-11)
 
 - feat(autolist): add secondary sort level as tiebreaker
@@ -344,6 +349,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
