@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.10 (2026-05-11)
+
+- fix(clock): respect display setting in custom layout
+- ui(conditions): wider settings popup with fluid layout
+- feat(conditions): allow comparing two datapoints (DP vs DP)
+
 ## v0.7.9 (2026-05-11)
 
 - ui(conditions): wider settings popup with fluid layout for DP comparison
@@ -365,6 +371,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 

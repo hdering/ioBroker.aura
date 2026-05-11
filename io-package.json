@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.7.9",
+    "version": "0.7.10",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.7.10": {
+        "en": "fix(clock): respect display setting in custom layout; ui(conditions): wider settings popup with fluid layout; feat(conditions): allow comparing two datapoints (DP vs DP)",
+        "de": "fix(clock): respect display setting in custom layout; ui(conditions): wider settings popup with fluid layout; feat(conditions): allow comparing two datapoints (DP vs DP)"
+      },
       "0.7.9": {
         "en": "ui(conditions): wider settings popup with fluid layout for DP comparison",
         "de": "ui(Bedingungen): breiteres Einstellungs-Popup mit flexiblem Layout für DP-Vergleich"
