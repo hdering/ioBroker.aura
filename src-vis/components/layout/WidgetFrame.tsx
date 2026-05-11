@@ -3439,6 +3439,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       </div>
                     );
                   })}
+                  {config.type !== 'stateimage' && (<>
                   <div className="h-px" style={{ background: 'var(--app-border)' }} />
                   <div className="flex items-center justify-between">
                     <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>Icon</span>
@@ -3451,7 +3452,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   </div>
                   {iconOn && (
                     <>
-                      {config.type !== 'windowcontact' && config.type !== 'stateimage' && (
+                      {config.type !== 'windowcontact' && (
                         <>
                           <button onClick={() => setIconPickerOpen(true)}
                             className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
@@ -3487,6 +3488,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       </div>
                     </>
                   )}
+                  </>)}
                   <div className="flex items-center justify-between">
                     <div>
                       <label className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>Transparenz-Modus</label>
@@ -5295,11 +5297,40 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   );
                 };
 
+                const siIconOn = o.showIcon !== false;
+                const siDisplayIconSize = draftIconSize ?? ((o.iconSize as number) || 20);
+
                 return (
                   <>
                     {renderStateSection('true', 'Wahr (true)')}
                     <div className="h-px" style={{ background: 'var(--app-border)' }} />
                     {renderStateSection('false', 'Falsch (false)')}
+                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>Icon anzeigen</span>
+                      <button onClick={() => setO({ showIcon: !siIconOn })}
+                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                        style={{ background: siIconOn ? 'var(--accent)' : 'var(--app-border)' }}>
+                        <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                          style={{ left: siIconOn ? '14px' : '2px' }} />
+                      </button>
+                    </div>
+                    {siIconOn && (
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon-Größe</label>
+                          <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{siDisplayIconSize} px</span>
+                        </div>
+                        <input type="range" min={12} max={128} step={4} value={siDisplayIconSize}
+                          onChange={(e) => setDraftIconSize(Number(e.target.value))}
+                          onPointerUp={(e) => {
+                            onConfigChange({ ...config, options: { ...o, iconSize: Number((e.target as HTMLInputElement).value) } });
+                            setDraftIconSize(null);
+                          }}
+                          className="w-full h-1"
+                          style={{ accentColor: 'var(--accent)' }} />
+                      </div>
+                    )}
                   </>
                 );
               })()}
