@@ -1,10 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Cloud, Loader } from 'lucide-react';
-import type { WidgetProps } from '../../types';
+import type { WidgetProps, CustomGrid } from '../../types';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useT } from '../../i18n';
 import { CustomGridView } from './CustomGridView';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+
+// ── Default 3×3 grid used when layout='custom' has no overrides ──────────────
+export const DEFAULT_WEATHER_GRID: CustomGrid = [
+  { type: 'title', align: 'left', valign: 'top', colSpan: 3 },
+  { type: 'empty' },
+  { type: 'empty' },
+  { type: 'component', componentKey: 'weather-icon', align: 'center', valign: 'middle' },
+  { type: 'value', fontSize: 32, bold: true, align: 'left', valign: 'middle', colSpan: 2 },
+  { type: 'empty' },
+  { type: 'component', componentKey: 'forecast', align: 'left', valign: 'middle', colSpan: 3 },
+  { type: 'empty' },
+  { type: 'empty' },
+];
 
 // ── Open-Meteo types ──────────────────────────────────────────────────────────
 interface WeatherData {
@@ -14,12 +27,16 @@ interface WeatherData {
     relative_humidity_2m: number;
     weather_code: number;
     wind_speed_10m: number;
+    cloud_cover?: number;
+    precipitation?: number;
   };
   daily: {
     time: string[];
     weather_code: number[];
     temperature_2m_max: number[];
     temperature_2m_min: number[];
+    precipitation_probability_max?: number[];
+    precipitation_sum?: number[];
   };
 }
 
@@ -55,6 +72,19 @@ function dayName(dateStr: string, t: TFn): string {
   return t(`cal.day.${day}` as Parameters<TFn>[0]);
 }
 
+// "ab X°C → Farbe" semantics. Returns the color of the highest threshold whose
+// `from` is <= temp; undefined if no threshold matches (caller falls back to default).
+function getTempBarColor(temp: number, thresholds?: [number, string][]): string | undefined {
+  if (!thresholds?.length) return undefined;
+  const sorted = [...thresholds].sort((a, b) => a[0] - b[0]);
+  let chosen: string | undefined;
+  for (const [from, c] of sorted) {
+    if (temp >= from) chosen = c;
+    else break;
+  }
+  return chosen;
+}
+
 const SEVERITY_COLOR: Record<string, string> = {
   Minor:    '#f59e0b',
   Moderate: '#f97316',
@@ -70,17 +100,18 @@ const SEVERITY_EMOJI: Record<string, string> = {
 };
 
 // ── Warnings panel ────────────────────────────────────────────────────────────
-function WarningsPanel({ warnings, loading, t }: { warnings: DwdWarning[]; loading: boolean; t: TFn }) {
+function WarningsPanel({ warnings, loading, t, scale = 1 }: { warnings: DwdWarning[]; loading: boolean; t: TFn; scale?: number }) {
+  const fs = (rem: number) => `${rem * scale}rem`;
   if (loading) {
     return (
-      <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-secondary)' }}>
-        <Loader size={12} className="animate-spin" /> {t('weather.warnings')}
+      <div className="flex items-center gap-1.5" style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
+        <Loader size={12 * scale} className="animate-spin" /> {t('weather.warnings')}
       </div>
     );
   }
   if (warnings.length === 0) {
     return (
-      <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-secondary)' }}>
+      <div className="flex items-center gap-1.5" style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
         <span>✅</span> {t('weather.noWarnings')}
       </div>
     );
@@ -97,13 +128,13 @@ function WarningsPanel({ warnings, loading, t }: { warnings: DwdWarning[]; loadi
           }}
         >
           <div className="flex items-center gap-1 flex-wrap">
-            <span style={{ fontSize: '0.8rem' }}>{SEVERITY_EMOJI[w.severity] ?? '⚠️'}</span>
-            <span className="text-[11px] font-semibold leading-tight" style={{ color: SEVERITY_COLOR[w.severity] ?? '#f59e0b' }}>
+            <span style={{ fontSize: fs(0.8) }}>{SEVERITY_EMOJI[w.severity] ?? '⚠️'}</span>
+            <span className="font-semibold leading-tight" style={{ color: SEVERITY_COLOR[w.severity] ?? '#f59e0b', fontSize: fs(0.7) }}>
               {w.headline || w.event}
             </span>
           </div>
           {w.description && (
-            <p className="text-[10px] mt-0.5 leading-snug" style={{ color: 'var(--text-secondary)' }}>
+            <p className="mt-0.5 leading-snug" style={{ color: 'var(--text-secondary)', fontSize: fs(0.625) }}>
               {w.description.length > 120 ? w.description.slice(0, 120) + '…' : w.description}
             </p>
           )}
@@ -126,6 +157,10 @@ export function WeatherWidget({ config }: WidgetProps) {
   const showToday        = (opts.showToday      as boolean) ?? true;
   const showWeather      = (opts.showWeather    as boolean) ?? true;
   const showWarnings     = (opts.showWarnings   as boolean) ?? false;
+  const showRainProb     = (opts.showRainProb    as boolean) ?? true;
+  const showRainAmount   = (opts.showRainAmount  as boolean) ?? false;
+  const showCloudCover   = (opts.showCloudCover  as boolean) ?? false;
+  const tempThresholds   = (opts.forecastTempThresholds as [number, string][] | undefined);
   const localTempDp      = (opts.localTempDatapoint as string) ?? '';
   const layout           = config.layout ?? 'default';
   const showTitle        = opts.showTitle !== false;
@@ -133,6 +168,31 @@ export function WeatherWidget({ config }: WidgetProps) {
   const iconSize         = (opts.iconSize as number) || 20;
   const titleAlign       = (opts.titleAlign as string) ?? 'left';
   const WidgetIcon       = getWidgetIcon(opts.icon as string | undefined, Cloud);
+
+  // ── Responsive sizing: scale font/icon/bar with widget dimensions ────────
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ w: 260, h: 200 });
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const el = containerRef.current;
+    const ro = new ResizeObserver((entries) => {
+      const r = entries[0].contentRect;
+      if (r.width > 0 && r.height > 0) setSize({ w: r.width, h: r.height });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [layout]);
+  // Scale from the limiting dimension so content never overflows the widget.
+  // Height baseline includes header (~64px) + per-row (~22px) for shown
+  // forecast rows + optional title row (~22px). Width baseline ~260px.
+  const titleRowH    = (showTitle || showIcon) ? 22 : 0;
+  const headerH      = showWeather ? 64 : 0;
+  const fcRows       = (showWeather && showForecast) ? forecastDays : 0;
+  const baseContentH = Math.max(60, titleRowH + headerH + fcRows * 22 + 8);
+  const scaleW = size.w / 260;
+  const scaleH = size.h / baseContentH;
+  const scale  = Math.max(0.55, Math.min(2.4, Math.min(scaleW, scaleH)));
+  const fs = (rem: number) => `${rem * scale}rem`;
 
   // ── Local temperature sensor ──────────────────────────────────────────────
   const { value: localTempRaw } = useDatapoint(localTempDp);
@@ -154,8 +214,8 @@ export function WeatherWidget({ config }: WidgetProps) {
         const url =
           `https://api.open-meteo.com/v1/forecast` +
           `?latitude=${lat}&longitude=${lon}` +
-          `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,apparent_temperature` +
-          `&daily=weather_code,temperature_2m_max,temperature_2m_min` +
+          `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,apparent_temperature,cloud_cover,precipitation` +
+          `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum` +
           `&timezone=auto&forecast_days=${apiForecastDays}&wind_speed_unit=kmh`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('HTTP error');
@@ -202,13 +262,13 @@ export function WeatherWidget({ config }: WidgetProps) {
   // ── Warnings-only mode ────────────────────────────────────────────────────
   if (!showWeather && showWarnings) {
     return (
-      <div className="aura-scroll flex flex-col h-full gap-1.5 overflow-auto">
+      <div ref={containerRef} className="aura-scroll flex flex-col h-full gap-1.5 overflow-auto">
         {locationName && (
-          <div className="shrink-0 text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
+          <div className="shrink-0 font-semibold" style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
             {locationName}
           </div>
         )}
-        <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} />
+        <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} scale={scale} />
       </div>
     );
   }
@@ -217,15 +277,15 @@ export function WeatherWidget({ config }: WidgetProps) {
   if (!showWeather && !showWarnings) {
     if (localTemp !== null) {
       return (
-        <div className="flex flex-col items-center justify-center h-full gap-1">
-          <span className="text-4xl font-black tabular-nums" style={{ color: 'var(--text-primary)' }}>
+        <div ref={containerRef} className="flex flex-col items-center justify-center h-full gap-1">
+          <span className="font-black tabular-nums" style={{ color: 'var(--text-primary)', fontSize: fs(2.25) }}>
             {Math.round(localTemp)}°
           </span>
         </div>
       );
     }
     return (
-      <div className="flex items-center justify-center h-full text-xs" style={{ color: 'var(--text-secondary)' }}>
+      <div ref={containerRef} className="flex items-center justify-center h-full" style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
         {t('weather.noData')}
       </div>
     );
@@ -234,17 +294,17 @@ export function WeatherWidget({ config }: WidgetProps) {
   // ── Loading state (online weather) ────────────────────────────────────────
   if (showWeather && loading && !data) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader size={24} className="animate-spin" style={{ color: 'var(--text-secondary)' }} />
+      <div ref={containerRef} className="flex items-center justify-center h-full">
+        <Loader size={24 * scale} className="animate-spin" style={{ color: 'var(--text-secondary)' }} />
       </div>
     );
   }
 
   if (showWeather && !data) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2" style={{ color: 'var(--text-secondary)' }}>
-        <span className="text-2xl">🌡️</span>
-        <span className="text-xs">{t('weather.noData')}</span>
+      <div ref={containerRef} className="flex flex-col items-center justify-center h-full gap-2" style={{ color: 'var(--text-secondary)' }}>
+        <span style={{ fontSize: fs(1.5) }}>🌡️</span>
+        <span style={{ fontSize: fs(0.75) }}>{t('weather.noData')}</span>
       </div>
     );
   }
@@ -258,34 +318,130 @@ export function WeatherWidget({ config }: WidgetProps) {
   const info = getWeatherInfo(cur.weather_code, t);
   const feel = `${Math.round(cur.apparent_temperature)}°`;
 
-  if (layout === 'custom') return (
-    <CustomGridView
-      config={config}
-      value={displayTemp ? `${displayTemp}°C` : ''}
-      extraFields={{
-        temp:      `${displayTemp}°C`,
-        feelsLike: feel + 'C',
-        humidity:  `${cur.relative_humidity_2m}%`,
-        wind:      `${Math.round(cur.wind_speed_10m)} km/h`,
-        condition: info.desc,
-        emoji:     info.emoji,
-      }}
-    />
-  );
+  // ── Forecast items (computed early so custom layout can render them) ─────
+  const startIdx = showToday ? 0 : 1;
+  const fcItems: {
+    day: string;
+    info: ReturnType<typeof getWeatherInfo>;
+    max: number;
+    min: number;
+    isToday: boolean;
+    rainProb?: number;
+    rainSum?: number;
+  }[] = [];
+  for (let i = startIdx; i < data!.daily.time.length && fcItems.length < forecastDays; i++) {
+    fcItems.push({
+      day:      i === 0 ? t('weather.today') : dayName(data!.daily.time[i], t),
+      info:     getWeatherInfo(data!.daily.weather_code[i], t),
+      max:      Math.round(data!.daily.temperature_2m_max[i]),
+      min:      Math.round(data!.daily.temperature_2m_min[i]),
+      isToday:  i === 0,
+      rainProb: data!.daily.precipitation_probability_max?.[i],
+      rainSum:  data!.daily.precipitation_sum?.[i],
+    });
+  }
+  const allMins   = fcItems.map((d) => d.min);
+  const allMaxs   = fcItems.map((d) => d.max);
+  const globalMin = Math.min(...allMins);
+  const globalMax = Math.max(...allMaxs);
+  const scaleRange = globalMax - globalMin || 1;
+
+  const forecastRows = (showForecast && fcItems.length > 0) ? (
+    <div className="flex flex-col gap-1.5 w-full">
+      {fcItems.map((fc) => {
+        const leftPct  = ((fc.min - globalMin) / scaleRange) * 100;
+        const widthPct = ((fc.max - fc.min)    / scaleRange) * 100;
+        const minCol = getTempBarColor(fc.min, tempThresholds);
+        const maxCol = getTempBarColor(fc.max, tempThresholds);
+        const haveThreshold = minCol || maxCol;
+        const barBg = haveThreshold
+          ? `linear-gradient(to right, ${minCol ?? maxCol}, ${maxCol ?? minCol})`
+          : fc.isToday
+            ? 'linear-gradient(to right, var(--accent), color-mix(in srgb, var(--accent) 75%, transparent))'
+            : 'linear-gradient(to right, #06b6d4, #3b82f6)';
+        const showRainCol = showRainProb || showRainAmount;
+        return (
+          <div key={fc.day} className="flex items-center gap-1.5 min-w-0">
+            <span className="font-semibold shrink-0" style={{ color: fc.isToday ? 'var(--accent)' : 'var(--text-secondary)', fontSize: fs(0.75), width: `${1.75 * scale}rem` }}>
+              {fc.day}
+            </span>
+            <span style={{ fontSize: fs(0.9), lineHeight: 1, flexShrink: 0 }}>{fc.info.emoji}</span>
+            <span className="shrink-0 text-right tabular-nums" style={{ color: 'var(--text-secondary)', fontSize: fs(0.75), width: `${1.75 * scale}rem` }}>
+              {fc.min}°
+            </span>
+            <div className="flex-1 relative min-w-0" style={{ height: `${1 * scale}rem` }}>
+              <div className="absolute inset-y-0 left-0 right-0 rounded-full opacity-15"
+                style={{ background: 'var(--text-secondary)' }} />
+              <div className="absolute inset-y-0 rounded-full"
+                style={{
+                  left:       `${leftPct}%`,
+                  width:      `${Math.max(widthPct, 4)}%`,
+                  background: barBg,
+                }}
+              />
+            </div>
+            <span className="font-semibold shrink-0 tabular-nums" style={{ color: fc.isToday ? 'var(--accent)' : 'var(--text-primary)', fontSize: fs(0.75), width: `${1.75 * scale}rem` }}>
+              {fc.max}°
+            </span>
+            {showRainCol && (
+              <span className="shrink-0 tabular-nums text-right" style={{ color: 'var(--text-secondary)', fontSize: fs(0.7), minWidth: `${2.6 * scale}rem` }}>
+                {showRainProb && fc.rainProb !== undefined && fc.rainProb !== null && (
+                  <span>💧{fc.rainProb}%</span>
+                )}
+                {showRainAmount && fc.rainSum !== undefined && fc.rainSum !== null && fc.rainSum > 0 && (
+                  <span>{showRainProb ? ' ' : ''}{fc.rainSum.toFixed(1)}mm</span>
+                )}
+              </span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  ) : null;
+
+  if (layout === 'custom') {
+    const customGrid = (opts.customGrid as CustomGrid | undefined) ?? DEFAULT_WEATHER_GRID;
+    const cellEmoji = <span style={{ fontSize: '2.4em', lineHeight: 1 }}>{info.emoji}</span>;
+    const cellWidgetIcon = <WidgetIcon size={Math.max(16, iconSize * scale)} style={{ color: 'var(--text-secondary)' }} />;
+    const cellWarnings = showWarnings ? <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} scale={scale} /> : null;
+    return (
+      <CustomGridView
+        config={{ ...config, options: { ...opts, customGrid } }}
+        value={displayTemp ? `${displayTemp}°C` : ''}
+        extraFields={{
+          temp:        `${displayTemp}°C`,
+          feelsLike:   feel + 'C',
+          humidity:    `${cur.relative_humidity_2m}%`,
+          wind:        `${Math.round(cur.wind_speed_10m)} km/h`,
+          condition:   info.desc,
+          emoji:       info.emoji,
+          cloudCover:  cur.cloud_cover !== undefined ? `${Math.round(cur.cloud_cover)}%` : '',
+          rainNow:     cur.precipitation !== undefined ? `${cur.precipitation.toFixed(1)} mm` : '',
+          location:    locationName,
+        }}
+        extraComponents={{
+          'icon':         cellWidgetIcon,
+          'weather-icon': cellEmoji,
+          'forecast':     forecastRows,
+          'warnings':     cellWarnings,
+        }}
+      />
+    );
+  }
 
   // ── MINIMAL ──────────────────────────────────────────────────────────────
   if (layout === 'minimal') {
     return (
-      <div className="flex flex-col h-full gap-1.5">
+      <div ref={containerRef} className="flex flex-col h-full gap-1.5">
         <div className="flex flex-col items-center justify-center flex-1 gap-1">
-          <span style={{ fontSize: '2.5rem', lineHeight: 1 }}>{info.emoji}</span>
-          <span className="text-3xl font-black tabular-nums" style={{ color: 'var(--text-primary)' }}>
+          <span style={{ fontSize: fs(2.5), lineHeight: 1 }}>{info.emoji}</span>
+          <span className="font-black tabular-nums" style={{ color: 'var(--text-primary)', fontSize: fs(1.875) }}>
             {displayTemp}°
           </span>
         </div>
         {showWarnings && (
           <div className="shrink-0">
-            <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} />
+            <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} scale={scale} />
           </div>
         )}
       </div>
@@ -295,59 +451,43 @@ export function WeatherWidget({ config }: WidgetProps) {
   // ── COMPACT ───────────────────────────────────────────────────────────────
   if (layout === 'compact') {
     return (
-      <div className="flex items-center gap-2 h-full">
-        <span style={{ fontSize: '1.4rem', lineHeight: 1, flexShrink: 0 }}>{info.emoji}</span>
-        <span className="text-xl font-bold tabular-nums shrink-0" style={{ color: 'var(--text-primary)' }}>{tempStr}</span>
-        <span className="flex-1 text-xs truncate min-w-0" style={{ color: 'var(--text-secondary)' }}>
+      <div ref={containerRef} className="flex items-center gap-2 h-full">
+        <span style={{ fontSize: fs(1.4), lineHeight: 1, flexShrink: 0 }}>{info.emoji}</span>
+        <span className="font-bold tabular-nums shrink-0" style={{ color: 'var(--text-primary)', fontSize: fs(1.25) }}>{tempStr}</span>
+        <span className="flex-1 truncate min-w-0" style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
           {info.desc}{locationName ? ` · ${locationName}` : ''}
         </span>
       </div>
     );
   }
 
-  // ── Forecast items ────────────────────────────────────────────────────────
-  const startIdx = showToday ? 0 : 1;
-  const fcItems: { day: string; info: ReturnType<typeof getWeatherInfo>; max: number; min: number; isToday: boolean }[] = [];
-  for (let i = startIdx; i < data!.daily.time.length && fcItems.length < forecastDays; i++) {
-    fcItems.push({
-      day:     i === 0 ? t('weather.today') : dayName(data!.daily.time[i], t),
-      info:    getWeatherInfo(data!.daily.weather_code[i], t),
-      max:     Math.round(data!.daily.temperature_2m_max[i]),
-      min:     Math.round(data!.daily.temperature_2m_min[i]),
-      isToday: i === 0,
-    });
-  }
-
-  const allMins   = fcItems.map((d) => d.min);
-  const allMaxs   = fcItems.map((d) => d.max);
-  const globalMin = Math.min(...allMins);
-  const globalMax = Math.max(...allMaxs);
-  const scale     = globalMax - globalMin || 1;
-
   // ── DEFAULT / CARD ────────────────────────────────────────────────────────
   return (
-    <div className="aura-scroll flex flex-col h-full gap-2 overflow-auto">
+    <div ref={containerRef} className="aura-scroll flex flex-col h-full gap-2 overflow-auto">
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          {showIcon && <WidgetIcon size={iconSize * scale} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], fontSize: fs(0.75) }}>{config.title}</p>}
         </div>
       )}
       {/* ── Current weather header ── */}
       <div className="flex items-start gap-3 shrink-0">
-        <span style={{ fontSize: '2.2rem', lineHeight: 1 }}>
+        <span style={{ fontSize: fs(2.2), lineHeight: 1 }}>
           {info.emoji}
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="font-bold" style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+            <span className="font-bold" style={{ color: 'var(--text-secondary)', fontSize: fs(0.85) }}>
               {info.desc}, {tempStr}
             </span>
           </div>
-          <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+          <div style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
             💧 {cur.relative_humidity_2m}% {t('weather.humidity')}
+            {showCloudCover && cur.cloud_cover !== undefined && (
+              <span> · ☁️ {Math.round(cur.cloud_cover)}%</span>
+            )}
           </div>
-          <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+          <div style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
             {t('weather.feelsLike', { feel, wind: Math.round(cur.wind_speed_10m) })}
             {locationName ? ` · ${locationName}` : ''}
             {error && <span className="ml-1" style={{ color: 'var(--accent-red, #ef4444)' }}>!</span>}
@@ -356,47 +496,12 @@ export function WeatherWidget({ config }: WidgetProps) {
       </div>
 
       {/* ── Forecast ── */}
-      {showForecast && fcItems.length > 0 && (
-        <div className="flex flex-col gap-1.5 shrink-0">
-          {fcItems.map((fc) => {
-            const leftPct  = ((fc.min - globalMin) / scale) * 100;
-            const widthPct = ((fc.max - fc.min)    / scale) * 100;
-            return (
-              <div key={fc.day} className="flex items-center gap-1.5 min-w-0">
-                <span className="text-xs font-semibold shrink-0 w-7"
-                  style={{ color: fc.isToday ? 'var(--accent)' : 'var(--text-secondary)' }}>
-                  {fc.day}
-                </span>
-                <span className="text-xs shrink-0 w-7 text-right tabular-nums" style={{ color: 'var(--text-secondary)' }}>
-                  {fc.min}°
-                </span>
-                <div className="flex-1 relative h-4 min-w-0">
-                  <div className="absolute inset-y-0 left-0 right-0 rounded-full opacity-15"
-                    style={{ background: 'var(--text-secondary)' }} />
-                  <div className="absolute inset-y-0 rounded-full"
-                    style={{
-                      left:       `${leftPct}%`,
-                      width:      `${Math.max(widthPct, 4)}%`,
-                      background: fc.isToday
-                        ? 'linear-gradient(to right, var(--accent), color-mix(in srgb, var(--accent) 75%, transparent))'
-                        : 'linear-gradient(to right, #06b6d4, #3b82f6)',
-                    }}
-                  />
-                </div>
-                <span className="text-xs font-semibold shrink-0 w-7 tabular-nums"
-                  style={{ color: fc.isToday ? 'var(--accent)' : 'var(--text-primary)' }}>
-                  {fc.max}°
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {forecastRows && <div className="shrink-0">{forecastRows}</div>}
 
       {/* ── Weather warnings ── */}
       {showWarnings && (
         <div className="shrink-0">
-          <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} />
+          <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} scale={scale} />
         </div>
       )}
     </div>

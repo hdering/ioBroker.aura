@@ -531,6 +531,15 @@ export const de = {
   'wf.weather.localTempPh':     'z.B. hm-rpc.0.xxx.TEMPERATURE',
   'wf.weather.showWarnings':    'Wetterwarnungen anzeigen (DWD)',
   'wf.weather.warningsHint':    'Benötigt Breitengrad + Längengrad • Nur Deutschland',
+  'wf.weather.showRainProb':         'Regenwahrscheinlichkeit anzeigen',
+  'wf.weather.showRainAmount':       'Regenmenge (mm) anzeigen',
+  'wf.weather.showCloudCover':       'Bewölkung anzeigen',
+  'wf.weather.tempThresholds':       'Temperatur-Farbskala (Balken)',
+  'wf.weather.tempThresholdsAdd':    'Hinzufügen',
+  'wf.weather.tempThresholdsPreset': 'Standard',
+  'wf.weather.tempThresholdsFrom':   'ab',
+  'wf.weather.tempThresholdsHint':   'Ab Temperatur → Farbe · aufsteigend sortieren',
+  'wf.weather.tempThresholdsEmpty':  'Keine Farbschwellen konfiguriert',
 
   // Camera config
   'wf.camera.streamUrl':      'Stream-URL',

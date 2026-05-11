@@ -533,6 +533,15 @@ export const en: Record<TranslationKey, string> = {
   'wf.weather.localTempPh':     'e.g. hm-rpc.0.xxx.TEMPERATURE',
   'wf.weather.showWarnings':    'Show weather warnings (DWD)',
   'wf.weather.warningsHint':    'Requires lat/lon • Germany only',
+  'wf.weather.showRainProb':         'Show rain probability',
+  'wf.weather.showRainAmount':       'Show rain amount (mm)',
+  'wf.weather.showCloudCover':       'Show cloud cover',
+  'wf.weather.tempThresholds':       'Temperature color scale (bars)',
+  'wf.weather.tempThresholdsAdd':    'Add',
+  'wf.weather.tempThresholdsPreset': 'Default',
+  'wf.weather.tempThresholdsFrom':   'from',
+  'wf.weather.tempThresholdsHint':   'From temperature → color · sort ascending',
+  'wf.weather.tempThresholdsEmpty':  'No thresholds configured',
 
   // Camera config
   'wf.camera.streamUrl': 'Stream URL',

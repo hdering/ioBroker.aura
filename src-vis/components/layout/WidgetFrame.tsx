@@ -1016,10 +1016,17 @@ function WeatherConfigSection({ o, set, onOpenPicker }: WeatherConfigSectionProp
     }
   };
 
-  const showWeather  = (o.showWeather  as boolean) ?? true;
-  const showForecast = (o.showForecast as boolean) ?? true;
-  const showToday    = (o.showToday    as boolean) ?? true;
-  const showWarnings = (o.showWarnings as boolean) ?? false;
+  const showWeather    = (o.showWeather    as boolean) ?? true;
+  const showForecast   = (o.showForecast   as boolean) ?? true;
+  const showToday      = (o.showToday      as boolean) ?? true;
+  const showWarnings   = (o.showWarnings   as boolean) ?? false;
+  const showRainProb   = (o.showRainProb   as boolean) ?? true;
+  const showRainAmount = (o.showRainAmount as boolean) ?? false;
+  const showCloudCover = (o.showCloudCover as boolean) ?? false;
+  const tempThresholds = (o.forecastTempThresholds as [number, string][] | undefined) ?? [];
+  const setTempThresholds = (next: [number, string][]) =>
+    set({ forecastTempThresholds: next.length ? next : undefined });
+  const toHex = (c: string) => { const m = c.match(/#[0-9a-fA-F]{6}/); return m ? m[0] : '#fde047'; };
 
   return (
     <>
@@ -1139,6 +1146,87 @@ function WeatherConfigSection({ o, set, onOpenPicker }: WeatherConfigSectionProp
               <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
                 style={{ left: showToday ? '18px' : '2px' }} />
             </button>
+          </div>
+          <div className="flex items-center justify-between">
+            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.showRainProb')}</label>
+            <button onClick={() => set({ showRainProb: !showRainProb })}
+              className="relative w-9 h-5 rounded-full transition-colors"
+              style={{ background: showRainProb ? 'var(--accent)' : 'var(--app-border)' }}>
+              <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                style={{ left: showRainProb ? '18px' : '2px' }} />
+            </button>
+          </div>
+          <div className="flex items-center justify-between">
+            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.showRainAmount')}</label>
+            <button onClick={() => set({ showRainAmount: !showRainAmount })}
+              className="relative w-9 h-5 rounded-full transition-colors"
+              style={{ background: showRainAmount ? 'var(--accent)' : 'var(--app-border)' }}>
+              <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                style={{ left: showRainAmount ? '18px' : '2px' }} />
+            </button>
+          </div>
+          <div className="flex items-center justify-between">
+            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.showCloudCover')}</label>
+            <button onClick={() => set({ showCloudCover: !showCloudCover })}
+              className="relative w-9 h-5 rounded-full transition-colors"
+              style={{ background: showCloudCover ? 'var(--accent)' : 'var(--app-border)' }}>
+              <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                style={{ left: showCloudCover ? '18px' : '2px' }} />
+            </button>
+          </div>
+
+          {/* ── Temperatur-Farbschwellen für Forecast-Balken ── */}
+          <div style={{ borderTop: '1px solid var(--app-border)', marginTop: 4, paddingTop: 8 }}>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.tempThresholds')}</label>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setTempThresholds([[15, '#fde047'], [25, '#eab308'], [35, '#ef4444']])}
+                  className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
+                  style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+                >{t('wf.weather.tempThresholdsPreset')}</button>
+                <button
+                  onClick={() => setTempThresholds([...tempThresholds, [25, '#eab308']])}
+                  className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
+                  style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}
+                >+ {t('wf.weather.tempThresholdsAdd')}</button>
+              </div>
+            </div>
+            {tempThresholds.length > 0 && (
+              <p className="text-[10px] mb-1.5" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                {t('wf.weather.tempThresholdsHint')}
+              </p>
+            )}
+            <div className="space-y-1">
+              {tempThresholds.map(([thresh, color], i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setTempThresholds(tempThresholds.filter((_, j) => j !== i))}
+                    className="text-[11px] w-5 h-5 flex items-center justify-center rounded shrink-0"
+                    style={{ color: 'var(--text-secondary)', background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                  >×</button>
+                  <input
+                    type="color"
+                    value={toHex(color)}
+                    onChange={(e) => { const n = [...tempThresholds]; n[i] = [thresh, e.target.value]; setTempThresholds(n); }}
+                    className="w-8 h-7 rounded cursor-pointer shrink-0"
+                    style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+                  />
+                  <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.tempThresholdsFrom')}</span>
+                  <input
+                    type="number"
+                    value={thresh}
+                    onChange={(e) => { const n = [...tempThresholds]; n[i] = [Number(e.target.value), color]; setTempThresholds(n); }}
+                    className="flex-1 text-xs rounded-lg px-2 py-1 focus:outline-none"
+                    style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                  />
+                  <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>°C</span>
+                </div>
+              ))}
+            </div>
+            {tempThresholds.length === 0 && (
+              <p className="text-[10px] italic" style={{ color: 'var(--text-secondary)', opacity: 0.45 }}>{t('wf.weather.tempThresholdsEmpty')}</p>
+            )}
           </div>
         </>
       )}
@@ -5842,6 +5930,12 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     { key: 'reach-icon',     label: 'Erreichbarkeit-Icon' },
                     { key: 'status-badges',  label: 'Status-Badges (alle)' },
                   ],
+                  weather: [
+                    { key: 'icon',         label: 'Widget-Icon' },
+                    { key: 'weather-icon', label: '🌤 Wetter-Emoji (groß)' },
+                    { key: 'forecast',     label: '📊 Forecast-Balken' },
+                    { key: 'warnings',     label: '⚠ DWD-Warnungen' },
+                  ],
                 };
                 const o   = config.options ?? {};
                 const cells: CustomGrid = (o.customGrid as CustomGrid | undefined) ?? DEFAULT_CUSTOM_GRID;
@@ -6068,12 +6162,15 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               { key: 'dp',  label: 'Datenpunkt-ID' },
                             ],
                             weather: [
-                              { key: 'temp',      label: 'Temperatur' },
-                              { key: 'feelsLike', label: 'Gefühlte Temp.' },
-                              { key: 'humidity',  label: 'Luftfeuchtigkeit' },
-                              { key: 'wind',      label: 'Wind' },
-                              { key: 'condition', label: 'Wetterlage' },
-                              { key: 'emoji',     label: 'Wetter-Emoji' },
+                              { key: 'temp',       label: 'Temperatur' },
+                              { key: 'feelsLike',  label: 'Gefühlte Temp.' },
+                              { key: 'humidity',   label: 'Luftfeuchtigkeit' },
+                              { key: 'wind',       label: 'Wind' },
+                              { key: 'condition',  label: 'Wetterlage' },
+                              { key: 'emoji',      label: 'Wetter-Emoji (Text)' },
+                              { key: 'cloudCover', label: 'Bewölkung (%)' },
+                              { key: 'rainNow',    label: 'Regen aktuell (mm)' },
+                              { key: 'location',   label: 'Standort' },
                             ],
                             mediaplayer: [
                               { key: 'title',   label: 'Titel' },
