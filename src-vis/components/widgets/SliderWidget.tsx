@@ -245,7 +245,7 @@ export function SliderWidget({ config }: WidgetProps) {
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-            {showTitle && <p className="text-sm font-medium truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
           {showValue && <p className="text-xl font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>{valueStr}</p>}
         </div>
