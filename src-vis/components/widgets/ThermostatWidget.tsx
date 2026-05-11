@@ -128,10 +128,10 @@ export function ThermostatWidget({ config }: WidgetProps) {
           {!showTitle && <span className="flex-1" />}
           {showSetpoint && (
             <span className="text-xl font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>
-              {formatNum(target, decimals)}°
+              {formatNum(target, decimals)}°C
               {showActualTemp && actual !== null && (
                 <span className="font-normal text-xs ml-1" style={{ color: 'var(--text-secondary)' }}>
-                  / {formatNum(actual, decimals)}°
+                  / {formatNum(actual, decimals)}°C
                 </span>
               )}
             </span>
@@ -160,11 +160,11 @@ export function ThermostatWidget({ config }: WidgetProps) {
           {showIcon && <ThermoIcon size={iconSize} style={{ color: accentColor }} />}
           {showSetpoint && (
             <span className="text-xl font-bold" style={{ color: valueColor, lineHeight: 1 }}>
-              {formatNum(target, decimals)}°
+              {formatNum(target, decimals)}°C
             </span>
           )}
           {showActualTemp && actual !== null && (
-            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('thermo.actual')} {formatNum(actual, decimals)}°</span>
+            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('thermo.actual')} {formatNum(actual, decimals)}°C</span>
           )}
           {showControls && (
             <div className="flex gap-2 mt-1" onClick={(e) => e.stopPropagation()}>
@@ -203,14 +203,14 @@ export function ThermostatWidget({ config }: WidgetProps) {
             {showSetpoint && (
               <>
                 <p className="text-xl font-bold leading-none" style={{ color: valueColor }}>
-                  {formatNum(target, decimals)}°
+                  {formatNum(target, decimals)}°C
                 </p>
                 <p className="text-sm font-light" style={{ color: 'var(--text-secondary)' }}>{t('thermo.setPoint')}</p>
               </>
             )}
             {showActualTemp && actual !== null && (
               <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                {t('thermo.actual')}: <span style={{ color: 'var(--text-primary)' }}>{formatNum(actual, decimals)}°C</span>
+                {t('thermo.actual')}: <span style={{ color: 'var(--text-primary)' }}>{formatNum(actual, decimals)}°CC</span>
               </p>
             )}
           </div>
