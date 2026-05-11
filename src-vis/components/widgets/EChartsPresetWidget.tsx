@@ -38,7 +38,7 @@ export function EChartsPresetWidget({ config, editMode }: WidgetProps) {
 
   if (!presetId) {
     return (
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full p-2">
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
@@ -60,7 +60,7 @@ export function EChartsPresetWidget({ config, editMode }: WidgetProps) {
     <>
       <div className="flex flex-col w-full h-full">
         {(showTitle || showIcon) && (
-          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2">
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
             {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
