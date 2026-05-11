@@ -131,34 +131,36 @@ export function ClockWidget({ config }: WidgetProps) {
   // ---------- DEFAULT ----------
   if (customFormat) {
     return (
-      <div className="flex flex-col h-full justify-between">
+      <div className="flex flex-col h-full">
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 shrink-0 min-w-0">
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
             {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
         )}
-        <p className="aura-clock-custom text-xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>{customStr}</p>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="aura-clock-custom text-xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>{customStr}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full justify-between">
+    <div className="flex flex-col h-full">
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-1 shrink-0 min-w-0">
           {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
           {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
-      <div>
+      <div className="flex-1 flex flex-col items-center justify-center gap-0.5">
         {display !== 'date' && (
           <p className="aura-clock-time text-xl font-bold tabular-nums leading-none" style={{ color: 'var(--text-primary)' }}>
             {timeStr}
           </p>
         )}
         {display !== 'time' && (
-          <p className={`aura-clock-date mt-1 ${display === 'date' ? 'text-xl font-bold' : 'text-sm'}`} style={{ color: display === 'date' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+          <p className={`aura-clock-date ${display === 'date' ? 'text-xl font-bold' : 'text-sm'}`} style={{ color: display === 'date' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
             <DateText date={now} length={dateLength} t={t} />
           </p>
         )}
