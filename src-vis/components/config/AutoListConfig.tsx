@@ -603,6 +603,24 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
         )}
       </div>
 
+      {/* ── Layout: Karte – Kartenbreite ── */}
+      {config.layout === 'card' && (
+        <div>
+          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+            Kachel-Mindestbreite (px)
+          </label>
+          <input
+            type="number" min={60} max={400} step={10}
+            className={iCls} style={iSty}
+            value={opts.cardMinWidth ?? 90}
+            onChange={e => setOpts({ cardMinWidth: Number(e.target.value) || undefined })}
+          />
+          <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+            Mindestbreite je Kachel – größere Werte = weniger Spalten
+          </p>
+        </div>
+      )}
+
       {/* ── DatapointPicker for exclude blacklist ── */}
       {showExcludePicker && (
         <DatapointPicker
