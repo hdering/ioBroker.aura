@@ -3160,8 +3160,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   case 'thermostat':    return [];
                   case 'shutter':       return [];
                   case 'gauge':         return [];
-                  case 'clock':         return [{ key: 'showTitle', label: 'Titel' }];
-                  case 'weather':       return [{ key: 'showTitle', label: 'Titel' }];
+                  case 'clock':         return [];
+                  case 'weather':       return [];
                   case 'windowcontact': return [];
                   case 'binarysensor':  return [];
                   case 'datepicker':   return [];
@@ -3176,7 +3176,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   case 'trash':         return [];
                   case 'trashSchedule': return [];
                   case 'mediaplayer':    return [];
-                  case 'chips':  return [{ key: 'showTitle', label: 'Titel' }];
+                  case 'chips':  return [];
                   case 'button': return [];
                   case 'slider':        return [];
                   case 'echartsPreset': return [];

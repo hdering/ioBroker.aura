@@ -21,7 +21,7 @@ export function ChipsWidget({ config }: WidgetProps) {
   const [pendingChip, setPendingChip] = useState<ChipItem | null>(null);
 
   const WidgetIcon = getWidgetIcon(config.options?.icon as string | undefined, Tag);
-  const iconSize   = (o.iconSize   as number)        || 16;
+  const iconSize   = (o.iconSize   as number)        || 20;
   const showTitle  = o.showTitle !== false;
   const showIcon   = o.showIcon  !== false;
   const titleAlign = (o.titleAlign as string) ?? 'left';
@@ -97,7 +97,7 @@ export function ChipsWidget({ config }: WidgetProps) {
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-1.5 shrink-0 min-w-0">
           {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-          {showTitle && <p className="text-sm font-medium truncate flex-1 min-w-0" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
       <div className="nodrag" style={containerStyle}>
