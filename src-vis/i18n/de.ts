@@ -473,6 +473,8 @@ export const de = {
   'wf.history.liveData':      '– Live-Daten (kein Verlauf) –',
   'wf.history.timeRange':     'Zeitraum',
   'wf.history.lockRange':     'Zeitraum sperren (Wechsler im Frontend ausblenden)',
+  'wf.history.showYAxis':     'Y-Achse anzeigen',
+  'wf.history.yAxisCompact':  'Kompakt (7000 → 7K)',
 
   // Calendar config
   'wf.cal.addCalendar':       'Kalender hinzufügen',

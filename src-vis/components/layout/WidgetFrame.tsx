@@ -572,6 +572,27 @@ function ChartHistoryConfig({ config, onConfigChange }: { config: WidgetConfig; 
             />
             <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Ø als Zahlenwert anzeigen</span>
           </label>
+          {/* Y-Achse anzeigen */}
+          <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={(o.showYAxis as boolean | undefined) ?? false}
+              onChange={(e) => set({ showYAxis: e.target.checked })}
+              className="rounded"
+            />
+            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.history.showYAxis')}</span>
+          </label>
+          {(o.showYAxis as boolean | undefined) && (
+            <label className="flex items-center gap-2 mt-1 ml-5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={(o.yAxisCompact as boolean | undefined) ?? true}
+                onChange={(e) => set({ yAxisCompact: e.target.checked })}
+                className="rounded"
+              />
+              <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.history.yAxisCompact')}</span>
+            </label>
+          )}
         </div>
       )}
 

@@ -475,6 +475,8 @@ export const en: Record<TranslationKey, string> = {
   'wf.history.liveData': '– Live Data (no history) –',
   'wf.history.timeRange':'Time Range',
   'wf.history.lockRange':'Lock time range (hide selector in frontend)',
+  'wf.history.showYAxis':'Show Y-axis',
+  'wf.history.yAxisCompact':'Compact (7000 → 7K)',
 
   // Calendar config
   'wf.cal.addCalendar':    'Add Calendar',

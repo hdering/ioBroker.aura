@@ -25,6 +25,25 @@ function formatLabel(ts: number): string {
   });
 }
 
+function formatYTick(value: number, decimals: number, compact: boolean): string {
+  if (!compact) return formatNum(value, decimals);
+  const abs = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+  if (abs >= 1e9) {
+    const n = abs / 1e9;
+    return `${sign}${n >= 10 ? Math.round(n) : n.toFixed(1).replace(/\.0$/, '')}B`;
+  }
+  if (abs >= 1e6) {
+    const n = abs / 1e6;
+    return `${sign}${n >= 10 ? Math.round(n) : n.toFixed(1).replace(/\.0$/, '')}M`;
+  }
+  if (abs >= 1e3) {
+    const n = abs / 1e3;
+    return `${sign}${n >= 10 ? Math.round(n) : n.toFixed(1).replace(/\.0$/, '')}K`;
+  }
+  return formatNum(value, decimals);
+}
+
 export function ChartWidget({ config }: WidgetProps) {
   const { subscribe, connected } = useIoBroker();
   const fontScale = useConfigStore((s) => s.frontend.fontScale ?? 1);
@@ -51,6 +70,8 @@ export function ChartWidget({ config }: WidgetProps) {
   const lineColor       = (o.lineColor  as string | undefined) ?? 'var(--accent)';
   const unitColor       = (o.unitColor  as string | undefined) ?? '#000000';
   const avgColor        = (o.avgColor   as string | undefined) ?? lineColor;
+  const showYAxis       = o.showYAxis === true;
+  const yAxisCompact    = o.yAxisCompact !== false;
   const WidgetIcon      = getWidgetIcon(o.icon as string | undefined, TrendingUp);
 
   // ── Frontend-local range selection (starts from admin config, switchable at runtime) ──
@@ -185,7 +206,15 @@ export function ChartWidget({ config }: WidgetProps) {
                     <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <YAxis domain={['auto', 'auto']} hide />
+                <YAxis
+                  domain={['auto', 'auto']}
+                  hide={!showYAxis}
+                  tick={tickStyle}
+                  tickLine={false}
+                  axisLine={false}
+                  width={showYAxis ? 32 : 0}
+                  tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact)}
+                />
                 <XAxis dataKey="t" type="number" domain={['dataMin', 'dataMax']} scale="time" hide />
                 <Tooltip contentStyle={tooltipStyle} labelFormatter={formatLabel}
                   formatter={(v: number) => `${formatNum(v, decimals)}${unit ? ` ${unit}` : ''}`} />
@@ -233,7 +262,15 @@ export function ChartWidget({ config }: WidgetProps) {
           hasSize ? (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={history}>
-              <YAxis domain={['auto', 'auto']} hide />
+              <YAxis
+                domain={['auto', 'auto']}
+                hide={!showYAxis}
+                tick={tickStyle}
+                tickLine={false}
+                axisLine={false}
+                width={showYAxis ? 32 : 0}
+                tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact)}
+              />
               <XAxis
                 dataKey="t"
                 type="number"
