@@ -49,6 +49,8 @@ export interface AutoListOptions {
   showCount?: boolean;
   sortBy?: 'none' | 'label' | 'value';
   sortOrder?: 'asc' | 'desc';
+  sortBy2?: 'none' | 'label' | 'value';
+  sortOrder2?: 'asc' | 'desc';
   filterAdapters?: string;
   cardMinWidth?: number;
 }
@@ -527,16 +529,25 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         });
     const sortBy = opts.sortBy ?? 'none';
     const sortOrder = opts.sortOrder ?? 'asc';
+    const sortBy2 = opts.sortBy2 ?? 'none';
+    const sortOrder2 = opts.sortOrder2 ?? 'asc';
     if (sortBy !== 'none') {
-      result = [...result].sort((a, b) => {
-        const cmp = sortBy === 'label'
+      const cmpFor = (key: 'label' | 'value', a: AutoListEntry, b: AutoListEntry) =>
+        key === 'label'
           ? getLabel(a).localeCompare(getLabel(b), undefined, { numeric: true, sensitivity: 'base' })
           : compareVals(states[a.id]?.val ?? null, states[b.id]?.val ?? null);
-        return sortOrder === 'desc' ? -cmp : cmp;
+      result = [...result].sort((a, b) => {
+        const cmp1 = cmpFor(sortBy, a, b);
+        if (cmp1 !== 0) return sortOrder === 'desc' ? -cmp1 : cmp1;
+        if (sortBy2 !== 'none' && sortBy2 !== sortBy) {
+          const cmp2 = cmpFor(sortBy2, a, b);
+          return sortOrder2 === 'desc' ? -cmp2 : cmp2;
+        }
+        return 0;
       });
     }
     return result;
-  }, [entries, states, valueFilter, editMode, opts.sortBy, opts.sortOrder, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [entries, states, valueFilter, editMode, opts.sortBy, opts.sortOrder, opts.sortBy2, opts.sortOrder2, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const o = config.options ?? {};
   const showTitle  = opts.showTitle !== false;
