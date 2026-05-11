@@ -67,7 +67,14 @@ export function ClockWidget({ config }: WidgetProps) {
     const dateStr = dateLength === 'long'
       ? `${t(`clock.day.${now.getDay()}` as Parameters<typeof t>[0])}, ${now.getDate()}. ${t(`clock.month.${now.getMonth()}` as Parameters<typeof t>[0])} ${now.getFullYear()}`
       : `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()}`;
-    return <CustomGridView config={config} value={customFormat ? customStr : timeStr} extraFields={{ time: timeStr, date: dateStr, custom: customStr }} />;
+    const defaultValue = customFormat
+      ? customStr
+      : display === 'date'
+        ? dateStr
+        : display === 'datetime'
+          ? `${timeStr} ${dateStr}`
+          : timeStr;
+    return <CustomGridView config={config} value={defaultValue} extraFields={{ time: timeStr, date: dateStr, custom: customStr }} />;
   }
 
   // ---------- MINIMAL ----------
