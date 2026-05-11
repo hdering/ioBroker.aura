@@ -399,9 +399,20 @@ export function WeatherWidget({ config }: WidgetProps) {
     </div>
   ) : null;
 
+  // ── Tomorrow (next-day) values for custom layout ─────────────────────────
+  const tomorrowIdx = 1;
+  const hasTomorrow = data!.daily.time.length > tomorrowIdx;
+  const tomorrowInfo  = hasTomorrow ? getWeatherInfo(data!.daily.weather_code[tomorrowIdx], t) : null;
+  const tomorrowMax   = hasTomorrow ? Math.round(data!.daily.temperature_2m_max[tomorrowIdx]) : null;
+  const tomorrowMin   = hasTomorrow ? Math.round(data!.daily.temperature_2m_min[tomorrowIdx]) : null;
+  const tomorrowDay   = hasTomorrow ? dayName(data!.daily.time[tomorrowIdx], t) : '';
+  const tomorrowRainP = hasTomorrow ? data!.daily.precipitation_probability_max?.[tomorrowIdx] : undefined;
+  const tomorrowRainS = hasTomorrow ? data!.daily.precipitation_sum?.[tomorrowIdx] : undefined;
+
   if (layout === 'custom') {
     const customGrid = (opts.customGrid as CustomGrid | undefined) ?? DEFAULT_WEATHER_GRID;
     const cellEmoji = <span style={{ fontSize: '2.4em', lineHeight: 1 }}>{info.emoji}</span>;
+    const cellEmojiTomorrow = tomorrowInfo ? <span style={{ fontSize: '2.4em', lineHeight: 1 }}>{tomorrowInfo.emoji}</span> : null;
     const cellWidgetIcon = <WidgetIcon size={Math.max(16, iconSize * scale)} style={{ color: 'var(--text-secondary)' }} />;
     const cellWarnings = showWarnings ? <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} scale={scale} /> : null;
     return (
@@ -409,21 +420,30 @@ export function WeatherWidget({ config }: WidgetProps) {
         config={{ ...config, options: { ...opts, customGrid } }}
         value={displayTemp ? `${displayTemp}°C` : ''}
         extraFields={{
-          temp:        `${displayTemp}°C`,
-          feelsLike:   feel + 'C',
-          humidity:    `${cur.relative_humidity_2m}%`,
-          wind:        `${Math.round(cur.wind_speed_10m)} km/h`,
-          condition:   info.desc,
-          emoji:       info.emoji,
-          cloudCover:  cur.cloud_cover !== undefined ? `${Math.round(cur.cloud_cover)}%` : '',
-          rainNow:     cur.precipitation !== undefined ? `${cur.precipitation.toFixed(1)} mm` : '',
-          location:    locationName,
+          temp:               `${displayTemp}°C`,
+          feelsLike:          feel + 'C',
+          humidity:           `${cur.relative_humidity_2m}%`,
+          wind:               `${Math.round(cur.wind_speed_10m)} km/h`,
+          condition:          info.desc,
+          emoji:              info.emoji,
+          cloudCover:         cur.cloud_cover !== undefined ? `${Math.round(cur.cloud_cover)}%` : '',
+          rainNow:            cur.precipitation !== undefined ? `${cur.precipitation.toFixed(1)} mm` : '',
+          location:           locationName,
+          dayTomorrow:        tomorrowDay,
+          emojiTomorrow:      tomorrowInfo?.emoji ?? '',
+          conditionTomorrow:  tomorrowInfo?.desc  ?? '',
+          tempMaxTomorrow:    tomorrowMax !== null ? `${tomorrowMax}°` : '',
+          tempMinTomorrow:    tomorrowMin !== null ? `${tomorrowMin}°` : '',
+          tempRangeTomorrow:  (tomorrowMin !== null && tomorrowMax !== null) ? `${tomorrowMin}° / ${tomorrowMax}°` : '',
+          rainProbTomorrow:   tomorrowRainP !== undefined && tomorrowRainP !== null ? `${tomorrowRainP}%` : '',
+          rainSumTomorrow:    tomorrowRainS !== undefined && tomorrowRainS !== null ? `${tomorrowRainS.toFixed(1)} mm` : '',
         }}
         extraComponents={{
-          'icon':         cellWidgetIcon,
-          'weather-icon': cellEmoji,
-          'forecast':     forecastRows,
-          'warnings':     cellWarnings,
+          'icon':                  cellWidgetIcon,
+          'weather-icon':          cellEmoji,
+          'weather-icon-tomorrow': cellEmojiTomorrow,
+          'forecast':              forecastRows,
+          'warnings':              cellWarnings,
         }}
       />
     );
