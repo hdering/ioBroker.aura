@@ -154,27 +154,6 @@ export function DimmerWidget({ config }: WidgetProps) {
     />
   );
 
-  // --- CARD: Großes Glühbirnen-Icon, Helligkeit als Opacity ---
-  if (layout === 'card') {
-    const opacity = 0.2 + (level / 100) * 0.8;
-    return (
-      <div className="flex flex-col h-full justify-between" style={{ position: 'relative' }}>
-        {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
-        <div className="flex flex-col items-center gap-3 flex-1 justify-center">
-          {showIcon && <CompactIcon size={iconSize} strokeWidth={1.5}
-            style={{ color: 'var(--accent-yellow)', opacity, filter: level > 0 ? `drop-shadow(0 0 ${level / 10}px var(--accent-yellow))` : 'none', transition: 'all 0.3s' }} />}
-          {showValue && <span className="text-xl font-bold" style={{ color: valueColor }}>{level}%</span>}
-        </div>
-        {showSlider && (barStyle
-          ? <div style={{ height: 40, width: '100%' }}>{barTrack}</div>
-          : slider
-        )}
-        {toggleBtn && <div className="flex justify-center">{toggleBtn}</div>}
-        <StatusBadges config={config} />
-      </div>
-    );
-  }
-
   // --- COMPACT ---
   if (layout === 'compact') {
     return (

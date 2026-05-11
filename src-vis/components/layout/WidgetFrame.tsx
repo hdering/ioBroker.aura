@@ -3101,6 +3101,36 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'custom',  label: 'Custom' },
               ] : config.type === 'group' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
+              ] : config.type === 'shutter' ? [
+                { value: 'default', label: t('wf.edit.layout.standard') },
+                { value: 'compact', label: t('wf.edit.layout.compact') },
+                { value: 'minimal', label: t('wf.edit.layout.minimal') },
+                { value: 'custom',  label: 'Custom' },
+              ] : config.type === 'switch' ? [
+                { value: 'default', label: t('wf.edit.layout.standard') },
+                { value: 'card',    label: t('wf.edit.layout.card') },
+                { value: 'compact', label: t('wf.edit.layout.compact') },
+                { value: 'custom',  label: 'Custom' },
+              ] : config.type === 'dimmer' ? [
+                { value: 'default', label: t('wf.edit.layout.standard') },
+                { value: 'compact', label: t('wf.edit.layout.compact') },
+                { value: 'minimal', label: t('wf.edit.layout.minimal') },
+                { value: 'custom',  label: 'Custom' },
+              ] : config.type === 'thermostat' ? [
+                { value: 'default', label: t('wf.edit.layout.standard') },
+                { value: 'compact', label: t('wf.edit.layout.compact') },
+                { value: 'minimal', label: t('wf.edit.layout.minimal') },
+                { value: 'custom',  label: 'Custom' },
+              ] : config.type === 'clock' ? [
+                { value: 'default', label: t('wf.edit.layout.standard') },
+                { value: 'card',    label: t('wf.edit.layout.card') },
+                { value: 'minimal', label: t('wf.edit.layout.minimal') },
+                { value: 'custom',  label: 'Custom' },
+              ] : config.type === 'weather' ? [
+                { value: 'default', label: t('wf.edit.layout.standard') },
+                { value: 'compact', label: t('wf.edit.layout.compact') },
+                { value: 'minimal', label: t('wf.edit.layout.minimal') },
+                { value: 'custom',  label: 'Custom' },
               ] : config.type === 'trash' || config.type === 'trashSchedule' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
               ] : [

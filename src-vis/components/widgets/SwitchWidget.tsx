@@ -114,25 +114,6 @@ export function SwitchWidget({ config }: WidgetProps) {
     );
   }
 
-  // --- MINIMAL: Nur großer Toggle-Button ---
-  if (layout === 'minimal') {
-    return (
-      <div className="flex flex-col items-center justify-center h-full gap-2" style={{ position: 'relative' }}>
-        {showIcon && (
-          <button onClick={handleToggle} className="focus:outline-none transition-transform active:scale-95">
-            <WidgetIcon
-              size={iconSize}
-              style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)' }}
-            />
-          </button>
-        )}
-        {showTitle && <span className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
-        <StatusBadges config={config} />
-        {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
-      </div>
-    );
-  }
-
   // --- DEFAULT ---
   const posClass = contentPositionClass(config.options?.contentPosition as string | undefined);
   const titlePos = config.options?.titlePosition as string | undefined;

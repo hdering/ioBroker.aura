@@ -335,7 +335,7 @@ export function WeatherWidget({ config }: WidgetProps) {
       )}
       {/* ── Current weather header ── */}
       <div className="flex items-start gap-3 shrink-0">
-        <span style={{ fontSize: layout === 'card' ? '2.8rem' : '2.2rem', lineHeight: 1 }}>
+        <span style={{ fontSize: '2.2rem', lineHeight: 1 }}>
           {info.emoji}
         </span>
         <div className="flex-1 min-w-0">

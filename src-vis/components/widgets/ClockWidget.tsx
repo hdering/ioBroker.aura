@@ -70,30 +70,6 @@ export function ClockWidget({ config }: WidgetProps) {
     return <CustomGridView config={config} value={customFormat ? customStr : timeStr} extraFields={{ time: timeStr, date: dateStr, custom: customStr }} />;
   }
 
-  // ---------- COMPACT ----------
-  if (layout === 'compact') {
-    if (customFormat) {
-      return (
-        <div className="flex items-center h-full">
-          <p className="aura-clock-custom text-xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>{customStr}</p>
-        </div>
-      );
-    }
-    return (
-      <div className="flex items-center gap-3 h-full">
-        {display !== 'date' && (
-          <p className="aura-clock-time text-xl font-bold tabular-nums shrink-0" style={{ color: 'var(--text-primary)' }}>{timeStr}</p>
-        )}
-        {display === 'datetime' && <span style={{ color: 'var(--app-border)' }}>·</span>}
-        {display !== 'time' && (
-          <p className="aura-clock-date text-sm truncate" style={{ color: 'var(--text-secondary)' }}>
-            <DateText date={now} length={dateLength} t={t} />
-          </p>
-        )}
-      </div>
-    );
-  }
-
   // ---------- MINIMAL ----------
   if (layout === 'minimal') {
     return (

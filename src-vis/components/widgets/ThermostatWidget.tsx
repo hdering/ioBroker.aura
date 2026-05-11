@@ -118,50 +118,6 @@ export function ThermostatWidget({ config }: WidgetProps) {
     );
   }
 
-  // ── CARD ──────────────────────────────────────────────────────────────────
-  if (layout === 'card') {
-    return (
-      <>
-        <div className="flex flex-col h-full justify-between" style={{ position: 'relative' }}>
-          {showTitle && (
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-medium truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{displayTitle}</p>
-              <StatusIcon />
-            </div>
-          )}
-          <div className="flex items-center justify-between flex-1 py-3">
-            <div>
-              {showSetpoint && (
-                <>
-                  <p className="text-xl font-bold leading-none" style={{ color: valueColor }}>
-                    {formatNum(target, decimals)}
-                  </p>
-                  <p className="text-base font-light mt-0.5" style={{ color: 'var(--text-secondary)' }}>{t('thermo.setPoint')}</p>
-                </>
-              )}
-              {showActualTemp && actual !== null && (
-                <p className="text-sm mt-1.5 font-medium" style={{ color: 'var(--text-secondary)' }}>
-                  {t('thermo.actual')}: <span style={{ color: 'var(--text-primary)' }}>{formatNum(actual, decimals)}°C</span>
-                </p>
-              )}
-            </div>
-            {showControls && <PlusMinus />}
-          </div>
-          {showActualTemp && actual !== null && (
-            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--app-border)' }}>
-              <div className="h-full rounded-full transition-all duration-700"
-                style={{
-                  width: `${Math.min(100, Math.max(0, ((actual - minTemp) / (maxTemp - minTemp)) * 100))}%`,
-                  background: accentColor,
-                }} />
-            </div>
-          )}
-          <StatusBadges config={config} />
-        </div>
-      </>
-    );
-  }
-
   // ── COMPACT ───────────────────────────────────────────────────────────────
   if (layout === 'compact') {
     return (
