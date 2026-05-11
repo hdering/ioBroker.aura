@@ -786,7 +786,12 @@ class Aura extends utils.Adapter {
     server.on('upgrade', (req, socket, _head) => {
       let parsedUrl;
       try { parsedUrl = new URL(req.url, 'http://localhost'); } catch { return; }
-      if (parsedUrl.pathname.startsWith('/socket.io/')) {
+      // Classic socket.io: /socket.io/?EIO=...&transport=websocket
+      // @iobroker/ws (pure-ws): /?sid=... — the pure-ws SocketClient ignores socket.io's
+      // `path` option and connects at root, so we accept both shapes here.
+      const isClassicSocketIo = parsedUrl.pathname.startsWith('/socket.io/');
+      const isPureWs          = parsedUrl.pathname === '/' && parsedUrl.searchParams.has('sid');
+      if (isClassicSocketIo || isPureWs) {
         const wsScheme = socketSecure ? 'wss' : 'ws';
         proxyWebSocket(req, socket, `${wsScheme}://${socketHostPort}${req.url}`, this.log);
         return;
