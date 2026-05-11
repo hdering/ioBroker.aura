@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.3 (2026-05-11)
+
+- feat(trashschedule): add configurable icon sizes for default and list layouts
+
 ## v0.7.1 (2026-05-11)
 
 - feat(autolist): expose cardMinWidth config field in card layout
@@ -336,6 +340,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
