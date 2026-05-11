@@ -839,7 +839,7 @@ export const de = {
   'thermo.heating':   'Heizt',
   'thermo.cooling':   'Kühlt',
   'thermo.standby':   'Standby',
-  'thermo.setPoint':  '°C Soll',
+  'thermo.setPoint':  'Soll',
   'thermo.actual':    'Ist',
 
   // ── Group Widget ──────────────────────────────────────────────────────────────

@@ -203,7 +203,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
             {showSetpoint && (
               <>
                 <p className="text-xl font-bold leading-none" style={{ color: valueColor }}>
-                  {formatNum(target, decimals)}
+                  {formatNum(target, decimals)}°
                 </p>
                 <p className="text-sm font-light" style={{ color: 'var(--text-secondary)' }}>{t('thermo.setPoint')}</p>
               </>

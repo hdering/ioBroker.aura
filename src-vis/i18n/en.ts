@@ -841,7 +841,7 @@ export const en: Record<TranslationKey, string> = {
   'thermo.heating':   'Heating',
   'thermo.cooling':   'Cooling',
   'thermo.standby':   'Standby',
-  'thermo.setPoint':  '°C Target',
+  'thermo.setPoint':  'Target',
   'thermo.actual':    'Actual',
 
   // ── Group Widget ──────────────────────────────────────────────────────────────
