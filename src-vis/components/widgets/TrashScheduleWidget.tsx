@@ -234,6 +234,8 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
   const nameFontSize = (o.nameFontSize as number | undefined)     ?? 10;
   const daysFontSize = (o.daysFontSize as number | undefined)     ?? 10;
   const dateFontSize = (o.dateFontSize as number | undefined)     ?? 9;
+  const binSizeOpt   = (o.binSize      as number | undefined);
+  const listBinSize  = (o.listBinSize  as number | undefined)     ?? 36;
 
   const all = parseEntries(value);
 
@@ -284,7 +286,7 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
               key={entry.name}
               entry={entry}
               iconName={iconMap[entry.name] ?? 'Trash2'}
-              circleSize={36}
+              circleSize={listBinSize}
               showNames={showNames}
               showDays={showDays}
               showDate={showDate}
@@ -300,7 +302,10 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
   }
 
   // ── DEFAULT layout ────────────────────────────────────────────────────────
-  const binSize = visible.length <= 2 ? 72 : visible.length <= 4 ? 58 : 44;
+  const binSize =
+    binSizeOpt && binSizeOpt > 0
+      ? binSizeOpt
+      : visible.length <= 2 ? 72 : visible.length <= 4 ? 58 : 44;
 
   return (
     <div className="flex flex-col h-full">
@@ -357,6 +362,8 @@ export function TrashScheduleConfig({
   const nameFontSize = (o.nameFontSize as number | undefined)   ?? 10;
   const daysFontSize = (o.daysFontSize as number | undefined)   ?? 10;
   const dateFontSize = (o.dateFontSize as number | undefined)   ?? 9;
+  const binSizeOpt   = (o.binSize      as number | undefined)   ?? 0;
+  const listBinSize  = (o.listBinSize  as number | undefined)   ?? 36;
 
   const setO = (patch: Record<string, unknown>) =>
     onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -547,6 +554,53 @@ export function TrashScheduleConfig({
               </select>
             </div>
           )}
+        </div>
+
+        {/* ── Icon-Größen ── */}
+        <div className="space-y-2.5">
+          <label className="text-[11px] mb-1 block font-medium" style={{ color: 'var(--text-secondary)' }}>
+            Icon-Größen
+          </label>
+
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                Standardansicht ({binSizeOpt > 0 ? `${binSizeOpt}px` : 'Auto'})
+              </label>
+              <button
+                onClick={() => setO({ binSize: binSizeOpt > 0 ? 0 : 56 })}
+                className="text-[10px] px-2 py-0.5 rounded-md hover:opacity-80"
+                style={{
+                  background: binSizeOpt > 0 ? 'var(--accent)' : 'var(--app-bg)',
+                  color: binSizeOpt > 0 ? '#fff' : 'var(--text-secondary)',
+                  border: '1px solid var(--app-border)',
+                }}
+                title={binSizeOpt > 0 ? 'Auf Auto zurücksetzen' : 'Feste Größe verwenden'}
+              >
+                {binSizeOpt > 0 ? 'Manuell' : 'Auto'}
+              </button>
+            </div>
+            {binSizeOpt > 0 && (
+              <input
+                type="range" min={32} max={96} step={2}
+                value={binSizeOpt}
+                onChange={(e) => setO({ binSize: Number(e.target.value) })}
+                className="w-full accent-[var(--accent)]"
+              />
+            )}
+          </div>
+
+          <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+              Listenansicht ({listBinSize}px)
+            </label>
+            <input
+              type="range" min={24} max={72} step={2}
+              value={listBinSize}
+              onChange={(e) => setO({ listBinSize: Number(e.target.value) })}
+              className="w-full accent-[var(--accent)]"
+            />
+          </div>
         </div>
 
         {/* ── Textgrößen ── */}
