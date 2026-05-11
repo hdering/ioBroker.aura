@@ -154,7 +154,7 @@ export function ClimateWidget({ config }: WidgetProps) {
 
       {/* Title */}
       {(showTitle || showIcon) && (
-        <div className="flex items-center gap-1 min-w-0 flex-1" style={{ justifyContent: titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'flex-end' : 'flex-start' }}>
+        <div className="flex items-center gap-1 min-w-0 shrink-0" style={{ justifyContent: titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'flex-end' : 'flex-start' }}>
           {showIcon && <TempIcon size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0 }} />}
           {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
