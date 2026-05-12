@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.21 (2026-05-12)
+
+- feat(dimmer): optional switchDp for separate on/off datapoint
+
 ## v0.7.20 (2026-05-12)
 
 - feat(evcc): detect heating loadpoints and show 'Heizen' instead of 'Laden'
@@ -415,6 +419,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
