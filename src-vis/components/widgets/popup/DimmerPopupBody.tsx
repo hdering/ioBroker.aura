@@ -10,6 +10,8 @@ interface Props {
 
 export function DimmerPopupBody({ widget }: Props) {
   const { value } = useDatapoint(widget.datapoint);
+  const switchDp = (widget.options?.switchDp as string | undefined) || '';
+  const { value: switchValue } = useDatapoint(switchDp);
   const { setState } = useIoBroker();
   const level = typeof value === 'number' ? Math.round(value) : 0;
   const [drag, setDrag] = useState<number | null>(null);
@@ -27,7 +29,13 @@ export function DimmerPopupBody({ widget }: Props) {
     }
   };
 
-  const toggle = () => setState(widget.datapoint, level > 0 ? 0 : 100);
+  const isOn = switchDp
+    ? (typeof switchValue === 'boolean' ? switchValue : switchValue === 1 || switchValue === '1' || switchValue === 'true')
+    : level > 0;
+  const toggle = () => {
+    if (switchDp) setState(switchDp, !isOn);
+    else setState(widget.datapoint, isOn ? 0 : 100);
+  };
 
   const pct = display / 100;
   const yellow = 'var(--accent-yellow, #f59e0b)';
@@ -41,7 +49,7 @@ export function DimmerPopupBody({ widget }: Props) {
           <circle
             cx="60" cy="60" r="52"
             fill="none"
-            stroke={display > 0 ? yellow : 'var(--app-border)'}
+            stroke={isOn ? yellow : 'var(--app-border)'}
             strokeWidth="8"
             strokeDasharray={`${2 * Math.PI * 52}`}
             strokeDashoffset={`${2 * Math.PI * 52 * (1 - pct)}`}
@@ -50,7 +58,7 @@ export function DimmerPopupBody({ widget }: Props) {
           />
         </svg>
         <div className="flex flex-col items-center gap-0.5 z-10">
-          <SunDim size={22} style={{ color: display > 0 ? yellow : 'var(--text-secondary)' }} />
+          <SunDim size={22} style={{ color: isOn ? yellow : 'var(--text-secondary)' }} />
           <span className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{display}%</span>
         </div>
       </div>
@@ -89,8 +97,8 @@ export function DimmerPopupBody({ widget }: Props) {
           onClick={toggle}
           className="w-9 h-9 flex items-center justify-center rounded-lg hover:opacity-80 transition-opacity"
           style={{
-            background: level > 0 ? yellow : 'var(--app-bg)',
-            color: level > 0 ? '#000' : 'var(--text-secondary)',
+            background: isOn ? yellow : 'var(--app-bg)',
+            color: isOn ? '#000' : 'var(--text-secondary)',
             border: '1px solid var(--app-border)',
           }}
         >

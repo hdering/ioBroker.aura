@@ -10,11 +10,13 @@ import { useStatusFields } from '../../hooks/useStatusFields';
 
 export function DimmerWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
+  const o = config.options ?? {};
+  const switchDp = (o.switchDp as string | undefined) || '';
+  const { value: switchValue } = useDatapoint(switchDp);
   const { setState } = useIoBroker();
   const level = typeof value === 'number' ? Math.round(value) : 0;
   const layout = config.layout ?? 'default';
   const CompactIcon = useMemo(() => getWidgetIcon(config.options?.icon as string | undefined, SunDim), [config.options?.icon]);
-  const o = config.options ?? {};
   const showTitle      = o.showTitle      !== false;
   const titleAlign     = (o.titleAlign    as string) ?? 'left';
   const showValue      = o.showValue      !== false;
@@ -64,8 +66,16 @@ export function DimmerWidget({ config }: WidgetProps) {
   }, [thresholds, displayLevel]);
   const valueColor = thresholdColor ?? 'var(--text-primary)';
 
-  const isOn = displayLevel > 0;
-  const handleToggle = () => setState(config.datapoint, isOn ? 0 : 100);
+  const isOn = switchDp
+    ? (typeof switchValue === 'boolean' ? switchValue : switchValue === 1 || switchValue === '1' || switchValue === 'true')
+    : displayLevel > 0;
+  const handleToggle = () => {
+    if (switchDp) {
+      setState(switchDp, !isOn);
+    } else {
+      setState(config.datapoint, isOn ? 0 : 100);
+    }
+  };
 
   const toggleBtn = showToggle && (
     <button
@@ -124,12 +134,12 @@ export function DimmerWidget({ config }: WidgetProps) {
       extraFields={{
         level:  `${level}%`,
         status: level === 0 ? 'Aus' : level === 100 ? 'Voll' : `${level}%`,
-        on:     level > 0 ? 'Ein' : 'Aus',
+        on:     isOn ? 'Ein' : 'Aus',
         battery,
         reach,
       }}
       extraComponents={{
-        icon:            showIcon ? <CompactIcon size={iconSize} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }} /> : null,
+        icon:            showIcon ? <CompactIcon size={iconSize} style={{ color: isOn ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }} /> : null,
         'battery-icon':  batteryIcon,
         'reach-icon':    reachIcon,
         'status-badges': statusBadges,
@@ -159,7 +169,7 @@ export function DimmerWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col justify-center h-full gap-1.5" style={{ position: 'relative' }}>
         <div className="flex items-center gap-2">
-          {showIcon && <CompactIcon size={iconSize} style={{ color: displayLevel > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showIcon && <CompactIcon size={iconSize} style={{ color: isOn ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }} />}
           {showTitle && <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
           {!showTitle && <span className="flex-1" />}
           {showValue && <span className="text-xl font-bold shrink-0" style={{ color: valueColor }}>{displayLevel}%</span>}
@@ -182,7 +192,7 @@ export function DimmerWidget({ config }: WidgetProps) {
   if (layout === 'minimal') {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-3" style={{ position: 'relative' }}>
-        {showValue && <span className="text-xl font-bold" style={{ color: thresholdColor ?? (level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)') }}>{level}%</span>}
+        {showValue && <span className="text-xl font-bold" style={{ color: thresholdColor ?? (isOn ? 'var(--accent-yellow)' : 'var(--text-secondary)') }}>{level}%</span>}
         {showSlider && (barStyle
           ? <div style={{ height: 40, width: '100%' }}>{barTrack}</div>
           : slider
@@ -198,7 +208,7 @@ export function DimmerWidget({ config }: WidgetProps) {
     <div className="flex flex-col h-full justify-between" style={{ position: 'relative' }}>
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-2">
-          {showIcon && <CompactIcon size={iconSize} style={{ color: level > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)' }} />}
+          {showIcon && <CompactIcon size={iconSize} style={{ color: isOn ? 'var(--accent-yellow)' : 'var(--text-secondary)' }} />}
           {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
         </div>
       )}
@@ -209,7 +219,7 @@ export function DimmerWidget({ config }: WidgetProps) {
             {showToggle
               ? toggleBtn
               : <div className="w-3 h-3 rounded-full transition-all"
-                  style={{ background: level > 0 ? 'var(--accent-yellow)' : 'var(--app-border)', boxShadow: level > 0 ? '0 0 6px var(--accent-yellow)' : 'none' }} />
+                  style={{ background: isOn ? 'var(--accent-yellow)' : 'var(--app-border)', boxShadow: isOn ? '0 0 6px var(--accent-yellow)' : 'none' }} />
             }
           </div>
         )}

@@ -2407,7 +2407,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       setOpenPanel(panel);
     }
   };
-  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | 'iframe_urlDp' | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'dimmer_switchDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | 'iframe_urlDp' | null>(null);
   const [imageFilePicker, setImageFilePicker] = useState(false);
   const [cameraSlotPickerIdx, setCameraSlotPickerIdx] = useState(0);
   const [mpPickerKey, setMpPickerKey] = useState('');
@@ -4847,8 +4847,29 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 const o = config.options ?? {};
                 const setO = (patch: Record<string, unknown>) =>
                   onConfigChange({ ...config, options: { ...o, ...patch } });
+                const dInputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono';
+                const dInputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
                 return (
                   <>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Schalt-DP für An/Aus (z.B. Shelly/KNX)</label>
+                      <div className="flex gap-1">
+                        <input type="text" value={(o.switchDp as string) ?? ''}
+                          onChange={(e) => setO({ switchDp: e.target.value || undefined })}
+                          placeholder="optional"
+                          className={`flex-1 ${dInputCls} min-w-0`} style={dInputStyle} />
+                        <button onClick={() => setPickerTarget('dimmer_switchDp')}
+                          className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                          style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                          <Database size={13} />
+                        </button>
+                      </div>
+                      {!(o.switchDp as string) && (
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                          Ohne Schalt-DP setzt der An/Aus-Schalter den Helligkeitswert auf 0 bzw. 100.
+                        </p>
+                      )}
+                    </div>
                     <div className="flex items-center justify-between">
                       <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Erst bei Loslassen senden</label>
                       <button
@@ -6649,6 +6670,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             pickerTarget === 'shutter_activityDp'  ? ((config.options?.activityDp as string) ?? '') :
             pickerTarget === 'shutter_directionDp' ? ((config.options?.directionDp as string) ?? '') :
             pickerTarget === 'shutter_stopDp'      ? ((config.options?.stopDp as string) ?? '') :
+            pickerTarget === 'dimmer_switchDp'     ? ((config.options?.switchDp as string) ?? '') :
             pickerTarget === 'gauge_pointer2Dp'         ? ((config.options?.pointer2Datapoint as string) ?? '') :
             pickerTarget === 'gauge_pointer3Dp'         ? ((config.options?.pointer3Datapoint as string) ?? '') :
             pickerTarget === 'windowcontact_batteryDp'  ? ((config.options?.batteryDp  as string) ?? '') :
@@ -6747,6 +6769,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               onConfigChange({ ...config, options: { ...config.options, directionDp: id } });
             } else if (pickerTarget === 'shutter_stopDp') {
               onConfigChange({ ...config, options: { ...config.options, stopDp: id } });
+            } else if (pickerTarget === 'dimmer_switchDp') {
+              onConfigChange({ ...config, options: { ...config.options, switchDp: id } });
             } else if (pickerTarget === 'gauge_pointer2Dp') {
               onConfigChange({ ...config, options: { ...config.options, pointer2Datapoint: id } });
             } else if (pickerTarget === 'gauge_pointer3Dp') {
