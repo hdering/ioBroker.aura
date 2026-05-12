@@ -91,19 +91,6 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
   const [query, setQuery] = useState('');
 
   const contentRef = useRef<HTMLDivElement>(null);
-  const lastHRef = useRef<number>(config.gridPos.h);
-
-  // TEMP DEBUG v4 ————————————————————————————————————————————
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('[JsonTable h-watch v4]', {
-      widgetId: config.id,
-      configH: config.gridPos.h,
-      lastHRef: lastHRef.current,
-      autoHeight,
-    });
-  }, [config.gridPos.h, config.id, autoHeight]);
-  // ——————————————————————————————————————————————————————————
 
   const tableData = useMemo(() => parseJson(value), [value]);
 
@@ -136,7 +123,11 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     );
   }, [tableData, columns, query]);
 
-  // Auto-height: measure content and update gridPos.h when data changes
+  // Auto-height: measure content and update gridPos.h when data changes.
+  // We compare against config.gridPos.h (not a ref) and include it in deps so
+  // the effect re-runs when external writes (e.g. delayed loadConfigFromIoBroker
+  // after socket connect in the frontend) revert the height — otherwise the
+  // last computed value would silently lose to the persisted one.
   useEffect(() => {
     if (!autoHeight || !contentRef.current) return;
     const el = contentRef.current;
@@ -162,27 +153,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
       }
       const naturalH = el.scrollHeight + parentOverhead;
       const newH = Math.max(1, Math.ceil((naturalH + margin) / (cellSize + margin)));
-      // TEMP DEBUG v3 ————————————————————————————————————————————
-      // eslint-disable-next-line no-console
-      console.log('[JsonTable autoHeight v3]', {
-        widgetId: config.id,
-        layout_gridGap: layout?.settings?.gridGap ?? null,
-        frontend_gridGap: frontend.gridGap,
-        layout_gridRowHeight: layout?.settings?.gridRowHeight ?? null,
-        frontend_gridRowHeight: frontend.gridRowHeight,
-        resolved_cellSize: cellSize,
-        resolved_margin: margin,
-        scrollHeight: el.scrollHeight,
-        parentOverhead,
-        currentH: config.gridPos.h,
-        lastHRef: lastHRef.current,
-        computedNewH: newH,
-      });
-      // ——————————————————————————————————————————————————————————
-      if (newH !== lastHRef.current) {
-        // eslint-disable-next-line no-console
-        console.log('[JsonTable autoHeight v3] UPDATING', { from: lastHRef.current, to: newH, currentConfigH: config.gridPos.h });
-        lastHRef.current = newH;
+      if (newH !== config.gridPos.h) {
         onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
       }
     };
@@ -191,7 +162,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     ro.observe(el);
     return () => ro.disconnect();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoHeight, filteredRows.length, columns.length, showHeader, showSearch, fontSize, config.id]);
+  }, [autoHeight, filteredRows.length, columns.length, showHeader, showSearch, fontSize, config.id, config.gridPos.h]);
 
   const fs = fontSize;
   const pad = `${Math.round(fs * 0.35)}px ${Math.round(fs * 0.6)}px`;
