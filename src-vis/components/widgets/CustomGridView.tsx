@@ -198,6 +198,25 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
   const { value, setValue } = useDatapoint(cell.dpId ?? '');
   if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
   const on = value === true || value === 1 || value === 'true' || value === '1';
+  if (cell.controlMode === 'icon') {
+    const iconName = on ? (cell.trueIcon || cell.iconName) : (cell.falseIcon || cell.iconName);
+    const color    = on ? (cell.trueColor || cell.color || 'var(--accent-green)')
+                        : (cell.falseColor || 'var(--text-secondary)');
+    const Icon = getWidgetIcon(iconName, HelpCircle);
+    const size = cell.fontSize ?? 28;
+    return (
+      <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+        <button
+          onClick={() => setValue(!on)}
+          className="nodrag flex items-center justify-center transition-transform hover:scale-110"
+          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+          aria-label={cell.text || (on ? 'AN' : 'AUS')}
+        >
+          <Icon size={size} style={{ color }} />
+        </button>
+      </div>
+    );
+  }
   return (
     <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
       <button

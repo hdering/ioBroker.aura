@@ -6478,6 +6478,80 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           </div>
                         )}
 
+                        {/* Switch: control mode + icons + colors */}
+                        {selCell.type === 'switch' && (() => {
+                          const mode = selCell.controlMode ?? 'toggle';
+                          const ctrlIconSize = selCell.fontSize ?? 28;
+                          return (
+                            <>
+                              <div>
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Bedienelement</label>
+                                <div className="flex gap-1">
+                                  {([['toggle', 'Schiebeschalter'], ['icon', 'Icon']] as const).map(([val, lbl]) => (
+                                    <button key={val} onClick={() => setCell(sel, { controlMode: val })}
+                                      className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                                      style={{
+                                        background: mode === val ? 'var(--accent)' : 'var(--app-bg)',
+                                        color:      mode === val ? '#fff'         : 'var(--text-secondary)',
+                                        border: `1px solid ${mode === val ? 'var(--accent)' : 'var(--app-border)'}`,
+                                      }}>
+                                      {lbl}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                              {mode === 'icon' && (
+                                <>
+                                  <div className="flex gap-2">
+                                    <div className="flex-1">
+                                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Icon AN</label>
+                                      <input type="text"
+                                        value={selCell.trueIcon ?? ''}
+                                        onChange={(e) => setCell(sel, { trueIcon: e.target.value || undefined })}
+                                        placeholder="z.B. lucide:lightbulb"
+                                        className={inputCls} style={inputSty} />
+                                    </div>
+                                    <div className="flex-1">
+                                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Icon AUS</label>
+                                      <input type="text"
+                                        value={selCell.falseIcon ?? ''}
+                                        onChange={(e) => setCell(sel, { falseIcon: e.target.value || undefined })}
+                                        placeholder="z.B. lucide:lightbulb-off"
+                                        className={inputCls} style={inputSty} />
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <div className="flex-1">
+                                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Farbe AN</label>
+                                      <input type="color"
+                                        value={selCell.trueColor && selCell.trueColor.startsWith('#') ? selCell.trueColor : '#22c55e'}
+                                        onChange={(e) => setCell(sel, { trueColor: e.target.value })}
+                                        className="w-full h-7 rounded cursor-pointer border-0 p-0" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Farbe AUS</label>
+                                      <input type="color"
+                                        value={selCell.falseColor && selCell.falseColor.startsWith('#') ? selCell.falseColor : '#6b7280'}
+                                        onChange={(e) => setCell(sel, { falseColor: e.target.value })}
+                                        className="w-full h-7 rounded cursor-pointer border-0 p-0" />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon-Größe</label>
+                                      <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{ctrlIconSize} px</span>
+                                    </div>
+                                    <input type="range" min={16} max={96} step={2} value={ctrlIconSize}
+                                      onChange={(e) => setCell(sel, { fontSize: Number(e.target.value) })}
+                                      className="w-full h-1"
+                                      style={{ accentColor: 'var(--accent)' }} />
+                                  </div>
+                                </>
+                              )}
+                            </>
+                          );
+                        })()}
+
                         {/* Slider min/max/step */}
                         {selCell.type === 'slider' && (
                           <div className="flex gap-2">

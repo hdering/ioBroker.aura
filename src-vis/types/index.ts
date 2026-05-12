@@ -92,10 +92,12 @@ export interface CustomCell {
   sendValue?: string;           // payload sent to dpId on click (parsed as bool/number/string)
   // 'icon' / 'state-icon' type
   iconName?:  string;           // Lucide icon name
-  trueIcon?:  string;           // 'state-icon': Lucide icon for truthy value
-  falseIcon?: string;           // 'state-icon': Lucide icon for falsy value
-  trueColor?: string;           // 'state-icon': color for truthy value
-  falseColor?: string;          // 'state-icon': color for falsy value
+  trueIcon?:  string;           // 'state-icon' / 'switch' (icon mode): Lucide icon for truthy value
+  falseIcon?: string;           // 'state-icon' / 'switch' (icon mode): Lucide icon for falsy value
+  trueColor?: string;           // 'state-icon' / 'switch' (icon mode): color for truthy value
+  falseColor?: string;          // 'state-icon' / 'switch' (icon mode): color for falsy value
+  // 'switch' type
+  controlMode?: 'toggle' | 'icon';  // 'switch' cell: visual control style (default 'toggle')
 }
 
 /** Legacy: 9-element array, row-major (index = row*3 + col). Kept as alias for compat. */
