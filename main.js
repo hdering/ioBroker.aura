@@ -294,6 +294,37 @@ function proxyWebSocket(req, socket, targetWsUrl, log) {
   proxyReq.end();
 }
 
+// ── Socket.io backend auto-detection ────────────────────────────────────────
+
+const SOCKET_BACKEND_WILDCARDS = new Set(['0.0.0.0', '::', '::0', '']);
+
+function pickSocketBackend(objectsMap, socketPort) {
+  const fallback = { host: '127.0.0.1', secure: false, source: null, found: false, conflicts: [] };
+  if (!Number.isInteger(socketPort) || socketPort <= 0) return fallback;
+  const candidates = [];
+  for (const [id, obj] of Object.entries(objectsMap || {})) {
+    const name = obj?.common?.name;
+    if (name !== 'web' && name !== 'socketio') continue;
+    if (!obj.common.enabled) continue;
+    const native = obj.native || {};
+    if (Number(native.port) !== Number(socketPort)) continue;
+    candidates.push({ id, native });
+  }
+  if (!candidates.length) return fallback;
+  candidates.sort((a, b) => a.id.localeCompare(b.id));
+  const pick = candidates[0];
+  const bind = String(pick.native.bind || '').trim();
+  const host = SOCKET_BACKEND_WILDCARDS.has(bind) ? '127.0.0.1' : bind;
+  const secure = !!pick.native.secure;
+  return {
+    host,
+    secure,
+    source: pick.id,
+    found: true,
+    conflicts: candidates.slice(1).map(c => c.id),
+  };
+}
+
 // ── Static file serving ──────────────────────────────────────────────────────
 
 const MIME_TYPES = {
@@ -492,10 +523,32 @@ class Aura extends utils.Adapter {
     }
   }
 
+  async resolveSocketBackend(socketPort) {
+    let objs;
+    try {
+      objs = await this.getForeignObjectsAsync('system.adapter.*', 'instance');
+    } catch (e) {
+      this.log.warn(`aura: socket backend auto-detect failed (${e.message}) — falling back to 127.0.0.1`);
+      return { host: '127.0.0.1', secure: false, source: null, found: false, conflicts: [] };
+    }
+    return pickSocketBackend(objs, socketPort);
+  }
+
   async startHttpServer() {
     const port       = this.config.port       || 8095;
     const socketPort = this.config.socketPort || 8082;
     const useHttps   = !!this.config.secure;
+
+    const backend = await this.resolveSocketBackend(socketPort);
+    const socketHost   = backend.host;
+    const socketSecure = backend.found ? backend.secure : !!this.config.socketSecure;
+    if (backend.found) {
+      const proto = socketSecure ? 'https' : 'http';
+      const extra = backend.conflicts.length ? ` (other matches ignored: ${backend.conflicts.join(', ')})` : '';
+      this.log.info(`aura: socket.io backend ${proto}://${socketHost}:${socketPort} (via ${backend.source})${extra}`);
+    } else {
+      this.log.warn(`aura: no enabled web/socketio instance found with port ${socketPort} — proxying to ${socketHost}:${socketPort}`);
+    }
 
     // ── File-system helpers ──────────────────────────────────────────────────
     const fsRootsConfig = Array.isArray(this.config.fsRoots)
@@ -654,14 +707,13 @@ class Aura extends utils.Adapter {
 
       const webAdapterPrefixes = ['/socket.io', '/echarts', '/lib'];
       if (webAdapterPrefixes.some(p => pathname === p || pathname.startsWith(p + '/'))) {
-        const socketSecure = !!this.config.socketSecure;
         const socketLib    = socketSecure ? https : http;
         const proxyReq = socketLib.request({
-          hostname: 'localhost',
+          hostname: socketHost,
           port: socketPort,
           path: req.url,
           method: req.method,
-          headers: { ...req.headers, host: `localhost:${socketPort}` },
+          headers: { ...req.headers, host: `${socketHost}:${socketPort}` },
           timeout: 30000,
           rejectUnauthorized: false,
         }, (proxyRes) => {
@@ -729,8 +781,8 @@ class Aura extends utils.Adapter {
       let parsedUrl;
       try { parsedUrl = new URL(req.url, 'http://localhost'); } catch { return; }
       if (parsedUrl.pathname.startsWith('/socket.io/')) {
-        const wsScheme = this.config.socketSecure ? 'wss' : 'ws';
-        proxyWebSocket(req, socket, `${wsScheme}://localhost:${socketPort}${req.url}`, this.log);
+        const wsScheme = socketSecure ? 'wss' : 'ws';
+        proxyWebSocket(req, socket, `${wsScheme}://${socketHost}:${socketPort}${req.url}`, this.log);
         return;
       }
       if (parsedUrl.pathname !== '/proxyws') return;
