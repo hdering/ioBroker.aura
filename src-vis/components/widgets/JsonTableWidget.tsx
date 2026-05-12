@@ -2,6 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { Table2, Search, X } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useDashboardStore } from '../../store/dashboardStore';
+import { useConfigStore } from '../../store/configStore';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 
@@ -128,21 +129,15 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     if (!autoHeight || !contentRef.current) return;
     const el = contentRef.current;
     const update = () => {
+      // Match Dashboard's effective-settings resolution: per-layout override
+      // wins, otherwise fall back to global frontend settings, then hardcoded
+      // defaults. Reading layout-only would miss user-customized global
+      // gridGap/gridRowHeight and produce a wrong (too small) gridPos.h.
       const { layouts } = useDashboardStore.getState();
+      const { frontend } = useConfigStore.getState();
       const layout = layouts.find((l) => l.tabs.some((t) => (t.widgets ?? []).some((w) => w.id === config.id)));
-      const cellSize = layout?.settings?.gridRowHeight ?? 20;
-      const margin   = layout?.settings?.gridGap ?? 10;
-      // The table sits inside a wrapper with `overflow-x-auto`. Per CSS spec,
-      // setting overflow-x to a non-visible value resolves overflow-y to auto
-      // too, which means in a flex column the wrapper can have a smaller box
-      // than the table inside (flex min-height collapses for scrollables).
-      // contentRef.scrollHeight then reports the wrapper's clipped box, not
-      // the table's true extent — so we add any table overflow on top.
-      const table = el.querySelector('table') as HTMLTableElement | null;
-      const tableWrapper = table?.parentElement as HTMLElement | null;
-      const tableOverflow = (table && tableWrapper)
-        ? Math.max(0, table.offsetHeight - tableWrapper.clientHeight)
-        : 0;
+      const cellSize = layout?.settings?.gridRowHeight ?? frontend.gridRowHeight ?? 20;
+      const margin   = layout?.settings?.gridGap       ?? frontend.gridGap       ?? 10;
       // The outer .aura-widget wrapper adds vertical padding (widgetPadding)
       // and a border that sit OUTSIDE contentRef.scrollHeight.
       const widgetEl = el.closest('.aura-widget') as HTMLElement | null;
@@ -153,36 +148,8 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
           parseFloat(cs.paddingTop || '0') + parseFloat(cs.paddingBottom || '0') +
           parseFloat(cs.borderTopWidth || '0') + parseFloat(cs.borderBottomWidth || '0');
       }
-      const naturalH = el.scrollHeight + tableOverflow + parentOverhead;
+      const naturalH = el.scrollHeight + parentOverhead;
       const newH = Math.max(1, Math.ceil((naturalH + margin) / (cellSize + margin)));
-      // TEMP DEBUG ——————————————————————————————————————————————
-      // eslint-disable-next-line no-console
-      console.log('[JsonTable autoHeight]', {
-        widgetId: config.id,
-        rows: filteredRows.length,
-        contentRef_scrollHeight: el.scrollHeight,
-        contentRef_clientHeight: el.clientHeight,
-        contentRef_offsetHeight: el.offsetHeight,
-        contentRef_bcrHeight: el.getBoundingClientRect().height,
-        table_offsetHeight: table?.offsetHeight ?? null,
-        table_scrollHeight: table?.scrollHeight ?? null,
-        table_bcrHeight: table?.getBoundingClientRect().height ?? null,
-        tableWrapper_clientHeight: tableWrapper?.clientHeight ?? null,
-        tableWrapper_offsetHeight: tableWrapper?.offsetHeight ?? null,
-        tableWrapper_scrollHeight: tableWrapper?.scrollHeight ?? null,
-        tableOverflow,
-        parentOverhead,
-        widget_bcrHeight: widgetEl?.getBoundingClientRect().height ?? null,
-        widget_clientHeight: widgetEl?.clientHeight ?? null,
-        cellSize, margin,
-        currentH: config.gridPos.h,
-        lastHRef: lastHRef.current,
-        computedNewH: newH,
-        // What N would be required if we trust each measurement independently
-        N_from_scrollHeight: Math.ceil((el.scrollHeight + parentOverhead + margin) / (cellSize + margin)),
-        N_from_table: table ? Math.ceil((table.offsetHeight + parentOverhead + margin + 30) / (cellSize + margin)) : null,
-      });
-      // ——————————————————————————————————————————————————————————
       if (newH !== lastHRef.current) {
         lastHRef.current = newH;
         onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
@@ -191,11 +158,6 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
-    // Also observe the table itself — when rows grow/shrink, contentRef may
-    // not visibly resize (the wrapper has overflow:auto), so a single RO on
-    // contentRef misses the change.
-    const table = el.querySelector('table');
-    if (table) ro.observe(table);
     return () => ro.disconnect();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoHeight, filteredRows.length, columns.length, showHeader, showSearch, fontSize, config.id]);
