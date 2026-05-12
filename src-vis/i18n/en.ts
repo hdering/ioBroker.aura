@@ -761,6 +761,7 @@ export const en: Record<TranslationKey, string> = {
   'widget.httpRequest':   'HTTP Action',
   'widget.button':        'Button',
   'widget.climate':       'Room Climate',
+  'widget.enum':          'Selection Field',
 
   // ── Weather Widget ────────────────────────────────────────────────────────────
   'weather.sunny':       'Sunny',

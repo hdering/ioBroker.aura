@@ -759,6 +759,7 @@ export const de = {
   'widget.httpRequest':   'HTTP-Aktion',
   'widget.button':        'Button',
   'widget.climate':       'Raumklima',
+  'widget.enum':          'Auswahlfeld',
 
   // ── Weather Widget ────────────────────────────────────────────────────────────
   'weather.sunny':       'Sonnig',
