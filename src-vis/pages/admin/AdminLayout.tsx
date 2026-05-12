@@ -15,6 +15,7 @@ import { usePopupConfigStore } from '../../store/popupConfigStore';
 import { loadConfigFromIoBroker, applyRaw } from '../../utils/configLoader';
 import { useAdminPrefsStore } from '../../store/adminPrefsStore';
 import { useIoBroker } from '../../hooks/useIoBroker';
+import { useVersionGuard } from '../../hooks/useVersionGuard';
 import { useT } from '../../i18n';
 
 function useSaveState() {
@@ -73,6 +74,8 @@ export function AdminLayout() {
   const { autoSave, autoSaveDelay, backupCount } = useAdminPrefsStore();
 
   useEffect(() => { configureBackup({ maxBackups: backupCount }); }, [backupCount]);
+
+  useVersionGuard();
 
   // Auto-sync on first connect: three cases
   //   1. Remote has data, local is empty  → apply remote immediately (avoids 10 s poll wait)

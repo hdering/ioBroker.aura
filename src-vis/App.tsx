@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Sun, Moon, Settings } from 'lucide-react';
 import { useIoBroker, setStateDirect, subscribeStateDirect, prefetchStates } from './hooks/useIoBroker';
 import { useConfigSync } from './hooks/useConfigSync';
+import { useVersionGuard } from './hooks/useVersionGuard';
 import { useConnectionStore } from './store/connectionStore';
 import { useConfigStore } from './store/configStore';
 import { useDashboardStore, useLayoutBySlug } from './store/dashboardStore';
@@ -349,6 +350,10 @@ export default function App() {
 
   // React to external changes on aura.0.config.dashboard (subscription + polling)
   useConfigSync(connected, ioBrokerConfigLoaded);
+
+  // Detect adapter upgrades: if the live adapter version diverges from the
+  // bundled one (e.g. after a npm install of a new aura release), reload.
+  useVersionGuard();
 
   // ── Browser-theme sync ────────────────────────────────────────────────────
   // Subscribes to the theme store so it re-applies the correct theme whenever
