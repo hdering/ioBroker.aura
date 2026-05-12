@@ -5,6 +5,7 @@ import type { WidgetProps } from '../../types';
 import { contentPositionClass, titlePositionStyle } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
+import { CustomGridView } from './CustomGridView';
 
 export interface EnumEntry {
   value: string;     // stored as string; parsed to number if numeric
@@ -70,6 +71,21 @@ export function EnumWidget({ config }: WidgetProps) {
       <ChevronDown size={12} className="absolute right-2 pointer-events-none" style={{ color: 'var(--text-secondary)' }} />
     </div>
   ) : null;
+
+  // --- CUSTOM (3×3 Standard-Grid, vordefinierte Component-Slots: icon / select / label) ---
+  if (layout === 'custom') {
+    return (
+      <CustomGridView
+        config={config}
+        value={currentLabel}
+        extraComponents={{
+          icon:   showIcon  ? <WidgetIcon size={iconSize} style={{ color: currentColor ?? 'var(--accent)', flexShrink: 0 }} /> : null,
+          select: selectEl,
+          label:  showValue ? <span className="text-base font-semibold truncate" style={{ color: currentColor ?? 'var(--text-primary)' }}>{currentLabel}</span> : null,
+        }}
+      />
+    );
+  }
 
   // --- COMPACT ---
   if (layout === 'compact') {

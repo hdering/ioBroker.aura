@@ -30,7 +30,7 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
     case 'slider':
       return ['default', 'custom'];
     case 'enum':
-      return ['default', 'compact', 'minimal', 'card'];
+      return ['default', 'compact', 'minimal', 'card', 'custom'];
     case 'evcc':
       return ['default', 'compact', 'flow', 'battery', 'production', 'consumption', 'loadpoints', 'custom'];
     default: {
