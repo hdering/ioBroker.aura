@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { AreaChart, Area, ResponsiveContainer, Tooltip, YAxis, XAxis } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, Tooltip, YAxis, XAxis, ReferenceLine } from 'recharts';
 import { Thermometer, Droplets, Loader, BarChart2 } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
@@ -64,8 +64,11 @@ export function ClimateWidget({ config }: WidgetProps) {
     ? customVal * (customUnit === 'd' ? 86_400_000 : 3_600_000)
     : undefined;
   const lockRange       = o.lockRange === true;
-  const showYAxis       = o.showYAxis === true;
-  const yAxisCompact    = o.yAxisCompact !== false;
+  const showYAxis          = o.showYAxis === true;
+  const yAxisCompact       = o.yAxisCompact !== false;
+  const showAverage        = o.showAverage === true;
+  const showAverageAsValue = o.showAverageAsValue === true;
+  const avgColor           = (o.avgColor as string | undefined) ?? lineColor;
 
   const TempIcon     = getWidgetIcon(o.icon as string | undefined, Thermometer);
   const HumidityIcon = getWidgetIcon(o.humidityIcon as string | undefined, Droplets);
@@ -93,6 +96,10 @@ export function ClimateWidget({ config }: WidgetProps) {
     subscribe,
     activeCustomMs,
   );
+
+  const avg = (showAverage || showAverageAsValue) && history.length > 1
+    ? history.reduce((sum, p) => sum + p.v, 0) / history.length
+    : null;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasSize, setHasSize] = useState(false);
@@ -168,12 +175,19 @@ export function ClimateWidget({ config }: WidgetProps) {
       {(showActualTemp || showHumidity || showTargetTemp) && (
         <div className="flex items-end justify-between gap-2">
           {showActualTemp && (
-            <span className="font-black leading-none" style={{ fontSize: Math.round(30 * fontScale), color: 'var(--text-primary)' }}>
-              {actualTemp !== null ? formatNum(actualTemp, decimals) : '–'}
-              <span className="ml-0.5 font-medium" style={{ fontSize: Math.round(16 * fontScale), color: 'var(--text-secondary)' }}>
-                {unit}
+            <div className="flex flex-col leading-none">
+              <span className="font-black" style={{ fontSize: Math.round(30 * fontScale), color: 'var(--text-primary)' }}>
+                {actualTemp !== null ? formatNum(actualTemp, decimals) : '–'}
+                <span className="ml-0.5 font-medium" style={{ fontSize: Math.round(16 * fontScale), color: 'var(--text-secondary)' }}>
+                  {unit}
+                </span>
               </span>
-            </span>
+              {showAverageAsValue && avg !== null && (
+                <span className="mt-0.5" style={{ fontSize: Math.round(11 * fontScale), color: avgColor }}>
+                  Ø {formatNum(avg, decimals)} {unit}
+                </span>
+              )}
+            </div>
           )}
           <div className="flex flex-col items-end gap-0.5 shrink-0">
             {showTargetTemp && targetTemp !== null && (
@@ -237,6 +251,15 @@ export function ClimateWidget({ config }: WidgetProps) {
                     dot={false}
                     isAnimationActive={false}
                   />
+                  {showAverage && avg !== null && (
+                    <ReferenceLine
+                      y={avg}
+                      stroke={avgColor}
+                      strokeDasharray="4 3"
+                      strokeWidth={1.5}
+                      label={{ value: `Ø ${formatNum(avg, decimals)} ${unit}`, position: 'insideTopRight', fill: avgColor, fontSize: 10 }}
+                    />
+                  )}
                 </AreaChart>
               </ResponsiveContainer>
             ) : null
