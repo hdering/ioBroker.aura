@@ -132,7 +132,19 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
       const layout = layouts.find((l) => l.tabs.some((t) => (t.widgets ?? []).some((w) => w.id === config.id)));
       const cellSize = layout?.settings?.gridRowHeight ?? 20;
       const margin   = layout?.settings?.gridGap ?? 10;
-      const naturalH = el.scrollHeight + margin; // extra bottom padding = 1 margin unit
+      // The outer .aura-widget wrapper adds vertical padding (widgetPadding) and
+      // a border that sit OUTSIDE contentRef.scrollHeight. Without accounting
+      // for them, the computed h is too small and the last rows visibly
+      // overflow into the next widget.
+      const widgetEl = el.closest('.aura-widget') as HTMLElement | null;
+      let parentOverhead = 0;
+      if (widgetEl) {
+        const cs = getComputedStyle(widgetEl);
+        parentOverhead =
+          parseFloat(cs.paddingTop || '0') + parseFloat(cs.paddingBottom || '0') +
+          parseFloat(cs.borderTopWidth || '0') + parseFloat(cs.borderBottomWidth || '0');
+      }
+      const naturalH = el.scrollHeight + parentOverhead;
       const newH = Math.max(1, Math.ceil((naturalH + margin) / (cellSize + margin)));
       if (newH !== lastHRef.current) {
         lastHRef.current = newH;
