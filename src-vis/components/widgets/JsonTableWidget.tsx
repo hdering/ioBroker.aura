@@ -155,6 +155,34 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
       }
       const naturalH = el.scrollHeight + tableOverflow + parentOverhead;
       const newH = Math.max(1, Math.ceil((naturalH + margin) / (cellSize + margin)));
+      // TEMP DEBUG ——————————————————————————————————————————————
+      // eslint-disable-next-line no-console
+      console.log('[JsonTable autoHeight]', {
+        widgetId: config.id,
+        rows: filteredRows.length,
+        contentRef_scrollHeight: el.scrollHeight,
+        contentRef_clientHeight: el.clientHeight,
+        contentRef_offsetHeight: el.offsetHeight,
+        contentRef_bcrHeight: el.getBoundingClientRect().height,
+        table_offsetHeight: table?.offsetHeight ?? null,
+        table_scrollHeight: table?.scrollHeight ?? null,
+        table_bcrHeight: table?.getBoundingClientRect().height ?? null,
+        tableWrapper_clientHeight: tableWrapper?.clientHeight ?? null,
+        tableWrapper_offsetHeight: tableWrapper?.offsetHeight ?? null,
+        tableWrapper_scrollHeight: tableWrapper?.scrollHeight ?? null,
+        tableOverflow,
+        parentOverhead,
+        widget_bcrHeight: widgetEl?.getBoundingClientRect().height ?? null,
+        widget_clientHeight: widgetEl?.clientHeight ?? null,
+        cellSize, margin,
+        currentH: config.gridPos.h,
+        lastHRef: lastHRef.current,
+        computedNewH: newH,
+        // What N would be required if we trust each measurement independently
+        N_from_scrollHeight: Math.ceil((el.scrollHeight + parentOverhead + margin) / (cellSize + margin)),
+        N_from_table: table ? Math.ceil((table.offsetHeight + parentOverhead + margin + 30) / (cellSize + margin)) : null,
+      });
+      // ——————————————————————————————————————————————————————————
       if (newH !== lastHRef.current) {
         lastHRef.current = newH;
         onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
