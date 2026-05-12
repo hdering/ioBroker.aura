@@ -2513,7 +2513,18 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
     if (editMode || !hasClickAction) return;
     // Portal backdrop clicks bubble through the React tree back here — ignore while popup is open
     if (popupOpen) return;
-    if ((e.target as HTMLElement).closest('[data-widget-interactive]')) return;
+    // Walk up from target — closest match wins. Interactive controls (button, input, …)
+    // suppress the popup so their own onClick can act alone. `data-allow-popup` is an
+    // explicit escape hatch to re-enable popup-on-click inside an interactive subtree.
+    {
+      let el: HTMLElement | null = e.target as HTMLElement;
+      const container = e.currentTarget as HTMLElement;
+      while (el && el !== container) {
+        if (el.matches('[data-allow-popup]')) break;
+        if (el.matches('button, input, select, textarea, a, [data-widget-interactive], [data-no-popup]')) return;
+        el = el.parentElement;
+      }
+    }
     e.stopPropagation();
     switch (clickAction.kind) {
       case 'link-external':
