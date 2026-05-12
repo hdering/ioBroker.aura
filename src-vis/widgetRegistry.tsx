@@ -14,6 +14,7 @@ import {
   Zap, TrendingUp, SlidersHorizontal, Thermometer, BarChart2, List,
   Clock, CalendarDays, Heading2, Layers2, Cloud, Gauge, Camera, ImageIcon, MonitorDot, Droplets, Truck, AlignJustify, Table2,
   DoorOpen, ShieldAlert, ToggleRight, LineChart, Code2, CalendarClock, Music, CalendarCheck2, Tag, Globe, MousePointerClick, Wind,
+  LayoutGrid, ListChecks,
   type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -378,6 +379,24 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     addMode: 'free',               widgetGroup: 'control',
     mock: { t: 'HTTP-Aktion', v: '' },
     hint: 'HTTP GET/POST-Anfrage per Klick auslösen (z.B. Webhook)',
+  },
+  {
+    type: 'universal',
+    label: 'Universal-Widget',     shortLabel: 'Universal',
+    Icon: LayoutGrid,              iconName: 'LayoutGrid', color: '#8b5cf6',
+    defaultW: 10,                  defaultH: 6,
+    addMode: 'free',               widgetGroup: 'layout',
+    mock: { t: 'Universal', v: '' },
+    hint: 'Freies Raster – Zellen einzeln mit Schaltern, Reglern, Werten und Bildern belegen',
+  },
+  {
+    type: 'enum',
+    label: 'Auswahlfeld',          shortLabel: 'Auswahl',
+    Icon: ListChecks,              iconName: 'ListChecks', color: '#0ea5e9',
+    defaultW: 8,                   defaultH: 4,
+    addMode: 'datapoint',          widgetGroup: 'control',
+    mock: { t: 'Modus', v: 'Bereit' },
+    hint: 'DP-Werte (0,1,2…) auf Text-Labels mappen; Dropdown schreibt den Wert zurück',
   },
 ];
 

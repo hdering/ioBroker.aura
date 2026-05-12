@@ -101,12 +101,18 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datapoint, typePicked]);
 
+  // Universal widget only supports the 'custom' layout — keep state in sync.
+  useEffect(() => {
+    if (type === 'universal' && layout !== 'custom') setLayout('custom');
+  }, [type, layout]);
+
   const def = WIDGET_REGISTRY.find((w) => w.type === type)!;
   const addMode = WIDGET_BY_TYPE[type].addMode;
   const isList = addMode === 'group';
   const isCalendar = type === 'calendar';
-  const isGauge    = type === 'gauge';
-  const isChart    = type === 'chart';
+  const isGauge     = type === 'gauge';
+  const isChart     = type === 'chart';
+  const isUniversal = type === 'universal';
   const isEchart = type === 'echart';
   const isEvcc = type === 'evcc';
   const isWeather = type === 'weather';
@@ -200,7 +206,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
     onAdd({
       id: `w-${Date.now()}`,
       type,
-      layout,
+      layout: type === 'universal' ? 'custom' : layout,
       title: finalTitle || (isList && selectedGroup ? selectedGroup.name : templateLabel || def.label),
       datapoint: dpId,
       gridPos: { x: 0, y: 9999, ...getEffectiveSize(type, widgetDefaults) },
@@ -634,6 +640,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                   .filter((l) => {
                     if (isGauge && l.id !== 'default') return false;
                     if (isChart && (l.id === 'compact' || l.id === 'minimal')) return false;
+                    if (isUniversal && l.id !== 'custom') return false;
                     return true;
                   })
                   .map((l) => (

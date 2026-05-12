@@ -6,6 +6,8 @@ const NO_CUSTOM = new Set([
 
 export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
   switch (widgetType) {
+    case 'universal':
+      return ['custom'];
     case 'camera':
       return ['minimal', 'default', 'custom'];
     case 'fill':
@@ -27,6 +29,8 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
       return ['default', 'compact', 'minimal', 'custom'];
     case 'slider':
       return ['default', 'custom'];
+    case 'enum':
+      return ['default', 'compact', 'minimal', 'card'];
     case 'evcc':
       return ['default', 'compact', 'flow', 'battery', 'production', 'consumption', 'loadpoints', 'custom'];
     default: {

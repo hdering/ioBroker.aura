@@ -1,13 +1,15 @@
 /**
  * Shared custom-grid layout renderer used by all widgets that support layout='custom'.
- * A 3×3 grid of independently configurable cells.
+ * Default 3×3 grid, but parameterized via CustomGridDef for arbitrary cols/rows (used by Universal Widget).
  */
 import React from 'react';
 import { useDatapoint } from '../../hooks/useDatapoint';
-import type { WidgetConfig, CustomCell, CustomGrid } from '../../types';
+import type { WidgetConfig, CustomCell, CustomGrid, CustomGridDef } from '../../types';
 import { resolveAssetUrl } from '../../utils/assetUrl';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { HelpCircle } from 'lucide-react';
 
 // ── Default grid (title top-left, large value + unit in middle row) ──────────
 
@@ -22,6 +24,39 @@ export const DEFAULT_CUSTOM_GRID: CustomGrid = [
   { type: 'empty' },
   { type: 'empty' },
 ];
+
+/** Default for the Universal Widget — empty 3×3. */
+export const DEFAULT_UNIVERSAL_GRID: CustomGridDef = {
+  cols: 3,
+  rows: 3,
+  cells: Array.from({ length: 9 }, () => ({ type: 'empty' as const })),
+};
+
+/**
+ * Normalize an arbitrary stored value to a CustomGridDef.
+ * Accepts legacy array (assumes 3×3) or the new object form.
+ */
+export function normalizeGrid(raw: unknown, fallback?: CustomGrid | CustomGridDef): CustomGridDef {
+  if (raw && typeof raw === 'object' && !Array.isArray(raw) && 'cells' in raw) {
+    const def = raw as CustomGridDef;
+    const cols = Math.max(1, Math.min(8, def.cols || 3));
+    const rows = Math.max(1, Math.min(8, def.rows || 3));
+    const need = cols * rows;
+    const cells = (def.cells ?? []).slice(0, need);
+    while (cells.length < need) cells.push({ type: 'empty' });
+    return { cols, rows, cells };
+  }
+  if (Array.isArray(raw)) {
+    const cells = raw.slice(0, 9);
+    while (cells.length < 9) cells.push({ type: 'empty' });
+    return { cols: 3, rows: 3, cells };
+  }
+  if (fallback) {
+    if (Array.isArray(fallback)) return { cols: 3, rows: 3, cells: [...fallback] };
+    return fallback;
+  }
+  return { cols: 3, rows: 3, cells: [...DEFAULT_CUSTOM_GRID] };
+}
 
 // ── Style helpers ─────────────────────────────────────────────────────────────
 
@@ -40,46 +75,51 @@ function cellTextStyle(cell: CustomCell, defaultColor: string): React.CSSPropert
   };
 }
 
-function cellWrapStyle(cell: CustomCell, index: number): React.CSSProperties {
-  const col = (index % 3) + 1;
-  const row = Math.floor(index / 3) + 1;
-  const colSpan = Math.min(cell.colSpan ?? 1, 4 - col); // cap to remaining columns
+function cellWrapStyle(cell: CustomCell, index: number, cols: number, rows: number): React.CSSProperties {
+  const col = (index % cols) + 1;
+  const row = Math.floor(index / cols) + 1;
+  const colSpan = Math.max(1, Math.min(cell.colSpan ?? 1, cols + 1 - col));
+  const rowSpan = Math.max(1, Math.min(cell.rowSpan ?? 1, rows + 1 - row));
   return {
     display:        'flex',
     overflow:       cell.allowOverflow ? 'visible' : 'hidden',
     alignItems:     cell.valign === 'top' ? 'flex-start' : cell.valign === 'bottom' ? 'flex-end' : 'center',
     justifyContent: cell.align === 'center' ? 'center' : cell.align === 'right' ? 'flex-end' : 'flex-start',
     padding:        '2px',
-    gridRow:        row,
+    gridRow:        rowSpan > 1 ? `${row} / span ${rowSpan}` : row,
     gridColumn:     colSpan > 1 ? `${col} / span ${colSpan}` : col,
-    position:       colSpan > 1 ? 'relative' : undefined,
-    zIndex:         colSpan > 1 ? 1 : undefined,
+    position:       (colSpan > 1 || rowSpan > 1) ? 'relative' : undefined,
+    zIndex:         (colSpan > 1 || rowSpan > 1) ? 1 : undefined,
   };
 }
 
-// ── Cell sub-components ───────────────────────────────────────────────────────
+function emptyCellStyle(index: number, cols: number): React.CSSProperties {
+  return { gridRow: Math.floor(index / cols) + 1, gridColumn: (index % cols) + 1 };
+}
+
+// ── Read-only cell sub-components ─────────────────────────────────────────────
 
 /** Subscribes to an arbitrary ioBroker DP and renders its value. */
-function DpCellView({ cell, index, defaultDecimals }: { cell: CustomCell; index: number; defaultDecimals: number }) {
+function DpCellView({ cell, index, cols, rows, defaultDecimals }: { cell: CustomCell; index: number; cols: number; rows: number; defaultDecimals: number }) {
   const { value } = useDatapoint(cell.dpId ?? '');
   const decimals = cell.decimals ?? defaultDecimals;
   const formatted = value === null ? '–'
     : typeof value === 'number' ? formatNum(value, decimals)
     : String(value);
   const content = `${cell.prefix ?? ''}${formatted}${cell.suffix ?? ''}`;
-  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={{ gridRow: Math.floor(index / 3) + 1, gridColumn: (index % 3) + 1 }} />;
+  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
   return (
-    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index)}>
+    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
       <span style={cellTextStyle(cell, 'var(--text-primary)')}>{content}</span>
     </div>
   );
 }
 
 /** Renders an image from a URL or base64 data URI. */
-function ImageCellView({ cell, index }: { cell: CustomCell; index: number }) {
-  if (!cell.imageUrl) return <div className={`aura-custom-cell-${index}`} style={{ gridRow: Math.floor(index / 3) + 1, gridColumn: (index % 3) + 1 }} />;
+function ImageCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
+  if (!cell.imageUrl) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
   return (
-    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index), padding: 0 }}>
+    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: 0 }}>
       <img
         src={resolveAssetUrl(cell.imageUrl)}
         alt=""
@@ -95,15 +135,17 @@ function ImageCellView({ cell, index }: { cell: CustomCell; index: number }) {
 }
 
 /** Renders a widget-supplied React node (interactive element or icon). */
-function ComponentCellView({ cell, index, extraComponents }: {
+function ComponentCellView({ cell, index, cols, rows, extraComponents }: {
   cell: CustomCell;
   index: number;
+  cols: number;
+  rows: number;
   extraComponents?: Record<string, React.ReactNode>;
 }) {
   const node = extraComponents?.[cell.componentKey ?? ''];
-  if (!node) return <div className={`aura-custom-cell-${index}`} style={{ gridRow: Math.floor(index / 3) + 1, gridColumn: (index % 3) + 1 }} />;
+  if (!node) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
   return (
-    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index), padding: '2px' }}>
+    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '2px' }}>
       {node}
     </div>
   );
@@ -111,10 +153,12 @@ function ComponentCellView({ cell, index, extraComponents }: {
 
 /** Renders static / widget-derived content (title, value, unit, free text, extra field). */
 function StaticCellView({
-  cell, index, title, value, rawValue, unit, extraFields,
+  cell, index, cols, rows, title, value, rawValue, unit, extraFields,
 }: {
   cell: CustomCell;
   index: number;
+  cols: number;
+  rows: number;
   title: string;
   value: string;
   rawValue?: number | null;
@@ -137,12 +181,121 @@ function StaticCellView({
     }
   })();
 
-  if (cell.type === 'empty' || !content) return <div className={`aura-custom-cell-${index}`} style={{ gridRow: Math.floor(index / 3) + 1, gridColumn: (index % 3) + 1 }} />;
+  if (cell.type === 'empty' || !content) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
 
   const defaultColor = cell.type === 'value' ? 'var(--text-primary)' : 'var(--text-secondary)';
   return (
-    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index)}>
+    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
       <span style={cellTextStyle(cell, defaultColor)}>{content}</span>
+    </div>
+  );
+}
+
+// ── Interactive cell sub-components (Universal Widget) ────────────────────────
+
+/** Boolean toggle bound to a DP. */
+function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
+  const { value, setValue } = useDatapoint(cell.dpId ?? '');
+  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+  const on = value === true || value === 1 || value === 'true' || value === '1';
+  return (
+    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+      <button
+        onClick={() => setValue(!on)}
+        className="nodrag relative rounded-full transition-colors"
+        style={{
+          width: 44, height: 24,
+          background: on ? (cell.color || 'var(--accent)') : 'var(--app-border)',
+          border: 'none',
+          cursor: 'pointer',
+        }}
+        aria-label={cell.text || 'toggle'}
+      >
+        <span
+          className="absolute top-0.5 bg-white rounded-full shadow transition-transform"
+          style={{ width: 20, height: 20, left: on ? '22px' : '2px' }}
+        />
+      </button>
+    </div>
+  );
+}
+
+/** Range slider bound to a numeric DP. */
+function SliderCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
+  const { value, setValue } = useDatapoint(cell.dpId ?? '');
+  const min  = cell.min  ?? 0;
+  const max  = cell.max  ?? 100;
+  const step = cell.step ?? 1;
+  const num  = typeof value === 'number' ? value : Number(value ?? min);
+  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+  return (
+    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '4px 8px' }}>
+      <input
+        type="range"
+        min={min} max={max} step={step}
+        value={Number.isFinite(num) ? num : min}
+        onChange={(e) => setValue(Number(e.target.value))}
+        className="nodrag w-full h-1.5 rounded-full appearance-none cursor-pointer"
+        style={{ accentColor: cell.color || 'var(--accent)' }}
+      />
+    </div>
+  );
+}
+
+/** Button that writes a fixed payload to a DP on click. */
+function ButtonCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
+  const { setValue } = useDatapoint(cell.dpId ?? '');
+  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+  const onClick = () => {
+    const raw = cell.sendValue ?? '';
+    if (raw === 'true')  return setValue(true);
+    if (raw === 'false') return setValue(false);
+    const num = Number(raw);
+    if (raw !== '' && Number.isFinite(num)) return setValue(num);
+    setValue(raw);
+  };
+  return (
+    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+      <button
+        onClick={onClick}
+        className="nodrag px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-85 transition-opacity"
+        style={{
+          background: cell.color || 'var(--accent)',
+          color: '#fff',
+          border: 'none',
+          cursor: 'pointer',
+          fontSize: cell.fontSize ? `${cell.fontSize}px` : undefined,
+          fontWeight: cell.bold ? 'bold' : undefined,
+        }}
+      >
+        {cell.text || '⏵'}
+      </button>
+    </div>
+  );
+}
+
+/** Static Lucide / Iconify icon. */
+function IconCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
+  const Icon = getWidgetIcon(cell.iconName, HelpCircle);
+  const size = cell.fontSize ?? 28;
+  return (
+    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+      <Icon size={size} style={{ color: cell.color || 'var(--text-primary)' }} />
+    </div>
+  );
+}
+
+/** Icon whose symbol+color depend on the DP value (binary). */
+function StateIconCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
+  const { value } = useDatapoint(cell.dpId ?? '');
+  const truthy = value === true || value === 1 || value === 'true' || value === '1';
+  const iconName = truthy ? (cell.trueIcon || cell.iconName) : (cell.falseIcon || cell.iconName);
+  const color    = truthy ? (cell.trueColor || cell.color || 'var(--accent)') : (cell.falseColor || cell.color || 'var(--text-secondary)');
+  const Icon = getWidgetIcon(iconName, HelpCircle);
+  const size = cell.fontSize ?? 28;
+  return (
+    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+      <Icon size={size} style={{ color }} />
     </div>
   );
 }
@@ -168,25 +321,37 @@ interface CustomGridViewProps {
    * Keys are widget-specific (e.g. 'slider' for dimmer, 'toggle' for switch).
    */
   extraComponents?: Record<string, React.ReactNode>;
+  /** Fallback grid when config has none. Defaults to DEFAULT_CUSTOM_GRID (3×3 title/value/unit). */
+  fallback?: CustomGrid | CustomGridDef;
 }
 
-export function CustomGridView({ config, value, rawValue, unit, extraFields, extraComponents }: CustomGridViewProps) {
-  const cells: CustomGrid = (config.options?.customGrid as CustomGrid | undefined) ?? DEFAULT_CUSTOM_GRID;
+export function CustomGridView({ config, value, rawValue, unit, extraFields, extraComponents, fallback }: CustomGridViewProps) {
+  const grid = normalizeGrid(config.options?.customGrid, fallback);
+  const { cols, rows, cells } = grid;
   const { defaultDecimals } = useGlobalSettingsStore();
   return (
     <div
       className="aura-custom-grid"
-      style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gridTemplateRows: '1fr 1fr 1fr', width: '100%', height: '100%', gap: '2px' }}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gridTemplateRows: `repeat(${rows}, 1fr)`,
+        width: '100%', height: '100%', gap: '2px',
+      }}
     >
-      {cells.map((cell, i) =>
-        cell.type === 'dp'
-          ? <DpCellView key={i} cell={cell} index={i} defaultDecimals={defaultDecimals} />
-          : cell.type === 'image'
-            ? <ImageCellView key={i} cell={cell} index={i} />
-            : cell.type === 'component'
-              ? <ComponentCellView key={i} cell={cell} index={i} extraComponents={extraComponents} />
-              : <StaticCellView key={i} cell={cell} index={i} title={config.title} value={value} rawValue={rawValue} unit={unit} extraFields={extraFields} />
-      )}
+      {cells.map((cell, i) => {
+        switch (cell.type) {
+          case 'dp':         return <DpCellView         key={i} cell={cell} index={i} cols={cols} rows={rows} defaultDecimals={defaultDecimals} />;
+          case 'image':      return <ImageCellView      key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+          case 'component':  return <ComponentCellView  key={i} cell={cell} index={i} cols={cols} rows={rows} extraComponents={extraComponents} />;
+          case 'switch':     return <SwitchCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+          case 'slider':     return <SliderCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+          case 'button':     return <ButtonCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+          case 'icon':       return <IconCellView       key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+          case 'state-icon': return <StateIconCellView  key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+          default:           return <StaticCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} title={config.title} value={value} rawValue={rawValue} unit={unit} extraFields={extraFields} />;
+        }
+      })}
     </div>
   );
 }

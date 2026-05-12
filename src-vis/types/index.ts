@@ -49,20 +49,25 @@ export type WidgetType =
   | 'trashSchedule'
   | 'httpRequest'
   | 'button'
-  | 'climate';
+  | 'climate'
+  | 'universal'
+  | 'enum';
 
 export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda' | 'flow' | 'battery' | 'production' | 'consumption' | 'loadpoints' | 'custom' | 'count';
 
 // ── Custom-Grid layout ────────────────────────────────────────────────────────
 
-export type CustomCellType = 'empty' | 'title' | 'value' | 'unit' | 'text' | 'dp' | 'field' | 'image' | 'component';
+export type CustomCellType =
+  | 'empty' | 'title' | 'value' | 'unit' | 'text' | 'dp' | 'field' | 'image' | 'component'
+  // Interactive cell types (Universal Widget)
+  | 'switch' | 'slider' | 'button' | 'icon' | 'state-icon';
 export type CustomCellAlign  = 'left' | 'center' | 'right';
 export type CustomCellValign = 'top'  | 'middle'  | 'bottom';
 
 export interface CustomCell {
   type:      CustomCellType;
-  text?:     string;            // 'text' type: static text content
-  dpId?:     string;            // 'dp' type: ioBroker datapoint ID
+  text?:     string;            // 'text' / 'button' type: static text content / button label
+  dpId?:     string;            // 'dp' / 'switch' / 'slider' / 'button' / 'state-icon' type: ioBroker datapoint ID
   fieldKey?:     string;            // 'field' type: key into widget-supplied extraFields map
   componentKey?: string;            // 'component' type: key into widget-supplied extraComponents map
   prefix?:   string;            // 'value' / 'dp' type: text prepended to value
@@ -75,13 +80,33 @@ export interface CustomCell {
   align?:         CustomCellAlign;   // default: 'left'
   valign?:        CustomCellValign;  // default: 'middle'
   allowOverflow?: boolean;           // allow text to overflow into adjacent cells
-  colSpan?:       1 | 2 | 3;        // 'component' type: how many grid columns to span
+  colSpan?:       number;            // 'component' type: how many grid columns to span (1..cols)
+  rowSpan?:       number;            // analog colSpan, vertical
   imageUrl?:      string;            // 'image' type: URL or base64 data URI
   objectFit?:     'contain' | 'cover' | 'fill';  // 'image' type: CSS object-fit
+  // 'slider' type
+  min?:      number;
+  max?:      number;
+  step?:     number;
+  // 'button' type
+  sendValue?: string;           // payload sent to dpId on click (parsed as bool/number/string)
+  // 'icon' / 'state-icon' type
+  iconName?:  string;           // Lucide icon name
+  trueIcon?:  string;           // 'state-icon': Lucide icon for truthy value
+  falseIcon?: string;           // 'state-icon': Lucide icon for falsy value
+  trueColor?: string;           // 'state-icon': color for truthy value
+  falseColor?: string;          // 'state-icon': color for falsy value
 }
 
-/** 9-element array, row-major (index = row*3 + col) */
+/** Legacy: 9-element array, row-major (index = row*3 + col). Kept as alias for compat. */
 export type CustomGrid = CustomCell[];
+
+/** New custom-grid format with variable dimensions. */
+export interface CustomGridDef {
+  cols: number;                 // 1..8
+  rows: number;                 // 1..8
+  cells: CustomCell[];          // length = cols*rows, row-major (index = row*cols + col)
+}
 
 export interface ioBrokerState {
   val: boolean | number | string | null;

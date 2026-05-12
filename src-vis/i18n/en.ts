@@ -384,6 +384,7 @@ export const en: Record<TranslationKey, string> = {
   'editor.layouts.compact':  'Compact',
   'editor.layouts.minimal':  'Minimal',
   'editor.layouts.agenda':   'Agenda',
+  'editor.layouts.custom':   'Custom',
 
   'editor.mobile.title':  'Mobile Order',
   'editor.mobile.top':    'Top',

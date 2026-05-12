@@ -16,8 +16,8 @@ import { cloneGroupDef, useGroupDefsStore } from '../../store/groupDefsStore';
 import { useConfigStore } from '../../store/configStore';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
-import type { WidgetConfig, WidgetCondition, CustomCell, CustomGrid, WidgetType, ClickAction, WidgetLayout } from '../../types';
-import { DEFAULT_CUSTOM_GRID } from '../widgets/CustomGridView';
+import type { WidgetConfig, WidgetCondition, CustomCell, CustomGridDef, WidgetType, ClickAction, WidgetLayout } from '../../types';
+import { DEFAULT_CUSTOM_GRID, DEFAULT_UNIVERSAL_GRID, normalizeGrid } from '../widgets/CustomGridView';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
 import { getObjectDirect, subscribeStateDirect, getStateDirect } from '../../hooks/useIoBroker';
@@ -28,6 +28,7 @@ import { detectType } from '../../utils/widgetDetection';
 import { DP_TEMPLATES, findMainDpForSecondary, autoDetectStatusDps } from '../../utils/dpTemplates';
 import { AutoListConfig } from '../config/AutoListConfig';
 import { StaticListConfig } from '../config/StaticListConfig';
+import { EnumConfig } from '../config/EnumConfig';
 import { type CameraSlot, type CameraSlotType, type CameraTemplateId, CAMERA_TEMPLATES, SLOT_TYPE_OPTIONS } from '../widgets/CameraWidget';
 import { detectHistoryAdapters, RANGE_LABELS, type ChartTimeRange, type DetectedAdapter } from '../../hooks/useChartHistory';
 import { useConditionStyle, notifyHiddenState, cleanupHiddenState } from '../../hooks/useConditionStyle';
@@ -73,6 +74,7 @@ import { SliderWidget } from '../widgets/SliderWidget';
 import { ChipsWidget } from '../widgets/ChipsWidget';
 import { HttpRequestWidget } from '../widgets/HttpRequestWidget';
 import { ButtonWidget } from '../widgets/ButtonWidget';
+import { UniversalWidget } from '../widgets/UniversalWidget';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ClickActionEditor } from '../config/ClickActionEditor';
 import { WidgetClickPopup } from '../widgets/popup/WidgetClickPopup';
@@ -120,6 +122,7 @@ function getWidgetMap() {
     httpRequest:   HttpRequestWidget,
     button:        ButtonWidget,
     climate:       ClimateWidget,
+    universal:     UniversalWidget,
   } as const;
 }
 
@@ -2978,7 +2981,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           onClose={() => openPanelFor(null)}
         >
           {/* ─── 1. Name / Titel ──────────────────────────────────────────── */}
-          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer'].includes(config.type) && (<>
+          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer', 'universal', 'enum'].includes(config.type) && (<>
           <div className="space-y-2.5">
             <div>
               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
@@ -3089,7 +3092,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           <div className="h-px" style={{ background: 'var(--app-border)' }} />
           </>)}
 
-          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer'].includes(config.type) && (<>
+          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer', 'universal', 'enum'].includes(config.type) && (<>
           {/* ─── 2. Stil (eingeklappt) ─────────────────────────────────────── */}
           <details className="group">
             <summary className="flex items-center justify-between cursor-pointer list-none select-none">
@@ -3139,7 +3142,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
           {/* ─── 3. Widget-Typ · Layout · Icon ─────────────────────────────── */}
           <div className="space-y-2.5">
-            {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer'].includes(config.type) && (
+            {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer', 'universal', 'enum'].includes(config.type) && (
               <div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
                 <input
@@ -3211,6 +3214,13 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'custom',  label: 'Custom' },
               ] : config.type === 'group' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
+              ] : config.type === 'universal' ? [
+                { value: 'custom',  label: 'Custom' },
+              ] : config.type === 'enum' ? [
+                { value: 'default', label: t('wf.edit.layout.standard') },
+                { value: 'compact', label: t('wf.edit.layout.compact') },
+                { value: 'minimal', label: t('wf.edit.layout.minimal') },
+                { value: 'card',    label: t('wf.edit.layout.card') },
               ] : config.type === 'shutter' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
                 { value: 'compact', label: t('wf.edit.layout.compact') },
@@ -3295,6 +3305,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   case 'button': return [];
                   case 'slider':        return [];
                   case 'echartsPreset': return [];
+                  case 'enum':          return [];
                   default: return [];
                 }
               })();
@@ -3387,7 +3398,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             })()}
 
             {/* Icon picker (not for stateimage/windowcontact – icons are per-state; not for shutter/switch/dimmer/slider – in Darstellung) */}
-            {config.type !== 'stateimage' && config.type !== 'windowcontact' && !['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer'].includes(config.type) && (() => {
+            {config.type !== 'stateimage' && config.type !== 'windowcontact' && !['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer', 'universal', 'enum'].includes(config.type) && (() => {
               const currentIconName = config.options?.icon as string | undefined;
               const CurrentIcon = currentIconName
                 ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))
@@ -3444,7 +3455,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           </div>
 
           {/* ─── DARSTELLUNG ─────────────────────────────────────────────────── */}
-          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer'].includes(config.type) && (() => {
+          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer', 'universal', 'enum'].includes(config.type) && (() => {
             const o = config.options ?? {};
             const setO = (patch: Record<string, unknown>) =>
               onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -3500,6 +3511,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     ? [{ key: 'showSetpoint', label: 'Solltemperatur' }, { key: 'showActualTemp', label: 'Isttemperatur' }, { key: 'showControls', label: 'Tasten ±' }]
                     : config.type === 'value'
                     ? [{ key: 'showValue', label: 'Wert' }, { key: 'showUnit', label: 'Einheit' }]
+                    : config.type === 'enum'
+                    ? [{ key: 'showValue', label: 'Aktuelles Label' }, { key: 'showSelect', label: 'Dropdown' }]
                     : config.type === 'gauge'
                     ? []
                     : config.type === 'chart'
@@ -3695,7 +3708,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           })()}
 
           {/* ─── ERWEITERT ───────────────────────────────────────────────────── */}
-          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer'].includes(config.type) && (
+          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer', 'universal', 'enum'].includes(config.type) && (
             <details className="group">
               <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                 <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Erweitert</span>
@@ -3812,7 +3825,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 <CalendarEditPanel config={config} onConfigChange={onConfigChange} />
               )}
 
-              {config.type !== 'list' && config.type !== 'clock' && config.type !== 'calendar' && config.type !== 'header' && config.type !== 'group' && config.type !== 'button' && config.type !== 'evcc' && config.type !== 'echart' && config.type !== 'weather' && config.type !== 'camera' && config.type !== 'autolist' && config.type !== 'image' && config.type !== 'iframe' && config.type !== 'trash' && config.type !== 'trashSchedule' && config.type !== 'echartsPreset' && config.type !== 'html' && config.type !== 'mediaplayer' && config.type !== 'chips' && config.type !== 'httpRequest' && (
+              {config.type !== 'list' && config.type !== 'clock' && config.type !== 'calendar' && config.type !== 'header' && config.type !== 'group' && config.type !== 'button' && config.type !== 'evcc' && config.type !== 'echart' && config.type !== 'weather' && config.type !== 'camera' && config.type !== 'autolist' && config.type !== 'image' && config.type !== 'iframe' && config.type !== 'trash' && config.type !== 'trashSchedule' && config.type !== 'echartsPreset' && config.type !== 'html' && config.type !== 'mediaplayer' && config.type !== 'chips' && config.type !== 'httpRequest' && config.type !== 'universal' && (
                 <div>
                   <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                     {config.type === 'thermostat'     ? 'Soll-Temperatur Datenpunkt' :
@@ -4509,6 +4522,11 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               {/* ── Static List config ── */}
               {config.type === 'list' && (
                 <StaticListConfig config={config} onConfigChange={onConfigChange} />
+              )}
+
+              {/* ── Enum / Auswahlfeld config ── */}
+              {config.type === 'enum' && (
+                <EnumConfig config={config} onConfigChange={onConfigChange} />
               )}
 
               {/* ── iFrame config ── */}
@@ -5945,10 +5963,12 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               })()}
 
               {/* ── Custom-Grid editor (all widgets except excluded) ── */}
-              {!['iframe', 'jsontable', 'html', 'trash', 'trashSchedule', 'header', 'fill', 'camera', 'datepicker'].includes(config.type) && (config.layout ?? 'default') === 'custom' && (() => {
+              {!['iframe', 'jsontable', 'html', 'trash', 'trashSchedule', 'header', 'fill', 'camera', 'datepicker'].includes(config.type) && ((config.layout ?? 'default') === 'custom' || config.type === 'universal') && (() => {
                 const CELL_LABELS: Record<string, string> = {
                   empty: '–', title: 'Titel', value: 'Wert', unit: 'Einheit', text: 'Text', dp: 'DP', field: 'Feld', component: 'Aktion',
+                  switch: 'Schalter', slider: 'Regler', button: 'Button', icon: 'Icon', 'state-icon': 'Status-Icon',
                 };
+                const isUniversal = config.type === 'universal';
                 const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
                   value:         [{ key: 'icon', label: 'Widget-Icon' }, { key: 'battery-icon', label: 'Batterie-Icon' }, { key: 'reach-icon', label: 'Erreichbarkeit-Icon' }, { key: 'status-badges', label: 'Status-Badges (alle)' }],
                   switch:        [{ key: 'icon', label: 'Widget-Icon' }, { key: 'toggle', label: 'Schalter' }, { key: 'battery-icon', label: 'Batterie-Icon' }, { key: 'reach-icon', label: 'Erreichbarkeit-Icon' }, { key: 'status-badges', label: 'Status-Badges (alle)' }],
@@ -5984,25 +6004,72 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   ],
                 };
                 const o   = config.options ?? {};
-                const cells: CustomGrid = (o.customGrid as CustomGrid | undefined) ?? DEFAULT_CUSTOM_GRID;
-                const setCell = (idx: number, patch: Partial<CustomCell>) => {
-                  const next = cells.map((c, i) => i === idx ? { ...c, ...patch } : c);
+                const fallbackGrid = isUniversal ? DEFAULT_UNIVERSAL_GRID : DEFAULT_CUSTOM_GRID;
+                const grid = normalizeGrid(o.customGrid, fallbackGrid);
+                const { cols, rows, cells } = grid;
+                const writeGrid = (next: CustomGridDef) =>
                   onConfigChange({ ...config, options: { ...o, customGrid: next } });
+                const setCell = (idx: number, patch: Partial<CustomCell>) => {
+                  writeGrid({ ...grid, cells: cells.map((c, i) => i === idx ? { ...c, ...patch } : c) });
+                };
+                const setDims = (nextCols: number, nextRows: number) => {
+                  const c = Math.max(1, Math.min(8, nextCols));
+                  const r = Math.max(1, Math.min(8, nextRows));
+                  const need = c * r;
+                  const nextCells: CustomCell[] = [];
+                  for (let row = 0; row < r; row++) {
+                    for (let col = 0; col < c; col++) {
+                      const oldIdx = row < rows && col < cols ? row * cols + col : -1;
+                      nextCells.push(oldIdx >= 0 && cells[oldIdx] ? cells[oldIdx] : { type: 'empty' });
+                    }
+                  }
+                  writeGrid({ cols: c, rows: r, cells: nextCells });
+                  if (selectedCustomCell !== null && selectedCustomCell >= need) setSelectedCustomCell(null);
                 };
                 const sel = selectedCustomCell;
                 const selCell = sel !== null ? cells[sel] : null;
                 const inputCls = 'w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none';
                 const inputSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
                 return (
-                  <div className="space-y-2" style={{ borderTop: '1px solid var(--app-border)', paddingTop: 10, marginTop: 4 }}>
-                    <p className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>Raster-Konfiguration (3×3)</p>
+                  <div style={{ borderTop: '1px solid var(--app-border)', paddingTop: 10, marginTop: 4 }}>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-secondary)' }}>
+                      Widget-Einstellungen
+                    </p>
+                    <div className="space-y-2 rounded-lg p-2.5" style={{ border: '1px solid var(--app-border)', background: 'var(--app-bg)' }}>
+                    <p className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+                      Raster-Konfiguration ({cols}×{rows})
+                    </p>
 
-                    {/* 3×3 cell picker */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
+                    {/* Dynamic size controls — universal only */}
+                    {isUniversal && (
+                      <div className="flex items-end gap-2">
+                        <div className="flex-1">
+                          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Spalten</label>
+                          <input
+                            type="number" min={1} max={8} step={1}
+                            value={cols}
+                            onChange={(e) => setDims(Number(e.target.value) || 1, rows)}
+                            className={inputCls} style={inputSty}
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Zeilen</label>
+                          <input
+                            type="number" min={1} max={8} step={1}
+                            value={rows}
+                            onChange={(e) => setDims(cols, Number(e.target.value) || 1)}
+                            className={inputCls} style={inputSty}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Cell picker — dynamic grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 4 }}>
                       {cells.map((cell, i) => {
                         const active = sel === i;
-                        const row = Math.floor(i / 3) + 1;
-                        const col = (i % 3) + 1;
+                        const row = Math.floor(i / cols) + 1;
+                        const col = (i % cols) + 1;
                         return (
                           <button
                             key={i}
@@ -6027,7 +6094,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     <div className="space-y-2 pt-2" style={{ borderTop: '1px solid var(--app-border)', minHeight: 48 }}>
                       {sel !== null && selCell ? (<>
                         <p className="text-[10px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-                          Zeile {Math.floor(sel / 3) + 1}, Spalte {(sel % 3) + 1} · CSS: .aura-custom-cell-{sel}
+                          Zeile {Math.floor(sel / cols) + 1}, Spalte {(sel % cols) + 1} · CSS: .aura-custom-cell-{sel}
                         </p>
 
                         {/* Type */}
@@ -6040,15 +6107,20 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           >
                             <option value="empty">– leer –</option>
                             <option value="title">Titel</option>
-                            <option value="value">Hauptwert (DP1)</option>
-                            <option value="unit">Einheit (DP1)</option>
+                            {!isUniversal && <option value="value">Hauptwert (DP1)</option>}
+                            {!isUniversal && <option value="unit">Einheit (DP1)</option>}
                             <option value="text">Freitext</option>
-                            <option value="dp">Weiterer Datenpunkt</option>
-                            <option value="field">Widget-Feld</option>
+                            <option value="dp">Datenpunkt-Wert</option>
+                            {!isUniversal && <option value="field">Widget-Feld</option>}
                             <option value="image">Bild (URL / Base64)</option>
-                            {COMPONENT_OPTIONS[config.type] && (
+                            {!isUniversal && COMPONENT_OPTIONS[config.type] && (
                               <option value="component">Aktion / Icon</option>
                             )}
+                            <option value="switch">Schalter (DP)</option>
+                            <option value="slider">Schieberegler (DP)</option>
+                            <option value="button">Button (DP schreiben)</option>
+                            <option value="icon">Statisches Icon</option>
+                            <option value="state-icon">Status-Icon (DP)</option>
                           </select>
                         </div>
 
@@ -6295,8 +6367,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           );
                         })()}
 
-                        {/* Additional DP selector */}
-                        {selCell.type === 'dp' && (
+                        {/* DP selector (dp / switch / slider / button / state-icon) */}
+                        {(selCell.type === 'dp' || selCell.type === 'switch' || selCell.type === 'slider' || selCell.type === 'button' || selCell.type === 'state-icon') && (
                           <div>
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Datenpunkt</label>
                             <div className="flex gap-1">
@@ -6317,6 +6389,118 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               </button>
                             </div>
                           </div>
+                        )}
+
+                        {/* Slider min/max/step */}
+                        {selCell.type === 'slider' && (
+                          <div className="flex gap-2">
+                            {([
+                              { key: 'min',  label: 'Min',  def: 0 },
+                              { key: 'max',  label: 'Max',  def: 100 },
+                              { key: 'step', label: 'Step', def: 1 },
+                            ] as const).map(({ key, label, def }) => (
+                              <div key={key} className="flex-1">
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{label}</label>
+                                <input
+                                  type="number"
+                                  value={(selCell as unknown as Record<string, number | undefined>)[key] ?? ''}
+                                  onChange={(e) => setCell(sel, { [key]: e.target.value === '' ? undefined : Number(e.target.value) } as Partial<CustomCell>)}
+                                  placeholder={String(def)}
+                                  className={inputCls} style={inputSty}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Button label + payload */}
+                        {selCell.type === 'button' && (
+                          <>
+                            <div>
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Beschriftung</label>
+                              <input
+                                type="text"
+                                value={selCell.text ?? ''}
+                                onChange={(e) => setCell(sel, { text: e.target.value })}
+                                placeholder="z.B. AUS"
+                                className={inputCls} style={inputSty}
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                Wert beim Klick (true/false, Zahl oder Text)
+                              </label>
+                              <input
+                                type="text"
+                                value={selCell.sendValue ?? ''}
+                                onChange={(e) => setCell(sel, { sendValue: e.target.value })}
+                                placeholder="z.B. true"
+                                className={inputCls} style={inputSty}
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {/* Icon name (static icon) */}
+                        {selCell.type === 'icon' && (
+                          <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Icon-Name</label>
+                            <input
+                              type="text"
+                              value={selCell.iconName ?? ''}
+                              onChange={(e) => setCell(sel, { iconName: e.target.value || undefined })}
+                              placeholder="z.B. Zap oder lucide:lightbulb"
+                              className={inputCls} style={inputSty}
+                            />
+                          </div>
+                        )}
+
+                        {/* State-icon: true/false icons & colors */}
+                        {selCell.type === 'state-icon' && (
+                          <>
+                            <div className="flex gap-2">
+                              <div className="flex-1">
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Icon (an / true)</label>
+                                <input
+                                  type="text"
+                                  value={selCell.trueIcon ?? ''}
+                                  onChange={(e) => setCell(sel, { trueIcon: e.target.value || undefined })}
+                                  placeholder="Zap"
+                                  className={inputCls} style={inputSty}
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Icon (aus / false)</label>
+                                <input
+                                  type="text"
+                                  value={selCell.falseIcon ?? ''}
+                                  onChange={(e) => setCell(sel, { falseIcon: e.target.value || undefined })}
+                                  placeholder="ZapOff"
+                                  className={inputCls} style={inputSty}
+                                />
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <div className="flex-1">
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Farbe an</label>
+                                <input
+                                  type="color"
+                                  value={selCell.trueColor && selCell.trueColor.startsWith('#') ? selCell.trueColor : '#22c55e'}
+                                  onChange={(e) => setCell(sel, { trueColor: e.target.value })}
+                                  className="w-full h-7 rounded cursor-pointer border-0 p-0"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Farbe aus</label>
+                                <input
+                                  type="color"
+                                  value={selCell.falseColor && selCell.falseColor.startsWith('#') ? selCell.falseColor : '#64748b'}
+                                  onChange={(e) => setCell(sel, { falseColor: e.target.value })}
+                                  className="w-full h-7 rounded cursor-pointer border-0 p-0"
+                                />
+                              </div>
+                            </div>
+                          </>
                         )}
 
                         {/* Prefix / Suffix for value or dp */}
@@ -6406,22 +6590,43 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                 })}
                               </div>
                             </div>
-                            <div>
+                          </>
+                        )}
+
+                        {/* Spans (col + row) — available for any non-empty cell */}
+                        {selCell.type !== 'empty' && (
+                          <div className="flex gap-2">
+                            <div className="flex-1">
                               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Spaltenbreite</label>
-                              <div className="flex gap-1">
-                                {([1, 2, 3] as const).map((v) => {
+                              <div className="flex gap-1 flex-wrap">
+                                {Array.from({ length: cols }, (_, i) => i + 1).map((v) => {
                                   const active = (selCell.colSpan ?? 1) === v;
                                   return (
                                     <button key={v} onClick={() => setCell(sel, { colSpan: v === 1 ? undefined : v })}
                                       className="flex-1 text-[10px] py-1 rounded"
-                                      style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
-                                      {v === 1 ? '×1' : v === 2 ? '×2' : '×3'}
+                                      style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`, minWidth: 24 }}>
+                                      ×{v}
                                     </button>
                                   );
                                 })}
                               </div>
                             </div>
-                          </>
+                            <div className="flex-1">
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Zeilenhöhe</label>
+                              <div className="flex gap-1 flex-wrap">
+                                {Array.from({ length: rows }, (_, i) => i + 1).map((v) => {
+                                  const active = (selCell.rowSpan ?? 1) === v;
+                                  return (
+                                    <button key={v} onClick={() => setCell(sel, { rowSpan: v === 1 ? undefined : v })}
+                                      className="flex-1 text-[10px] py-1 rounded"
+                                      style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`, minWidth: 24 }}>
+                                      ×{v}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
                         )}
 
                         {selCell.type !== 'empty' && selCell.type !== 'component' && (
@@ -6543,10 +6748,11 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     <button
                       onClick={() => { onConfigChange({ ...config, options: { ...o, customGrid: undefined } }); setSelectedCustomCell(null); }}
                       className="text-[10px] px-2 py-1 rounded"
-                      style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+                      style={{ background: 'var(--widget-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
                     >
                       Raster zurücksetzen
                     </button>
+                    </div>
                   </div>
                 );
               })()}
@@ -6857,17 +7063,18 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
       {/* Custom-Grid image file picker */}
       {customCellImagePickerOpen && selectedCustomCell !== null && (() => {
-        const cells: CustomGrid = ((config.options?.customGrid as CustomGrid | undefined) ?? DEFAULT_CUSTOM_GRID);
+        const fb = config.type === 'universal' ? DEFAULT_UNIVERSAL_GRID : DEFAULT_CUSTOM_GRID;
+        const grid = normalizeGrid(config.options?.customGrid, fb);
         const idx = selectedCustomCell;
         return (
           <DatapointPicker
             modes={['files']}
             defaultMode="files"
             acceptMime={['image/*']}
-            currentValue={cells[idx]?.imageUrl ?? ''}
+            currentValue={grid.cells[idx]?.imageUrl ?? ''}
             onPickResult={(r) => {
               if (r.kind === 'file') {
-                const next = cells.map((c, i) => i === idx ? { ...c, imageUrl: `aura-file:${r.path}` } : c);
+                const next: CustomGridDef = { ...grid, cells: grid.cells.map((c, i) => i === idx ? { ...c, imageUrl: `aura-file:${r.path}` } : c) };
                 onConfigChange({ ...config, options: { ...config.options, customGrid: next } });
               }
               setCustomCellImagePickerOpen(false);
@@ -6896,13 +7103,14 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
       {/* Custom-Grid DP picker */}
       {customCellPickerOpen && selectedCustomCell !== null && (() => {
-        const cells: CustomGrid = ((config.options?.customGrid as CustomGrid | undefined) ?? DEFAULT_CUSTOM_GRID);
+        const fb = config.type === 'universal' ? DEFAULT_UNIVERSAL_GRID : DEFAULT_CUSTOM_GRID;
+        const grid = normalizeGrid(config.options?.customGrid, fb);
         const idx = selectedCustomCell;
         return (
           <DatapointPicker
-            currentValue={cells[idx]?.dpId ?? ''}
+            currentValue={grid.cells[idx]?.dpId ?? ''}
             onSelect={(id) => {
-              const next = cells.map((c, i) => i === idx ? { ...c, dpId: id } : c);
+              const next: CustomGridDef = { ...grid, cells: grid.cells.map((c, i) => i === idx ? { ...c, dpId: id } : c) };
               onConfigChange({ ...config, options: { ...config.options, customGrid: next } });
               setCustomCellPickerOpen(false);
             }}

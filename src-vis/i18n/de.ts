@@ -382,6 +382,7 @@ export const de = {
   'editor.layouts.compact':   'Kompakt',
   'editor.layouts.minimal':   'Minimal',
   'editor.layouts.agenda':    'Agenda',
+  'editor.layouts.custom':    'Custom',
 
   'editor.mobile.title':  'Mobile-Reihenfolge',
   'editor.mobile.top':    'Oben',

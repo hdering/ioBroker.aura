@@ -31,6 +31,8 @@ import { DatePickerWidget } from './DatePickerWidget';
 import { MediaplayerWidget } from './MediaplayerWidget';
 import { SliderWidget } from './SliderWidget';
 import { ClimateWidget } from './ClimateWidget';
+import { UniversalWidget } from './UniversalWidget';
+import { EnumWidget } from './EnumWidget';
 
 export function getWidgetMap() {
   return {
@@ -66,6 +68,8 @@ export function getWidgetMap() {
     mediaplayer:   MediaplayerWidget,
     slider:        SliderWidget,
     climate:       ClimateWidget,
+    universal:     UniversalWidget,
+    enum:          EnumWidget,
   } as const;
 }
 
