@@ -873,6 +873,7 @@ export const en: Record<TranslationKey, string> = {
   'evcc.loadpoint':    'Loadpoint {n}',
   'evcc.vehicle':      'Vehicle',
   'evcc.charging':     'Charging',
+  'evcc.heating':      'Heating',
   'evcc.targetSoc':    'Target:',
   'evcc.adjustTarget': 'Adjust target SoC',
   'evcc.noConnection': 'No connection',

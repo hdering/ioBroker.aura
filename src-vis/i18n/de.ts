@@ -871,6 +871,7 @@ export const de = {
   'evcc.loadpoint':    'Ladepunkt {n}',
   'evcc.vehicle':      'Fahrzeug',
   'evcc.charging':     'Laden',
+  'evcc.heating':      'Heizen',
   'evcc.targetSoc':    'Ziel:',
   'evcc.adjustTarget': 'Ziel-SoC anpassen',
   'evcc.noConnection': 'Keine Verbindung',

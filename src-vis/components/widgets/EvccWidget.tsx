@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Sun, Home, Zap, Battery, Car, Plug, PlugZap } from 'lucide-react';
+import { Sun, Home, Zap, Battery, Car, Plug, PlugZap, Flame } from 'lucide-react';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
@@ -65,6 +65,7 @@ interface LoadpointState {
   chargeDuration: number;
   phasesActive: number;
   title: string;
+  featureHeating: boolean;
 }
 
 const DEFAULT_SITE: SiteState = {
@@ -77,7 +78,7 @@ const DEFAULT_LP: LoadpointState = {
   mode: 'off', vehicleTitle: '', vehicleSoc: 0, vehicleRange: 0,
   effectiveLimitSoc: 80, sessionSolarPercentage: 0, sessionPrice: 0,
   planActive: false, effectivePlanTime: '', chargeDuration: 0,
-  phasesActive: 0, title: '',
+  phasesActive: 0, title: '', featureHeating: false,
 };
 
 // ── useEvccData ───────────────────────────────────────────────────────────────
@@ -132,7 +133,7 @@ function useEvccData(prefix: string, loadpointCount: number) {
         ['sessionSolarPercentage', 'sessionSolarPercentage'], ['sessionPrice', 'sessionPrice'],
         ['planActive', 'planActive'], ['effectivePlanTime', 'effectivePlanTime'],
         ['chargeDuration', 'chargeDuration'], ['phasesActive', 'phasesActive'],
-        ['title', 'title'],
+        ['title', 'title'], ['chargerFeatureHeating', 'featureHeating'],
       ];
       for (const [dp, key] of lpPoints) {
         const id = `${base}.${dp}`;
@@ -324,7 +325,9 @@ function EnergyFlowSVG({
       )}
       {lpPositions.map((pos, i) => (
         <FlowPath key={i} x1={cx} y1={cy} x2={pos.x} y2={pos.y}
-          active={chargingLps.includes(visLps[i])} color="#6366f1" power={visLps[i].chargePower} />
+          active={chargingLps.includes(visLps[i])}
+          color={visLps[i].featureHeating ? '#f97316' : '#6366f1'}
+          power={visLps[i].chargePower} />
       ))}
       <circle cx={sx} cy={sy} r={18} fill="#f59e0b22" stroke="#f59e0b" strokeWidth={1.5} />
       <text x={sx} y={sy+5} textAnchor="middle" fontSize={14}>☀️</text>
@@ -350,16 +353,18 @@ function EnergyFlowSVG({
         const lp = visLps[i];
         const isCharging = lp.chargePower > 10;
         const isConnected = lp.connected;
-        const color = isCharging ? '#6366f1' : isConnected ? '#818cf8' : 'var(--text-secondary)';
+        const isHeat = lp.featureHeating;
+        const baseColor = isHeat ? '#f97316' : '#6366f1';
+        const color = isCharging ? baseColor : isConnected ? (isHeat ? '#fb923c' : '#818cf8') : 'var(--text-secondary)';
         return (
           <g key={i}>
-            <circle cx={pos.x} cy={pos.y} r={16} fill={`${isConnected ? '#6366f1' : 'var(--app-border)'}22`} stroke={color} strokeWidth={1.5} />
-            <text x={pos.x} y={pos.y+5} textAnchor="middle" fontSize={12}>{isConnected ? '🚗' : '🔌'}</text>
+            <circle cx={pos.x} cy={pos.y} r={16} fill={`${isConnected || isHeat ? baseColor : 'var(--app-border)'}22`} stroke={color} strokeWidth={1.5} />
+            <text x={pos.x} y={pos.y+5} textAnchor="middle" fontSize={12}>{isHeat ? '🔥' : (isConnected ? '🚗' : '🔌')}</text>
             <text x={pos.x} y={pos.y+24} textAnchor="middle" fontSize={8} fill={color} fontWeight="bold">
-              {isCharging ? fmtKW(lp.chargePower) : lp.vehicleSoc > 0 ? fmtSoc(lp.vehicleSoc) : '–'}
+              {isCharging ? fmtKW(lp.chargePower) : !isHeat && lp.vehicleSoc > 0 ? fmtSoc(lp.vehicleSoc) : '–'}
             </text>
             {isCharging && (
-              <circle cx={pos.x+11} cy={pos.y-11} r={3} fill="#6366f1">
+              <circle cx={pos.x+11} cy={pos.y-11} r={3} fill={baseColor}>
                 <animate attributeName="opacity" values="1;0.3;1" dur="1.2s" repeatCount="indefinite" />
               </circle>
             )}
@@ -545,17 +550,22 @@ function LoadpointCard({ lp, idx, prefix, compact }: {
   const lpTitle    = lp.title || t('evcc.loadpoint', { n: idx + 1 });
   const vehicleName = lp.vehicleTitle || lpTitle;
 
+  const isHeating = lp.featureHeating;
+  const accent    = isHeating ? '#f97316' : '#6366f1';
+
   if (compact) {
+    const HeadIcon = isHeating ? Flame : (lp.connected ? PlugZap : Plug);
+    const headColor = isHeating ? accent : (lp.connected ? accent : 'var(--text-secondary)');
     return (
       <div className="flex items-center gap-2 flex-wrap text-xs">
-        {lp.connected ? <PlugZap size={13} color="#6366f1" /> : <Plug size={13} color="var(--text-secondary)" />}
-        <span style={{ color: lp.connected ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-          {lp.connected ? vehicleName : lpTitle}
+        <HeadIcon size={13} color={headColor} />
+        <span style={{ color: (isHeating || lp.connected) ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+          {isHeating ? lpTitle : (lp.connected ? vehicleName : lpTitle)}
         </span>
-        {lp.vehicleSoc > 0 && <span style={{ color: '#6366f1' }}>{fmtSoc(lp.vehicleSoc)}→{fmtSoc(lp.effectiveLimitSoc)}</span>}
+        {!isHeating && lp.vehicleSoc > 0 && <span style={{ color: accent }}>{fmtSoc(lp.vehicleSoc)}→{fmtSoc(lp.effectiveLimitSoc)}</span>}
         {lp.charging && (
-          <span className="flex items-center gap-1" style={{ color: '#6366f1' }}>
-            <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#6366f1' }} />
+          <span className="flex items-center gap-1" style={{ color: accent }}>
+            <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: accent }} />
             {fmtKW(lp.chargePower)}
           </span>
         )}
@@ -569,25 +579,28 @@ function LoadpointCard({ lp, idx, prefix, compact }: {
     );
   }
 
+  const HeadIcon = isHeating ? Flame : (lp.connected ? PlugZap : Plug);
+  const headColor = isHeating ? accent : (lp.connected ? accent : 'var(--text-secondary)');
+
   return (
     <div className="space-y-2 pt-2 border-t" style={{ borderColor: 'var(--app-border)' }}>
       <div className="flex items-center gap-2">
-        {lp.connected ? <PlugZap size={16} color="#6366f1" /> : <Plug size={16} color="var(--text-secondary)" />}
+        <HeadIcon size={16} color={headColor} />
         <span className="text-sm font-semibold flex-1 truncate" style={{ color: 'var(--text-primary)' }}>
-          {lp.connected ? vehicleName : lpTitle}
+          {isHeating ? lpTitle : (lp.connected ? vehicleName : lpTitle)}
         </span>
         {lp.charging && (
-          <span className="flex items-center gap-1 text-xs" style={{ color: '#6366f1' }}>
-            <span className="inline-block w-2 h-2 rounded-full animate-pulse" style={{ background: '#6366f1' }} />
-            {t('evcc.charging')}
+          <span className="flex items-center gap-1 text-xs" style={{ color: accent }}>
+            <span className="inline-block w-2 h-2 rounded-full animate-pulse" style={{ background: accent }} />
+            {t(isHeating ? 'evcc.heating' : 'evcc.charging')}
           </span>
         )}
         {lp.chargePower > 0 && (
-          <span className="text-xs font-bold" style={{ color: '#6366f1' }}>{fmtKW(lp.chargePower)}</span>
+          <span className="text-xs font-bold" style={{ color: accent }}>{fmtKW(lp.chargePower)}</span>
         )}
       </div>
 
-      {lp.connected && lp.vehicleSoc > 0 && (
+      {!isHeating && lp.connected && lp.vehicleSoc > 0 && (
         <div className="space-y-1">
           <div className="flex items-center justify-between text-[11px]" style={{ color: 'var(--text-secondary)' }}>
             <div className="flex items-center gap-1">
