@@ -3515,7 +3515,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     : config.type === 'value'
                     ? [{ key: 'showValue', label: 'Wert' }, { key: 'showUnit', label: 'Einheit' }]
                     : config.type === 'enum'
-                    ? [{ key: 'showValue', label: 'Aktuelles Label' }, { key: 'showSelect', label: 'Dropdown' }]
+                    ? [{ key: 'showValue', label: 'Aktuelle Auswahl' }, { key: 'showSelect', label: 'Dropdown' }]
                     : config.type === 'gauge'
                     ? []
                     : config.type === 'chart'
@@ -5983,7 +5983,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   binarysensor:  [{ key: 'icon', label: 'Status-Icon' }, { key: 'battery-icon', label: 'Batterie-Icon' }, { key: 'reach-icon', label: 'Erreichbarkeit-Icon' }, { key: 'status-badges', label: 'Status-Badges (alle)' }],
                   stateimage:    [{ key: 'icon', label: 'Zustands-Icon' }, { key: 'battery-icon', label: 'Batterie-Icon' }, { key: 'reach-icon', label: 'Erreichbarkeit-Icon' }, { key: 'status-badges', label: 'Status-Badges (alle)' }],
                   httpRequest:   [{ key: 'button', label: 'HTTP-Button' }],
-                  enum:          [{ key: 'icon', label: 'Widget-Icon' }, { key: 'select', label: 'Dropdown' }, { key: 'label', label: 'Aktuelles Label' }],
+                  enum:          [{ key: 'icon', label: 'Widget-Icon' }, { key: 'select', label: 'Dropdown' }, { key: 'label', label: 'Aktuelle Auswahl' }],
                   button:        [{ key: 'icon', label: 'Button-Icon' }],
                   mediaplayer:   [
                     { key: 'play-pause',     label: '▶ / ⏸ Play / Pause' },
