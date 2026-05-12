@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.34 (2026-05-12)
+
+- feat(slider): readOnly-Modus als Fortschrittsanzeige
+
 ## v0.7.33 (2026-05-12)
 
 - feat(universal): Icon-Picker für Custom-Grid-Zellen
@@ -464,6 +468,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
