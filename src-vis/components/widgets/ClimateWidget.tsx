@@ -9,6 +9,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { WidgetProps } from '../../types';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
+import { formatYTick } from './ChartWidget';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
@@ -63,6 +64,8 @@ export function ClimateWidget({ config }: WidgetProps) {
     ? customVal * (customUnit === 'd' ? 86_400_000 : 3_600_000)
     : undefined;
   const lockRange       = o.lockRange === true;
+  const showYAxis       = o.showYAxis === true;
+  const yAxisCompact    = o.yAxisCompact !== false;
 
   const TempIcon     = getWidgetIcon(o.icon as string | undefined, Thermometer);
   const HumidityIcon = getWidgetIcon(o.humidityIcon as string | undefined, Droplets);
@@ -113,6 +116,7 @@ export function ClimateWidget({ config }: WidgetProps) {
     fontSize:     Math.round(11 * fontScale),
     color:        'var(--text-primary)',
   };
+  const tickStyle = { fontSize: Math.round(10 * fontScale), fill: 'var(--text-secondary)' };
 
   const showChartSection = showChart && !!historyInstance;
 
@@ -209,7 +213,15 @@ export function ClimateWidget({ config }: WidgetProps) {
                       <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <YAxis domain={['auto', 'auto']} hide />
+                  <YAxis
+                    domain={['auto', 'auto']}
+                    hide={!showYAxis}
+                    tick={tickStyle}
+                    tickLine={false}
+                    axisLine={false}
+                    width={showYAxis ? (yAxisCompact ? 22 : 36) : 0}
+                    tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact)}
+                  />
                   <XAxis dataKey="t" type="number" domain={['dataMin', 'dataMax']} scale="time" hide />
                   <Tooltip
                     contentStyle={tooltipStyle}

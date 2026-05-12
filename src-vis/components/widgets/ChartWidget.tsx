@@ -25,7 +25,7 @@ function formatLabel(ts: number): string {
   });
 }
 
-function formatYTick(value: number, decimals: number, compact: boolean): string {
+export function formatYTick(value: number, decimals: number, compact: boolean): string {
   if (!compact) return formatNum(value, decimals);
   const abs = Math.abs(value);
   const sign = value < 0 ? '-' : '';
