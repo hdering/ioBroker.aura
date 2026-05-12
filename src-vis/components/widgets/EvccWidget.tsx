@@ -798,8 +798,8 @@ export function EvccWidget({ config }: WidgetProps) {
     );
   }
 
-  // ── Layout: compact / minimal ─────────────────────────────────────────────
-  if (layout === 'compact' || layout === 'minimal') {
+  // ── Layout: compact ───────────────────────────────────────────────────────
+  if (layout === 'compact') {
     return (
       <div className="flex flex-col gap-1.5 h-full justify-center px-1">
         {(showTitle || showIcon) && (

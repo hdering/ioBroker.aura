@@ -27,14 +27,13 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
       return ['default', 'compact', 'minimal', 'custom'];
     case 'slider':
       return ['default', 'custom'];
+    case 'evcc':
+      return ['default', 'compact', 'flow', 'battery', 'production', 'consumption', 'loadpoints', 'custom'];
     default: {
       const base: WidgetLayout[] = ['default', 'card', 'compact', 'minimal'];
       if (widgetType === 'calendar') base.push('agenda');
       if (widgetType === 'autolist') base.push('count');
       if (!NO_CUSTOM.has(widgetType)) base.push('custom');
-      if (widgetType === 'evcc') {
-        base.push('flow', 'battery', 'production', 'consumption', 'loadpoints');
-      }
       return base;
     }
   }

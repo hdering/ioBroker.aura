@@ -3246,6 +3246,15 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               ] : config.type === 'trashSchedule' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
                 { value: 'list',    label: 'Liste' },
+              ] : config.type === 'evcc' ? [
+                { value: 'default',     label: t('wf.edit.layout.standard') },
+                { value: 'compact',     label: t('wf.edit.layout.compact') },
+                { value: 'flow',        label: 'Nur Fluss' },
+                { value: 'battery',     label: 'Nur Batterie' },
+                { value: 'production',  label: 'Nur Produktion' },
+                { value: 'consumption', label: 'Nur Verbrauch' },
+                { value: 'loadpoints',  label: 'Nur Ladepunkte' },
+                { value: 'custom',      label: 'Custom' },
               ] : [
                 { value: 'default', label: t('wf.edit.layout.standard') },
                 { value: 'card',    label: t('wf.edit.layout.card') },
@@ -3254,13 +3263,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 ...(config.type === 'calendar' ? [{ value: 'agenda', label: t('wf.edit.layout.agenda') }] : []),
                 ...(config.type === 'autolist' ? [{ value: 'count', label: 'Anzahl' }] : []),
                 ...(!['iframe', 'jsontable', 'html', 'trash', 'trashSchedule', 'header', 'fill', 'list', 'autolist', 'datepicker'].includes(config.type) ? [{ value: 'custom', label: 'Custom' }] : []),
-                ...(config.type === 'evcc' ? [
-                  { value: 'flow',        label: 'Nur Fluss' },
-                  { value: 'battery',     label: 'Nur Batterie' },
-                  { value: 'production',  label: 'Nur Produktion' },
-                  { value: 'consumption', label: 'Nur Verbrauch' },
-                  { value: 'loadpoints',  label: 'Nur Ladepunkte' },
-                ] : []),
               ];
               const o = config.options ?? {};
               const setO = (patch: Record<string, unknown>) =>
