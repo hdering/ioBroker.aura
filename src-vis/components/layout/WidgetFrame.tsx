@@ -3938,8 +3938,91 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 const momentary     = (o.momentary     as boolean) ?? false;
                 const delay         = (o.momentaryDelay as number)  ?? 500;
                 const confirmAction = (o.confirmAction  as boolean) ?? false;
+                const controlMode   = (o.controlMode    as string)  ?? 'toggle';
+                const onIconName    = o.onIcon  as string | undefined;
+                const offIconName   = o.offIcon as string | undefined;
+                const onColor       = (o.onColor  as string) || '#22c55e';
+                const offColor      = (o.offColor as string) || '#6b7280';
+                const ctrlIconSize  = (o.controlIconSize as number) || 28;
+                const OnPreview  = onIconName  ? getWidgetIcon(onIconName,  (() => null) as unknown as import('lucide-react').LucideIcon) : null;
+                const OffPreview = offIconName ? getWidgetIcon(offIconName, (() => null) as unknown as import('lucide-react').LucideIcon) : null;
                 return (
                   <>
+                    <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
+                    <div>
+                      <label className="text-[11px] font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>Bedienelement</label>
+                      <div className="flex gap-1">
+                        {([['toggle', 'Schiebeschalter'], ['icon', 'Icon']] as const).map(([val, lbl]) => (
+                          <button key={val} onClick={() => set({ controlMode: val })}
+                            className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                            style={{
+                              background: controlMode === val ? 'var(--accent)' : 'var(--app-bg)',
+                              color:      controlMode === val ? '#fff'         : 'var(--text-secondary)',
+                              border: `1px solid ${controlMode === val ? 'var(--accent)' : 'var(--app-border)'}`,
+                            }}>
+                            {lbl}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {controlMode === 'icon' && (
+                      <>
+                        {(['on', 'off'] as const).map(state => {
+                          const isOnState  = state === 'on';
+                          const stateLabel = isOnState ? 'AN' : 'AUS';
+                          const iconName   = isOnState ? onIconName : offIconName;
+                          const color      = isOnState ? onColor    : offColor;
+                          const Preview    = isOnState ? OnPreview  : OffPreview;
+                          const pickerOpen = isOnState ? iconPickerTrueOpen  : iconPickerFalseOpen;
+                          const setOpen    = isOnState ? setIconPickerTrueOpen : setIconPickerFalseOpen;
+                          const optIconKey  = isOnState ? 'onIcon'  : 'offIcon';
+                          const optColorKey = isOnState ? 'onColor' : 'offColor';
+                          return (
+                            <div key={state} className="space-y-1.5">
+                              <p className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Icon {stateLabel}</p>
+                              <div className="flex gap-1 items-start">
+                                <div className="flex-1 min-w-0">
+                                  <button
+                                    onClick={() => setOpen(true)}
+                                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+                                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}>
+                                    {Preview
+                                      ? <Preview size={14} style={{ flexShrink: 0, color }} />
+                                      : <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />}
+                                    <span className="flex-1 truncate text-[11px]"
+                                      style={{ color: iconName ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                      {iconName ?? 'Icon wählen…'}
+                                    </span>
+                                  </button>
+                                  {pickerOpen && (
+                                    <IconPickerModal
+                                      current={iconName ?? ''}
+                                      onSelect={(name) => { set({ [optIconKey]: name || undefined }); setOpen(false); }}
+                                      onClose={() => setOpen(false)}
+                                    />
+                                  )}
+                                </div>
+                                <input type="color" value={color}
+                                  onChange={(e) => set({ [optColorKey]: e.target.value })}
+                                  title={`Farbe ${stateLabel}`}
+                                  className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
+                                  style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon-Größe</label>
+                            <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{ctrlIconSize} px</span>
+                          </div>
+                          <input type="range" min={16} max={96} step={2} value={ctrlIconSize}
+                            onChange={(e) => set({ controlIconSize: Number(e.target.value) })}
+                            className="w-full h-1"
+                            style={{ accentColor: 'var(--accent)' }} />
+                        </div>
+                      </>
+                    )}
                     <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
                     <div className="flex items-center justify-between">
                       <div>

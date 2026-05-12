@@ -41,6 +41,28 @@ export function SwitchWidget({ config }: WidgetProps) {
   const iconSize = (o.iconSize as number) || 20;
   const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
+  // Icon-Modus statt Schiebeschalter
+  const controlMode      = (o.controlMode as string) ?? 'toggle';
+  const isIconMode       = controlMode === 'icon';
+  const onColor          = (o.onColor  as string) || 'var(--accent-green)';
+  const offColor         = (o.offColor as string) || 'var(--text-secondary)';
+  const OnIconComp       = getWidgetIcon(o.onIcon  as string | undefined, WidgetIcon);
+  const OffIconComp      = getWidgetIcon(o.offIcon as string | undefined, WidgetIcon);
+  const StateIcon        = isOn ? OnIconComp : OffIconComp;
+  const stateColor       = isOn ? onColor : offColor;
+  const controlIconSize  = (o.controlIconSize as number) || 28;
+
+  const iconControlButton = (extraClass = '') => (
+    <button
+      onClick={handleToggle}
+      className={`nodrag flex items-center justify-center shrink-0 transition-transform hover:scale-110 focus:outline-none ${extraClass}`}
+      style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+      aria-label={isOn ? 'AN' : 'AUS'}
+    >
+      <StateIcon size={controlIconSize} style={{ color: stateColor }} />
+    </button>
+  );
+
   if (layout === 'custom') return (
     <div className="relative w-full h-full">
       <CustomGridView
@@ -52,7 +74,7 @@ export function SwitchWidget({ config }: WidgetProps) {
           'battery-icon':  batteryIcon,
           'reach-icon':    reachIcon,
           'status-badges': statusBadges,
-          toggle: (
+          toggle: isIconMode ? iconControlButton() : (
             <button
               onClick={handleToggle}
               className="nodrag relative w-10 h-5 rounded-full transition-colors focus:outline-none"
@@ -103,11 +125,13 @@ export function SwitchWidget({ config }: WidgetProps) {
         {showIcon && <WidgetIcon size={iconSize} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} />}
         {showTitle && <span className="flex-1 text-sm truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
         {!showTitle && <span className="flex-1" />}
-        <button onClick={handleToggle}
-          className="relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"
-          style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}>
-          <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
-        </button>
+        {isIconMode ? iconControlButton() : (
+          <button onClick={handleToggle}
+            className="relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"
+            style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}>
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
+          </button>
+        )}
         <StatusBadges config={config} />
         {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
       </div>
@@ -133,11 +157,13 @@ export function SwitchWidget({ config }: WidgetProps) {
             {isOn ? 'AN' : 'AUS'}
           </span>
         )}
-        <button onClick={handleToggle}
-          className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none ${!showLabel ? 'ml-auto' : ''}`}
-          style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}>
-          <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-6' : 'translate-x-0'}`} />
-        </button>
+        {isIconMode ? iconControlButton(!showLabel ? 'ml-auto' : '') : (
+          <button onClick={handleToggle}
+            className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none ${!showLabel ? 'ml-auto' : ''}`}
+            style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}>
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-6' : 'translate-x-0'}`} />
+          </button>
+        )}
       </div>
       <StatusBadges config={config} />
       {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
