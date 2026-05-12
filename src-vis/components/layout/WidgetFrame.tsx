@@ -3223,6 +3223,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'compact', label: t('wf.edit.layout.compact') },
                 { value: 'minimal', label: t('wf.edit.layout.minimal') },
                 { value: 'card',    label: t('wf.edit.layout.card') },
+                { value: 'custom',  label: 'Custom' },
               ] : config.type === 'shutter' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
                 { value: 'compact', label: t('wf.edit.layout.compact') },
@@ -5982,6 +5983,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   binarysensor:  [{ key: 'icon', label: 'Status-Icon' }, { key: 'battery-icon', label: 'Batterie-Icon' }, { key: 'reach-icon', label: 'Erreichbarkeit-Icon' }, { key: 'status-badges', label: 'Status-Badges (alle)' }],
                   stateimage:    [{ key: 'icon', label: 'Zustands-Icon' }, { key: 'battery-icon', label: 'Batterie-Icon' }, { key: 'reach-icon', label: 'Erreichbarkeit-Icon' }, { key: 'status-badges', label: 'Status-Badges (alle)' }],
                   httpRequest:   [{ key: 'button', label: 'HTTP-Button' }],
+                  enum:          [{ key: 'icon', label: 'Widget-Icon' }, { key: 'select', label: 'Dropdown' }, { key: 'label', label: 'Aktuelles Label' }],
                   button:        [{ key: 'icon', label: 'Button-Icon' }],
                   mediaplayer:   [
                     { key: 'play-pause',     label: '▶ / ⏸ Play / Pause' },

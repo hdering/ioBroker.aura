@@ -5,6 +5,7 @@ import type { WidgetProps } from '../../types';
 import { contentPositionClass, titlePositionStyle } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
+import { CustomGridView } from './CustomGridView';
 
 export interface EnumEntry {
   value: string;     // stored as string; parsed to number if numeric
@@ -71,6 +72,21 @@ export function EnumWidget({ config }: WidgetProps) {
     </div>
   ) : null;
 
+  // --- CUSTOM ---
+  if (layout === 'custom') {
+    return (
+      <CustomGridView
+        config={config}
+        value={currentLabel}
+        extraComponents={{
+          icon:   showIcon  ? <WidgetIcon size={iconSize} style={{ color: currentColor ?? 'var(--accent)', flexShrink: 0 }} /> : null,
+          select: selectEl,
+          label:  showValue ? <span className="text-base font-semibold truncate" style={{ color: currentColor ?? 'var(--text-primary)' }}>{currentLabel}</span> : null,
+        }}
+      />
+    );
+  }
+
   // --- COMPACT ---
   if (layout === 'compact') {
     return (
@@ -81,9 +97,9 @@ export function EnumWidget({ config }: WidgetProps) {
             {showTitle && <span className="text-sm truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</span>}
           </div>
         )}
-        <div className="flex items-center gap-2 shrink-0">
-          {showValue && !showSelect && (
-            <span className="text-base font-semibold" style={{ color: currentColor ?? 'var(--text-primary)' }}>{currentLabel}</span>
+        <div className="flex items-center gap-2 shrink-0 min-w-0">
+          {showValue && (
+            <span className="text-base font-semibold truncate" style={{ color: currentColor ?? 'var(--text-primary)' }}>{currentLabel}</span>
           )}
           {selectEl}
         </div>
@@ -92,12 +108,12 @@ export function EnumWidget({ config }: WidgetProps) {
     );
   }
 
-  // --- MINIMAL: nur Dropdown (oder Label) groß zentriert ---
+  // --- MINIMAL: Label groß zentriert, Dropdown darunter ---
   if (layout === 'minimal') {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-2" style={{ position: 'relative' }}>
-        {showValue && !showSelect && (
-          <span className="text-xl font-bold" style={{ color: currentColor ?? 'var(--accent)' }}>{currentLabel}</span>
+        {showValue && (
+          <span className="text-xl font-bold truncate max-w-full" style={{ color: currentColor ?? 'var(--accent)' }}>{currentLabel}</span>
         )}
         {selectEl}
         {showTitle && <span className="text-xs mt-1 truncate max-w-full" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
@@ -119,9 +135,9 @@ export function EnumWidget({ config }: WidgetProps) {
               {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
             </div>
           )}
-          <div className="flex items-center gap-2 flex-wrap">
-            {showValue && !showSelect && (
-              <span className="text-xl font-bold" style={{ color: accent }}>{currentLabel}</span>
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            {showValue && (
+              <span className="text-xl font-bold truncate" style={{ color: accent }}>{currentLabel}</span>
             )}
             {selectEl}
           </div>
@@ -144,9 +160,9 @@ export function EnumWidget({ config }: WidgetProps) {
           {showTitle && <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1', minWidth: 0 }}>{config.title}</p>}
         </div>
       )}
-      <div className="flex items-center gap-2 flex-wrap">
-        {showValue && !showSelect && (
-          <span className="text-base font-semibold" style={{ color: currentColor ?? 'var(--text-primary)' }}>{currentLabel}</span>
+      <div className="flex items-center gap-2 flex-wrap min-w-0">
+        {showValue && (
+          <span className="text-base font-semibold truncate" style={{ color: currentColor ?? 'var(--text-primary)' }}>{currentLabel}</span>
         )}
         {selectEl}
       </div>
