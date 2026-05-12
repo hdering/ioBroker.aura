@@ -543,7 +543,7 @@ function LoadpointCard({ lp, idx, prefix, compact }: {
   const displayLimitSoc = pendingLimitSoc ?? lp.effectiveLimitSoc;
 
   const lpTitle    = lp.title || t('evcc.loadpoint', { n: idx + 1 });
-  const vehicleName = lp.vehicleTitle || t('evcc.vehicle');
+  const vehicleName = lp.vehicleTitle || lpTitle;
 
   if (compact) {
     return (

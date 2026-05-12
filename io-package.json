@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.7.13",
+    "version": "0.7.14",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.7.14": {
+        "en": "fix(evcc): show loadpoint title instead of generic 'Vehicle' fallback when no vehicle is assigned to a connected loadpoint",
+        "de": "fix(evcc): zeigt Ladepunkt-Titel statt generischem \"Fahrzeug\"-Fallback, wenn einem verbundenen Ladepunkt kein Fahrzeug zugeordnet ist"
+      },
       "0.7.13": {
         "en": "fix(jsontable): re-apply auto-height when external writes revert gridPos.h; debug(jsontable): log every config.gridPos.h change + onConfigChange calls; debug(jsontable): log resolved gridGap/gridRowHeight values; fix(jsontable): auto-height honors global gridGap/gridRowHeight settings; build: rebuild frontend bundle to include auto-height fixes and debug logs; debug(jsontable): log all measurements in auto-height effect; fix(jsontable): handle table-wrapper overflow:auto clipping in auto-height",
         "de": "fix(jsontable): re-apply auto-height when external writes revert gridPos.h; debug(jsontable): log every config.gridPos.h change + onConfigChange calls; debug(jsontable): log resolved gridGap/gridRowHeight values; fix(jsontable): auto-height honors global gridGap/gridRowHeight settings; build: rebuild frontend bundle to include auto-height fixes and debug logs; debug(jsontable): log all measurements in auto-height effect; fix(jsontable): handle table-wrapper overflow:auto clipping in auto-height"
