@@ -75,6 +75,7 @@ import { ChipsWidget } from '../widgets/ChipsWidget';
 import { HttpRequestWidget } from '../widgets/HttpRequestWidget';
 import { ButtonWidget } from '../widgets/ButtonWidget';
 import { UniversalWidget } from '../widgets/UniversalWidget';
+import { EnumWidget } from '../widgets/EnumWidget';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ClickActionEditor } from '../config/ClickActionEditor';
 import { WidgetClickPopup } from '../widgets/popup/WidgetClickPopup';
@@ -123,6 +124,7 @@ function getWidgetMap() {
     button:        ButtonWidget,
     climate:       ClimateWidget,
     universal:     UniversalWidget,
+    enum:          EnumWidget,
   } as const;
 }
 
