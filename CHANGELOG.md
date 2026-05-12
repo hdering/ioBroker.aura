@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.7.18 (2026-05-12)
+
+- fix(climate): wire showAverage and showAverageAsValue options
+- fix(climate): respect showYAxis/yAxisCompact options on Raumklima chart
+
 ## v0.7.16 (2026-05-12)
 
 - feat(calendar): wire iCal lastUpdated into generic 'Letzte Änderung anzeigen' overlay
@@ -401,6 +406,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
