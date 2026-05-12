@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.29 (2026-05-12)
+
+- fix(enum): register EnumWidget in WidgetFrame's local widget-map
+- fix(enum): widget.enum i18n key + rebuild bundle
+- feat(enum): Auswahlfeld widget – DP-Werte auf Labels mappen + Dropdown-Schreibback
+
 ## v0.7.27 (2026-05-12)
 
 - feat(static-list): per-entry displayType override
@@ -439,6 +445,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 

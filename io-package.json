@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.7.28",
+    "version": "0.7.29",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.7.29": {
+        "en": "fix(enum): register EnumWidget in WidgetFrame's local widget-map; fix(enum): widget.enum i18n key + rebuild bundle; feat(enum): Auswahlfeld widget – DP-Werte auf Labels mappen + Dropdown-Schreibback",
+        "de": "fix(enum): register EnumWidget in WidgetFrame's local widget-map; fix(enum): widget.enum i18n key + rebuild bundle; feat(enum): Auswahlfeld widget – DP-Werte auf Labels mappen + Dropdown-Schreibback"
+      },
       "0.7.27": {
         "en": "feat(static-list): per-entry displayType override",
         "de": "feat(static-list): per-entry displayType override"
