@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.24 (2026-05-12)
+
+Release v0.7.24
+
 ## v0.7.23 (2026-05-12)
 
 - feat: auto-reload frontend when adapter version changes
@@ -423,6 +427,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 

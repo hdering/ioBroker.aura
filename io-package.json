@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.7.23",
+    "version": "0.7.24",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.7.24": {
+        "en": "Release v0.7.24",
+        "de": "Release v0.7.24"
+      },
       "0.7.23": {
         "en": "feat: auto-reload frontend when adapter version changes",
         "de": "feat: auto-reload frontend when adapter version changes"
