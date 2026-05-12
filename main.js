@@ -300,14 +300,15 @@ const SOCKET_BACKEND_WILDCARDS = new Set(['0.0.0.0', '::', '::0', '']);
 
 function pickSocketBackend(objectsMap, socketPort) {
   const fallback = { host: '127.0.0.1', secure: false, source: null, found: false, conflicts: [] };
-  if (!Number.isInteger(socketPort) || socketPort <= 0) return fallback;
+  const port = Number(socketPort);
+  if (!Number.isFinite(port) || port <= 0) return fallback;
   const candidates = [];
   for (const [id, obj] of Object.entries(objectsMap || {})) {
     const name = obj?.common?.name;
     if (name !== 'web' && name !== 'socketio') continue;
-    if (!obj.common.enabled) continue;
+    if (!obj.common?.enabled) continue;
     const native = obj.native || {};
-    if (Number(native.port) !== Number(socketPort)) continue;
+    if (Number(native.port) !== port) continue;
     candidates.push({ id, native });
   }
   if (!candidates.length) return fallback;
@@ -323,6 +324,10 @@ function pickSocketBackend(objectsMap, socketPort) {
     found: true,
     conflicts: candidates.slice(1).map(c => c.id),
   };
+}
+
+function formatHostPort(host, port) {
+  return host && host.includes(':') ? `[${host}]:${port}` : `${host}:${port}`;
 }
 
 // ── Static file serving ──────────────────────────────────────────────────────
@@ -542,12 +547,13 @@ class Aura extends utils.Adapter {
     const backend = await this.resolveSocketBackend(socketPort);
     const socketHost   = backend.host;
     const socketSecure = backend.found ? backend.secure : !!this.config.socketSecure;
+    const socketHostPort = formatHostPort(socketHost, socketPort);
     if (backend.found) {
       const proto = socketSecure ? 'https' : 'http';
       const extra = backend.conflicts.length ? ` (other matches ignored: ${backend.conflicts.join(', ')})` : '';
-      this.log.info(`aura: socket.io backend ${proto}://${socketHost}:${socketPort} (via ${backend.source})${extra}`);
+      this.log.info(`aura: socket.io backend ${proto}://${socketHostPort} (via ${backend.source})${extra}`);
     } else {
-      this.log.warn(`aura: no enabled web/socketio instance found with port ${socketPort} — proxying to ${socketHost}:${socketPort}`);
+      this.log.warn(`aura: no enabled web/socketio instance found with port ${socketPort} — proxying to ${socketHostPort}`);
     }
 
     // ── File-system helpers ──────────────────────────────────────────────────
@@ -713,7 +719,7 @@ class Aura extends utils.Adapter {
           port: socketPort,
           path: req.url,
           method: req.method,
-          headers: { ...req.headers, host: `${socketHost}:${socketPort}` },
+          headers: { ...req.headers, host: socketHostPort },
           timeout: 30000,
           rejectUnauthorized: false,
         }, (proxyRes) => {
@@ -782,7 +788,7 @@ class Aura extends utils.Adapter {
       try { parsedUrl = new URL(req.url, 'http://localhost'); } catch { return; }
       if (parsedUrl.pathname.startsWith('/socket.io/')) {
         const wsScheme = socketSecure ? 'wss' : 'ws';
-        proxyWebSocket(req, socket, `${wsScheme}://${socketHost}:${socketPort}${req.url}`, this.log);
+        proxyWebSocket(req, socket, `${wsScheme}://${socketHostPort}${req.url}`, this.log);
         return;
       }
       if (parsedUrl.pathname !== '/proxyws') return;
