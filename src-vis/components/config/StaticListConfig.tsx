@@ -369,7 +369,10 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
             const lbl = v === 'none' ? 'Keine' : v === 'label' ? 'Name' : 'Wert';
             const active = (opts.sortBy ?? 'none') === v;
             return (
-              <button key={v} onClick={() => setOpts({ sortBy: v === 'none' ? undefined : v })}
+              <button key={v} onClick={() => setOpts({
+                sortBy: v === 'none' ? undefined : v,
+                ...(v === 'none' ? { sortBy2: undefined, sortOrder2: undefined } : {}),
+              })}
                 className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
                 style={{
                   background: active ? 'var(--accent)' : 'var(--app-bg)',
@@ -399,6 +402,53 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
               );
             })}
           </div>
+        )}
+        {(opts.sortBy ?? 'none') !== 'none' && (
+          <>
+            <label className="text-[10px] mt-2 mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+              Danach sortieren <span className="opacity-60">(bei Gleichheit)</span>
+            </label>
+            <div className="flex gap-1">
+              {(['none', 'label', 'value'] as const).map(v => {
+                const lbl = v === 'none' ? 'Keine' : v === 'label' ? 'Name' : 'Wert';
+                const disabled = v !== 'none' && v === opts.sortBy;
+                const active = (opts.sortBy2 ?? 'none') === v;
+                return (
+                  <button key={v}
+                    disabled={disabled}
+                    title={disabled ? 'Schon als 1. Sortierung gewählt' : undefined}
+                    onClick={() => setOpts({ sortBy2: v === 'none' ? undefined : v })}
+                    className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    style={{
+                      background: active ? 'var(--accent)' : 'var(--app-bg)',
+                      color: active ? '#fff' : 'var(--text-secondary)',
+                      border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                    }}>
+                    {lbl}
+                  </button>
+                );
+              })}
+            </div>
+            {(opts.sortBy2 ?? 'none') !== 'none' && (
+              <div className="flex gap-1 mt-1">
+                {(['asc', 'desc'] as const).map(v => {
+                  const lbl = v === 'asc' ? '↑ Aufsteigend' : '↓ Absteigend';
+                  const active = (opts.sortOrder2 ?? 'asc') === v;
+                  return (
+                    <button key={v} onClick={() => setOpts({ sortOrder2: v })}
+                      className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                      style={{
+                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                        color: active ? '#fff' : 'var(--text-secondary)',
+                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                      }}>
+                      {lbl}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
 
