@@ -149,6 +149,7 @@ export type ClickAction =
 // options.popupTitle?: string      – override header title in popup
 // options.popupHideTitle?: boolean  – hide the title bar entirely
 // options.popupShowHistory?: boolean – show history icon in popup header
+// options.popupAutoCloseSec?: number – per-click-action auto-close override (0 = off, >0 = seconds; undefined = inherit view/global)
 
 // ── Conditional widget styling ────────────────────────────────────────────────
 

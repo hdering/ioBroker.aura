@@ -433,6 +433,38 @@ function TypeDefaultsSection() {
   );
 }
 
+// ── Global settings section ───────────────────────────────────────────────────
+
+function GlobalSettingsSection() {
+  const globalAutoCloseSec = usePopupConfigStore((s) => s.globalAutoCloseSec);
+  const setGlobalAutoCloseSec = usePopupConfigStore((s) => s.setGlobalAutoCloseSec);
+  return (
+    <section>
+      <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Globale Popup-Einstellungen</h2>
+      <div className="rounded-xl px-4 py-3 space-y-2" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
+        <label className="text-[11px] block" style={labelStyle}>Auto-Schließen nach (Sek., 0/leer = aus)</label>
+        <input
+          type="number"
+          min={0} max={3600} step={1}
+          value={globalAutoCloseSec ?? ''}
+          onChange={(e) => {
+            const raw = e.target.value;
+            if (raw === '') return setGlobalAutoCloseSec(undefined);
+            const n = Number(raw);
+            setGlobalAutoCloseSec(Number.isFinite(n) && n >= 0 ? n : undefined);
+          }}
+          placeholder="aus"
+          className={inputCls}
+          style={{ ...inputStyle, maxWidth: 200 }}
+        />
+        <p className="text-[11px]" style={labelStyle}>
+          Standardwert für alle Popups. Wird durch View- und Klick-Aktions-Einstellungen überschrieben.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 // ── AdminPopups ───────────────────────────────────────────────────────────────
 
 export function AdminPopups() {
@@ -444,6 +476,7 @@ export function AdminPopups() {
           Eigene Popup-Views erstellen und als Standard für Widget-Typen zuweisen
         </p>
       </div>
+      <GlobalSettingsSection />
       <div className="grid grid-cols-2 gap-8 items-start">
         <PopupViewsSection />
         <TypeDefaultsSection />

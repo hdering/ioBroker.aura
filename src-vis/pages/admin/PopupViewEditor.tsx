@@ -15,7 +15,7 @@ const DEFAULT_MARGIN = 10;
 export function PopupViewEditor() {
   const { viewId } = useParams<{ viewId: string }>();
   const navigate = useNavigate();
-  const { views, addWidgetToView, removeWidgetFromView, updateWidgetInView, copyView } = usePopupConfigStore();
+  const { views, addWidgetToView, removeWidgetFromView, updateWidgetInView, copyView, setViewAutoCloseSec } = usePopupConfigStore();
 
   const isSuperAdmin = useSuperAdmin();
   const view = views.find((v) => v.id === viewId);
@@ -142,6 +142,23 @@ export function PopupViewEditor() {
             ))}
           </div>
           <div className="flex-1" />
+          <label className="flex items-center gap-1.5 text-[11px]" style={{ color: 'var(--text-secondary)' }} title="Auto-Schließen für diese View (Sek., leer = global)">
+            Auto-Schließen
+            <input
+              type="number"
+              min={0} max={3600} step={1}
+              value={view.autoCloseSec ?? ''}
+              onChange={(e) => {
+                const raw = e.target.value;
+                if (raw === '') return setViewAutoCloseSec(viewId, undefined);
+                const n = Number(raw);
+                setViewAutoCloseSec(viewId, Number.isFinite(n) && n >= 0 ? n : undefined);
+              }}
+              placeholder="global"
+              className="text-xs rounded-lg px-2 py-1.5 focus:outline-none w-20"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+            />
+          </label>
           <select
             value={addType}
             onChange={(e) => setAddType(e.target.value as WidgetType)}

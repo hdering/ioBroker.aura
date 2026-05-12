@@ -104,6 +104,7 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
   const popupHideTitle = !!(o.popupHideTitle);
   const popupWidth     = (o.popupWidth  as number | undefined);
   const popupHeight    = (o.popupHeight as number | undefined);
+  const popupAutoCloseSec = (o.popupAutoCloseSec as number | undefined);
 
   const layouts = useDashboardStore((s) => s.layouts);
 
@@ -629,6 +630,22 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
                 className={inputCls} style={inputStyle}
               />
             </div>
+          </div>
+          <div>
+            <label className={labelCls} style={labelStyle}>Auto-Schließen nach (Sek., 0 = aus, leer = View/Global)</label>
+            <input
+              type="number"
+              min={0} max={3600} step={1}
+              value={popupAutoCloseSec ?? ''}
+              onChange={(e) => {
+                const raw = e.target.value;
+                if (raw === '') return setOpts({ popupAutoCloseSec: undefined });
+                const n = Number(raw);
+                setOpts({ popupAutoCloseSec: Number.isFinite(n) && n >= 0 ? n : undefined });
+              }}
+              placeholder="View/Global"
+              className={inputCls} style={inputStyle}
+            />
           </div>
         </div>
       )}

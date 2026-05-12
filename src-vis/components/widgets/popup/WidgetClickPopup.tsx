@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { WidgetConfig, ClickAction } from '../../../types';
 import { usePortalTarget } from '../../../contexts/PortalTargetContext';
+import { usePopupConfigStore } from '../../../store/popupConfigStore';
 import { DimmerPopupBody } from './DimmerPopupBody';
 import { ThermostatPopupBody } from './ThermostatPopupBody';
 import { SwitchPopupBody } from './SwitchPopupBody';
@@ -60,11 +61,34 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
   const adminTarget = usePortalTarget();
   const portalTarget = document.querySelector('[data-aura-app="frontend"]') ?? adminTarget;
 
+  // Auto-close resolution: action override > popup-view setting > global default.
+  // Tri-state: undefined = inherit next level, 0 = explicit off, >0 = seconds.
+  const actionAutoClose = widget.options?.popupAutoCloseSec as number | undefined;
+  const viewAutoClose = usePopupConfigStore((s) =>
+    action.kind === 'popup-view' ? s.views.find((v) => v.id === action.viewId)?.autoCloseSec : undefined,
+  );
+  const globalAutoClose = usePopupConfigStore((s) => s.globalAutoCloseSec);
+  const effectiveAutoCloseSec = actionAutoClose ?? viewAutoClose ?? globalAutoClose ?? 0;
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
+
+  // Auto-close timer, reset on pointer activity inside the popup body.
+  const timerRef = useRef<number | null>(null);
+  const armTimer = () => {
+    if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    if (effectiveAutoCloseSec > 0) {
+      timerRef.current = window.setTimeout(onClose, effectiveAutoCloseSec * 1000);
+    }
+  };
+  useEffect(() => {
+    armTimer();
+    return () => { if (timerRef.current !== null) window.clearTimeout(timerRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveAutoCloseSec, onClose]);
 
   const isIframe    = action.kind === 'popup-iframe';
   const hideTitle   = !!(widget.options?.popupHideTitle);
@@ -117,6 +141,9 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
           maxHeight: isIframe ? undefined : (customHeight ? `min(85vh, ${customHeight}px)` : '85vh'),
         }}
         onClick={(e) => e.stopPropagation()}
+        onPointerDown={armTimer}
+        onPointerMove={effectiveAutoCloseSec > 0 ? armTimer : undefined}
+        onKeyDown={armTimer}
       >
         {/* Close button — always absolute top-right of popup */}
         <button

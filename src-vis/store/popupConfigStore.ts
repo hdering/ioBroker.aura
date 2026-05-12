@@ -7,6 +7,8 @@ export interface PopupView {
   id: string;
   name: string;
   widgets: WidgetConfig[];
+  // Per-view auto-close: undefined = inherit global, 0 = explicit off, >0 = seconds
+  autoCloseSec?: number;
 }
 
 // ── Builtin predefined views ──────────────────────────────────────────────────
@@ -88,6 +90,8 @@ interface PopupConfigState {
   views: PopupView[];
   deletedBuiltinIds: string[];           // builtin IDs the user explicitly deleted
   removedBuiltinTypeDefaults: string[];  // builtin widget types whose default was explicitly removed
+  // Global auto-close fallback: undefined = no auto-close, >0 = seconds
+  globalAutoCloseSec?: number;
 
   // Type defaults
   setTypeDefault: (widgetType: string, viewId: string) => void;
@@ -98,9 +102,13 @@ interface PopupConfigState {
   addView: (name: string) => string;
   removeView: (viewId: string) => void;
   updateViewName: (viewId: string, name: string) => void;
+  setViewAutoCloseSec: (viewId: string, sec: number | undefined) => void;
   addWidgetToView: (viewId: string, widget: WidgetConfig) => void;
   removeWidgetFromView: (viewId: string, widgetId: string) => void;
   updateWidgetInView: (viewId: string, widgetId: string, patch: Partial<WidgetConfig>) => void;
+
+  // Global
+  setGlobalAutoCloseSec: (sec: number | undefined) => void;
 
   // Builtins
   ensureBuiltins: () => void;
@@ -116,6 +124,7 @@ export const usePopupConfigStore = create<PopupConfigState>()(
       views: [],
       deletedBuiltinIds: [],
       removedBuiltinTypeDefaults: [],
+      globalAutoCloseSec: undefined,
 
       setTypeDefault: (widgetType, viewId) =>
         set((s) => ({ typeDefaults: { ...s.typeDefaults, [widgetType]: viewId } })),
@@ -161,6 +170,13 @@ export const usePopupConfigStore = create<PopupConfigState>()(
         set((s) => ({
           views: s.views.map((v) => (v.id === viewId ? { ...v, name } : v)),
         })),
+
+      setViewAutoCloseSec: (viewId, sec) =>
+        set((s) => ({
+          views: s.views.map((v) => (v.id === viewId ? { ...v, autoCloseSec: sec } : v)),
+        })),
+
+      setGlobalAutoCloseSec: (sec) => set({ globalAutoCloseSec: sec }),
 
       addWidgetToView: (viewId, widget) =>
         set((s) => ({
