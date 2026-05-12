@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.7.11 (2026-05-12)
+
+- fix(jsontable): include widget padding+border in auto-height calc
+- Revert "refactor(socket): load socket library from web/socketio adapter at runtime"
+- refactor(socket): load socket library from web/socketio adapter at runtime
+- fix(proxy): handle string socketPort and IPv6 bind addresses
+- fix(proxy): auto-detect socket.io backend host from web/socketio instance (#195)
+
 ## v0.7.10 (2026-05-11)
 
 - fix(clock): respect display setting in custom layout
@@ -371,6 +379,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
