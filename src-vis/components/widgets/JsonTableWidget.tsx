@@ -93,6 +93,18 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const lastHRef = useRef<number>(config.gridPos.h);
 
+  // TEMP DEBUG v4 ————————————————————————————————————————————
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('[JsonTable h-watch v4]', {
+      widgetId: config.id,
+      configH: config.gridPos.h,
+      lastHRef: lastHRef.current,
+      autoHeight,
+    });
+  }, [config.gridPos.h, config.id, autoHeight]);
+  // ——————————————————————————————————————————————————————————
+
   const tableData = useMemo(() => parseJson(value), [value]);
 
   // Build ordered, filtered column list from raw headers + colDefs
@@ -168,6 +180,8 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
       });
       // ——————————————————————————————————————————————————————————
       if (newH !== lastHRef.current) {
+        // eslint-disable-next-line no-console
+        console.log('[JsonTable autoHeight v3] UPDATING', { from: lastHRef.current, to: newH, currentConfigH: config.gridPos.h });
         lastHRef.current = newH;
         onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
       }
