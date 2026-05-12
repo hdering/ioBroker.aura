@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.27 (2026-05-12)
+
+- feat(static-list): per-entry displayType override
+
 ## v0.7.26 (2026-05-12)
 
 - feat(static-list): zweite Sortierebene als Tiebreaker
@@ -435,6 +439,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
