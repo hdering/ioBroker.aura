@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.7.20 (2026-05-12)
+
+- feat(evcc): detect heating loadpoints and show 'Heizen' instead of 'Laden'
+- feat(evcc): remove 'Karte' and 'Minimal' layouts from selector
+
 ## v0.7.19 (2026-05-12)
 
 - feat(popup): three-level auto-close (global > view > click-action)
@@ -410,6 +415,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
