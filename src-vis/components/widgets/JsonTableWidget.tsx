@@ -132,10 +132,19 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
       const layout = layouts.find((l) => l.tabs.some((t) => (t.widgets ?? []).some((w) => w.id === config.id)));
       const cellSize = layout?.settings?.gridRowHeight ?? 20;
       const margin   = layout?.settings?.gridGap ?? 10;
-      // The outer .aura-widget wrapper adds vertical padding (widgetPadding) and
-      // a border that sit OUTSIDE contentRef.scrollHeight. Without accounting
-      // for them, the computed h is too small and the last rows visibly
-      // overflow into the next widget.
+      // The table sits inside a wrapper with `overflow-x-auto`. Per CSS spec,
+      // setting overflow-x to a non-visible value resolves overflow-y to auto
+      // too, which means in a flex column the wrapper can have a smaller box
+      // than the table inside (flex min-height collapses for scrollables).
+      // contentRef.scrollHeight then reports the wrapper's clipped box, not
+      // the table's true extent — so we add any table overflow on top.
+      const table = el.querySelector('table') as HTMLTableElement | null;
+      const tableWrapper = table?.parentElement as HTMLElement | null;
+      const tableOverflow = (table && tableWrapper)
+        ? Math.max(0, table.offsetHeight - tableWrapper.clientHeight)
+        : 0;
+      // The outer .aura-widget wrapper adds vertical padding (widgetPadding)
+      // and a border that sit OUTSIDE contentRef.scrollHeight.
       const widgetEl = el.closest('.aura-widget') as HTMLElement | null;
       let parentOverhead = 0;
       if (widgetEl) {
@@ -144,7 +153,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
           parseFloat(cs.paddingTop || '0') + parseFloat(cs.paddingBottom || '0') +
           parseFloat(cs.borderTopWidth || '0') + parseFloat(cs.borderBottomWidth || '0');
       }
-      const naturalH = el.scrollHeight + parentOverhead;
+      const naturalH = el.scrollHeight + tableOverflow + parentOverhead;
       const newH = Math.max(1, Math.ceil((naturalH + margin) / (cellSize + margin)));
       if (newH !== lastHRef.current) {
         lastHRef.current = newH;
@@ -154,6 +163,11 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
+    // Also observe the table itself — when rows grow/shrink, contentRef may
+    // not visibly resize (the wrapper has overflow:auto), so a single RO on
+    // contentRef misses the change.
+    const table = el.querySelector('table');
+    if (table) ro.observe(table);
     return () => ro.disconnect();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoHeight, filteredRows.length, columns.length, showHeader, showSearch, fontSize, config.id]);
