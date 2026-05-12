@@ -26,6 +26,8 @@ export interface StaticListEntry {
   writable?: boolean; // false = read-only; undefined/true = writable
   icon?: string;
   colorThresholds?: [number, string][]; // [[maxExclusive, color], …] ascending
+  /** Override automatic control type. undefined/'auto' keeps role/value-based detection. */
+  displayType?: 'auto' | 'switch' | 'slider' | 'value';
 }
 
 export interface StaticListOptions {
@@ -88,6 +90,84 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
   const isBool    = typeof val === 'boolean';
   const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
   const on = val === true || val === 1;
+  const displayType = entry.displayType ?? 'auto';
+  const thresholdColor = getThresholdColor(val, entry.colorThresholds ?? globalThresholds);
+
+  // Forced "Nur Wert" — skip role/switch/slider, render text only
+  if (displayType === 'value') {
+    const active = isActive(val);
+    const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
+    return (
+      <span className="shrink-0 text-xs font-medium tabular-nums"
+        style={{ color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)') }}>
+        {val != null ? `${displayVal}${entry.unit ? ' ' + entry.unit : ''}` : '–'}
+      </span>
+    );
+  }
+
+  // Forced "Slider" — render range 0..100 if writable, else value text with %
+  if (displayType === 'slider') {
+    const num = typeof val === 'number' ? val : (val === true ? 100 : 0);
+    if (!writable) {
+      return (
+        <span className="shrink-0 text-xs font-medium tabular-nums"
+          style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
+          {Math.round(num)}{entry.unit ?? '%'}
+        </span>
+      );
+    }
+    return (
+      <div className="shrink-0 flex items-center gap-1.5">
+        <input type="range" min={0} max={100} value={num}
+          onChange={e => setState(entry.id, Number(e.target.value))}
+          className="w-20 h-1" style={{ accentColor: 'var(--accent)' }} />
+        <span className="text-[10px] w-8 text-right tabular-nums"
+          style={{ color: thresholdColor ?? 'var(--text-secondary)' }}>
+          {Math.round(num)}{entry.unit ?? '%'}
+        </span>
+      </div>
+    );
+  }
+
+  // Forced "Schalter" — toggle / labeled pill
+  if (displayType === 'switch') {
+    const forcedOn = on || (typeof val === 'number' && val > 0);
+    const writeToggle = () => {
+      if (isBool) setState(entry.id, !forcedOn);
+      else if (typeof val === 'number') setState(entry.id, forcedOn ? 0 : 1);
+      else setState(entry.id, !forcedOn);
+    };
+    if (hasLabels) {
+      return (
+        <button onClick={writable ? writeToggle : undefined}
+          className="shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium"
+          style={{
+            background: forcedOn ? 'var(--accent)' : 'var(--app-border)',
+            color: forcedOn ? '#fff' : 'var(--text-secondary)',
+            cursor: writable ? 'pointer' : 'default',
+          }}>
+          {forcedOn ? (entry.trueLabel || 'AN') : (entry.falseLabel || 'AUS')}
+        </button>
+      );
+    }
+    if (!writable) {
+      return (
+        <span className="shrink-0 relative w-9 h-[18px] rounded-full pointer-events-none"
+          style={{ background: forcedOn ? 'var(--accent)' : 'var(--app-border)' }}>
+          <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white"
+            style={{ left: forcedOn ? 'calc(100% - 16px)' : '2px' }} />
+        </span>
+      );
+    }
+    return (
+      <button onClick={writeToggle}
+        className="shrink-0 relative w-9 h-[18px] rounded-full transition-colors"
+        style={{ background: forcedOn ? 'var(--accent)' : 'var(--app-border)' }}>
+        <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
+          style={{ left: forcedOn ? 'calc(100% - 16px)' : '2px' }} />
+      </button>
+    );
+  }
 
   // Role-based display for sensors (window, door, motion, smoke, …)
   if (isBoolLike && !hasLabels) {
@@ -134,8 +214,6 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
       </button>
     );
   }
-
-  const thresholdColor = getThresholdColor(val, entry.colorThresholds ?? globalThresholds);
 
   if (typeof val === 'number' && isDimmerRole(entry.id)) {
     if (!writable) {
@@ -461,21 +539,32 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
               const isBool = typeof val === 'boolean';
               const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
               const on = val === true || val === 1;
-              const roleDisplay = (isBoolLike && !hasLabels) ? getRoleDisplay(entry.role, val) : null;
+              const displayType = entry.displayType ?? 'auto';
+              const forceSwitch = displayType === 'switch';
+              const forceValue  = displayType === 'value' || displayType === 'slider';
+              const useRoleDisplay = !forceSwitch && !forceValue && isBoolLike && !hasLabels;
+              const roleDisplay = useRoleDisplay ? getRoleDisplay(entry.role, val) : null;
+              const truthy = on || (typeof val === 'number' && val > 0);
+              const switchActive = forceSwitch ? truthy : (isBoolLike && on);
               const valueStr = roleDisplay
                 ? roleDisplay.label
-                : isBoolLike && hasLabels
-                  ? (on ? (entry.trueLabel || 'AN') : (entry.falseLabel || 'AUS'))
+                : (forceSwitch || (isBoolLike && hasLabels))
+                  ? (switchActive ? (entry.trueLabel || 'AN') : (entry.falseLabel || 'AUS'))
                   : val != null ? `${String(val)}${entry.unit ? '\u202f' + entry.unit : ''}` : '–';
-              const threshColor = !isBoolLike && !roleDisplay ? getThresholdColor(val, entry.colorThresholds ?? globalThresholds) : null;
-              const pillColor = threshColor ?? (roleDisplay ? roleDisplay.color : (isBoolLike && on ? 'var(--accent)' : null));
+              const threshColor = !switchActive && !roleDisplay ? getThresholdColor(val, entry.colorThresholds ?? globalThresholds) : null;
+              const pillColor = threshColor ?? (roleDisplay ? roleDisplay.color : (switchActive ? 'var(--accent)' : null));
               const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
+              const clickable = writable && !roleDisplay && !forceValue && (forceSwitch || isBoolLike);
 
               return (
                 <button key={entry.id}
                   onClick={() => {
-                    if (!writable || roleDisplay) return;
-                    if (isBool) setState(entry.id, !on);
+                    if (!clickable) return;
+                    if (forceSwitch) {
+                      if (isBool) setState(entry.id, !truthy);
+                      else if (typeof val === 'number') setState(entry.id, truthy ? 0 : 1);
+                      else setState(entry.id, !truthy);
+                    } else if (isBool) setState(entry.id, !on);
                     else if (isBoolLike) setState(entry.id, on ? 0 : 1);
                   }}
                   className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors hover:opacity-80"
@@ -483,11 +572,11 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     background: pillColor ? `${pillColor}1a` : 'var(--app-bg)',
                     color: pillColor ?? 'var(--text-secondary)',
                     border: `1px solid ${pillColor ? `${pillColor}55` : 'var(--widget-border)'}`,
-                    cursor: isBoolLike && writable && !roleDisplay ? 'pointer' : 'default',
+                    cursor: clickable ? 'pointer' : 'default',
                   }}>
                   {EntryIcon && <EntryIcon size={11} className="shrink-0 opacity-70" />}
                   <span className="opacity-70 truncate" style={{ maxWidth: 80 }}>{label}</span>
-                  <span className="font-semibold tabular-nums" style={{ color: isBoolLike || roleDisplay ? 'inherit' : 'var(--text-primary)' }}>
+                  <span className="font-semibold tabular-nums" style={{ color: forceSwitch || isBoolLike || roleDisplay ? 'inherit' : 'var(--text-primary)' }}>
                     {valueStr}
                   </span>
                 </button>
