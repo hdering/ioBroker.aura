@@ -265,7 +265,7 @@ function Spinner({ loading }: { loading: boolean }) {
 
 // ── widget ─────────────────────────────────────────────────────────────────
 
-export function CalendarWidget({ config }: WidgetProps) {
+export function CalendarWidget({ config, onLastChange }: WidgetProps) {
   const t = useT();
   const options = config.options ?? {};
   const refreshInterval = (options.refreshInterval as number) ?? 30;
@@ -281,7 +281,6 @@ export function CalendarWidget({ config }: WidgetProps) {
   const [events, setEvents] = useState<CalEventTagged[]>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const timerRef   = useRef<ReturnType<typeof setInterval> | null>(null);
   const retryRef   = useRef<ReturnType<typeof setInterval> | null>(null);
   const fetchingRef = useRef(false); // prevents concurrent fetches
@@ -327,7 +326,7 @@ export function CalendarWidget({ config }: WidgetProps) {
         .sort((a, b) => a.start.getTime() - b.start.getTime());
 
       setEvents(upcoming);
-      setLastUpdated(new Date());
+      onLastChange?.(Date.now());
       if (errs.length > 0 && all.length === 0) setErrors(errs);
     } catch (err) {
       setErrors([String(err instanceof Error ? err.message : err)]);
@@ -619,11 +618,6 @@ export function CalendarWidget({ config }: WidgetProps) {
             })()}
           </div>
         )}
-        {lastUpdated && (
-          <p className="shrink-0" style={{ color: 'var(--text-secondary)', opacity: 0.5, fontSize: fs(9) }}>
-            {pad(lastUpdated.getHours())}:{pad(lastUpdated.getMinutes())}
-          </p>
-        )}
       </div>
     );
   }
@@ -705,11 +699,6 @@ export function CalendarWidget({ config }: WidgetProps) {
         </div>
       )}
 
-      {lastUpdated && (
-        <p className="shrink-0" style={{ color: 'var(--text-secondary)', opacity: 0.6, fontSize: fs(9) }}>
-          {t('calendar.updated', { time: `${pad(lastUpdated.getHours())}:${pad(lastUpdated.getMinutes())}` })}
-        </p>
-      )}
     </div>
   );
 }

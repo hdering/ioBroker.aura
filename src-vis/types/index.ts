@@ -96,6 +96,12 @@ export interface WidgetProps {
   config: WidgetConfig;
   editMode: boolean;
   onConfigChange: (config: WidgetConfig) => void;
+  /**
+   * Widgets without a single ioBroker datapoint (e.g. CalendarWidget fetching
+   * iCal feeds) can report their own last-update timestamp here so that the
+   * generic "Letzte Änderung anzeigen" overlay in WidgetFrame can render it.
+   */
+  onLastChange?: (ts: number) => void;
 }
 
 export interface ioBrokerObject {

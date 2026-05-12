@@ -2671,6 +2671,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           config={config.options?.hideTitle ? { ...config, title: '' } : config}
           editMode={editMode}
           onConfigChange={onConfigChange}
+          onLastChange={setLastChangedTs}
         />
       ) : (
         <div className="flex flex-col items-center justify-center h-full gap-1 text-center px-2"
