@@ -2428,6 +2428,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   const [selectedCustomCell,   setSelectedCustomCell]   = useState<number | null>(null);
   const [customCellPickerOpen,      setCustomCellPickerOpen]      = useState(false);
   const [customCellImagePickerOpen, setCustomCellImagePickerOpen] = useState(false);
+  const [customCellIconPicker, setCustomCellIconPicker] = useState<'iconName' | 'trueIcon' | 'falseIcon' | null>(null);
   const [draftIconSize, setDraftIconSize] = useState<number | null>(null);
   const menuBtnRef = useRef<HTMLButtonElement>(null);
   const Widget = getWidgetMap()[config.type as keyof ReturnType<typeof getWidgetMap>];
@@ -6500,24 +6501,34 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                   ))}
                                 </div>
                               </div>
-                              {mode === 'icon' && (
+                              {mode === 'icon' && (() => {
+                                const TruePrev  = selCell.trueIcon  ? getWidgetIcon(selCell.trueIcon,  (() => null) as unknown as import('lucide-react').LucideIcon) : null;
+                                const FalsePrev = selCell.falseIcon ? getWidgetIcon(selCell.falseIcon, (() => null) as unknown as import('lucide-react').LucideIcon) : null;
+                                const trueCol   = (selCell.trueColor  && selCell.trueColor.startsWith('#'))  ? selCell.trueColor  : '#22c55e';
+                                const falseCol  = (selCell.falseColor && selCell.falseColor.startsWith('#')) ? selCell.falseColor : '#6b7280';
+                                const pickBtn = (slot: 'trueIcon' | 'falseIcon', Preview: import('lucide-react').LucideIcon | null, name: string | undefined, color: string) => (
+                                  <button onClick={() => setCustomCellIconPicker(slot)}
+                                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+                                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}>
+                                    {Preview
+                                      ? <Preview size={14} style={{ flexShrink: 0, color }} />
+                                      : <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />}
+                                    <span className="flex-1 truncate text-[11px]"
+                                      style={{ color: name ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                      {name ?? 'Icon wählen…'}
+                                    </span>
+                                  </button>
+                                );
+                                return (
                                 <>
                                   <div className="flex gap-2">
-                                    <div className="flex-1">
+                                    <div className="flex-1 min-w-0">
                                       <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Icon AN</label>
-                                      <input type="text"
-                                        value={selCell.trueIcon ?? ''}
-                                        onChange={(e) => setCell(sel, { trueIcon: e.target.value || undefined })}
-                                        placeholder="z.B. lucide:lightbulb"
-                                        className={inputCls} style={inputSty} />
+                                      {pickBtn('trueIcon', TruePrev, selCell.trueIcon, trueCol)}
                                     </div>
-                                    <div className="flex-1">
+                                    <div className="flex-1 min-w-0">
                                       <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Icon AUS</label>
-                                      <input type="text"
-                                        value={selCell.falseIcon ?? ''}
-                                        onChange={(e) => setCell(sel, { falseIcon: e.target.value || undefined })}
-                                        placeholder="z.B. lucide:lightbulb-off"
-                                        className={inputCls} style={inputSty} />
+                                      {pickBtn('falseIcon', FalsePrev, selCell.falseIcon, falseCol)}
                                     </div>
                                   </div>
                                   <div className="flex gap-2">
@@ -6547,7 +6558,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                       style={{ accentColor: 'var(--accent)' }} />
                                   </div>
                                 </>
-                              )}
+                                );
+                              })()}
                             </>
                           );
                         })()}
@@ -6603,42 +6615,59 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         )}
 
                         {/* Icon name (static icon) */}
-                        {selCell.type === 'icon' && (
-                          <div>
-                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Icon-Name</label>
-                            <input
-                              type="text"
-                              value={selCell.iconName ?? ''}
-                              onChange={(e) => setCell(sel, { iconName: e.target.value || undefined })}
-                              placeholder="z.B. Zap oder lucide:lightbulb"
-                              className={inputCls} style={inputSty}
-                            />
-                          </div>
-                        )}
+                        {selCell.type === 'icon' && (() => {
+                          const iconName = selCell.iconName;
+                          const Preview = iconName
+                            ? getWidgetIcon(iconName, (() => null) as unknown as import('lucide-react').LucideIcon)
+                            : null;
+                          return (
+                            <div>
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Icon</label>
+                              <button
+                                onClick={() => setCustomCellIconPicker('iconName')}
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+                                style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}>
+                                {Preview
+                                  ? <Preview size={14} style={{ flexShrink: 0, color: selCell.color || 'var(--text-primary)' }} />
+                                  : <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />}
+                                <span className="flex-1 truncate text-[11px]"
+                                  style={{ color: iconName ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                  {iconName ?? 'Icon wählen…'}
+                                </span>
+                              </button>
+                            </div>
+                          );
+                        })()}
 
                         {/* State-icon: true/false icons & colors */}
-                        {selCell.type === 'state-icon' && (
+                        {selCell.type === 'state-icon' && (() => {
+                          const TruePrev  = selCell.trueIcon  ? getWidgetIcon(selCell.trueIcon,  (() => null) as unknown as import('lucide-react').LucideIcon) : null;
+                          const FalsePrev = selCell.falseIcon ? getWidgetIcon(selCell.falseIcon, (() => null) as unknown as import('lucide-react').LucideIcon) : null;
+                          const trueCol   = selCell.trueColor  || '#22c55e';
+                          const falseCol  = selCell.falseColor || '#64748b';
+                          const pickBtn = (slot: 'trueIcon' | 'falseIcon', Preview: import('lucide-react').LucideIcon | null, name: string | undefined, color: string) => (
+                            <button onClick={() => setCustomCellIconPicker(slot)}
+                              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+                              style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}>
+                              {Preview
+                                ? <Preview size={14} style={{ flexShrink: 0, color }} />
+                                : <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />}
+                              <span className="flex-1 truncate text-[11px]"
+                                style={{ color: name ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                {name ?? 'Icon wählen…'}
+                              </span>
+                            </button>
+                          );
+                          return (
                           <>
                             <div className="flex gap-2">
-                              <div className="flex-1">
+                              <div className="flex-1 min-w-0">
                                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Icon (an / true)</label>
-                                <input
-                                  type="text"
-                                  value={selCell.trueIcon ?? ''}
-                                  onChange={(e) => setCell(sel, { trueIcon: e.target.value || undefined })}
-                                  placeholder="Zap"
-                                  className={inputCls} style={inputSty}
-                                />
+                                {pickBtn('trueIcon', TruePrev, selCell.trueIcon, trueCol)}
                               </div>
-                              <div className="flex-1">
+                              <div className="flex-1 min-w-0">
                                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Icon (aus / false)</label>
-                                <input
-                                  type="text"
-                                  value={selCell.falseIcon ?? ''}
-                                  onChange={(e) => setCell(sel, { falseIcon: e.target.value || undefined })}
-                                  placeholder="ZapOff"
-                                  className={inputCls} style={inputSty}
-                                />
+                                {pickBtn('falseIcon', FalsePrev, selCell.falseIcon, falseCol)}
                               </div>
                             </div>
                             <div className="flex gap-2">
@@ -6662,7 +6691,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               </div>
                             </div>
                           </>
-                        )}
+                          );
+                        })()}
 
                         {/* Prefix / Suffix for value or dp */}
                         {(selCell.type === 'value' || selCell.type === 'dp') && (
@@ -7276,6 +7306,29 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               setCustomCellPickerOpen(false);
             }}
             onClose={() => setCustomCellPickerOpen(false)}
+          />
+        );
+      })()}
+
+      {/* Custom-Grid icon picker (icon / state-icon / switch-icon-mode cells) */}
+      {customCellIconPicker !== null && selectedCustomCell !== null && (() => {
+        const fb = config.type === 'universal' ? DEFAULT_UNIVERSAL_GRID : DEFAULT_CUSTOM_GRID;
+        const grid = normalizeGrid(config.options?.customGrid, fb);
+        const idx = selectedCustomCell;
+        const slot = customCellIconPicker;
+        const current = (grid.cells[idx]?.[slot] as string | undefined) ?? '';
+        return (
+          <IconPickerModal
+            current={current}
+            onSelect={(name) => {
+              const next: CustomGridDef = {
+                ...grid,
+                cells: grid.cells.map((c, i) => i === idx ? { ...c, [slot]: name || undefined } : c),
+              };
+              onConfigChange({ ...config, options: { ...config.options, customGrid: next } });
+              setCustomCellIconPicker(null);
+            }}
+            onClose={() => setCustomCellIconPicker(null)}
           />
         );
       })()}
