@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.7.11",
+    "version": "0.7.12",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.7.12": {
+        "en": "Release v0.7.12",
+        "de": "Release v0.7.12"
+      },
       "0.7.11": {
         "en": "fix(jsontable): include widget padding+border in auto-height calc; Revert \"refactor(socket): load socket library from web/socketio adapter at runtime\"; refactor(socket): load socket library from web/socketio adapter at runtime; fix(proxy): handle string socketPort and IPv6 bind addresses; fix(proxy): auto-detect socket.io backend host from web/socketio instance (#195)",
         "de": "fix(jsontable): include widget padding+border in auto-height calc; Revert \"refactor(socket): load socket library from web/socketio adapter at runtime\"; refactor(socket): load socket library from web/socketio adapter at runtime; fix(proxy): handle string socketPort and IPv6 bind addresses; fix(proxy): auto-detect socket.io backend host from web/socketio instance (#195)"

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.12 (2026-05-12)
+
+Release v0.7.12
+
 ## v0.7.11 (2026-05-12)
 
 - fix(jsontable): include widget padding+border in auto-height calc
@@ -379,6 +383,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
