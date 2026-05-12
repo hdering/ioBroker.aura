@@ -39,6 +39,7 @@ export function SliderWidget({ config }: WidgetProps) {
   const isVertical      = (o.orientation as string) === 'vertical';
   const sliderColor     = (o.color as string) || 'var(--accent)';
   const commitOnRelease = !!o.commitOnRelease;
+  const readOnly        = !!o.readOnly;
   const unit            = (o.unit as string) ?? '';
   const showTitle       = o.showTitle  !== false;
   const showValue       = o.showValue  !== false;
@@ -116,31 +117,33 @@ export function SliderWidget({ config }: WidgetProps) {
       max={max}
       step={step}
       value={displayVal}
-      onChange={(e) => onSliderChange(Number(e.target.value))}
-      onMouseUp={onSliderRelease}
-      onTouchEnd={onSliderRelease}
-      onKeyUp={onSliderRelease}
+      disabled={readOnly}
+      onChange={readOnly ? undefined : (e) => onSliderChange(Number(e.target.value))}
+      onMouseUp={readOnly ? undefined : onSliderRelease}
+      onTouchEnd={readOnly ? undefined : onSliderRelease}
+      onKeyUp={readOnly ? undefined : onSliderRelease}
       style={{
         '--slider-thumb-color': sliderColor,
         ...(isVertical
           ? { writingMode: 'vertical-lr' as React.CSSProperties['writingMode'], direction: 'rtl', height: '100%', width: 'auto' }
           : { width: '100%' }),
+        ...(readOnly ? { opacity: 1, cursor: 'default' } : {}),
       } as unknown as CSSProperties}
-      className="nodrag h-1.5 rounded-full appearance-none cursor-pointer"
+      className={`nodrag h-1.5 rounded-full appearance-none${readOnly ? '' : ' cursor-pointer'}`}
     />
   );
 
   const barTrack = (
     <div
-      className="nodrag relative rounded-2xl overflow-hidden cursor-pointer select-none"
+      className={`nodrag relative rounded-2xl overflow-hidden select-none${readOnly ? '' : ' cursor-pointer'}`}
       style={{
         width:      isVertical ? `${barSize}%` : '100%',
         height:     isVertical ? '100%'        : `${barSize}%`,
         background: `color-mix(in srgb, ${sliderColor} 20%, var(--app-bg))`,
       }}
-      onPointerDown={onBarPointerDown}
-      onPointerMove={onBarPointerMove}
-      onPointerUp={onSliderRelease}
+      onPointerDown={readOnly ? undefined : onBarPointerDown}
+      onPointerMove={readOnly ? undefined : onBarPointerMove}
+      onPointerUp={readOnly ? undefined : onSliderRelease}
     >
       {/* Fill */}
       {isVertical ? (
@@ -155,7 +158,7 @@ export function SliderWidget({ config }: WidgetProps) {
         />
       )}
       {/* Handle line */}
-      {isVertical ? (
+      {readOnly ? null : isVertical ? (
         <div
           className="absolute pointer-events-none rounded-full"
           style={{

@@ -926,6 +926,7 @@ export const de = {
   'sl.style.thickness':        'Track-Breite (px)',
   'sl.style.color':            'Slider-Farbe',
   'sl.style.commitOnRelease':  'Wert erst beim Loslassen schreiben',
+  'sl.style.readOnly':         'Nur Anzeige (Fortschrittsbalken)',
   'sl.actions.title':          'Aktions-Buttons',
   'sl.actions.add':            '+ Button hinzufügen',
   'sl.actions.icon':           'Icon',

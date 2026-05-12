@@ -1607,6 +1607,18 @@ function SliderEditPanel({
               {t('sl.style.commitOnRelease' as never)}
             </span>
           </label>
+          {/* Read-only / Fortschrittsanzeige */}
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!o.readOnly}
+              onChange={(e) => setO({ readOnly: e.target.checked || undefined })}
+              className="rounded"
+            />
+            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+              {t('sl.style.readOnly' as never)}
+            </span>
+          </label>
         </div>
       </details>
 

@@ -928,6 +928,7 @@ export const en: Record<TranslationKey, string> = {
   'sl.style.thickness':        'Track thickness (px)',
   'sl.style.color':            'Slider color',
   'sl.style.commitOnRelease':  'Write value only on release',
+  'sl.style.readOnly':         'Read-only (progress bar)',
   'sl.actions.title':          'Action buttons',
   'sl.actions.add':            '+ Add button',
   'sl.actions.icon':           'Icon',
