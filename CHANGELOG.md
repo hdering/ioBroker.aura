@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.7.13 (2026-05-12)
+
+- fix(jsontable): re-apply auto-height when external writes revert gridPos.h
+- debug(jsontable): log every config.gridPos.h change + onConfigChange calls
+- debug(jsontable): log resolved gridGap/gridRowHeight values
+- fix(jsontable): auto-height honors global gridGap/gridRowHeight settings
+- build: rebuild frontend bundle to include auto-height fixes and debug logs
+- debug(jsontable): log all measurements in auto-height effect
+- fix(jsontable): handle table-wrapper overflow:auto clipping in auto-height
+
 ## v0.7.12 (2026-05-12)
 
 Release v0.7.12
@@ -383,6 +393,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
