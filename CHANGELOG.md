@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.15 (2026-05-12)
+
+- fix(evcc): show loadpoint title instead of generic 'Vehicle' fallback
+
 ## v0.7.13 (2026-05-12)
 
 - fix(jsontable): re-apply auto-height when external writes revert gridPos.h
@@ -393,6 +397,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
