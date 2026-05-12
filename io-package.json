@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.7.29",
+    "version": "0.7.30",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.7.30": {
+        "en": "feat(enum): Standard-Custom-Layout (3×3 CustomGridView); revert(enum): Custom-Layout entfernen – nur Universal-Widget hat das erweiterte Custom-Layout; feat(enum): aktuelles Label additiv anzeigen + Custom-Layout",
+        "de": "feat(enum): Standard-Custom-Layout (3×3 CustomGridView); revert(enum): Custom-Layout entfernen – nur Universal-Widget hat das erweiterte Custom-Layout; feat(enum): aktuelles Label additiv anzeigen + Custom-Layout"
+      },
       "0.7.29": {
         "en": "fix(enum): register EnumWidget in WidgetFrame's local widget-map; fix(enum): widget.enum i18n key + rebuild bundle; feat(enum): Auswahlfeld widget – DP-Werte auf Labels mappen + Dropdown-Schreibback",
         "de": "fix(enum): register EnumWidget in WidgetFrame's local widget-map; fix(enum): widget.enum i18n key + rebuild bundle; feat(enum): Auswahlfeld widget – DP-Werte auf Labels mappen + Dropdown-Schreibback"

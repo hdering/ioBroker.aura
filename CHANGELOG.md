@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.30 (2026-05-12)
+
+- feat(enum): Standard-Custom-Layout (3×3 CustomGridView)
+- revert(enum): Custom-Layout entfernen – nur Universal-Widget hat das erweiterte Custom-Layout
+- feat(enum): aktuelles Label additiv anzeigen + Custom-Layout
+
 ## v0.7.29 (2026-05-12)
 
 - fix(enum): register EnumWidget in WidgetFrame's local widget-map
@@ -445,6 +451,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
