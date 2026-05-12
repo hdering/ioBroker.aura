@@ -150,6 +150,23 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
       }
       const naturalH = el.scrollHeight + parentOverhead;
       const newH = Math.max(1, Math.ceil((naturalH + margin) / (cellSize + margin)));
+      // TEMP DEBUG v3 ————————————————————————————————————————————
+      // eslint-disable-next-line no-console
+      console.log('[JsonTable autoHeight v3]', {
+        widgetId: config.id,
+        layout_gridGap: layout?.settings?.gridGap ?? null,
+        frontend_gridGap: frontend.gridGap,
+        layout_gridRowHeight: layout?.settings?.gridRowHeight ?? null,
+        frontend_gridRowHeight: frontend.gridRowHeight,
+        resolved_cellSize: cellSize,
+        resolved_margin: margin,
+        scrollHeight: el.scrollHeight,
+        parentOverhead,
+        currentH: config.gridPos.h,
+        lastHRef: lastHRef.current,
+        computedNewH: newH,
+      });
+      // ——————————————————————————————————————————————————————————
       if (newH !== lastHRef.current) {
         lastHRef.current = newH;
         onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
