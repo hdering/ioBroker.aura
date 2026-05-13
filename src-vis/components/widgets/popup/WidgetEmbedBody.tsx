@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import type { WidgetConfig } from '../../../types';
 import type { ClickAction } from '../../../types';
@@ -54,7 +55,9 @@ export function WidgetEmbedBody({ widget, action, allWidgets }: Props) {
         overflow: 'auto',
       }}
     >
-      <Widget config={embedConfig} editMode={false} onConfigChange={() => {}} />
+      <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
+        <Widget config={embedConfig} editMode={false} onConfigChange={() => {}} />
+      </Suspense>
     </div>
   );
 }

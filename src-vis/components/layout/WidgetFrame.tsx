@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useT, t, type TranslationKey } from '../../i18n';
@@ -36,8 +36,13 @@ import { SwitchWidget } from '../widgets/SwitchWidget';
 import { ValueWidget } from '../widgets/ValueWidget';
 import { DimmerWidget } from '../widgets/DimmerWidget';
 import { ThermostatWidget } from '../widgets/ThermostatWidget';
-import { ChartWidget } from '../widgets/ChartWidget';
-import { ClimateWidget } from '../widgets/ClimateWidget';
+// Chart widgets are heavy (recharts ~380 KB, echarts ~1.1 MB) and only used on
+// dashboards that actually have chart widgets — lazy-loaded so they don't
+// block first paint of the rest of the dashboard.
+const ChartWidget        = lazy(() => import('../widgets/ChartWidget').then((m)        => ({ default: m.ChartWidget })));
+const ClimateWidget      = lazy(() => import('../widgets/ClimateWidget').then((m)      => ({ default: m.ClimateWidget })));
+const EChartWidget       = lazy(() => import('../widgets/EChartWidget').then((m)       => ({ default: m.EChartWidget })));
+const EChartsPresetWidget = lazy(() => import('../widgets/EChartsPresetWidget').then((m) => ({ default: m.EChartsPresetWidget })));
 import { ListWidget } from '../widgets/ListWidget';
 import { ClockWidget } from '../widgets/ClockWidget';
 import { CalendarWidget, getSources, DEFAULT_CAL_COLORS, type CalendarSource } from '../widgets/CalendarWidget';
@@ -45,7 +50,6 @@ import { HeaderWidget } from '../widgets/HeaderWidget';
 // GroupWidget imports WidgetFrame (circular) — safe because it only uses WidgetFrame
 // inside its render function, never at module-init time.
 import { GroupWidget } from '../widgets/GroupWidget';
-import { EChartWidget } from '../widgets/EChartWidget';
 import { EChartConfig } from '../config/EChartConfig';
 import { EvccWidget } from '../widgets/EvccWidget';
 import { EvccConfig } from '../widgets/EvccWidget';
@@ -63,7 +67,6 @@ import { JsonTableWidget } from '../widgets/JsonTableWidget';
 import { WindowContactWidget, WC_PRESETS, WC_PRESET_LABELS } from '../widgets/WindowContactWidget';
 import { BinarySensorWidget, BINARY_SENSOR_PRESETS } from '../widgets/BinarySensorWidget';
 import { StateImageWidget } from '../widgets/StateImageWidget';
-import { EChartsPresetWidget } from '../widgets/EChartsPresetWidget';
 import { EChartsPresetConfig } from '../config/EChartsPresetConfig';
 import { JsonTableConfig } from '../config/JsonTableConfig';
 import { HtmlWidget } from '../widgets/HtmlWidget';
@@ -2721,12 +2724,14 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       )}
 
       {Widget ? (
-        <Widget
-          config={config.options?.hideTitle ? { ...config, title: '' } : config}
-          editMode={editMode}
-          onConfigChange={onConfigChange}
-          onLastChange={setLastChangedTs}
-        />
+        <Suspense fallback={<div className="h-full w-full" style={{ background: 'var(--app-bg)', opacity: 0.3 }} />}>
+          <Widget
+            config={config.options?.hideTitle ? { ...config, title: '' } : config}
+            editMode={editMode}
+            onConfigChange={onConfigChange}
+            onLastChange={setLastChangedTs}
+          />
+        </Suspense>
       ) : (
         <div className="flex flex-col items-center justify-center h-full gap-1 text-center px-2"
           style={{ color: 'var(--text-secondary)' }}>

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 import { AlertTriangle } from 'lucide-react';
 import { usePopupConfigStore } from '../../../store/popupConfigStore';
@@ -117,7 +117,9 @@ export function TabEmbedBody({ viewId, triggerWidget }: Props) {
             return (
               <div key={w.id}>
                 {Widget ? (
-                  <Widget config={w} editMode={false} onConfigChange={() => {}} />
+                  <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
+                    <Widget config={w} editMode={false} onConfigChange={() => {}} />
+                  </Suspense>
                 ) : (
                   <div
                     className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs h-full"

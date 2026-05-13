@@ -1,15 +1,14 @@
+import { lazy } from 'react';
 import { SwitchWidget } from './SwitchWidget';
 import { ValueWidget } from './ValueWidget';
 import { DimmerWidget } from './DimmerWidget';
 import { ThermostatWidget } from './ThermostatWidget';
-import { ChartWidget } from './ChartWidget';
 import { ListWidget } from './ListWidget';
 import { ClockWidget } from './ClockWidget';
 import { CalendarWidget } from './CalendarWidget';
 import { HeaderWidget } from './HeaderWidget';
 // GroupWidget imports WidgetFrame (circular) — safe because it's only used inside render functions
 import { GroupWidget } from './GroupWidget';
-import { EChartWidget } from './EChartWidget';
 import { EvccWidget } from './EvccWidget';
 import { WeatherWidget } from './WeatherWidget';
 import { GaugeWidget } from './GaugeWidget';
@@ -26,13 +25,19 @@ import { HtmlWidget } from './HtmlWidget';
 import { WindowContactWidget } from './WindowContactWidget';
 import { BinarySensorWidget } from './BinarySensorWidget';
 import { StateImageWidget } from './StateImageWidget';
-import { EChartsPresetWidget } from './EChartsPresetWidget';
 import { DatePickerWidget } from './DatePickerWidget';
 import { MediaplayerWidget } from './MediaplayerWidget';
 import { SliderWidget } from './SliderWidget';
-import { ClimateWidget } from './ClimateWidget';
 import { UniversalWidget } from './UniversalWidget';
 import { EnumWidget } from './EnumWidget';
+
+// Chart widgets are heavy (recharts ~380 KB, echarts ~1.1 MB) — lazy-loaded so
+// dashboards without charts skip the cost. Consumers must render these inside
+// a <Suspense> boundary.
+const ChartWidget         = lazy(() => import('./ChartWidget').then((m)         => ({ default: m.ChartWidget })));
+const ClimateWidget       = lazy(() => import('./ClimateWidget').then((m)       => ({ default: m.ClimateWidget })));
+const EChartWidget        = lazy(() => import('./EChartWidget').then((m)        => ({ default: m.EChartWidget })));
+const EChartsPresetWidget = lazy(() => import('./EChartsPresetWidget').then((m) => ({ default: m.EChartsPresetWidget })));
 
 export function getWidgetMap() {
   return {

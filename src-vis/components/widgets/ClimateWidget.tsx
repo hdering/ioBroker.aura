@@ -9,7 +9,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { WidgetProps } from '../../types';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
-import { formatYTick } from './ChartWidget';
+import { formatYTick } from '../../utils/chartFormat';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
