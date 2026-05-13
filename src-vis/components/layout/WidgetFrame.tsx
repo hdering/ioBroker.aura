@@ -77,7 +77,7 @@ import { ButtonWidget } from '../widgets/ButtonWidget';
 import { UniversalWidget } from '../widgets/UniversalWidget';
 import { EnumWidget } from '../widgets/EnumWidget';
 import { IconPickerModal } from '../config/IconPickerModal';
-import { ClickActionEditor } from '../config/ClickActionEditor';
+import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
 import { WidgetClickPopup } from '../widgets/popup/WidgetClickPopup';
 import { useNavigationStore } from '../../store/navigationStore';
 import { usePopupConfigStore } from '../../store/popupConfigStore';
@@ -2509,9 +2509,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
     }).filter(([, v]) => v !== undefined && v !== ''),
   ) as React.CSSProperties;
 
-  // ── Click action (2-level popup resolution) ───────────────────────────────
-  // Ebene 2: explicit widget-level action (stored in options.clickAction)
-  // Ebene 1: type default → resolve via popupConfigStore when no explicit action
+  // ── Click action (3-level resolution) ─────────────────────────────────────
+  // Ebene 3: explicit widget-level action (stored in options.clickAction)
+  // Ebene 2: admin-configured type default (popupConfigStore) — dynamic
+  // Ebene 1: built-in default for known widget types (dimmer, thermostat, …)
   const popupTypeDefaults = usePopupConfigStore((s) => s.typeDefaults);
   const popupTypeDefaultLayouts = usePopupConfigStore((s) => s.typeDefaultLayouts);
   const storedClickAction = config.options?.clickAction as ClickAction | undefined;
@@ -2526,6 +2527,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           return { kind: 'popup-view', viewId };
         }
       }
+      const builtIn = defaultActionForConfig(config);
+      if (builtIn) return builtIn;
     }
     return rawClickAction;
   })();

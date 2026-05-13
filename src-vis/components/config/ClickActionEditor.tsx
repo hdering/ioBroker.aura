@@ -16,7 +16,7 @@ function normalizeAction(action: ClickAction): ClickAction {
   }
 }
 
-function defaultActionForConfig(config: WidgetConfig): ClickAction | null {
+export function defaultActionForConfig(config: WidgetConfig): ClickAction | null {
   switch (config.type) {
     case 'dimmer':      return { kind: 'popup-view', viewId: 'pv-builtin-dimmer' };
     case 'thermostat':  return { kind: 'popup-view', viewId: 'pv-builtin-thermostat' };
@@ -115,12 +115,11 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
     onConfigChange({ ...config, options: { ...o, clickAction: patch } });
   };
 
-  // Persist the derived default on first open for built-in types, or migrate legacy popup kinds
+  // Migrate legacy popup kinds (popup-dimmer → popup-view) once on mount.
+  // Built-in defaults are NOT persisted — they're resolved at render/runtime,
+  // so "reset to type default" actually clears the stored value.
   useEffect(() => {
-    if (!rawStoredAction) {
-      const def = defaultActionForConfig(config);
-      if (def) setAction(def);
-    } else if (rawStoredAction !== storedAction) {
+    if (rawStoredAction && rawStoredAction !== storedAction) {
       setAction(storedAction!);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -164,13 +163,18 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
   const popupViews = usePopupConfigStore((s) => s.views);
   const popupTypeDefaults = usePopupConfigStore((s) => s.typeDefaults);
 
-  // Dynamic type default: not stored, so admin changes propagate to all unmodified widgets
-  const typeDefaultViewId = !storedAction && !defaultActionForConfig(config) ? popupTypeDefaults[config.type] : undefined;
+  // Resolution order when no explicit action is stored:
+  //   1. Admin-configured type default (dynamic — admin edits propagate live)
+  //   2. Built-in default for known widget types (dimmer, thermostat, …)
+  //   3. 'none'
+  const typeDefaultViewId = !storedAction ? popupTypeDefaults[config.type] : undefined;
+  const builtInDefault = !storedAction && !typeDefaultViewId ? defaultActionForConfig(config) : null;
   const action: ClickAction = storedAction
-    ?? defaultActionForConfig(config)
     ?? (typeDefaultViewId ? { kind: 'popup-view' as const, viewId: typeDefaultViewId } : null)
+    ?? builtInDefault
     ?? { kind: 'none' as const };
   const isTypeDefaultActive = !!typeDefaultViewId;
+  const hasFallback = !!popupTypeDefaults[config.type] || !!defaultActionForConfig(config);
 
   const isPopup = action.kind.startsWith('popup-');
 
@@ -207,7 +211,7 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
             Vom Typ-Standard geerbt – ändert sich automatisch mit der Admin-Einstellung. Wähle &bdquo;Aus&rdquo; zum Deaktivieren.
           </p>
         )}
-        {rawStoredAction && popupTypeDefaults[config.type] && (
+        {rawStoredAction && hasFallback && (
           <button
             onClick={resetToTypeDefault}
             className="text-[11px] mt-1.5 w-full px-2 py-1.5 rounded-lg text-left hover:opacity-80 transition-opacity"
