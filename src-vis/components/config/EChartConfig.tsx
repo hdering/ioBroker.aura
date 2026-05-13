@@ -43,6 +43,8 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
   const o = config.options ?? {};
   const { defaultDecimals } = useGlobalSettingsStore();
   const series = (o.echartSeries as EChartSeriesConfig[] | undefined) ?? [];
+  const echartMode = (o.echartMode as string | undefined) ?? 'timeseries';
+  const isComparison = echartMode === 'comparison';
   const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? true;
   const echartShowYAxis = (o.echartShowYAxis as boolean | undefined) ?? true;
   const echartLeftUnit = (o.echartLeftUnit as string | undefined) ?? '';
@@ -139,6 +141,27 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
       className="aura-scroll flex flex-col gap-0 overflow-y-auto"
       style={{ maxHeight: '80vh' }}
     >
+      {/* ── Mode toggle ─────────────────────────────────────────────────── */}
+      <div className="mb-3">
+        <label className="text-[11px] mb-1 block font-semibold" style={{ color: 'var(--text-secondary)' }}>{t('echart.mode')}</label>
+        <div className="flex gap-1">
+          {(['timeseries', 'comparison'] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => setO({ echartMode: m })}
+              className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+              style={{
+                background: echartMode === m ? 'var(--accent)' : 'var(--app-bg)',
+                color: echartMode === m ? '#fff' : 'var(--text-secondary)',
+                border: `1px solid ${echartMode === m ? 'var(--accent)' : 'var(--app-border)'}`,
+              }}
+            >
+              {m === 'timeseries' ? t('echart.modeTimeseries') : t('echart.modeComparison')}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* ── Series list ──────────────────────────────────────────────────── */}
       <div>
         <div className="flex items-center justify-between mb-2">
@@ -268,7 +291,8 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                       </div>
                     </div>
 
-                    {/* Chart type */}
+                    {/* Chart type — hidden in comparison mode */}
+                    {!isComparison && (
                     <div>
                       <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('echart.chartType')}</label>
                       <div className="flex gap-1">
@@ -288,6 +312,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         ))}
                       </div>
                     </div>
+                    )}
 
                     {/* Color */}
                     <div>
@@ -310,125 +335,124 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                       </div>
                     </div>
 
-                    {/* Y-Axis */}
-                    <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('echart.yAxis')}</label>
-                      <div className="flex gap-1">
-                        {([0, 1] as const).map((yi) => (
-                          <button
-                            key={yi}
-                            onClick={() => updateSeries(s.id, { yAxisIndex: yi })}
-                            className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
-                            style={{
-                              background: (s.yAxisIndex ?? 0) === yi ? 'var(--accent)' : 'var(--app-bg)',
-                              color: (s.yAxisIndex ?? 0) === yi ? '#fff' : 'var(--text-secondary)',
-                              border: `1px solid ${(s.yAxisIndex ?? 0) === yi ? 'var(--accent)' : 'var(--app-border)'}`,
-                            }}
-                          >
-                            {yi === 0 ? t('echart.yLeft') : t('echart.yRight')}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Smooth (only for line/area) */}
-                    {(s.chartType === 'line' || s.chartType === 'area') && (
-                      <div className="flex items-center justify-between">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('echart.smooth')}</label>
-                        <button
-                          onClick={() => updateSeries(s.id, { smooth: !(s.smooth ?? true) })}
-                          className="relative w-9 h-5 rounded-full transition-colors"
-                          style={{ background: (s.smooth ?? true) ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                          <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                            style={{ left: (s.smooth ?? true) ? '18px' : '2px' }}
-                          />
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Line width (line/area) */}
-                    {(s.chartType === 'line' || s.chartType === 'area') && (
+                    {/* Y-Axis, Smooth, LineWidth, History — hidden in comparison mode */}
+                    {!isComparison && (<>
                       <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                          {t('echart.lineWidth', { value: s.lineWidth ?? 2 })}
-                        </label>
-                        <input
-                          type="range"
-                          min={1}
-                          max={4}
-                          step={1}
-                          value={s.lineWidth ?? 2}
-                          onChange={(e) => updateSeries(s.id, { lineWidth: Number(e.target.value) })}
-                          className="w-full accent-[var(--accent)]"
-                        />
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('echart.yAxis')}</label>
+                        <div className="flex gap-1">
+                          {([0, 1] as const).map((yi) => (
+                            <button
+                              key={yi}
+                              onClick={() => updateSeries(s.id, { yAxisIndex: yi })}
+                              className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                              style={{
+                                background: (s.yAxisIndex ?? 0) === yi ? 'var(--accent)' : 'var(--app-bg)',
+                                color: (s.yAxisIndex ?? 0) === yi ? '#fff' : 'var(--text-secondary)',
+                                border: `1px solid ${(s.yAxisIndex ?? 0) === yi ? 'var(--accent)' : 'var(--app-border)'}`,
+                              }}
+                            >
+                              {yi === 0 ? t('echart.yLeft') : t('echart.yRight')}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    )}
 
-                    {/* History adapter detection */}
-                    <div>
-                      <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
-                      <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>{t('echart.history')}</p>
-                      {!s.datapointId && (
-                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('echart.selectDpFirst')}</p>
-                      )}
-                      {s.datapointId && adState?.checking && (
-                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('echart.checking')}</p>
-                      )}
-                      {s.datapointId && !adState?.checking && !adState && (
-                        <button
-                          onClick={() => refreshAdapters(s.id, s.datapointId)}
-                          className="text-[11px] hover:opacity-80"
-                          style={{ color: 'var(--accent)' }}
-                        >
-                          {t('echart.detect')}
-                        </button>
-                      )}
-                      {s.datapointId && adState && !adState.checking && adState.adapters.length === 0 && (
-                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                          {t('echart.noAdapter')}
-                        </p>
-                      )}
-                      {s.datapointId && adState && !adState.checking && adState.adapters.length > 0 && (
-                        <div>
-                          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('echart.instance')}</label>
-                          <select
-                            value={s.historyInstance ?? ''}
-                            onChange={(e) => updateSeries(s.id, { historyInstance: e.target.value || undefined })}
-                            className={inputCls}
-                            style={inputStyle}
+                      {(s.chartType === 'line' || s.chartType === 'area') && (
+                        <div className="flex items-center justify-between">
+                          <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('echart.smooth')}</label>
+                          <button
+                            onClick={() => updateSeries(s.id, { smooth: !(s.smooth ?? true) })}
+                            className="relative w-9 h-5 rounded-full transition-colors"
+                            style={{ background: (s.smooth ?? true) ? 'var(--accent)' : 'var(--app-border)' }}
                           >
-                            <option value="">{t('echart.liveData')}</option>
-                            {adState.adapters.map((a) => (
-                              <option key={a.instance} value={a.instance}>{a.label}</option>
-                            ))}
-                          </select>
+                            <span
+                              className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                              style={{ left: (s.smooth ?? true) ? '18px' : '2px' }}
+                            />
+                          </button>
                         </div>
                       )}
-                      {s.historyInstance && (
-                        <div className="mt-1.5">
-                          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('echart.timeRange')}</label>
-                          <div className="flex gap-1 flex-wrap">
-                            {CHART_RANGES.map((r) => (
-                              <button
-                                key={r}
-                                onClick={() => updateSeries(s.id, { historyRange: r })}
-                                className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
-                                style={{
-                                  background: (s.historyRange ?? '24h') === r ? 'var(--accent)' : 'var(--app-bg)',
-                                  color: (s.historyRange ?? '24h') === r ? '#fff' : 'var(--text-secondary)',
-                                  border: `1px solid ${(s.historyRange ?? '24h') === r ? 'var(--accent)' : 'var(--app-border)'}`,
-                                  minWidth: 36,
-                                }}
-                              >
-                                {RANGE_LABELS[r]}
-                              </button>
-                            ))}
+
+                      {(s.chartType === 'line' || s.chartType === 'area') && (
+                        <div>
+                          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.lineWidth', { value: s.lineWidth ?? 2 })}
+                          </label>
+                          <input
+                            type="range"
+                            min={1}
+                            max={4}
+                            step={1}
+                            value={s.lineWidth ?? 2}
+                            onChange={(e) => updateSeries(s.id, { lineWidth: Number(e.target.value) })}
+                            className="w-full accent-[var(--accent)]"
+                          />
+                        </div>
+                      )}
+
+                      <div>
+                        <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
+                        <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>{t('echart.history')}</p>
+                        {!s.datapointId && (
+                          <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('echart.selectDpFirst')}</p>
+                        )}
+                        {s.datapointId && adState?.checking && (
+                          <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('echart.checking')}</p>
+                        )}
+                        {s.datapointId && !adState?.checking && !adState && (
+                          <button
+                            onClick={() => refreshAdapters(s.id, s.datapointId)}
+                            className="text-[11px] hover:opacity-80"
+                            style={{ color: 'var(--accent)' }}
+                          >
+                            {t('echart.detect')}
+                          </button>
+                        )}
+                        {s.datapointId && adState && !adState.checking && adState.adapters.length === 0 && (
+                          <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.noAdapter')}
+                          </p>
+                        )}
+                        {s.datapointId && adState && !adState.checking && adState.adapters.length > 0 && (
+                          <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('echart.instance')}</label>
+                            <select
+                              value={s.historyInstance ?? ''}
+                              onChange={(e) => updateSeries(s.id, { historyInstance: e.target.value || undefined })}
+                              className={inputCls}
+                              style={inputStyle}
+                            >
+                              <option value="">{t('echart.liveData')}</option>
+                              {adState.adapters.map((a) => (
+                                <option key={a.instance} value={a.instance}>{a.label}</option>
+                              ))}
+                            </select>
                           </div>
-                        </div>
-                      )}
-                    </div>
+                        )}
+                        {s.historyInstance && (
+                          <div className="mt-1.5">
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('echart.timeRange')}</label>
+                            <div className="flex gap-1 flex-wrap">
+                              {CHART_RANGES.map((r) => (
+                                <button
+                                  key={r}
+                                  onClick={() => updateSeries(s.id, { historyRange: r })}
+                                  className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                  style={{
+                                    background: (s.historyRange ?? '24h') === r ? 'var(--accent)' : 'var(--app-bg)',
+                                    color: (s.historyRange ?? '24h') === r ? '#fff' : 'var(--text-secondary)',
+                                    border: `1px solid ${(s.historyRange ?? '24h') === r ? 'var(--accent)' : 'var(--app-border)'}`,
+                                    minWidth: 36,
+                                  }}
+                                >
+                                  {RANGE_LABELS[r]}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </>)}
                   </div>
                 )}
               </div>

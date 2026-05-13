@@ -697,6 +697,9 @@ export const de = {
   'echart.jsonOverride': 'JSON-Override',
   'echart.jsonOverrideHint': 'Wird mit der auto-generierten ECharts-Option zusammengeführt (deep merge). Arrays werden ersetzt.',
   'echart.active':       'aktiv',
+  'echart.mode':           'Modus',
+  'echart.modeTimeseries': 'Zeitreihe',
+  'echart.modeComparison': 'Vergleich',
 
   // ── Device Wizard ─────────────────────────────────────────────────────────────
   'wizard.device.title':      'Geräte aus ioBroker',

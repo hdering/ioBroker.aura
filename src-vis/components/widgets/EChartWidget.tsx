@@ -59,6 +59,7 @@ export function EChartWidget({ config }: WidgetProps) {
   const echartRightMax = o.echartRightMax as number | string | undefined;
   const echartJsonExtra   = (o.echartJsonExtra   as string  | undefined) ?? '';
   const echartShowYAxis   = (o.echartShowYAxis   as boolean | undefined) ?? true;
+  const echartMode        = (o.echartMode        as string  | undefined) ?? 'timeseries';
   const isGauge = config.layout === 'gauge' as string;
 
   const seriesDataMap = useMultiSeriesData(echartSeries, connected, subscribe);
@@ -147,6 +148,112 @@ export function EChartWidget({ config }: WidgetProps) {
             <ReactECharts
               ref={chartRef}
               option={mergedGauge}
+              style={{ width: '100%', height: '100%' }}
+              opts={{ renderer: 'canvas' }}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Comparison mode: categorical bar chart — each series = one bar with its current value
+  if (echartMode === 'comparison') {
+    const categories = echartSeries.map((s) => s.name);
+    const values = echartSeries.map((s, idx) => ({
+      value: seriesDataMap.get(s.id)?.current ?? null,
+      itemStyle: { color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length] },
+    }));
+    const hasData = values.some((v) => v.value !== null);
+
+    const compOption: Record<string, unknown> = {
+      backgroundColor: 'transparent',
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'var(--app-surface, #1e1e1e)',
+        borderColor: 'var(--app-border, #333)',
+        textStyle: { color: 'var(--text-primary, #ccc)', fontSize: 11 },
+        formatter: (params: unknown) => {
+          const items = params as { name: string; value: number; marker: string }[];
+          if (!items?.length) return '';
+          return items.map((p) => {
+            const dispVal = typeof p.value === 'number' ? formatNum(p.value, decimals) : p.value;
+            return `${p.marker} ${p.name}: <b>${dispVal}${echartLeftUnit ? ' ' + echartLeftUnit : ''}</b>`;
+          }).join('<br/>');
+        },
+      },
+      legend: { show: false },
+      grid: {
+        left: echartShowYAxis ? 60 : 12,
+        right: 12,
+        top: 16,
+        bottom: 40,
+        containLabel: false,
+      },
+      xAxis: {
+        type: 'category',
+        data: categories,
+        axisLabel: { color: '#888', fontSize: 10 },
+        axisLine: { lineStyle: { color: '#444' } },
+        splitLine: { show: false },
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: {
+          show: echartShowYAxis,
+          color: '#888',
+          fontSize: 10,
+          formatter: echartLeftUnit ? `{value} ${echartLeftUnit}` : '{value}',
+        },
+        axisTick: { show: echartShowYAxis },
+        axisLine: { show: echartShowYAxis, lineStyle: { color: '#444' } },
+        splitLine: { show: echartShowYAxis, lineStyle: { color: '#333' } },
+        ...(echartLeftMin !== undefined ? { min: echartLeftMin } : {}),
+        ...(echartLeftMax !== undefined ? { max: echartLeftMax } : {}),
+      },
+      series: [{
+        type: 'bar',
+        data: values,
+        label: {
+          show: true,
+          position: 'top',
+          color: '#888',
+          fontSize: 10,
+          formatter: (p: { value: number | null }) => {
+            if (p.value === null || p.value === undefined) return '';
+            return `${formatNum(p.value, decimals)}${echartLeftUnit ? ' ' + echartLeftUnit : ''}`;
+          },
+        },
+      }],
+    };
+
+    let mergedComp = compOption;
+    if (echartJsonExtra) {
+      try {
+        const extra = JSON.parse(echartJsonExtra) as Record<string, unknown>;
+        mergedComp = deepMerge(compOption, extra);
+      } catch { /* ignore invalid JSON */ }
+    }
+
+    return (
+      <div ref={containerRef} className="flex flex-col w-full h-full">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          </div>
+        )}
+        <div className="flex-1 relative min-h-0">
+          {(echartSeries.length === 0 || !hasData) && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+              <BarChart2 size={28} strokeWidth={1.5} />
+              <span className="text-xs">Keine Daten</span>
+            </div>
+          )}
+          {hasSize && hasData && (
+            <ReactECharts
+              ref={chartRef}
+              option={mergedComp}
               style={{ width: '100%', height: '100%' }}
               opts={{ renderer: 'canvas' }}
             />

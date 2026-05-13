@@ -699,6 +699,9 @@ export const en: Record<TranslationKey, string> = {
   'echart.jsonOverride': 'JSON Override',
   'echart.jsonOverrideHint': 'Merged with auto-generated ECharts option (deep merge). Arrays are replaced.',
   'echart.active':       'active',
+  'echart.mode':           'Mode',
+  'echart.modeTimeseries': 'Time Series',
+  'echart.modeComparison': 'Comparison',
 
   // ── Device Wizard ─────────────────────────────────────────────────────────────
   'wizard.device.title':       'Devices from ioBroker',
