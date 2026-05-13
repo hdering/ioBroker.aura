@@ -54,6 +54,18 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
   const tabs = viewTabs ?? activeLayout.tabs;
   const activeTabId = viewActiveTabId ?? activeLayout.activeTabId;
 
+  // Track which tabs have ever been activated. Only those get their widgets
+  // mounted — pre-mounting all tabs would defeat lazy widget chunks (echarts,
+  // recharts) and load chart libs even on tabs that have no charts. Tabs the
+  // user *did* visit stay mounted so iframe widgets keep their state.
+  const [mountedTabIds, setMountedTabIds] = useState<Set<string>>(() =>
+    activeTabId ? new Set([activeTabId]) : new Set(),
+  );
+  useEffect(() => {
+    if (!activeTabId) return;
+    setMountedTabIds((prev) => (prev.has(activeTabId) ? prev : new Set(prev).add(activeTabId)));
+  }, [activeTabId]);
+
   const reflowHiddenIds = useReflowHiddenIds();
 
   // ── iFrame fullscreen overlay ──────────────────────────────────────────
@@ -168,8 +180,11 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
               ))
             )}
           </div>
-          {/* All tabs rendered; inactive ones hidden so keepAlive iframes stay mounted */}
-          {tabs.map((tab) => {
+          {/* Mount-on-visit: tabs are rendered the first time the user activates
+              them, and stay mounted afterwards (so iframe widgets keep state).
+              Unvisited tabs are skipped entirely so their widgets don't pull in
+              lazy chunks (echarts, recharts) on initial load. */}
+          {tabs.filter((tab) => mountedTabIds.has(tab.id)).map((tab) => {
             const isActive = tab.id === activeTabId;
             const tabWidgets = (tab.widgets ?? []).filter((w) => !reflowHiddenIds.has(w.id) && !(fillTabWidget && w.id === fillTabWidget.id));
             const sorted = [...tabWidgets].sort((a, b) => {
@@ -230,8 +245,8 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
             )}
           </div>
 
-          {/* All tabs rendered; inactive ones hidden so keepAlive iframes stay mounted */}
-          {tabs.map((tab) => {
+          {/* Mount-on-visit: see comment above for mobile branch. */}
+          {tabs.filter((tab) => mountedTabIds.has(tab.id)).map((tab) => {
             const isActive = tab.id === activeTabId;
             const tabWidgets = tab.widgets ?? [];
             // Exclude the fillTab widget from the grid — it is rendered as an absolute overlay above
