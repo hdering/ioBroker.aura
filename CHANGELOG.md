@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.39 (2026-05-13)
+
+Release v0.7.39
+
 ## v0.7.38 (2026-05-12)
 
 - fix(popup): mobile-Breite nutzt Viewport besser (calc(100vw-16px) statt 90vw)
@@ -476,6 +480,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
