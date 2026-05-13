@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.7.44",
+    "version": "0.7.45",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.7.45": {
+        "en": "feat(picker): Spaltenansicht mit Wert/Einheit/Typ/History + Filter für Einheit und History",
+        "de": "feat(picker): Spaltenansicht mit Wert/Einheit/Typ/History + Filter für Einheit und History"
+      },
       "0.7.44": {
         "en": "feat: Tab-Export und -Import im Dashboard-Editor",
         "de": "feat: Tab-Export und -Import im Dashboard-Editor"

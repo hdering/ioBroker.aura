@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.45 (2026-05-13)
+
+- feat(picker): Spaltenansicht mit Wert/Einheit/Typ/History + Filter für Einheit und History
+
 ## v0.7.44 (2026-05-13)
 
 - feat: Tab-Export und -Import im Dashboard-Editor
@@ -500,6 +504,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
