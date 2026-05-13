@@ -170,6 +170,7 @@ interface DashboardState {
 
   // ── Tab CRUD (on activeLayoutId) ─────────────────────────────────────────
   addTab: (name: string) => void;
+  addTabFromImport: (tabData: Omit<Tab, 'id'>) => void;
   removeTab: (id: string) => void;
   renameTab: (id: string, name: string) => void;
   updateTab: (id: string, patch: Partial<Pick<Tab, 'name' | 'slug' | 'icon' | 'hideLabel' | 'disabled' | 'conditions'>>) => void;
@@ -270,6 +271,16 @@ export const useDashboardStore = create<DashboardState>()(
           ({ layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => {
             const slug = uniqueTabSlug(slugify(name), l.tabs);
             return { ...l, tabs: [...l.tabs, { id, name, slug, widgets: [] }], activeTabId: id };
+          }) })
+        );
+      },
+
+      addTabFromImport: (tabData) => {
+        const id = `tab-${Date.now()}`;
+        set((s) =>
+          ({ layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => {
+            const slug = uniqueTabSlug(tabData.slug || slugify(tabData.name), l.tabs);
+            return { ...l, tabs: [...l.tabs, { ...tabData, id, slug }], activeTabId: id };
           }) })
         );
       },

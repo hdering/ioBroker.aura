@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Settings, X, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
+import { Settings, X, GripVertical, ChevronDown, ChevronRight, Download, Upload } from 'lucide-react';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import type { Tab, TabBarItem, TabBarSettings, DashboardLayout } from '../../store/dashboardStore';
+import { exportTab, importTab } from '../../utils/widgetExportImport';
 import { useConfigStore } from '../../store/configStore';
 import { Icon } from '@iconify/react';
 import { loadIconSets, areIconSetsLoaded } from '../../utils/iconifyLoader';
@@ -173,7 +174,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
     layoutId ? (s.layouts.find((l) => l.id === layoutId) ?? null) : null,
   ) as DashboardLayout | null;
   const layout = specificLayout ?? activeLayout;
-  const { setActiveTab, addTab, removeTab, renameTab, updateTab, reorderTabs, editMode } = useDashboardStore();
+  const { setActiveTab, addTab, addTabFromImport, removeTab, renameTab, updateTab, reorderTabs, editMode } = useDashboardStore();
 
   const tabs = viewTabs ?? layout.tabs;
   const activeTabId = viewActiveTabId ?? layout.activeTabId;
@@ -212,6 +213,23 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
 
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+
+  const importTabRef = useRef<HTMLInputElement>(null);
+  const handleImportTab = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const raw = JSON.parse(String(ev.target?.result ?? ''));
+        const tabData = importTab(raw);
+        if (!tabData) { alert(t('tabBar.importInvalidFile')); return; }
+        addTabFromImport(tabData);
+      } catch { alert(t('tabBar.importInvalidFile')); }
+      if (importTabRef.current) importTabRef.current.value = '';
+    };
+    reader.readAsText(file);
+  }, [addTabFromImport, t]);
 
   useEffect(() => {
     if (editingId && inputRef.current) { inputRef.current.focus(); inputRef.current.select(); }
@@ -382,11 +400,12 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
         <>
           <div className="fixed inset-0 z-[998]" onClick={() => setSettingsTabId(null)} />
           <div
-            className="fixed z-[999] rounded-xl shadow-2xl p-3 space-y-3"
+            className="fixed z-[999] rounded-xl shadow-2xl p-3 space-y-3 overflow-y-auto"
             style={{
               top: panelPos.top,
               left: panelPos.left,
               width: conditionsOpen ? 500 : 256,
+              maxHeight: `calc(100vh - ${panelPos.top}px - 16px)`,
               background: 'var(--app-surface)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
@@ -491,6 +510,18 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
                 </div>
               )}
             </div>
+
+            {/* ── Export tab ──────────────────────────────────────────────── */}
+            <div className="border-t pt-2" style={{ borderColor: 'var(--app-border)' }}>
+              <button
+                onClick={() => exportTab(settingsTab)}
+                className="flex items-center gap-1.5 w-full px-2.5 py-2 rounded-lg text-xs hover:opacity-80 transition-opacity"
+                style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-secondary)' }}
+              >
+                <Download size={11} />
+                {t('tabBar.exportTab')}
+              </button>
+            </div>
           </div>
         </>,
         document.body,
@@ -511,11 +542,21 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
   const needsGrid = hasExtras || tabsAlignment !== 'left';
 
   const addTabBtn = !readonly && editMode && (
-    <button onClick={() => addTab(`Tab ${tabs.length + 1}`)}
-      className="px-3 py-2.5 text-sm transition-colors whitespace-nowrap hover:opacity-80"
-      style={{ color: 'var(--text-secondary)' }}>
-      {t('tabBar.addTab')}
-    </button>
+    <>
+      <button onClick={() => addTab(`Tab ${tabs.length + 1}`)}
+        className="px-3 py-2.5 text-sm transition-colors whitespace-nowrap hover:opacity-80"
+        style={{ color: 'var(--text-secondary)' }}>
+        {t('tabBar.addTab')}
+      </button>
+      <label
+        className="flex items-center justify-center w-7 h-7 rounded cursor-pointer hover:opacity-80 transition-opacity shrink-0"
+        style={{ color: 'var(--text-secondary)' }}
+        title={t('tabBar.importTab')}
+      >
+        <Upload size={13} />
+        <input ref={importTabRef} type="file" accept=".json" onChange={handleImportTab} className="hidden" />
+      </label>
+    </>
   );
 
   if (needsGrid) {

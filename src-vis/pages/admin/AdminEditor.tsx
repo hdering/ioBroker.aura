@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { shallow } from 'zustand/shallow';
-import { Plus, Trash2, Edit3, Check, Database, Wand2, Smartphone, GripVertical, Upload, Settings, X, Ruler, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Edit3, Check, Database, Wand2, Smartphone, GripVertical, Upload, Settings, X, Ruler, ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { Icon } from '@iconify/react';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -21,6 +21,7 @@ import { useT } from '../../i18n';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { DP_TEMPLATES, DP_TEMPLATE_CATEGORIES, detectWidgetTypeFromRole, findTemplateByRole, findMainDpForSecondary, autoDetectStatusDps } from '../../utils/dpTemplates';
 import { slugify } from '../../utils/slugify';
+import { exportTab } from '../../utils/widgetExportImport';
 
 // Layout labels are resolved inside components via t() to support i18n
 const LAYOUT_IDS: WidgetLayout[] = ['default', 'card', 'compact', 'minimal'];
@@ -1086,6 +1087,18 @@ const TabBar = memo(function TabBar() {
                 </div>
               )}
             </div>
+
+            {/* ── Export tab ──────────────────────────────────────────────── */}
+            <div className="border-t pt-2" style={{ borderColor: 'var(--app-border)' }}>
+              <button
+                onClick={() => exportTab(settingsTab)}
+                className="flex items-center gap-1.5 w-full px-2.5 py-2 rounded-lg text-xs hover:opacity-80 transition-opacity"
+                style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-secondary)' }}
+              >
+                <Download size={11} />
+                {t('tabBar.exportTab')}
+              </button>
+            </div>
           </div>
         </>,
         portalTarget,
@@ -1118,6 +1131,7 @@ export function AdminEditor() {
   const setActiveLayout = useDashboardStore((s) => s.setActiveLayout);
   const addWidget = useDashboardStore((s) => s.addWidget);
   const addTab = useDashboardStore((s) => s.addTab);
+  const addTabFromImportOuter = useDashboardStore((s) => s.addTabFromImport);
 
   const { frontend, updateFrontend } = useConfigStore();
   const guidelinesEnabled = frontend.guidelinesEnabled ?? false;
@@ -1219,6 +1233,7 @@ export function AdminEditor() {
             if (tabId && tabId !== activeLayout?.activeTabId) state.setActiveTab(tabId);
             addWidget(widget);
           }}
+          onAddTab={addTabFromImportOuter}
           onClose={() => setShowImport(false)}
         />
       )}

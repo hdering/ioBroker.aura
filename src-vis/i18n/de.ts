@@ -578,8 +578,11 @@ export const de = {
   'tabBar.hideTabOnCond': 'Tab verbergen wenn Bedingung zutrifft',
   'tabBar.icon':          'Icon',
   'tabBar.selectIcon':    'Icon auswählen…',
-  'tabBar.remove':        'Entfernen',
-  'tabBar.addTab':        '+ Tab',
+  'tabBar.remove':             'Entfernen',
+  'tabBar.addTab':             '+ Tab',
+  'tabBar.exportTab':          'Tab exportieren',
+  'tabBar.importTab':          'Tab importieren',
+  'tabBar.importInvalidFile':  'Ungültige Tab-Datei',
 
   // ── Frontend Dashboard ────────────────────────────────────────────────────────
   'frontend.noWidgets':   'Keine Widgets konfiguriert.',
@@ -836,11 +839,17 @@ export const de = {
   'autolist.showRoom':  'Raum anzeigen',
 
   // ── ImportWidget ──────────────────────────────────────────────────────────────
-  'import.title':       'Widget importieren',
-  'import.fileLabel':   'JSON-Datei laden',
-  'import.or':          'oder',
-  'import.pasteJson':   'JSON einfügen',
-  'import.invalidWidget': 'Kein gültiges Widget (Feld "type" fehlt)',
+  'import.titleGeneral':    'Widget oder Tab importieren',
+  'import.title':           'Widget importieren',
+  'import.titleTab':        'Tab importieren',
+  'import.fileLabel':       'JSON-Datei laden',
+  'import.or':              'oder',
+  'import.pasteJson':       'JSON einfügen',
+  'import.invalidWidget':   'Kein gültiges Widget (Feld "type" fehlt)',
+  'import.invalidTab':      'Keine gültige Tab-Datei',
+  'import.tabNotSupported': 'Tab-Import hier nicht verfügbar',
+  'import.tabWidgetCount':  '{count} Widget(s)',
+  'import.importTab':       'Tab importieren',
 
   // ── Layout Presets (Tab Wizard) ───────────────────────────────────────────────
   'layout.compact':           'Kompakt',

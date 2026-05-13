@@ -580,8 +580,11 @@ export const en: Record<TranslationKey, string> = {
   'tabBar.hideTabOnCond': 'Hide tab when condition matches',
   'tabBar.icon':          'Icon',
   'tabBar.selectIcon':    'Select icon…',
-  'tabBar.remove':        'Remove',
-  'tabBar.addTab':        '+ Tab',
+  'tabBar.remove':             'Remove',
+  'tabBar.addTab':             '+ Tab',
+  'tabBar.exportTab':          'Export Tab',
+  'tabBar.importTab':          'Import Tab',
+  'tabBar.importInvalidFile':  'Invalid tab file',
 
   // ── Frontend Dashboard ────────────────────────────────────────────────────────
   'frontend.noWidgets':  'No widgets configured.',
@@ -838,11 +841,17 @@ export const en: Record<TranslationKey, string> = {
   'autolist.showRoom':  'Show Room',
 
   // ── ImportWidget ──────────────────────────────────────────────────────────────
-  'import.title':       'Import Widget',
-  'import.fileLabel':   'Load JSON File',
-  'import.or':          'or',
-  'import.pasteJson':   'Paste JSON',
-  'import.invalidWidget': 'Not a valid widget (field "type" missing)',
+  'import.titleGeneral':    'Import Widget or Tab',
+  'import.title':           'Import Widget',
+  'import.titleTab':        'Import Tab',
+  'import.fileLabel':       'Load JSON File',
+  'import.or':              'or',
+  'import.pasteJson':       'Paste JSON',
+  'import.invalidWidget':   'Not a valid widget (field "type" missing)',
+  'import.invalidTab':      'Not a valid tab file',
+  'import.tabNotSupported': 'Tab import not supported here',
+  'import.tabWidgetCount':  '{count} Widget(s)',
+  'import.importTab':       'Import Tab',
 
   // ── Layout Presets (Tab Wizard) ───────────────────────────────────────────────
   'layout.compact':           'Compact',

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { X, Database, Upload } from 'lucide-react';
+import { X, Database, Upload, LayoutGrid } from 'lucide-react';
 import type { WidgetConfig, WidgetType } from '../../types';
+import type { Tab } from '../../store/dashboardStore';
 import { WIDGET_BY_TYPE } from '../../widgetRegistry';
 import { DatapointPicker } from './DatapointPicker';
 import { useT } from '../../i18n';
-import { importGroupDefs } from '../../utils/widgetExportImport';
+import { importGroupDefs, importTab } from '../../utils/widgetExportImport';
 
 const inputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
 const inputStyle: React.CSSProperties = {
@@ -13,20 +14,25 @@ const inputStyle: React.CSSProperties = {
   border: '1px solid var(--app-border)',
 };
 
+type ParsedWidget = { kind: 'widget'; config: WidgetConfig; groupDefs: Record<string, WidgetConfig[]> };
+type ParsedTab    = { kind: 'tab';    data: Omit<Tab, 'id'>; name: string; widgetCount: number };
+type Parsed = ParsedWidget | ParsedTab;
+
 export function ImportWidgetDialog({
   onAdd,
+  onAddTab,
   onClose,
-  /** Optional: if provided, shows a tab selector */
   tabs,
 }: {
   onAdd: (widget: WidgetConfig, tabId?: string) => void;
+  onAddTab?: (tabData: Omit<Tab, 'id'>) => void;
   onClose: () => void;
+  /** Optional: if provided, shows a tab selector for widget imports */
   tabs?: { id: string; name: string }[];
 }) {
   const t = useT();
   const [jsonText, setJsonText] = useState('');
-  const [parsed, setParsed] = useState<WidgetConfig | null>(null);
-  const [groupDefs, setGroupDefs] = useState<Record<string, WidgetConfig[]>>({});
+  const [parsed, setParsed] = useState<Parsed | null>(null);
   const [parseError, setParseError] = useState('');
   const [targetTabId, setTargetTabId] = useState(tabs?.[0]?.id ?? '');
   const [datapoint, setDatapoint] = useState('');
@@ -34,17 +40,28 @@ export function ImportWidgetDialog({
 
   const tryParse = (text: string) => {
     setJsonText(text);
+    if (!text.trim()) { setParsed(null); setParseError(''); return; }
     try {
       const obj = JSON.parse(text);
+
+      // ── Tab export ───────────────────────────────────────────────────────────
+      if (obj._type === 'aura-tab') {
+        if (!onAddTab) throw new Error(t('import.tabNotSupported'));
+        const tabData = importTab(obj);
+        if (!tabData) throw new Error(t('import.invalidTab'));
+        setParsed({ kind: 'tab', data: tabData, name: tabData.name, widgetCount: tabData.widgets.length });
+        setParseError('');
+        return;
+      }
+
+      // ── Widget export ────────────────────────────────────────────────────────
       if (!obj.type || typeof obj.type !== 'string') throw new Error(t('import.invalidWidget'));
       const { groupDefs: defs, ...widgetConfig } = obj as WidgetConfig & { groupDefs?: Record<string, WidgetConfig[]> };
-      setParsed(widgetConfig as WidgetConfig);
-      setGroupDefs(defs ?? {});
-      setDatapoint(widgetConfig.datapoint ?? '');
+      setParsed({ kind: 'widget', config: widgetConfig as WidgetConfig, groupDefs: defs ?? {} });
+      setDatapoint((widgetConfig as WidgetConfig).datapoint ?? '');
       setParseError('');
     } catch (e) {
       setParsed(null);
-      setGroupDefs({});
       setParseError((e as Error).message);
     }
   };
@@ -57,23 +74,30 @@ export function ImportWidgetDialog({
     reader.readAsText(file);
   };
 
-  const handleAdd = () => {
-    if (!parsed) return;
+  const handleAddWidget = () => {
+    if (!parsed || parsed.kind !== 'widget') return;
     let widgetConfig: WidgetConfig = {
-      ...parsed,
+      ...parsed.config,
       id: `w-${Date.now()}`,
       datapoint: datapoint.trim(),
-      gridPos: { ...parsed.gridPos, x: 0, y: 9999 },
+      gridPos: { ...parsed.config.gridPos, x: 0, y: 9999 },
     };
-    if (Object.keys(groupDefs).length > 0) {
-      widgetConfig = importGroupDefs(widgetConfig, groupDefs);
+    if (Object.keys(parsed.groupDefs).length > 0) {
+      widgetConfig = importGroupDefs(widgetConfig, parsed.groupDefs);
     }
     onAdd(widgetConfig, targetTabId || undefined);
     onClose();
   };
 
-  const meta = parsed ? WIDGET_BY_TYPE[parsed.type as WidgetType] : null;
-  const needsDatapoint = meta?.addMode === 'datapoint';
+  const handleAddTab = () => {
+    if (!parsed || parsed.kind !== 'tab' || !onAddTab) return;
+    onAddTab(parsed.data);
+    onClose();
+  };
+
+  const title = parsed?.kind === 'tab' ? t('import.titleTab')
+             : parsed?.kind === 'widget' ? t('import.title')
+             : t('import.titleGeneral');
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -83,7 +107,7 @@ export function ImportWidgetDialog({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>{t('import.title')}</h2>
+          <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>{title}</h2>
           <button onClick={onClose} className="hover:opacity-60" style={{ color: 'var(--text-secondary)' }}>
             <X size={18} />
           </button>
@@ -115,57 +139,22 @@ export function ImportWidgetDialog({
           )}
         </div>
 
-        {parsed && (
+        {/* ── Tab preview ──────────────────────────────────────────────────────── */}
+        {parsed?.kind === 'tab' && (
           <>
-            {/* Widget info */}
             <div className="flex items-center gap-2 rounded-lg px-3 py-2.5"
               style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
-              {meta && (
-                <span className="w-6 h-6 rounded flex items-center justify-center shrink-0"
-                  style={{ background: meta.color + '22', color: meta.color }}>
-                  <meta.Icon size={13} />
-                </span>
-              )}
+              <span className="w-6 h-6 rounded flex items-center justify-center shrink-0"
+                style={{ background: 'var(--accent)22', color: 'var(--accent)' }}>
+                <LayoutGrid size={13} />
+              </span>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
-                  {meta?.label ?? parsed.type} — {parsed.title || <em>{t('widgets.noTitle')}</em>}
-                </p>
+                <p className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{parsed.name}</p>
                 <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                  {parsed.gridPos.w}×{parsed.gridPos.h} · {parsed.layout ?? 'default'}
+                  {t('import.tabWidgetCount', { count: parsed.widgetCount })}
                 </p>
               </div>
             </div>
-
-            {/* Datapoint override */}
-            {needsDatapoint && (
-              <div>
-                <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
-                  {t('editor.manual.datapointId')} <span style={{ color: 'var(--accent-red)' }}>*</span>
-                </label>
-                <div className="flex gap-1.5">
-                  <input value={datapoint} onChange={(e) => setDatapoint(e.target.value)}
-                    placeholder="z.B. hm-rpc.0.ABC123.STATE"
-                    className="flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0"
-                    style={inputStyle} />
-                  <button onClick={() => setShowPicker(true)}
-                    className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                    style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                    <Database size={13} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Target tab (optional) */}
-            {tabs && tabs.length > 0 && (
-              <div>
-                <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>{t('widgets.targetTab')}</label>
-                <select value={targetTabId} onChange={(e) => setTargetTabId(e.target.value)}
-                  className={inputCls} style={inputStyle}>
-                  {tabs.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
-              </div>
-            )}
 
             <div className="flex justify-end gap-2 pt-1">
               <button onClick={onClose}
@@ -173,14 +162,83 @@ export function ImportWidgetDialog({
                 style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
                 {t('common.cancel')}
               </button>
-              <button onClick={handleAdd} disabled={needsDatapoint && !datapoint.trim()}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-80 disabled:opacity-30"
+              <button onClick={handleAddTab}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-80"
                 style={{ background: 'var(--accent)' }}>
-                <Upload size={13} /> {t('widgets.import')}
+                <Upload size={13} /> {t('import.importTab')}
               </button>
             </div>
           </>
         )}
+
+        {/* ── Widget preview ───────────────────────────────────────────────────── */}
+        {parsed?.kind === 'widget' && (() => {
+          const meta = WIDGET_BY_TYPE[parsed.config.type as WidgetType];
+          const needsDatapoint = meta?.addMode === 'datapoint';
+          return (
+            <>
+              <div className="flex items-center gap-2 rounded-lg px-3 py-2.5"
+                style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
+                {meta && (
+                  <span className="w-6 h-6 rounded flex items-center justify-center shrink-0"
+                    style={{ background: meta.color + '22', color: meta.color }}>
+                    <meta.Icon size={13} />
+                  </span>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+                    {meta?.label ?? parsed.config.type} — {parsed.config.title || <em>{t('widgets.noTitle')}</em>}
+                  </p>
+                  <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                    {parsed.config.gridPos.w}×{parsed.config.gridPos.h} · {parsed.config.layout ?? 'default'}
+                  </p>
+                </div>
+              </div>
+
+              {needsDatapoint && (
+                <div>
+                  <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
+                    {t('editor.manual.datapointId')} <span style={{ color: 'var(--accent-red)' }}>*</span>
+                  </label>
+                  <div className="flex gap-1.5">
+                    <input value={datapoint} onChange={(e) => setDatapoint(e.target.value)}
+                      placeholder="z.B. hm-rpc.0.ABC123.STATE"
+                      className="flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0"
+                      style={inputStyle} />
+                    <button onClick={() => setShowPicker(true)}
+                      className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                      style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                      <Database size={13} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {tabs && tabs.length > 0 && (
+                <div>
+                  <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>{t('widgets.targetTab')}</label>
+                  <select value={targetTabId} onChange={(e) => setTargetTabId(e.target.value)}
+                    className={inputCls} style={inputStyle}>
+                    {tabs.map((tab) => <option key={tab.id} value={tab.id}>{tab.name}</option>)}
+                  </select>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-1">
+                <button onClick={onClose}
+                  className="px-4 py-2 text-sm rounded-lg hover:opacity-80"
+                  style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                  {t('common.cancel')}
+                </button>
+                <button onClick={handleAddWidget} disabled={needsDatapoint && !datapoint.trim()}
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-80 disabled:opacity-30"
+                  style={{ background: 'var(--accent)' }}>
+                  <Upload size={13} /> {t('widgets.import')}
+                </button>
+              </div>
+            </>
+          );
+        })()}
 
         {showPicker && (
           <DatapointPicker
