@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.7.47 (2026-05-13)
+
+- fix(editor): show widget settings in mobile view
+- fix(admin): mobile layout fixes – Popups stacked + sidebar auto-close
+
 ## v0.7.46 (2026-05-13)
 
 - feat(echart): Vergleichsmodus – Balkendiagramm mit aktuellen Werten als Kategorien
@@ -508,6 +513,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
