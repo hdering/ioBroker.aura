@@ -73,6 +73,10 @@ function BtnRow({ onUp, onStop, onDown, size = 'md', vertical = false }: {
 
 export function ShutterWidget({ config }: WidgetProps) {
   const opts = config.options ?? {};
+  const controlMode = (opts.controlMode as string) ?? 'position';
+  const openDp = opts.openDp as string | undefined;
+  const closeDp = opts.closeDp as string | undefined;
+  const activityMovingRaw = opts.activityMovingValues as string | undefined;
   const { value, setValue } = useDatapoint(config.datapoint);
   const { value: activityVal } = useDatapoint((opts.activityDp as string) ?? '');
   const { value: directionVal } = useDatapoint((opts.directionDp as string) ?? '');
@@ -86,7 +90,9 @@ export function ShutterWidget({ config }: WidgetProps) {
   const showClosedPercent = !!(opts.showClosedPercent as boolean);
   const displayPct = showClosedPercent ? 100 - pos : pos;
 
-  const isMoving = activityVal === true || activityVal === 1 || activityVal === '1' || activityVal === 'true';
+  const isMoving = activityMovingRaw
+    ? activityMovingRaw.split(',').map(s => s.trim()).some(v => String(activityVal) === v)
+    : activityVal === true || activityVal === 1 || activityVal === '1' || activityVal === 'true';
   const movingDir: 'up' | 'down' | null =
     directionVal === 1 || directionVal === '1' ? 'up' :
     directionVal === 2 || directionVal === '2' ? 'down' : null;
@@ -102,19 +108,20 @@ export function ShutterWidget({ config }: WidgetProps) {
     const raw = (opts.invertPosition as boolean) ? 100 - p : p;
     setValue(raw);
   };
-  const openFully  = () => writePos(100);
-  const closeFully = () => writePos(0);
+  const openFully = () => {
+    if (controlMode === 'taster' && openDp) { preMoveRawRef.current = rawPos; setState(openDp, true); }
+    else { writePos(100); }
+  };
+  const closeFully = () => {
+    if (controlMode === 'taster' && closeDp) { preMoveRawRef.current = rawPos; setState(closeDp, true); }
+    else { writePos(0); }
+  };
   const stop = () => {
     const stopDp = opts.stopDp as string | undefined;
     if (stopDp) {
-      // Dedicated stop datapoint (e.g. HomeMatic STOP channel)
       setState(stopDp, true);
-    } else {
-      // Fallback: write the pre-move position so the actuator targets where the
-      // blind was before the command, effectively cancelling the movement.
-      // If rawPos has already been updated to the actual live position mid-move
-      // (some adapters do this), using rawPos would be more accurate – but
-      // preMoveRawRef is safer against the race condition.
+    } else if (controlMode !== 'taster') {
+      // Race-condition-safe fallback: use pre-move snapshot, not current rawPos
       const stopTarget = isMoving && rawPos !== preMoveRawRef.current ? rawPos : preMoveRawRef.current;
       setState(config.datapoint, stopTarget);
     }

@@ -2,7 +2,7 @@
  * Shared custom-grid layout renderer used by all widgets that support layout='custom'.
  * Default 3×3 grid, but parameterized via CustomGridDef for arbitrary cols/rows (used by Universal Widget).
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetConfig, CustomCell, CustomGrid, CustomGridDef } from '../../types';
 import { resolveAssetUrl } from '../../utils/assetUrl';
@@ -239,23 +239,96 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
   );
 }
 
-/** Range slider bound to a numeric DP. */
+/** Range slider bound to a numeric DP. Supports bar-style rendering. */
 function SliderCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
   const { value, setValue } = useDatapoint(cell.dpId ?? '');
-  const min  = cell.min  ?? 0;
-  const max  = cell.max  ?? 100;
-  const step = cell.step ?? 1;
-  const num  = typeof value === 'number' ? value : Number(value ?? min);
+  const [pending, setPending] = useState<number | null>(null);
+  const min        = cell.min  ?? 0;
+  const max        = cell.max  ?? 100;
+  const step       = cell.step ?? 1;
+  const isVertical = cell.orientation === 'vertical';
+  const barStyle   = !!cell.barStyle;
+  const barSize    = cell.barSize ?? 100;
+  const color      = cell.color || 'var(--accent)';
+  const num        = typeof value === 'number' ? value : Number(value ?? min);
+  const displayVal = pending ?? (Number.isFinite(num) ? num : min);
+  const fillRatio  = Math.max(0, Math.min(1, (displayVal - min) / (max - min)));
+
+  const writeStepped = (v: number) => {
+    const stepped = Math.round(v / step) * step;
+    setValue(Math.max(min, Math.min(max, stepped)));
+  };
+
+  const getBarValue = (e: React.PointerEvent<HTMLDivElement>) => {
+    const rect  = e.currentTarget.getBoundingClientRect();
+    const ratio = isVertical
+      ? 1 - (e.clientY - rect.top)  / rect.height
+      :     (e.clientX - rect.left) / rect.width;
+    return min + Math.max(0, Math.min(1, ratio)) * (max - min);
+  };
+
+  const onBarPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    writeStepped(getBarValue(e));
+  };
+
+  const onBarPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!(e.buttons & 1)) return;
+    writeStepped(getBarValue(e));
+  };
+
   if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+
+  if (barStyle) {
+    return (
+      <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '4px' }}>
+        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div
+            className="nodrag relative rounded-2xl overflow-hidden select-none cursor-pointer"
+            style={{
+              width:      isVertical ? `${barSize}%` : '100%',
+              height:     isVertical ? '100%'        : `${barSize}%`,
+              background: `color-mix(in srgb, ${color} 20%, var(--app-bg))`,
+            }}
+            onPointerDown={onBarPointerDown}
+            onPointerMove={onBarPointerMove}
+            onPointerUp={() => setPending(null)}
+          >
+            {isVertical ? (
+              <div className="absolute bottom-0 left-0 right-0 rounded-t-2xl"
+                style={{ height: `${fillRatio * 100}%`, background: color }} />
+            ) : (
+              <div className="absolute top-0 left-0 bottom-0 rounded-r-2xl"
+                style={{ width: `${fillRatio * 100}%`, background: color }} />
+            )}
+            {isVertical ? (
+              <div className="absolute pointer-events-none rounded-full"
+                style={{ top: `${(1 - fillRatio) * 100}%`, transform: 'translateY(6px)', left: '20%', right: '20%', height: '3px', background: 'rgba(255,255,255,0.85)' }} />
+            ) : (
+              <div className="absolute pointer-events-none rounded-full"
+                style={{ left: `${fillRatio * 100}%`, transform: 'translateX(-9px)', top: '20%', bottom: '20%', width: '3px', background: 'rgba(255,255,255,0.85)' }} />
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const vertAttrs: any = isVertical ? { orient: 'vertical' } : {};
   return (
     <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '4px 8px' }}>
       <input
+        {...vertAttrs}
         type="range"
         min={min} max={max} step={step}
-        value={Number.isFinite(num) ? num : min}
+        value={displayVal}
         onChange={(e) => setValue(Number(e.target.value))}
         className="nodrag w-full h-1.5 rounded-full appearance-none cursor-pointer"
-        style={{ accentColor: cell.color || 'var(--accent)' }}
+        style={{
+          accentColor: color,
+          ...(isVertical ? { writingMode: 'vertical-lr' as React.CSSProperties['writingMode'], direction: 'rtl', height: '100%', width: 'auto' } : {}),
+        }}
       />
     </div>
   );

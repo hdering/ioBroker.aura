@@ -2424,7 +2424,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       setOpenPanel(panel);
     }
   };
-  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'dimmer_switchDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | 'iframe_urlDp' | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'shutter_openDp' | 'shutter_closeDp' | 'dimmer_switchDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | 'iframe_urlDp' | null>(null);
   const [imageFilePicker, setImageFilePicker] = useState(false);
   const [cameraSlotPickerIdx, setCameraSlotPickerIdx] = useState(0);
   const [mpPickerKey, setMpPickerKey] = useState('');
@@ -5042,6 +5042,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   onConfigChange({ ...config, options: { ...o, ...patch } });
                 const sInputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono';
                 const sInputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                const hint: React.CSSProperties = { color: 'var(--text-secondary)' };
+                const controlMode = (o.controlMode as string) ?? 'position';
                 const autoFill = async () => {
                   if (!config.datapoint) return;
                   const parts = config.datapoint.split('.');
@@ -5055,100 +5057,178 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   { const v = find('STOP', 'stop', 'Pause', 'pause'); if (v) patch.stopDp = v; }
                   if (Object.keys(patch).length) setO(patch);
                 };
+                const dpRow = (optKey: string, pickerKey: string, placeholder = 'optional') => (
+                  <div className="flex gap-1">
+                    <input type="text" value={(o[optKey] as string) ?? ''}
+                      onChange={(e) => setO({ [optKey]: e.target.value || undefined })}
+                      placeholder={placeholder}
+                      className={`flex-1 ${sInputCls} min-w-0`} style={sInputStyle} />
+                    <button onClick={() => setPickerTarget(pickerKey as Parameters<typeof setPickerTarget>[0])}
+                      className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                      style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                      <Database size={13} />
+                    </button>
+                  </div>
+                );
                 return (
                   <>
+                    {/* Steuer-Modus */}
+                    <div>
+                      <label className="text-[11px] block mb-1" style={hint}>Steuer-Modus</label>
+                      <div className="flex gap-1 mb-1">
+                        {([
+                          { label: 'Position (Standard)', val: 'position' },
+                          { label: 'Taster (AUF/ZU/STOP)', val: 'taster' },
+                        ] as const).map(({ label, val }) => (
+                          <button key={val} onClick={() => setO({ controlMode: val })}
+                            className="flex-1 py-1 px-2 rounded-lg text-[10px] font-medium transition-colors"
+                            style={{
+                              background: controlMode === val ? 'var(--accent)' : 'var(--app-bg)',
+                              color: controlMode === val ? '#fff' : 'var(--text-secondary)',
+                              border: '1px solid var(--app-border)',
+                            }}>
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-[10px]" style={hint}>
+                        {controlMode === 'position'
+                          ? 'Schreibt 0–100 % direkt auf den Positions-DP (z.B. Homematic, Z-Wave).'
+                          : 'Schreibt true auf separate Boolean-Taster-DPs (z.B. Dooya, 433 MHz, Zigbee-Skript).'}
+                      </p>
+                    </div>
+
+                    {/* AUF-Taster DP – nur im Taster-Modus */}
+                    {controlMode === 'taster' && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={hint}>AUF-Taster DP</label>
+                        {dpRow('openDp', 'shutter_openDp', 'z.B. 0_userdata.0…auf')}
+                        <p className="text-[10px] mt-1" style={hint}>
+                          Boolean-DP – ein kurzer true-Impuls öffnet die Jalousie.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* ZU-Taster DP – nur im Taster-Modus */}
+                    {controlMode === 'taster' && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={hint}>ZU-Taster DP</label>
+                        {dpRow('closeDp', 'shutter_closeDp', 'z.B. 0_userdata.0…zu')}
+                        <p className="text-[10px] mt-1" style={hint}>
+                          Boolean-DP – ein kurzer true-Impuls schließt die Jalousie.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Stop-DP */}
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={hint}>
+                        Stop-DP{controlMode === 'position' ? ' – empfohlen' : ''}
+                      </label>
+                      {dpRow('stopDp', 'shutter_stopDp', 'z.B. …STOP oder …stop')}
+                      <p className="text-[10px] mt-1" style={hint}>
+                        {controlMode === 'taster'
+                          ? 'Boolean-DP – ein true-Impuls stoppt die Fahrt (z.B. …Schlafzimmer.stop).'
+                          : (o.stopDp as string)
+                            ? 'Boolean-DP – ein true-Impuls stoppt die Fahrt (z.B. Homematic STOP).'
+                            : 'Ohne Stop-DP wird die Position vor dem letzten Fahrbefehl als Ziel zurückgesendet.'}
+                      </p>
+                    </div>
+
+                    {/* Fahrt-Status DP */}
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Fahrt-Status DP (z.B. WORKING)</label>
+                        <label className="text-[11px]" style={hint}>Fahrt-Status DP</label>
                         <button onClick={() => void autoFill()}
                           className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
                           style={{ background: 'var(--accent)22', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
                           Auto-Erkennen
                         </button>
                       </div>
-                      <div className="flex gap-1">
-                        <input type="text" value={(o.activityDp as string) ?? ''}
-                          onChange={(e) => setO({ activityDp: e.target.value || undefined })}
-                          placeholder="optional"
-                          className={`flex-1 ${sInputCls} min-w-0`} style={sInputStyle} />
-                        <button onClick={() => setPickerTarget('shutter_activityDp')}
-                          className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                          style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                          <Database size={13} />
-                        </button>
-                      </div>
+                      {dpRow('activityDp', 'shutter_activityDp')}
+                      <p className="text-[10px] mt-1" style={hint}>
+                        {controlMode === 'position'
+                          ? 'Zeigt an ob der Rollladen fährt. HM: WORKING (Boolean), HmIP: ACTIVITY_STATE, Zigbee: moving.'
+                          : 'Aktueller Fahrzustand des Skripts (z.B. …aktueller_befehl). Leer lassen wenn nicht vorhanden.'}
+                      </p>
                     </div>
-                    <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Richtungs-DP (z.B. DIRECTION)</label>
-                      <div className="flex gap-1">
-                        <input type="text" value={(o.directionDp as string) ?? ''}
-                          onChange={(e) => setO({ directionDp: e.target.value || undefined })}
-                          placeholder="optional"
-                          className={`flex-1 ${sInputCls} min-w-0`} style={sInputStyle} />
-                        <button onClick={() => setPickerTarget('shutter_directionDp')}
-                          className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                          style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                          <Database size={13} />
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Stop-DP (z.B. STOP) – empfohlen</label>
-                      <div className="flex gap-1">
-                        <input type="text" value={(o.stopDp as string) ?? ''}
-                          onChange={(e) => setO({ stopDp: e.target.value || undefined })}
-                          placeholder="optional"
-                          className={`flex-1 ${sInputCls} min-w-0`} style={sInputStyle} />
-                        <button onClick={() => setPickerTarget('shutter_stopDp')}
-                          className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                          style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                          <Database size={13} />
-                        </button>
-                      </div>
-                      {!(o.stopDp as string) && (
-                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                          Ohne Stop-DP wird die Position vor dem letzten Fahrbefehl als Ziel zurückgesendet.
+
+                    {/* Bewegungs-Werte – nur Taster-Modus mit befülltem activityDp */}
+                    {controlMode === 'taster' && !!(o.activityDp as string) && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={hint}>Bewegungs-Werte (kommagetrennt)</label>
+                        <input type="text" value={(o.activityMovingValues as string) ?? ''}
+                          onChange={(e) => setO({ activityMovingValues: e.target.value || undefined })}
+                          placeholder="z.B. AUF,ZU"
+                          className={sInputCls} style={sInputStyle} />
+                        <p className="text-[10px] mt-1" style={hint}>
+                          Werte des Fahrt-Status-DP die „fährt gerade" bedeuten. Leer = Boolean-Prüfung (true / 1).
                         </p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>Aktor-Konvention</label>
-                      <div className="flex gap-1">
-                        {([
-                          { label: 'HM / Standard (0=zu)', val: false },
-                          { label: 'HmIP (0=auf)', val: true },
-                        ] as const).map(({ label, val }) => (
-                          <button
-                            key={String(val)}
-                            onClick={() => setO({ invertPosition: val })}
-                            className="flex-1 py-1 px-2 rounded-lg text-[10px] font-medium transition-colors"
-                            style={{
-                              background: (o.invertPosition ?? false) === val ? 'var(--accent)' : 'var(--app-bg)',
-                              color:      (o.invertPosition ?? false) === val ? '#fff' : 'var(--text-secondary)',
-                              border: '1px solid var(--app-border)',
-                            }}
-                          >
-                            {label}
-                          </button>
-                        ))}
                       </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>% geschlossen anzeigen</label>
+                    )}
+
+                    {/* Richtungs-DP – nur Position-Modus */}
+                    {controlMode === 'position' && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={hint}>Richtungs-DP (optional)</label>
+                        {dpRow('directionDp', 'shutter_directionDp')}
+                        <p className="text-[10px] mt-1" style={hint}>
+                          Wert 1 = fährt auf, Wert 2 = fährt zu – zeigt Pfeil im Widget (z.B. Homematic DIRECTION).
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Aktor-Konvention – nur Position-Modus */}
+                    {controlMode === 'position' && (
+                      <div>
+                        <label className="text-[11px] block mb-1" style={hint}>Aktor-Konvention</label>
+                        <div className="flex gap-1 mb-1">
+                          {([
+                            { label: 'HM / Standard (0=zu)', val: false },
+                            { label: 'HmIP (0=auf)', val: true },
+                          ] as const).map(({ label, val }) => (
+                            <button key={String(val)} onClick={() => setO({ invertPosition: val })}
+                              className="flex-1 py-1 px-2 rounded-lg text-[10px] font-medium transition-colors"
+                              style={{
+                                background: (o.invertPosition ?? false) === val ? 'var(--accent)' : 'var(--app-bg)',
+                                color: (o.invertPosition ?? false) === val ? '#fff' : 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                              }}>
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-[10px]" style={hint}>
+                          HM Classic / Z-Wave: 0 = geschlossen, 100 = offen. HmIP / manche Zigbee-Adapter: umgekehrt.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* % geschlossen anzeigen */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <label className="text-[11px] block" style={hint}>% geschlossen anzeigen</label>
+                        <p className="text-[10px]" style={hint}>Ein: 0 % = ganz offen. Aus: 100 % = ganz offen.</p>
+                      </div>
                       <button
                         onClick={() => setO({ showClosedPercent: !(o.showClosedPercent ?? false) })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
+                        className="relative w-9 h-5 rounded-full transition-colors shrink-0 mt-0.5"
                         style={{ background: (o.showClosedPercent ?? false) ? 'var(--accent)' : 'var(--app-border)' }}
                       >
                         <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
                           style={{ left: (o.showClosedPercent ?? false) ? '18px' : '2px' }} />
                       </button>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Erst bei Loslassen senden</label>
+
+                    {/* Erst bei Loslassen senden */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <label className="text-[11px] block" style={hint}>Erst bei Loslassen senden</label>
+                        <p className="text-[10px]" style={hint}>Slider-Wert wird erst beim Loslassen übertragen.</p>
+                      </div>
                       <button
                         onClick={() => setO({ sendOnRelease: !(o.sendOnRelease !== false) })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
+                        className="relative w-9 h-5 rounded-full transition-colors shrink-0 mt-0.5"
                         style={{ background: o.sendOnRelease !== false ? 'var(--accent)' : 'var(--app-border)' }}
                       >
                         <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
@@ -6609,6 +6689,61 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           </div>
                         )}
 
+                        {/* Slider: Stil + Orientierung + Balkengröße */}
+                        {selCell.type === 'slider' && (
+                          <div className="flex flex-col gap-2">
+                            <div>
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Stil</label>
+                              <div className="flex gap-1">
+                                {([['false', 'Standard'], ['true', 'Balken']] as const).map(([val, lbl]) => {
+                                  const active = val === 'true' ? !!selCell.barStyle : !selCell.barStyle;
+                                  return (
+                                    <button key={val} onClick={() => setCell(sel, { barStyle: val === 'true' })}
+                                      className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                                      style={{
+                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                        color:      active ? '#fff'          : 'var(--text-secondary)',
+                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                      }}>
+                                      {lbl}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Ausrichtung</label>
+                              <div className="flex gap-1">
+                                {([['horizontal', 'Horizontal'], ['vertical', 'Vertikal']] as const).map(([val, lbl]) => {
+                                  const active = (selCell.orientation ?? 'horizontal') === val;
+                                  return (
+                                    <button key={val} onClick={() => setCell(sel, { orientation: val })}
+                                      className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                                      style={{
+                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                        color:      active ? '#fff'          : 'var(--text-secondary)',
+                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                      }}>
+                                      {lbl}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            {selCell.barStyle && (
+                              <div>
+                                <div className="flex items-center justify-between mb-1">
+                                  <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Balkengröße</label>
+                                  <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{selCell.barSize ?? 100}%</span>
+                                </div>
+                                <input type="range" min={10} max={100} step={5} value={selCell.barSize ?? 100}
+                                  onChange={(e) => setCell(sel, { barSize: Number(e.target.value) })}
+                                  className="w-full h-1" style={{ accentColor: 'var(--accent)' }} />
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         {/* Button label + payload */}
                         {selCell.type === 'button' && (
                           <>
@@ -7090,6 +7225,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             pickerTarget === 'shutter_activityDp'  ? ((config.options?.activityDp as string) ?? '') :
             pickerTarget === 'shutter_directionDp' ? ((config.options?.directionDp as string) ?? '') :
             pickerTarget === 'shutter_stopDp'      ? ((config.options?.stopDp as string) ?? '') :
+            pickerTarget === 'shutter_openDp'      ? ((config.options?.openDp as string) ?? '') :
+            pickerTarget === 'shutter_closeDp'     ? ((config.options?.closeDp as string) ?? '') :
             pickerTarget === 'dimmer_switchDp'     ? ((config.options?.switchDp as string) ?? '') :
             pickerTarget === 'gauge_pointer2Dp'         ? ((config.options?.pointer2Datapoint as string) ?? '') :
             pickerTarget === 'gauge_pointer3Dp'         ? ((config.options?.pointer3Datapoint as string) ?? '') :
@@ -7189,6 +7326,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               onConfigChange({ ...config, options: { ...config.options, directionDp: id } });
             } else if (pickerTarget === 'shutter_stopDp') {
               onConfigChange({ ...config, options: { ...config.options, stopDp: id } });
+            } else if (pickerTarget === 'shutter_openDp') {
+              onConfigChange({ ...config, options: { ...config.options, openDp: id } });
+            } else if (pickerTarget === 'shutter_closeDp') {
+              onConfigChange({ ...config, options: { ...config.options, closeDp: id } });
             } else if (pickerTarget === 'dimmer_switchDp') {
               onConfigChange({ ...config, options: { ...config.options, switchDp: id } });
             } else if (pickerTarget === 'gauge_pointer2Dp') {

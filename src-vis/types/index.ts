@@ -85,9 +85,12 @@ export interface CustomCell {
   imageUrl?:      string;            // 'image' type: URL or base64 data URI
   objectFit?:     'contain' | 'cover' | 'fill';  // 'image' type: CSS object-fit
   // 'slider' type
-  min?:      number;
-  max?:      number;
-  step?:     number;
+  min?:         number;
+  max?:         number;
+  step?:        number;
+  barStyle?:    boolean;
+  barSize?:     number;
+  orientation?: 'horizontal' | 'vertical';
   // 'button' type
   sendValue?: string;           // payload sent to dpId on click (parsed as bool/number/string)
   // 'icon' / 'state-icon' type
