@@ -38,5 +38,24 @@ export function lucidePascalToIconify(name: string): string {
   return `lucide:${kebab}`;
 }
 
-// Start loading immediately (non-blocking) so icons are ready when widgets mount
-loadIconSets();
+// Defer icon-set loading until the browser is idle so the ~3 MB of icon JSON
+// does not block first paint on slow mobile/VPN connections. Falls back to a
+// short setTimeout when requestIdleCallback is unavailable (Safari).
+function scheduleIdleLoad(): void {
+  const fire = () => { void loadIconSets(); };
+  const ric = (window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => void }).requestIdleCallback;
+  if (typeof ric === 'function') {
+    ric(fire, { timeout: 2000 });
+  } else {
+    setTimeout(fire, 800);
+  }
+}
+
+if (typeof window !== 'undefined') {
+  // Wait for the page to be interactive before scheduling the idle load.
+  if (document.readyState === 'complete') {
+    scheduleIdleLoad();
+  } else {
+    window.addEventListener('load', scheduleIdleLoad, { once: true });
+  }
+}
