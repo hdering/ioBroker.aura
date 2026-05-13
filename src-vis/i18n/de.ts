@@ -602,6 +602,13 @@ export const de = {
   'dp.picker.showing':  '{max} von {count} angezeigt',
   'dp.picker.count':    '{count} Datenpunkte',
   'dp.picker.noResults':'Keine Ergebnisse',
+  'dp.picker.allUnits':    'Alle Einheiten',
+  'dp.picker.historyOnly': 'Mit History',
+  'dp.picker.col.name':    'Name / ID',
+  'dp.picker.col.value':   'Wert',
+  'dp.picker.col.unit':    'Einheit',
+  'dp.picker.col.type':    'Typ',
+  'dp.picker.col.history': 'History',
 
   // ── File Picker ──────────────────────────────────────────────────────────────
   'fs.picker.title':      'Datei-Picker',

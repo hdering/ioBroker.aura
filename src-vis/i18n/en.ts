@@ -604,6 +604,13 @@ export const en: Record<TranslationKey, string> = {
   'dp.picker.showing':  'Showing {max} of {count}',
   'dp.picker.count':    '{count} datapoints',
   'dp.picker.noResults':'No results',
+  'dp.picker.allUnits':    'All Units',
+  'dp.picker.historyOnly': 'With History',
+  'dp.picker.col.name':    'Name / ID',
+  'dp.picker.col.value':   'Value',
+  'dp.picker.col.unit':    'Unit',
+  'dp.picker.col.type':    'Type',
+  'dp.picker.col.history': 'History',
 
   // ── File Picker ──────────────────────────────────────────────────────────────
   'fs.picker.title':      'File Picker',

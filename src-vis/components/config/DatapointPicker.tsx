@@ -6,6 +6,7 @@ import { useFsRoots, useFsList } from '../../hooks/useFsList';
 import { useT } from '../../i18n';
 import { isRelevantDp } from '../../utils/dpRelevance';
 import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
+import { getSocket } from '../../hooks/useIoBroker';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -38,6 +39,17 @@ function formatSize(bytes: number): string {
   return `${(bytes / 1_048_576).toFixed(1)} MB`;
 }
 
+function formatValue(val: unknown): string {
+  if (val === null || val === undefined) return '—';
+  if (typeof val === 'boolean') return val ? 'true' : 'false';
+  if (typeof val === 'number') {
+    if (!Number.isFinite(val)) return String(val);
+    return val % 1 !== 0 ? val.toFixed(2).replace(/\.?0+$/, '') : String(val);
+  }
+  if (typeof val === 'string') return val.length > 15 ? val.slice(0, 15) + '…' : val;
+  return String(val);
+}
+
 // ── DP Mode body ──────────────────────────────────────────────────────────────
 
 const MAX_DISPLAY = 250;
@@ -63,7 +75,11 @@ function DpModeBody({
   const [func, setFunc] = useState('');
   const [role, setRole] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [unitFilter, setUnitFilter] = useState('');
+  const [historyFilter, setHistoryFilter] = useState(false);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+  const [values, setValues] = useState<Map<string, unknown>>(new Map());
+  const fetchedIds = useRef<Set<string>>(new Set());
 
   const adapters = useMemo(() => Array.from(new Set(datapoints.map((dp) => dp.id.split('.')[0]))).sort(), [datapoints]);
   const rooms = useMemo(() => Array.from(new Set(datapoints.flatMap((dp) => dp.rooms))).sort(), [datapoints]);
@@ -73,6 +89,11 @@ function DpModeBody({
     const all = Array.from(new Set(datapoints.map((dp) => dp.type).filter(Boolean) as string[])).sort();
     return allowedTypes?.length ? all.filter((ty) => allowedTypes.includes(ty)) : all;
   }, [datapoints, allowedTypes]);
+  const units = useMemo(() =>
+    Array.from(new Set(datapoints.map((dp) => dp.unit).filter(Boolean) as string[])).sort(),
+    [datapoints],
+  );
+  const hasHistory = useMemo(() => datapoints.some((dp) => dp.logging.length > 0), [datapoints]);
 
   const filtered = useMemo(() => {
     let list = datapoints;
@@ -82,12 +103,14 @@ function DpModeBody({
     if (func) list = list.filter((dp) => dp.funcs.includes(func));
     if (role) list = list.filter((dp) => dp.role === role);
     if (typeFilter) list = list.filter((dp) => dp.type === typeFilter);
+    if (unitFilter) list = list.filter((dp) => dp.unit === unitFilter);
+    if (historyFilter) list = list.filter((dp) => dp.logging.length > 0);
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((dp) => dp.id.toLowerCase().includes(q) || dp.name.toLowerCase().includes(q));
     }
     return list;
-  }, [datapoints, search, adapter, room, func, role, typeFilter, allowedTypes]);
+  }, [datapoints, search, adapter, room, func, role, typeFilter, unitFilter, historyFilter, allowedTypes]);
 
   const shown = useMemo(() => filtered.slice(0, MAX_DISPLAY), [filtered]);
 
@@ -104,6 +127,32 @@ function DpModeBody({
   });
   const clearAll = () => setCheckedIds(new Set());
   const confirmMulti = () => { onMultiSelect?.(datapoints.filter(dp => checkedIds.has(dp.id))); };
+
+  useEffect(() => {
+    if (!loaded) return;
+    const idsToFetch = shown.map((dp) => dp.id).filter((id) => !fetchedIds.current.has(id));
+    if (idsToFetch.length === 0) return;
+    let pending: [string, unknown][] = [];
+    let flushTimer: ReturnType<typeof setTimeout> | null = null;
+    const flush = () => {
+      const batch = pending.splice(0);
+      if (batch.length) setValues(prev => { const next = new Map(prev); batch.forEach(([id, v]) => next.set(id, v)); return next; });
+      flushTimer = null;
+    };
+    for (const id of idsToFetch) {
+      fetchedIds.current.add(id);
+      getSocket().emit('getState', id, (_err: unknown, state: { val?: unknown } | null) => {
+        pending.push([id, state?.val ?? null]);
+        if (flushTimer) clearTimeout(flushTimer);
+        flushTimer = setTimeout(flush, 60);
+      });
+    }
+    return () => { if (flushTimer) clearTimeout(flushTimer); };
+  }, [shown, loaded]);
+
+  const showFilters = adapters.length > 0 || rooms.length > 0 || funcs.length > 0
+    || roles.length > 0 || types.length > 1 || (allowedTypes?.length === 1)
+    || units.length > 1 || hasHistory;
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -126,8 +175,8 @@ function DpModeBody({
             </button>
           )}
         </div>
-        {(adapters.length > 0 || rooms.length > 0 || funcs.length > 0 || roles.length > 0 || types.length > 1 || allowedTypes?.length === 1) && (
-          <div className="flex items-center gap-2">
+        {showFilters && (
+          <div className="flex items-center gap-2 flex-wrap">
             {adapters.length > 0 && (
               <select value={adapter} onChange={(e) => setAdapter(e.target.value)}
                 className="rounded-lg px-3 py-1.5 text-xs focus:outline-none shrink-0"
@@ -170,6 +219,26 @@ function DpModeBody({
                   return <option key={ty} value={ty} style={{ color: tc }}>{ty}</option>;
                 })}
               </select>
+            )}
+            {units.length > 1 && (
+              <select value={unitFilter} onChange={(e) => setUnitFilter(e.target.value)}
+                className="rounded-lg px-3 py-1.5 text-xs focus:outline-none shrink-0"
+                style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}>
+                <option value="">{t('dp.picker.allUnits')}</option>
+                {units.map((u) => <option key={u} value={u}>{u}</option>)}
+              </select>
+            )}
+            {hasHistory && (
+              <button
+                onClick={() => setHistoryFilter((v) => !v)}
+                className="rounded-lg px-3 py-1.5 text-xs shrink-0 transition-colors"
+                style={{
+                  background: historyFilter ? '#10b98122' : 'var(--app-bg)',
+                  color: historyFilter ? '#10b981' : 'var(--text-secondary)',
+                  border: `1px solid ${historyFilter ? '#10b981' : 'var(--app-border)'}`,
+                }}>
+                {t('dp.picker.historyOnly')}
+              </button>
             )}
             {allowedTypes?.length === 1 && (() => {
               const ty = allowedTypes[0];
@@ -214,6 +283,20 @@ function DpModeBody({
         </div>
       )}
 
+      {/* Column headers */}
+      {loaded && shown.length > 0 && (
+        <div
+          className="px-5 flex items-center shrink-0 text-[10px] font-semibold uppercase tracking-wide"
+          style={{ borderBottom: '1px solid var(--app-border)', color: 'var(--text-secondary)', paddingTop: 6, paddingBottom: 6 }}>
+          {multiSelect && <div style={{ width: 26, flexShrink: 0 }} />}
+          <div className="flex-1 min-w-0 pr-2">{t('dp.picker.col.name')}</div>
+          <div style={{ width: 88, flexShrink: 0, textAlign: 'right', paddingRight: 8 }}>{t('dp.picker.col.value')}</div>
+          <div style={{ width: 56, flexShrink: 0, textAlign: 'right', paddingRight: 8 }}>{t('dp.picker.col.unit')}</div>
+          <div style={{ width: 68, flexShrink: 0, textAlign: 'center' }}>{t('dp.picker.col.type')}</div>
+          <div style={{ width: 44, flexShrink: 0, textAlign: 'center' }}>{t('dp.picker.col.history')}</div>
+        </div>
+      )}
+
       {/* List */}
       <div className="aura-scroll flex-1 overflow-y-auto">
         {!loaded && loading ? (
@@ -231,11 +314,18 @@ function DpModeBody({
             const isSelected = dp.id === currentValue;
             const isChecked  = checkedIds.has(dp.id);
             const relevant   = isRelevantDp(dp.role, dp.type);
+            const hasVal     = values.has(dp.id);
+            const val        = values.get(dp.id);
+            const tc = dp.type === 'boolean' ? '#f59e0b' : dp.type === 'number' ? '#3b82f6' : dp.type === 'string' ? '#8b5cf6' : 'var(--accent)';
+            const valColor = typeof val === 'boolean' ? (val ? '#10b981' : '#f59e0b')
+              : typeof val === 'number' ? '#3b82f6'
+              : typeof val === 'string' ? '#8b5cf6'
+              : 'var(--text-secondary)';
             return (
               <button
                 key={dp.id}
                 onClick={() => multiSelect ? toggleCheck(dp) : onSelect(dp.id, dp.unit, dp.name, dp.role, dp.type)}
-                className="w-full text-left px-5 py-2.5 flex items-center gap-3 hover:opacity-80 transition-opacity"
+                className="w-full text-left px-5 py-2 flex items-center hover:opacity-80 transition-opacity"
                 style={{
                   background: (multiSelect ? isChecked : isSelected)
                     ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent',
@@ -243,12 +333,13 @@ function DpModeBody({
                   opacity: multiSelect && !relevant ? 0.55 : 1,
                 }}>
                 {multiSelect && (
-                  <div className="w-3.5 h-3.5 rounded shrink-0 flex items-center justify-center"
-                    style={{ background: isChecked ? 'var(--accent)' : 'var(--app-border)', flexShrink: 0 }}>
+                  <div className="rounded shrink-0 flex items-center justify-center mr-3"
+                    style={{ width: 14, height: 14, background: isChecked ? 'var(--accent)' : 'var(--app-border)' }}>
                     {isChecked && <Check size={9} color="#fff" />}
                   </div>
                 )}
-                <div className="flex-1 min-w-0">
+                {/* Name + ID */}
+                <div className="flex-1 min-w-0 pr-2">
                   <p className="text-sm font-medium truncate"
                     style={{ color: (multiSelect ? isChecked : isSelected) ? 'var(--accent)' : 'var(--text-primary)' }}>
                     {dp.name || dp.id.split('.').pop() || dp.id}
@@ -257,13 +348,28 @@ function DpModeBody({
                     {dp.id}
                   </p>
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
+                {/* Value */}
+                <div style={{ width: 88, flexShrink: 0, textAlign: 'right', paddingRight: 8 }}>
+                  <span className="text-xs font-mono" style={{ color: hasVal ? valColor : 'var(--app-border)' }}>
+                    {hasVal ? formatValue(val) : '·'}
+                  </span>
+                </div>
+                {/* Unit */}
+                <div style={{ width: 56, flexShrink: 0, textAlign: 'right', paddingRight: 8 }}>
                   {dp.unit && <span className="text-xs font-medium" style={{ color: 'var(--accent)' }}>{dp.unit}</span>}
-                  {dp.type && (() => {
-                    const tc = dp.type === 'boolean' ? '#f59e0b' : dp.type === 'number' ? '#3b82f6' : dp.type === 'string' ? '#8b5cf6' : 'var(--accent)';
-                    return <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: tc + '22', color: tc }}>{dp.type}</span>;
-                  })()}
-                  {dp.logging.map((adapterId) => {
+                </div>
+                {/* Type */}
+                <div style={{ width: 68, flexShrink: 0, textAlign: 'center' }}>
+                  {dp.type && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                      style={{ background: tc + '22', color: tc }}>
+                      {dp.type}
+                    </span>
+                  )}
+                </div>
+                {/* History */}
+                <div style={{ width: 44, flexShrink: 0, display: 'flex', justifyContent: 'center', gap: 2 }}>
+                  {dp.logging.length > 0 ? dp.logging.map((adapterId) => {
                     const adapterName = adapterId.replace(/\.\d+$/, '');
                     const label = adapterName === 'history' ? 'H' : adapterName === 'influxdb' ? 'flux' : adapterName === 'sql' ? 'SQL' : adapterName.slice(0, 4);
                     return (
@@ -273,7 +379,9 @@ function DpModeBody({
                         {label}
                       </span>
                     );
-                  })}
+                  }) : (
+                    <span className="text-[10px]" style={{ color: 'var(--app-border)' }}>–</span>
+                  )}
                 </div>
               </button>
             );
