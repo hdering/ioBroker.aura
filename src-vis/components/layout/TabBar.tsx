@@ -7,7 +7,6 @@ import type { Tab, TabBarItem, TabBarSettings, DashboardLayout } from '../../sto
 import { exportTab, importTab } from '../../utils/widgetExportImport';
 import { useConfigStore } from '../../store/configStore';
 import { Icon } from '@iconify/react';
-import { loadIconSets, areIconSetsLoaded } from '../../utils/iconifyLoader';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { useT } from '../../i18n';
 import { subscribeStateDirect } from '../../hooks/useIoBroker';
@@ -194,11 +193,6 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
     return () => window.removeEventListener('resize', check);
   }, [mobileBreakpoint]);
 
-  const [iconsReady, setIconsReady] = useState(areIconSetsLoaded);
-  useEffect(() => {
-    if (!iconsReady) loadIconSets().then(() => setIconsReady(true));
-  }, []);
-
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -341,7 +335,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
 
             {tab.icon && (
               <span style={{ width: 14, height: 14, flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}>
-                {iconsReady && <Icon icon={tab.icon} width={14} height={14} style={{ color: 'currentColor' }} />}
+                <Icon icon={tab.icon} width={14} height={14} style={{ color: 'currentColor' }} />
               </span>
             )}
 
@@ -469,7 +463,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
                 className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-xs transition-colors hover:opacity-80"
                 style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-secondary)' }}
               >
-                {settingsTab.icon && iconsReady
+                {settingsTab.icon
                   ? <Icon icon={settingsTab.icon} width={14} height={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />
                   : <span className="w-3.5 h-3.5 rounded-sm shrink-0" style={{ background: 'var(--app-border)' }} />
                 }

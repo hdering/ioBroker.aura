@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, X, Loader2 } from 'lucide-react';
-import { Icon, getIcon } from '@iconify/react';
+import { Search, X } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import { ICON_CATEGORIES } from '../../utils/iconCategories';
-import { loadIconSets, areIconSetsLoaded, lucidePascalToIconify } from '../../utils/iconifyLoader';
+import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 
 // ── Props ──────────────────────────────────────────────────────────────────────
@@ -17,11 +17,6 @@ interface IconPickerModalProps {
 function toIconifyId(name: string): string {
   if (!name) return '';
   return name.includes(':') ? name : lucidePascalToIconify(name);
-}
-
-/** Check if an icon ID is available in the loaded sets */
-function isIconAvailable(id: string): boolean {
-  return !!getIcon(id);
 }
 
 // ── Icon grid item ─────────────────────────────────────────────────────────────
@@ -71,8 +66,6 @@ function CategoryBtn({ label, active, onClick }: { label: string; active: boolea
 // ── Modal ──────────────────────────────────────────────────────────────────────
 export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalProps) {
   const portalTarget = usePortalTarget();
-  const [loading, setLoading] = useState(!areIconSetsLoaded());
-  const [, forceUpdate] = useState(0);
   const [query, setQuery] = useState('');
   const [categoryId, setCategoryId] = useState('all');
   const searchRef = useRef<HTMLInputElement>(null);
@@ -80,50 +73,42 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
   const currentId = toIconifyId(current);
 
   useEffect(() => {
-    if (!areIconSetsLoaded()) {
-      setLoading(true);
-      loadIconSets().then(() => {
-        setLoading(false);
-        forceUpdate((n) => n + 1);
-      });
-    }
     setTimeout(() => searchRef.current?.focus(), 50);
   }, []);
 
-  // Build flat list of all Iconify IDs across all categories
+  // Build flat list of all Iconify IDs across all categories.
+  // Validity is no longer pre-checked — icons are fetched on-demand from
+  // api.iconify.design; the curated list is hand-maintained so all entries
+  // are valid IDs.
   const allIds = useMemo(() => {
-    if (loading) return [];
     const seen = new Set<string>();
     const result: string[] = [];
     for (const cat of ICON_CATEGORIES) {
       for (const name of cat.icons) {
         const id = toIconifyId(name);
-        if (!seen.has(id) && isIconAvailable(id)) {
+        if (!seen.has(id)) {
           seen.add(id);
           result.push(id);
         }
       }
     }
     return result;
-  }, [loading]);
+  }, []);
 
-  // Category counts
+  // Category counts (static, since we trust the curated list)
   const categoryCounts = useMemo(() => {
-    if (loading) return {} as Record<string, number>;
     const counts: Record<string, number> = { all: allIds.length };
     for (const cat of ICON_CATEGORIES) {
-      counts[cat.id] = cat.icons.filter((n) => isIconAvailable(toIconifyId(n))).length;
+      counts[cat.id] = cat.icons.length;
     }
     return counts;
-  }, [loading, allIds]);
+  }, [allIds]);
 
   // Visible icons for current selection
   const entries = useMemo<string[]>(() => {
-    if (loading) return [];
     const q = query.toLowerCase().trim();
 
     if (q) {
-      // Search by icon name across all icons
       return allIds.filter((id) => id.toLowerCase().includes(q)).sort();
     }
 
@@ -133,10 +118,8 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
 
     const cat = ICON_CATEGORIES.find((c) => c.id === categoryId);
     if (!cat) return [];
-    return cat.icons
-      .map(toIconifyId)
-      .filter((id) => isIconAvailable(id));
-  }, [loading, allIds, query, categoryId]);
+    return cat.icons.map(toIconifyId);
+  }, [allIds, query, categoryId]);
 
   const modal = (
     <div
@@ -216,13 +199,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
 
           {/* Right: icon grid */}
           <div className="flex-1 overflow-y-auto min-h-0 p-2">
-            {loading ? (
-              <div className="h-full flex items-center justify-center gap-2"
-                style={{ color: 'var(--text-secondary)' }}>
-                <Loader2 size={18} className="animate-spin" />
-                <span className="text-xs">Icons werden geladen…</span>
-              </div>
-            ) : entries.length === 0 ? (
+            {entries.length === 0 ? (
               <div className="h-full flex items-center justify-center">
                 <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                   Keine Icons gefunden
