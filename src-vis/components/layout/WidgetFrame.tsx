@@ -5162,7 +5162,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           placeholder="z.B. AUF,ZU"
                           className={sInputCls} style={sInputStyle} />
                         <p className="text-[10px] mt-1" style={hint}>
-                          Werte des Fahrt-Status-DP die „fährt gerade" bedeuten. Leer = Boolean-Prüfung (true / 1).
+                          Werte des Fahrt-Status-DP die &quot;fährt gerade&quot; bedeuten. Leer = Boolean-Prüfung (true / 1).
                         </p>
                       </div>
                     )}
