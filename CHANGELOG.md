@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.44 (2026-05-13)
+
+- feat: Tab-Export und -Import im Dashboard-Editor
+
 ## v0.7.43 (2026-05-13)
 
 - feat(climate): Auto-Erkennen für Luftfeuchtigkeit- und Soll-Temperatur-DP
@@ -496,6 +500,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
