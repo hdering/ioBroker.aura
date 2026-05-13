@@ -477,7 +477,7 @@ export function AdminPopups() {
         </p>
       </div>
       <GlobalSettingsSection />
-      <div className="grid grid-cols-2 gap-8 items-start">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 items-start">
         <PopupViewsSection />
         <TypeDefaultsSection />
       </div>
