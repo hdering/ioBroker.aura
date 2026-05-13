@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.41 (2026-05-13)
+
+- feat(universal): Bar-Stil für Schieberegler-Zelle (barStyle/barSize/orientation)
+
 ## v0.7.40 (2026-05-13)
 
 Release v0.7.40
@@ -484,6 +488,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
