@@ -668,10 +668,32 @@ function ClimateConfig({
     ? getWidgetIcon(humidityIconName, (() => null) as unknown as import('lucide-react').LucideIcon)
     : null;
 
+  const autoFill = async () => {
+    if (!config.datapoint) return;
+    const parts = config.datapoint.split('.');
+    const parent = parts.slice(0, -1).join('.');
+    const entries = await ensureDatapointCache();
+    const sibs = entries.filter((e) => e.id.startsWith(parent + '.'));
+    const find = (...names: string[]) => names.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
+    const patch: Record<string, unknown> = {};
+    const hv = find('HUMIDITY', 'humidity', 'Humidity', 'relative_humidity', 'RELATIVE_HUMIDITY');
+    if (hv) patch.humidityDatapoint = hv;
+    const tv = find('SET_POINT_TEMPERATURE', 'setPointTemperature', 'setpoint', 'SETPOINT', 'TARGET_TEMPERATURE', 'target_temperature', 'DESIRED_TEMPERATURE', 'desired_temperature', 'occupied_heating_setpoint');
+    if (tv) patch.targetDatapoint = tv;
+    if (Object.keys(patch).length) set(patch);
+  };
+
   return (
     <>
       <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
-      <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>Datenpunkte</p>
+      <div className="flex items-center justify-between mb-1.5">
+        <p className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Datenpunkte</p>
+        <button onClick={() => void autoFill()}
+          className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
+          style={{ background: 'var(--accent)22', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
+          Auto-Erkennen
+        </button>
+      </div>
 
       {/* Soll-Temperatur */}
       <div className="mb-2">
