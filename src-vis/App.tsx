@@ -237,16 +237,22 @@ export default function App() {
     });
   }, [connected, activeTabId, datapointsForTab, tabs]);
 
-  // Reset active tab when layout changes (e.g. after ioBroker config rehydration)
-  // Always respect URL slug first so F5 stays on the correct tab
+  // Reset active tab when the layout's tabs change (e.g. after ioBroker config
+  // rehydration). Depend on layout.tabs (not just layout.id) because the loaded
+  // layout often keeps the same id as the default (layout-default) while its
+  // tabs change completely — without re-validating, activeTabId stays on the
+  // stale "default" tab and Dashboard renders nothing in a fresh session.
+  // Always respect URL slug first so F5 stays on the correct tab.
   useEffect(() => {
+    if (!layout?.tabs?.length) return;
     if (tabSlug) {
-      const tab = (layout?.tabs ?? []).find((t) => (t.slug ?? t.id) === tabSlug);
-      if (tab) { setActiveTabId(tab.id); return; }
+      const tab = layout.tabs.find((t) => (t.slug ?? t.id) === tabSlug);
+      if (tab) { if (tab.id !== activeTabId) setActiveTabId(tab.id); return; }
     }
-    setActiveTabId(layout?.defaultTabId ?? layout?.tabs?.[0]?.id ?? '');
+    if (layout.tabs.some((t) => t.id === activeTabId)) return;
+    setActiveTabId(layout.defaultTabId ?? layout.tabs[0].id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [layout?.id]);
+  }, [layout?.id, layout?.tabs, tabSlug]);
 
   // If active tab is disabled, jump to the first non-disabled tab
   useEffect(() => {
