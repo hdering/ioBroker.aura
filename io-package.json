@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.1",
+    "version": "0.9.2",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.2": {
+        "en": "fix(popup): resolve popup-widget targets across all layouts (beta)",
+        "de": "fix(popup): resolve popup-widget targets across all layouts (beta)"
+      },
       "0.9.1": {
         "en": "feat(weather): configurable typography, element toggles, per-day custom-grid (beta)",
         "de": "feat(weather): configurable typography, element toggles, per-day custom-grid (beta)"
