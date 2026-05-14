@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.3",
+    "version": "0.9.4",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.4": {
+        "en": "feat(widget-frame): make edit-widget dialog resizable with persisted size (beta)",
+        "de": "feat(widget-frame): make edit-widget dialog resizable with persisted size (beta)"
+      },
       "0.9.3": {
         "en": "refactor(widget-frame): extract custom-cell editor to dedicated component; feat(universal): add stepper, input, progress, state-text custom cells; feat(universal): add datepicker custom-cell with date/time/format options (beta)",
         "de": "refactor(widget-frame): extract custom-cell editor to dedicated component; feat(universal): add stepper, input, progress, state-text custom cells; feat(universal): add datepicker custom-cell with date/time/format options (beta)"
