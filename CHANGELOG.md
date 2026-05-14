@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.13 (2026-05-14)
+
+Release v0.9.13
+
 ## v0.7.47 (2026-05-13)
 
 - fix(editor): show widget settings in mobile view
@@ -513,6 +517,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
