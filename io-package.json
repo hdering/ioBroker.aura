@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.4",
+    "version": "0.9.5",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.5": {
+        "en": "debug(config-sync): log subscribe + stateChange path for live diagnosis (beta)",
+        "de": "debug(config-sync): log subscribe + stateChange path for live diagnosis (beta)"
+      },
       "0.9.4": {
         "en": "feat(widget-frame): make edit-widget dialog resizable with persisted size (beta)",
         "de": "feat(widget-frame): make edit-widget dialog resizable with persisted size (beta)"
