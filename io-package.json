@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.11",
+    "version": "0.9.12",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.12": {
+        "en": "fix(backup): raise read-size cap 500KB -> 5MB (beta)",
+        "de": "fix(backup): raise read-size cap 500KB -> 5MB (beta)"
+      },
       "0.9.11": {
         "en": "fix(backup): raise read-size cap from 500 KB to 5 MB so existing auto-backups are no longer silently reset (beta)",
         "de": "fix(backup): Lese-Limit von 500 KB auf 5 MB angehoben, damit vorhandene Auto-Backups nicht mehr stillschweigend zurückgesetzt werden (beta)"
