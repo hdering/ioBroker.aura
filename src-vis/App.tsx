@@ -22,6 +22,7 @@ import type { Tab } from './store/dashboardStore';
 import type { FrontendSettings } from './store/configStore';
 
 import { applyRaw } from './utils/configLoader';
+import { discardPending } from './store/persistManager';
 import { usePopupConfigStore } from './store/popupConfigStore';
 
 const STORE_REHYDRATORS: Record<string, () => void> = {
@@ -347,11 +348,17 @@ export default function App() {
   }, [layout?.id, layout?.settings, currentTheme, effectiveCustomVars]);
 
   // ── Load config from ioBroker on first connect ────────────────────────────
+  // Frontend is read-only — clear the pending Map after loading remote config.
+  // On first store mount in a fresh session (incognito, new device) Zustand
+  // persist writes its default state via managedStorage.setItem, which
+  // populates `pending` and makes isDirty() return true forever. That would
+  // make useConfigSync skip every incoming stateChange (admin layout edits
+  // would never propagate without F5).
   const ioBrokerConfigLoaded = useRef(false);
   useEffect(() => {
     if (!connected || ioBrokerConfigLoaded.current) return;
     ioBrokerConfigLoaded.current = true;
-    void loadConfigFromIoBroker();
+    void loadConfigFromIoBroker().finally(() => discardPending());
   }, [connected]);
 
   // React to external changes on aura.0.config.dashboard (subscription + polling)
