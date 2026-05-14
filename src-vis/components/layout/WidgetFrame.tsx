@@ -7659,7 +7659,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           widget={config}
           action={clickAction}
           onClose={() => setPopupOpen(false)}
-          allWidgets={activeTabs.flatMap((t) => t.widgets)}
+          allWidgets={useDashboardStore.getState().layouts.flatMap((l) => l.tabs.flatMap((t) => t.widgets))}
         />
       )}
     </div>
