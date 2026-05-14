@@ -33,7 +33,7 @@ export const FORMAT_LABELS: Record<DateOutputFormat, string> = {
 function pad(n: number) { return String(n).padStart(2, '0'); }
 
 /** Parse any supported format back to a local Date */
-function parseValue(val: unknown): Date | null {
+export function parseValue(val: unknown): Date | null {
   if (val == null || val === '') return null;
   if (typeof val === 'number') {
     const d = new Date(val > 1e10 ? val : val * 1000);
@@ -52,7 +52,7 @@ function parseValue(val: unknown): Date | null {
   return null;
 }
 
-function formatDate(d: Date, fmt: DateOutputFormat): string | number {
+export function formatDate(d: Date, fmt: DateOutputFormat): string | number {
   switch (fmt) {
     case 'timestamp_ms':   return d.getTime();
     case 'timestamp_s':    return Math.floor(d.getTime() / 1000);
@@ -66,11 +66,11 @@ function formatDate(d: Date, fmt: DateOutputFormat): string | number {
   }
 }
 
-function toDateInputValue(d: Date) {
+export function toDateInputValue(d: Date) {
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
 
-function toTimeInputValue(d: Date) {
+export function toTimeInputValue(d: Date) {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 

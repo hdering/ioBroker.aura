@@ -2,14 +2,16 @@
  * Shared custom-grid layout renderer used by all widgets that support layout='custom'.
  * Default 3×3 grid, but parameterized via CustomGridDef for arbitrary cols/rows (used by Universal Widget).
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDatapoint } from '../../hooks/useDatapoint';
+import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetConfig, CustomCell, CustomGrid, CustomGridDef } from '../../types';
 import { resolveAssetUrl } from '../../utils/assetUrl';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { HelpCircle } from 'lucide-react';
+import { parseValue, formatDate, toDateInputValue, toTimeInputValue, type DateOutputFormat } from './DatePickerWidget';
 
 // ── Default grid (title top-left, large value + unit in middle row) ──────────
 
@@ -392,6 +394,92 @@ function StateIconCellView({ cell, index, cols, rows }: { cell: CustomCell; inde
   );
 }
 
+/** Date/time picker bound to a DP. Writes back in the configured `dateFormat`. */
+function DatePickerCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
+  const { value } = useDatapoint(cell.dpId ?? '');
+  const { setState } = useIoBroker();
+  const timeOnly  = cell.timeOnly === true;
+  const showTime  = timeOnly || cell.showTime === true;
+  const outputFmt = (cell.dateFormat as DateOutputFormat) ?? 'timestamp_ms';
+
+  const currentDate = parseValue(value);
+  const [dateVal, setDateVal] = useState(() => currentDate ? toDateInputValue(currentDate) : '');
+  const [timeVal, setTimeVal] = useState(() => {
+    if (currentDate) return toTimeInputValue(currentDate);
+    if (timeOnly && typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) return value.slice(0, 5);
+    return '00:00';
+  });
+
+  useEffect(() => {
+    if (timeOnly) {
+      if (typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) setTimeVal(value.slice(0, 5));
+      else if (currentDate) setTimeVal(toTimeInputValue(currentDate));
+      return;
+    }
+    if (!currentDate) return;
+    setDateVal(toDateInputValue(currentDate));
+    setTimeVal(toTimeInputValue(currentDate));
+  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const writeValue = (date: string, time: string) => {
+    if (!cell.dpId) return;
+    if (timeOnly) {
+      if (!time) return;
+      const [h, mi] = time.split(':').map(Number);
+      const dt = new Date(1970, 0, 1, h ?? 0, mi ?? 0);
+      setState(cell.dpId, formatDate(dt, outputFmt));
+      return;
+    }
+    if (!date) return;
+    const [y, mo, d] = date.split('-').map(Number);
+    const [h, mi]    = time.split(':').map(Number);
+    const dt = showTime
+      ? new Date(y, mo - 1, d, h ?? 0, mi ?? 0)
+      : new Date(y, mo - 1, d, 0, 0, 0, 0);
+    if (isNaN(dt.getTime())) return;
+    setState(cell.dpId, formatDate(dt, outputFmt));
+  };
+
+  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+
+  const inputSty: React.CSSProperties = {
+    background:  'var(--app-bg)',
+    color:       'var(--text-primary)',
+    border:      '1px solid var(--app-border)',
+    borderRadius: 8,
+    padding:     '4px 6px',
+    fontSize:    cell.fontSize ? `${cell.fontSize}px` : 12,
+    colorScheme: 'dark' as never,
+    flexShrink:  0,
+    minWidth:    0,
+  };
+
+  return (
+    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' }}>
+      <div className="flex flex-wrap gap-1 items-center w-full">
+        {!timeOnly && (
+          <input
+            type="date"
+            value={dateVal}
+            onChange={(e) => { setDateVal(e.target.value); writeValue(e.target.value, timeVal); }}
+            className="nodrag focus:outline-none flex-1 min-w-0"
+            style={inputSty}
+          />
+        )}
+        {showTime && (
+          <input
+            type="time"
+            value={timeVal}
+            onChange={(e) => { setTimeVal(e.target.value); writeValue(dateVal, e.target.value); }}
+            className="nodrag focus:outline-none flex-1 min-w-0"
+            style={inputSty}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Main export ───────────────────────────────────────────────────────────────
 
 interface CustomGridViewProps {
@@ -441,6 +529,7 @@ export function CustomGridView({ config, value, rawValue, unit, extraFields, ext
           case 'button':     return <ButtonCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} />;
           case 'icon':       return <IconCellView       key={i} cell={cell} index={i} cols={cols} rows={rows} />;
           case 'state-icon': return <StateIconCellView  key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+          case 'datepicker': return <DatePickerCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
           default:           return <StaticCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} title={config.title} value={value} rawValue={rawValue} unit={unit} extraFields={extraFields} />;
         }
       })}

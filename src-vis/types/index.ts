@@ -60,7 +60,7 @@ export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda'
 export type CustomCellType =
   | 'empty' | 'title' | 'value' | 'unit' | 'text' | 'dp' | 'field' | 'image' | 'component'
   // Interactive cell types (Universal Widget)
-  | 'switch' | 'slider' | 'button' | 'icon' | 'state-icon';
+  | 'switch' | 'slider' | 'button' | 'icon' | 'state-icon' | 'datepicker';
 export type CustomCellAlign  = 'left' | 'center' | 'right';
 export type CustomCellValign = 'top'  | 'middle'  | 'bottom';
 
@@ -101,6 +101,10 @@ export interface CustomCell {
   falseColor?: string;          // 'state-icon' / 'switch' (icon mode): color for falsy value
   // 'switch' type
   controlMode?: 'toggle' | 'icon';  // 'switch' cell: visual control style (default 'toggle')
+  // 'datepicker' type
+  dateFormat?: string;           // DateOutputFormat string: how to encode the picked date when writing to dpId
+  showTime?:   boolean;          // show time-of-day picker alongside date input
+  timeOnly?:   boolean;          // hide date input, only edit/write time-of-day
 }
 
 /** Legacy: 9-element array, row-major (index = row*3 + col). Kept as alias for compat. */

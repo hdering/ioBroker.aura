@@ -6255,7 +6255,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               {!['iframe', 'jsontable', 'html', 'trash', 'trashSchedule', 'header', 'fill', 'camera', 'datepicker'].includes(config.type) && ((config.layout ?? 'default') === 'custom' || config.type === 'universal') && (() => {
                 const CELL_LABELS: Record<string, string> = {
                   empty: '–', title: 'Titel', value: 'Wert', unit: 'Einheit', text: 'Text', dp: 'DP', field: 'Feld', component: 'Aktion',
-                  switch: 'Schalter', slider: 'Regler', button: 'Button', icon: 'Icon', 'state-icon': 'Status-Icon',
+                  switch: 'Schalter', slider: 'Regler', button: 'Button', icon: 'Icon', 'state-icon': 'Status-Icon', datepicker: 'Datumswähler',
                 };
                 const isUniversal = config.type === 'universal';
                 const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
@@ -6416,6 +6416,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             <option value="button">Button (DP schreiben)</option>
                             <option value="icon">Statisches Icon</option>
                             <option value="state-icon">Status-Icon (DP)</option>
+                            <option value="datepicker">Datumswähler (DP)</option>
                           </select>
                         </div>
 
@@ -6689,8 +6690,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           );
                         })()}
 
-                        {/* DP selector (dp / switch / slider / button / state-icon) */}
-                        {(selCell.type === 'dp' || selCell.type === 'switch' || selCell.type === 'slider' || selCell.type === 'button' || selCell.type === 'state-icon') && (
+                        {/* DP selector (dp / switch / slider / button / state-icon / datepicker) */}
+                        {(selCell.type === 'dp' || selCell.type === 'switch' || selCell.type === 'slider' || selCell.type === 'button' || selCell.type === 'state-icon' || selCell.type === 'datepicker') && (
                           <div>
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Datenpunkt</label>
                             <div className="flex gap-1">
@@ -6980,6 +6981,48 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               </div>
                             </div>
                           </>
+                          );
+                        })()}
+
+                        {/* Datepicker: timeOnly / showTime / output format */}
+                        {selCell.type === 'datepicker' && (() => {
+                          const fmt = (selCell.dateFormat as DateOutputFormat) ?? 'timestamp_ms';
+                          return (
+                            <>
+                              <div className="flex items-center justify-between">
+                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Nur Uhrzeit (kein Datum)</label>
+                                <button
+                                  onClick={() => setCell(sel, { timeOnly: !selCell.timeOnly, showTime: !selCell.timeOnly ? true : selCell.showTime })}
+                                  className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                  style={{ background: selCell.timeOnly ? 'var(--accent)' : 'var(--app-border)' }}>
+                                  <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                    style={{ left: selCell.timeOnly ? '14px' : '2px' }} />
+                                </button>
+                              </div>
+                              {!selCell.timeOnly && (
+                                <div className="flex items-center justify-between">
+                                  <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Uhrzeit-Eingabe anzeigen</label>
+                                  <button
+                                    onClick={() => setCell(sel, { showTime: !selCell.showTime })}
+                                    className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                    style={{ background: selCell.showTime ? 'var(--accent)' : 'var(--app-border)' }}>
+                                    <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                      style={{ left: selCell.showTime ? '14px' : '2px' }} />
+                                  </button>
+                                </div>
+                              )}
+                              <div>
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Ausgabeformat</label>
+                                <select
+                                  value={fmt}
+                                  onChange={(e) => setCell(sel, { dateFormat: e.target.value })}
+                                  className={inputCls} style={inputSty}>
+                                  {(Object.entries(FORMAT_LABELS) as [DateOutputFormat, string][]).map(([key, label]) => (
+                                    <option key={key} value={key}>{label}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </>
                           );
                         })()}
 
