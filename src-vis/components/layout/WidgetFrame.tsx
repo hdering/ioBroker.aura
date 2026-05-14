@@ -6256,6 +6256,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 const CELL_LABELS: Record<string, string> = {
                   empty: '–', title: 'Titel', value: 'Wert', unit: 'Einheit', text: 'Text', dp: 'DP', field: 'Feld', component: 'Aktion',
                   switch: 'Schalter', slider: 'Regler', button: 'Button', icon: 'Icon', 'state-icon': 'Status-Icon', datepicker: 'Datumswähler',
+                  stepper: 'Stepper', input: 'Eingabe', progress: 'Fortschritt', 'state-text': 'Status-Text',
                 };
                 const isUniversal = config.type === 'universal';
                 const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
@@ -6416,7 +6417,11 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             <option value="button">Button (DP schreiben)</option>
                             <option value="icon">Statisches Icon</option>
                             <option value="state-icon">Status-Icon (DP)</option>
+                            <option value="state-text">Status-Text (DP)</option>
                             <option value="datepicker">Datumswähler (DP)</option>
+                            <option value="stepper">Stepper +/− (DP)</option>
+                            <option value="input">Eingabe (DP schreiben)</option>
+                            <option value="progress">Fortschrittsbalken (DP)</option>
                           </select>
                         </div>
 
@@ -6690,8 +6695,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           );
                         })()}
 
-                        {/* DP selector (dp / switch / slider / button / state-icon / datepicker) */}
-                        {(selCell.type === 'dp' || selCell.type === 'switch' || selCell.type === 'slider' || selCell.type === 'button' || selCell.type === 'state-icon' || selCell.type === 'datepicker') && (
+                        {/* DP selector (dp / switch / slider / button / state-icon / state-text / datepicker / stepper / input / progress) */}
+                        {(selCell.type === 'dp' || selCell.type === 'switch' || selCell.type === 'slider' || selCell.type === 'button' || selCell.type === 'state-icon' || selCell.type === 'state-text' || selCell.type === 'datepicker' || selCell.type === 'stepper' || selCell.type === 'input' || selCell.type === 'progress') && (
                           <div>
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Datenpunkt</label>
                             <div className="flex gap-1">
@@ -6984,6 +6989,171 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           );
                         })()}
 
+                        {/* Stepper / Progress: min / max / step */}
+                        {(selCell.type === 'stepper' || selCell.type === 'progress') && (
+                          <div className="flex gap-2">
+                            {([
+                              { key: 'min',  label: 'Min',  def: 0 },
+                              { key: 'max',  label: 'Max',  def: 100 },
+                              ...(selCell.type === 'stepper' ? [{ key: 'step', label: 'Step', def: 1 }] : []),
+                            ] as const).map(({ key, label, def }) => (
+                              <div key={key} className="flex-1">
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{label}</label>
+                                <input
+                                  type="number"
+                                  value={(selCell as unknown as Record<string, number | undefined>)[key] ?? ''}
+                                  onChange={(e) => setCell(sel, { [key]: e.target.value === '' ? undefined : Number(e.target.value) } as Partial<CustomCell>)}
+                                  placeholder={String(def)}
+                                  className={inputCls} style={inputSty}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Progress: orientation + bar size + show-value */}
+                        {selCell.type === 'progress' && (
+                          <div className="flex flex-col gap-2">
+                            <div>
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Ausrichtung</label>
+                              <div className="flex gap-1">
+                                {([['horizontal', 'Horizontal'], ['vertical', 'Vertikal']] as const).map(([val, lbl]) => {
+                                  const active = (selCell.orientation ?? 'horizontal') === val;
+                                  return (
+                                    <button key={val} onClick={() => setCell(sel, { orientation: val })}
+                                      className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                                      style={{
+                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                        color:      active ? '#fff'          : 'var(--text-secondary)',
+                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                      }}>
+                                      {lbl}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="flex items-center justify-between mb-1">
+                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Balkengröße</label>
+                                <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{selCell.barSize ?? 100}%</span>
+                              </div>
+                              <input type="range" min={10} max={100} step={5} value={selCell.barSize ?? 100}
+                                onChange={(e) => setCell(sel, { barSize: Number(e.target.value) })}
+                                className="w-full h-1" style={{ accentColor: 'var(--accent)' }} />
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Wert im Balken anzeigen</label>
+                              <button
+                                onClick={() => setCell(sel, { showValue: !selCell.showValue })}
+                                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                style={{ background: selCell.showValue ? 'var(--accent)' : 'var(--app-border)' }}>
+                                <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                  style={{ left: selCell.showValue ? '14px' : '2px' }} />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Input: text / number mode + min/max/step for number */}
+                        {selCell.type === 'input' && (
+                          <>
+                            <div>
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Eingabeart</label>
+                              <div className="flex gap-1">
+                                {([['text', 'Text'], ['number', 'Zahl']] as const).map(([val, lbl]) => {
+                                  const active = (selCell.inputMode ?? 'text') === val;
+                                  return (
+                                    <button key={val} onClick={() => setCell(sel, { inputMode: val })}
+                                      className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                                      style={{
+                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                        color:      active ? '#fff'          : 'var(--text-secondary)',
+                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                      }}>
+                                      {lbl}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Platzhalter</label>
+                              <input
+                                type="text"
+                                value={selCell.text ?? ''}
+                                onChange={(e) => setCell(sel, { text: e.target.value || undefined })}
+                                placeholder="optional"
+                                className={inputCls} style={inputSty}
+                              />
+                            </div>
+                            {selCell.inputMode === 'number' && (
+                              <div className="flex gap-2">
+                                {([
+                                  { key: 'min',  label: 'Min',  def: '' },
+                                  { key: 'max',  label: 'Max',  def: '' },
+                                  { key: 'step', label: 'Step', def: 1 },
+                                ] as const).map(({ key, label, def }) => (
+                                  <div key={key} className="flex-1">
+                                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{label}</label>
+                                    <input
+                                      type="number"
+                                      value={(selCell as unknown as Record<string, number | undefined>)[key] ?? ''}
+                                      onChange={(e) => setCell(sel, { [key]: e.target.value === '' ? undefined : Number(e.target.value) } as Partial<CustomCell>)}
+                                      placeholder={String(def)}
+                                      className={inputCls} style={inputSty}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        )}
+
+                        {/* State-Text: trueText / falseText + colors */}
+                        {selCell.type === 'state-text' && (
+                          <>
+                            <div className="flex gap-2">
+                              <div className="flex-1 min-w-0">
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Text (an / true)</label>
+                                <input
+                                  type="text"
+                                  value={selCell.trueText ?? ''}
+                                  onChange={(e) => setCell(sel, { trueText: e.target.value })}
+                                  placeholder="z.B. AN"
+                                  className={inputCls} style={inputSty}
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Text (aus / false)</label>
+                                <input
+                                  type="text"
+                                  value={selCell.falseText ?? ''}
+                                  onChange={(e) => setCell(sel, { falseText: e.target.value })}
+                                  placeholder="z.B. AUS"
+                                  className={inputCls} style={inputSty}
+                                />
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <div className="flex-1">
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Farbe an</label>
+                                <input type="color"
+                                  value={selCell.trueColor && selCell.trueColor.startsWith('#') ? selCell.trueColor : '#22c55e'}
+                                  onChange={(e) => setCell(sel, { trueColor: e.target.value })}
+                                  className="w-full h-7 rounded cursor-pointer border-0 p-0" />
+                              </div>
+                              <div className="flex-1">
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Farbe aus</label>
+                                <input type="color"
+                                  value={selCell.falseColor && selCell.falseColor.startsWith('#') ? selCell.falseColor : '#64748b'}
+                                  onChange={(e) => setCell(sel, { falseColor: e.target.value })}
+                                  className="w-full h-7 rounded cursor-pointer border-0 p-0" />
+                              </div>
+                            </div>
+                          </>
+                        )}
+
                         {/* Datepicker: timeOnly / showTime / output format */}
                         {selCell.type === 'datepicker' && (() => {
                           const fmt = (selCell.dateFormat as DateOutputFormat) ?? 'timestamp_ms';
@@ -7026,8 +7196,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           );
                         })()}
 
-                        {/* Prefix / Suffix for value or dp */}
-                        {(selCell.type === 'value' || selCell.type === 'dp') && (
+                        {/* Prefix / Suffix for value or dp / stepper / progress */}
+                        {(selCell.type === 'value' || selCell.type === 'dp' || selCell.type === 'stepper' || selCell.type === 'progress') && (
                           <div className="flex gap-2">
                             <div className="flex-1">
                               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Prefix</label>
@@ -7054,8 +7224,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           </div>
                         )}
 
-                        {/* Dezimalstellen for value or dp */}
-                        {(selCell.type === 'value' || selCell.type === 'dp') && (
+                        {/* Dezimalstellen for value / dp / stepper / progress */}
+                        {(selCell.type === 'value' || selCell.type === 'dp' || selCell.type === 'stepper' || selCell.type === 'progress') && (
                           <div>
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Dezimalstellen</label>
                             <div className="flex gap-1">

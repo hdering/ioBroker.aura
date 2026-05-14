@@ -394,6 +394,158 @@ function StateIconCellView({ cell, index, cols, rows }: { cell: CustomCell; inde
   );
 }
 
+/** +/− stepper that increments / decrements a numeric DP by `step`, clamped to [min, max]. */
+function StepperCellView({ cell, index, cols, rows, defaultDecimals }: { cell: CustomCell; index: number; cols: number; rows: number; defaultDecimals: number }) {
+  const { value, setValue } = useDatapoint(cell.dpId ?? '');
+  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+  const min  = cell.min  ?? -Infinity;
+  const max  = cell.max  ??  Infinity;
+  const step = cell.step ?? 1;
+  const num  = typeof value === 'number' ? value : Number(value ?? 0);
+  const cur  = Number.isFinite(num) ? num : 0;
+  const decimals = cell.decimals ?? defaultDecimals;
+  const display = Number.isFinite(num) ? formatNum(num, decimals) : '–';
+  const color = cell.color || 'var(--accent)';
+  const btnSize = cell.fontSize ?? 14;
+  const change = (delta: number) => {
+    const next = Math.max(min, Math.min(max, cur + delta));
+    setValue(next);
+  };
+  return (
+    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+      <div className="nodrag flex items-center gap-1 w-full">
+        <button onClick={() => change(-step)}
+          className="rounded-lg flex items-center justify-center hover:opacity-85"
+          style={{ background: color, color: '#fff', border: 'none', minWidth: 22, height: 22, fontSize: btnSize, cursor: 'pointer' }}>−</button>
+        <span className="flex-1 text-center tabular-nums"
+          style={{ ...cellTextStyle(cell, 'var(--text-primary)'), whiteSpace: 'nowrap' }}>
+          {`${cell.prefix ?? ''}${display}${cell.suffix ?? ''}`}
+        </span>
+        <button onClick={() => change(step)}
+          className="rounded-lg flex items-center justify-center hover:opacity-85"
+          style={{ background: color, color: '#fff', border: 'none', minWidth: 22, height: 22, fontSize: btnSize, cursor: 'pointer' }}>+</button>
+      </div>
+    </div>
+  );
+}
+
+/** Free text / number input bound to a DP. Writes on Enter / blur. */
+function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
+  const { value, setValue } = useDatapoint(cell.dpId ?? '');
+  const isNumber = cell.inputMode === 'number';
+  const externalStr = value == null ? '' : String(value);
+  const [draft, setDraft] = useState(externalStr);
+  const [focused, setFocused] = useState(false);
+  useEffect(() => { if (!focused) setDraft(externalStr); }, [externalStr, focused]);
+
+  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+
+  const commit = () => {
+    if (isNumber) {
+      if (draft === '') return;
+      const n = Number(draft);
+      if (!Number.isFinite(n)) return;
+      const min = cell.min ?? -Infinity;
+      const max = cell.max ??  Infinity;
+      setValue(Math.max(min, Math.min(max, n)));
+    } else {
+      setValue(draft);
+    }
+  };
+
+  const inputSty: React.CSSProperties = {
+    background: 'var(--app-bg)',
+    color:      cell.color || 'var(--text-primary)',
+    border:     '1px solid var(--app-border)',
+    borderRadius: 8,
+    padding:    '4px 6px',
+    fontSize:   cell.fontSize ? `${cell.fontSize}px` : 12,
+    fontWeight: cell.bold ? 'bold' : undefined,
+    fontStyle:  cell.italic ? 'italic' : undefined,
+    width:      '100%',
+    minWidth:   0,
+    textAlign:  cell.align === 'center' ? 'center' : cell.align === 'right' ? 'right' : 'left',
+  };
+
+  return (
+    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' }}>
+      <input
+        type={isNumber ? 'number' : 'text'}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => { setFocused(false); commit(); }}
+        onKeyDown={(e) => { if (e.key === 'Enter') { e.currentTarget.blur(); } }}
+        min={isNumber ? cell.min : undefined}
+        max={isNumber ? cell.max : undefined}
+        step={isNumber ? cell.step : undefined}
+        placeholder={cell.text || ''}
+        className="nodrag focus:outline-none"
+        style={inputSty}
+      />
+    </div>
+  );
+}
+
+/** Read-only progress bar visualising a numeric DP in [min, max]. */
+function ProgressCellView({ cell, index, cols, rows, defaultDecimals }: { cell: CustomCell; index: number; cols: number; rows: number; defaultDecimals: number }) {
+  const { value } = useDatapoint(cell.dpId ?? '');
+  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+  const min = cell.min ?? 0;
+  const max = cell.max ?? 100;
+  const isVertical = cell.orientation === 'vertical';
+  const barSize    = cell.barSize ?? 100;
+  const color      = cell.color || 'var(--accent)';
+  const num        = typeof value === 'number' ? value : Number(value ?? min);
+  const cur        = Number.isFinite(num) ? num : min;
+  const ratio      = Math.max(0, Math.min(1, (cur - min) / (max - min)));
+  const decimals   = cell.decimals ?? defaultDecimals;
+  const label      = `${cell.prefix ?? ''}${Number.isFinite(num) ? formatNum(num, decimals) : '–'}${cell.suffix ?? ''}`;
+  return (
+    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '4px' }}>
+      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div
+          className="relative rounded-2xl overflow-hidden"
+          style={{
+            width:      isVertical ? `${barSize}%` : '100%',
+            height:     isVertical ? '100%'        : `${barSize}%`,
+            background: `color-mix(in srgb, ${color} 20%, var(--app-bg))`,
+          }}
+        >
+          {isVertical ? (
+            <div className="absolute bottom-0 left-0 right-0 rounded-t-2xl"
+              style={{ height: `${ratio * 100}%`, background: color, transition: 'height 200ms ease' }} />
+          ) : (
+            <div className="absolute top-0 left-0 bottom-0 rounded-r-2xl"
+              style={{ width: `${ratio * 100}%`, background: color, transition: 'width 200ms ease' }} />
+          )}
+          {cell.showValue && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              style={{ ...cellTextStyle(cell, '#fff'), mixBlendMode: 'difference' }}>
+              <span>{label}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Text label whose content + color depend on a binary DP value. */
+function StateTextCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
+  const { value } = useDatapoint(cell.dpId ?? '');
+  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+  const truthy = value === true || value === 1 || value === 'true' || value === '1';
+  const label  = truthy ? (cell.trueText  ?? '') : (cell.falseText ?? '');
+  const color  = truthy ? (cell.trueColor || cell.color || 'var(--accent)')
+                        : (cell.falseColor || cell.color || 'var(--text-secondary)');
+  return (
+    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+      <span style={{ ...cellTextStyle(cell, color), color }}>{label}</span>
+    </div>
+  );
+}
+
 /** Date/time picker bound to a DP. Writes back in the configured `dateFormat`. */
 function DatePickerCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
   const { value } = useDatapoint(cell.dpId ?? '');
@@ -530,6 +682,10 @@ export function CustomGridView({ config, value, rawValue, unit, extraFields, ext
           case 'icon':       return <IconCellView       key={i} cell={cell} index={i} cols={cols} rows={rows} />;
           case 'state-icon': return <StateIconCellView  key={i} cell={cell} index={i} cols={cols} rows={rows} />;
           case 'datepicker': return <DatePickerCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+          case 'stepper':    return <StepperCellView    key={i} cell={cell} index={i} cols={cols} rows={rows} defaultDecimals={defaultDecimals} />;
+          case 'input':      return <InputCellView      key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+          case 'progress':   return <ProgressCellView   key={i} cell={cell} index={i} cols={cols} rows={rows} defaultDecimals={defaultDecimals} />;
+          case 'state-text': return <StateTextCellView  key={i} cell={cell} index={i} cols={cols} rows={rows} />;
           default:           return <StaticCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} title={config.title} value={value} rawValue={rawValue} unit={unit} extraFields={extraFields} />;
         }
       })}

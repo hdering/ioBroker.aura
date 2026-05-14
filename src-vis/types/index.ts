@@ -60,7 +60,8 @@ export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda'
 export type CustomCellType =
   | 'empty' | 'title' | 'value' | 'unit' | 'text' | 'dp' | 'field' | 'image' | 'component'
   // Interactive cell types (Universal Widget)
-  | 'switch' | 'slider' | 'button' | 'icon' | 'state-icon' | 'datepicker';
+  | 'switch' | 'slider' | 'button' | 'icon' | 'state-icon' | 'datepicker'
+  | 'stepper' | 'input' | 'progress' | 'state-text';
 export type CustomCellAlign  = 'left' | 'center' | 'right';
 export type CustomCellValign = 'top'  | 'middle'  | 'bottom';
 
@@ -105,6 +106,13 @@ export interface CustomCell {
   dateFormat?: string;           // DateOutputFormat string: how to encode the picked date when writing to dpId
   showTime?:   boolean;          // show time-of-day picker alongside date input
   timeOnly?:   boolean;          // hide date input, only edit/write time-of-day
+  // 'input' type
+  inputMode?: 'text' | 'number'; // 'input' cell: which native input variant (default 'text')
+  // 'progress' type
+  showValue?: boolean;           // 'progress' cell: overlay current value/percentage on top of bar
+  // 'state-text' type — reuses trueColor/falseColor + color/text styling
+  trueText?:  string;            // 'state-text' cell: label rendered for truthy value
+  falseText?: string;            // 'state-text' cell: label rendered for falsy value
 }
 
 /** Legacy: 9-element array, row-major (index = row*3 + col). Kept as alias for compat. */
