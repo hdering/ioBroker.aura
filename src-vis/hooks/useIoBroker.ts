@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ioBrokerState, ObjectViewResult } from '../types';
+import { version as appVersion } from '../../package.json';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore – socket.io-client v2 hat kein ESM-Export
@@ -87,6 +88,13 @@ function createSocket(url: string): IoBrokerSocket {
   }) as IoBrokerSocket;
 
   s.on('connect', () => {
+    console.log(
+      `%c Aura %c v${appVersion} %c connected %c ${url} `,
+      'background:#6366f1;color:#fff;font-weight:bold;border-radius:3px 0 0 3px;padding:2px 6px;',
+      'background:#1e293b;color:#cbd5e1;padding:2px 6px;',
+      'background:#10b981;color:#fff;font-weight:bold;padding:2px 6px;',
+      'background:#0f172a;color:#94a3b8;border-radius:0 3px 3px 0;padding:2px 6px;',
+    );
     connectionListeners.forEach((fn) => fn(true));
     // Re-subscribe and fetch current state for all active subscriptions
     subscribers.forEach((callbacks, id) => {
@@ -96,7 +104,13 @@ function createSocket(url: string): IoBrokerSocket {
       });
     });
   });
-  s.on('disconnect', () => connectionListeners.forEach((fn) => fn(false)));
+  s.on('disconnect', () => {
+    console.log('%c Aura %c disconnected ',
+      'background:#6366f1;color:#fff;font-weight:bold;border-radius:3px 0 0 3px;padding:2px 6px;',
+      'background:#ef4444;color:#fff;font-weight:bold;border-radius:0 3px 3px 0;padding:2px 6px;',
+    );
+    connectionListeners.forEach((fn) => fn(false));
+  });
   s.on('stateChange', (...args: unknown[]) => {
     const id = args[0] as string;
     const state = args[1] as ioBrokerState;
