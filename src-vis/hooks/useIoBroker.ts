@@ -87,6 +87,7 @@ function createSocket(url: string): IoBrokerSocket {
   }) as IoBrokerSocket;
 
   s.on('connect', () => {
+    console.log(`[socket] connected — re-subscribing to ${subscribers.size} IDs`);
     connectionListeners.forEach((fn) => fn(true));
     // Re-subscribe and fetch current state for all active subscriptions
     subscribers.forEach((callbacks, id) => {

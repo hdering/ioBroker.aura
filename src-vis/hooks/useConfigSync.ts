@@ -51,14 +51,26 @@ export function useConfigSync(connected: boolean, configLoaded: React.MutableRef
 
   // 1. Subscribe to each state — immediate push on stateChange
   useEffect(() => {
+    console.log('[configSync] mount — subscribing to', Object.values(IOBROKER_STATE_MAP).length, 'config DPs');
     const unsubs = (Object.entries(IOBROKER_STATE_MAP) as [SyncStoreKey, string][]).map(
       ([key, stateId]) =>
         subscribeStateDirect(stateId, (state) => {
-          if (!state?.val || !configLoaded.current) return;
-          if (isDirty() || isSavingRecently()) return;
-          if (applyOneState(key, String(state.val))) {
+          const valLen = state?.val ? String(state.val).length : 0;
+          console.log(`[configSync] ← stateChange ${stateId} ack=${state?.ack} len=${valLen}`);
+          if (!state?.val || !configLoaded.current) {
+            console.log(`[configSync]   skip: noVal=${!state?.val} configLoaded=${configLoaded.current}`);
+            return;
+          }
+          if (isDirty() || isSavingRecently()) {
+            console.log(`[configSync]   skip: dirty=${isDirty()} savingRecently=${isSavingRecently()}`);
+            return;
+          }
+          const applied = applyOneState(key, String(state.val));
+          console.log(`[configSync]   applyOneState(${key}) → ${applied}`);
+          if (applied) {
             rehydrateAll(false);
             discardPending();
+            console.log(`[configSync]   rehydrated stores`);
           }
         }),
     );
