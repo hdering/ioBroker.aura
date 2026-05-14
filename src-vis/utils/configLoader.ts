@@ -7,7 +7,7 @@
  * New format: each key has its own state (aura.0.config.theme etc.)
  */
 import { getStateDirect, setStateDirect } from '../hooks/useIoBroker';
-import { IOBROKER_STATE_MAP, type SyncStoreKey } from '../store/persistManager';
+import { IOBROKER_STATE_MAP, type SyncStoreKey, hasDirtyFlag, clearDirtyFlag } from '../store/persistManager';
 import { hydrateGroupDefs } from '../store/groupDefsStore';
 import { useDashboardStore } from '../store/dashboardStore';
 import { useThemeStore } from '../store/themeStore';
@@ -18,10 +18,13 @@ import { usePopupConfigStore } from '../store/popupConfigStore';
 
 type StoreKey = SyncStoreKey | 'aura-global-settings';
 
-/** Apply a raw JSON string for a given key to localStorage + store. */
+/** Apply a raw JSON string for a given key to localStorage + store.
+ *  Also clears the _dirty flag — values pulled from ioBroker are by definition
+ *  synced. */
 export function applyRaw(key: StoreKey, raw: string): void {
-  if (key === 'aura-group-defs') { hydrateGroupDefs(raw); return; }
+  if (key === 'aura-group-defs') { hydrateGroupDefs(raw); clearDirtyFlag(key); return; }
   try { localStorage.setItem(key, raw); } catch { /* quota — in-memory only */ }
+  clearDirtyFlag(key);
 }
 
 /** Rehydrate all stores from localStorage / in-memory state. */
@@ -38,8 +41,12 @@ export function rehydrateAll(includeGlobalSettings = true): void {
  * Load all config states from ioBroker in parallel.
  * Returns true if any store was updated.
  * Automatically migrates from old single-blob format.
+ *
+ * Honors per-key _dirty flags: keys with cross-session unsaved edits are
+ * skipped (their localStorage value wins; saveToIoBroker will push it).
+ * Pass `ignoreDirty: true` from the read-only frontend to always pull remote.
  */
-export async function loadConfigFromIoBroker(includeGlobalSettings = false): Promise<boolean> {
+export async function loadConfigFromIoBroker(includeGlobalSettings = false, { ignoreDirty = false }: { ignoreDirty?: boolean } = {}): Promise<boolean> {
   const keys = Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[];
   const extraKeys: StoreKey[] = includeGlobalSettings ? [...keys, 'aura-global-settings'] : keys;
 
@@ -63,6 +70,7 @@ export async function loadConfigFromIoBroker(includeGlobalSettings = false): Pro
     try {
       const blob = JSON.parse(dashboardRaw) as Record<string, unknown>;
       for (const key of extraKeys) {
+        if (!ignoreDirty && hasDirtyFlag(key)) continue; // preserve unsaved edits
         const val = blob[key];
         if (!val) continue;
         const raw = typeof val === 'string' ? val : JSON.stringify(val);
@@ -80,6 +88,7 @@ export async function loadConfigFromIoBroker(includeGlobalSettings = false): Pro
     // New format: each result maps directly to its key
     for (let i = 0; i < extraKeys.length; i++) {
       const key = extraKeys[i];
+      if (!ignoreDirty && hasDirtyFlag(key)) continue; // preserve unsaved edits
       const state = results[i];
       if (!state?.val) continue;
       const raw = String(state.val);

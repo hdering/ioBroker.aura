@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { getStateDirect, subscribeStateDirect } from './useIoBroker';
 import { useDashboardStore } from '../store/dashboardStore';
 import { hydrateGroupDefs } from '../store/groupDefsStore';
-import { isDirty, isSavingRecently, discardPending, IOBROKER_STATE_MAP, type SyncStoreKey } from '../store/persistManager';
+import { isPending, isSavingRecently, discardPendingKey, IOBROKER_STATE_MAP, type SyncStoreKey } from '../store/persistManager';
 import { applyRaw, rehydrateAll } from '../utils/configLoader';
 
 /** Apply one state value received from ioBroker to localStorage + stores. */
@@ -44,10 +44,15 @@ function applyOneState(key: SyncStoreKey, raw: string): boolean {
 
 /**
  * Subscribes to each config state individually and polls every 30 s as fallback.
- * With separate ioBroker states, each store reacts only to its own state change
- * — no parsing of a large blob on every update.
+ * Each key is gated independently (per-key dirty + per-key isSavingRecently),
+ * so an unrelated dirty key in this tab no longer blocks pushes for other keys.
+ *
+ * `ignoreDirty: true` disables the dirty guard entirely — used by the read-only
+ * frontend, where local "dirty" comes only from navigation state and remote
+ * should always win.
  */
-export function useConfigSync(connected: boolean, configLoaded: React.MutableRefObject<boolean>): void {
+export function useConfigSync(connected: boolean, configLoaded: React.MutableRefObject<boolean>, opts: { ignoreDirty?: boolean } = {}): void {
+  const ignoreDirty = opts.ignoreDirty ?? false;
 
   // 1. Subscribe to each state — immediate push on stateChange
   useEffect(() => {
@@ -55,10 +60,11 @@ export function useConfigSync(connected: boolean, configLoaded: React.MutableRef
       ([key, stateId]) =>
         subscribeStateDirect(stateId, (state) => {
           if (!state?.val || !configLoaded.current) return;
-          if (isDirty() || isSavingRecently()) return;
+          if (!ignoreDirty && isPending(key)) return;
+          if (isSavingRecently(key)) return;
           if (applyOneState(key, String(state.val))) {
             rehydrateAll(false);
-            discardPending();
+            discardPendingKey(key);
           }
         }),
     );
@@ -70,18 +76,26 @@ export function useConfigSync(connected: boolean, configLoaded: React.MutableRef
   //    group-defs excluded from polling (large, RAM-only, subscription is sufficient).
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const poll = useCallback(() => {
-    if (!configLoaded.current || isDirty() || isSavingRecently()) return;
-    const pollKeys = (Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[]).filter((k) => k !== 'aura-group-defs');
+    if (!configLoaded.current) return;
+    const pollKeys = (Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[])
+      .filter((k) => k !== 'aura-group-defs')
+      .filter((k) => ignoreDirty || !isPending(k))
+      .filter((k) => !isSavingRecently(k));
     Promise.all(
       pollKeys.map((key) =>
         getStateDirect(IOBROKER_STATE_MAP[key]).then((state) => {
-          if (!state?.val) return false;
-          return applyOneState(key, String(state.val));
+          if (!state?.val) return null;
+          return applyOneState(key, String(state.val)) ? key : null;
         }),
       ),
     ).then((results) => {
-      if (results.some(Boolean)) { rehydrateAll(false); discardPending(); }
+      const appliedKeys = results.filter((k): k is Exclude<SyncStoreKey, 'aura-group-defs'> => k !== null);
+      if (appliedKeys.length > 0) {
+        rehydrateAll(false);
+        appliedKeys.forEach((k) => discardPendingKey(k));
+      }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

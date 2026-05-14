@@ -358,11 +358,13 @@ export default function App() {
   useEffect(() => {
     if (!connected || ioBrokerConfigLoaded.current) return;
     ioBrokerConfigLoaded.current = true;
-    void loadConfigFromIoBroker().finally(() => discardPending());
+    // Frontend is read-only: ignore _dirty flags (any "dirty" here is just
+    // navigation state — remote always wins).
+    void loadConfigFromIoBroker(false, { ignoreDirty: true }).finally(() => discardPending());
   }, [connected]);
 
   // React to external changes on aura.0.config.dashboard (subscription + polling)
-  useConfigSync(connected, ioBrokerConfigLoaded);
+  useConfigSync(connected, ioBrokerConfigLoaded, { ignoreDirty: true });
 
   // Detect adapter upgrades: if the live adapter version diverges from the
   // bundled one (e.g. after a npm install of a new aura release), reload.

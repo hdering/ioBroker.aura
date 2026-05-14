@@ -20,12 +20,32 @@ const IOBROKER_BACKUP_KEY = 'aura.0.config.dashboard_backup';
 
 export const BACKUP_TS_KEY = '_ts';
 
+// Persistent flag in localStorage marking a key as having unsaved edits.
+// Survives F5 so loadConfigFromIoBroker can avoid overwriting unsaved work.
+const DIRTY_PREFIX = '_aura_dirty:';
+const dirtyFlagKey = (key: string) => DIRTY_PREFIX + key;
+
+export function hasDirtyFlag(key: string): boolean {
+  try { return localStorage.getItem(dirtyFlagKey(key)) === '1'; } catch { return false; }
+}
+function setDirtyFlag(key: string): void {
+  try { localStorage.setItem(dirtyFlagKey(key), '1'); } catch { /* quota */ }
+}
+function clearDirtyFlag(key: string): void {
+  try { localStorage.removeItem(dirtyFlagKey(key)); } catch { /* ignore */ }
+}
+export { clearDirtyFlag };
+
 let maxBackups = 5;
 export function configureBackup(opts: { maxBackups: number }): void {
   maxBackups = Math.max(1, Math.min(20, opts.maxBackups));
 }
 
+// In-session edit tracker. pending = key → new value; originals = key → pre-edit
+// value (for revert). Both are RAM-only; the _dirty flag in localStorage is the
+// cross-session signal.
 const pending = new Map<string, string>();
+const originals = new Map<string, string | null>();
 const subscribers = new Set<() => void>();
 
 // External in-memory storage providers (e.g. aura-group-defs which skips localStorage).
@@ -38,6 +58,7 @@ export function registerExternalReader(key: string, reader: () => string | null)
  *  that provide their data via registerExternalReader at save time. */
 export function markDirty(key: string): void {
   pending.set(key, '\x00'); // sentinel — replaced by externalReader at save time
+  setDirtyFlag(key);
   notify();
 }
 
@@ -48,43 +69,76 @@ export function subscribeDirty(fn: () => void): () => void {
   return () => subscribers.delete(fn);
 }
 
-export function isDirty(): boolean { return pending.size > 0; }
-
-let savedAt = 0;
-export function isSavingRecently(): boolean { return Date.now() - savedAt < 5000; }
-
-export function flushKey(key: string): void {
-  const value = pending.get(key);
-  if (value !== undefined) {
-    try { localStorage.setItem(key, value); }
-    catch { console.warn('[persistManager] localStorage quota exceeded for key:', key); }
-    pending.delete(key);
-    notify();
+/** True if any key has unsaved edits (in-session OR carried over from a previous session). */
+export function isDirty(): boolean {
+  if (pending.size > 0) return true;
+  for (const key of SYNC_STORE_KEYS) {
+    if (hasDirtyFlag(key)) return true;
   }
+  return false;
 }
 
+/** Per-key dirty check — used by useConfigSync to gate inbound stateChange echoes. */
+export function isPending(key: string): boolean {
+  return pending.has(key) || hasDirtyFlag(key);
+}
+
+const savedAtMap = new Map<string, number>();
+/** Per-key recency check — narrowly suppresses the echo of our own ioBroker write. */
+export function isSavingRecently(key?: string): boolean {
+  if (key) return Date.now() - (savedAtMap.get(key) ?? 0) < 5000;
+  for (const t of savedAtMap.values()) {
+    if (Date.now() - t < 5000) return true;
+  }
+  return false;
+}
+
+/** No-op: managedStorage.setItem now writes to localStorage immediately. */
+export function flushKey(_key: string): void {
+  notify();
+}
+
+/** No-op: managedStorage.setItem now writes to localStorage immediately. */
 export function saveAll(): void {
-  pending.forEach((val, key) => {
-    try { localStorage.setItem(key, val); pending.delete(key); }
-    catch { console.warn('[persistManager] localStorage quota exceeded for key:', key, '— will sync to ioBroker only'); }
-  });
   notify();
 }
 
 export function discardPending(): void {
   pending.clear();
+  originals.clear();
+  for (const key of SYNC_STORE_KEYS) clearDirtyFlag(key);
+  notify();
+}
+
+export function discardPendingKey(key: string): void {
+  pending.delete(key);
+  originals.delete(key);
+  clearDirtyFlag(key);
   notify();
 }
 
 export function revertAll(rehydrateFns: Array<() => void>): void {
+  // Restore each pending key to its pre-edit value, if we still have the
+  // original (originals is RAM-only; F5 wipes it). Then clear dirty flags.
+  originals.forEach((orig, key) => {
+    try {
+      if (orig === null) localStorage.removeItem(key);
+      else localStorage.setItem(key, orig);
+    } catch { /* quota */ }
+    clearDirtyFlag(key);
+  });
+  // Also clear any dirty flag we don't have an original for (cross-session
+  // unsaved edits) — revert intent is "back to last-saved", which is whatever
+  // ioBroker still has; next loadConfigFromIoBroker will pull it.
+  for (const key of SYNC_STORE_KEYS) clearDirtyFlag(key);
   pending.clear();
+  originals.clear();
   rehydrateFns.forEach((fn) => fn());
   notify();
 }
 
 /** Read raw value for a key: externalReader (if registered) → pending → localStorage */
 function getRaw(key: SyncStoreKey): string | null {
-  // externalReaders always have the live in-memory value — prefer over pending sentinel
   const external = externalReaders.get(key)?.();
   if (external !== undefined && external !== null) return external;
   const p = pending.get(key);
@@ -123,15 +177,27 @@ async function writeBackup(): Promise<void> {
   } catch { /* socket not connected – silently skip */ }
 }
 
-/** Write each store to its own ioBroker state. */
-export function saveToIoBroker({ backup = true }: { backup?: boolean } = {}): void {
-  savedAt = Date.now();
-  SYNC_STORE_KEYS.forEach((key) => {
+/**
+ * Write store(s) to ioBroker. By default only writes keys that are dirty
+ * (Fix 3 — avoids cross-browser overwrites from unrelated saves). Pass
+ * `all: true` for the initial bootstrap that seeds an empty ioBroker.
+ */
+export function saveToIoBroker({ backup = true, all = false }: { backup?: boolean; all?: boolean } = {}): void {
+  const now = Date.now();
+  const targetKeys: SyncStoreKey[] = all
+    ? SYNC_STORE_KEYS
+    : SYNC_STORE_KEYS.filter(isPending);
+
+  targetKeys.forEach((key) => {
     const raw = getRaw(key);
-    if (raw) setStateDirect(IOBROKER_STATE_MAP[key], raw);
+    if (raw) {
+      setStateDirect(IOBROKER_STATE_MAP[key], raw);
+      savedAtMap.set(key, now);
+      clearDirtyFlag(key);
+    }
+    pending.delete(key);
   });
-  // Clear pending after writing
-  SYNC_STORE_KEYS.forEach((key) => { if (pending.has(key)) { pending.delete(key); } });
+  originals.clear();
   notify();
   if (backup) void writeBackup();
 }
@@ -139,13 +205,37 @@ export function saveToIoBroker({ backup = true }: { backup?: boolean } = {}): vo
 export const managedStorage: StateStorage = {
   getItem: (name) => localStorage.getItem(name),
   setItem: (name, value) => {
-    if (localStorage.getItem(name) === value) { pending.delete(name); return; }
-    pending.set(name, value);
+    const current = localStorage.getItem(name);
+    if (current === value) {
+      // No-op write (e.g. Zustand re-persisting the same state after rehydrate).
+      pending.delete(name);
+      originals.delete(name);
+      clearDirtyFlag(name);
+      notify();
+      return;
+    }
+    // current === null means this is the very first write to this key —
+    // i.e. Zustand persist initializing defaults on a fresh install. Do NOT
+    // mark dirty for that, otherwise a new device with empty localStorage
+    // would see _dirty=1 on every store and refuse to load remote config.
+    const isInit = current === null;
+    try {
+      localStorage.setItem(name, value);
+      if (!isInit) setDirtyFlag(name);
+    } catch {
+      console.warn('[persistManager] localStorage quota exceeded for key:', name);
+    }
+    if (!isInit) {
+      if (!pending.has(name)) originals.set(name, current);
+      pending.set(name, value);
+    }
     notify();
   },
   removeItem: (name) => {
-    localStorage.removeItem(name);
+    try { localStorage.removeItem(name); } catch { /* ignore */ }
+    clearDirtyFlag(name);
     pending.delete(name);
+    originals.delete(name);
     notify();
   },
 };

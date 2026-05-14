@@ -110,10 +110,15 @@ export function AdminLayout() {
         (key) => { const v = localStorage.getItem(key); return v !== null && v.length > 10; },
       );
       if (!remoteHasData && localHasData) {
-        // ioBroker is empty – push local config to ioBroker
-        saveToIoBroker();
+        // ioBroker is empty – push local config to ioBroker (bootstrap).
+        // Use { all: true } because pending may be empty (Zustand init
+        // suppresses dirty marking on first persist); we still need to
+        // seed every key.
+        saveToIoBroker({ all: true });
       } else if (remoteHasData && localHasData) {
-        // Both have data – push local to ioBroker to ensure it's current
+        // Both have data – flush any cross-session unsaved edits (_dirty flag
+        // survivors). saveToIoBroker writes only dirty keys, so if there are
+        // none this is a cheap no-op.
         saveToIoBroker({ backup: false });
       }
     });
