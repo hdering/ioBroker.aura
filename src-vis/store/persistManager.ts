@@ -98,7 +98,7 @@ async function writeBackup(): Promise<void> {
     let backups: Array<Record<string, unknown>> = [];
     if (state?.val) {
       const raw = String(state.val);
-      if (raw.length < 500_000) {
+      if (raw.length < 5_000_000) {
         try {
           const parsed = JSON.parse(raw) as Record<string, unknown>;
           if (Array.isArray(parsed.backups)) {
