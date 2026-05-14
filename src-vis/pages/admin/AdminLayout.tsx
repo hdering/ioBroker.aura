@@ -14,7 +14,7 @@ import { useConfigStore } from '../../store/configStore';
 import { usePopupConfigStore } from '../../store/popupConfigStore';
 import { loadConfigFromIoBroker, applyRaw } from '../../utils/configLoader';
 import { useAdminPrefsStore } from '../../store/adminPrefsStore';
-import { useIoBroker } from '../../hooks/useIoBroker';
+import { useIoBroker, getObjectDirect } from '../../hooks/useIoBroker';
 import { useVersionGuard } from '../../hooks/useVersionGuard';
 import { useT } from '../../i18n';
 
@@ -72,6 +72,19 @@ export function AdminLayout() {
   const frontendUrl = useFrontendUrl();
   const { connected } = useIoBroker();
   const { autoSave, autoSaveDelay, backupCount } = useAdminPrefsStore();
+
+  // Detect install source: ioBroker stores it in system.adapter.<name>.common.installedFrom
+  // — typically the npm package name (e.g. "iobroker.aura") for an npm install or a
+  // tarball/git URL for a GitHub install.
+  const [installSource, setInstallSource] = useState<'npm' | 'github' | null>(null);
+  useEffect(() => {
+    if (!connected) return;
+    void getObjectDirect('system.adapter.aura').then((obj) => {
+      const installedFrom = (obj?.common as { installedFrom?: string } | undefined)?.installedFrom;
+      if (!installedFrom) { setInstallSource(null); return; }
+      setInstallSource(/github\.com|\.tar\.gz|tarball/i.test(installedFrom) ? 'github' : 'npm');
+    });
+  }, [connected]);
 
   useEffect(() => { configureBackup({ maxBackups: backupCount }); }, [backupCount]);
 
@@ -214,7 +227,22 @@ export function AdminLayout() {
           <div title="Adaptive Unified Room Automation">
             <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: 'var(--text-secondary)' }}>Aura</p>
             <p className="font-bold text-lg leading-none" style={{ color: 'var(--text-primary)' }}>Admin</p>
-            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>v{appVersion}</p>
+            <p className="text-[10px] mt-0.5 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
+              <span>v{appVersion}</span>
+              {installSource && (
+                <span
+                  title={installSource === 'github' ? 'Installiert via GitHub' : 'Installiert via npm'}
+                  className="px-1 rounded uppercase tracking-wide font-semibold"
+                  style={{
+                    fontSize: 8,
+                    background: installSource === 'github' ? '#1e293b' : '#7c2d12',
+                    color: '#fff',
+                  }}
+                >
+                  {installSource}
+                </span>
+              )}
+            </p>
             {dirty && (
               <p className="text-[10px] mt-1 font-medium" style={{ color: 'var(--accent)' }}>
                 {countdown !== null ? t('admin.save.autoIn', { s: String(countdown) }) : t('admin.save.unsaved')}
