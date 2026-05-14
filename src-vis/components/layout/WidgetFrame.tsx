@@ -868,11 +868,14 @@ function CenteredModal({
   title,
   onClose,
   wide,
+  storageKey,
   children,
 }: {
   title: React.ReactNode;
   onClose: () => void;
   wide?: boolean;
+  /** When set, modal becomes resizable and width/height are persisted in localStorage. */
+  storageKey?: string;
   children: React.ReactNode;
 }) {
   const portalTarget = usePortalTarget();
@@ -880,6 +883,26 @@ function CenteredModal({
   // null = use CSS centering; once dragged, holds absolute pixel position
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const dragOrigin = useRef<{ mx: number; my: number; rx: number; ry: number } | null>(null);
+
+  // Persisted size (only used when storageKey is set)
+  const [size, setSize] = useState<{ w: number; h: number } | null>(() => {
+    if (!storageKey) return null;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (typeof parsed?.w === 'number' && typeof parsed?.h === 'number') {
+        return { w: parsed.w, h: parsed.h };
+      }
+    } catch { /* ignore */ }
+    return null;
+  });
+  const resizeOrigin = useRef<{ mx: number; my: number; w: number; h: number } | null>(null);
+
+  useEffect(() => {
+    if (!storageKey || !size) return;
+    try { localStorage.setItem(storageKey, JSON.stringify(size)); } catch { /* ignore */ }
+  }, [storageKey, size]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -910,17 +933,50 @@ function CenteredModal({
     window.addEventListener('mouseup', onUp);
   };
 
+  const onResizeMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0 || !storageKey) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = modalRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    resizeOrigin.current = { mx: e.clientX, my: e.clientY, w: rect.width, h: rect.height };
+
+    const onMove = (ev: MouseEvent) => {
+      if (!resizeOrigin.current) return;
+      const maxW = Math.max(320, window.innerWidth - 20);
+      const maxH = Math.max(240, window.innerHeight - 20);
+      const newW = Math.min(maxW, Math.max(320, resizeOrigin.current.w + ev.clientX - resizeOrigin.current.mx));
+      const newH = Math.min(maxH, Math.max(240, resizeOrigin.current.h + ev.clientY - resizeOrigin.current.my));
+      setSize({ w: Math.round(newW), h: Math.round(newH) });
+    };
+    const onUp = () => {
+      resizeOrigin.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
   const posStyle: React.CSSProperties = pos
     ? { position: 'fixed', left: pos.x, top: pos.y, transform: 'none' }
     : { position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' };
+
+  const sizeStyle: React.CSSProperties = storageKey && size
+    ? { width: size.w, height: size.h, maxWidth: 'none', maxHeight: 'none' }
+    : {};
+
+  const sizeClasses = storageKey && size
+    ? ''
+    : `w-[90vw] ${wide ? 'max-w-5xl' : 'max-w-3xl'} max-h-[85vh]`;
 
   return createPortal(
     // pointer-events-none wrapper: clicks pass through to the widget below
     <div className="fixed inset-0 z-[9999] pointer-events-none">
       <div
         ref={modalRef}
-        className={`pointer-events-auto flex flex-col rounded-xl shadow-2xl w-[90vw] ${wide ? 'max-w-5xl' : 'max-w-3xl'} max-h-[85vh]`}
-        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', boxShadow: '0 8px 40px rgba(0,0,0,0.35)', ...posStyle }}
+        className={`pointer-events-auto flex flex-col rounded-xl shadow-2xl relative ${sizeClasses}`}
+        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)', boxShadow: '0 8px 40px rgba(0,0,0,0.35)', ...posStyle, ...sizeStyle }}
         onMouseDown={(e) => e.stopPropagation()}
       >
         {/* Drag handle = title bar */}
@@ -942,6 +998,20 @@ function CenteredModal({
         <div className="aura-scroll overflow-y-auto flex-1 p-4 space-y-2.5">
           {children}
         </div>
+        {storageKey && (
+          <div
+            onMouseDown={onResizeMouseDown}
+            title="Größe ändern"
+            className="absolute bottom-0 right-0 cursor-nwse-resize select-none"
+            style={{
+              width: 16,
+              height: 16,
+              background: 'linear-gradient(135deg, transparent 0%, transparent 45%, var(--text-secondary) 45%, var(--text-secondary) 55%, transparent 55%, transparent 70%, var(--text-secondary) 70%, var(--text-secondary) 80%, transparent 80%)',
+              opacity: 0.5,
+              borderBottomRightRadius: 12,
+            }}
+          />
+        )}
       </div>
     </div>,
     portalTarget,
@@ -3104,6 +3174,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
         <CenteredModal
           title={<>{t('wf.edit.title')} <span className="relative inline-flex items-center"><span className="text-[10px] font-mono opacity-40 ml-1 font-normal cursor-pointer hover:opacity-70 active:opacity-50 select-none" title="ID kopieren" onClick={() => { copyToClipboard(config.id); setIdCopied(true); setTimeout(() => setIdCopied(false), 1500); }}>({config.id})</span>{idCopied && <span className="absolute left-full ml-1 whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-sans font-normal" style={{ background: 'var(--accent)', color: '#fff', opacity: 1 }}>Kopiert!</span>}</span></>}
           wide={config.type === 'echart' || config.type === 'autolist' || config.type === 'list' || config.type === 'trash' || config.type === 'trashSchedule'}
+          storageKey="aura.widget.editModalSize"
           onClose={() => openPanelFor(null)}
         >
           {/* ─── 1. Name / Titel ──────────────────────────────────────────── */}
