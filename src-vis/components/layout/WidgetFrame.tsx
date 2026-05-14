@@ -1074,6 +1074,13 @@ function WeatherConfigSection({ o, set, onOpenPicker }: WeatherConfigSectionProp
   const showRainProb   = (o.showRainProb   as boolean) ?? true;
   const showRainAmount = (o.showRainAmount as boolean) ?? false;
   const showCloudCover = (o.showCloudCover as boolean) ?? false;
+  const showCondition      = (o.showCondition      as boolean) ?? true;
+  const showHumidityLabel  = (o.showHumidityLabel  as boolean) ?? true;
+  const feelsLikeStyle     = (o.feelsLikeStyle     as 'text' | 'icon' | 'hidden') ?? 'text';
+  const tempFontSize       = (o.tempFontSize       as number)  ?? 0;
+  const fontScale          = (o.fontScale          as number)  ?? 1;
+  const forecastRowGap     = (o.forecastRowGap     as number)  ?? 0;
+  const forecastWrap       = (o.forecastWrap       as boolean) ?? false;
   const tempThresholds = (o.forecastTempThresholds as [number, string][] | undefined) ?? [];
   const setTempThresholds = (next: [number, string][]) =>
     set({ forecastTempThresholds: next.length ? next : undefined });
@@ -1122,6 +1129,61 @@ function WeatherConfigSection({ o, set, onOpenPicker }: WeatherConfigSectionProp
             className="text-[10px] mt-0.5 hover:opacity-70"
             style={{ color: 'var(--text-secondary)' }}>✕ entfernen</button>
         )}
+      </div>
+
+      <hr style={{ borderColor: 'var(--app-border)' }} />
+
+      {/* ── Display & Typography ── */}
+      <div className="flex items-center justify-between">
+        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.showCondition')}</label>
+        <button onClick={() => set({ showCondition: !showCondition })}
+          className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+          style={{ background: showCondition ? 'var(--accent)' : 'var(--app-border)' }}>
+          <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+            style={{ left: showCondition ? '18px' : '2px' }} />
+        </button>
+      </div>
+      <div className="flex items-center justify-between">
+        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.showHumidityLabel')}</label>
+        <button onClick={() => set({ showHumidityLabel: !showHumidityLabel })}
+          className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+          style={{ background: showHumidityLabel ? 'var(--accent)' : 'var(--app-border)' }}>
+          <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+            style={{ left: showHumidityLabel ? '18px' : '2px' }} />
+        </button>
+      </div>
+      <div className="flex items-center justify-between">
+        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.showCloudCover')}</label>
+        <button onClick={() => set({ showCloudCover: !showCloudCover })}
+          className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+          style={{ background: showCloudCover ? 'var(--accent)' : 'var(--app-border)' }}>
+          <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+            style={{ left: showCloudCover ? '18px' : '2px' }} />
+        </button>
+      </div>
+      <div>
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.feelsLikeStyle')}</label>
+        <select value={feelsLikeStyle}
+          onChange={(e) => set({ feelsLikeStyle: e.target.value })}
+          className={iCls} style={iSty}>
+          <option value="text">{t('wf.weather.feelsLikeStyleText')}</option>
+          <option value="icon">{t('wf.weather.feelsLikeStyleIcon')}</option>
+          <option value="hidden">{t('wf.weather.feelsLikeStyleHidden')}</option>
+        </select>
+      </div>
+      <div>
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.tempFontSize')}</label>
+        <input type="number" min={0} max={6} step={0.1} value={tempFontSize}
+          onChange={(e) => set({ tempFontSize: Number(e.target.value) || undefined })}
+          placeholder="0 = auto" className={iCls} style={iSty} />
+        <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>{t('wf.weather.tempFontSizeHint')}</p>
+      </div>
+      <div>
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.fontScale')}</label>
+        <input type="number" min={0.3} max={4} step={0.05} value={fontScale}
+          onChange={(e) => set({ fontScale: Number(e.target.value) || undefined })}
+          className={iCls} style={iSty} />
+        <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>{t('wf.weather.fontScaleHint')}</p>
       </div>
 
       <hr style={{ borderColor: 'var(--app-border)' }} />
@@ -1216,13 +1278,20 @@ function WeatherConfigSection({ o, set, onOpenPicker }: WeatherConfigSectionProp
                 style={{ left: showRainAmount ? '18px' : '2px' }} />
             </button>
           </div>
+          <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.forecastRowGap')}</label>
+            <input type="number" min={0} max={4} step={0.05} value={forecastRowGap}
+              onChange={(e) => set({ forecastRowGap: Number(e.target.value) || undefined })}
+              placeholder="0 = auto" className={iCls} style={iSty} />
+            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>{t('wf.weather.forecastRowGapHint')}</p>
+          </div>
           <div className="flex items-center justify-between">
-            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.showCloudCover')}</label>
-            <button onClick={() => set({ showCloudCover: !showCloudCover })}
+            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.forecastWrap')}</label>
+            <button onClick={() => set({ forecastWrap: !forecastWrap })}
               className="relative w-9 h-5 rounded-full transition-colors"
-              style={{ background: showCloudCover ? 'var(--accent)' : 'var(--app-border)' }}>
+              style={{ background: forecastWrap ? 'var(--accent)' : 'var(--app-border)' }}>
               <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                style={{ left: showCloudCover ? '18px' : '2px' }} />
+                style={{ left: forecastWrap ? '18px' : '2px' }} />
             </button>
           </div>
 
@@ -6220,7 +6289,14 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     { key: 'icon',                  label: 'Widget-Icon' },
                     { key: 'weather-icon',          label: '🌤 Wetter-Emoji heute (groß)' },
                     { key: 'weather-icon-tomorrow', label: '🌤 Wetter-Emoji morgen (groß)' },
-                    { key: 'forecast',              label: '📊 Forecast-Balken' },
+                    { key: 'weather-icon-day-0',    label: '🌤 Wetter-Emoji Tag 0 (heute)' },
+                    { key: 'weather-icon-day-1',    label: '🌤 Wetter-Emoji Tag 1 (morgen)' },
+                    { key: 'weather-icon-day-2',    label: '🌤 Wetter-Emoji Tag 2 (+2)' },
+                    { key: 'weather-icon-day-3',    label: '🌤 Wetter-Emoji Tag 3 (+3)' },
+                    { key: 'weather-icon-day-4',    label: '🌤 Wetter-Emoji Tag 4 (+4)' },
+                    { key: 'weather-icon-day-5',    label: '🌤 Wetter-Emoji Tag 5 (+5)' },
+                    { key: 'weather-icon-day-6',    label: '🌤 Wetter-Emoji Tag 6 (+6)' },
+                    { key: 'forecast',              label: '📊 Forecast-Balken (alle Tage)' },
                     { key: 'warnings',              label: '⚠ DWD-Warnungen' },
                   ],
                 };
@@ -6261,29 +6337,27 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       Raster-Konfiguration ({cols}×{rows})
                     </p>
 
-                    {/* Dynamic size controls — universal only */}
-                    {isUniversal && (
-                      <div className="flex items-end gap-2">
-                        <div className="flex-1">
-                          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Spalten</label>
-                          <input
-                            type="number" min={1} max={8} step={1}
-                            value={cols}
-                            onChange={(e) => setDims(Number(e.target.value) || 1, rows)}
-                            className={inputCls} style={inputSty}
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Zeilen</label>
-                          <input
-                            type="number" min={1} max={8} step={1}
-                            value={rows}
-                            onChange={(e) => setDims(cols, Number(e.target.value) || 1)}
-                            className={inputCls} style={inputSty}
-                          />
-                        </div>
+                    {/* Dynamic size controls (Spalten × Zeilen) */}
+                    <div className="flex items-end gap-2">
+                      <div className="flex-1">
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Spalten</label>
+                        <input
+                          type="number" min={1} max={8} step={1}
+                          value={cols}
+                          onChange={(e) => setDims(Number(e.target.value) || 1, rows)}
+                          className={inputCls} style={inputSty}
+                        />
                       </div>
-                    )}
+                      <div className="flex-1">
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Zeilen</label>
+                        <input
+                          type="number" min={1} max={8} step={1}
+                          value={rows}
+                          onChange={(e) => setDims(cols, Number(e.target.value) || 1)}
+                          className={inputCls} style={inputSty}
+                        />
+                      </div>
+                    </div>
 
                     {/* Cell picker — dynamic grid */}
                     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 4 }}>
@@ -6500,25 +6574,52 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               { key: 'url', label: 'Bild-URL' },
                               { key: 'dp',  label: 'Datenpunkt-ID' },
                             ],
-                            weather: [
-                              { key: 'temp',              label: 'Temperatur' },
-                              { key: 'feelsLike',         label: 'Gefühlte Temp.' },
-                              { key: 'humidity',          label: 'Luftfeuchtigkeit' },
-                              { key: 'wind',              label: 'Wind' },
-                              { key: 'condition',         label: 'Wetterlage' },
-                              { key: 'emoji',             label: 'Wetter-Emoji (Text)' },
-                              { key: 'cloudCover',        label: 'Bewölkung (%)' },
-                              { key: 'rainNow',           label: 'Regen aktuell (mm)' },
-                              { key: 'location',          label: 'Standort' },
-                              { key: 'dayTomorrow',       label: 'Morgen — Tagesname' },
-                              { key: 'emojiTomorrow',     label: 'Morgen — Wetter-Emoji (Text)' },
-                              { key: 'conditionTomorrow', label: 'Morgen — Wetterlage' },
-                              { key: 'tempMaxTomorrow',   label: 'Morgen — Max-Temperatur' },
-                              { key: 'tempMinTomorrow',   label: 'Morgen — Min-Temperatur' },
-                              { key: 'tempRangeTomorrow', label: 'Morgen — Min / Max' },
-                              { key: 'rainProbTomorrow',  label: 'Morgen — Regenwahrsch. (%)' },
-                              { key: 'rainSumTomorrow',   label: 'Morgen — Regenmenge (mm)' },
-                            ],
+                            weather: (() => {
+                              const base: { key: string; label: string }[] = [
+                                { key: 'temp',           label: 'Temperatur (mit °C)' },
+                                { key: 'tempValue',      label: 'Temperatur (nur Zahl)' },
+                                { key: 'feelsLike',      label: 'Gefühlt (mit °C)' },
+                                { key: 'feelsLikeValue', label: 'Gefühlt (nur Zahl)' },
+                                { key: 'humidity',       label: 'Luftfeuchtigkeit (mit %)' },
+                                { key: 'humidityValue',  label: 'Luftfeuchtigkeit (nur Zahl)' },
+                                { key: 'wind',           label: 'Wind (mit km/h)' },
+                                { key: 'windValue',      label: 'Wind (nur Zahl)' },
+                                { key: 'condition',      label: 'Wetterlage' },
+                                { key: 'emoji',          label: 'Wetter-Emoji (Text)' },
+                                { key: 'cloudCover',     label: 'Bewölkung (mit %)' },
+                                { key: 'cloudCoverValue',label: 'Bewölkung (nur Zahl)' },
+                                { key: 'rainNow',        label: 'Regen aktuell (mit mm)' },
+                                { key: 'rainNowValue',   label: 'Regen aktuell (nur Zahl)' },
+                                { key: 'location',       label: 'Standort' },
+                              ];
+                              const dayLabel = (i: number) =>
+                                i === 0 ? 'Heute' : i === 1 ? 'Morgen' : `+${i} Tage`;
+                              for (let i = 0; i < 7; i++) {
+                                const dl = dayLabel(i);
+                                base.push(
+                                  { key: `day${i}`,        label: `${dl} — Tagesname` },
+                                  { key: `emoji${i}`,      label: `${dl} — Wetter-Emoji (Text)` },
+                                  { key: `condition${i}`,  label: `${dl} — Wetterlage` },
+                                  { key: `tempMax${i}`,    label: `${dl} — Max-Temperatur` },
+                                  { key: `tempMin${i}`,    label: `${dl} — Min-Temperatur` },
+                                  { key: `tempRange${i}`,  label: `${dl} — Min / Max` },
+                                  { key: `rainProb${i}`,   label: `${dl} — Regenwahrsch. (%)` },
+                                  { key: `rainSum${i}`,    label: `${dl} — Regenmenge (mm)` },
+                                );
+                              }
+                              // Legacy tomorrow shortcuts (still functional, kept for old configs)
+                              base.push(
+                                { key: 'dayTomorrow',       label: '⏳ Morgen (alt) — Tagesname' },
+                                { key: 'emojiTomorrow',     label: '⏳ Morgen (alt) — Emoji' },
+                                { key: 'conditionTomorrow', label: '⏳ Morgen (alt) — Wetterlage' },
+                                { key: 'tempMaxTomorrow',   label: '⏳ Morgen (alt) — Max' },
+                                { key: 'tempMinTomorrow',   label: '⏳ Morgen (alt) — Min' },
+                                { key: 'tempRangeTomorrow', label: '⏳ Morgen (alt) — Min / Max' },
+                                { key: 'rainProbTomorrow',  label: '⏳ Morgen (alt) — Regenwahrsch.' },
+                                { key: 'rainSumTomorrow',   label: '⏳ Morgen (alt) — Regenmenge' },
+                              );
+                              return base;
+                            })(),
                             mediaplayer: [
                               { key: 'title',   label: 'Titel' },
                               { key: 'artist',  label: 'Künstler' },

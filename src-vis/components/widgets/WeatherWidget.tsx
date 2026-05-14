@@ -168,6 +168,14 @@ export function WeatherWidget({ config }: WidgetProps) {
   const iconSize         = (opts.iconSize as number) || 20;
   const titleAlign       = (opts.titleAlign as string) ?? 'left';
   const WidgetIcon       = getWidgetIcon(opts.icon as string | undefined, Cloud);
+  // ── Display/typography customization ─────────────────────────────────────
+  const showCondition      = (opts.showCondition       as boolean) ?? true;
+  const showHumidityLabel  = (opts.showHumidityLabel   as boolean) ?? true;
+  const feelsLikeStyle     = (opts.feelsLikeStyle      as 'text' | 'icon' | 'hidden') ?? 'text';
+  const tempFontSize       = (opts.tempFontSize        as number)  || 0;   // 0 = auto (matches condition text)
+  const fontScale          = (opts.fontScale           as number)  || 1;   // multiplier on auto scale
+  const forecastRowGap     = (opts.forecastRowGap      as number)  || 0;   // rem; 0 = default (0.375)
+  const forecastWrap       = (opts.forecastWrap        as boolean) ?? false;
 
   // ── Responsive sizing: scale font/icon/bar with widget dimensions ────────
   const containerRef = useRef<HTMLDivElement>(null);
@@ -191,7 +199,8 @@ export function WeatherWidget({ config }: WidgetProps) {
   const baseContentH = Math.max(60, titleRowH + headerH + fcRows * 22 + 8);
   const scaleW = size.w / 260;
   const scaleH = size.h / baseContentH;
-  const scale  = Math.max(0.55, Math.min(2.4, Math.min(scaleW, scaleH)));
+  const scaleAuto = Math.max(0.55, Math.min(2.4, Math.min(scaleW, scaleH)));
+  const scale  = scaleAuto * fontScale;
   const fs = (rem: number) => `${rem * scale}rem`;
 
   // ── Local temperature sensor ──────────────────────────────────────────────
@@ -346,8 +355,9 @@ export function WeatherWidget({ config }: WidgetProps) {
   const globalMax = Math.max(...allMaxs);
   const scaleRange = globalMax - globalMin || 1;
 
+  const forecastRowGapStyle = forecastRowGap > 0 ? `${forecastRowGap}rem` : '0.375rem';
   const forecastRows = (showForecast && fcItems.length > 0) ? (
-    <div className="flex flex-col gap-1.5 w-full">
+    <div className="flex flex-col w-full" style={{ rowGap: forecastRowGapStyle }}>
       {fcItems.map((fc) => {
         const leftPct  = ((fc.min - globalMin) / scaleRange) * 100;
         const widthPct = ((fc.max - fc.min)    / scaleRange) * 100;
@@ -360,6 +370,48 @@ export function WeatherWidget({ config }: WidgetProps) {
             ? 'linear-gradient(to right, var(--accent), color-mix(in srgb, var(--accent) 75%, transparent))'
             : 'linear-gradient(to right, #06b6d4, #3b82f6)';
         const showRainCol = showRainProb || showRainAmount;
+        const rainEl = showRainCol ? (
+          <span className="shrink-0 tabular-nums text-right" style={{ color: 'var(--text-secondary)', fontSize: fs(0.7), minWidth: `${2.6 * scale}rem` }}>
+            {showRainProb && fc.rainProb !== undefined && fc.rainProb !== null && (
+              <span>💧{fc.rainProb}%</span>
+            )}
+            {showRainAmount && fc.rainSum !== undefined && fc.rainSum !== null && fc.rainSum > 0 && (
+              <span>{showRainProb ? ' ' : ''}{fc.rainSum.toFixed(1)}mm</span>
+            )}
+          </span>
+        ) : null;
+        if (forecastWrap) {
+          return (
+            <div key={fc.day} className="flex flex-col min-w-0" style={{ gap: '0.15rem' }}>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="font-semibold" style={{ color: fc.isToday ? 'var(--accent)' : 'var(--text-secondary)', fontSize: fs(0.8) }}>
+                  {fc.day}
+                </span>
+                <span style={{ fontSize: fs(0.9), lineHeight: 1 }}>{fc.info.emoji}</span>
+                {rainEl}
+              </div>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="shrink-0 text-right tabular-nums" style={{ color: 'var(--text-secondary)', fontSize: fs(0.75), width: `${1.75 * scale}rem` }}>
+                  {fc.min}°
+                </span>
+                <div className="flex-1 relative min-w-0" style={{ height: `${1 * scale}rem` }}>
+                  <div className="absolute inset-y-0 left-0 right-0 rounded-full opacity-15"
+                    style={{ background: 'var(--text-secondary)' }} />
+                  <div className="absolute inset-y-0 rounded-full"
+                    style={{
+                      left:       `${leftPct}%`,
+                      width:      `${Math.max(widthPct, 4)}%`,
+                      background: barBg,
+                    }}
+                  />
+                </div>
+                <span className="font-semibold shrink-0 tabular-nums" style={{ color: fc.isToday ? 'var(--accent)' : 'var(--text-primary)', fontSize: fs(0.75), width: `${1.75 * scale}rem` }}>
+                  {fc.max}°
+                </span>
+              </div>
+            </div>
+          );
+        }
         return (
           <div key={fc.day} className="flex items-center gap-1.5 min-w-0">
             <span className="font-semibold shrink-0" style={{ color: fc.isToday ? 'var(--accent)' : 'var(--text-secondary)', fontSize: fs(0.75), width: `${1.75 * scale}rem` }}>
@@ -383,16 +435,7 @@ export function WeatherWidget({ config }: WidgetProps) {
             <span className="font-semibold shrink-0 tabular-nums" style={{ color: fc.isToday ? 'var(--accent)' : 'var(--text-primary)', fontSize: fs(0.75), width: `${1.75 * scale}rem` }}>
               {fc.max}°
             </span>
-            {showRainCol && (
-              <span className="shrink-0 tabular-nums text-right" style={{ color: 'var(--text-secondary)', fontSize: fs(0.7), minWidth: `${2.6 * scale}rem` }}>
-                {showRainProb && fc.rainProb !== undefined && fc.rainProb !== null && (
-                  <span>💧{fc.rainProb}%</span>
-                )}
-                {showRainAmount && fc.rainSum !== undefined && fc.rainSum !== null && fc.rainSum > 0 && (
-                  <span>{showRainProb ? ' ' : ''}{fc.rainSum.toFixed(1)}mm</span>
-                )}
-              </span>
-            )}
+            {rainEl}
           </div>
         );
       })}
@@ -415,20 +458,52 @@ export function WeatherWidget({ config }: WidgetProps) {
     const cellEmojiTomorrow = tomorrowInfo ? <span style={{ fontSize: '2.4em', lineHeight: 1 }}>{tomorrowInfo.emoji}</span> : null;
     const cellWidgetIcon = <WidgetIcon size={Math.max(16, iconSize * scale)} style={{ color: 'var(--text-secondary)' }} />;
     const cellWarnings = showWarnings ? <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} scale={scale} /> : null;
+
+    // ── Per-day fields & components (absolute API index 0..6) ──────────────
+    const perDayFields: Record<string, string> = {};
+    const perDayComponents: Record<string, React.ReactNode> = {};
+    const maxDays = Math.min(data!.daily.time.length, 7);
+    for (let i = 0; i < maxDays; i++) {
+      const di   = getWeatherInfo(data!.daily.weather_code[i], t);
+      const tMax = Math.round(data!.daily.temperature_2m_max[i]);
+      const tMin = Math.round(data!.daily.temperature_2m_min[i]);
+      const dn   = i === 0 ? t('weather.today') : dayName(data!.daily.time[i], t);
+      const rp   = data!.daily.precipitation_probability_max?.[i];
+      const rs   = data!.daily.precipitation_sum?.[i];
+      perDayFields[`day${i}`]        = dn;
+      perDayFields[`emoji${i}`]      = di.emoji;
+      perDayFields[`condition${i}`]  = di.desc;
+      perDayFields[`tempMax${i}`]    = `${tMax}°`;
+      perDayFields[`tempMin${i}`]    = `${tMin}°`;
+      perDayFields[`tempRange${i}`]  = `${tMin}° / ${tMax}°`;
+      perDayFields[`rainProb${i}`]   = rp !== undefined && rp !== null ? `${rp}%` : '';
+      perDayFields[`rainSum${i}`]    = rs !== undefined && rs !== null && rs > 0 ? `${rs.toFixed(1)} mm` : '';
+      perDayComponents[`weather-icon-day-${i}`] = (
+        <span style={{ fontSize: '2.4em', lineHeight: 1 }}>{di.emoji}</span>
+      );
+    }
+
     return (
       <CustomGridView
         config={{ ...config, options: { ...opts, customGrid } }}
         value={displayTemp ? `${displayTemp}°C` : ''}
         extraFields={{
           temp:               `${displayTemp}°C`,
+          tempValue:          `${displayTemp}`,
           feelsLike:          feel + 'C',
+          feelsLikeValue:     feel,
           humidity:           `${cur.relative_humidity_2m}%`,
+          humidityValue:      `${cur.relative_humidity_2m}`,
           wind:               `${Math.round(cur.wind_speed_10m)} km/h`,
+          windValue:          `${Math.round(cur.wind_speed_10m)}`,
           condition:          info.desc,
           emoji:              info.emoji,
           cloudCover:         cur.cloud_cover !== undefined ? `${Math.round(cur.cloud_cover)}%` : '',
+          cloudCoverValue:    cur.cloud_cover !== undefined ? `${Math.round(cur.cloud_cover)}` : '',
           rainNow:            cur.precipitation !== undefined ? `${cur.precipitation.toFixed(1)} mm` : '',
+          rainNowValue:       cur.precipitation !== undefined ? cur.precipitation.toFixed(1) : '',
           location:           locationName,
+          // Backwards-compatible tomorrow shortcuts (= day1)
           dayTomorrow:        tomorrowDay,
           emojiTomorrow:      tomorrowInfo?.emoji ?? '',
           conditionTomorrow:  tomorrowInfo?.desc  ?? '',
@@ -437,6 +512,7 @@ export function WeatherWidget({ config }: WidgetProps) {
           tempRangeTomorrow:  (tomorrowMin !== null && tomorrowMax !== null) ? `${tomorrowMin}° / ${tomorrowMax}°` : '',
           rainProbTomorrow:   tomorrowRainP !== undefined && tomorrowRainP !== null ? `${tomorrowRainP}%` : '',
           rainSumTomorrow:    tomorrowRainS !== undefined && tomorrowRainS !== null ? `${tomorrowRainS.toFixed(1)} mm` : '',
+          ...perDayFields,
         }}
         extraComponents={{
           'icon':                  cellWidgetIcon,
@@ -444,6 +520,7 @@ export function WeatherWidget({ config }: WidgetProps) {
           'weather-icon-tomorrow': cellEmojiTomorrow,
           'forecast':              forecastRows,
           'warnings':              cellWarnings,
+          ...perDayComponents,
         }}
       />
     );
@@ -497,18 +574,31 @@ export function WeatherWidget({ config }: WidgetProps) {
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="font-bold" style={{ color: 'var(--text-secondary)', fontSize: fs(0.85) }}>
-              {info.desc}, {tempStr}
+            {showCondition && (
+              <span className="font-bold" style={{ color: 'var(--text-secondary)', fontSize: fs(0.85) }}>
+                {info.desc}
+              </span>
+            )}
+            <span className="font-bold tabular-nums" style={{ color: showCondition ? 'var(--text-secondary)' : 'var(--text-primary)', fontSize: fs(tempFontSize > 0 ? tempFontSize : 0.85) }}>
+              {showCondition ? `, ${tempStr}` : tempStr}
             </span>
           </div>
           <div style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
-            💧 {cur.relative_humidity_2m}% {t('weather.humidity')}
+            💧 {cur.relative_humidity_2m}%{showHumidityLabel ? ` ${t('weather.humidity')}` : ''}
             {showCloudCover && cur.cloud_cover !== undefined && (
               <span> · ☁️ {Math.round(cur.cloud_cover)}%</span>
             )}
           </div>
           <div style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
-            {t('weather.feelsLike', { feel, wind: Math.round(cur.wind_speed_10m) })}
+            {feelsLikeStyle === 'text' && (
+              <span>{t('weather.feelsLike', { feel, wind: Math.round(cur.wind_speed_10m) })}</span>
+            )}
+            {feelsLikeStyle === 'icon' && (
+              <span>🌡️ {feel} · 💨 {Math.round(cur.wind_speed_10m)} km/h</span>
+            )}
+            {feelsLikeStyle === 'hidden' && (
+              <span>{feel} · 💨 {Math.round(cur.wind_speed_10m)} km/h</span>
+            )}
             {locationName ? ` · ${locationName}` : ''}
             {error && <span className="ml-1" style={{ color: 'var(--accent-red, #ef4444)' }}>!</span>}
           </div>
