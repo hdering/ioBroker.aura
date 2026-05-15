@@ -30,6 +30,17 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
   stateimage:    [{ key: 'icon', label: 'Zustands-Icon' }, { key: 'battery-icon', label: 'Batterie-Icon' }, { key: 'reach-icon', label: 'Erreichbarkeit-Icon' }, { key: 'status-badges', label: 'Status-Badges (alle)' }],
   httpRequest:   [{ key: 'button', label: 'HTTP-Button' }],
   enum:          [{ key: 'icon', label: 'Widget-Icon' }, { key: 'select', label: 'Dropdown' }, { key: 'label', label: 'Aktuelle Auswahl' }],
+  light:         [
+    { key: 'power',       label: '⏻ Ein/Aus-Taste' },
+    { key: 'brightness',  label: '🔆 Helligkeit (Bar)' },
+    { key: 'color',       label: '🎨 Farbrad' },
+    { key: 'temperature', label: '🌡 Lichtwärme (Bar)' },
+    { key: 'effects',     label: '✨ Effekt-Liste' },
+    { key: 'presets',     label: '● Farbpalette (8)' },
+    { key: 'title',       label: 'Titel' },
+    { key: 'status',      label: 'Status-Text' },
+    { key: 'icon',        label: 'Widget-Icon' },
+  ],
   button:        [{ key: 'icon', label: 'Button-Icon' }],
   mediaplayer:   [
     { key: 'play-pause',     label: '▶ / ⏸ Play / Pause' },

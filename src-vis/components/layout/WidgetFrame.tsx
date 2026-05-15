@@ -3427,11 +3427,11 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'minimal', label: t('wf.edit.layout.minimal') },
                 { value: 'custom',  label: 'Custom' },
               ] : config.type === 'light' ? [
-                { value: 'light-all',         label: 'Alle Tabs' },
+                { value: 'light-all',         label: 'Standard' },
                 { value: 'light-brightness',  label: 'Nur Helligkeit' },
                 { value: 'light-color',       label: 'Nur Farbe' },
                 { value: 'light-temperature', label: 'Nur Lichtwärme' },
-                { value: 'light-custom',      label: 'Custom (Tabs wählen)' },
+                { value: 'custom',            label: 'Custom' },
               ] : config.type === 'switch' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
                 { value: 'card',    label: t('wf.edit.layout.card') },
@@ -5164,10 +5164,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 const lInputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
                 const hint: React.CSSProperties = { color: 'var(--text-secondary)' };
                 const colorMode = (o.colorMode as string) ?? 'none';
-                const lightLayout = (config.layout ?? 'light-all') as string;
                 const wheelStyle = (o.colorWheelStyle as string) ?? 'disc';
                 const presets = (o.colorPresets as string[] | undefined) ?? ['#ff3b30', '#ff9500', '#ffd60a', '#e5e5ea', '#5ac8fa', '#bf5af2', '#ff79c6', '#ff453a'];
-                const customTabs = ((o.lightTabs as string[] | undefined) ?? ['brightness', 'color']);
                 const effects = (o.effects as Array<{ label: string; value: string; color?: string }> | undefined) ?? [];
                 const dpRow = (optKey: string, pickerKey: 'light_switchDp' | 'light_brightnessDp' | 'light_hueDp' | 'light_saturationDp' | 'light_rDp' | 'light_gDp' | 'light_bDp' | 'light_colorDp' | 'light_temperatureDp' | 'light_effectDp', placeholder = 'optional') => (
                   <div className="flex gap-1">
@@ -5182,10 +5180,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     </button>
                   </div>
                 );
-                const toggleCustomTab = (tab: string) => {
-                  const next = customTabs.includes(tab) ? customTabs.filter((t) => t !== tab) : [...customTabs, tab];
-                  setO({ lightTabs: next });
-                };
                 return (
                   <>
                     {/* Switch DP */}
@@ -5374,34 +5368,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         </div>
                       )}
                     </div>
-
-                    {/* Custom layout tab picker */}
-                    {lightLayout === 'light-custom' && (
-                      <div>
-                        <label className="text-[11px] mb-1 block" style={hint}>Sichtbare Tabs</label>
-                        <div className="grid grid-cols-2 gap-1">
-                          {([
-                            { val: 'brightness',  label: 'Helligkeit' },
-                            { val: 'color',       label: 'Farbe' },
-                            { val: 'temperature', label: 'Lichtwärme' },
-                            { val: 'effects',     label: 'Effekte' },
-                          ] as const).map(({ val, label }) => {
-                            const on = customTabs.includes(val);
-                            return (
-                              <button key={val} onClick={() => toggleCustomTab(val)}
-                                className="py-1.5 px-2 rounded-lg text-[10px] font-medium transition-colors"
-                                style={{
-                                  background: on ? 'var(--accent)' : 'var(--app-bg)',
-                                  color: on ? '#fff' : 'var(--text-secondary)',
-                                  border: '1px solid var(--app-border)',
-                                }}>
-                                {label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
 
                     {/* Color presets */}
                     <div>

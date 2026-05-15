@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Lightbulb, Power, SunMedium, Palette, Thermometer, Sparkles, Pipette, type LucideIcon } from 'lucide-react';
+import { Lightbulb, Power, SunMedium, Palette, Thermometer, Sparkles, type LucideIcon } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { LightColorMode, LightEffect, LightTab, WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
+import { CustomGridView } from './CustomGridView';
 
 // ── Color math helpers ────────────────────────────────────────────────────────
 
@@ -436,10 +437,6 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
         case 'light-brightness':  return ['brightness'];
         case 'light-color':       return ['color'];
         case 'light-temperature': return ['temperature'];
-        case 'light-custom': {
-          const t = (o.lightTabs as LightTab[] | undefined) ?? [];
-          return t.filter((x): x is LightTab => ['brightness','color','temperature','effects'].includes(x));
-        }
         default: return ['brightness', 'color', 'temperature'];
       }
     };
@@ -451,7 +448,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
       return true;
     });
     return list.length ? list : (brightnessDp ? ['brightness'] : ['color']);
-  }, [layout, o.lightTabs, brightnessDp, temperatureDp, effectDp, colorMode]);
+  }, [layout, brightnessDp, temperatureDp, effectDp, colorMode]);
 
   // Include effects tab automatically if effectDp set and layout=all
   const tabs: LightTab[] = useMemo(() => {
@@ -488,135 +485,160 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
   // ── Icon ───────────────────────────────────────────────────────────────────
   const CompactIcon = useMemo(() => getWidgetIcon(o.icon as string | undefined, Lightbulb), [o.icon]);
 
-  // ── Tab content ────────────────────────────────────────────────────────────
-  const renderMain = () => {
-    if (activeTab === 'power') {
-      return (
-        <div className="flex items-center justify-center w-full h-full">
-          <button
-            onClick={togglePower}
-            className="nodrag rounded-full flex items-center justify-center transition-colors"
-            style={{
-              width: 120, height: 120,
-              background: isOn ? accent : 'var(--app-bg)',
-              border: `2px solid ${isOn ? accent : 'var(--app-border)'}`,
-              boxShadow: isOn ? `0 0 24px color-mix(in srgb, ${accent} 50%, transparent)` : 'none',
-            }}
-          >
-            <Power size={40} color={isOn ? '#fff' : 'var(--text-secondary)'} />
-          </button>
-        </div>
-      );
-    }
-    if (activeTab === 'brightness') {
-      return (
-        <BrightnessBar
-          value={displayBri}
-          min={briMin}
-          max={briMax}
-          accent={accent}
-          onChange={(v) => setDragBri(v)}
-          onCommit={() => { if (dragBri != null) { writeBri(dragBri); setDragBri(null); } }}
-        />
-      );
-    }
-    if (activeTab === 'color') {
-      if (colorMode === 'none') {
-        return <div className="flex items-center justify-center text-xs text-center px-4" style={{ color: 'var(--text-secondary)' }}>
-          Kein Farb-Datenpunkt konfiguriert. In den Widget-Einstellungen Farb-Modus + DPs setzen.
-        </div>;
-      }
-      return (
-        <ColorWheel
-          hue={displayHS[0]}
-          sat={displayHS[1]}
-          style={wheelStyle}
-          onChange={(h, s) => setDragHS([h, s])}
-          onCommit={() => { if (dragHS) { writeColor(dragHS[0], dragHS[1]); setDragHS(null); } }}
-        />
-      );
-    }
-    if (activeTab === 'temperature') {
-      if (colorMode === 'hm-color' && !temperatureDp) {
+  // ── Control elements (used by both tabbed view and custom grid) ────────────
+  const powerEl = (
+    <div className="flex items-center justify-center w-full h-full">
+      <button
+        onClick={togglePower}
+        className="nodrag rounded-full flex items-center justify-center transition-colors"
+        style={{
+          width: '70%', height: '70%', maxWidth: 120, maxHeight: 120, aspectRatio: '1 / 1',
+          background: isOn ? accent : 'var(--app-bg)',
+          border: `2px solid ${isOn ? accent : 'var(--app-border)'}`,
+          boxShadow: isOn ? `0 0 24px color-mix(in srgb, ${accent} 50%, transparent)` : 'none',
+        }}
+      >
+        <Power size={28} color={isOn ? '#fff' : 'var(--text-secondary)'} />
+      </button>
+    </div>
+  );
+
+  const brightnessEl = brightnessDp ? (
+    <BrightnessBar
+      value={displayBri} min={briMin} max={briMax} accent={accent}
+      onChange={(v) => setDragBri(v)}
+      onCommit={() => { if (dragBri != null) { writeBri(dragBri); setDragBri(null); } }}
+    />
+  ) : null;
+
+  const colorEl = colorMode === 'none' ? (
+    <div className="flex items-center justify-center text-xs text-center px-2 h-full" style={{ color: 'var(--text-secondary)' }}>
+      Kein Farb-DP
+    </div>
+  ) : (
+    <ColorWheel
+      hue={displayHS[0]} sat={displayHS[1]} style={wheelStyle}
+      onChange={(h, s) => setDragHS([h, s])}
+      onCommit={() => { if (dragHS) { writeColor(dragHS[0], dragHS[1]); setDragHS(null); } }}
+    />
+  );
+
+  const temperatureEl = (colorMode === 'hm-color' && !temperatureDp) ? (
+    <div className="flex flex-col items-center justify-center w-full h-full gap-2 px-2 text-center">
+      <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>HmIP-Weiß</p>
+      <button onClick={() => writeCT(0)}
+        className="nodrag rounded-full px-3 py-1.5 text-xs font-semibold"
+        style={{
+          background: colorVal === hmWhiteValue ? '#fef3c7' : 'var(--app-bg)',
+          color: colorVal === hmWhiteValue ? '#1a1a1a' : 'var(--text-primary)',
+          border: '1px solid var(--app-border)',
+        }}>
+        Weiß
+      </button>
+    </div>
+  ) : (
+    <CTSlider
+      kelvin={displayCT} min={ctMin} max={ctMax}
+      onChange={(k) => setDragCT(k)}
+      onCommit={() => { if (dragCT != null) { writeCT(dragCT); setDragCT(null); } }}
+    />
+  );
+
+  const effectList = (o.effects as LightEffect[] | undefined) ?? [];
+  const effectsEl = effectList.length === 0 ? (
+    <div className="flex items-center justify-center text-xs text-center px-2 h-full" style={{ color: 'var(--text-secondary)' }}>
+      Keine Effekte
+    </div>
+  ) : (
+    <div className="grid grid-cols-2 gap-1.5 w-full h-full overflow-auto px-1 content-start">
+      {effectList.map((eff) => {
+        const active = effectVal != null && String(effectVal) === String(eff.value);
         return (
-          <div className="flex flex-col items-center justify-center w-full h-full gap-3 px-3 text-center">
-            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>HmIP-Gerät – Weiß-LED über Farb-DP</p>
-            <button onClick={() => writeCT(0)}
-              className="nodrag rounded-full px-5 py-2.5 text-sm font-semibold"
-              style={{
-                background: colorVal === hmWhiteValue ? '#fef3c7' : 'var(--app-bg)',
-                color: colorVal === hmWhiteValue ? '#1a1a1a' : 'var(--text-primary)',
-                border: '1px solid var(--app-border)',
-              }}>
-              Weiß einschalten
-            </button>
-          </div>
+          <button key={eff.value} onClick={() => writeEffect(eff.value)}
+            className="nodrag rounded-lg px-2 py-1.5 text-[10px] font-medium text-left transition-colors"
+            style={{
+              background: active ? (eff.color || 'var(--accent)') : 'var(--app-bg)',
+              color: active ? '#fff' : 'var(--text-primary)',
+              border: `1px solid ${active ? (eff.color || 'var(--accent)') : 'var(--app-border)'}`,
+            }}>
+            {eff.label}
+          </button>
         );
-      }
-      return (
-        <CTSlider
-          kelvin={displayCT}
-          min={ctMin}
-          max={ctMax}
-          onChange={(k) => setDragCT(k)}
-          onCommit={() => { if (dragCT != null) { writeCT(dragCT); setDragCT(null); } }}
+      })}
+    </div>
+  );
+
+  const presetsEl = (presets.length === 0 || colorMode === 'none') ? null : (
+    <div className="grid grid-cols-4 gap-1.5 px-1 w-full h-full content-center">
+      {presets.slice(0, 8).map((hex, i) => (
+        <button key={i} onClick={() => applyPreset(hex)}
+          className="nodrag aspect-square rounded-full"
+          style={{ background: hex, border: '1px solid color-mix(in srgb, var(--app-border) 60%, transparent)' }}
+          title={hex}
         />
-      );
-    }
-    if (activeTab === 'effects') {
-      const effects = (o.effects as LightEffect[] | undefined) ?? [];
-      if (effects.length === 0) {
-        return <div className="flex items-center justify-center text-xs text-center px-4" style={{ color: 'var(--text-secondary)' }}>
-          Keine Effekte definiert. In den Widget-Einstellungen Effekte ergänzen.
-        </div>;
-      }
-      return (
-        <div className="grid grid-cols-2 gap-2 w-full overflow-auto px-1" style={{ maxHeight: '100%' }}>
-          {effects.map((eff) => {
-            const active = effectVal != null && String(effectVal) === String(eff.value);
-            return (
-              <button key={eff.value} onClick={() => writeEffect(eff.value)}
-                className="nodrag rounded-xl px-2.5 py-2 text-[11px] font-medium text-left transition-colors"
-                style={{
-                  background: active ? (eff.color || 'var(--accent)') : 'var(--app-bg)',
-                  color: active ? '#fff' : 'var(--text-primary)',
-                  border: `1px solid ${active ? (eff.color || 'var(--accent)') : 'var(--app-border)'}`,
-                }}>
-                {eff.label}
-              </button>
-            );
-          })}
-        </div>
-      );
-    }
-    return null;
+      ))}
+    </div>
+  );
+
+  const titleEl = (
+    <span className="text-xs truncate block w-full" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+      {config.title}
+    </span>
+  );
+  const statusEl = (
+    <span className="text-base font-semibold truncate block w-full" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+      {stateText}
+    </span>
+  );
+  const iconEl = <CompactIcon size={iconSize} style={{ color: accent, flexShrink: 0 }} />;
+
+  // ── Custom grid layout — user places elements freely ──────────────────────
+  if (layout === 'custom') {
+    return (
+      <CustomGridView
+        config={config}
+        value={stateText}
+        rawValue={brightnessVal ?? 0}
+        extraComponents={{
+          power:       powerEl,
+          brightness:  brightnessEl,
+          color:       colorEl,
+          temperature: temperatureEl,
+          effects:     effectsEl,
+          presets:     presetsEl,
+          title:       titleEl,
+          status:      statusEl,
+          icon:        iconEl,
+        }}
+      />
+    );
+  }
+
+  // ── Tabbed layouts ─────────────────────────────────────────────────────────
+  const tabContent: Record<LightTab, React.ReactNode> = {
+    power:       powerEl,
+    brightness:  brightnessEl,
+    color:       colorEl,
+    temperature: temperatureEl,
+    effects:     effectsEl,
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-full" style={{ position: 'relative', gap: 8 }}>
       {/* Header */}
       {(showTitle || showIcon || showState) && (
         <div className="flex items-center gap-2 shrink-0">
-          {showIcon && <CompactIcon size={iconSize} style={{ color: accent, flexShrink: 0 }} />}
+          {showIcon && iconEl}
           <div className="flex-1 min-w-0">
-            {showTitle && (
-              <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
-                {config.title}
-              </p>
-            )}
-            {showState && (
-              <p className="text-base font-semibold truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
-                {stateText}
-              </p>
-            )}
+            {showTitle && titleEl}
+            {showState && statusEl}
           </div>
         </div>
       )}
 
       {/* Main control – fills available space */}
       <div className="flex-1 min-h-0 flex items-stretch justify-center">
-        {renderMain()}
+        {tabContent[activeTab]}
       </div>
 
       {/* Tab pill */}
@@ -656,13 +678,6 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
       )}
 
       <StatusBadges config={config} />
-
-      {/* Eyedropper hint when no presets */}
-      {showPalette && presets.length === 0 && (
-        <div className="flex items-center justify-center text-[10px] gap-1 shrink-0" style={{ color: 'var(--text-secondary)' }}>
-          <Pipette size={10} /> Keine Presets
-        </div>
-      )}
     </div>
   );
 }
