@@ -487,6 +487,33 @@ export function CustomCellEditor({
                 />
               </div>
             )}
+            <div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>Sicherheitsabfrage</label>
+                  <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Bestätigung vor dem Schalten</p>
+                </div>
+                <button onClick={() => onChange({ confirmAction: !cell.confirmAction })}
+                  className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                  style={{ background: cell.confirmAction ? 'var(--accent)' : 'var(--app-border)' }}>
+                  <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                    style={{ left: cell.confirmAction ? '18px' : '2px' }} />
+                </button>
+              </div>
+              {cell.confirmAction && (
+                <div className="mt-2">
+                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Abfragetext (optional)</label>
+                  <input
+                    type="text"
+                    value={cell.confirmText ?? ''}
+                    onChange={(e) => onChange({ confirmText: e.target.value || undefined })}
+                    placeholder="Wirklich schalten?"
+                    className={inputCls}
+                    style={inputSty}
+                  />
+                </div>
+              )}
+            </div>
             {mode === 'icon' && (() => {
               const TruePrev  = cell.trueIcon  ? getWidgetIcon(cell.trueIcon,  (() => null) as unknown as LucideIcon) : null;
               const FalsePrev = cell.falseIcon ? getWidgetIcon(cell.falseIcon, (() => null) as unknown as LucideIcon) : null;

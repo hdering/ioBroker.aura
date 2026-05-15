@@ -5,6 +5,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
+import { useConfirmAction } from '../../hooks/useConfirmAction';
 import type { WidgetConfig, CustomCell, CustomGrid, CustomGridDef } from '../../types';
 import { resolveAssetUrl } from '../../utils/assetUrl';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
@@ -12,6 +13,7 @@ import { formatNum } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { HelpCircle } from 'lucide-react';
 import { parseValue, formatDate, toDateInputValue, toTimeInputValue, type DateOutputFormat } from './DatePickerWidget';
+import { ConfirmOverlay } from './ConfirmOverlay';
 
 // ── Default grid (title top-left, large value + unit in middle row) ──────────
 
@@ -197,9 +199,8 @@ function StaticCellView({
 /** Boolean toggle bound to a DP. */
 function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
   const { value, setValue } = useDatapoint(cell.dpId ?? '');
-  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
   const on = value === true || value === 1 || value === 'true' || value === '1';
-  const handleClick = () => {
+  const doToggle = () => {
     if (cell.momentary) {
       const delay = cell.momentaryDelay ?? 500;
       setValue(true);
@@ -208,6 +209,9 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
       setValue(!on);
     }
   };
+  const { run: handleClick, pending, confirm, cancel } = useConfirmAction(doToggle, !!cell.confirmAction);
+  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+  const wrap = { ...cellWrapStyle(cell, index, cols, rows), position: 'relative' as const };
   if (cell.controlMode === 'icon') {
     const iconName = on ? (cell.trueIcon || cell.iconName) : (cell.falseIcon || cell.iconName);
     const color    = on ? (cell.trueColor || cell.color || 'var(--accent-green)')
@@ -215,7 +219,7 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
     const Icon = getWidgetIcon(iconName, HelpCircle);
     const size = cell.fontSize ?? 28;
     return (
-      <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+      <div className={`aura-custom-cell-${index}`} style={wrap}>
         <button
           onClick={handleClick}
           className="nodrag flex items-center justify-center transition-transform hover:scale-110"
@@ -224,11 +228,12 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
         >
           <Icon size={size} style={{ color }} />
         </button>
+        {pending && <ConfirmOverlay text={cell.confirmText} onConfirm={confirm} onCancel={cancel} />}
       </div>
     );
   }
   return (
-    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+    <div className={`aura-custom-cell-${index}`} style={wrap}>
       <button
         onClick={handleClick}
         className="nodrag relative rounded-full transition-colors"
@@ -245,6 +250,7 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
           style={{ width: 20, height: 20, left: on ? '22px' : '2px' }}
         />
       </button>
+      {pending && <ConfirmOverlay text={cell.confirmText} onConfirm={confirm} onCancel={cancel} />}
     </div>
   );
 }

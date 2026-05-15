@@ -123,6 +123,8 @@ export interface CustomCell {
   controlMode?: 'toggle' | 'icon';  // 'switch' cell: visual control style (default 'toggle')
   momentary?: boolean;              // 'switch' cell: Taster-Modus — write true on press, false after delay
   momentaryDelay?: number;          // 'switch' cell: ms before writing false (default 500)
+  confirmAction?: boolean;          // 'switch' cell: require confirmation overlay before toggling
+  confirmText?: string;             // 'switch' cell: optional prompt text in confirmation overlay
   // 'datepicker' type
   dateFormat?: string;           // DateOutputFormat string: how to encode the picked date when writing to dpId
   showTime?:   boolean;          // show time-of-day picker alongside date input
