@@ -695,9 +695,9 @@ function ClimateConfig({
       <div className="flex items-center justify-between mb-1.5">
         <p className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Datenpunkte</p>
         <button onClick={() => void autoFill()}
-          className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
-          style={{ background: 'var(--accent)22', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
-          Auto-Erkennen
+          className="text-[10px] px-2.5 py-1 rounded-lg transition-colors hover:opacity-80 disabled:opacity-40"
+          style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
+          ✨ Auto-Erkennen
         </button>
       </div>
 
@@ -5613,9 +5613,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       <div className="flex items-center justify-between mb-1">
                         <label className="text-[11px]" style={hint}>Fahrt-Status DP</label>
                         <button onClick={() => void autoFill()}
-                          className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
-                          style={{ background: 'var(--accent)22', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
-                          Auto-Erkennen
+                          className="text-[10px] px-2.5 py-1 rounded-lg transition-colors hover:opacity-80 disabled:opacity-40"
+                          style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
+                          ✨ Auto-Erkennen
                         </button>
                       </div>
                       {dpRow('activityDp', 'shutter_activityDp')}
@@ -6206,9 +6206,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       <div className="flex items-center justify-between mb-1">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Ist-Temperatur Datenpunkt</label>
                         <button onClick={() => void autoFillThermostat()}
-                          className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
-                          style={{ background: 'var(--accent)22', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
-                          Auto-Erkennen
+                          className="text-[10px] px-2.5 py-1 rounded-lg transition-colors hover:opacity-80 disabled:opacity-40"
+                          style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
+                          ✨ Auto-Erkennen
                         </button>
                       </div>
                       <div className="flex gap-1">
@@ -6484,9 +6484,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       </p>
                       <div className="flex items-center gap-2">
                         <button onClick={() => void autoFillStatus()}
-                          className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
-                          style={{ background: 'var(--accent)22', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
-                          Auto-Erkennen
+                          className="text-[10px] px-2.5 py-1 rounded-lg transition-colors hover:opacity-80 disabled:opacity-40"
+                          style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
+                          ✨ Auto-Erkennen
                         </button>
                         <div className="flex items-center gap-1.5">
                           <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Anzeigen</span>
