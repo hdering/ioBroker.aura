@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.19 (2026-05-15)
+
+- fix(light): conic-gradient back to 'from 0deg' so red sits at 12 o'clock
+
 ## v0.9.18 (2026-05-15)
 
 - fix(light): color wheel knob aligned with palette colors
@@ -543,6 +547,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
