@@ -80,6 +80,7 @@ import { HttpRequestWidget } from '../widgets/HttpRequestWidget';
 import { ButtonWidget } from '../widgets/ButtonWidget';
 import { UniversalWidget } from '../widgets/UniversalWidget';
 import { EnumWidget } from '../widgets/EnumWidget';
+import { LightWidget } from '../widgets/LightWidget';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
 import { WidgetClickPopup } from '../widgets/popup/WidgetClickPopup';
@@ -129,6 +130,7 @@ function getWidgetMap() {
     climate:       ClimateWidget,
     universal:     UniversalWidget,
     enum:          EnumWidget,
+    light:         LightWidget,
   } as const;
 }
 
