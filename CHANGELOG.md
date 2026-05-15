@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.17 (2026-05-15)
+
+- feat(light): auto-detect DPs from siblings (Hue / HmIP / WLED)
+
 ## v0.9.16 (2026-05-15)
 
 - feat(light): decouple status text from title — own toggle + alignment
@@ -535,6 +539,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
