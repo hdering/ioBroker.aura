@@ -454,39 +454,34 @@ export function CustomCellEditor({
               </div>
             </div>
             <div>
-              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Taster-Modus</label>
-              <div className="flex gap-1">
-                {([['false', 'Aus'], ['true', 'An']] as const).map(([val, lbl]) => {
-                  const active = (val === 'true') === momentary;
-                  return (
-                    <button key={val} onClick={() => onChange({ momentary: val === 'true' })}
-                      className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
-                      style={{
-                        background: active ? 'var(--accent)' : 'var(--app-bg)',
-                        color:      active ? '#fff'          : 'var(--text-secondary)',
-                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                      }}>
-                      {lbl}
-                    </button>
-                  );
-                })}
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>Taster-Modus</label>
+                  <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Impuls statt Umschalten</p>
+                </div>
+                <button onClick={() => onChange({ momentary: !momentary })}
+                  className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                  style={{ background: momentary ? 'var(--accent)' : 'var(--app-border)' }}>
+                  <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                    style={{ left: momentary ? '18px' : '2px' }} />
+                </button>
               </div>
+              {momentary && (
+                <div className="mt-2">
+                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Taster-Dauer (ms)</label>
+                  <input
+                    type="number"
+                    min={50}
+                    step={50}
+                    value={cell.momentaryDelay ?? ''}
+                    onChange={(e) => onChange({ momentaryDelay: e.target.value === '' ? undefined : Number(e.target.value) })}
+                    placeholder="500"
+                    className={inputCls}
+                    style={inputSty}
+                  />
+                </div>
+              )}
             </div>
-            {momentary && (
-              <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Taster-Dauer (ms)</label>
-                <input
-                  type="number"
-                  min={50}
-                  step={50}
-                  value={cell.momentaryDelay ?? ''}
-                  onChange={(e) => onChange({ momentaryDelay: e.target.value === '' ? undefined : Number(e.target.value) })}
-                  placeholder="500"
-                  className={inputCls}
-                  style={inputSty}
-                />
-              </div>
-            )}
             <div>
               <div className="flex items-center justify-between">
                 <div>
