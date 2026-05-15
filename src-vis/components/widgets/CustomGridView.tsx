@@ -200,6 +200,15 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
   const { value, setValue } = useDatapoint(cell.dpId ?? '');
   if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
   const on = value === true || value === 1 || value === 'true' || value === '1';
+  const handleClick = () => {
+    if (cell.momentary) {
+      const delay = cell.momentaryDelay ?? 500;
+      setValue(true);
+      setTimeout(() => setValue(false), delay);
+    } else {
+      setValue(!on);
+    }
+  };
   if (cell.controlMode === 'icon') {
     const iconName = on ? (cell.trueIcon || cell.iconName) : (cell.falseIcon || cell.iconName);
     const color    = on ? (cell.trueColor || cell.color || 'var(--accent-green)')
@@ -209,7 +218,7 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
     return (
       <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
         <button
-          onClick={() => setValue(!on)}
+          onClick={handleClick}
           className="nodrag flex items-center justify-center transition-transform hover:scale-110"
           style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
           aria-label={cell.text || (on ? 'AN' : 'AUS')}
@@ -222,7 +231,7 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
   return (
     <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
       <button
-        onClick={() => setValue(!on)}
+        onClick={handleClick}
         className="nodrag relative rounded-full transition-colors"
         style={{
           width: 44, height: 24,

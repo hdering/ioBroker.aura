@@ -423,6 +423,7 @@ export function CustomCellEditor({
       {cell.type === 'switch' && (() => {
         const mode = cell.controlMode ?? 'toggle';
         const ctrlIconSize = cell.fontSize ?? 28;
+        const momentary = !!cell.momentary;
         return (
           <>
             <div>
@@ -441,6 +442,40 @@ export function CustomCellEditor({
                 ))}
               </div>
             </div>
+            <div>
+              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Taster-Modus</label>
+              <div className="flex gap-1">
+                {([['false', 'Aus'], ['true', 'An']] as const).map(([val, lbl]) => {
+                  const active = (val === 'true') === momentary;
+                  return (
+                    <button key={val} onClick={() => onChange({ momentary: val === 'true' })}
+                      className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                      style={{
+                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                        color:      active ? '#fff'          : 'var(--text-secondary)',
+                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                      }}>
+                      {lbl}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {momentary && (
+              <div>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Taster-Dauer (ms)</label>
+                <input
+                  type="number"
+                  min={50}
+                  step={50}
+                  value={cell.momentaryDelay ?? ''}
+                  onChange={(e) => onChange({ momentaryDelay: e.target.value === '' ? undefined : Number(e.target.value) })}
+                  placeholder="500"
+                  className={inputCls}
+                  style={inputSty}
+                />
+              </div>
+            )}
             {mode === 'icon' && (() => {
               const TruePrev  = cell.trueIcon  ? getWidgetIcon(cell.trueIcon,  (() => null) as unknown as LucideIcon) : null;
               const FalsePrev = cell.falseIcon ? getWidgetIcon(cell.falseIcon, (() => null) as unknown as LucideIcon) : null;
