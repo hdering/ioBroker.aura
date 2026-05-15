@@ -185,10 +185,9 @@ function StaticCellView({
 
   if (cell.type === 'empty' || !content) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
 
-  const defaultColor = cell.type === 'value' ? 'var(--text-primary)' : 'var(--text-secondary)';
   return (
     <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
-      <span style={cellTextStyle(cell, defaultColor)}>{content}</span>
+      <span style={cellTextStyle(cell, 'var(--text-primary)')}>{content}</span>
     </div>
   );
 }
