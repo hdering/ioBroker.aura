@@ -25,6 +25,9 @@ export const en: Record<TranslationKey, string> = {
   'common.move':     'Move',
   'common.reset':    'Reset',
   'common.remove':   'Remove',
+  'common.sizeSmall':  'Small',
+  'common.sizeMedium': 'Medium',
+  'common.sizeLarge':  'Large',
 
   // ── Admin Navigation ─────────────────────────────────────────────────────────
   'admin.nav.overview':     'Overview',
@@ -75,6 +78,10 @@ export const en: Record<TranslationKey, string> = {
   'settings.clients.daysAgo':    '{n} d ago',
 
   'settings.frontend.title':          'Frontend',
+  'settings.frontend.layoutDrawer':         'Layout Menu (Hamburger)',
+  'settings.frontend.layoutDrawerSize':     'Hamburger button size',
+  'settings.frontend.layoutDrawerAutoHide': 'Auto-hide',
+  'settings.frontend.layoutDrawerAutoHideHint': 'Button appears only when the mouse is near the top edge (or after a top-area touch). Applies only when the header is hidden.',
   'settings.frontend.showHeader':     'Show Header',
   'settings.frontend.dashboardTitle': 'Dashboard Title',
   'settings.frontend.connectionBadge':'Connection Status',
@@ -212,6 +219,7 @@ export const en: Record<TranslationKey, string> = {
   'layouts.open':          'Open in Frontend',
   'layouts.edit':          'Edit',
   'layouts.delete':        'Delete Layout',
+  'layouts.changeIcon':    'Change icon',
   'layouts.defaultTab':    'Default tab',
   'layouts.setDefaultTab': 'Set as default tab (opened when no tab is specified in URL)',
 
@@ -227,6 +235,10 @@ export const en: Record<TranslationKey, string> = {
   'layouts.context.global':     'Global',
   'layouts.context.hintGlobal': 'Defaults for all layouts. Layouts can override individual values.',
   'layouts.context.hintLayout': 'Values override the global default. ↩ Global resets a value.',
+
+  // ── Layout drawer (Hamburger) ─────────────────────────────────────────────────
+  'layoutDrawer.title': 'Layouts',
+  'layoutDrawer.open':  'Open layout menu',
 
   // ── Endpoints ─────────────────────────────────────────────────────────────────
   'endpoints.title':    'Endpoints & Groups',

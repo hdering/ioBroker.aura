@@ -35,6 +35,29 @@ export function FrontendSection() {
 
   return (
     <Card title={t('settings.frontend.title')}>
+      <ToggleRow label={t('settings.frontend.layoutDrawer')} value={frontend.layoutDrawerEnabled ?? false} onChange={(v) => updateFrontend({ layoutDrawerEnabled: v })} />
+      {frontend.layoutDrawerEnabled && (
+        <div className="space-y-2 pl-1 pb-1">
+          <div>
+            <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>{t('settings.frontend.layoutDrawerSize')}</p>
+            <div className="flex gap-1.5">
+              {(['sm', 'md', 'lg'] as const).map((v) => {
+                const labels = { sm: t('common.sizeSmall'), md: t('common.sizeMedium'), lg: t('common.sizeLarge') };
+                const active = (frontend.layoutDrawerSize ?? 'md') === v;
+                return (
+                  <button key={v} onClick={() => updateFrontend({ layoutDrawerSize: v })}
+                    className="px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
+                    style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
+                    {labels[v]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <ToggleRow label={t('settings.frontend.layoutDrawerAutoHide')} value={frontend.layoutDrawerAutoHide ?? false} onChange={(v) => updateFrontend({ layoutDrawerAutoHide: v })} />
+          <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>{t('settings.frontend.layoutDrawerAutoHideHint')}</p>
+        </div>
+      )}
       <ToggleRow label={t('settings.frontend.showHeader')} value={frontend.showHeader} onChange={(v) => updateFrontend({ showHeader: v })} />
       {frontend.showHeader && (
         <>

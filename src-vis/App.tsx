@@ -14,6 +14,7 @@ import { useGroupStore } from './store/groupStore';
 import { loadConfigFromIoBroker } from './utils/configLoader';
 import { Dashboard } from './components/layout/Dashboard';
 import { TabBar } from './components/layout/TabBar';
+import { LayoutDrawer } from './components/layout/LayoutDrawer';
 import { useIframeStore } from './store/iframeStore';
 import { useEffectiveSettings, useEffectiveThemeId, useEffectiveCustomVars } from './hooks/useEffectiveSettings';
 import { useT } from './i18n';
@@ -445,13 +446,24 @@ export default function App() {
     return t?.slug ?? null;
   }, [tabs, activeTabId]);
 
+  const totalLayouts = useDashboardStore((s) => s.layouts.length);
+  const drawerEnabled = (frontend.layoutDrawerEnabled ?? false) && totalLayouts > 1;
+  const drawerSize = frontend.layoutDrawerSize ?? 'md';
+  const drawerAutoHide = frontend.layoutDrawerAutoHide ?? false;
+
   return (
     <div data-aura-app="frontend" className={`aura-page${layout?.slug ? ` aura-page-${layout.slug}` : ''}${activeTabSlug ? ` aura-${activeTabSlug}` : ''} h-full flex flex-col overflow-hidden`} style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}>
       <ConnectionIndicator showBadge={showBadge} />
+      {drawerEnabled && !frontend.showHeader && (
+        <LayoutDrawer activeLayoutId={layout?.id} floating size={drawerSize} autoHide={drawerAutoHide} />
+      )}
       {frontend.showHeader && (
         <header className="aura-header flex items-center justify-between px-4 sm:px-6 py-4 shrink-0"
           style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)' }}>
-          <h1 className="aura-titel text-xl font-bold tracking-tight">{frontend.headerTitle || 'Aura'}</h1>
+          <div className="flex items-center gap-3 min-w-0">
+            {drawerEnabled && <LayoutDrawer activeLayoutId={layout?.id} size={drawerSize} />}
+            <h1 className="aura-titel text-xl font-bold tracking-tight truncate">{frontend.headerTitle || 'Aura'}</h1>
+          </div>
           <div className="flex items-center gap-3">
             {frontend.headerDatapoint && <HeaderDatapoint id={frontend.headerDatapoint} template={frontend.headerDatapointTemplate || undefined} />}
             {frontend.headerClockEnabled && <HeaderClock f={frontend} />}

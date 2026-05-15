@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Pencil, Copy, Trash2, Check, X, ExternalLink, LayoutDashboard, Star } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import { useDashboardStore, type DashboardLayout } from '../../../../store/dashboardStore';
+import { IconPickerModal } from '../../../../components/config/IconPickerModal';
 import { useT } from '../../../../i18n';
 
 function layoutUrl(layout: DashboardLayout, isFirst: boolean): string {
@@ -13,7 +15,7 @@ const inputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', 
 
 function LayoutRow({ layout, isOnly, isFirst }: { layout: DashboardLayout; isOnly: boolean; isFirst: boolean }) {
   const t = useT();
-  const { renameLayout, setLayoutSlug, duplicateLayout, removeLayout, setActiveLayout, setDefaultTab } = useDashboardStore();
+  const { renameLayout, setLayoutSlug, setLayoutIcon, duplicateLayout, removeLayout, setActiveLayout, setDefaultTab } = useDashboardStore();
   const navigate = useNavigate();
 
   const [editingName, setEditingName] = useState(false);
@@ -23,6 +25,7 @@ function LayoutRow({ layout, isOnly, isFirst }: { layout: DashboardLayout; isOnl
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [dupName, setDupName] = useState(`${layout.name} (Kopie)`);
   const [showDup, setShowDup] = useState(false);
+  const [iconPickerOpen, setIconPickerOpen] = useState(false);
 
   const widgetCount = layout.tabs.reduce((n, tab) => n + tab.widgets.length, 0);
   const hash = layoutUrl(layout, isFirst);
@@ -48,10 +51,16 @@ function LayoutRow({ layout, isOnly, isFirst }: { layout: DashboardLayout; isOnl
   return (
     <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
       <div className="flex items-center gap-3 px-4 py-3" style={{ background: 'var(--app-surface)' }}>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+        <button
+          onClick={() => setIconPickerOpen(true)}
+          title={t('layouts.changeIcon')}
+          className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 hover:opacity-80 transition-opacity"
           style={{ background: 'var(--accent)22', color: 'var(--accent)' }}>
-          <LayoutDashboard size={16} />
-        </div>
+          {layout.icon
+            ? <Icon icon={layout.icon} width={16} height={16} />
+            : <LayoutDashboard size={16} />
+          }
+        </button>
 
         <div className="flex-1 min-w-0">
           {editingName ? (
@@ -165,6 +174,14 @@ function LayoutRow({ layout, isOnly, isFirst }: { layout: DashboardLayout; isOnl
             <X size={14} />
           </button>
         </div>
+      )}
+
+      {iconPickerOpen && (
+        <IconPickerModal
+          current={layout.icon ?? ''}
+          onSelect={(name) => { setLayoutIcon(layout.id, name || undefined); setIconPickerOpen(false); }}
+          onClose={() => setIconPickerOpen(false)}
+        />
       )}
 
       <div className="px-4 py-2 flex flex-wrap gap-1.5 items-center" style={{ borderTop: '1px solid var(--app-border)' }}>

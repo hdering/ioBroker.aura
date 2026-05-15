@@ -23,6 +23,9 @@ export const de = {
   'common.move':          'Verschieben',
   'common.reset':         'Zurücksetzen',
   'common.remove':        'Entfernen',
+  'common.sizeSmall':     'Klein',
+  'common.sizeMedium':    'Mittel',
+  'common.sizeLarge':     'Groß',
 
   // ── Admin Navigation ─────────────────────────────────────────────────────────
   'admin.nav.overview':     'Übersicht',
@@ -73,6 +76,10 @@ export const de = {
   'settings.clients.daysAgo':    'vor {n} d',
 
   'settings.frontend.title':          'Frontend',
+  'settings.frontend.layoutDrawer':         'Layout-Menü (Hamburger)',
+  'settings.frontend.layoutDrawerSize':     'Größe des Hamburger-Buttons',
+  'settings.frontend.layoutDrawerAutoHide': 'Auto-Ausblenden',
+  'settings.frontend.layoutDrawerAutoHideHint': 'Button erscheint nur, wenn die Maus oben am Rand ist (oder bei Touch nach Tipp im oberen Bereich). Wirkt nur wenn der Header ausgeblendet ist.',
   'settings.frontend.showHeader':     'Header anzeigen',
   'settings.frontend.dashboardTitle': 'Dashboard-Titel',
   'settings.frontend.connectionBadge':'Verbindungsstatus',
@@ -210,6 +217,7 @@ export const de = {
   'layouts.open':          'Im Frontend öffnen',
   'layouts.edit':          'Bearbeiten',
   'layouts.delete':        'Layout löschen',
+  'layouts.changeIcon':    'Icon ändern',
   'layouts.defaultTab':    'Standard-Tab',
   'layouts.setDefaultTab': 'Als Standard-Tab setzen (wird geöffnet wenn kein Tab in der URL angegeben ist)',
 
@@ -225,6 +233,10 @@ export const de = {
   'layouts.context.global':     'Global',
   'layouts.context.hintGlobal': 'Voreinstellungen für alle Layouts. Layouts können einzelne Werte überschreiben.',
   'layouts.context.hintLayout': 'Werte überschreiben den globalen Standard. ↩ Global setzt einen Wert zurück.',
+
+  // ── Layout drawer (Hamburger) ─────────────────────────────────────────────────
+  'layoutDrawer.title': 'Layouts',
+  'layoutDrawer.open':  'Layout-Menü öffnen',
 
   // ── Endpoints ─────────────────────────────────────────────────────────────────
   'endpoints.title':    'Endpunkte & Gruppen',

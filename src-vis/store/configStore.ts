@@ -31,6 +31,11 @@ export interface FrontendSettings {
   guidelinesWidth: number;
   guidelinesHeight: number;
   guidelinesShowInFrontend: boolean;
+  // Layout drawer (hamburger) — global toggle
+  layoutDrawerEnabled: boolean;
+  layoutDrawerSize: 'sm' | 'md' | 'lg';
+  /** Floating button auto-hides; reveals near top edge (mouse) or top-touch (touch). */
+  layoutDrawerAutoHide: boolean;
   // Super-admin access (empty = feature disabled)
   superAdminKey: string;
 }
@@ -70,6 +75,9 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
   guidelinesWidth: 1280,
   guidelinesHeight: 800,
   guidelinesShowInFrontend: false,
+  layoutDrawerEnabled: false,
+  layoutDrawerSize: 'md',
+  layoutDrawerAutoHide: false,
   superAdminKey: '',
 };
 

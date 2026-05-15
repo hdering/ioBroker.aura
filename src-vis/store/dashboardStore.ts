@@ -80,6 +80,7 @@ export interface DashboardLayout {
   tabs: Tab[];
   activeTabId: string;
   defaultTabId?: string;   // tab shown when frontend opens without a tab slug
+  icon?: string;           // icon name (Iconify ID or lucide PascalCase) for layout drawer
   settings?: LayoutSettings; // per-layout overrides (undefined = use global)
 }
 
@@ -166,6 +167,7 @@ interface DashboardState {
   removeLayout: (id: string) => void;
   renameLayout: (id: string, name: string) => void;
   setLayoutSlug: (id: string, slug: string) => void;
+  setLayoutIcon: (id: string, icon: string | undefined) => void;
   setActiveLayout: (id: string) => void;
 
   // ── Tab CRUD (on activeLayoutId) ─────────────────────────────────────────
@@ -260,6 +262,9 @@ export const useDashboardStore = create<DashboardState>()(
 
       setLayoutSlug: (id, slug) =>
         set((s) => ({ layouts: patchLayout(s.layouts, id, (l) => ({ ...l, slug })) })),
+
+      setLayoutIcon: (id, icon) =>
+        set((s) => ({ layouts: patchLayout(s.layouts, id, (l) => ({ ...l, icon })) })),
 
       setActiveLayout: (id) => { set({ activeLayoutId: id }); flushKey('aura-dashboard'); },
 
