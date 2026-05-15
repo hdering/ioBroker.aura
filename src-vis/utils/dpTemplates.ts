@@ -209,6 +209,27 @@ export const DP_TEMPLATES: DpTemplate[] = [
       { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline', 'OFFLINE'] },
     ],
   },
+  {
+    id: 'light',
+    label: 'RGB-Licht',
+    icon: '💡',
+    widgetType: 'light',
+    category: 'lighting',
+    hint: 'Für RGB/CCT-Lampen, LED-Strips (Philips Hue, HmIP, WLED) – findet Helligkeit, Farbe, Lichtwärme und Effekte automatisch',
+    secondaryDps: [
+      { optionKey: 'switchDp',      siblingNames: ['on', 'ON', 'state', 'STATE'] },
+      { optionKey: 'brightnessDp',  siblingNames: ['level', 'LEVEL', 'bri', 'brightness'] },
+      { optionKey: 'hueDp',         siblingNames: ['hue', 'HUE'] },
+      { optionKey: 'saturationDp',  siblingNames: ['sat', 'SAT', 'saturation', 'SATURATION'] },
+      { optionKey: 'rDp',           siblingNames: ['r', 'R', 'red', 'RED'] },
+      { optionKey: 'gDp',           siblingNames: ['g', 'G', 'green', 'GREEN'] },
+      { optionKey: 'bDp',           siblingNames: ['b', 'B', 'blue', 'BLUE'] },
+      { optionKey: 'temperatureDp', siblingNames: ['ct', 'CT', 'color_temp', 'colorTemp', 'color_temperature', 'mired'] },
+      { optionKey: 'effectDp',      siblingNames: ['effect', 'EFFECT'] },
+      { optionKey: 'batteryDp',     siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow', 'BATTERY_LOW'] },
+      { optionKey: 'unreachDp',     siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline', 'OFFLINE', 'reachable'] },
+    ],
+  },
   // ── SCHALTEN ─────────────────────────────────────────────────────────────
   {
     id: 'switch',
@@ -410,5 +431,133 @@ export function autoDetectStatusDps(
   const unreach = find(UNREACH_NAMES) ?? findUp(UNREACH_NAMES);
   if (batt)    result.batteryDp  = batt;
   if (unreach) result.unreachDp = unreach;
+  return result;
+}
+
+// ── Light widget: cross-channel auto-detection (Hue / HmIP / WLED …) ───────
+// Light DPs are spread across vendors very differently — some keep all sub-DPs
+// in one channel (Hue: hue.0.X.{on,level,hue,sat,r,g,b,ct,effect}), others
+// split them across sibling channels (HmIP HM-LC-RGBW-WM: 1.LEVEL,
+// 2.COLOR, 3.PROGRAM). This function tries both layouts plus role-based fallback.
+
+const LIGHT_NAMES = {
+  switchDp:      ['on', 'ON', 'state', 'STATE'],
+  brightnessDp:  ['level', 'LEVEL', 'bri', 'brightness'],
+  hueDp:         ['hue', 'HUE'],
+  saturationDp:  ['sat', 'SAT', 'saturation', 'SATURATION'],
+  rDp:           ['r', 'R', 'red', 'RED'],
+  gDp:           ['g', 'G', 'green', 'GREEN'],
+  bDp:           ['b', 'B', 'blue', 'BLUE'],
+  colorDp:       ['COLOR', 'color'],
+  temperatureDp: ['ct', 'CT', 'color_temp', 'colorTemp', 'color_temperature'],
+  effectDp:      ['effect', 'EFFECT', 'PROGRAM', 'program'],
+} as const;
+
+const LIGHT_ROLES = {
+  switchDp:      ['switch.light', 'switch'],
+  brightnessDp:  ['level.dimmer', 'level.brightness'],
+  hueDp:         ['level.color.hue'],
+  saturationDp:  ['level.color.saturation'],
+  rDp:           ['level.color.red'],
+  gDp:           ['level.color.green'],
+  bDp:           ['level.color.blue'],
+  temperatureDp: ['level.color.temperature'],
+} as const;
+
+/**
+ * Detects all light-related DPs for a given main datapoint. Searches:
+ *  1. Same-channel siblings by name
+ *  2. Sibling channels under the grandparent by name (HmIP cross-channel)
+ *  3. Same-channel + sibling channels by role (vendor-agnostic fallback)
+ *
+ * Also detects colorMode based on which DPs were found:
+ *  - hueDp + saturationDp → 'hsv'
+ *  - rDp + gDp + bDp → 'rgb'
+ *  - colorDp (single integer, last segment 'COLOR' or role level.color.hue
+ *    on integer with max ≤ 200) → 'hm-color'
+ */
+export function autoDetectLightDps(
+  mainDpId: string,
+  entries: Array<{ id: string; role?: string; type?: string }>,
+): Record<string, string | undefined> & { colorMode?: 'hsv' | 'rgb' | 'hm-color' | 'none' } {
+  if (!mainDpId) return {};
+  const parts = mainDpId.split('.');
+  const parent   = parts.slice(0, -1).join('.');
+  const parentUp = parts.slice(0, -2).join('.');
+  const sibs   = entries.filter((e) => e.id.startsWith(parent + '.'));
+  const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.') && !e.id.startsWith(parent + '.'));
+
+  // Find a sibling by exact-name match in same channel
+  const findByName = (names: readonly string[]): string | undefined =>
+    names.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
+  // Find by name in any sibling channel (last segment matches)
+  const findByNameCross = (names: readonly string[]): string | undefined => {
+    for (const e of sibsUp) {
+      const last = e.id.split('.').pop() ?? '';
+      if (names.includes(last)) return e.id;
+    }
+    return undefined;
+  };
+  // Find by role anywhere in family
+  const findByRole = (roles: readonly string[]): string | undefined => {
+    const all = [...sibs, ...sibsUp];
+    return all.find((e) => roles.includes((e.role ?? '').toLowerCase()) && e.id !== mainDpId)?.id;
+  };
+
+  const result: Record<string, string | undefined> & { colorMode?: 'hsv' | 'rgb' | 'hm-color' | 'none' } = {};
+
+  // Generic lookup: try same-channel name → cross-channel name → role
+  const lookup = (key: keyof typeof LIGHT_NAMES, roleKey?: keyof typeof LIGHT_ROLES): string | undefined =>
+    findByName(LIGHT_NAMES[key])
+    ?? findByNameCross(LIGHT_NAMES[key])
+    ?? (roleKey ? findByRole(LIGHT_ROLES[roleKey]) : undefined);
+
+  result.switchDp      = lookup('switchDp', 'switchDp');
+  result.brightnessDp  = lookup('brightnessDp', 'brightnessDp');
+  result.hueDp         = lookup('hueDp', 'hueDp');
+  result.saturationDp  = lookup('saturationDp', 'saturationDp');
+  result.rDp           = lookup('rDp', 'rDp');
+  result.gDp           = lookup('gDp', 'gDp');
+  result.bDp           = lookup('bDp', 'bDp');
+  result.colorDp       = lookup('colorDp');
+  result.temperatureDp = lookup('temperatureDp', 'temperatureDp');
+  result.effectDp      = lookup('effectDp');
+
+  // Don't pick the main DP itself as a secondary
+  for (const k of Object.keys(result) as (keyof typeof result)[]) {
+    if (result[k] === mainDpId) result[k] = undefined;
+  }
+
+  // Color mode detection
+  // HmIP COLOR is named exactly 'COLOR' (uppercase) and has no separate saturation.
+  // Hue uses 'hue'+'sat' (lowercase, separate DPs). That's enough to disambiguate.
+  const hasHmColor =
+    !!result.colorDp &&
+    !result.saturationDp &&
+    (result.colorDp.split('.').pop() === 'COLOR');
+  if (hasHmColor) {
+    result.colorMode = 'hm-color';
+    // In hm-color mode, hue/sat/r/g/b should not be set
+    result.hueDp = undefined;
+    result.saturationDp = undefined;
+    result.rDp = undefined;
+    result.gDp = undefined;
+    result.bDp = undefined;
+  } else if (result.hueDp && result.saturationDp) {
+    result.colorMode = 'hsv';
+    result.colorDp = undefined;
+  } else if (result.rDp && result.gDp && result.bDp) {
+    result.colorMode = 'rgb';
+    result.colorDp = undefined;
+  } else {
+    result.colorMode = 'none';
+    result.colorDp = undefined;
+  }
+
+  // Battery + unreach (works regardless of color mode)
+  const status = autoDetectStatusDps(mainDpId, entries);
+  result.batteryDp = status.batteryDp;
+  result.unreachDp = status.unreachDp;
+
   return result;
 }

@@ -25,7 +25,7 @@ import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatap
 import { detectMediaDevices, type DetectedMediaDevice } from '../../utils/mediaDeviceDetectors';
 import { WIDGET_REGISTRY, WIDGET_GROUPS, WIDGET_BY_TYPE } from '../../widgetRegistry';
 import { detectType } from '../../utils/widgetDetection';
-import { DP_TEMPLATES, findMainDpForSecondary, autoDetectStatusDps } from '../../utils/dpTemplates';
+import { DP_TEMPLATES, findMainDpForSecondary, autoDetectStatusDps, autoDetectLightDps } from '../../utils/dpTemplates';
 import { AutoListConfig } from '../config/AutoListConfig';
 import { StaticListConfig } from '../config/StaticListConfig';
 import { EnumConfig } from '../config/EnumConfig';
@@ -5190,6 +5190,16 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 const o = config.options ?? {};
                 const setO = (patch: Record<string, unknown>) =>
                   onConfigChange({ ...config, options: { ...o, ...patch } });
+                const autoFillLight = async () => {
+                  if (!config.datapoint) return;
+                  const entries = await ensureDatapointCache();
+                  const detected = autoDetectLightDps(config.datapoint, entries);
+                  const opts: Record<string, unknown> = {};
+                  for (const [k, v] of Object.entries(detected)) {
+                    if (v !== undefined && v !== '') opts[k] = v;
+                  }
+                  if (Object.keys(opts).length) setO(opts);
+                };
                 const lInputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono';
                 const lInputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
                 const hint: React.CSSProperties = { color: 'var(--text-secondary)' };
@@ -5212,6 +5222,17 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 );
                 return (
                   <>
+                    {/* Auto-Erkennen */}
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px]" style={hint}>Datenpunkte aus Geschwistern füllen</label>
+                      <button onClick={() => void autoFillLight()}
+                        disabled={!config.datapoint}
+                        className="text-[10px] px-2.5 py-1 rounded-lg transition-colors disabled:opacity-40"
+                        style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)', border: '1px solid var(--accent)44' }}>
+                        ✨ Auto-Erkennen
+                      </button>
+                    </div>
+
                     {/* Switch DP */}
                     <div>
                       <label className="text-[11px] mb-1 block" style={hint}>Schalt-DP (An/Aus, boolean)</label>
@@ -6885,8 +6906,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           onSelect={(id, unit, name, role, dpType) => {
             if (pickerTarget === 'datapoint') {
               const detected = (role || dpType) ? detectType({ id, name: name ?? id, role, type: dpType, unit, rooms: [], funcs: [], logging: [] }) : null;
-              const typePatch = detected ? { type: detected.type } : {};
-              const effectiveType = detected?.type ?? config.type;
+              // Don't auto-switch widget type when the user explicitly chose 'light'
+              // (picking e.g. hue.0…level would otherwise downgrade light → dimmer).
+              const typePatch = (detected && config.type !== 'light') ? { type: detected.type } : {};
+              const effectiveType = config.type === 'light' ? 'light' : (detected?.type ?? config.type);
               const supportsUnit = ['value', 'chart', 'gauge', 'fill'].includes(effectiveType);
               const unitAlreadySet = !!(config.options?.unit as string | undefined);
               const resolvedUnit = unit || detected?.unit;
@@ -6897,6 +6920,17 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               // Auto-fill secondary DPs (actualDatapoint, batteryDp, unreachDp …)
               const activeTemplate = DP_TEMPLATES.find((tpl) => tpl.widgetType === effectiveType && tpl.secondaryDps.length > 0);
               void ensureDatapointCache().then((entries) => {
+                if (effectiveType === 'light') {
+                  // Light: cross-channel + color-mode detection (HmIP & Hue style)
+                  const detected = autoDetectLightDps(id, entries);
+                  const opts: Record<string, unknown> = {};
+                  for (const [k, v] of Object.entries(detected)) {
+                    if (v !== undefined && v !== '') opts[k] = v;
+                  }
+                  if (Object.keys(opts).length > 0)
+                    onConfigChange({ ...updatedConfig, options: { ...updatedConfig.options, ...opts } });
+                  return;
+                }
                 if (activeTemplate) {
                   // Normal path: selected DP is primary → discover secondary siblings
                   const parts = id.split('.');
