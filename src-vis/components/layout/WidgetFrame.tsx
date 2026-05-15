@@ -3706,6 +3706,37 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       </button>
                     </div>
                   </div>}
+                  {config.type === 'light' && (() => {
+                    const stateOn = o.showState !== false;
+                    return (
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>Status (An / Aus)</span>
+                        <div className="flex items-center gap-2">
+                          {stateOn && (
+                            <div className="flex gap-1">
+                              {(['left', 'center', 'right'] as const).map((p) => {
+                                const lbls: Record<string, string> = { left: t('wf.edit.posLeft'), center: t('wf.edit.posCenter'), right: t('wf.edit.posRight') };
+                                const active = ((o.statusAlign as string) ?? 'left') === p;
+                                return (
+                                  <button key={p} onClick={() => setO({ statusAlign: p })}
+                                    className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                    style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
+                                    {lbls[p]}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                          <button onClick={() => setO({ showState: !stateOn })}
+                            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                            style={{ background: stateOn ? 'var(--accent)' : 'var(--app-border)' }}>
+                            <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                              style={{ left: stateOn ? '14px' : '2px' }} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   {(config.type === 'shutter'
                     ? [{ key: 'showValue', label: 'Position %' }, { key: 'showControls', label: 'Steuerknöpfe' }, { key: 'showSlider', label: 'Schieberegler' }]
                     : config.type === 'switch'
@@ -3778,7 +3809,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     ? []
                     : config.type === 'light'
                     ? [
-                        { key: 'showState',   label: 'Status (An / Aus)' },
                         { key: 'showPalette', label: 'Farbpalette (Presets)' },
                       ]
                     : config.type === 'mediaplayer'

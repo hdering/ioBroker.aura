@@ -300,6 +300,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
   const showTitle      = o.showTitle      !== false;
   const titleAlign     = (o.titleAlign    as string) ?? 'left';
   const showState      = o.showState      !== false;
+  const statusAlign    = (o.statusAlign   as string) ?? 'left';
   const showPalette    = o.showPalette    !== false;
   const showIcon       = o.showIcon       !== false;
   const iconSize       = (o.iconSize as number) || 20;
@@ -586,7 +587,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     </span>
   );
   const statusEl = (
-    <span className="text-base font-semibold truncate block w-full" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+    <span className="text-base font-semibold truncate block w-full" style={{ color: 'var(--text-primary)', textAlign: statusAlign as React.CSSProperties['textAlign'] }}>
       {stateText}
     </span>
   );
