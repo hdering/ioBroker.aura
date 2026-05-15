@@ -119,8 +119,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
   const isWeather = type === 'weather';
   const isCamera = type === 'camera';
   const noDatapointNeeded = addMode !== 'datapoint';
-  const canAdd = addMode === 'datapoint' ? !!datapoint.trim()
-               : addMode === 'group'     ? !!groupId
+  const canAdd = addMode === 'group'     ? !!groupId
                : addMode === 'wizard-only' ? !!icalUrl.trim()
                : true;
 

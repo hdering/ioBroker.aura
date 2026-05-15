@@ -365,7 +365,7 @@ export const de = {
   'editor.manual.group':          'Gruppe *',
   'editor.manual.noGroups':       'Keine Gruppen vorhanden – zuerst unter "Endpunkte" anlegen',
   'editor.manual.selectGroup':    '– Gruppe wählen –',
-  'editor.manual.datapointId':    'Datenpunkt-ID *',
+  'editor.manual.datapointId':    'Datenpunkt-ID (optional)',
   'editor.manual.unit':           'Einheit (optional)',
   'editor.manual.add':            'Hinzufügen',
   'editor.manual.cancel':         'Abbruch',

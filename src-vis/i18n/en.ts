@@ -367,7 +367,7 @@ export const en: Record<TranslationKey, string> = {
   'editor.manual.group':          'Group *',
   'editor.manual.noGroups':       'No groups yet – first create one under "Endpoints"',
   'editor.manual.selectGroup':    '– Select group –',
-  'editor.manual.datapointId':    'Datapoint ID *',
+  'editor.manual.datapointId':    'Datapoint ID (optional)',
   'editor.manual.unit':           'Unit (optional)',
   'editor.manual.add':            'Add',
   'editor.manual.cancel':         'Cancel',
