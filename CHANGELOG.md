@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.28 (2026-05-15)
+
+- feat(widget-config): Auto-Erkennen Button-Styling vereinheitlicht
+
 ## v0.9.26 (2026-05-15)
 
 - refactor(universal): Taster-Modus mit Toggle-Schalter wie Sicherheitsabfrage
@@ -561,6 +565,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
