@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.21 (2026-05-15)
+
+- fix(editor): DP-Feld im 'Widget manuell hinzufügen' Step 2 ist nicht mehr Pflicht
+
 ## v0.9.19 (2026-05-15)
 
 - fix(light): conic-gradient back to 'from 0deg' so red sits at 12 o'clock
@@ -547,6 +551,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
