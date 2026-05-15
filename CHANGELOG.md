@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.9.16 (2026-05-15)
+
+- feat(light): decouple status text from title — own toggle + alignment
+- fix(light): suppress legacy Name/Stil sections that duplicated Darstellung
+- fix(light): add 'light' to Darstellung/Erweitert/Icon-picker allow-lists
+- feat(light): rename 'Alle Tabs' to 'Standard'; custom layout uses 3x3 grid
+- fix(widgets): register light widget in WidgetFrame's local getWidgetMap
+- feat(widgets): add light widget for RGB/CCT/dimmer lights
+- feat(custom-grid): add momentary (Taster) mode to switch cells
+
 ## v0.9.15 (2026-05-15)
 
 - fix(sync): prevent deleted widgets from reappearing after F5 / cross-browser saves
@@ -525,6 +535,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
