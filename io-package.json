@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.14",
+    "version": "0.9.15",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.15": {
+        "en": "fix(sync): prevent deleted widgets from reappearing after F5 / cross-browser saves",
+        "de": "fix(sync): prevent deleted widgets from reappearing after F5 / cross-browser saves"
+      },
       "0.9.14": {
         "en": "Release v0.9.14",
         "de": "Release v0.9.14"
