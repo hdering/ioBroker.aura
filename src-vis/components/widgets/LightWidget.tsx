@@ -163,6 +163,10 @@ function ColorWheel({ hue, sat, style, onChange, onCommit }: ColorWheelProps) {
   const radius = size / 2;
   const ringW = style === 'ring' ? Math.max(10, size * 0.12) : 0;
 
+  // Coordinate convention: hue = 0° → red at 12 o'clock, increasing clockwise.
+  // CSS conic-gradient `from -90deg` matches that (starts red at top, goes clockwise).
+  // Knob math: angle = (hue - 90)° converts the hue convention to math coords
+  // (where 0° = +X axis / 3 o'clock).
   const setFromPointer = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = ref.current; if (!el) return;
     const rect = el.getBoundingClientRect();
@@ -171,8 +175,9 @@ function ColorWheel({ hue, sat, style, onChange, onCommit }: ColorWheelProps) {
     const dx = e.clientX - cx;
     const dy = e.clientY - cy;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    let h = Math.atan2(dy, dx) * 180 / Math.PI;
-    if (h < 0) h += 360;
+    // atan2 gives math angle (0° = 3 o'clock). Add 90° to shift to hue convention (0° = 12 o'clock).
+    let h = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+    h = ((h % 360) + 360) % 360;
     if (style === 'disc') {
       const s = clamp(dist / radius, 0, 1);
       onChange(h, s);
@@ -181,17 +186,16 @@ function ColorWheel({ hue, sat, style, onChange, onCommit }: ColorWheelProps) {
     }
   };
 
-  const knobAngle = (hue - 90) * Math.PI / 180;
+  const knobMathAngle = (hue - 90) * Math.PI / 180;
   let knobX: number, knobY: number;
   if (style === 'disc') {
     const r = sat * radius;
-    const a = hue * Math.PI / 180;
-    knobX = radius + Math.cos(a) * r;
-    knobY = radius + Math.sin(a) * r;
+    knobX = radius + Math.cos(knobMathAngle) * r;
+    knobY = radius + Math.sin(knobMathAngle) * r;
   } else {
     const r = radius - ringW / 2;
-    knobX = radius + Math.cos(knobAngle) * r;
-    knobY = radius + Math.sin(knobAngle) * r;
+    knobX = radius + Math.cos(knobMathAngle) * r;
+    knobY = radius + Math.sin(knobMathAngle) * r;
   }
 
   return (
@@ -201,9 +205,7 @@ function ColorWheel({ hue, sat, style, onChange, onCommit }: ColorWheelProps) {
           ref={ref}
           className="nodrag absolute inset-0 rounded-full cursor-crosshair select-none"
           style={{
-            background: style === 'disc'
-              ? `conic-gradient(from 0deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)`
-              : `conic-gradient(from -90deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)`,
+            background: `conic-gradient(from -90deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)`,
             boxShadow: 'inset 0 0 0 1px var(--app-border)',
           }}
           onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); setFromPointer(e); }}
