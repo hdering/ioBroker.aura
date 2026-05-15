@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.26 (2026-05-15)
+
+- refactor(universal): Taster-Modus mit Toggle-Schalter wie Sicherheitsabfrage
+- feat(universal): Sicherheitsabfrage für Switch-Cells
+- fix(universal): einheitliche Textfarbe für alle statischen Cells (schwarz)
+
 ## v0.9.22 (2026-05-15)
 
 Release v0.9.22
@@ -555,6 +561,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 

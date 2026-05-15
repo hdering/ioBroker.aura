@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.25",
+    "version": "0.9.26",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.26": {
+        "en": "refactor(universal): Taster-Modus mit Toggle-Schalter wie Sicherheitsabfrage; feat(universal): Sicherheitsabfrage für Switch-Cells; fix(universal): einheitliche Textfarbe für alle statischen Cells (schwarz)",
+        "de": "refactor(universal): Taster-Modus mit Toggle-Schalter wie Sicherheitsabfrage; feat(universal): Sicherheitsabfrage für Switch-Cells; fix(universal): einheitliche Textfarbe für alle statischen Cells (schwarz)"
+      },
       "0.9.22": {
         "en": "Release v0.9.22",
         "de": "Release v0.9.22"
