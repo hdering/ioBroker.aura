@@ -1,5 +1,6 @@
 import type { WidgetConfig } from '../types';
 import type { Tab } from '../store/dashboardStore';
+import type { PopupView } from '../store/popupConfigStore';
 import { useGroupDefsStore, newGroupDefId } from '../store/groupDefsStore';
 
 function collectGroupDefs(
@@ -150,4 +151,63 @@ export function importTab(raw: unknown): Omit<Tab, 'id'> | null {
     ...(disabled !== undefined ? { disabled } : {}),
     ...(conditions ? { conditions } : {}),
   };
+}
+
+// ── Popup-view export / import ────────────────────────────────────────────────
+//
+// Export emits the raw PopupView shape (no wrapper). The same JSON can be
+// dropped into src-vis/data/builtinPopups/ to ship as a default for all
+// installations — see data/builtinPopups/README.md.
+//
+// Import always creates a fresh custom view (new id, new widget ids). Built-in
+// slot ids cannot be overwritten via import; that path is reserved for the
+// adapter-update / version-migration mechanism in popupConfigStore.
+
+export function exportPopupView(view: PopupView) {
+  const payload: PopupView = {
+    id: view.id,
+    name: view.name,
+    ...(view.version !== undefined ? { version: view.version } : {}),
+    ...(view.autoCloseSec !== undefined ? { autoCloseSec: view.autoCloseSec } : {}),
+    widgets: view.widgets,
+  };
+
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `aura-popup-${view.name.replace(/[^a-z0-9]/gi, '_')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Parses a JSON payload and returns a ready-to-add PopupView with fresh
+ * id and fresh widget ids. Returns null if the shape isn't a popup view.
+ */
+export function importPopupView(raw: unknown): PopupView | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  // Reject tab/widget shapes
+  if (obj._type === 'aura-tab') return null;
+  if (typeof obj.type === 'string') return null;
+  // Require popup-view shape
+  if (typeof obj.name !== 'string') return null;
+  if (!Array.isArray(obj.widgets)) return null;
+
+  const newId = `pv-${Date.now()}`;
+  const tsBase = Date.now();
+  const widgets = (obj.widgets as WidgetConfig[]).map((w, i) => ({
+    ...w,
+    id: `pw-${tsBase}-${i}`,
+  }));
+
+  const view: PopupView = {
+    id: newId,
+    name: obj.name,
+    widgets,
+    ...(typeof obj.autoCloseSec === 'number' ? { autoCloseSec: obj.autoCloseSec } : {}),
+  };
+  return view;
 }

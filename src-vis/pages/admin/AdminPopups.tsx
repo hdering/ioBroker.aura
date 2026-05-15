@@ -2,11 +2,12 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useSuperAdmin } from '../../hooks/useSuperAdmin';
-import { Plus, Trash2, Check, Pencil, Layers, RotateCcw } from 'lucide-react';
+import { Plus, Trash2, Check, Pencil, Layers, RotateCcw, Download, Upload } from 'lucide-react';
 import { usePopupConfigStore, BUILTIN_VIEW_IDS, BUILTIN_VIEWS } from '../../store/popupConfigStore';
 import { WIDGET_REGISTRY } from '../../widgetRegistry';
 import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { getAvailableLayouts } from '../../utils/widgetLayouts';
+import { exportPopupView, importPopupView } from '../../utils/widgetExportImport';
 import type { WidgetLayout } from '../../types';
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
@@ -128,12 +129,13 @@ function ViewSelect({ value, onChange }: { value: string; onChange: (v: string) 
 function PopupViewsSection() {
   const navigate = useNavigate();
   const isSuperAdmin = useSuperAdmin();
-  const { views, addView, removeView, updateViewName, copyView, restoreBuiltin, deletedBuiltinIds } = usePopupConfigStore();
+  const { views, addView, addImportedView, removeView, updateViewName, copyView, restoreBuiltin, resetBuiltin, deletedBuiltinIds } = usePopupConfigStore();
 
   const [newViewName, setNewViewName] = useState('');
   const [addingView, setAddingView] = useState(false);
   const [editingNameId, setEditingNameId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddView = () => {
     if (!newViewName.trim()) return;
@@ -141,6 +143,28 @@ function PopupViewsSection() {
     setNewViewName('');
     setAddingView(false);
     navigate(`/admin/popups/${id}`);
+  };
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const obj = JSON.parse(ev.target?.result as string);
+        const view = importPopupView(obj);
+        if (!view) {
+          alert('Keine gültige Popup-View-JSON.');
+          return;
+        }
+        const id = addImportedView(view);
+        navigate(`/admin/popups/${id}`);
+      } catch (err) {
+        alert(`Import fehlgeschlagen: ${(err as Error).message}`);
+      }
+    };
+    reader.readAsText(file);
   };
 
   const commitName = (viewId: string) => {
@@ -153,13 +177,30 @@ function PopupViewsSection() {
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Popup-Views</h2>
         {!addingView && (
-          <button
-            onClick={() => { setAddingView(true); setNewViewName(''); }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
-            style={{ background: 'var(--accent)', color: '#fff' }}
-          >
-            <Plus size={13} /> View hinzufügen
-          </button>
+          <div className="flex items-center gap-2">
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".json,application/json"
+              onChange={handleImportFile}
+              className="hidden"
+            />
+            <button
+              onClick={() => importInputRef.current?.click()}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+              title="Popup-View aus JSON importieren"
+            >
+              <Upload size={13} /> Import
+            </button>
+            <button
+              onClick={() => { setAddingView(true); setNewViewName(''); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
+              style={{ background: 'var(--accent)', color: '#fff' }}
+            >
+              <Plus size={13} /> View hinzufügen
+            </button>
+          </div>
         )}
       </div>
 
@@ -245,14 +286,24 @@ function PopupViewsSection() {
             {isBuiltin ? (
               <>
                 {isSuperAdmin && (
-                  <button
-                    onClick={() => navigate(`/admin/popups/${view.id}`)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity shrink-0"
-                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}
-                    title="Standard-View bearbeiten"
-                  >
-                    <Layers size={11} /> Bearbeiten
-                  </button>
+                  <>
+                    <button
+                      onClick={() => navigate(`/admin/popups/${view.id}`)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity shrink-0"
+                      style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}
+                      title="Standard-View bearbeiten"
+                    >
+                      <Layers size={11} /> Bearbeiten
+                    </button>
+                    <button
+                      onClick={() => { if (confirm(`"${view.name}" auf Werkszustand zurücksetzen? Lokale Anpassungen gehen verloren.`)) resetBuiltin(view.id); }}
+                      className="flex items-center justify-center w-7 h-7 shrink-0 rounded-lg hover:opacity-80 transition-opacity"
+                      style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-secondary)' }}
+                      title="Werkszustand wiederherstellen"
+                    >
+                      <RotateCcw size={11} />
+                    </button>
+                  </>
                 )}
                 <button
                   onClick={() => { const id = copyView(view.id); navigate(`/admin/popups/${id}`); }}
@@ -283,6 +334,14 @@ function PopupViewsSection() {
                 </button>
               </>
             )}
+            <button
+              onClick={() => exportPopupView(view)}
+              className="flex items-center justify-center w-6 h-6 shrink-0 rounded hover:opacity-70 transition-opacity"
+              style={{ color: 'var(--text-secondary)' }}
+              title="Als JSON exportieren"
+            >
+              <Download size={11} />
+            </button>
             {(!isBuiltin || isSuperAdmin) && (
               <button
                 onClick={() => removeView(view.id)}

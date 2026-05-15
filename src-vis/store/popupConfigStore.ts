@@ -9,68 +9,30 @@ export interface PopupView {
   widgets: WidgetConfig[];
   // Per-view auto-close: undefined = inherit global, 0 = explicit off, >0 = seconds
   autoCloseSec?: number;
+  // Built-in shipping version. Bump in code when a built-in's contents change;
+  // ensureBuiltins() then overwrites any persisted copy with a lower version.
+  // Only meaningful for entries with an id from BUILTIN_VIEW_IDS.
+  version?: number;
 }
 
 // ── Builtin predefined views ──────────────────────────────────────────────────
-// Use {{dp}} as placeholder for the triggering widget's main datapoint.
-// Stable IDs ensure ensureBuiltins() is idempotent across app updates.
+// Built-ins live as one JSON file per view under src-vis/data/builtinPopups/.
+// To ship a new/updated built-in: drop a JSON file in that folder; Vite picks
+// it up automatically at build time. See data/builtinPopups/README.md.
+//
+// JSON shape: { id, name, version, widgets[], autoCloseSec? }
+//   - id: stable `pv-builtin-<slug>` — used as the migration slot.
+//   - version: bump when shipping a content update; ensureBuiltins() then
+//     overwrites any persisted copy with a lower version.
+//   - widgets use `{{dp}}` (and similar) placeholders, replaced at popup-open.
 
-function bw(
-  id: string,
-  type: WidgetConfig['type'],
-  title: string,
-  x: number, y: number, w: number, h: number,
-  options: Record<string, unknown> = {},
-): WidgetConfig {
-  return { id, type, title, datapoint: '{{dp}}', gridPos: { x, y, w, h }, options };
-}
-
-export const BUILTIN_VIEWS: PopupView[] = [
-  {
-    id: 'pv-builtin-dimmer',
-    name: 'Standard: Dimmer',
-    widgets: [
-      bw('pw-bi-dimmer-1', 'value',  'Helligkeit', 0, 0, 12, 3),
-      bw('pw-bi-dimmer-2', 'dimmer', '',           0, 3, 12, 5),
-    ],
-  },
-  {
-    id: 'pv-builtin-thermostat',
-    name: 'Standard: Thermostat',
-    widgets: [
-      bw('pw-bi-thermo-1', 'value',      'Temperatur', 0, 0, 12, 3),
-      bw('pw-bi-thermo-2', 'thermostat', '',           0, 3, 12, 6, { setpointDp: '{{dp}}' }),
-    ],
-  },
-  {
-    id: 'pv-builtin-switch',
-    name: 'Standard: Schalter',
-    widgets: [
-      bw('pw-bi-switch-1', 'switch', '', 0, 0, 12, 4),
-    ],
-  },
-  {
-    id: 'pv-builtin-shutter',
-    name: 'Standard: Rolladen',
-    widgets: [
-      bw('pw-bi-shutter-1', 'value',   'Position', 0, 0, 12, 3),
-      bw('pw-bi-shutter-2', 'shutter', '',          0, 3, 12, 6, {
-        activityDp:  '{{activityDp}}',
-        directionDp: '{{directionDp}}',
-        stopDp:      '{{stopDp}}',
-        batteryDp:   '{{batteryDp}}',
-        unreachDp:   '{{unreachDp}}',
-      }),
-    ],
-  },
-  {
-    id: 'pv-builtin-mediaplayer',
-    name: 'Standard: Mediaplayer',
-    widgets: [
-      bw('pw-bi-media-1', 'mediaplayer', '', 0, 0, 12, 8),
-    ],
-  },
-];
+const _builtinModules = import.meta.glob<PopupView>(
+  '../data/builtinPopups/*.json',
+  { eager: true, import: 'default' },
+);
+export const BUILTIN_VIEWS: PopupView[] = Object.keys(_builtinModules)
+  .sort()
+  .map((k) => _builtinModules[k]);
 
 const BUILTIN_TYPE_DEFAULTS: Record<string, string> = {
   dimmer:      'pv-builtin-dimmer',
@@ -81,6 +43,16 @@ const BUILTIN_TYPE_DEFAULTS: Record<string, string> = {
 };
 
 export const BUILTIN_VIEW_IDS = new Set(BUILTIN_VIEWS.map((v) => v.id));
+const BUILTIN_VIEW_BY_ID = new Map(BUILTIN_VIEWS.map((v) => [v.id, v] as const));
+
+function freshBuiltin(viewId: string): PopupView | undefined {
+  const code = BUILTIN_VIEW_BY_ID.get(viewId);
+  if (!code) return undefined;
+  return {
+    ...code,
+    widgets: code.widgets.map((w) => ({ ...w, gridPos: { ...w.gridPos }, options: { ...w.options } })),
+  };
+}
 
 // ── Store ─────────────────────────────────────────────────────────────────────
 
@@ -100,6 +72,7 @@ interface PopupConfigState {
 
   // Views
   addView: (name: string) => string;
+  addImportedView: (view: PopupView) => string;
   removeView: (viewId: string) => void;
   updateViewName: (viewId: string, name: string) => void;
   setViewAutoCloseSec: (viewId: string, sec: number | undefined) => void;
@@ -113,6 +86,7 @@ interface PopupConfigState {
   // Builtins
   ensureBuiltins: () => void;
   restoreBuiltin: (viewId: string) => void;
+  resetBuiltin: (viewId: string) => void;
   copyView: (sourceId: string) => string;
 }
 
@@ -151,6 +125,19 @@ export const usePopupConfigStore = create<PopupConfigState>()(
       addView: (name) => {
         const id = `pv-${Date.now()}`;
         set((s) => ({ views: [...s.views, { id, name, widgets: [] }] }));
+        return id;
+      },
+
+      addImportedView: (view) => {
+        // Defensive: ensure built-in slot ids cannot be overwritten via import.
+        const id = BUILTIN_VIEW_IDS.has(view.id) ? `pv-${Date.now()}` : view.id;
+        const next: PopupView = {
+          ...view,
+          id,
+          // Custom views never carry a version; that field is reserved for built-ins.
+          version: undefined,
+        };
+        set((s) => ({ views: [...s.views, next] }));
         return id;
       },
 
@@ -223,9 +210,26 @@ export const usePopupConfigStore = create<PopupConfigState>()(
         set((s) => {
           const existingIds = new Set(s.views.map((v) => v.id));
           const deletedSet  = new Set(s.deletedBuiltinIds);
-          const missingViews = BUILTIN_VIEWS.filter(
-            (v) => !existingIds.has(v.id) && !deletedSet.has(v.id),
-          );
+
+          // Migrate persisted built-ins whose shipped version has advanced.
+          // Aggressive policy: code wins, local edits are discarded.
+          let viewsChanged = false;
+          const migrated = s.views.map((v) => {
+            const code = BUILTIN_VIEW_BY_ID.get(v.id);
+            if (!code) return v;
+            const persistedVer = v.version ?? 0;
+            const codeVer = code.version ?? 1;
+            if (persistedVer < codeVer) {
+              viewsChanged = true;
+              return freshBuiltin(v.id)!;
+            }
+            return v;
+          });
+
+          const missingViews = BUILTIN_VIEWS
+            .filter((v) => !existingIds.has(v.id) && !deletedSet.has(v.id))
+            .map((v) => freshBuiltin(v.id)!);
+
           const removedTypeSet = new Set(s.removedBuiltinTypeDefaults);
           const defaultsToAdd: Record<string, string> = {};
           for (const [type, viewId] of Object.entries(BUILTIN_TYPE_DEFAULTS)) {
@@ -233,16 +237,16 @@ export const usePopupConfigStore = create<PopupConfigState>()(
               defaultsToAdd[type] = viewId;
             }
           }
-          if (missingViews.length === 0 && Object.keys(defaultsToAdd).length === 0) return s;
+          if (!viewsChanged && missingViews.length === 0 && Object.keys(defaultsToAdd).length === 0) return s;
           return {
-            views: [...s.views, ...missingViews],
+            views: [...migrated, ...missingViews],
             typeDefaults: { ...defaultsToAdd, ...s.typeDefaults },
           };
         }),
 
       restoreBuiltin: (viewId) =>
         set((s) => {
-          const builtin = BUILTIN_VIEWS.find((v) => v.id === viewId);
+          const builtin = freshBuiltin(viewId);
           if (!builtin) return s;
           const defaultsToRestore: Record<string, string> = {};
           for (const [type, vid] of Object.entries(BUILTIN_TYPE_DEFAULTS)) {
@@ -254,6 +258,15 @@ export const usePopupConfigStore = create<PopupConfigState>()(
             deletedBuiltinIds: s.deletedBuiltinIds.filter((id) => id !== viewId),
             typeDefaults: { ...defaultsToRestore, ...s.typeDefaults },
             removedBuiltinTypeDefaults: s.removedBuiltinTypeDefaults.filter((t) => !restoredTypes.includes(t)),
+          };
+        }),
+
+      resetBuiltin: (viewId) =>
+        set((s) => {
+          const builtin = freshBuiltin(viewId);
+          if (!builtin) return s;
+          return {
+            views: s.views.map((v) => (v.id === viewId ? builtin : v)),
           };
         }),
     }),

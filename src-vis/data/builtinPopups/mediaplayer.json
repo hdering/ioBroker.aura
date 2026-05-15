@@ -1,0 +1,15 @@
+{
+  "id": "pv-builtin-mediaplayer",
+  "name": "Standard: Mediaplayer",
+  "version": 1,
+  "widgets": [
+    {
+      "id": "pw-bi-media-1",
+      "type": "mediaplayer",
+      "title": "",
+      "datapoint": "{{dp}}",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "options": {}
+    }
+  ]
+}

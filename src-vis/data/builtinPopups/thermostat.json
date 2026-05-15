@@ -1,0 +1,23 @@
+{
+  "id": "pv-builtin-thermostat",
+  "name": "Standard: Thermostat",
+  "version": 1,
+  "widgets": [
+    {
+      "id": "pw-bi-thermo-1",
+      "type": "value",
+      "title": "Temperatur",
+      "datapoint": "{{dp}}",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 3 },
+      "options": {}
+    },
+    {
+      "id": "pw-bi-thermo-2",
+      "type": "thermostat",
+      "title": "",
+      "datapoint": "{{dp}}",
+      "gridPos": { "x": 0, "y": 3, "w": 12, "h": 6 },
+      "options": { "setpointDp": "{{dp}}" }
+    }
+  ]
+}
