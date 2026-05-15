@@ -164,9 +164,9 @@ function ColorWheel({ hue, sat, style, onChange, onCommit }: ColorWheelProps) {
   const ringW = style === 'ring' ? Math.max(10, size * 0.12) : 0;
 
   // Coordinate convention: hue = 0° → red at 12 o'clock, increasing clockwise.
-  // CSS conic-gradient `from -90deg` matches that (starts red at top, goes clockwise).
+  // CSS conic-gradient defaults to `from 0deg` (= 12 o'clock) which matches.
   // Knob math: angle = (hue - 90)° converts the hue convention to math coords
-  // (where 0° = +X axis / 3 o'clock).
+  // (where 0° = +X axis / 3 o'clock, so hue=0 → math angle -90° → top).
   const setFromPointer = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = ref.current; if (!el) return;
     const rect = el.getBoundingClientRect();
@@ -205,7 +205,7 @@ function ColorWheel({ hue, sat, style, onChange, onCommit }: ColorWheelProps) {
           ref={ref}
           className="nodrag absolute inset-0 rounded-full cursor-crosshair select-none"
           style={{
-            background: `conic-gradient(from -90deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)`,
+            background: `conic-gradient(from 0deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)`,
             boxShadow: 'inset 0 0 0 1px var(--app-border)',
           }}
           onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); setFromPointer(e); }}
