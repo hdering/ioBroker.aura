@@ -443,7 +443,10 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
         default: return ['brightness', 'color', 'temperature'];
       }
     };
-    const list = fromLayout().filter((tab) => {
+    const base = fromLayout();
+    const withPower: LightTab[] = switchDp ? ['power', ...base] : base;
+    const list = withPower.filter((tab) => {
+      if (tab === 'power')       return !!switchDp;
       if (tab === 'brightness')  return !!brightnessDp;
       if (tab === 'color')       return colorMode !== 'none';
       if (tab === 'temperature') return !!temperatureDp || colorMode === 'hm-color';
@@ -451,7 +454,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
       return true;
     });
     return list.length ? list : (brightnessDp ? ['brightness'] : ['color']);
-  }, [layout, brightnessDp, temperatureDp, effectDp, colorMode]);
+  }, [layout, switchDp, brightnessDp, temperatureDp, effectDp, colorMode]);
 
   // Include effects tab automatically if effectDp set and layout=all
   const tabs: LightTab[] = useMemo(() => {
