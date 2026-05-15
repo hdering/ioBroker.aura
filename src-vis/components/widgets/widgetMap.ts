@@ -30,6 +30,7 @@ import { MediaplayerWidget } from './MediaplayerWidget';
 import { SliderWidget } from './SliderWidget';
 import { UniversalWidget } from './UniversalWidget';
 import { EnumWidget } from './EnumWidget';
+import { LightWidget } from './LightWidget';
 
 // Chart widgets are heavy (recharts ~380 KB, echarts ~1.1 MB) — lazy-loaded so
 // dashboards without charts skip the cost. Consumers must render these inside
@@ -75,6 +76,7 @@ export function getWidgetMap() {
     climate:       ClimateWidget,
     universal:     UniversalWidget,
     enum:          EnumWidget,
+    light:         LightWidget,
   } as const;
 }
 

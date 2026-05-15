@@ -14,7 +14,7 @@ import {
   Zap, TrendingUp, SlidersHorizontal, Thermometer, BarChart2, List,
   Clock, CalendarDays, Heading2, Layers2, Cloud, Gauge, Camera, ImageIcon, MonitorDot, Droplets, Truck, AlignJustify, Table2,
   DoorOpen, ShieldAlert, ToggleRight, LineChart, Code2, CalendarClock, Music, CalendarCheck2, Tag, Globe, MousePointerClick, Wind,
-  LayoutGrid, ListChecks,
+  LayoutGrid, ListChecks, Lightbulb,
   type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -397,6 +397,15 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     addMode: 'datapoint',          widgetGroup: 'control',
     mock: { t: 'Modus', v: 'Bereit' },
     hint: 'DP-Werte (0,1,2…) auf Text-Labels mappen; Dropdown schreibt den Wert zurück',
+  },
+  {
+    type: 'light',
+    label: 'RGB-Licht',            shortLabel: 'Licht',
+    Icon: Lightbulb,               iconName: 'Lightbulb', color: '#fbbf24',
+    defaultW: 8,                   defaultH: 9,
+    addMode: 'datapoint',          widgetGroup: 'control',
+    mock: { t: 'LED-Strip', v: 'Aus' },
+    hint: 'RGB / CCT / Dimmer in einem Widget – Helligkeit, Farbe, Lichtwärme, Effekte (Hue, HmIP, generisch)',
   },
 ];
 

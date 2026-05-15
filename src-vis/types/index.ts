@@ -51,9 +51,28 @@ export type WidgetType =
   | 'button'
   | 'climate'
   | 'universal'
-  | 'enum';
+  | 'enum'
+  | 'light';
 
-export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda' | 'flow' | 'battery' | 'production' | 'consumption' | 'loadpoints' | 'custom' | 'count';
+export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda' | 'flow' | 'battery' | 'production' | 'consumption' | 'loadpoints' | 'custom' | 'count'
+  | 'light-all' | 'light-brightness' | 'light-color' | 'light-temperature' | 'light-custom';
+
+// ── Light widget option types ─────────────────────────────────────────────────
+
+/** Which DPs the widget uses for color. */
+export type LightColorMode = 'hsv' | 'rgb' | 'hm-color' | 'none';
+
+/** Tab identifiers inside the light widget. */
+export type LightTab = 'power' | 'brightness' | 'color' | 'temperature' | 'effects';
+
+export interface LightEffect {
+  /** Display name shown in the effects list */
+  label: string;
+  /** Value written to effectDp on selection (parsed as number or string) */
+  value: string;
+  /** Optional preview color (hex) for the chip */
+  color?: string;
+}
 
 // ── Custom-Grid layout ────────────────────────────────────────────────────────
 
@@ -102,6 +121,8 @@ export interface CustomCell {
   falseColor?: string;          // 'state-icon' / 'switch' (icon mode): color for falsy value
   // 'switch' type
   controlMode?: 'toggle' | 'icon';  // 'switch' cell: visual control style (default 'toggle')
+  momentary?: boolean;              // 'switch' cell: Taster-Modus — write true on press, false after delay
+  momentaryDelay?: number;          // 'switch' cell: ms before writing false (default 500)
   // 'datepicker' type
   dateFormat?: string;           // DateOutputFormat string: how to encode the picked date when writing to dpId
   showTime?:   boolean;          // show time-of-day picker alongside date input

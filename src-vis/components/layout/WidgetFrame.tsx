@@ -2589,7 +2589,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       setOpenPanel(panel);
     }
   };
-  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'shutter_openDp' | 'shutter_closeDp' | 'dimmer_switchDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | 'iframe_urlDp' | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'shutter_openDp' | 'shutter_closeDp' | 'dimmer_switchDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | 'iframe_urlDp' | 'light_switchDp' | 'light_brightnessDp' | 'light_hueDp' | 'light_saturationDp' | 'light_rDp' | 'light_gDp' | 'light_bDp' | 'light_colorDp' | 'light_temperatureDp' | 'light_effectDp' | null>(null);
   const [imageFilePicker, setImageFilePicker] = useState(false);
   const [cameraSlotPickerIdx, setCameraSlotPickerIdx] = useState(0);
   const [mpPickerKey, setMpPickerKey] = useState('');
@@ -3424,6 +3424,12 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'compact', label: t('wf.edit.layout.compact') },
                 { value: 'minimal', label: t('wf.edit.layout.minimal') },
                 { value: 'custom',  label: 'Custom' },
+              ] : config.type === 'light' ? [
+                { value: 'light-all',         label: 'Alle Tabs' },
+                { value: 'light-brightness',  label: 'Nur Helligkeit' },
+                { value: 'light-color',       label: 'Nur Farbe' },
+                { value: 'light-temperature', label: 'Nur Lichtwärme' },
+                { value: 'light-custom',      label: 'Custom (Tabs wählen)' },
               ] : config.type === 'switch' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
                 { value: 'card',    label: t('wf.edit.layout.card') },
@@ -3504,6 +3510,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   case 'slider':        return [];
                   case 'echartsPreset': return [];
                   case 'enum':          return [];
+                  case 'light':         return [];
                   default: return [];
                 }
               })();
@@ -3767,6 +3774,11 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     ? [{ key: 'showSubtitle', label: 'Untertitel' }]
                     : config.type === 'group'
                     ? []
+                    : config.type === 'light'
+                    ? [
+                        { key: 'showState',   label: 'Status (An / Aus)' },
+                        { key: 'showPalette', label: 'Farbpalette (Presets)' },
+                      ]
                     : config.type === 'mediaplayer'
                     ? [
                         { key: 'showCover',    label: 'Cover' },
@@ -5141,6 +5153,277 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               {config.type === 'trashSchedule' && (
                 <TrashScheduleConfig config={config} onConfigChange={onConfigChange} />
               )}
+
+              {config.type === 'light' && (() => {
+                const o = config.options ?? {};
+                const setO = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const lInputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono';
+                const lInputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                const hint: React.CSSProperties = { color: 'var(--text-secondary)' };
+                const colorMode = (o.colorMode as string) ?? 'none';
+                const lightLayout = (config.layout ?? 'light-all') as string;
+                const wheelStyle = (o.colorWheelStyle as string) ?? 'disc';
+                const presets = (o.colorPresets as string[] | undefined) ?? ['#ff3b30', '#ff9500', '#ffd60a', '#e5e5ea', '#5ac8fa', '#bf5af2', '#ff79c6', '#ff453a'];
+                const customTabs = ((o.lightTabs as string[] | undefined) ?? ['brightness', 'color']);
+                const effects = (o.effects as Array<{ label: string; value: string; color?: string }> | undefined) ?? [];
+                const dpRow = (optKey: string, pickerKey: 'light_switchDp' | 'light_brightnessDp' | 'light_hueDp' | 'light_saturationDp' | 'light_rDp' | 'light_gDp' | 'light_bDp' | 'light_colorDp' | 'light_temperatureDp' | 'light_effectDp', placeholder = 'optional') => (
+                  <div className="flex gap-1">
+                    <input type="text" value={(o[optKey] as string) ?? ''}
+                      onChange={(e) => setO({ [optKey]: e.target.value || undefined })}
+                      placeholder={placeholder}
+                      className={`flex-1 ${lInputCls} min-w-0`} style={lInputStyle} />
+                    <button onClick={() => setPickerTarget(pickerKey)}
+                      className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                      style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                      <Database size={13} />
+                    </button>
+                  </div>
+                );
+                const toggleCustomTab = (tab: string) => {
+                  const next = customTabs.includes(tab) ? customTabs.filter((t) => t !== tab) : [...customTabs, tab];
+                  setO({ lightTabs: next });
+                };
+                return (
+                  <>
+                    {/* Switch DP */}
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={hint}>Schalt-DP (An/Aus, boolean)</label>
+                      {dpRow('switchDp', 'light_switchDp', 'optional')}
+                      <p className="text-[10px] mt-1" style={hint}>Ohne Schalt-DP wird LEVEL/Brightness=0 als Aus interpretiert.</p>
+                    </div>
+
+                    {/* Brightness DP */}
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={hint}>Helligkeits-DP (Dimmer 0–100)</label>
+                      {dpRow('brightnessDp', 'light_brightnessDp', 'z.B. hue.0…level')}
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <div>
+                          <label className="text-[10px]" style={hint}>Min</label>
+                          <input type="number" value={(o.brightnessMin as number) ?? 0}
+                            onChange={(e) => setO({ brightnessMin: Number(e.target.value) })}
+                            className={lInputCls} style={lInputStyle} />
+                        </div>
+                        <div>
+                          <label className="text-[10px]" style={hint}>Max</label>
+                          <input type="number" value={(o.brightnessMax as number) ?? 100}
+                            onChange={(e) => setO({ brightnessMax: Number(e.target.value) })}
+                            className={lInputCls} style={lInputStyle} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Color mode */}
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={hint}>Farb-Modus</label>
+                      <div className="grid grid-cols-2 gap-1">
+                        {([
+                          { val: 'none',     label: 'Keine Farbe' },
+                          { val: 'hsv',      label: 'HSV (Hue + Sat)' },
+                          { val: 'rgb',      label: 'RGB (3 DPs)' },
+                          { val: 'hm-color', label: 'HmIP Color (0–200)' },
+                        ] as const).map(({ val, label }) => (
+                          <button key={val} onClick={() => setO({ colorMode: val })}
+                            className="py-1.5 px-2 rounded-lg text-[10px] font-medium transition-colors"
+                            style={{
+                              background: colorMode === val ? 'var(--accent)' : 'var(--app-bg)',
+                              color: colorMode === val ? '#fff' : 'var(--text-secondary)',
+                              border: '1px solid var(--app-border)',
+                            }}>
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Mode-specific DPs */}
+                    {colorMode === 'hsv' && (
+                      <>
+                        <div>
+                          <label className="text-[11px] mb-1 block" style={hint}>Hue-DP (0–360°)</label>
+                          {dpRow('hueDp', 'light_hueDp', 'z.B. hue.0…hue')}
+                        </div>
+                        <div>
+                          <label className="text-[11px] mb-1 block" style={hint}>Sättigung-DP</label>
+                          {dpRow('saturationDp', 'light_saturationDp', 'z.B. hue.0…sat')}
+                          <div className="mt-1">
+                            <label className="text-[10px]" style={hint}>Max (Hue: 254, generisch: 100)</label>
+                            <input type="number" value={(o.satMax as number) ?? 100}
+                              onChange={(e) => setO({ satMax: Number(e.target.value) })}
+                              className={lInputCls} style={lInputStyle} />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {colorMode === 'rgb' && (
+                      <>
+                        <div>
+                          <label className="text-[11px] mb-1 block" style={hint}>Rot-DP (0–255)</label>
+                          {dpRow('rDp', 'light_rDp')}
+                        </div>
+                        <div>
+                          <label className="text-[11px] mb-1 block" style={hint}>Grün-DP (0–255)</label>
+                          {dpRow('gDp', 'light_gDp')}
+                        </div>
+                        <div>
+                          <label className="text-[11px] mb-1 block" style={hint}>Blau-DP (0–255)</label>
+                          {dpRow('bDp', 'light_bDp')}
+                        </div>
+                      </>
+                    )}
+                    {colorMode === 'hm-color' && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={hint}>HmIP Color-DP (0–200; 200 = Weiß)</label>
+                        {dpRow('colorDp', 'light_colorDp', 'z.B. hm-rpc…2.COLOR')}
+                        <div className="mt-1">
+                          <label className="text-[10px]" style={hint}>Weiß-Wert</label>
+                          <input type="number" value={(o.hmWhiteValue as number) ?? 200}
+                            onChange={(e) => setO({ hmWhiteValue: Number(e.target.value) })}
+                            className={lInputCls} style={lInputStyle} />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Wheel style — only if color mode active */}
+                    {colorMode !== 'none' && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={hint}>Farbrad-Stil</label>
+                        <div className="flex gap-1">
+                          {([
+                            { val: 'disc', label: 'Disc (HSV-Scheibe)' },
+                            { val: 'ring', label: 'Ring (nur Hue)' },
+                          ] as const).map(({ val, label }) => (
+                            <button key={val} onClick={() => setO({ colorWheelStyle: val })}
+                              className="flex-1 py-1.5 px-2 rounded-lg text-[10px] font-medium transition-colors"
+                              style={{
+                                background: wheelStyle === val ? 'var(--accent)' : 'var(--app-bg)',
+                                color: wheelStyle === val ? '#fff' : 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                              }}>
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Temperature DP */}
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={hint}>Lichtwärme-DP (°K)</label>
+                      {dpRow('temperatureDp', 'light_temperatureDp', 'optional, z.B. hue.0…ct')}
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <div>
+                          <label className="text-[10px]" style={hint}>Min (warm)</label>
+                          <input type="number" value={(o.ctMin as number) ?? 2000}
+                            onChange={(e) => setO({ ctMin: Number(e.target.value) })}
+                            className={lInputCls} style={lInputStyle} />
+                        </div>
+                        <div>
+                          <label className="text-[10px]" style={hint}>Max (kalt)</label>
+                          <input type="number" value={(o.ctMax as number) ?? 6500}
+                            onChange={(e) => setO({ ctMax: Number(e.target.value) })}
+                            className={lInputCls} style={lInputStyle} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Effects DP */}
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={hint}>Effekt-DP (Programm)</label>
+                      {dpRow('effectDp', 'light_effectDp', 'optional, z.B. hm-rpc…3.PROGRAM')}
+                      {!!(o.effectDp as string) && (
+                        <div className="mt-2 space-y-1.5">
+                          <p className="text-[10px]" style={hint}>Effekte (Label + Wert):</p>
+                          {effects.map((eff, i) => (
+                            <div key={i} className="flex gap-1 items-center">
+                              <input type="text" value={eff.label}
+                                placeholder="Name"
+                                onChange={(e) => {
+                                  const next = [...effects];
+                                  next[i] = { ...next[i], label: e.target.value };
+                                  setO({ effects: next });
+                                }}
+                                className={`${lInputCls} flex-1 min-w-0`} style={lInputStyle} />
+                              <input type="text" value={eff.value}
+                                placeholder="Wert"
+                                onChange={(e) => {
+                                  const next = [...effects];
+                                  next[i] = { ...next[i], value: e.target.value };
+                                  setO({ effects: next });
+                                }}
+                                className={`${lInputCls}`} style={{ ...lInputStyle, width: 70 }} />
+                              <input type="color" value={eff.color || '#888888'}
+                                onChange={(e) => {
+                                  const next = [...effects];
+                                  next[i] = { ...next[i], color: e.target.value };
+                                  setO({ effects: next });
+                                }}
+                                className="w-7 h-7 rounded cursor-pointer shrink-0" style={{ border: '1px solid var(--app-border)', padding: '1px' }} />
+                              <button onClick={() => setO({ effects: effects.filter((_, idx) => idx !== i) })}
+                                className="text-[11px] w-6 h-7 flex items-center justify-center rounded shrink-0"
+                                style={{ color: 'var(--text-secondary)', background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>×</button>
+                            </div>
+                          ))}
+                          <button onClick={() => setO({ effects: [...effects, { label: 'Effekt', value: String(effects.length), color: '#fbbf24' }] })}
+                            className="w-full text-[11px] py-1.5 rounded-lg hover:opacity-80"
+                            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                            + Effekt hinzufügen
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Custom layout tab picker */}
+                    {lightLayout === 'light-custom' && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={hint}>Sichtbare Tabs</label>
+                        <div className="grid grid-cols-2 gap-1">
+                          {([
+                            { val: 'brightness',  label: 'Helligkeit' },
+                            { val: 'color',       label: 'Farbe' },
+                            { val: 'temperature', label: 'Lichtwärme' },
+                            { val: 'effects',     label: 'Effekte' },
+                          ] as const).map(({ val, label }) => {
+                            const on = customTabs.includes(val);
+                            return (
+                              <button key={val} onClick={() => toggleCustomTab(val)}
+                                className="py-1.5 px-2 rounded-lg text-[10px] font-medium transition-colors"
+                                style={{
+                                  background: on ? 'var(--accent)' : 'var(--app-bg)',
+                                  color: on ? '#fff' : 'var(--text-secondary)',
+                                  border: '1px solid var(--app-border)',
+                                }}>
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Color presets */}
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={hint}>Farbpalette (8 Slots)</label>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {Array.from({ length: 8 }).map((_, i) => {
+                          const hex = presets[i] ?? '#888888';
+                          return (
+                            <input key={i} type="color" value={hex}
+                              onChange={(e) => {
+                                const next = [...presets];
+                                while (next.length < 8) next.push('#888888');
+                                next[i] = e.target.value;
+                                setO({ colorPresets: next });
+                              }}
+                              className="w-full h-8 rounded cursor-pointer"
+                              style={{ border: '1px solid var(--app-border)', padding: '1px' }} />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
 
               {config.type === 'dimmer' && (() => {
                 const o = config.options ?? {};
@@ -6569,6 +6852,16 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             pickerTarget === 'shutter_openDp'      ? ((config.options?.openDp as string) ?? '') :
             pickerTarget === 'shutter_closeDp'     ? ((config.options?.closeDp as string) ?? '') :
             pickerTarget === 'dimmer_switchDp'     ? ((config.options?.switchDp as string) ?? '') :
+            pickerTarget === 'light_switchDp'      ? ((config.options?.switchDp      as string) ?? '') :
+            pickerTarget === 'light_brightnessDp'  ? ((config.options?.brightnessDp  as string) ?? '') :
+            pickerTarget === 'light_hueDp'         ? ((config.options?.hueDp         as string) ?? '') :
+            pickerTarget === 'light_saturationDp'  ? ((config.options?.saturationDp  as string) ?? '') :
+            pickerTarget === 'light_rDp'           ? ((config.options?.rDp           as string) ?? '') :
+            pickerTarget === 'light_gDp'           ? ((config.options?.gDp           as string) ?? '') :
+            pickerTarget === 'light_bDp'           ? ((config.options?.bDp           as string) ?? '') :
+            pickerTarget === 'light_colorDp'       ? ((config.options?.colorDp       as string) ?? '') :
+            pickerTarget === 'light_temperatureDp' ? ((config.options?.temperatureDp as string) ?? '') :
+            pickerTarget === 'light_effectDp'      ? ((config.options?.effectDp      as string) ?? '') :
             pickerTarget === 'gauge_pointer2Dp'         ? ((config.options?.pointer2Datapoint as string) ?? '') :
             pickerTarget === 'gauge_pointer3Dp'         ? ((config.options?.pointer3Datapoint as string) ?? '') :
             pickerTarget === 'windowcontact_batteryDp'  ? ((config.options?.batteryDp  as string) ?? '') :
@@ -6673,6 +6966,26 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               onConfigChange({ ...config, options: { ...config.options, closeDp: id } });
             } else if (pickerTarget === 'dimmer_switchDp') {
               onConfigChange({ ...config, options: { ...config.options, switchDp: id } });
+            } else if (pickerTarget === 'light_switchDp') {
+              onConfigChange({ ...config, options: { ...config.options, switchDp: id } });
+            } else if (pickerTarget === 'light_brightnessDp') {
+              onConfigChange({ ...config, options: { ...config.options, brightnessDp: id } });
+            } else if (pickerTarget === 'light_hueDp') {
+              onConfigChange({ ...config, options: { ...config.options, hueDp: id } });
+            } else if (pickerTarget === 'light_saturationDp') {
+              onConfigChange({ ...config, options: { ...config.options, saturationDp: id } });
+            } else if (pickerTarget === 'light_rDp') {
+              onConfigChange({ ...config, options: { ...config.options, rDp: id } });
+            } else if (pickerTarget === 'light_gDp') {
+              onConfigChange({ ...config, options: { ...config.options, gDp: id } });
+            } else if (pickerTarget === 'light_bDp') {
+              onConfigChange({ ...config, options: { ...config.options, bDp: id } });
+            } else if (pickerTarget === 'light_colorDp') {
+              onConfigChange({ ...config, options: { ...config.options, colorDp: id } });
+            } else if (pickerTarget === 'light_temperatureDp') {
+              onConfigChange({ ...config, options: { ...config.options, temperatureDp: id } });
+            } else if (pickerTarget === 'light_effectDp') {
+              onConfigChange({ ...config, options: { ...config.options, effectDp: id } });
             } else if (pickerTarget === 'gauge_pointer2Dp') {
               onConfigChange({ ...config, options: { ...config.options, pointer2Datapoint: id } });
             } else if (pickerTarget === 'gauge_pointer3Dp') {
