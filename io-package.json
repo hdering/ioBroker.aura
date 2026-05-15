@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.21",
+    "version": "0.9.22",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.22": {
+        "en": "Release v0.9.22",
+        "de": "Release v0.9.22"
+      },
       "0.9.21": {
         "en": "fix(editor): DP-Feld im 'Widget manuell hinzufügen' Step 2 ist nicht mehr Pflicht",
         "de": "fix(editor): DP-Feld im 'Widget manuell hinzufügen' Step 2 ist nicht mehr Pflicht"
