@@ -639,13 +639,19 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
   return (
     <div className="flex flex-col h-full" style={{ position: 'relative', gap: 8 }}>
       {/* Header */}
-      {(showTitle || showIcon || showState) && (
+      {(showTitle || showIcon) && (
         <div className="flex items-center gap-2 shrink-0">
           {showIcon && iconEl}
           <div className="flex-1 min-w-0">
             {showTitle && titleEl}
-            {showState && statusEl}
           </div>
+        </div>
+      )}
+
+      {/* Status – between title and main control */}
+      {showState && (
+        <div className="shrink-0">
+          {statusEl}
         </div>
       )}
 
