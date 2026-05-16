@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { managedStorage, flushKey } from './persistManager';
+import { managedStorage, flushKey, withSuppressedDirty } from './persistManager';
 import { useGroupDefsStore, newGroupDefId, cloneGroupDef } from './groupDefsStore';
 import { slugify } from '../utils/slugify';
 import type { WidgetConfig, WidgetCondition } from '../types';
@@ -266,7 +266,11 @@ export const useDashboardStore = create<DashboardState>()(
       setLayoutIcon: (id, icon) =>
         set((s) => ({ layouts: patchLayout(s.layouts, id, (l) => ({ ...l, icon })) })),
 
-      setActiveLayout: (id) => { set({ activeLayoutId: id }); flushKey('aura-dashboard'); },
+      setActiveLayout: (id) => {
+        // Pure navigation state — must not mark the store dirty (see persistManager).
+        withSuppressedDirty(() => set({ activeLayoutId: id }));
+        flushKey('aura-dashboard');
+      },
 
       // ── Tab CRUD ───────────────────────────────────────────────────────────
 
@@ -322,20 +326,26 @@ export const useDashboardStore = create<DashboardState>()(
 
       setActiveTab: (id) => {
         let changed = false;
-        set((s) => {
-          const layout = s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0];
-          if (layout?.activeTabId === id) return s;
-          changed = true;
-          return { layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({ ...l, activeTabId: id })) };
-        });
+        // Pure navigation state — must not mark the store dirty (see persistManager).
+        withSuppressedDirty(() =>
+          set((s) => {
+            const layout = s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0];
+            if (layout?.activeTabId === id) return s;
+            changed = true;
+            return { layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({ ...l, activeTabId: id })) };
+          })
+        );
         if (changed) flushKey('aura-dashboard');
       },
 
       setActiveLayoutAndTab: (layoutId, tabId) => {
-        set((s) => ({
-          activeLayoutId: layoutId,
-          layouts: patchLayout(s.layouts, layoutId, (l) => ({ ...l, activeTabId: tabId })),
-        }));
+        // Pure navigation state — must not mark the store dirty (see persistManager).
+        withSuppressedDirty(() =>
+          set((s) => ({
+            activeLayoutId: layoutId,
+            layouts: patchLayout(s.layouts, layoutId, (l) => ({ ...l, activeTabId: tabId })),
+          }))
+        );
         flushKey('aura-dashboard');
       },
 

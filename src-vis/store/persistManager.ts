@@ -62,6 +62,15 @@ export function markDirty(key: string): void {
   notify();
 }
 
+// Navigation-only writes (e.g. activeTabId / activeLayoutId) update localStorage
+// but must NOT mark the key dirty — switching tabs is per-device viewing state,
+// not a config edit the user expects to "save" or "revert".
+let suppressDirtyDepth = 0;
+export function withSuppressedDirty<T>(fn: () => T): T {
+  suppressDirtyDepth++;
+  try { return fn(); } finally { suppressDirtyDepth--; }
+}
+
 function notify() { subscribers.forEach((fn) => fn()); }
 
 export function subscribeDirty(fn: () => void): () => void {
@@ -208,9 +217,13 @@ export const managedStorage: StateStorage = {
     const current = localStorage.getItem(name);
     if (current === value) {
       // No-op write (e.g. Zustand re-persisting the same state after rehydrate).
-      pending.delete(name);
-      originals.delete(name);
-      clearDirtyFlag(name);
+      // While suppressing dirty (navigation write), don't disturb existing pending
+      // state — there may be unsaved real edits that must remain pending.
+      if (suppressDirtyDepth === 0) {
+        pending.delete(name);
+        originals.delete(name);
+        clearDirtyFlag(name);
+      }
       notify();
       return;
     }
@@ -219,13 +232,14 @@ export const managedStorage: StateStorage = {
     // mark dirty for that, otherwise a new device with empty localStorage
     // would see _dirty=1 on every store and refuse to load remote config.
     const isInit = current === null;
+    const suppress = suppressDirtyDepth > 0;
     try {
       localStorage.setItem(name, value);
-      if (!isInit) setDirtyFlag(name);
+      if (!isInit && !suppress) setDirtyFlag(name);
     } catch {
       console.warn('[persistManager] localStorage quota exceeded for key:', name);
     }
-    if (!isInit) {
+    if (!isInit && !suppress) {
       if (!pending.has(name)) originals.set(name, current);
       pending.set(name, value);
     }
