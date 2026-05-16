@@ -571,31 +571,34 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
           </button>
         </div>
         {opts.publishCount && (
-          <>
-            <p className="text-[9px] mt-1 font-mono truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-              aura.0.lists.{config.id}.count
-            </p>
-            <label className="text-[10px] mt-1.5 mb-1 block" style={{ color: 'var(--text-secondary)' }}>Filter für veröffentlichten Wert</label>
-            <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-              {(['inherit', 'all', 'active', 'inactive'] as const).map((v) => {
-                const label = v === 'inherit' ? 'Wie Anzeige' : v === 'all' ? 'Alle' : v === 'active' ? 'Aktive' : 'Inaktive';
-                const active = (opts.publishFilter ?? 'inherit') === v;
-                return (
-                  <button key={v} onClick={() => setOpts({ publishFilter: v === 'inherit' ? undefined : v })}
-                    className="flex-1 text-[10px] py-1 transition-colors"
-                    style={{
-                      background: active ? 'var(--accent)' : 'var(--app-bg)',
-                      color: active ? '#fff' : 'var(--text-secondary)',
-                      borderRight: v !== 'inactive' ? '1px solid var(--app-border)' : undefined,
-                    }}>
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          </>
+          <p className="text-[9px] mt-1 font-mono truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+            aura.0.lists.{config.id}.count
+          </p>
         )}
       </div>
+
+      {opts.publishCount && (
+        <div>
+          <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Anzeige-Filter (Backend)</label>
+          <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+            {(['all', 'active', 'inactive'] as const).map((v) => {
+              const label = v === 'all' ? 'Alle' : v === 'active' ? (opts.filterActiveLabel || 'Nur aktive') : (opts.filterInactiveLabel || 'Nur inaktive');
+              const active = (opts.backendValueFilter ?? 'all') === v;
+              return (
+                <button key={v} onClick={() => setOpts({ backendValueFilter: v === 'all' ? undefined : v })}
+                  className="flex-1 text-[11px] py-1.5 transition-colors"
+                  style={{
+                    background: active ? 'var(--accent)' : 'var(--app-bg)',
+                    color: active ? '#fff' : 'var(--text-secondary)',
+                    borderRight: v !== 'inactive' ? '1px solid var(--app-border)' : undefined,
+                  }}>
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Nur relevante DPs (Auto-Sync)</label>
         <button onClick={() => setOpts({ filterRelevant: !(opts.filterRelevant ?? false) })}

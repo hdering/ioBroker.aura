@@ -76,8 +76,8 @@ export interface AutoListOptions {
   inactiveBg?: string;
   /** Publish the filtered count to aura.0.lists.<widgetId>.count */
   publishCount?: boolean;
-  /** Filter used for the published count. 'inherit' = same as valueFilter (default). */
-  publishFilter?: 'inherit' | 'all' | 'active' | 'inactive';
+  /** Backend display filter — independent from frontend valueFilter. Default 'all'. */
+  backendValueFilter?: 'all' | 'active' | 'inactive';
 }
 
 export interface DiscoveredDp {
@@ -601,16 +601,16 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     return result;
   }, [entries, states, valueFilter, editMode, opts.sortBy, opts.sortOrder, opts.sortBy2, opts.sortOrder2, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Count published to backend — independent filter, falls back to valueFilter when 'inherit'
-  const publishFilter = (opts.publishFilter && opts.publishFilter !== 'inherit') ? opts.publishFilter : valueFilter;
+  // Count published to backend uses an independent filter (default 'all')
+  const backendValueFilter = opts.backendValueFilter ?? 'all';
   const viewCount = useMemo(() => {
-    if (publishFilter === 'all') return entries.length;
+    if (backendValueFilter === 'all') return entries.length;
     return entries.filter(e => {
       const val = states[e.id]?.val ?? null;
       if (val === null) return false;
-      return publishFilter === 'active' ? isActive(val) : !isActive(val);
+      return backendValueFilter === 'active' ? isActive(val) : !isActive(val);
     }).length;
-  }, [entries, states, publishFilter]);
+  }, [entries, states, backendValueFilter]);
 
   useEffect(() => {
     if (!opts.publishCount) return;
