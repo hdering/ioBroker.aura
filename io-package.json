@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.37",
+    "version": "0.9.38",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.38": {
+        "en": "feat(light): adjustable color wheel size + fix egg deformation",
+        "de": "feat(light): adjustable color wheel size + fix egg deformation"
+      },
       "0.9.37": {
         "en": "feat(light): adjustable color wheel size (slider, 80–400 px max); fix(light): disc no longer deforms to an egg on narrow widgets",
         "de": "feat(light): einstellbare Farbrad-Größe (Schieberegler, max. 80–400 px); fix(light): Disc verformt sich nicht mehr zum Ei bei schmalen Widgets"

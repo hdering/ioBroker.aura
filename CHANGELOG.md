@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.38 (2026-05-16)
+
+- feat(light): adjustable color wheel size + fix egg deformation
+
 ## v0.9.37 (2026-05-16)
 
 - feat(light): decouple status from title
@@ -585,6 +589,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
