@@ -28,6 +28,10 @@ export interface StaticListEntry {
   colorThresholds?: [number, string][]; // [[maxExclusive, color], …] ascending
   /** Override automatic control type. undefined/'auto' keeps role/value-based detection. */
   displayType?: 'auto' | 'switch' | 'slider' | 'value';
+  /** Per-DP active color (used for on/true/>0 state). Overrides global activeColor. */
+  activeColor?: string;
+  /** Per-DP entry background (row/card). Overrides global entryBg. */
+  entryBg?: string;
 }
 
 export interface StaticListOptions {
@@ -44,6 +48,10 @@ export interface StaticListOptions {
   sortOrder?: 'asc' | 'desc';
   sortBy2?: 'none' | 'label' | 'value';
   sortOrder2?: 'asc' | 'desc';
+  /** Global active color used by all entries (unless overridden per-DP). Default: green. */
+  activeColor?: string;
+  /** Global entry background (row/card). */
+  entryBg?: string;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -78,13 +86,14 @@ const DEFAULT_filterLabels: Record<FilterMode, string> = {
 
 // ── Value cell ─────────────────────────────────────────────────────────────────
 
-function EntryValue({ entry, val, writable, setState, globalThresholds, decimals }: {
+function EntryValue({ entry, val, writable, setState, globalThresholds, decimals, activeColor }: {
   entry: StaticListEntry;
   val: ioBrokerState['val'];
   writable: boolean;
   setState: (id: string, v: boolean | number | string) => void;
   globalThresholds?: [number, string][];
   decimals: number;
+  activeColor: string;
 }) {
   const hasLabels = !!(entry.trueLabel || entry.falseLabel);
   const isBool    = typeof val === 'boolean';
@@ -138,12 +147,13 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
       else setState(entry.id, !forcedOn);
     };
     if (hasLabels) {
+      const fill = forcedOn ? activeColor : 'var(--text-secondary)';
       return (
         <button onClick={writable ? writeToggle : undefined}
           className="shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium"
           style={{
-            background: forcedOn ? 'var(--accent)' : 'var(--app-border)',
-            color: forcedOn ? '#fff' : 'var(--text-secondary)',
+            background: `color-mix(in srgb, ${fill} 18%, transparent)`,
+            color: fill,
             cursor: writable ? 'pointer' : 'default',
           }}>
           {forcedOn ? (entry.trueLabel || 'AN') : (entry.falseLabel || 'AUS')}
@@ -153,7 +163,7 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
     if (!writable) {
       return (
         <span className="shrink-0 relative w-9 h-[18px] rounded-full pointer-events-none"
-          style={{ background: forcedOn ? 'var(--accent)' : 'var(--app-border)' }}>
+          style={{ background: forcedOn ? activeColor : 'var(--app-border)' }}>
           <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white"
             style={{ left: forcedOn ? 'calc(100% - 16px)' : '2px' }} />
         </span>
@@ -162,7 +172,7 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
     return (
       <button onClick={writeToggle}
         className="shrink-0 relative w-9 h-[18px] rounded-full transition-colors"
-        style={{ background: forcedOn ? 'var(--accent)' : 'var(--app-border)' }}>
+        style={{ background: forcedOn ? activeColor : 'var(--app-border)' }}>
         <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
           style={{ left: forcedOn ? 'calc(100% - 16px)' : '2px' }} />
       </button>
@@ -184,12 +194,13 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
 
   if (isBoolLike) {
     if (hasLabels) {
+      const fill = on ? activeColor : 'var(--text-secondary)';
       return (
         <button onClick={writable ? () => setState(entry.id, isBool ? !on : on ? 0 : 1) : undefined}
           className="shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium"
           style={{
-            background: on ? 'var(--accent)' : 'var(--app-border)',
-            color: on ? '#fff' : 'var(--text-secondary)',
+            background: `color-mix(in srgb, ${fill} 18%, transparent)`,
+            color: fill,
             cursor: writable ? 'pointer' : 'default',
           }}>
           {on ? (entry.trueLabel || 'AN') : (entry.falseLabel || 'AUS')}
@@ -199,7 +210,7 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
     if (!writable) {
       return (
         <span className="shrink-0 relative w-9 h-[18px] rounded-full pointer-events-none"
-          style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}>
+          style={{ background: on ? activeColor : 'var(--app-border)' }}>
           <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white"
             style={{ left: on ? 'calc(100% - 16px)' : '2px' }} />
         </span>
@@ -208,7 +219,7 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
     return (
       <button onClick={() => setState(entry.id, isBool ? !on : on ? 0 : 1)}
         className="shrink-0 relative w-9 h-[18px] rounded-full transition-colors"
-        style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}>
+        style={{ background: on ? activeColor : 'var(--app-border)' }}>
         <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
           style={{ left: on ? 'calc(100% - 16px)' : '2px' }} />
       </button>
@@ -389,6 +400,8 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
   const globalThresholds = o.colorThresholds as [number, string][] | undefined;
+  const globalActiveColor = opts.activeColor || 'var(--accent-green)';
+  const globalEntryBg = opts.entryBg;
   const HeaderIcon = getWidgetIcon(o.icon as string | undefined, List);
 
   // ── Shared header ──────────────────────────────────────────────────────────
@@ -468,16 +481,18 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
               const val = states[entry.id]?.val ?? null;
               const label = getLabel(entry);
               const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
+              const entryActiveColor = entry.activeColor || globalActiveColor;
+              const entryBg = entry.entryBg || globalEntryBg || 'var(--app-bg)';
               return (
                 <div key={entry.id}
                   className="rounded-xl p-2.5 flex flex-col gap-2 relative"
-                  style={{ background: 'var(--app-bg)', border: '1px solid var(--widget-border)' }}>
+                  style={{ background: entryBg, border: '1px solid var(--widget-border)' }}>
                   <span className="flex items-center gap-1 text-[10px] truncate leading-tight" style={{ color: 'var(--text-secondary)' }}>
                     {EntryIcon && <EntryIcon size={11} className="shrink-0" />}
                     {label}
                   </span>
                   <div className="flex items-center justify-center">
-                    <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} />
+                    <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} />
                   </div>
                 </div>
               );
@@ -503,16 +518,19 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
               const label = getLabel(entry);
               const isRight = i % 2 === 1;
               const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
+              const entryActiveColor = entry.activeColor || globalActiveColor;
+              const entryBg = entry.entryBg || globalEntryBg;
               return (
                 <div key={entry.id}
                   className="flex items-center gap-1.5 px-2 py-1.5"
                   style={{
+                    background: entryBg,
                     borderBottom: '1px solid var(--widget-border)',
                     borderLeft: isRight ? '1px solid var(--widget-border)' : undefined,
                   }}>
                   {EntryIcon && <EntryIcon size={11} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
                   <span className="flex-1 text-[11px] truncate min-w-0" style={{ color: 'var(--text-primary)' }}>{label}</span>
-                  <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} />
+                  <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} />
                 </div>
               );
             })}
@@ -552,7 +570,9 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                   ? (switchActive ? (entry.trueLabel || 'AN') : (entry.falseLabel || 'AUS'))
                   : val != null ? `${String(val)}${entry.unit ? '\u202f' + entry.unit : ''}` : '–';
               const threshColor = !switchActive && !roleDisplay ? getThresholdColor(val, entry.colorThresholds ?? globalThresholds) : null;
-              const pillColor = threshColor ?? (roleDisplay ? roleDisplay.color : (switchActive ? 'var(--accent)' : null));
+              const entryActiveColor = entry.activeColor || globalActiveColor;
+              const pillColor = threshColor ?? (roleDisplay ? roleDisplay.color : (switchActive ? entryActiveColor : null));
+              const entryBg = entry.entryBg || globalEntryBg;
               const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
               const clickable = writable && !roleDisplay && !forceValue && (forceSwitch || isBoolLike);
 
@@ -569,9 +589,9 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                   }}
                   className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors hover:opacity-80"
                   style={{
-                    background: pillColor ? `${pillColor}1a` : 'var(--app-bg)',
+                    background: pillColor ? `color-mix(in srgb, ${pillColor} 12%, transparent)` : (entryBg || 'var(--app-bg)'),
                     color: pillColor ?? 'var(--text-secondary)',
-                    border: `1px solid ${pillColor ? `${pillColor}55` : 'var(--widget-border)'}`,
+                    border: `1px solid ${pillColor ? `color-mix(in srgb, ${pillColor} 34%, transparent)` : 'var(--widget-border)'}`,
                     cursor: clickable ? 'pointer' : 'default',
                   }}>
                   {EntryIcon && <EntryIcon size={11} className="shrink-0 opacity-70" />}
@@ -600,11 +620,13 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
             const val   = states[entry.id]?.val ?? null;
             const label = getLabel(entry);
             const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
+            const entryActiveColor = entry.activeColor || globalActiveColor;
+            const entryBg = entry.entryBg || globalEntryBg;
 
             return (
               <div key={entry.id}
                 className="flex items-center gap-2 px-3 py-2"
-                style={{ borderBottom: '1px solid var(--widget-border)' }}>
+                style={{ background: entryBg, borderBottom: '1px solid var(--widget-border)' }}>
                 {EntryIcon && <EntryIcon size={13} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
                 <div className="flex-1 min-w-0">
                   <div className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>{label}</div>
@@ -619,7 +641,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     </div>
                   )}
                 </div>
-                <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} />
+                <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} />
               </div>
             );
           })}

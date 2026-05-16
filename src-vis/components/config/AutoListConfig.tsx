@@ -121,6 +121,54 @@ function EntryConfigRow({
                 onChange={e => onUpdate({ falseLabel: e.target.value || undefined })} />
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            <div>
+              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Aktiv-Farbe</label>
+              <div className="flex items-center gap-1">
+                <input
+                  type="color"
+                  value={entry.activeColor?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#22c55e'}
+                  onChange={e => onUpdate({ activeColor: e.target.value })}
+                  className="w-7 h-6 rounded cursor-pointer shrink-0"
+                  style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+                />
+                {entry.activeColor && (
+                  <button onClick={() => onUpdate({ activeColor: undefined })}
+                    title="Auf global zurücksetzen"
+                    className="text-[9px] px-1.5 py-0.5 rounded hover:opacity-70"
+                    style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                    Global
+                  </button>
+                )}
+                {!entry.activeColor && (
+                  <span className="text-[9px] opacity-60" style={{ color: 'var(--text-secondary)' }}>global</span>
+                )}
+              </div>
+            </div>
+            <div>
+              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Eintrag-Hintergrund</label>
+              <div className="flex items-center gap-1">
+                <input
+                  type="color"
+                  value={entry.entryBg?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#1f2937'}
+                  onChange={e => onUpdate({ entryBg: e.target.value })}
+                  className="w-7 h-6 rounded cursor-pointer shrink-0"
+                  style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+                />
+                {entry.entryBg && (
+                  <button onClick={() => onUpdate({ entryBg: undefined })}
+                    title="Auf global zurücksetzen"
+                    className="text-[9px] px-1.5 py-0.5 rounded hover:opacity-70"
+                    style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                    Global
+                  </button>
+                )}
+                {!entry.entryBg && (
+                  <span className="text-[9px] opacity-60" style={{ color: 'var(--text-secondary)' }}>global</span>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -558,6 +606,57 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
               placeholder="Nur inaktive"
               value={opts.filterInactiveLabel ?? ''}
               onChange={e => setOpts({ filterInactiveLabel: e.target.value || undefined })} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Farben (global) ── */}
+      <div>
+        <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Farben (global)</label>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Aktiv-Farbe</label>
+            <div className="flex items-center gap-1">
+              <input
+                type="color"
+                value={opts.activeColor?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#22c55e'}
+                onChange={e => setOpts({ activeColor: e.target.value })}
+                className="w-8 h-7 rounded cursor-pointer shrink-0"
+                style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+              />
+              {opts.activeColor && (
+                <button onClick={() => setOpts({ activeColor: undefined })}
+                  className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
+                  style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                  Reset
+                </button>
+              )}
+              {!opts.activeColor && (
+                <span className="text-[10px] opacity-60" style={{ color: 'var(--text-secondary)' }}>Standard: Grün</span>
+              )}
+            </div>
+          </div>
+          <div>
+            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Eintrag-Hintergrund</label>
+            <div className="flex items-center gap-1">
+              <input
+                type="color"
+                value={opts.entryBg?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#1f2937'}
+                onChange={e => setOpts({ entryBg: e.target.value })}
+                className="w-8 h-7 rounded cursor-pointer shrink-0"
+                style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+              />
+              {opts.entryBg && (
+                <button onClick={() => setOpts({ entryBg: undefined })}
+                  className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
+                  style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                  Reset
+                </button>
+              )}
+              {!opts.entryBg && (
+                <span className="text-[10px] opacity-60" style={{ color: 'var(--text-secondary)' }}>Standard</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
