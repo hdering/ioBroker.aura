@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9.55 (2026-05-16)
+
+- fix(universal): confirm popup inherits anchor theme (v0.9.54)
+- fix(universal): switch-cell confirm as small popup near the button (v0.9.53)
+
 ## v0.9.53 (2026-05-16)
 
 - fix(universal): switch-cell confirm dialog as centered popup (v0.9.52)
@@ -630,6 +635,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
