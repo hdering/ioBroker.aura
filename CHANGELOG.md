@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.45 (2026-05-16)
+
+- feat(list): configurable active color + per-DP/global entry background
+
 ## v0.9.43 (2026-05-16)
 
 - fix(light): power button square + size sliders for switch/brightness/CT
@@ -601,6 +605,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
