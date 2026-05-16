@@ -12,6 +12,7 @@ import { useT } from '../../i18n';
 import { formatLastChange } from '../../utils/formatLastChange';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
+import { publishListCount, unpublishList } from '../../utils/publishWidgetState';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -64,6 +65,8 @@ export interface StaticListOptions {
   activeBg?: string;
   /** Global entry background when off. Per-DP inactiveBg overrides. */
   inactiveBg?: string;
+  /** Publish the filtered count to aura.0.lists.<widgetId>.count */
+  publishCount?: boolean;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -388,6 +391,26 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     }
     return result;
   }, [entries, states, valueFilter, editMode, opts.sortBy, opts.sortOrder, opts.sortBy2, opts.sortOrder2, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Count published to backend = view-mode count (independent of editMode)
+  const viewCount = useMemo(() => {
+    if (valueFilter === 'all') return entries.length;
+    return entries.filter(e => {
+      const val = states[e.id]?.val ?? null;
+      if (val === null) return false;
+      return valueFilter === 'active' ? isActive(val) : !isActive(val);
+    }).length;
+  }, [entries, states, valueFilter]);
+
+  useEffect(() => {
+    if (!opts.publishCount) return;
+    publishListCount(config.id, config.title || 'Statische Liste', viewCount);
+  }, [opts.publishCount, viewCount, config.id, config.title]);
+
+  useEffect(() => {
+    if (opts.publishCount) return;
+    unpublishList(config.id).catch(() => { /* ignore */ });
+  }, [opts.publishCount, config.id]);
 
   const o = config.options ?? {};
   const showTitle  = opts.showTitle !== false;

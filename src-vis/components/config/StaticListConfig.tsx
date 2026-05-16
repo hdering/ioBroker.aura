@@ -390,6 +390,23 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
       </div>
 
       <div>
+        <div className="flex items-center justify-between">
+          <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Anzahl im Backend veröffentlichen</label>
+          <button onClick={() => setOpts({ publishCount: !(opts.publishCount ?? false) })}
+            className="relative w-9 h-5 rounded-full transition-colors"
+            style={{ background: (opts.publishCount ?? false) ? 'var(--accent)' : 'var(--app-border)' }}>
+            <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
+              style={{ left: (opts.publishCount ?? false) ? '18px' : '2px' }} />
+          </button>
+        </div>
+        {opts.publishCount && (
+          <p className="text-[9px] mt-1 font-mono truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+            aura.0.lists.{config.id}.count
+          </p>
+        )}
+      </div>
+
+      <div>
         <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Anzeige-Filter (Frontend)</label>
         <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
           {(['all', 'active', 'inactive'] as const).map((v) => {

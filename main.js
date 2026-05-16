@@ -811,6 +811,7 @@ class Aura extends utils.Adapter {
     await this.setObjectNotExistsAsync('calendar', { type: 'channel', common: { name: 'Calendar fetch relay' }, native: {} });
     await this.setObjectNotExistsAsync('admin', { type: 'channel', common: { name: 'Admin access' }, native: {} });
     await this.setObjectNotExistsAsync('clients', { type: 'channel', common: { name: 'Connected clients' }, native: {} });
+    await this.setObjectNotExistsAsync('lists',   { type: 'channel', common: { name: 'List widget exports' }, native: {} });
 
     await this.setObjectNotExistsAsync('config.dashboard', {
       type: 'state',
