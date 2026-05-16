@@ -228,7 +228,7 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
         >
           <Icon size={size} style={{ color }} />
         </button>
-        {pending && <ConfirmOverlay text={cell.confirmText} onConfirm={confirm} onCancel={cancel} />}
+        {pending && <ConfirmOverlay popup text={cell.confirmText} onConfirm={confirm} onCancel={cancel} />}
       </div>
     );
   }
@@ -250,7 +250,7 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
           style={{ width: 20, height: 20, left: on ? '22px' : '2px' }}
         />
       </button>
-      {pending && <ConfirmOverlay text={cell.confirmText} onConfirm={confirm} onCancel={cancel} />}
+      {pending && <ConfirmOverlay popup text={cell.confirmText} onConfirm={confirm} onCancel={cancel} />}
     </div>
   );
 }
