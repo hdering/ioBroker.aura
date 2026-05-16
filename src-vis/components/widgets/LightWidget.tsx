@@ -306,8 +306,13 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
   const showPalette    = o.showPalette    !== false;
   const showIcon       = o.showIcon       !== false;
   const iconSize       = (o.iconSize as number) || 20;
-  const paletteSize    = (o.paletteSize as 'sm' | 'md' | 'lg' | undefined) ?? 'md';
-  const paletteSwatchPx = paletteSize === 'sm' ? 22 : paletteSize === 'lg' ? 48 : 32;
+  const paletteSwatchPx = (() => {
+    const raw = o.paletteSize;
+    if (typeof raw === 'number' && Number.isFinite(raw)) return clamp(Math.round(raw), 12, 96);
+    if (raw === 'sm') return 22;
+    if (raw === 'lg') return 48;
+    return 32;
+  })();
 
   // DP IDs
   const switchDp      = (o.switchDp      as string | undefined) || '';

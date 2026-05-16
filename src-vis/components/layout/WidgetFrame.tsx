@@ -5440,27 +5440,23 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         })}
                       </div>
                       <div className="mt-2">
-                        <label className="text-[11px] mb-1 block" style={hint}>Farbpalette-Größe</label>
-                        <div className="flex gap-1">
-                          {([
-                            { val: 'sm', label: 'Klein' },
-                            { val: 'md', label: 'Mittel' },
-                            { val: 'lg', label: 'Groß' },
-                          ] as const).map(({ val, label }) => {
-                            const active = ((o.paletteSize as string) ?? 'md') === val;
-                            return (
-                              <button key={val} onClick={() => setO({ paletteSize: val })}
-                                className="flex-1 py-1.5 px-2 rounded-lg text-[10px] font-medium transition-colors"
-                                style={{
-                                  background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                  color: active ? '#fff' : 'var(--text-secondary)',
-                                  border: '1px solid var(--app-border)',
-                                }}>
-                                {label}
-                              </button>
-                            );
-                          })}
-                        </div>
+                        {(() => {
+                          const rawPs = o.paletteSize;
+                          const paletteSizePx = typeof rawPs === 'number' && Number.isFinite(rawPs)
+                            ? Math.max(12, Math.min(96, Math.round(rawPs)))
+                            : rawPs === 'sm' ? 22 : rawPs === 'lg' ? 48 : 32;
+                          return (
+                            <>
+                              <div className="flex items-center justify-between mb-1">
+                                <label className="text-[11px]" style={hint}>Farbpalette-Größe</label>
+                                <span className="text-[10px] font-mono" style={hint}>{paletteSizePx} px</span>
+                              </div>
+                              <input type="range" min={12} max={96} step={1} value={paletteSizePx}
+                                onChange={(e) => setO({ paletteSize: Number(e.target.value) })}
+                                className="w-full" />
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   </>
