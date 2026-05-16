@@ -65,6 +65,28 @@ export function ConfirmOverlay({
   );
 }
 
+type Vars = {
+  appBg: string;
+  appSurface: string;
+  appBorder: string;
+  textPrimary: string;
+  textSecondary: string;
+  accent: string;
+};
+
+function readVars(el: HTMLElement): Vars {
+  const s = getComputedStyle(el);
+  const v = (k: string, fallback: string) => s.getPropertyValue(k).trim() || fallback;
+  return {
+    appBg:         v('--app-bg',         '#ffffff'),
+    appSurface:    v('--app-surface',    '#ffffff'),
+    appBorder:     v('--app-border',     '#e5e7eb'),
+    textPrimary:   v('--text-primary',   '#111827'),
+    textSecondary: v('--text-secondary', '#6b7280'),
+    accent:        v('--accent',         '#3b82f6'),
+  };
+}
+
 function PopupConfirm({
   prompt,
   yesLabel,
@@ -83,6 +105,7 @@ function PopupConfirm({
   anchorRef?: RefObject<HTMLElement | null>;
 }) {
   const [pos, setPos] = useState<{ top: number; left: number; placeAbove: boolean } | null>(null);
+  const [vars, setVars] = useState<Vars | null>(null);
 
   useLayoutEffect(() => {
     const el = anchorRef?.current;
@@ -94,6 +117,7 @@ function PopupConfirm({
     const top = placeAbove ? r.top - margin : r.bottom + margin;
     const left = r.left + r.width / 2;
     setPos({ top, left, placeAbove });
+    setVars(readVars(el));
   }, [anchorRef]);
 
   return createPortal(
@@ -106,30 +130,30 @@ function PopupConfirm({
       <div
         className="fixed z-[400] rounded-xl shadow-2xl px-3 py-2 flex flex-col items-center gap-1.5"
         style={{
-          background: 'var(--app-surface)',
-          border: '1px solid var(--app-border)',
+          background: vars?.appSurface ?? '#ffffff',
+          border: `1px solid ${vars?.appBorder ?? '#e5e7eb'}`,
           top: pos?.top ?? -9999,
           left: pos?.left ?? -9999,
           transform: pos?.placeAbove ? 'translate(-50%, -100%)' : 'translateX(-50%)',
-          visibility: pos ? 'visible' : 'hidden',
+          visibility: pos && vars ? 'visible' : 'hidden',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="text-xs text-center font-medium whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+        <p className="text-xs text-center font-medium whitespace-nowrap" style={{ color: vars?.textPrimary }}>
           {prompt}
         </p>
         <div className="flex gap-1.5">
           <button
             onClick={onConfirm}
             className="px-2.5 py-1 rounded-md text-xs font-medium transition-opacity hover:opacity-80"
-            style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
+            style={{ background: vars?.accent, color: '#fff', border: 'none' }}
           >
             {yesLabel}
           </button>
           <button
             onClick={onCancel}
             className="px-2.5 py-1 rounded-md text-xs font-medium transition-opacity hover:opacity-80"
-            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+            style={{ background: vars?.appBg, color: vars?.textSecondary, border: `1px solid ${vars?.appBorder}` }}
           >
             {cancelLabel}
           </button>
