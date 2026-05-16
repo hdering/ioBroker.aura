@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.41 (2026-05-16)
+
+- fix(dirty): tab/layout switch no longer marks dashboard as unsaved
+
 ## v0.9.39 (2026-05-16)
 
 Release v0.9.39
@@ -593,6 +597,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 

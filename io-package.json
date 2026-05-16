@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.40",
+    "version": "0.9.41",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.41": {
+        "en": "fix(dirty): tab/layout switch no longer marks dashboard as unsaved",
+        "de": "fix(dirty): tab/layout switch no longer marks dashboard as unsaved"
+      },
       "0.9.39": {
         "en": "Release v0.9.39",
         "de": "Release v0.9.39"
