@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.51 (2026-05-16)
+
+- fix(list): backendValueFilter is editor-only, decoupled from publish
+
 ## v0.9.50 (2026-05-16)
 
 - fix(list): backend filter visible always + count actually updates
@@ -622,6 +626,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
