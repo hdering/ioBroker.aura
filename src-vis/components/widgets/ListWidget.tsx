@@ -364,13 +364,18 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     inactive: opts.filterInactiveLabel || DEFAULT_filterLabels.inactive,
   };
 
+  // In editMode the Aura admin view honors a separate backendValueFilter so
+  // the editor preview can show what users will see (e.g. only active entries).
+  const backendValueFilter = (opts.backendValueFilter ?? 'all') as FilterMode;
+  const effectiveFilter: FilterMode = editMode ? backendValueFilter : valueFilter;
+
   const visibleEntries = useMemo(() => {
-    let result = editMode || valueFilter === 'all'
+    let result = effectiveFilter === 'all'
       ? entries
       : entries.filter(e => {
           const val = states[e.id]?.val ?? null;
           if (val === null) return false;
-          return valueFilter === 'active' ? isActive(val) : !isActive(val);
+          return effectiveFilter === 'active' ? isActive(val) : !isActive(val);
         });
     const sortBy = opts.sortBy ?? 'none';
     const sortOrder = opts.sortOrder ?? 'asc';
@@ -392,18 +397,18 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
       });
     }
     return result;
-  }, [entries, states, valueFilter, editMode, opts.sortBy, opts.sortOrder, opts.sortBy2, opts.sortOrder2, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [entries, states, effectiveFilter, opts.sortBy, opts.sortOrder, opts.sortBy2, opts.sortOrder2, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Count published to backend uses an independent filter (default 'all')
-  const backendValueFilter = opts.backendValueFilter ?? 'all';
+  // Count published to ioBroker state = view-mode count using the frontend valueFilter,
+  // independent from backendValueFilter (which only affects the editor preview).
   const viewCount = useMemo(() => {
-    if (backendValueFilter === 'all') return entries.length;
+    if (valueFilter === 'all') return entries.length;
     return entries.filter(e => {
       const val = states[e.id]?.val ?? null;
       if (val === null) return false;
-      return backendValueFilter === 'active' ? isActive(val) : !isActive(val);
+      return valueFilter === 'active' ? isActive(val) : !isActive(val);
     }).length;
-  }, [entries, states, backendValueFilter]);
+  }, [entries, states, valueFilter]);
 
   useEffect(() => {
     if (!opts.publishCount) return;
