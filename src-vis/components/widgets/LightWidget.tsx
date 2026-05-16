@@ -306,6 +306,8 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
   const showPalette    = o.showPalette    !== false;
   const showIcon       = o.showIcon       !== false;
   const iconSize       = (o.iconSize as number) || 20;
+  const paletteSize    = (o.paletteSize as 'sm' | 'md' | 'lg' | undefined) ?? 'md';
+  const paletteSwatchPx = paletteSize === 'sm' ? 22 : paletteSize === 'lg' ? 48 : 32;
 
   // DP IDs
   const switchDp      = (o.switchDp      as string | undefined) || '';
@@ -575,11 +577,11 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
   );
 
   const presetsEl = (presets.length === 0 || colorMode === 'none') ? null : (
-    <div className="grid grid-cols-4 gap-1.5 px-1 w-full h-full content-center">
+    <div className="flex flex-wrap justify-center items-center gap-1.5 px-1 w-full h-full content-center">
       {presets.slice(0, 8).map((hex, i) => (
         <button key={i} onClick={() => applyPreset(hex)}
-          className="nodrag aspect-square rounded-full"
-          style={{ background: hex, border: '1px solid color-mix(in srgb, var(--app-border) 60%, transparent)' }}
+          className="nodrag rounded-full"
+          style={{ width: paletteSwatchPx, height: paletteSwatchPx, background: hex, border: '1px solid color-mix(in srgb, var(--app-border) 60%, transparent)' }}
           title={hex}
         />
       ))}
@@ -672,11 +674,11 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
 
       {/* Preset palette */}
       {showPalette && colorMode !== 'none' && presets.length > 0 && (
-        <div className="grid grid-cols-4 gap-2 px-2 shrink-0">
+        <div className="flex flex-wrap justify-center gap-2 px-2 shrink-0">
           {presets.slice(0, 8).map((hex, i) => (
             <button key={i} onClick={() => applyPreset(hex)}
-              className="nodrag aspect-square rounded-full"
-              style={{ background: hex, border: '1px solid color-mix(in srgb, var(--app-border) 60%, transparent)' }}
+              className="nodrag rounded-full"
+              style={{ width: paletteSwatchPx, height: paletteSwatchPx, background: hex, border: '1px solid color-mix(in srgb, var(--app-border) 60%, transparent)' }}
               title={hex}
             />
           ))}

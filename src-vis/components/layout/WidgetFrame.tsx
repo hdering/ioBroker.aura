@@ -3341,7 +3341,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
           {/* ─── 3. Widget-Typ · Layout · Icon ─────────────────────────────── */}
           <div className="space-y-2.5">
-            {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer', 'universal', 'enum'].includes(config.type) && (
+            {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (
               <div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
                 <input
@@ -5438,6 +5438,29 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               style={{ border: '1px solid var(--app-border)', padding: '1px' }} />
                           );
                         })}
+                      </div>
+                      <div className="mt-2">
+                        <label className="text-[11px] mb-1 block" style={hint}>Farbpalette-Größe</label>
+                        <div className="flex gap-1">
+                          {([
+                            { val: 'sm', label: 'Klein' },
+                            { val: 'md', label: 'Mittel' },
+                            { val: 'lg', label: 'Groß' },
+                          ] as const).map(({ val, label }) => {
+                            const active = ((o.paletteSize as string) ?? 'md') === val;
+                            return (
+                              <button key={val} onClick={() => setO({ paletteSize: val })}
+                                className="flex-1 py-1.5 px-2 rounded-lg text-[10px] font-medium transition-colors"
+                                style={{
+                                  background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                  color: active ? '#fff' : 'var(--text-secondary)',
+                                  border: '1px solid var(--app-border)',
+                                }}>
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   </>
