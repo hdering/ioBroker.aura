@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.47 (2026-05-16)
+
+- feat(list): publish filtered count to ioBroker state
+
 ## v0.9.46 (2026-05-16)
 
 - feat(list): full ON/OFF customization (text, text color, bg) global + per DP
@@ -609,6 +613,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
