@@ -145,21 +145,24 @@ interface ColorWheelProps {
   hue: number;
   sat: number;
   style: 'disc' | 'ring';
+  maxSize?: number;
   onChange: (hue: number, sat: number) => void;
   onCommit: () => void;
 }
-function ColorWheel({ hue, sat, style, onChange, onCommit }: ColorWheelProps) {
+function ColorWheel({ hue, sat, style, maxSize, onChange, onCommit }: ColorWheelProps) {
+  const wrapRef = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState(220);
+  const [containerSize, setContainerSize] = useState(220);
   useEffect(() => {
-    const el = ref.current; if (!el) return;
+    const el = wrapRef.current; if (!el) return;
     const ro = new ResizeObserver((entries) => {
       const r = entries[0].contentRect;
-      setSize(Math.max(80, Math.min(r.width, r.height)));
+      setContainerSize(Math.max(80, Math.min(r.width, r.height)));
     });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+  const size = Math.max(80, Math.min(containerSize, maxSize ?? 240));
   const radius = size / 2;
   const ringW = style === 'ring' ? Math.max(10, size * 0.12) : 0;
 
@@ -199,8 +202,8 @@ function ColorWheel({ hue, sat, style, onChange, onCommit }: ColorWheelProps) {
   }
 
   return (
-    <div className="flex items-center justify-center w-full h-full" style={{ minHeight: 0 }}>
-      <div className="relative" style={{ width: '100%', height: '100%', maxWidth: 240, maxHeight: 240, aspectRatio: '1 / 1' }}>
+    <div ref={wrapRef} className="flex items-center justify-center w-full h-full" style={{ minHeight: 0 }}>
+      <div className="relative" style={{ width: size, height: size }}>
         <div
           ref={ref}
           className="nodrag absolute inset-0 rounded-full cursor-crosshair select-none"
@@ -312,6 +315,11 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     if (raw === 'sm') return 22;
     if (raw === 'lg') return 48;
     return 32;
+  })();
+  const colorWheelMaxPx = (() => {
+    const raw = o.colorWheelSize;
+    if (typeof raw === 'number' && Number.isFinite(raw)) return clamp(Math.round(raw), 80, 400);
+    return 240;
   })();
 
   // DP IDs
@@ -530,7 +538,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     </div>
   ) : (
     <ColorWheel
-      hue={displayHS[0]} sat={displayHS[1]} style={wheelStyle}
+      hue={displayHS[0]} sat={displayHS[1]} style={wheelStyle} maxSize={colorWheelMaxPx}
       onChange={(h, s) => setDragHS([h, s])}
       onCommit={() => { if (dragHS) { writeColor(dragHS[0], dragHS[1]); setDragHS(null); } }}
     />

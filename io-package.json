@@ -106,8 +106,8 @@
     ],
     "news": {
       "0.9.37": {
-        "en": "feat(light): decouple status from title; fix(light): remove duplicate icon-size slider in Layout section; feat(light): color palette size as free slider (12-96 px); feat(light): adjustable color palette size + editable widget title",
-        "de": "feat(light): decouple status from title; fix(light): remove duplicate icon-size slider in Layout section; feat(light): color palette size as free slider (12-96 px); feat(light): adjustable color palette size + editable widget title"
+        "en": "feat(light): adjustable color wheel size (slider, 80–400 px max); fix(light): disc no longer deforms to an egg on narrow widgets",
+        "de": "feat(light): einstellbare Farbrad-Größe (Schieberegler, max. 80–400 px); fix(light): Disc verformt sich nicht mehr zum Ei bei schmalen Widgets"
       },
       "0.9.36": {
         "en": "feat(light): status row moved below title; sits between title and control",

@@ -5351,6 +5351,23 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             </button>
                           ))}
                         </div>
+                        {(() => {
+                          const raw = o.colorWheelSize;
+                          const wheelSizePx = typeof raw === 'number' && Number.isFinite(raw)
+                            ? Math.max(80, Math.min(400, Math.round(raw)))
+                            : 240;
+                          return (
+                            <div className="mt-2">
+                              <div className="flex items-center justify-between mb-1">
+                                <label className="text-[11px]" style={hint}>Farbrad-Größe (max.)</label>
+                                <span className="text-[10px] font-mono" style={hint}>{wheelSizePx} px</span>
+                              </div>
+                              <input type="range" min={80} max={400} step={4} value={wheelSizePx}
+                                onChange={(e) => setO({ colorWheelSize: Number(e.target.value) })}
+                                className="w-full" />
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
 
