@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.9.37 (2026-05-16)
+
+- feat(light): decouple status from title
+- fix(light): remove duplicate icon-size slider in Layout section
+- feat(light): color palette size as free slider (12-96 px)
+- feat(light): adjustable color palette size + editable widget title
+
 ## v0.9.32 (2026-05-15)
 
 - feat(popups): Built-in Views als JSON-Dateien + Import/Export pro View
@@ -578,6 +585,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
