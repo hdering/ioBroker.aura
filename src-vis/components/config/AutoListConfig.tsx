@@ -31,6 +31,38 @@ function appendPattern(current: string, value: string): string {
   return trimmed ? `${trimmed}, ${value}` : value;
 }
 
+function ColorField({ label, value, fallback, onChange }: {
+  label: string;
+  value: string | undefined;
+  fallback: string;
+  onChange: (v: string | undefined) => void;
+}) {
+  return (
+    <div>
+      <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>{label}</label>
+      <div className="flex items-center gap-1">
+        <input
+          type="color"
+          value={value?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? fallback}
+          onChange={e => onChange(e.target.value)}
+          className="w-7 h-6 rounded cursor-pointer shrink-0"
+          style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+        />
+        {value ? (
+          <button onClick={() => onChange(undefined)}
+            title="Zurücksetzen"
+            className="text-[9px] px-1.5 py-0.5 rounded hover:opacity-70"
+            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+            Reset
+          </button>
+        ) : (
+          <span className="text-[9px] opacity-60" style={{ color: 'var(--text-secondary)' }}>—</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function PresetChips({ presets, onAdd }: { presets: { label: string; value: string }[]; onAdd: (v: string) => void }) {
   return (
     <div className="flex flex-wrap gap-1 mt-1">
@@ -122,52 +154,18 @@ function EntryConfigRow({
             </div>
           </div>
           <div className="grid grid-cols-2 gap-1.5">
-            <div>
-              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Aktiv-Farbe</label>
-              <div className="flex items-center gap-1">
-                <input
-                  type="color"
-                  value={entry.activeColor?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#22c55e'}
-                  onChange={e => onUpdate({ activeColor: e.target.value })}
-                  className="w-7 h-6 rounded cursor-pointer shrink-0"
-                  style={{ border: '1px solid var(--app-border)', padding: '1px' }}
-                />
-                {entry.activeColor && (
-                  <button onClick={() => onUpdate({ activeColor: undefined })}
-                    title="Auf global zurücksetzen"
-                    className="text-[9px] px-1.5 py-0.5 rounded hover:opacity-70"
-                    style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                    Global
-                  </button>
-                )}
-                {!entry.activeColor && (
-                  <span className="text-[9px] opacity-60" style={{ color: 'var(--text-secondary)' }}>global</span>
-                )}
-              </div>
-            </div>
-            <div>
-              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Eintrag-Hintergrund</label>
-              <div className="flex items-center gap-1">
-                <input
-                  type="color"
-                  value={entry.entryBg?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#1f2937'}
-                  onChange={e => onUpdate({ entryBg: e.target.value })}
-                  className="w-7 h-6 rounded cursor-pointer shrink-0"
-                  style={{ border: '1px solid var(--app-border)', padding: '1px' }}
-                />
-                {entry.entryBg && (
-                  <button onClick={() => onUpdate({ entryBg: undefined })}
-                    title="Auf global zurücksetzen"
-                    className="text-[9px] px-1.5 py-0.5 rounded hover:opacity-70"
-                    style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                    Global
-                  </button>
-                )}
-                {!entry.entryBg && (
-                  <span className="text-[9px] opacity-60" style={{ color: 'var(--text-secondary)' }}>global</span>
-                )}
-              </div>
-            </div>
+            <ColorField label="Textfarbe AN"
+              value={entry.activeColor} fallback="#22c55e"
+              onChange={v => onUpdate({ activeColor: v })} />
+            <ColorField label="Textfarbe AUS"
+              value={entry.inactiveColor} fallback="#94a3b8"
+              onChange={v => onUpdate({ inactiveColor: v })} />
+            <ColorField label="Hintergrund AN"
+              value={entry.activeBg} fallback="#22c55e"
+              onChange={v => onUpdate({ activeBg: v })} />
+            <ColorField label="Hintergrund AUS"
+              value={entry.inactiveBg} fallback="#1f2937"
+              onChange={v => onUpdate({ inactiveBg: v })} />
           </div>
         </div>
       )}
@@ -610,55 +608,42 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
         </div>
       </div>
 
-      {/* ── Farben (global) ── */}
+      {/* ── Darstellung AN/AUS (global) ── */}
       <div>
-        <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Farben (global)</label>
-        <div className="grid grid-cols-2 gap-2">
+        <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>Darstellung AN/AUS (global)</label>
+        <div className="grid grid-cols-2 gap-1.5">
           <div>
-            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Aktiv-Farbe</label>
-            <div className="flex items-center gap-1">
-              <input
-                type="color"
-                value={opts.activeColor?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#22c55e'}
-                onChange={e => setOpts({ activeColor: e.target.value })}
-                className="w-8 h-7 rounded cursor-pointer shrink-0"
-                style={{ border: '1px solid var(--app-border)', padding: '1px' }}
-              />
-              {opts.activeColor && (
-                <button onClick={() => setOpts({ activeColor: undefined })}
-                  className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
-                  style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                  Reset
-                </button>
-              )}
-              {!opts.activeColor && (
-                <span className="text-[10px] opacity-60" style={{ color: 'var(--text-secondary)' }}>Standard: Grün</span>
-              )}
-            </div>
+            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Text AN</label>
+            <input className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+              placeholder="AN"
+              value={opts.trueText ?? ''}
+              onChange={e => setOpts({ trueText: e.target.value || undefined })} />
           </div>
           <div>
-            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Eintrag-Hintergrund</label>
-            <div className="flex items-center gap-1">
-              <input
-                type="color"
-                value={opts.entryBg?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#1f2937'}
-                onChange={e => setOpts({ entryBg: e.target.value })}
-                className="w-8 h-7 rounded cursor-pointer shrink-0"
-                style={{ border: '1px solid var(--app-border)', padding: '1px' }}
-              />
-              {opts.entryBg && (
-                <button onClick={() => setOpts({ entryBg: undefined })}
-                  className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
-                  style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                  Reset
-                </button>
-              )}
-              {!opts.entryBg && (
-                <span className="text-[10px] opacity-60" style={{ color: 'var(--text-secondary)' }}>Standard</span>
-              )}
-            </div>
+            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Text AUS</label>
+            <input className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+              placeholder="AUS"
+              value={opts.falseText ?? ''}
+              onChange={e => setOpts({ falseText: e.target.value || undefined })} />
           </div>
+          <ColorField label="Textfarbe AN"
+            value={opts.activeColor} fallback="#22c55e"
+            onChange={v => setOpts({ activeColor: v })} />
+          <ColorField label="Textfarbe AUS"
+            value={opts.inactiveColor} fallback="#94a3b8"
+            onChange={v => setOpts({ inactiveColor: v })} />
+          <ColorField label="Hintergrund AN"
+            value={opts.activeBg} fallback="#22c55e"
+            onChange={v => setOpts({ activeBg: v })} />
+          <ColorField label="Hintergrund AUS"
+            value={opts.inactiveBg} fallback="#1f2937"
+            onChange={v => setOpts({ inactiveBg: v })} />
         </div>
+        <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+          Defaults pro Widget. Pro DP überschreibbar.
+        </p>
       </div>
 
       {/* ── Sortierung ── */}
