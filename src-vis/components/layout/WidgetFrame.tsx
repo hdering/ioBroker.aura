@@ -5238,6 +5238,23 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       <label className="text-[11px] mb-1 block" style={hint}>Schalt-DP (An/Aus, boolean)</label>
                       {dpRow('switchDp', 'light_switchDp', 'optional')}
                       <p className="text-[10px] mt-1" style={hint}>Ohne Schalt-DP wird LEVEL/Brightness=0 als Aus interpretiert.</p>
+                      {!!(o.switchDp as string) && (() => {
+                        const raw = o.powerButtonSize;
+                        const pxVal = typeof raw === 'number' && Number.isFinite(raw)
+                          ? Math.max(40, Math.min(240, Math.round(raw)))
+                          : 120;
+                        return (
+                          <div className="mt-2">
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="text-[11px]" style={hint}>Schalter-Größe (max.)</label>
+                              <span className="text-[10px] font-mono" style={hint}>{pxVal} px</span>
+                            </div>
+                            <input type="range" min={40} max={240} step={4} value={pxVal}
+                              onChange={(e) => setO({ powerButtonSize: Number(e.target.value) })}
+                              className="w-full" />
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Brightness DP */}
@@ -5258,6 +5275,23 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             className={lInputCls} style={lInputStyle} />
                         </div>
                       </div>
+                      {!!(o.brightnessDp as string) && (() => {
+                        const raw = o.brightnessBarSize;
+                        const pxVal = typeof raw === 'number' && Number.isFinite(raw)
+                          ? Math.max(60, Math.min(400, Math.round(raw)))
+                          : 220;
+                        return (
+                          <div className="mt-2">
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="text-[11px]" style={hint}>Helligkeits-Balken-Größe (max.)</label>
+                              <span className="text-[10px] font-mono" style={hint}>{pxVal} px</span>
+                            </div>
+                            <input type="range" min={60} max={400} step={4} value={pxVal}
+                              onChange={(e) => setO({ brightnessBarSize: Number(e.target.value) })}
+                              className="w-full" />
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Color mode */}
@@ -5389,6 +5423,23 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             className={lInputCls} style={lInputStyle} />
                         </div>
                       </div>
+                      {(!!(o.temperatureDp as string) || colorMode === 'hm-color') && (() => {
+                        const raw = o.ctSliderSize;
+                        const pxVal = typeof raw === 'number' && Number.isFinite(raw)
+                          ? Math.max(60, Math.min(400, Math.round(raw)))
+                          : 220;
+                        return (
+                          <div className="mt-2">
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="text-[11px]" style={hint}>Lichtwärme-Slider-Größe (max.)</label>
+                              <span className="text-[10px] font-mono" style={hint}>{pxVal} px</span>
+                            </div>
+                            <input type="range" min={60} max={400} step={4} value={pxVal}
+                              onChange={(e) => setO({ ctSliderSize: Number(e.target.value) })}
+                              className="w-full" />
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Effects DP */}

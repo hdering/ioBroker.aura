@@ -108,10 +108,11 @@ interface BrightnessBarProps {
   min: number;
   max: number;
   accent: string;
+  maxSize?: number;
   onChange: (v: number) => void;
   onCommit: () => void;
 }
-function BrightnessBar({ value, min, max, accent, onChange, onCommit }: BrightnessBarProps) {
+function BrightnessBar({ value, min, max, accent, maxSize, onChange, onCommit }: BrightnessBarProps) {
   const ref = useRef<HTMLDivElement>(null);
   const ratio = (value - min) / Math.max(1e-6, max - min);
   const pct = clamp(ratio, 0, 1) * 100;
@@ -126,7 +127,7 @@ function BrightnessBar({ value, min, max, accent, onChange, onCommit }: Brightne
     <div
       ref={ref}
       className="nodrag relative rounded-2xl overflow-hidden cursor-pointer select-none mx-auto"
-      style={{ width: '70%', height: '100%', maxWidth: 220, background: 'color-mix(in srgb, var(--app-bg) 70%, transparent)', border: '1px solid var(--app-border)' }}
+      style={{ width: '70%', height: '100%', maxWidth: maxSize ?? 220, background: 'color-mix(in srgb, var(--app-bg) 70%, transparent)', border: '1px solid var(--app-border)' }}
       onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); setFromPointer(e); }}
       onPointerMove={(e) => { if (e.buttons & 1) setFromPointer(e); }}
       onPointerUp={onCommit}
@@ -247,10 +248,11 @@ interface CTSliderProps {
   kelvin: number;
   min: number;
   max: number;
+  maxSize?: number;
   onChange: (k: number) => void;
   onCommit: () => void;
 }
-function CTSlider({ kelvin, min, max, onChange, onCommit }: CTSliderProps) {
+function CTSlider({ kelvin, min, max, maxSize, onChange, onCommit }: CTSliderProps) {
   const ref = useRef<HTMLDivElement>(null);
   const ratio = (kelvin - min) / Math.max(1, max - min);
   const setFromPointer = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -265,7 +267,7 @@ function CTSlider({ kelvin, min, max, onChange, onCommit }: CTSliderProps) {
       ref={ref}
       className="nodrag relative rounded-2xl overflow-hidden cursor-pointer select-none mx-auto"
       style={{
-        width: '70%', height: '100%', maxWidth: 220,
+        width: '70%', height: '100%', maxWidth: maxSize ?? 220,
         background: `linear-gradient(to top, ${kelvinToHex(min)}, ${kelvinToHex((min + max) / 2)}, ${kelvinToHex(max)})`,
         border: '1px solid var(--app-border)',
       }}
@@ -279,6 +281,44 @@ function CTSlider({ kelvin, min, max, onChange, onCommit }: CTSliderProps) {
         style={{ color: '#1a1a1a', textShadow: '0 1px 2px rgba(255,255,255,0.6)' }}>
         {kelvin} K
       </div>
+    </div>
+  );
+}
+
+interface PowerButtonProps {
+  isOn: boolean;
+  accent: string;
+  maxSize?: number;
+  onToggle: () => void;
+}
+function PowerButton({ isOn, accent, maxSize, onToggle }: PowerButtonProps) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [containerSize, setContainerSize] = useState(120);
+  useEffect(() => {
+    const el = wrapRef.current; if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const r = entries[0].contentRect;
+      setContainerSize(Math.max(32, Math.min(r.width, r.height)));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const size = Math.min(containerSize * 0.85, maxSize ?? 120);
+  const iconPx = Math.max(14, Math.min(64, Math.round(size * 0.4)));
+  return (
+    <div ref={wrapRef} className="flex items-center justify-center w-full h-full">
+      <button
+        onClick={onToggle}
+        className="nodrag rounded-full flex items-center justify-center transition-colors"
+        style={{
+          width: size, height: size,
+          background: isOn ? accent : 'var(--app-bg)',
+          border: `2px solid ${isOn ? accent : 'var(--app-border)'}`,
+          boxShadow: isOn ? `0 0 24px color-mix(in srgb, ${accent} 50%, transparent)` : 'none',
+        }}
+      >
+        <Power size={iconPx} color={isOn ? '#fff' : 'var(--text-secondary)'} />
+      </button>
     </div>
   );
 }
@@ -320,6 +360,21 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     const raw = o.colorWheelSize;
     if (typeof raw === 'number' && Number.isFinite(raw)) return clamp(Math.round(raw), 80, 400);
     return 240;
+  })();
+  const powerButtonMaxPx = (() => {
+    const raw = o.powerButtonSize;
+    if (typeof raw === 'number' && Number.isFinite(raw)) return clamp(Math.round(raw), 40, 240);
+    return 120;
+  })();
+  const brightnessBarMaxPx = (() => {
+    const raw = o.brightnessBarSize;
+    if (typeof raw === 'number' && Number.isFinite(raw)) return clamp(Math.round(raw), 60, 400);
+    return 220;
+  })();
+  const ctSliderMaxPx = (() => {
+    const raw = o.ctSliderSize;
+    if (typeof raw === 'number' && Number.isFinite(raw)) return clamp(Math.round(raw), 60, 400);
+    return 220;
   })();
 
   // DP IDs
@@ -507,26 +562,11 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
   const CompactIcon = useMemo(() => getWidgetIcon(o.icon as string | undefined, Lightbulb), [o.icon]);
 
   // ── Control elements (used by both tabbed view and custom grid) ────────────
-  const powerEl = (
-    <div className="flex items-center justify-center w-full h-full">
-      <button
-        onClick={togglePower}
-        className="nodrag rounded-full flex items-center justify-center transition-colors"
-        style={{
-          width: '70%', height: '70%', maxWidth: 120, maxHeight: 120, aspectRatio: '1 / 1',
-          background: isOn ? accent : 'var(--app-bg)',
-          border: `2px solid ${isOn ? accent : 'var(--app-border)'}`,
-          boxShadow: isOn ? `0 0 24px color-mix(in srgb, ${accent} 50%, transparent)` : 'none',
-        }}
-      >
-        <Power size={28} color={isOn ? '#fff' : 'var(--text-secondary)'} />
-      </button>
-    </div>
-  );
+  const powerEl = <PowerButton isOn={isOn} accent={accent} maxSize={powerButtonMaxPx} onToggle={togglePower} />;
 
   const brightnessEl = brightnessDp ? (
     <BrightnessBar
-      value={displayBri} min={briMin} max={briMax} accent={accent}
+      value={displayBri} min={briMin} max={briMax} accent={accent} maxSize={brightnessBarMaxPx}
       onChange={(v) => setDragBri(v)}
       onCommit={() => { if (dragBri != null) { writeBri(dragBri); setDragBri(null); } }}
     />
@@ -559,7 +599,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     </div>
   ) : (
     <CTSlider
-      kelvin={displayCT} min={ctMin} max={ctMax}
+      kelvin={displayCT} min={ctMin} max={ctMax} maxSize={ctSliderMaxPx}
       onChange={(k) => setDragCT(k)}
       onCommit={() => { if (dragCT != null) { writeCT(dragCT); setDragCT(null); } }}
     />
