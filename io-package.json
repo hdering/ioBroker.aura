@@ -106,8 +106,8 @@
     ],
     "news": {
       "0.9.53": {
-        "en": "fix(universal): switch-cell confirm dialog as centered popup (v0.9.52)",
-        "de": "fix(universal): switch-cell confirm dialog as centered popup (v0.9.52)"
+        "en": "fix(universal): switch-cell confirm as small popup anchored to the button (no backdrop)",
+        "de": "fix(universal): Sicherheitsabfrage als kleines Popup am Schalter (ohne Hintergrund-Abdunklung)"
       },
       "0.9.52": {
         "en": "fix(universal): switch-cell confirm dialog as centered popup (no overflow)",

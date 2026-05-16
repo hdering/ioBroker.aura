@@ -2,7 +2,7 @@
  * Shared custom-grid layout renderer used by all widgets that support layout='custom'.
  * Default 3×3 grid, but parameterized via CustomGridDef for arbitrary cols/rows (used by Universal Widget).
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
@@ -199,6 +199,7 @@ function StaticCellView({
 /** Boolean toggle bound to a DP. */
 function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
   const { value, setValue } = useDatapoint(cell.dpId ?? '');
+  const btnRef = useRef<HTMLButtonElement | null>(null);
   const on = value === true || value === 1 || value === 'true' || value === '1';
   const doToggle = () => {
     if (cell.momentary) {
@@ -221,6 +222,7 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
     return (
       <div className={`aura-custom-cell-${index}`} style={wrap}>
         <button
+          ref={btnRef}
           onClick={handleClick}
           className="nodrag flex items-center justify-center transition-transform hover:scale-110"
           style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
@@ -228,13 +230,14 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
         >
           <Icon size={size} style={{ color }} />
         </button>
-        {pending && <ConfirmOverlay popup text={cell.confirmText} onConfirm={confirm} onCancel={cancel} />}
+        {pending && <ConfirmOverlay popup anchorRef={btnRef} text={cell.confirmText} onConfirm={confirm} onCancel={cancel} />}
       </div>
     );
   }
   return (
     <div className={`aura-custom-cell-${index}`} style={wrap}>
       <button
+        ref={btnRef}
         onClick={handleClick}
         className="nodrag relative rounded-full transition-colors"
         style={{
@@ -250,7 +253,7 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
           style={{ width: 20, height: 20, left: on ? '22px' : '2px' }}
         />
       </button>
-      {pending && <ConfirmOverlay popup text={cell.confirmText} onConfirm={confirm} onCancel={cancel} />}
+      {pending && <ConfirmOverlay popup anchorRef={btnRef} text={cell.confirmText} onConfirm={confirm} onCancel={cancel} />}
     </div>
   );
 }
