@@ -5,6 +5,7 @@ import { useDashboardStore } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { resolveAssetUrl } from '../../utils/assetUrl';
 
 // ── Column definition (stored in options.columns) ─────────────────────────────
 export interface JsonColumnDef {
@@ -12,7 +13,16 @@ export interface JsonColumnDef {
   label?: string;    // display name override
   hidden?: boolean;
   html?: boolean;    // render as HTML
+  image?: boolean;   // render as <img> (value = url, data: URI, or ioBroker path)
+  imageSize?: number;
   order?: number;    // lower = further left
+}
+
+function resolveImageSrc(v: unknown): string {
+  if (typeof v !== 'string' || !v) return '';
+  if (/^(https?:)?\/\//i.test(v) || v.startsWith('data:')) return v;
+  if (v.startsWith('aura-file:')) return resolveAssetUrl(v);
+  return resolveAssetUrl('aura-file:' + v.replace(/^\/+/, ''));
 }
 
 // ── Raw table shape after parsing ─────────────────────────────────────────────
@@ -272,7 +282,9 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                 {columns.map((col, ci) => {
                   const isLabel = firstColHeader && ci === 0;
                   const raw = row[col.key];
-                  const isHtml = col.html ?? false;
+                  const isImage = col.image ?? false;
+                  const isHtml = !isImage && (col.html ?? false);
+                  const imgSize = col.imageSize && col.imageSize > 0 ? col.imageSize : Math.round(fs * 2.4);
                   return (
                     <td key={col.key}
                       style={{
@@ -282,14 +294,19 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                         fontWeight: isLabel ? 600 : 400,
                         borderRight:  isLabel ? '2px solid var(--app-border)' : undefined,
                         borderBottom: `1px solid color-mix(in srgb, var(--app-border) 50%, transparent)`,
-                        maxWidth: isHtml ? undefined : '20em',
+                        maxWidth: (isHtml || isImage) ? undefined : '20em',
                         overflow: 'hidden',
-                        textOverflow: isHtml ? undefined : 'ellipsis',
-                        whiteSpace: isHtml ? undefined : 'nowrap',
+                        textOverflow: (isHtml || isImage) ? undefined : 'ellipsis',
+                        whiteSpace: (isHtml || isImage) ? undefined : 'nowrap',
                       }}>
-                      {isHtml
-                        ? <span dangerouslySetInnerHTML={{ __html: cellText(raw) }} />
-                        : cellText(raw)}
+                      {isImage
+                        ? (resolveImageSrc(raw)
+                            ? <img src={resolveImageSrc(raw)} alt=""
+                                style={{ width: imgSize, height: imgSize, objectFit: 'contain', display: 'block' }} />
+                            : <span style={{ opacity: 0.5 }}>–</span>)
+                        : isHtml
+                          ? <span dangerouslySetInnerHTML={{ __html: cellText(raw) }} />
+                          : cellText(raw)}
                     </td>
                   );
                 })}

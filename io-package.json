@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.58",
+    "version": "0.9.59",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.59": {
+        "en": "feat(json-table): add 'Bild' column type — renders cell value as image (http/https URL, data: URI, or ioBroker file path)",
+        "de": "feat(json-tabelle): neuer Spaltentyp 'Bild' — Zellwert wird als Bild gerendert (http/https-URL, data:-URI oder ioBroker-Dateipfad)"
+      },
       "0.9.58": {
         "en": "feat(universal): add 'Auswahlfeld' cell type; docs(schalter): remove YAML example — aura uses admin UI, not config files",
         "de": "feat(universal): add 'Auswahlfeld' cell type; docs(schalter): remove YAML example — aura uses admin UI, not config files"

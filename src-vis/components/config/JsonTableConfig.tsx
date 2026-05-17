@@ -263,9 +263,15 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                 placeholder={`Anzeigename (Standard: ${col.key})`}
                 className={jCls} style={jSty} />
               {/* Row 3: toggles */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <label className="flex items-center gap-1.5 cursor-pointer">
-                  <Toggle value={col.html ?? false} onToggle={() => updateCol(idx, { html: !(col.html ?? false) })} />
+                  <Toggle value={col.image ?? false}
+                    onToggle={() => updateCol(idx, { image: !(col.image ?? false), html: (col.image ?? false) ? col.html : false })} />
+                  <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Bild</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <Toggle value={col.html ?? false}
+                    onToggle={() => updateCol(idx, { html: !(col.html ?? false), image: (col.html ?? false) ? col.image : false })} />
                   <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>HTML</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
@@ -273,6 +279,15 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                   <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Ausblenden</span>
                 </label>
               </div>
+              {/* Row 4: image size (only if image enabled) */}
+              {col.image && (
+                <div className="flex items-center gap-2">
+                  <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Bildgröße (px)</label>
+                  <input type="number" min={8} max={256} value={col.imageSize ?? 32}
+                    onChange={(e) => updateCol(idx, { imageSize: Number(e.target.value) || undefined })}
+                    className={jCls + ' flex-1'} style={jSty} />
+                </div>
+              )}
             </div>
           ))}
         </div>
