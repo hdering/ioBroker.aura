@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.79 (2026-05-17)
+
+- fix(light): autoDetect mixed DPs from different zigbee devices
+
 ## v0.9.78 (2026-05-17)
 
 Release v0.9.78
@@ -693,6 +697,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
