@@ -13,6 +13,7 @@ import { useGroupStore } from '../../store/groupStore';
 import { useConfigStore } from '../../store/configStore';
 import { usePopupConfigStore } from '../../store/popupConfigStore';
 import { loadConfigFromIoBroker, applyRaw } from '../../utils/configLoader';
+import { markGroupDefsHydrated } from '../../store/groupDefsStore';
 import { useAdminPrefsStore } from '../../store/adminPrefsStore';
 import { useIoBroker, getObjectDirect } from '../../hooks/useIoBroker';
 import { useVersionGuard } from '../../hooks/useVersionGuard';
@@ -106,6 +107,7 @@ export function AdminLayout() {
     autoSyncedRef.current = true;
     loadConfigFromIoBroker(true).then((remoteHasData) => {
       adminConfigLoadedRef.current = true;
+      markGroupDefsHydrated(); // unblock group-defs saves even if remote was empty
       const localHasData = ['aura-dashboard', 'aura-theme', 'aura-groups', 'aura-config', 'aura-global-settings'].some(
         (key) => { const v = localStorage.getItem(key); return v !== null && v.length > 10; },
       );

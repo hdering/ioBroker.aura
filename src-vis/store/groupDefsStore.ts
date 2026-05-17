@@ -4,6 +4,11 @@ import type { WidgetConfig } from '../types';
 
 export interface GroupDefsState {
   defs: Record<string, WidgetConfig[]>;
+  /** True once the store has been populated from ioBroker (or explicitly marked
+   *  empty after a load attempt). Until then, serialise() refuses to emit a
+   *  payload — otherwise a fresh-boot save would clobber ioBroker with a
+   *  half-empty store and erase every group / carousel child. */
+  hydrated: boolean;
   setDef: (defId: string, children: WidgetConfig[]) => void;
   removeDef: (defId: string) => void;
 }
@@ -14,6 +19,7 @@ export interface GroupDefsState {
 // localStorage is never written; rehydrate() is replaced by hydrateGroupDefs().
 export const useGroupDefsStore = create<GroupDefsState>()((set) => ({
   defs: {},
+  hydrated: false,
   setDef: (defId, children) =>
     set((s) => ({ defs: { ...s.defs, [defId]: children } })),
   removeDef: (defId) =>
@@ -25,14 +31,31 @@ export const useGroupDefsStore = create<GroupDefsState>()((set) => ({
 }));
 
 // Serialise current state so saveToIoBroker can include it in the ioBroker payload.
-// Mimics the Zustand persist format: { state: { defs: ... }, version: 0 }
-function serialise(): string {
-  return JSON.stringify({ state: { defs: useGroupDefsStore.getState().defs }, version: 0 });
+// Mimics the Zustand persist format: { state: { defs: ... }, version: 0 }.
+// Returns null before hydration so save skips this key — protects against the
+// race where boot writes (e.g. a freshly mounted carousel/group widget seeding
+// a defId) get persisted before ioBroker's real defs have been loaded.
+function serialise(): string | null {
+  const state = useGroupDefsStore.getState();
+  if (!state.hydrated) {
+    console.warn('[groupDefsStore] serialise skipped — store not yet hydrated from ioBroker');
+    return null;
+  }
+  return JSON.stringify({ state: { defs: state.defs }, version: 0 });
 }
 registerExternalReader('aura-group-defs', serialise);
 
-// Mark dirty whenever the store changes so the save button activates
+// Mark dirty whenever the store changes so the save button activates.
 useGroupDefsStore.subscribe(() => markDirty('aura-group-defs'));
+
+/** Force the hydrated flag — call after a loadConfigFromIoBroker pass even if
+ *  the remote had no aura-group-defs (first-time user) so subsequent saves
+ *  aren't blocked forever. */
+export function markGroupDefsHydrated(): void {
+  if (!useGroupDefsStore.getState().hydrated) {
+    useGroupDefsStore.setState({ hydrated: true });
+  }
+}
 
 /** Load group-defs from a raw JSON string (Zustand persist format or plain {defs:...}). */
 export function hydrateGroupDefs(raw: string): void {
@@ -42,9 +65,12 @@ export function hydrateGroupDefs(raw: string): void {
     const defsSource = (parsed.state as Record<string, unknown> | undefined) ?? parsed;
     const defs = defsSource.defs as Record<string, WidgetConfig[]> | undefined;
     if (defs && typeof defs === 'object') {
-      useGroupDefsStore.setState({ defs });
+      useGroupDefsStore.setState({ defs, hydrated: true });
+    } else {
+      // Parsed but no defs key — treat as hydrated empty so saves aren't blocked.
+      useGroupDefsStore.setState({ hydrated: true });
     }
-  } catch { /* ignore malformed JSON */ }
+  } catch { /* ignore malformed JSON — leave hydrated false so we don't save over good data */ }
 }
 
 export function newGroupDefId(): string {

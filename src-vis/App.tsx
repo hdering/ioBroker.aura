@@ -24,6 +24,7 @@ import type { FrontendSettings } from './store/configStore';
 
 import { applyRaw } from './utils/configLoader';
 import { discardPending } from './store/persistManager';
+import { markGroupDefsHydrated } from './store/groupDefsStore';
 import { usePopupConfigStore } from './store/popupConfigStore';
 
 const STORE_REHYDRATORS: Record<string, () => void> = {
@@ -361,7 +362,10 @@ export default function App() {
     ioBrokerConfigLoaded.current = true;
     // Frontend is read-only: ignore _dirty flags (any "dirty" here is just
     // navigation state — remote always wins).
-    void loadConfigFromIoBroker(false, { ignoreDirty: true }).finally(() => discardPending());
+    void loadConfigFromIoBroker(false, { ignoreDirty: true }).finally(() => {
+      markGroupDefsHydrated(); // unblock group-defs saves even if remote was empty
+      discardPending();
+    });
   }, [connected]);
 
   // React to external changes on aura.0.config.dashboard (subscription + polling)
