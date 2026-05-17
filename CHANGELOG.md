@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.61 (2026-05-17)
+
+- fix(backup): auto-save now also writes an auto-backup (previously only manual save did)
+
 ## v0.9.60 (2026-05-17)
 
 - feat(json-table): add image column type
