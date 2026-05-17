@@ -385,7 +385,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     label: 'Universal-Widget',     shortLabel: 'Universal',
     Icon: LayoutGrid,              iconName: 'LayoutGrid', color: '#8b5cf6',
     defaultW: 10,                  defaultH: 6,
-    addMode: 'free',               widgetGroup: 'layout',
+    addMode: 'free',               widgetGroup: 'control',
     mock: { t: 'Universal', v: '' },
     hint: 'Freies Raster – Zellen einzeln mit Schaltern, Reglern, Werten und Bildern belegen',
   },
