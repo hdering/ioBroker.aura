@@ -22,10 +22,10 @@ const SYNC_STORE_KEYS = Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[];
 // Legacy single-state DP. Kept for one-time migration; new backups go to files.
 const IOBROKER_BACKUP_KEY = 'aura.0.config.dashboard_backup';
 
-// File-based backup storage. Each backup is its own JSON file under
-// aura.0:backups/. Filename = ISO-Timestamp → sortable + readable.
-const ADAPTER_NAMESPACE = 'aura.0';
-export const BACKUP_FILES_DIR = 'backups';
+// File-based backup storage. Each backup is its own JSON file under the
+// aura.0.backups meta namespace. Filename = ISO-Timestamp → sortable + readable.
+// The meta object is created by the adapter in onReady (main.js).
+const BACKUP_NAMESPACE = 'aura.0.backups';
 const BACKUP_FILE_PREFIX = 'backup-';
 const BACKUP_FILE_SUFFIX = '.json';
 
@@ -208,9 +208,9 @@ export async function migrateLegacyBackupState(): Promise<void> {
     console.info(`[aura backup] migrating ${entries.length} entries from legacy state to files`);
     for (const e of entries) {
       const ts = String(e[BACKUP_TS_KEY] ?? new Date().toISOString());
-      const filename = `${BACKUP_FILES_DIR}/${tsToFilename(ts)}`;
+      const filename = tsToFilename(ts);
       try {
-        await writeFileDirect(ADAPTER_NAMESPACE, filename, JSON.stringify(e));
+        await writeFileDirect(BACKUP_NAMESPACE, filename, JSON.stringify(e));
       } catch (writeErr) {
         console.warn(`[aura backup] could not migrate entry ${ts}`, writeErr);
       }
@@ -224,7 +224,7 @@ export async function migrateLegacyBackupState(): Promise<void> {
 }
 
 async function pruneOldBackups(): Promise<number> {
-  const files = await readDirDirect(ADAPTER_NAMESPACE, BACKUP_FILES_DIR);
+  const files = await readDirDirect(BACKUP_NAMESPACE, '');
   const backupFiles = files
     .filter((f) => !f.isDir && isBackupFile(f.file))
     // Filename is ISO-timestamp → newest sorts last alphabetically, reverse it.
@@ -232,7 +232,7 @@ async function pruneOldBackups(): Promise<number> {
   if (backupFiles.length <= maxBackups) return 0;
   const toDelete = backupFiles.slice(maxBackups);
   for (const f of toDelete) {
-    await deleteFileDirect(ADAPTER_NAMESPACE, `${BACKUP_FILES_DIR}/${f.file}`);
+    await deleteFileDirect(BACKUP_NAMESPACE, f.file);
   }
   return toDelete.length;
 }
@@ -242,10 +242,10 @@ async function writeBackup(): Promise<void> {
     await migrateLegacyBackupState();
     const entry = buildBackupEntry();
     const ts = String(entry[BACKUP_TS_KEY]);
-    const filename = `${BACKUP_FILES_DIR}/${tsToFilename(ts)}`;
+    const filename = tsToFilename(ts);
     const payload = JSON.stringify(entry);
-    console.info(`[aura backup] writing ${filename} (${payload.length} bytes)`);
-    await writeFileDirect(ADAPTER_NAMESPACE, filename, payload);
+    console.info(`[aura backup] writing ${BACKUP_NAMESPACE}/${filename} (${payload.length} bytes)`);
+    await writeFileDirect(BACKUP_NAMESPACE, filename, payload);
     console.info('[aura backup] write acknowledged');
     const pruned = await pruneOldBackups();
     if (pruned > 0) console.info(`[aura backup] pruned ${pruned} old backup file(s) (cap ${maxBackups})`);
@@ -263,7 +263,7 @@ export interface BackupFileEntry {
 // Returns metadata only — payloads are fetched on demand in loadBackupPayload.
 export async function listBackupFiles(): Promise<BackupFileEntry[]> {
   await migrateLegacyBackupState();
-  const files = await readDirDirect(ADAPTER_NAMESPACE, BACKUP_FILES_DIR);
+  const files = await readDirDirect(BACKUP_NAMESPACE, '');
   return files
     .filter((f) => !f.isDir && isBackupFile(f.file))
     .sort((a, b) => b.file.localeCompare(a.file))
@@ -276,7 +276,7 @@ export async function listBackupFiles(): Promise<BackupFileEntry[]> {
 }
 
 export async function loadBackupPayload(filename: string): Promise<Record<string, unknown> | null> {
-  const raw = await readFileDirect(ADAPTER_NAMESPACE, `${BACKUP_FILES_DIR}/${filename}`);
+  const raw = await readFileDirect(BACKUP_NAMESPACE, filename);
   if (!raw) return null;
   try { return JSON.parse(raw) as Record<string, unknown>; }
   catch (err) {

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.76 (2026-05-17)
+
+- fix(backup): create `aura.0.backups` meta namespace in onReady so the file-based auto-backup write succeeds (previous attempt failed with "aura.0 is not an object of type meta")
+
 ## v0.9.74 (2026-05-17)
 
 - fix(backup): store auto-backups as files under `aura.0:backups/` instead of a single state — bypasses the 1 MB socket frame limit that caused saves to be silently dropped on large dashboards

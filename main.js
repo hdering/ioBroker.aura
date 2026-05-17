@@ -837,7 +837,16 @@ class Aura extends utils.Adapter {
 
     await this.setObjectNotExistsAsync('config.dashboard_backup', {
       type: 'state',
-      common: { name: 'Dashboard configuration backup', type: 'string', role: 'json', read: true, write: false, def: '' },
+      common: { name: 'Dashboard configuration backup (legacy – migrated to aura.0.backups files)', type: 'string', role: 'json', read: true, write: false, def: '' },
+      native: {},
+    });
+
+    // Meta namespace for auto-backup files (aura.0.backups). Required for
+    // ioBroker writeFile/readFile under that path. Each backup is a JSON
+    // file inside this meta object.
+    await this.setObjectNotExistsAsync('backups', {
+      type: 'meta',
+      common: { name: 'Auto-backup files', type: 'meta.user' },
       native: {},
     });
 
