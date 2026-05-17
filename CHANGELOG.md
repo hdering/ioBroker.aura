@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.64 (2026-05-17)
+
+- feat(list): show sum of numeric values in static/dynamic list
+
 ## v0.9.62 (2026-05-17)
 
 - fix(backup): auto-save also writes auto-backup
@@ -663,6 +667,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.63",
+    "version": "0.9.64",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.64": {
+        "en": "feat(list): show sum of numeric values in static/dynamic list",
+        "de": "feat(list): show sum of numeric values in static/dynamic list"
+      },
       "0.9.63": {
         "en": "feat(list): static/dynamic list — optional sum of numeric values shown below the title",
         "de": "feat(list): Statische/Dynamische Liste — optionale Summe der numerischen Werte unterhalb des Titels"
