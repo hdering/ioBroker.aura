@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.66 (2026-05-17)
+
+- chore(backup): surface writeBackup errors and server ack in console
+
 ## v0.9.65 (2026-05-17)
 
 - chore(backup): log writeBackup events + server ack to browser console for diagnostics
@@ -671,6 +675,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 

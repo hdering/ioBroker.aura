@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.65",
+    "version": "0.9.66",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.66": {
+        "en": "chore(backup): surface writeBackup errors and server ack in console",
+        "de": "chore(backup): surface writeBackup errors and server ack in console"
+      },
       "0.9.65": {
         "en": "chore(backup): log writeBackup events + server ack to browser console for diagnostics",
         "de": "chore(backup): writeBackup-Events + Server-Ack im Browser-Console-Log für Diagnose"
