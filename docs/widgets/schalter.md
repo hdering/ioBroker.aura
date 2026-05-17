@@ -78,17 +78,3 @@ Kleines Bestätigungs-Popup direkt am Schalter (anchor-positioniert, ohne Backdr
 | `confirmText` | — | Anzeigetext im Popup |
 
 ![](./assets/schalter/sicherheitsabfrage.png)
-
-## Beispiel
-
-```yaml
-title: Garage
-icon: Garage
-datapoint: shelly.0.SHSW-1#aabbcc#1.Relay0.Switch
-layout: card
-options:
-  momentary: true
-  momentaryDelay: 800
-  confirmAction: true
-  confirmText: Garage wirklich öffnen?
-```
