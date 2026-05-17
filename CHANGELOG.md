@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.78 (2026-05-17)
+
+Release v0.9.78
+
 ## v0.9.76 (2026-05-17)
 
 - fix(backup): create `aura.0.backups` meta namespace in onReady so the file-based auto-backup write succeeds (previous attempt failed with "aura.0 is not an object of type meta")
@@ -689,6 +693,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
