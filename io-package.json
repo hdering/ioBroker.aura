@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.68",
+    "version": "0.9.69",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.69": {
+        "en": "fix(fill): center horizontal battery silhouette in viewBox; feat(list): configurable alignment + font size for sum line",
+        "de": "fix(fill): center horizontal battery silhouette in viewBox; feat(list): configurable alignment + font size for sum line"
+      },
       "0.9.67": {
         "en": "feat(list): static/dynamic list sum — configurable alignment (left/center/right) and font size",
         "de": "feat(list): Statische/Dynamische Liste Summe — Ausrichtung (links/mitte/rechts) und Schriftgröße konfigurierbar"

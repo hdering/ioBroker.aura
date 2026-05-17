@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9.69 (2026-05-17)
+
+- fix(fill): center horizontal battery silhouette in viewBox
+- feat(list): configurable alignment + font size for sum line
+
 ## v0.9.66 (2026-05-17)
 
 - chore(backup): surface writeBackup errors and server ack in console
@@ -675,6 +680,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
