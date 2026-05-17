@@ -11,7 +11,7 @@ import { resolveAssetUrl } from '../../utils/assetUrl';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, ChevronDown } from 'lucide-react';
 import { parseValue, formatDate, toDateInputValue, toTimeInputValue, type DateOutputFormat } from './DatePickerWidget';
 import { ConfirmOverlay } from './ConfirmOverlay';
 
@@ -563,6 +563,62 @@ function StateTextCellView({ cell, index, cols, rows }: { cell: CustomCell; inde
   );
 }
 
+/** Dropdown bound to a DP — maps DP values to labels (mini enum widget per cell). */
+function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
+  const { value, setValue } = useDatapoint(cell.dpId ?? '');
+  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+  const entries = cell.entries ?? [];
+  const currentStr = value === null || value === undefined ? '' : String(value);
+  const current = entries.find((e) => e.value === currentStr);
+  const onPick = (raw: string) => {
+    if (raw === 'true')  return setValue(true);
+    if (raw === 'false') return setValue(false);
+    const n = Number(raw);
+    if (raw !== '' && Number.isFinite(n)) return setValue(n);
+    setValue(raw);
+  };
+  const showLabel = cell.showSelectedLabel === true;
+  const labelText = current?.label ?? (currentStr || '–');
+  const labelColor = current?.color;
+  return (
+    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' }}>
+      <div className="flex items-center gap-1 w-full min-w-0">
+        {showLabel && (
+          <span
+            className="truncate"
+            style={{ ...cellTextStyle(cell, 'var(--text-primary)'), color: labelColor ?? cell.color ?? 'var(--text-primary)', flex: '1 1 auto', minWidth: 0 }}
+          >
+            {labelText}
+          </span>
+        )}
+        <div className="relative inline-flex items-center" style={{ minWidth: 0, flex: showLabel ? '0 0 auto' : '1 1 auto' }}>
+          <select
+            value={current?.value ?? ''}
+            onChange={(e) => onPick(e.target.value)}
+            className="nodrag rounded-lg pl-2 pr-6 py-1 focus:outline-none appearance-none truncate w-full"
+            style={{
+              background: 'var(--app-bg)',
+              color:      cell.color || 'var(--text-primary)',
+              border:     '1px solid var(--app-border)',
+              fontSize:   cell.fontSize ? `${cell.fontSize}px` : 12,
+              fontWeight: cell.bold ? 'bold' : undefined,
+              fontStyle:  cell.italic ? 'italic' : undefined,
+              maxWidth:   '100%',
+              minWidth:   0,
+            }}
+          >
+            {!current && <option value="">–</option>}
+            {entries.map((e) => (
+              <option key={e.value} value={e.value}>{e.label || e.value}</option>
+            ))}
+          </select>
+          <ChevronDown size={12} className="absolute right-1.5 pointer-events-none" style={{ color: 'var(--text-secondary)' }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Date/time picker bound to a DP. Writes back in the configured `dateFormat`. */
 function DatePickerCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
   const { value } = useDatapoint(cell.dpId ?? '');
@@ -703,6 +759,7 @@ export function CustomGridView({ config, value, rawValue, unit, extraFields, ext
           case 'input':      return <InputCellView      key={i} cell={cell} index={i} cols={cols} rows={rows} />;
           case 'progress':   return <ProgressCellView   key={i} cell={cell} index={i} cols={cols} rows={rows} defaultDecimals={defaultDecimals} />;
           case 'state-text': return <StateTextCellView  key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+          case 'select':     return <SelectCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} />;
           default:           return <StaticCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} title={config.title} value={value} rawValue={rawValue} unit={unit} extraFields={extraFields} />;
         }
       })}

@@ -80,7 +80,7 @@ export type CustomCellType =
   | 'empty' | 'title' | 'value' | 'unit' | 'text' | 'dp' | 'field' | 'image' | 'component'
   // Interactive cell types (Universal Widget)
   | 'switch' | 'slider' | 'button' | 'icon' | 'state-icon' | 'datepicker'
-  | 'stepper' | 'input' | 'progress' | 'state-text';
+  | 'stepper' | 'input' | 'progress' | 'state-text' | 'select';
 export type CustomCellAlign  = 'left' | 'center' | 'right';
 export type CustomCellValign = 'top'  | 'middle'  | 'bottom';
 
@@ -136,6 +136,9 @@ export interface CustomCell {
   // 'state-text' type — reuses trueColor/falseColor + color/text styling
   trueText?:  string;            // 'state-text' cell: label rendered for truthy value
   falseText?: string;            // 'state-text' cell: label rendered for falsy value
+  // 'select' type — dropdown that maps DP values to labels (mini enum widget per cell)
+  entries?: { value: string; label: string; color?: string }[];  // 'select' cell: selectable value/label pairs
+  showSelectedLabel?: boolean;   // 'select' cell: render current label next to dropdown
 }
 
 /** Legacy: 9-element array, row-major (index = row*3 + col). Kept as alias for compat. */

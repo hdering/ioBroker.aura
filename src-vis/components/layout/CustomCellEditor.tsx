@@ -15,7 +15,7 @@ import { FORMAT_LABELS, type DateOutputFormat } from '../widgets/DatePickerWidge
 export const CELL_LABELS: Record<string, string> = {
   empty: '–', title: 'Titel', value: 'Wert', unit: 'Einheit', text: 'Text', dp: 'DP', field: 'Feld', component: 'Aktion',
   switch: 'Schalter', slider: 'Regler', button: 'Button', icon: 'Icon', 'state-icon': 'Status-Icon', datepicker: 'Datumswähler',
-  stepper: 'Stepper', input: 'Eingabe', progress: 'Fortschritt', 'state-text': 'Status-Text',
+  stepper: 'Stepper', input: 'Eingabe', progress: 'Fortschritt', 'state-text': 'Status-Text', select: 'Auswahl',
 };
 
 const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
@@ -290,6 +290,7 @@ export function CustomCellEditor({
           <option value="stepper">Stepper +/− (DP)</option>
           <option value="input">Eingabe (DP schreiben)</option>
           <option value="progress">Fortschrittsbalken (DP)</option>
+          <option value="select">Auswahlfeld (DP)</option>
         </select>
       </div>
 
@@ -406,8 +407,8 @@ export function CustomCellEditor({
         );
       })()}
 
-      {/* DP selector (dp / switch / slider / button / state-icon / state-text / datepicker / stepper / input / progress) */}
-      {(cell.type === 'dp' || cell.type === 'switch' || cell.type === 'slider' || cell.type === 'button' || cell.type === 'state-icon' || cell.type === 'state-text' || cell.type === 'datepicker' || cell.type === 'stepper' || cell.type === 'input' || cell.type === 'progress') && (
+      {/* DP selector (dp / switch / slider / button / state-icon / state-text / datepicker / stepper / input / progress / select) */}
+      {(cell.type === 'dp' || cell.type === 'switch' || cell.type === 'slider' || cell.type === 'button' || cell.type === 'state-icon' || cell.type === 'state-text' || cell.type === 'datepicker' || cell.type === 'stepper' || cell.type === 'input' || cell.type === 'progress' || cell.type === 'select') && (
         <div>
           <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Datenpunkt</label>
           <div className="flex gap-1">
@@ -921,6 +922,99 @@ export function CustomCellEditor({
           </div>
         </>
       )}
+
+      {/* Select: entries (value/label/color) + showSelectedLabel toggle */}
+      {cell.type === 'select' && (() => {
+        const entries = cell.entries ?? [];
+        const update = (next: NonNullable<CustomCell['entries']>) => onChange({ entries: next });
+        const patchEntry = (i: number, patch: Partial<NonNullable<CustomCell['entries']>[number]>) =>
+          update(entries.map((e, idx) => idx === i ? { ...e, ...patch } : e));
+        const addEntry = () => update([...entries, { value: String(entries.length), label: '' }]);
+        const removeEntry = (i: number) => update(entries.filter((_, idx) => idx !== i));
+        const moveEntry = (i: number, dir: -1 | 1) => {
+          const j = i + dir;
+          if (j < 0 || j >= entries.length) return;
+          const next = [...entries];
+          [next[i], next[j]] = [next[j], next[i]];
+          update(next);
+        };
+        return (
+          <>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Einträge ({entries.length})</label>
+                <button onClick={addEntry}
+                  className="text-[10px] px-2 py-1 rounded"
+                  style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}>
+                  + Neu
+                </button>
+              </div>
+              {entries.length === 0 && (
+                <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                  Bilde DP-Werte (z.B. 0, 1, 2) auf Labels ab. Beim Auswählen wird der Wert in den Datenpunkt geschrieben.
+                </p>
+              )}
+              <div className="flex flex-col gap-1">
+                {entries.map((e, i) => (
+                  <div key={i} className="flex items-center gap-1">
+                    <input
+                      type="text"
+                      value={e.value}
+                      onChange={(ev) => patchEntry(i, { value: ev.target.value })}
+                      placeholder="Wert"
+                      className="text-xs rounded-lg px-2 py-1 focus:outline-none"
+                      style={{ ...inputSty, width: 60, flexShrink: 0 }}
+                    />
+                    <input
+                      type="text"
+                      value={e.label}
+                      onChange={(ev) => patchEntry(i, { label: ev.target.value })}
+                      placeholder="Label"
+                      className="flex-1 text-xs rounded-lg px-2 py-1 focus:outline-none"
+                      style={inputSty}
+                    />
+                    <input
+                      type="color"
+                      value={e.color && e.color.startsWith('#') ? e.color : '#ffffff'}
+                      onChange={(ev) => patchEntry(i, { color: ev.target.value })}
+                      title="Farbe (optional)"
+                      className="h-7 w-7 rounded cursor-pointer border-0 p-0 shrink-0"
+                    />
+                    {e.color && (
+                      <button onClick={() => patchEntry(i, { color: undefined })}
+                        title="Farbe zurücksetzen"
+                        className="text-[10px] px-1 py-1 rounded shrink-0"
+                        style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>×</button>
+                    )}
+                    <div className="flex flex-col shrink-0">
+                      <button onClick={() => moveEntry(i, -1)} disabled={i === 0}
+                        className="text-[9px] leading-none px-1"
+                        style={{ color: 'var(--text-secondary)', opacity: i === 0 ? 0.3 : 1 }}>▲</button>
+                      <button onClick={() => moveEntry(i, 1)} disabled={i === entries.length - 1}
+                        className="text-[9px] leading-none px-1"
+                        style={{ color: 'var(--text-secondary)', opacity: i === entries.length - 1 ? 0.3 : 1 }}>▼</button>
+                    </div>
+                    <button onClick={() => removeEntry(i)}
+                      title="Eintrag löschen"
+                      className="text-[11px] px-1.5 py-1 rounded shrink-0"
+                      style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>✕</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Aktuelles Label anzeigen</label>
+              <button
+                onClick={() => onChange({ showSelectedLabel: !cell.showSelectedLabel })}
+                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                style={{ background: cell.showSelectedLabel ? 'var(--accent)' : 'var(--app-border)' }}>
+                <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                  style={{ left: cell.showSelectedLabel ? '14px' : '2px' }} />
+              </button>
+            </div>
+          </>
+        );
+      })()}
 
       {/* Datepicker: timeOnly / showTime / output format */}
       {cell.type === 'datepicker' && (() => {
