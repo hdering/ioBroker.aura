@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9.58 (2026-05-17)
+
+- feat(universal): add 'Auswahlfeld' cell type
+- docs(schalter): remove YAML example — aura uses admin UI, not config files
+
 ## v0.9.56 (2026-05-17)
 
 - docs+widgets: move Universal-Widget from Layout to Steuerung & Anzeige
@@ -646,6 +651,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 

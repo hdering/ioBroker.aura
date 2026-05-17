@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.57",
+    "version": "0.9.58",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.58": {
+        "en": "feat(universal): add 'Auswahlfeld' cell type; docs(schalter): remove YAML example — aura uses admin UI, not config files",
+        "de": "feat(universal): add 'Auswahlfeld' cell type; docs(schalter): remove YAML example — aura uses admin UI, not config files"
+      },
       "0.9.57": {
         "en": "feat(universal): new 'Auswahlfeld' cell type — DP-bound dropdown that maps values to labels (like enum widget) directly inside the Universal-Widget grid",
         "de": "feat(universal): neuer Zelltyp 'Auswahlfeld' — DP-gebundenes Dropdown, das Werte auf Labels abbildet (wie Auswahl-Widget) direkt im Universal-Widget-Raster"
