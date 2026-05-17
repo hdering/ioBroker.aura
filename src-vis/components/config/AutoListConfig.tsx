@@ -553,13 +553,49 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
           </button>
         </div>
         {opts.showSum && (
-          <div className="mt-1.5">
-            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Präfix (z.B. Σ, Summe, Gesamt)</label>
-            <input className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
-              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
-              placeholder="Σ"
-              value={opts.sumLabel ?? ''}
-              onChange={e => setOpts({ sumLabel: e.target.value || undefined })} />
+          <div className="mt-1.5 space-y-1.5">
+            <div>
+              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Präfix (z.B. Σ, Summe, Gesamt)</label>
+              <input className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
+                style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                placeholder="Σ"
+                value={opts.sumLabel ?? ''}
+                onChange={e => setOpts({ sumLabel: e.target.value || undefined })} />
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              <div>
+                <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Ausrichtung</label>
+                <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+                  {(['left', 'center', 'right'] as const).map((v) => {
+                    const lbl = v === 'left' ? 'Links' : v === 'center' ? 'Mitte' : 'Rechts';
+                    const active = (opts.sumAlign ?? 'left') === v;
+                    return (
+                      <button key={v} onClick={() => setOpts({ sumAlign: v === 'left' ? undefined : v })}
+                        className="flex-1 text-[10px] py-1 transition-colors"
+                        style={{
+                          background: active ? 'var(--accent)' : 'var(--app-bg)',
+                          color: active ? '#fff' : 'var(--text-secondary)',
+                          borderRight: v !== 'right' ? '1px solid var(--app-border)' : undefined,
+                        }}>
+                        {lbl}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Schriftgröße (px)</label>
+                <input type="number" min={8} max={48}
+                  className="w-full text-[10px] rounded px-2 py-1 focus:outline-none tabular-nums"
+                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                  placeholder="10"
+                  value={opts.sumFontSize ?? ''}
+                  onChange={e => {
+                    const n = parseInt(e.target.value, 10);
+                    setOpts({ sumFontSize: isFinite(n) && n > 0 ? n : undefined });
+                  }} />
+              </div>
+            </div>
           </div>
         )}
       </div>

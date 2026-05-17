@@ -73,6 +73,10 @@ export interface StaticListOptions {
   showSum?: boolean;
   /** Prefix label for the sum line (default 'Σ'). */
   sumLabel?: string;
+  /** Text alignment of the sum line. Default 'left' (inherits titleAlign feel). */
+  sumAlign?: 'left' | 'center' | 'right';
+  /** Font size of the sum line in px. Default 10. */
+  sumFontSize?: number;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -493,8 +497,13 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
             </p>
           )}
           {opts.showSum && sumInfo && (
-            <p className="text-[10px] tabular-nums truncate"
-              style={{ color: 'var(--text-secondary)', opacity: 0.75, textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+            <p className="tabular-nums truncate"
+              style={{
+                color: 'var(--text-secondary)',
+                opacity: 0.75,
+                textAlign: (opts.sumAlign ?? 'left') as React.CSSProperties['textAlign'],
+                fontSize: `${opts.sumFontSize ?? 10}px`,
+              }}>
               {(opts.sumLabel ?? 'Σ')} {formatNum(sumInfo.sum, defaultDecimals)}{sumInfo.unit ? ' ' + sumInfo.unit : ''}
             </p>
           )}

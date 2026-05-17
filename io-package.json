@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.66",
+    "version": "0.9.67",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.67": {
+        "en": "feat(list): static/dynamic list sum — configurable alignment (left/center/right) and font size",
+        "de": "feat(list): Statische/Dynamische Liste Summe — Ausrichtung (links/mitte/rechts) und Schriftgröße konfigurierbar"
+      },
       "0.9.66": {
         "en": "chore(backup): surface writeBackup errors and server ack in console",
         "de": "chore(backup): surface writeBackup errors and server ack in console"
