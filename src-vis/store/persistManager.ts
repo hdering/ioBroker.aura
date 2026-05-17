@@ -1,5 +1,8 @@
 import type { StateStorage } from 'zustand/middleware';
-import { setStateDirect, getStateDirect, getSocket } from '../hooks/useIoBroker';
+import {
+  setStateDirect, getStateDirect,
+  writeFileDirect, readFileDirect, readDirDirect, deleteFileDirect,
+} from '../hooks/useIoBroker';
 
 // Each localStorage key maps to its own ioBroker state (no more single blob).
 // aura.0 prefix is consistent with the rest of the codebase.
@@ -16,9 +19,25 @@ export const IOBROKER_STATE_MAP = {
 export type SyncStoreKey = keyof typeof IOBROKER_STATE_MAP;
 const SYNC_STORE_KEYS = Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[];
 
+// Legacy single-state DP. Kept for one-time migration; new backups go to files.
 const IOBROKER_BACKUP_KEY = 'aura.0.config.dashboard_backup';
 
+// File-based backup storage. Each backup is its own JSON file under
+// aura.0:backups/. Filename = ISO-Timestamp → sortable + readable.
+const ADAPTER_NAMESPACE = 'aura.0';
+export const BACKUP_FILES_DIR = 'backups';
+const BACKUP_FILE_PREFIX = 'backup-';
+const BACKUP_FILE_SUFFIX = '.json';
+
 export const BACKUP_TS_KEY = '_ts';
+
+function tsToFilename(ts: string): string {
+  return `${BACKUP_FILE_PREFIX}${ts.replace(/[:.]/g, '-')}${BACKUP_FILE_SUFFIX}`;
+}
+
+export function isBackupFile(name: string): boolean {
+  return name.startsWith(BACKUP_FILE_PREFIX) && name.endsWith(BACKUP_FILE_SUFFIX);
+}
 
 // Persistent flag in localStorage marking a key as having unsaved edits.
 // Survives F5 so loadConfigFromIoBroker can avoid overwriting unsaved work.
@@ -155,55 +174,114 @@ function getRaw(key: SyncStoreKey): string | null {
   return localStorage.getItem(key) ?? null;
 }
 
-async function writeBackup(): Promise<void> {
+function buildBackupEntry(): Record<string, unknown> {
+  const entry: Record<string, unknown> = { [BACKUP_TS_KEY]: new Date().toISOString() };
+  SYNC_STORE_KEYS.forEach((key) => {
+    if (key !== 'aura-group-defs') entry[key] = getRaw(key);
+  });
+  return entry;
+}
+
+// One-time migration from the legacy single-state backup blob to per-file
+// backups. Runs at most once per page load (guarded by legacyMigrationDone)
+// and is invoked from writeBackup and loadBackupFiles. Idempotent: if the
+// legacy state is empty, returns immediately.
+let legacyMigrationDone = false;
+export async function migrateLegacyBackupState(): Promise<void> {
+  if (legacyMigrationDone) return;
+  legacyMigrationDone = true;
   try {
     const state = await getStateDirect(IOBROKER_BACKUP_KEY);
-    let backups: Array<Record<string, unknown>> = [];
-    let historyDropped = false;
-    if (state?.val) {
-      const raw = String(state.val);
-      if (raw.length < 5_000_000) {
-        try {
-          const parsed = JSON.parse(raw) as Record<string, unknown>;
-          if (Array.isArray(parsed.backups)) {
-            backups = (parsed.backups as Array<Record<string, unknown>>).map((e) => {
-              const { 'aura-group-defs': _gd, ...rest } = e;
-              return rest;
-            });
-          } else if (parsed[BACKUP_TS_KEY]) {
-            const { 'aura-group-defs': _gd, ...rest } = parsed;
-            backups = [rest];
-          }
-        } catch (parseErr) {
-          console.warn('[aura backup] existing backup state unparseable – starting fresh', parseErr);
-        }
-      } else {
-        historyDropped = true;
-        console.warn(`[aura backup] existing backup state too large (${raw.length} bytes) – dropping history, keeping only new entry`);
+    if (!state?.val) return;
+    const raw = String(state.val);
+    if (raw.length < 3) return;
+    let entries: Array<Record<string, unknown>> = [];
+    try {
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      if (Array.isArray(parsed.backups)) entries = parsed.backups as Array<Record<string, unknown>>;
+      else if (parsed[BACKUP_TS_KEY]) entries = [parsed];
+    } catch {
+      console.warn('[aura backup] legacy state unparseable – skipping migration');
+      return;
+    }
+    if (entries.length === 0) return;
+    console.info(`[aura backup] migrating ${entries.length} entries from legacy state to files`);
+    for (const e of entries) {
+      const ts = String(e[BACKUP_TS_KEY] ?? new Date().toISOString());
+      const filename = `${BACKUP_FILES_DIR}/${tsToFilename(ts)}`;
+      try {
+        await writeFileDirect(ADAPTER_NAMESPACE, filename, JSON.stringify(e));
+      } catch (writeErr) {
+        console.warn(`[aura backup] could not migrate entry ${ts}`, writeErr);
       }
     }
-    // Collect current values for backup (exclude group-defs — too large)
-    const entry: Record<string, unknown> = { [BACKUP_TS_KEY]: new Date().toISOString() };
-    SYNC_STORE_KEYS.forEach((key) => {
-      if (key !== 'aura-group-defs') entry[key] = getRaw(key);
-    });
-    backups = [entry, ...backups].slice(0, maxBackups);
-    const payload = JSON.stringify({ backups });
-    console.info(`[aura backup] writing ${backups.length} entries (${payload.length} bytes)${historyDropped ? ' [history dropped]' : ''}`);
-    // Use socket with ack callback so we surface server-side rejections
-    // (size limit, permission, disconnected) — setStateDirect is fire-and-forget.
-    try {
-      getSocket().emit('setState', IOBROKER_BACKUP_KEY, { val: payload, ack: true }, (err: unknown) => {
-        if (err) console.error('[aura backup] setState rejected by server', err);
-        else console.info('[aura backup] write acknowledged by server');
-      });
-    } catch (emitErr) {
-      console.error('[aura backup] emit threw – socket unavailable?', emitErr);
-      // Fallback: legacy fire-and-forget path
-      setStateDirect(IOBROKER_BACKUP_KEY, payload, true);
-    }
+    // Clear legacy state – frees ~1-2 MB in ioBroker objectsDB.
+    setStateDirect(IOBROKER_BACKUP_KEY, '', true);
+    console.info('[aura backup] legacy state cleared');
+  } catch (err) {
+    console.warn('[aura backup] legacy migration failed', err);
+  }
+}
+
+async function pruneOldBackups(): Promise<number> {
+  const files = await readDirDirect(ADAPTER_NAMESPACE, BACKUP_FILES_DIR);
+  const backupFiles = files
+    .filter((f) => !f.isDir && isBackupFile(f.file))
+    // Filename is ISO-timestamp → newest sorts last alphabetically, reverse it.
+    .sort((a, b) => b.file.localeCompare(a.file));
+  if (backupFiles.length <= maxBackups) return 0;
+  const toDelete = backupFiles.slice(maxBackups);
+  for (const f of toDelete) {
+    await deleteFileDirect(ADAPTER_NAMESPACE, `${BACKUP_FILES_DIR}/${f.file}`);
+  }
+  return toDelete.length;
+}
+
+async function writeBackup(): Promise<void> {
+  try {
+    await migrateLegacyBackupState();
+    const entry = buildBackupEntry();
+    const ts = String(entry[BACKUP_TS_KEY]);
+    const filename = `${BACKUP_FILES_DIR}/${tsToFilename(ts)}`;
+    const payload = JSON.stringify(entry);
+    console.info(`[aura backup] writing ${filename} (${payload.length} bytes)`);
+    await writeFileDirect(ADAPTER_NAMESPACE, filename, payload);
+    console.info('[aura backup] write acknowledged');
+    const pruned = await pruneOldBackups();
+    if (pruned > 0) console.info(`[aura backup] pruned ${pruned} old backup file(s) (cap ${maxBackups})`);
   } catch (err) {
     console.error('[aura backup] write failed', err);
+  }
+}
+
+export interface BackupFileEntry {
+  ts: string;
+  filename: string;
+  size: number;
+}
+
+// Returns metadata only — payloads are fetched on demand in loadBackupPayload.
+export async function listBackupFiles(): Promise<BackupFileEntry[]> {
+  await migrateLegacyBackupState();
+  const files = await readDirDirect(ADAPTER_NAMESPACE, BACKUP_FILES_DIR);
+  return files
+    .filter((f) => !f.isDir && isBackupFile(f.file))
+    .sort((a, b) => b.file.localeCompare(a.file))
+    .map((f) => {
+      const stem = f.file.slice(BACKUP_FILE_PREFIX.length, -BACKUP_FILE_SUFFIX.length);
+      // Reverse tsToFilename: 2026-05-17T14-23-11-456Z → 2026-05-17T14:23:11.456Z
+      const ts = stem.replace(/^(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z$/, '$1-$2-$3T$4:$5:$6.$7Z');
+      return { ts, filename: f.file, size: f.size };
+    });
+}
+
+export async function loadBackupPayload(filename: string): Promise<Record<string, unknown> | null> {
+  const raw = await readFileDirect(ADAPTER_NAMESPACE, `${BACKUP_FILES_DIR}/${filename}`);
+  if (!raw) return null;
+  try { return JSON.parse(raw) as Record<string, unknown>; }
+  catch (err) {
+    console.warn(`[aura backup] could not parse ${filename}`, err);
+    return null;
   }
 }
 

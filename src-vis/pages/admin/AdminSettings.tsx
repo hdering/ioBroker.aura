@@ -9,7 +9,10 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 
 import { applyRaw, rehydrateAll } from '../../utils/configLoader';
 import { getObjectViewDirect, getStateDirect, setStateDirect } from '../../hooks/useIoBroker';
-import { saveAll, saveToIoBroker, BACKUP_TS_KEY } from '../../store/persistManager';
+import {
+  saveAll, saveToIoBroker,
+  listBackupFiles, loadBackupPayload, type BackupFileEntry,
+} from '../../store/persistManager';
 import { Eye, EyeOff, AlertTriangle, RefreshCw, Tablet, Edit3, Check, X, Trash2, History } from 'lucide-react';
 import { useT } from '../../i18n';
 import { BrowserThemeSyncSection } from './layouts/sections/BrowserThemeSyncSection';
@@ -50,17 +53,17 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 
 const BACKUP_SYNC_KEYS = ['aura-dashboard', 'aura-theme', 'aura-groups', 'aura-config', 'aura-global-settings', 'aura-group-defs'] as const;
 
-interface BackupEntry { ts: string; payload: Record<string, unknown>; }
+interface BackupEntry { ts: string; filename: string; size: number; }
 
 function fmtTs(iso: string): string {
   try { return new Intl.DateTimeFormat(undefined, { dateStyle: 'short', timeStyle: 'medium' }).format(new Date(iso)); }
   catch { return iso; }
 }
 
-function applyBackupEntry(entry: BackupEntry): boolean {
+function applyBackupPayload(payload: Record<string, unknown>): boolean {
   let changed = false;
   BACKUP_SYNC_KEYS.forEach((key) => {
-    const val = entry.payload[key];
+    const val = payload[key];
     if (!val) return;
     const str = typeof val === 'string' ? val : JSON.stringify(val);
     if (str.length < 3) return;
@@ -86,20 +89,8 @@ function BackupCard() {
   const loadBackups = useCallback(async () => {
     setLoading(true);
     try {
-      const state = await getStateDirect('aura.0.config.dashboard_backup');
-      if (state?.val) {
-        const parsed = JSON.parse(String(state.val)) as Record<string, unknown>;
-        if (Array.isArray(parsed.backups)) {
-          setBackups((parsed.backups as Array<Record<string, unknown>>).map((b) => ({
-            ts: String(b[BACKUP_TS_KEY] ?? ''),
-            payload: b,
-          })));
-        } else if (parsed[BACKUP_TS_KEY]) {
-          setBackups([{ ts: String(parsed[BACKUP_TS_KEY]), payload: parsed }]);
-        } else {
-          setBackups([]);
-        }
-      } else { setBackups([]); }
+      const files: BackupFileEntry[] = await listBackupFiles();
+      setBackups(files.map((f) => ({ ts: f.ts, filename: f.filename, size: f.size })));
     } catch { setBackups([]); }
     finally { setLoading(false); }
   }, []);
@@ -113,7 +104,9 @@ function BackupCard() {
     try {
       const entry = backups[idx];
       if (!entry) { setStatus('nodata'); return; }
-      const ok = applyBackupEntry(entry);
+      const payload = await loadBackupPayload(entry.filename);
+      if (!payload) { setStatus('nodata'); return; }
+      const ok = applyBackupPayload(payload);
       setStatus(ok ? 'success' : 'nodata');
     } catch { setStatus('error'); }
     finally { setRestoringIdx(null); }

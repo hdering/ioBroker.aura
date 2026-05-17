@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9.74 (2026-05-17)
+
+- fix(backup): store auto-backups as files under `aura.0:backups/` instead of a single state — bypasses the 1 MB socket frame limit that caused saves to be silently dropped on large dashboards
+- chore(backup): one-time migration of existing `aura.0.config.dashboard_backup` blob into per-file backups on first save after upgrade
+
 ## v0.9.69 (2026-05-17)
 
 - fix(fill): center horizontal battery silhouette in viewBox

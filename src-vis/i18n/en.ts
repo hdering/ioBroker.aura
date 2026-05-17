@@ -155,7 +155,7 @@ export const en: Record<TranslationKey, string> = {
   'settings.backup.invalidFile': 'Invalid backup file',
 
   'settings.autobackup.title':          'Automatic Backup',
-  'settings.autobackup.description':    'Written to ioBroker on every save (aura.0.config.dashboard_backup).',
+  'settings.autobackup.description':    'Written as a file to aura.0:backups/ on every save.',
   'settings.autobackup.lastBackup':     'Last backup',
   'settings.autobackup.noBackup':       'No backup yet',
   'settings.autobackup.restore':        'Restore from backup',

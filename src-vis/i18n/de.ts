@@ -153,7 +153,7 @@ export const de = {
   'settings.backup.invalidFile': 'Ungültige Backup-Datei',
 
   'settings.autobackup.title':          'Automatisches Backup',
-  'settings.autobackup.description':    'Wird bei jedem Speichern in ioBroker geschrieben (aura.0.config.dashboard_backup).',
+  'settings.autobackup.description':    'Wird bei jedem Speichern als Datei unter aura.0:backups/ abgelegt.',
   'settings.autobackup.lastBackup':     'Letztes Backup',
   'settings.autobackup.noBackup':       'Noch kein Backup vorhanden',
   'settings.autobackup.restore':        'Aus Backup wiederherstellen',

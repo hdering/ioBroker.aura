@@ -312,6 +312,68 @@ export function deleteObjectDirect(id: string): Promise<void> {
   });
 }
 
+// ── ioBroker Files API ────────────────────────────────────────────────────
+// Files live under <adapter-namespace>/<filename> and bypass the per-state
+// socket frame size limit. Used by the auto-backup system.
+
+export interface IoBrokerFileEntry {
+  file: string;
+  size: number;
+  isDir: boolean;
+  modifiedAt: number; // unix ms, 0 if unknown
+}
+
+export function writeFileDirect(adapter: string, filename: string, data: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    getSocket().emit('writeFile', adapter, filename, data, (err: unknown) => {
+      if (err) reject(err); else resolve();
+    });
+  });
+}
+
+export function readFileDirect(adapter: string, filename: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    getSocket().emit('readFile', adapter, filename, (err: unknown, data: unknown) => {
+      if (err || data == null) { resolve(null); return; }
+      // ioBroker may return Buffer-like {type:'Buffer', data:[...]}, a string, or base64
+      if (typeof data === 'string') resolve(data);
+      else if (data && typeof data === 'object' && 'data' in (data as Record<string, unknown>)) {
+        try {
+          const arr = (data as { data: number[] }).data;
+          resolve(new TextDecoder().decode(new Uint8Array(arr)));
+        } catch { resolve(null); }
+      } else { resolve(null); }
+    });
+  });
+}
+
+export function readDirDirect(adapter: string, path: string): Promise<IoBrokerFileEntry[]> {
+  return new Promise((resolve) => {
+    getSocket().emit('readDir', adapter, path, (err: unknown, files: unknown) => {
+      if (err || !Array.isArray(files)) { resolve([]); return; }
+      const out: IoBrokerFileEntry[] = [];
+      for (const f of files as Array<Record<string, unknown>>) {
+        const name = String(f.file ?? '');
+        if (!name) continue;
+        const stats = (f.stats as Record<string, unknown> | undefined) ?? {};
+        out.push({
+          file: name,
+          size: Number(stats.size ?? 0),
+          isDir: Boolean(f.isDir),
+          modifiedAt: Number(stats.mtimeMs ?? stats.ctimeMs ?? 0),
+        });
+      }
+      resolve(out);
+    });
+  });
+}
+
+export function deleteFileDirect(adapter: string, filename: string): Promise<void> {
+  return new Promise((resolve) => {
+    getSocket().emit('deleteFile', adapter, filename, (_err: unknown) => resolve());
+  });
+}
+
 /** Returns the configured customUrl from the aura adapter instance, or window.location.origin. */
 export async function getAuraBaseUrl(): Promise<string> {
   try {
