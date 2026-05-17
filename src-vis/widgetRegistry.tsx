@@ -14,7 +14,7 @@ import {
   Zap, TrendingUp, SlidersHorizontal, Thermometer, BarChart2, List,
   Clock, CalendarDays, Heading2, Layers2, Cloud, Gauge, Camera, ImageIcon, MonitorDot, Droplets, Truck, AlignJustify, Table2,
   DoorOpen, ShieldAlert, ToggleRight, LineChart, Code2, CalendarClock, Music, CalendarCheck2, Tag, Globe, MousePointerClick, Wind,
-  LayoutGrid, ListChecks, Lightbulb, GalleryHorizontal,
+  LayoutGrid, ListChecks, Lightbulb, /* GalleryHorizontal — re-import when carousel is re-enabled */
   type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -407,15 +407,18 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     mock: { t: 'LED-Strip', v: 'Aus' },
     hint: 'RGB / CCT / Dimmer in einem Widget – Helligkeit, Farbe, Lichtwärme, Effekte (Hue, HmIP, generisch)',
   },
-  {
-    type: 'carousel',
-    label: 'Karussell',            shortLabel: 'Karussell',
-    Icon: GalleryHorizontal,       iconName: 'GalleryHorizontal', color: '#ec4899',
-    defaultW: 12,                  defaultH: 6,
-    addMode: 'free',               widgetGroup: 'layout',
-    mock: { t: 'Karussell', v: '' },
-    hint: 'Mehrere Widgets als swipebare Slides – Wischen, Pagination-Dots und Pfeil-Buttons',
-  },
+  // Carousel widget disabled — not yet ready for production use.
+  // Re-enable by uncommenting; all supporting code (widgetMap, types, i18n,
+  // option editor, persistence) is still in place.
+  // {
+  //   type: 'carousel',
+  //   label: 'Karussell',            shortLabel: 'Karussell',
+  //   Icon: GalleryHorizontal,       iconName: 'GalleryHorizontal', color: '#ec4899',
+  //   defaultW: 12,                  defaultH: 6,
+  //   addMode: 'free',               widgetGroup: 'layout',
+  //   mock: { t: 'Karussell', v: '' },
+  //   hint: 'Mehrere Widgets als swipebare Slides – Wischen, Pagination-Dots und Pfeil-Buttons',
+  // },
 ];
 
 /** Fast lookup by type */
