@@ -1,5 +1,5 @@
 import type { StateStorage } from 'zustand/middleware';
-import { setStateDirect, getStateDirect } from '../hooks/useIoBroker';
+import { setStateDirect, getStateDirect, getSocket } from '../hooks/useIoBroker';
 
 // Each localStorage key maps to its own ioBroker state (no more single blob).
 // aura.0 prefix is consistent with the rest of the codebase.
@@ -159,6 +159,7 @@ async function writeBackup(): Promise<void> {
   try {
     const state = await getStateDirect(IOBROKER_BACKUP_KEY);
     let backups: Array<Record<string, unknown>> = [];
+    let historyDropped = false;
     if (state?.val) {
       const raw = String(state.val);
       if (raw.length < 5_000_000) {
@@ -173,7 +174,12 @@ async function writeBackup(): Promise<void> {
             const { 'aura-group-defs': _gd, ...rest } = parsed;
             backups = [rest];
           }
-        } catch { /* start fresh */ }
+        } catch (parseErr) {
+          console.warn('[aura backup] existing backup state unparseable – starting fresh', parseErr);
+        }
+      } else {
+        historyDropped = true;
+        console.warn(`[aura backup] existing backup state too large (${raw.length} bytes) – dropping history, keeping only new entry`);
       }
     }
     // Collect current values for backup (exclude group-defs — too large)
@@ -182,8 +188,23 @@ async function writeBackup(): Promise<void> {
       if (key !== 'aura-group-defs') entry[key] = getRaw(key);
     });
     backups = [entry, ...backups].slice(0, maxBackups);
-    setStateDirect(IOBROKER_BACKUP_KEY, JSON.stringify({ backups }), true);
-  } catch { /* socket not connected – silently skip */ }
+    const payload = JSON.stringify({ backups });
+    console.info(`[aura backup] writing ${backups.length} entries (${payload.length} bytes)${historyDropped ? ' [history dropped]' : ''}`);
+    // Use socket with ack callback so we surface server-side rejections
+    // (size limit, permission, disconnected) — setStateDirect is fire-and-forget.
+    try {
+      getSocket().emit('setState', IOBROKER_BACKUP_KEY, { val: payload, ack: true }, (err: unknown) => {
+        if (err) console.error('[aura backup] setState rejected by server', err);
+        else console.info('[aura backup] write acknowledged by server');
+      });
+    } catch (emitErr) {
+      console.error('[aura backup] emit threw – socket unavailable?', emitErr);
+      // Fallback: legacy fire-and-forget path
+      setStateDirect(IOBROKER_BACKUP_KEY, payload, true);
+    }
+  } catch (err) {
+    console.error('[aura backup] write failed', err);
+  }
 }
 
 /**

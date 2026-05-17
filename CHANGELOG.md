@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.65 (2026-05-17)
+
+- chore(backup): log writeBackup events + server ack to browser console for diagnostics
+
 ## v0.9.64 (2026-05-17)
 
 - feat(list): show sum of numeric values in static/dynamic list
