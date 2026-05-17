@@ -3,7 +3,7 @@ import { useConfigSync } from '../../hooks/useConfigSync';
 import { version as appVersion } from '../../../package.json';
 import { PortalTargetContext, PortalThemeContext } from '../../contexts/PortalTargetContext';
 import { Navigate, Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Settings, LogOut, PenSquare, Save, Undo2, Layers, Layers2, Sun, Moon, ExternalLink, Menu, X, AppWindow } from 'lucide-react';
+import { LayoutDashboard, Settings, LogOut, PenSquare, Save, Undo2, Layers, Layers2, Sun, Moon, ExternalLink, Menu, X, AppWindow, BookOpen } from 'lucide-react';
 import { useAuthStore, logout } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
 import { getTheme, ADMIN_DARK_THEME } from '../../themes';
@@ -298,6 +298,11 @@ export function AdminLayout() {
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium opacity-60 hover:opacity-100 transition-opacity"
             style={{ color: 'var(--text-primary)' }}>
             <ExternalLink size={17} /> {t('admin.nav.openFrontend')}
+          </a>
+          <a href="https://hdering.github.io/ioBroker.aura/" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium opacity-60 hover:opacity-100 transition-opacity"
+            style={{ color: 'var(--text-primary)' }}>
+            <BookOpen size={17} /> {t('admin.nav.docs')}
           </a>
           <button onClick={logout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium opacity-60 hover:opacity-100 transition-opacity"

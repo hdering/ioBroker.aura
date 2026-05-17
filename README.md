@@ -2,6 +2,8 @@
 
 **Aura** is a modern visualization dashboard for [ioBroker](https://www.iobroker.net/).
 
+📖 **[Documentation](https://hdering.github.io/ioBroker.aura/)** – widgets, settings, screenshots
+
 > **Beta** – The project is under active development. Bugs and breaking changes are possible.
 
 ---

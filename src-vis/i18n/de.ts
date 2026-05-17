@@ -36,6 +36,7 @@ export const de = {
   'admin.nav.theme':        'Theme & CSS',
   'admin.nav.settings':     'Einstellungen',
   'admin.nav.openFrontend': 'Frontend öffnen',
+  'admin.nav.docs':         'Dokumentation',
   'admin.nav.logout':       'Abmelden',
   'admin.nav.lightMode':    'Hell-Modus',
   'admin.nav.darkMode':     'Dunkel-Modus',

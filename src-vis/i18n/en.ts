@@ -38,6 +38,7 @@ export const en: Record<TranslationKey, string> = {
   'admin.nav.theme':        'Theme & CSS',
   'admin.nav.settings':     'Settings',
   'admin.nav.openFrontend': 'Open Frontend',
+  'admin.nav.docs':         'Documentation',
   'admin.nav.logout':       'Logout',
   'admin.nav.lightMode':    'Light Mode',
   'admin.nav.darkMode':     'Dark Mode',
