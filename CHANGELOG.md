@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.60 (2026-05-17)
+
+- feat(json-table): add image column type
+
 ## v0.9.58 (2026-05-17)
 
 - feat(universal): add 'Auswahlfeld' cell type
@@ -651,6 +655,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
