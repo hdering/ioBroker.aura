@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.55",
+    "version": "0.9.56",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.56": {
+        "en": "docs+widgets: move Universal-Widget from Layout to Steuerung & Anzeige; docs(widgets): list all widget types — Schalter linked, rest 'geplant'; docs: link documentation in README and admin sidebar; docs(schalter): balanced style — short prose + tables + one example; docs(schalter): strip prose, tables-only style; ci: auto-enable GitHub Pages in docs workflow; chore: ignore VitePress cache and dist; docs: add VitePress site with Schalter widget page",
+        "de": "docs+widgets: move Universal-Widget from Layout to Steuerung & Anzeige; docs(widgets): list all widget types — Schalter linked, rest 'geplant'; docs: link documentation in README and admin sidebar; docs(schalter): balanced style — short prose + tables + one example; docs(schalter): strip prose, tables-only style; ci: auto-enable GitHub Pages in docs workflow; chore: ignore VitePress cache and dist; docs: add VitePress site with Schalter widget page"
+      },
       "0.9.55": {
         "en": "fix(universal): confirm popup inherits anchor theme (v0.9.54); fix(universal): switch-cell confirm as small popup near the button (v0.9.53)",
         "de": "fix(universal): confirm popup inherits anchor theme (v0.9.54); fix(universal): switch-cell confirm as small popup near the button (v0.9.53)"

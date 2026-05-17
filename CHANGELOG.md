@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.9.56 (2026-05-17)
+
+- docs+widgets: move Universal-Widget from Layout to Steuerung & Anzeige
+- docs(widgets): list all widget types — Schalter linked, rest 'geplant'
+- docs: link documentation in README and admin sidebar
+- docs(schalter): balanced style — short prose + tables + one example
+- docs(schalter): strip prose, tables-only style
+- ci: auto-enable GitHub Pages in docs workflow
+- chore: ignore VitePress cache and dist
+- docs: add VitePress site with Schalter widget page
+
 ## v0.9.55 (2026-05-16)
 
 - fix(universal): confirm popup inherits anchor theme (v0.9.54)
@@ -635,6 +646,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 

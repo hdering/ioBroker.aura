@@ -186,6 +186,17 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.56 (2026-05-17)
+- docs+widgets: move Universal-Widget from Layout to Steuerung & Anzeige
+- docs(widgets): list all widget types — Schalter linked, rest 'geplant'
+- docs: link documentation in README and admin sidebar
+- docs(schalter): balanced style — short prose + tables + one example
+- docs(schalter): strip prose, tables-only style
+- ci: auto-enable GitHub Pages in docs workflow
+- chore: ignore VitePress cache and dist
+- docs: add VitePress site with Schalter widget page
+
+
 ### 0.9.55 (2026-05-16)
 - fix(universal): confirm popup inherits anchor theme (v0.9.54)
 - fix(universal): switch-cell confirm as small popup near the button (v0.9.53)
@@ -1420,6 +1431,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
