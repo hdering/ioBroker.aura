@@ -485,12 +485,33 @@ export function autoDetectLightDps(
   const parent   = parts.slice(0, -1).join('.');
   const parentUp = parts.slice(0, -2).join('.');
   const sibs   = entries.filter((e) => e.id.startsWith(parent + '.'));
-  const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.') && !e.id.startsWith(parent + '.'));
+  // Only consult sibling channels (parentUp scope) when parentUp is below the
+  // adapter-instance level (≥ 3 segments). For HmIP-style mainDp like
+  // `hm-rpc.0.DEVICE.1.LEVEL` this is `hm-rpc.0.DEVICE` (the device) → valid.
+  // For zigbee/hue-style mainDp like `zigbee.0.DEVICE.brightness` this would be
+  // `zigbee.0` (the adapter instance), which would let auto-detect cross into
+  // OTHER devices — disable that scope.
+  const sibsUp = parentUp.split('.').length >= 3
+    ? entries.filter((e) => e.id.startsWith(parentUp + '.') && !e.id.startsWith(parent + '.'))
+    : [];
 
-  // Find a sibling by exact-name match in same channel
-  const findByName = (names: readonly string[]): string | undefined =>
-    names.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
-  // Find by name in any sibling channel (last segment matches)
+  // Find a sibling DP by name: first as a direct child of parent (exact match,
+  // preserves prior priority), then anywhere in the parent's subtree by
+  // last-segment match (covers zigbee's `color_hs.hue`, `color_rgb.r`, …).
+  const findByName = (names: readonly string[]): string | undefined => {
+    for (const n of names) {
+      const hit = sibs.find((e) => e.id === `${parent}.${n}`);
+      if (hit) return hit.id;
+    }
+    for (const e of sibs) {
+      const last = e.id.split('.').pop() ?? '';
+      if (names.includes(last) && e.id !== mainDpId) return e.id;
+    }
+    return undefined;
+  };
+  // Find by name in any sibling channel (last segment matches). sibsUp is
+  // empty for adapter-instance-level parentUp, so this only fires for
+  // HmIP-style structures.
   const findByNameCross = (names: readonly string[]): string | undefined => {
     for (const e of sibsUp) {
       const last = e.id.split('.').pop() ?? '';
