@@ -69,6 +69,10 @@ export interface StaticListOptions {
   publishCount?: boolean;
   /** Backend display filter — independent from frontend valueFilter. Default 'all'. */
   backendValueFilter?: 'all' | 'active' | 'inactive';
+  /** Show sum of numeric values from visible entries below the title. */
+  showSum?: boolean;
+  /** Prefix label for the sum line (default 'Σ'). */
+  sumLabel?: string;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -415,6 +419,23 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     publishListCount(config.id, config.title || 'Statische Liste', viewCount);
   }, [opts.publishCount, viewCount, config.id, config.title]);
 
+  // Sum of numeric values from visible entries (single shared unit assumed —
+  // first encountered unit wins; entries with non-numeric values are skipped).
+  const sumInfo = useMemo(() => {
+    if (!opts.showSum) return null;
+    let sum = 0;
+    let unit: string | undefined;
+    let count = 0;
+    for (const e of visibleEntries) {
+      const v = states[e.id]?.val;
+      if (typeof v !== 'number' || !isFinite(v)) continue;
+      sum += v;
+      count++;
+      if (unit === undefined && e.unit) unit = e.unit;
+    }
+    return count > 0 ? { sum, unit, count } : null;
+  }, [opts.showSum, visibleEntries, states]);
+
   useEffect(() => {
     if (opts.publishCount) return;
     unpublishList(config.id).catch(() => { /* ignore */ });
@@ -455,21 +476,29 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const HeaderIcon = getWidgetIcon(o.icon as string | undefined, List);
 
   // ── Shared header ──────────────────────────────────────────────────────────
-  const header = (showTitle || showIcon) ? (
+  const header = (showTitle || showIcon || (opts.showSum && sumInfo)) ? (
     <div className="shrink-0 flex items-center justify-between py-1.5"
       style={{ borderBottom: '1px solid var(--widget-border)' }}>
       <div className="flex items-center gap-1.5 min-w-0 flex-1">
         {showIcon && <HeaderIcon size={iconSize} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
-        {showTitle && (
-          <p className="text-xs font-semibold truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
-            {config.title || 'Statische Liste'}
-            {showCount && entries.length > 0 && (
-              <span className="ml-1 opacity-50">
-                ({valueFilter !== 'all' ? `${visibleEntries.length}/` : ''}{entries.length})
-              </span>
-            )}
-          </p>
-        )}
+        <div className="flex-1 min-w-0">
+          {showTitle && (
+            <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+              {config.title || 'Statische Liste'}
+              {showCount && entries.length > 0 && (
+                <span className="ml-1 opacity-50">
+                  ({valueFilter !== 'all' ? `${visibleEntries.length}/` : ''}{entries.length})
+                </span>
+              )}
+            </p>
+          )}
+          {opts.showSum && sumInfo && (
+            <p className="text-[10px] tabular-nums truncate"
+              style={{ color: 'var(--text-secondary)', opacity: 0.75, textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+              {(opts.sumLabel ?? 'Σ')} {formatNum(sumInfo.sum, defaultDecimals)}{sumInfo.unit ? ' ' + sumInfo.unit : ''}
+            </p>
+          )}
+        </div>
       </div>
       <div className="relative shrink-0">
         <button
