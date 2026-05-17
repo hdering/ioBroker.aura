@@ -61,17 +61,17 @@ export function cloneGroupDef(sourceDefId: string): string {
 
 function cloneChildren(children: WidgetConfig[]): WidgetConfig[] {
   return children.map((child) => {
-    if (child.type === 'group' && child.options?.defId) {
+    if ((child.type === 'group' || child.type === 'carousel') && child.options?.defId) {
       return { ...child, options: { ...child.options, defId: cloneGroupDef(child.options.defId as string) } };
     }
     return child;
   });
 }
 
-/** Collect all defIds reachable from a widget list (recursively follows nested groups). */
+/** Collect all defIds reachable from a widget list (recursively follows nested groups/carousels). */
 function collectDefIds(widgets: WidgetConfig[], defs: Record<string, WidgetConfig[]>, out: Set<string>): void {
   for (const w of widgets) {
-    if (w.type === 'group' && w.options?.defId) {
+    if ((w.type === 'group' || w.type === 'carousel') && w.options?.defId) {
       const defId = w.options.defId as string;
       if (!out.has(defId)) {
         out.add(defId);

@@ -17,6 +17,7 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
     case 'echartsPreset':
     case 'chips':
     case 'group':
+    case 'carousel':
     case 'trash':
     case 'trashSchedule':
       return ['default'];

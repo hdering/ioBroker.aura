@@ -799,6 +799,7 @@ export const de = {
   'widget.button':        'Button',
   'widget.climate':       'Raumklima',
   'widget.enum':          'Auswahlfeld',
+  'widget.carousel':      'Karussell',
 
   // ── Weather Widget ────────────────────────────────────────────────────────────
   'weather.sunny':       'Sonnig',
@@ -908,6 +909,23 @@ export const de = {
   'group.noWidgets':   'Keine Widgets vorhanden',
   'group.dropHere':    'Widget hier ablegen',
   'group.fitHeight':   'Höhe an Inhalt anpassen',
+
+  // ── Carousel Widget ───────────────────────────────────────────────────────────
+  'carousel.noSlides':       'Keine Slides',
+  'carousel.dropHere':       'Widget hier ablegen',
+  'carousel.empty.editHint': '„Slide hinzufügen“ klicken oder Widget hierherziehen',
+  'carousel.empty.viewHint': 'Keine Slides',
+  'carousel.addSlide':       'Slide hinzufügen',
+  'carousel.removeSlide':    'Slide entfernen',
+  'carousel.pickWidget':     'Widget-Typ wählen',
+  'carousel.prev':           'Vorherige',
+  'carousel.next':           'Nächste',
+  'carousel.slide':          'Slide',
+  'carousel.opt.loop':       'Endlos-Loop',
+  'carousel.opt.showDots':   'Pagination-Dots',
+  'carousel.opt.showArrows': 'Pfeil-Buttons',
+  'carousel.opt.autoplay':   'Auto-Slideshow',
+  'carousel.opt.interval':   'Intervall',
 
   // ── EVCC Widget ───────────────────────────────────────────────────────────────
   'evcc.solar':        'Solar',

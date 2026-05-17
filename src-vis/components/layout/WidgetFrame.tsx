@@ -81,6 +81,7 @@ import { ButtonWidget } from '../widgets/ButtonWidget';
 import { UniversalWidget } from '../widgets/UniversalWidget';
 import { EnumWidget } from '../widgets/EnumWidget';
 import { LightWidget } from '../widgets/LightWidget';
+import { CarouselWidget } from '../widgets/CarouselWidget';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
 import { WidgetClickPopup } from '../widgets/popup/WidgetClickPopup';
@@ -131,6 +132,7 @@ function getWidgetMap() {
     universal:     UniversalWidget,
     enum:          EnumWidget,
     light:         LightWidget,
+    carousel:      CarouselWidget,
   } as const;
 }
 
@@ -2554,9 +2556,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   // Stable reference: never create a new [] on every render (would cause infinite effect loop)
   const conditions = (config.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
 
-  // GROUP widgets: create a fresh defId + clone children so copies are independent
+  // GROUP / CAROUSEL widgets: create a fresh defId + clone children so copies are independent
   function copyConfig(src: WidgetConfig): WidgetConfig {
-    if (src.type === 'group' && src.options?.defId) {
+    if ((src.type === 'group' || src.type === 'carousel') && src.options?.defId) {
       return { ...src, options: { ...src.options, defId: cloneGroupDef(src.options.defId as string) } };
     }
     return src;
@@ -2722,6 +2724,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
   const isHeader    = config.type === 'header';
   const isGroup     = config.type === 'group';
+  const isCarousel  = config.type === 'carousel';
   const isTransparent = !!(config.options?.transparent);
 
   // ── Group-specific hooks (always called, conditionally used) ───────────────
@@ -2767,7 +2770,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   const activeLayoutIdCtx = useActiveLayoutId();
   const effectiveSettings = useEffectiveSettings(activeLayoutIdCtx);
   const widgetPadding = effectiveSettings.widgetPadding ?? 16;
-  const isNoPad = isHeader || isGroup || isTransparent || config.type === 'iframe' || config.type === 'echartsPreset';
+  const isNoPad = isHeader || isGroup || isCarousel || isTransparent || config.type === 'iframe' || config.type === 'echartsPreset';
 
   return (
     <div
@@ -3180,7 +3183,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           onClose={() => openPanelFor(null)}
         >
           {/* ─── 1. Name / Titel ──────────────────────────────────────────── */}
-          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (<>
+          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (<>
           <div className="space-y-2.5">
             <div>
               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
@@ -3291,7 +3294,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           <div className="h-px" style={{ background: 'var(--app-border)' }} />
           </>)}
 
-          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (<>
+          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (<>
           {/* ─── 2. Stil (eingeklappt) ─────────────────────────────────────── */}
           <details className="group">
             <summary className="flex items-center justify-between cursor-pointer list-none select-none">
@@ -3341,7 +3344,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
           {/* ─── 3. Widget-Typ · Layout · Icon ─────────────────────────────── */}
           <div className="space-y-2.5">
-            {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (
+            {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (
               <div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
                 <input
@@ -3411,7 +3414,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'compact', label: t('wf.edit.layout.compact') },
                 { value: 'minimal', label: t('wf.edit.layout.minimal') },
                 { value: 'custom',  label: 'Custom' },
-              ] : config.type === 'group' ? [
+              ] : config.type === 'group' || config.type === 'carousel' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
               ] : config.type === 'universal' ? [
                 { value: 'custom',  label: 'Custom' },
@@ -3605,7 +3608,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             })()}
 
             {/* Icon picker (not for stateimage/windowcontact – icons are per-state; not for shutter/switch/dimmer/slider – in Darstellung) */}
-            {config.type !== 'stateimage' && config.type !== 'windowcontact' && !['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (() => {
+            {config.type !== 'stateimage' && config.type !== 'windowcontact' && !['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (() => {
               const currentIconName = config.options?.icon as string | undefined;
               const CurrentIcon = currentIconName
                 ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))
@@ -3638,7 +3641,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             })()}
 
             {/* Icon-Größe */}
-            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group', 'mediaplayer', 'shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'climate', 'windowcontact', 'binarysensor', 'stateimage', 'button', 'chips', 'httpRequest', 'datepicker', 'light'].includes(config.type) && (() => {
+            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group', 'carousel', 'mediaplayer', 'shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'climate', 'windowcontact', 'binarysensor', 'stateimage', 'button', 'chips', 'httpRequest', 'datepicker', 'light'].includes(config.type) && (() => {
               const o = config.options ?? {};
               const iconSize = (o.iconSize as number) || 20;
               const displayIconSize = draftIconSize ?? iconSize;
@@ -3662,7 +3665,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           </div>
 
           {/* ─── DARSTELLUNG ─────────────────────────────────────────────────── */}
-          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (() => {
+          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (() => {
             const o = config.options ?? {};
             const setO = (patch: Record<string, unknown>) =>
               onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -3807,6 +3810,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     ? [{ key: 'showSubtitle', label: 'Untertitel' }]
                     : config.type === 'group'
                     ? []
+                    : config.type === 'carousel'
+                    ? []
                     : config.type === 'light'
                     ? [
                         { key: 'showPalette', label: 'Farbpalette (Presets)' },
@@ -3950,7 +3955,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           })()}
 
           {/* ─── ERWEITERT ───────────────────────────────────────────────────── */}
-          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (
+          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (
             <details className="group">
               <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                 <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Erweitert</span>
@@ -4853,6 +4858,48 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               {config.type === 'enum' && (
                 <EnumConfig config={config} onConfigChange={onConfigChange} />
               )}
+
+              {/* ── Carousel config ── */}
+              {config.type === 'carousel' && (() => {
+                const o   = config.options ?? {};
+                const set = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const loop      = !!o.loop;
+                const showDots  = o.showDots   !== false;
+                const showArrows = o.showArrows !== false;
+                const autoplay  = !!o.autoplay;
+                const interval  = (o.autoplayInterval as number) ?? 5;
+                const Toggle = ({ label, value, onToggle }: { label: string; value: boolean; onToggle: () => void }) => (
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{label}</label>
+                    <button onClick={onToggle}
+                      className="relative w-9 h-5 rounded-full transition-colors"
+                      style={{ background: value ? 'var(--accent)' : 'var(--app-border)' }}>
+                      <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                        style={{ left: value ? '18px' : '2px' }} />
+                    </button>
+                  </div>
+                );
+                return (
+                  <>
+                    <Toggle label={t('carousel.opt.loop')}       value={loop}       onToggle={() => set({ loop: !loop })} />
+                    <Toggle label={t('carousel.opt.showDots')}   value={showDots}   onToggle={() => set({ showDots: !showDots })} />
+                    <Toggle label={t('carousel.opt.showArrows')} value={showArrows} onToggle={() => set({ showArrows: !showArrows })} />
+                    <Toggle label={t('carousel.opt.autoplay')}   value={autoplay}   onToggle={() => set({ autoplay: !autoplay })} />
+                    {autoplay && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                          {t('carousel.opt.interval')} <span style={{ opacity: 0.6 }}>(s)</span>
+                        </label>
+                        <input type="number" min={1} max={60} step={1} value={interval}
+                          onChange={(e) => set({ autoplayInterval: Math.max(1, Number(e.target.value) || 5) })}
+                          className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                          style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
 
               {/* ── iFrame config ── */}
               {config.type === 'iframe' && (() => {

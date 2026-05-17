@@ -801,6 +801,7 @@ export const en: Record<TranslationKey, string> = {
   'widget.button':        'Button',
   'widget.climate':       'Room Climate',
   'widget.enum':          'Selection Field',
+  'widget.carousel':      'Carousel',
 
   // ── Weather Widget ────────────────────────────────────────────────────────────
   'weather.sunny':       'Sunny',
@@ -910,6 +911,23 @@ export const en: Record<TranslationKey, string> = {
   'group.noWidgets':   'No widgets yet',
   'group.dropHere':    'Drop widget here',
   'group.fitHeight':   'Fit height to content',
+
+  // ── Carousel Widget ───────────────────────────────────────────────────────────
+  'carousel.noSlides':       'No slides',
+  'carousel.dropHere':       'Drop widget here',
+  'carousel.empty.editHint': 'Click "Add slide" or drag a widget here',
+  'carousel.empty.viewHint': 'No slides',
+  'carousel.addSlide':       'Add slide',
+  'carousel.removeSlide':    'Remove slide',
+  'carousel.pickWidget':     'Pick widget type',
+  'carousel.prev':           'Previous',
+  'carousel.next':           'Next',
+  'carousel.slide':          'Slide',
+  'carousel.opt.loop':       'Infinite loop',
+  'carousel.opt.showDots':   'Pagination dots',
+  'carousel.opt.showArrows': 'Arrow buttons',
+  'carousel.opt.autoplay':   'Auto slideshow',
+  'carousel.opt.interval':   'Interval',
 
   // ── EVCC Widget ───────────────────────────────────────────────────────────────
   'evcc.solar':        'Solar',
