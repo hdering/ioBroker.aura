@@ -413,7 +413,8 @@ function BatteryViz({
   }
 
   // ── horizontal ────────────────────────────────────────────────────────────
-  const bx = 5, by = 12, bw = 218, bh = 66, br = 9;
+  // Center silhouette (body+nub = 218+3+12 = 233) in 260-wide viewBox → (260-233)/2 = 13.5
+  const bx = 13.5, by = 12, bw = 218, bh = 66, br = 9;
   const nubW = 12, nubH = 30;
   const fillW  = Math.max(0, (pct / 100) * bw);
   const clipId = `bat-h-${uid}`;
