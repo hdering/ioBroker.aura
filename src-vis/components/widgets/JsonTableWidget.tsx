@@ -102,6 +102,14 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
 
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // Latest config + onConfigChange — read by the auto-height effect so its
+  // write doesn't clobber sibling option changes (showTitle, showIcon,
+  // transparent, …) that happened between effect setups.
+  const configRef = useRef(config);
+  configRef.current = config;
+  const onConfigChangeRef = useRef(onConfigChange);
+  onConfigChangeRef.current = onConfigChange;
+
   const tableData = useMemo(() => parseJson(value), [value]);
 
   // Build ordered, filtered column list from raw headers + colDefs
@@ -142,13 +150,17 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     if (!autoHeight || !contentRef.current) return;
     const el = contentRef.current;
     const update = () => {
+      // Always read the freshest config — the effect's deps intentionally
+      // exclude `config`, so a stale closure would overwrite sibling option
+      // toggles (showTitle, showIcon, transparent, …) made between setups.
+      const latest = configRef.current;
       // Match Dashboard's effective-settings resolution: per-layout override
       // wins, otherwise fall back to global frontend settings, then hardcoded
       // defaults. Reading layout-only would miss user-customized global
       // gridGap/gridRowHeight and produce a wrong (too small) gridPos.h.
       const { layouts } = useDashboardStore.getState();
       const { frontend } = useConfigStore.getState();
-      const layout = layouts.find((l) => l.tabs.some((t) => (t.widgets ?? []).some((w) => w.id === config.id)));
+      const layout = layouts.find((l) => l.tabs.some((t) => (t.widgets ?? []).some((w) => w.id === latest.id)));
       const cellSize = layout?.settings?.gridRowHeight ?? frontend.gridRowHeight ?? 20;
       const margin   = layout?.settings?.gridGap       ?? frontend.gridGap       ?? 10;
       // The outer .aura-widget wrapper adds vertical padding (widgetPadding)
@@ -163,8 +175,8 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
       }
       const naturalH = el.scrollHeight + parentOverhead;
       const newH = Math.max(1, Math.ceil((naturalH + margin) / (cellSize + margin)));
-      if (newH !== config.gridPos.h) {
-        onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
+      if (newH !== latest.gridPos.h) {
+        onConfigChangeRef.current({ ...latest, gridPos: { ...latest.gridPos, h: newH } });
       }
     };
     update();
