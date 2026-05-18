@@ -5,18 +5,30 @@
  * Returns a React component compatible with the LucideIcon signature
  * (accepts `size`, `style`, `className`), so all existing call sites work
  * without modification.
+ *
+ * Missing icons (typo, removed from Iconify) fall back to the caller-
+ * provided Lucide fallback after the load attempt fails, so a stale stored
+ * icon ID never leaves the widget visually blank.
  */
-import React from 'react';
-import { Icon } from '@iconify/react';
+import React, { useEffect, useState } from 'react';
+import { Icon, iconLoaded, loadIcon } from '@iconify/react';
 import { lucidePascalToIconify } from './iconifyLoader';
 import type { LucideIcon } from 'lucide-react';
 
 const _iconComponentCache = new Map<string, LucideIcon>();
+const _failedIcons = new Set<string>();
+
+function fallbackKey(fb: LucideIcon): string {
+  return (fb as unknown as { displayName?: string; name?: string }).displayName
+      ?? (fb as unknown as { name?: string }).name
+      ?? 'fallback';
+}
 
 /** Wrap an Iconify icon ID into a component that mimics the LucideIcon API.
- *  Cached by iconId so React sees a stable component reference across renders. */
-function makeIconComponent(iconId: string): LucideIcon {
-  const cached = _iconComponentCache.get(iconId);
+ *  Cached by iconId+fallback so React sees a stable component reference. */
+function makeIconComponent(iconId: string, Fallback: LucideIcon): LucideIcon {
+  const cacheKey = `${iconId}|${fallbackKey(Fallback)}`;
+  const cached = _iconComponentCache.get(cacheKey);
   if (cached) return cached;
   function IconifyWrapper({
     size = 16,
@@ -27,10 +39,30 @@ function makeIconComponent(iconId: string): LucideIcon {
     style?: React.CSSProperties;
     className?: string;
   }) {
+    const initiallyFailed = _failedIcons.has(iconId);
+    const initiallyLoaded = iconLoaded(iconId);
+    const [status, setStatus] = useState<'pending' | 'ok' | 'fail'>(
+      initiallyFailed ? 'fail' : initiallyLoaded ? 'ok' : 'pending',
+    );
+    useEffect(() => {
+      if (status !== 'pending') return;
+      let cancelled = false;
+      loadIcon(iconId).then(
+        () => { if (!cancelled) setStatus('ok'); },
+        () => {
+          _failedIcons.add(iconId);
+          if (!cancelled) setStatus('fail');
+        },
+      );
+      return () => { cancelled = true; };
+    }, [status]);
+    if (status === 'fail') {
+      return React.createElement(Fallback, { size, style, className });
+    }
     return React.createElement(Icon, { icon: iconId, width: size, height: size, style, className });
   }
   const comp = IconifyWrapper as unknown as LucideIcon;
-  _iconComponentCache.set(iconId, comp);
+  _iconComponentCache.set(cacheKey, comp);
   return comp;
 }
 
@@ -41,7 +73,7 @@ function makeIconComponent(iconId: string): LucideIcon {
 export function getWidgetIcon(name: string | undefined, fallback: LucideIcon): LucideIcon {
   if (!name) return fallback;
   const iconId = name.includes(':') ? name : lucidePascalToIconify(name);
-  return makeIconComponent(iconId);
+  return makeIconComponent(iconId, fallback);
 }
 
 /** Curated list of Iconify IDs for the inline tab/widget icon picker.

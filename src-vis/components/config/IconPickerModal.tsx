@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Search, X } from 'lucide-react';
-import { Icon } from '@iconify/react';
+import { Icon, iconLoaded, loadIcons } from '@iconify/react';
 import { ICON_CATEGORIES } from '../../utils/iconCategories';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
@@ -68,6 +68,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
   const portalTarget = usePortalTarget();
   const [query, setQuery] = useState('');
   const [categoryId, setCategoryId] = useState('all');
+  const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
   const searchRef = useRef<HTMLInputElement>(null);
 
   const currentId = toIconifyId(current);
@@ -77,9 +78,6 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
   }, []);
 
   // Build flat list of all Iconify IDs across all categories.
-  // Validity is no longer pre-checked — icons are fetched on-demand from
-  // api.iconify.design; the curated list is hand-maintained so all entries
-  // are valid IDs.
   const allIds = useMemo(() => {
     const seen = new Set<string>();
     const result: string[] = [];
@@ -95,31 +93,57 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     return result;
   }, []);
 
-  // Category counts (static, since we trust the curated list)
+  // Validate icons against the Iconify API once on mount, then drop the
+  // missing ones from view so users can't pick blank tiles. The curated
+  // list contains legacy Lucide aliases (e.g. "GiftIcon", "BlindsIcon")
+  // that resolve to non-existent Iconify IDs.
+  useEffect(() => {
+    const todo = allIds.filter((id) => !iconLoaded(id));
+    if (todo.length === 0) return;
+    let cancelled = false;
+    loadIcons(todo, (_loaded, missing /*, _pending */) => {
+      if (cancelled || !missing || missing.length === 0) return;
+      setMissingIds((prev) => {
+        const next = new Set(prev);
+        for (const m of missing) {
+          next.add(typeof m === 'string' ? m : `${m.prefix}:${m.name}`);
+        }
+        return next;
+      });
+    });
+    return () => { cancelled = true; };
+  }, [allIds]);
+
+  const validIds = useMemo(
+    () => allIds.filter((id) => !missingIds.has(id)),
+    [allIds, missingIds],
+  );
+
+  // Category counts based on validated icons
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: allIds.length };
+    const counts: Record<string, number> = { all: validIds.length };
     for (const cat of ICON_CATEGORIES) {
-      counts[cat.id] = cat.icons.length;
+      counts[cat.id] = cat.icons.filter((n) => !missingIds.has(toIconifyId(n))).length;
     }
     return counts;
-  }, [allIds]);
+  }, [validIds, missingIds]);
 
   // Visible icons for current selection
   const entries = useMemo<string[]>(() => {
     const q = query.toLowerCase().trim();
 
     if (q) {
-      return allIds.filter((id) => id.toLowerCase().includes(q)).sort();
+      return validIds.filter((id) => id.toLowerCase().includes(q)).sort();
     }
 
     if (categoryId === 'all') {
-      return allIds;
+      return validIds;
     }
 
     const cat = ICON_CATEGORIES.find((c) => c.id === categoryId);
     if (!cat) return [];
-    return cat.icons.map(toIconifyId);
-  }, [allIds, query, categoryId]);
+    return cat.icons.map(toIconifyId).filter((id) => !missingIds.has(id));
+  }, [validIds, missingIds, query, categoryId]);
 
   const modal = (
     <div
