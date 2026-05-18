@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.81",
+    "version": "0.9.82",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.82": {
+        "en": "fix(conditions): hidden+reflow widgets inside groups now hide and slide up",
+        "de": "fix(conditions): hidden+reflow widgets inside groups now hide and slide up"
+      },
       "0.9.81": {
         "en": "fix(icons): allow null fallback in getWidgetIcon; fix(icons): broken Iconify IDs fall back to widget default; picker filters them; fix(jsontable): autoHeight effect no longer clobbers option toggles",
         "de": "fix(icons): allow null fallback in getWidgetIcon; fix(icons): broken Iconify IDs fall back to widget default; picker filters them; fix(jsontable): autoHeight effect no longer clobbers option toggles"
