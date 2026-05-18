@@ -157,11 +157,13 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     proxy: {
-      // Proxy socket.io (HTTP polling + WebSocket) to ioBroker
+      // Proxy socket.io (HTTP polling + WebSocket) to ioBroker.
+      // secure:false lets HTTPS targets with self-signed certs work in dev.
       '/socket.io': {
         target: proxyTarget,
         ws: true,
         changeOrigin: true,
+        secure: false,
       },
     },
   },

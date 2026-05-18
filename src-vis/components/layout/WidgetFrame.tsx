@@ -31,7 +31,7 @@ import { StaticListConfig } from '../config/StaticListConfig';
 import { EnumConfig } from '../config/EnumConfig';
 import { type CameraSlot, type CameraSlotType, type CameraTemplateId, CAMERA_TEMPLATES, SLOT_TYPE_OPTIONS } from '../widgets/CameraWidget';
 import { detectHistoryAdapters, RANGE_LABELS, type ChartTimeRange, type DetectedAdapter } from '../../hooks/useChartHistory';
-import { useConditionStyle, notifyHiddenState, cleanupHiddenState } from '../../hooks/useConditionStyle';
+import { useConditionStyle, notifyHiddenState } from '../../hooks/useConditionStyle';
 import { SwitchWidget } from '../widgets/SwitchWidget';
 import { ValueWidget } from '../widgets/ValueWidget';
 import { DimmerWidget } from '../widgets/DimmerWidget';
@@ -2567,11 +2567,15 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   // Evaluate conditions against live ioBroker values
   const conditionResult = useConditionStyle(conditions);
 
-  // Register/release this widget in the panel coordinator
+  // Register/release this widget in the panel coordinator.
+  // NOTE: do NOT clean the reflow-hidden registry here — when a widget moves
+  // between the visible grid and the off-screen reflow container it unmounts
+  // and remounts in a different parent. The async cleanup would race with the
+  // new instance's useLayoutEffect and yank a still-valid entry out of the
+  // registry, causing the widget to never settle in either container.
   useEffect(() => {
     return () => {
       releasePanel(config.id);
-      cleanupHiddenState(config.id); // ensure registry is clean on unmount
     };
   }, [config.id]);
 

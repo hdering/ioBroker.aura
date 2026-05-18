@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { useIoBroker } from './useIoBroker';
+import { useIoBroker, getStateFromCache } from './useIoBroker';
 import type { WidgetCondition, ConditionClause, ConditionStyle } from '../types';
 
 // ── Evaluation ────────────────────────────────────────────────────────────────
@@ -89,12 +89,48 @@ export interface ConditionResult {
 // Module-level constant – same reference every time, lets React bail out of re-renders
 const EMPTY_RESULT: ConditionResult = { cssVars: {}, effect: null, hidden: false, reflow: false };
 
+function collectUniqueIds(conditions: WidgetCondition[]): string[] {
+  return [
+    ...new Set(
+      conditions.flatMap((c) => c.clauses.flatMap((cl) => {
+        const ids = [cl.datapoint];
+        if (cl.valueType === 'datapoint' && cl.value) ids.push(cl.value);
+        return ids;
+      })).filter(Boolean),
+    ),
+  ];
+}
+
+function computeResult(conditions: WidgetCondition[], values: Map<string, unknown>): ConditionResult {
+  const merged: Record<string, string> = {};
+  let effect: 'pulse' | 'blink' | null = null;
+  let hidden = false;
+  let reflow = false;
+  for (const cond of conditions) {
+    if (evaluateCondition(cond, values)) {
+      Object.assign(merged, styleToVars(cond.style));
+      if (cond.effect && cond.effect !== 'none') effect = cond.effect as 'pulse' | 'blink';
+      if (cond.hideWidget) { hidden = true; if (cond.reflow) reflow = true; }
+    }
+  }
+  return { cssVars: merged, effect, hidden, reflow };
+}
+
 export function useConditionStyle(conditions: WidgetCondition[]): ConditionResult {
   const { subscribe, getState } = useIoBroker();
   const valuesRef = useRef<Map<string, unknown>>(new Map());
-  // Pessimistic initial state: if any condition can hide the widget, start hidden
-  // to avoid the flash where the widget briefly appears before the first ioBroker value arrives.
+  // Cache-aware initial state: on remount (e.g. when a widget moves between the
+  // visible grid and the off-screen reflow container) the global stateCache
+  // already has the DP values — compute the correct result synchronously so the
+  // widget doesn't pessimistically bounce back to the reflow container.
+  // On the very first page load nothing is cached yet, so we fall back to the
+  // pessimistic "hidden=true" state to avoid a flash.
   const [result, setResult] = useState<ConditionResult>(() => {
+    const uniqueIds = collectUniqueIds(conditions);
+    if (uniqueIds.length > 0 && uniqueIds.every((id) => getStateFromCache(id) !== null)) {
+      uniqueIds.forEach((id) => valuesRef.current.set(id, getStateFromCache(id)?.val ?? null));
+      return computeResult(conditions, valuesRef.current);
+    }
     const mayHide = conditions.some((c) => c.hideWidget);
     return mayHide ? { cssVars: {}, effect: null, hidden: true, reflow: conditions.some((c) => c.hideWidget && c.reflow) } : EMPTY_RESULT;
   });
@@ -108,15 +144,7 @@ export function useConditionStyle(conditions: WidgetCondition[]): ConditionResul
       return;
     }
 
-    const uniqueIds = [
-      ...new Set(
-        conditions.flatMap((c) => c.clauses.flatMap((cl) => {
-          const ids = [cl.datapoint];
-          if (cl.valueType === 'datapoint' && cl.value) ids.push(cl.value);
-          return ids;
-        })).filter(Boolean),
-      ),
-    ];
+    const uniqueIds = collectUniqueIds(conditions);
 
     if (!uniqueIds.length) {
       setResult(EMPTY_RESULT);
@@ -124,24 +152,13 @@ export function useConditionStyle(conditions: WidgetCondition[]): ConditionResul
     }
 
     const recompute = () => {
-      const merged: Record<string, string> = {};
-      let effect: 'pulse' | 'blink' | null = null;
-      let hidden = false;
-      let reflow = false;
-
-      for (const cond of conditions) {
-        if (evaluateCondition(cond, valuesRef.current)) {
-          Object.assign(merged, styleToVars(cond.style));
-          if (cond.effect && cond.effect !== 'none') effect = cond.effect as 'pulse' | 'blink';
-          if (cond.hideWidget) { hidden = true; if (cond.reflow) reflow = true; }
-        }
-      }
+      const next = computeResult(conditions, valuesRef.current);
       setResult((prev) => {
         if (
-          prev.effect === effect && prev.hidden === hidden && prev.reflow === reflow &&
-          JSON.stringify(prev.cssVars) === JSON.stringify(merged)
+          prev.effect === next.effect && prev.hidden === next.hidden && prev.reflow === next.reflow &&
+          JSON.stringify(prev.cssVars) === JSON.stringify(next.cssVars)
         ) return prev;
-        return { cssVars: merged, effect, hidden, reflow };
+        return next;
       });
     };
 
