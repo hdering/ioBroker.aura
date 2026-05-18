@@ -14,6 +14,7 @@ import { useDashboardMobile } from '../../contexts/DashboardMobileContext';
 import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
 import { verticalCompact } from '../../utils/gridCompact';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
 
 function mobileSort(children: WidgetConfig[]): WidgetConfig[] {
   return [...children].sort((a, b) => {
@@ -43,6 +44,15 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const children = useGroupDefsStore((s) => s.defs[defId] ?? []);
+  // Children whose conditions resolved to hidden+reflow are kept out of the
+  // inner grid (mirroring Dashboard's tab-level behaviour) so others slide up.
+  // They still need to be rendered somewhere so their conditions keep being
+  // evaluated — see the off-screen container at the bottom of this component.
+  const reflowHiddenIds = useReflowHiddenIds();
+  const reflowHiddenChildren = !editMode ? children.filter((c) => reflowHiddenIds.has(c.id)) : [];
+  const gridChildren = !editMode
+    ? verticalCompact(children.filter((c) => !reflowHiddenIds.has(c.id)))
+    : children;
   const transparent = !!(config.options?.transparent);
   const showTitle  = config.options?.showTitle  !== false;
   const showIcon   = config.options?.showIcon   !== false;
@@ -131,7 +141,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
   };
 
   // ── Mobile order helpers ───────────────────────────────────────────────────
-  const sorted = mobileSort(children);
+  const sorted = mobileSort(gridChildren);
 
   // ── Shared remove + configChange handlers ──────────────────────────────────
   const onRemove = (id: string) => {
@@ -139,6 +149,22 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     setChildren(next);
     shrinkToFit(next);
   };
+
+  // Off-screen render of condition-hidden+reflow children so their
+  // useConditionStyle subscriptions stay alive and can bring them back.
+  const offScreenHidden = reflowHiddenChildren.length > 0 ? (
+    <div style={{ position: 'fixed', top: -9999, left: -9999, width: 1, height: 1, overflow: 'hidden', pointerEvents: 'none', opacity: 0 }}>
+      {reflowHiddenChildren.map((c) => (
+        <WidgetFrame
+          key={c.id}
+          config={c}
+          editMode={false}
+          onRemove={onRemove}
+          onConfigChange={updateChild}
+        />
+      ))}
+    </div>
+  ) : null;
 
   // ── Title bar (always shown in editMode as outer-grid drag handle) ─────────
   const titleAlign = (config.options?.titleAlign as string | undefined) ?? 'left';
@@ -202,12 +228,13 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
             </p>
           )}
         </div>
+        {offScreenHidden}
       </div>
     );
   }
 
   // ── Desktop grid layout ────────────────────────────────────────────────────
-  const layout = children.map((c) => {
+  const layout = gridChildren.map((c) => {
     const x = Math.min(c.gridPos.x, cols - 1);
     const w = Math.min(c.gridPos.w, cols - x);
     return { i: c.id, x, y: c.gridPos.y, w, h: c.gridPos.h };
@@ -268,7 +295,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
             margin={[gridGap, gridGap]}
             containerPadding={[0, 0]}
           >
-            {children.map((child) => (
+            {gridChildren.map((child) => (
               <div key={child.id}>
                 <WidgetFrame
                   config={child}
@@ -288,7 +315,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
           </p>
         )}
       </div>
-
+      {offScreenHidden}
     </div>
   );
 }
