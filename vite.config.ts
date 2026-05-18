@@ -179,7 +179,6 @@ export default defineConfig({
           if (id.includes('/recharts/') || id.includes('/d3-')) return 'recharts';
           if (id.includes('/react-grid-layout/') || id.includes('/react-resizable/') || id.includes('/react-draggable/')) return 'grid';
           if (id.includes('/ical.js/')) return 'ical';
-          if (id.includes('/socket.io-client/') || id.includes('/engine.io-client/')) return 'socketio';
           if (id.includes('/dompurify/')) return 'dompurify';
           if (id.includes('/lucide-react/')) return 'lucide';
           if (id.includes('/react-router') || id.includes('/@remix-run/')) return 'router';

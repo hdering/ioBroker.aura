@@ -786,7 +786,9 @@ class Aura extends utils.Adapter {
     server.on('upgrade', (req, socket, _head) => {
       let parsedUrl;
       try { parsedUrl = new URL(req.url, 'http://localhost'); } catch { return; }
-      if (parsedUrl.pathname.startsWith('/socket.io/')) {
+      const isClassicSocketIo = parsedUrl.pathname.startsWith('/socket.io/');
+      const isPureWs          = parsedUrl.pathname === '/' && parsedUrl.searchParams.has('sid');
+      if (isClassicSocketIo || isPureWs) {
         const wsScheme = socketSecure ? 'wss' : 'ws';
         proxyWebSocket(req, socket, `${wsScheme}://${socketHostPort}${req.url}`, this.log);
         return;
