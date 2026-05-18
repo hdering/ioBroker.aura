@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.80 (2026-05-18)
+
+- fix(conditions): hidden+reflow widgets reappear on live DP change
+
 ## v0.9.79 (2026-05-17)
 
 - fix(light): autoDetect mixed DPs from different zigbee devices
@@ -697,6 +701,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
