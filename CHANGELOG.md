@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.90 (2026-05-19)
+
+- feat(universal-widget): hide dropdown option for select cell
+
 ## v0.9.89 (2026-05-19)
 
 - fix(layout-drawer): disable both placement buttons when header is on
@@ -748,6 +752,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 

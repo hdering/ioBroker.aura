@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.89",
+    "version": "0.9.90",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.90": {
+        "en": "feat(universal-widget): hide dropdown option for select cell",
+        "de": "feat(universal-widget): hide dropdown option for select cell"
+      },
       "0.9.89": {
         "en": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
         "de": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name"
