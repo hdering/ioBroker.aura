@@ -418,19 +418,34 @@ export function CustomCellEditor({
       {cell.type === 'component' && (() => {
         const options = COMPONENT_OPTIONS[widgetType] ?? [];
         return (
-          <div>
-            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Aktion / Icon</label>
-            <select
-              value={cell.componentKey ?? ''}
-              onChange={(e) => onChange({ componentKey: e.target.value })}
-              className={inputCls} style={inputSty}
-            >
-              <option value="">– wählen –</option>
-              {options.map(({ key, label }) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </select>
-          </div>
+          <>
+            <div>
+              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Aktion / Icon</label>
+              <select
+                value={cell.componentKey ?? ''}
+                onChange={(e) => onChange({ componentKey: e.target.value })}
+                className={inputCls} style={inputSty}
+              >
+                <option value="">– wählen –</option>
+                {options.map(({ key, label }) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>Größe</label>
+              <input
+                type="number"
+                min={16} max={512} step={2}
+                value={cell.fontSize ?? ''}
+                onChange={(e) => onChange({ fontSize: e.target.value ? Number(e.target.value) : undefined })}
+                placeholder="auto"
+                className="w-20 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                style={inputSty}
+              />
+              <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>px (leer = Zelle füllen)</span>
+            </div>
+          </>
         );
       })()}
 

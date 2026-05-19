@@ -150,9 +150,17 @@ function ComponentCellView({ cell, index, cols, rows, extraComponents }: {
 }) {
   const node = extraComponents?.[cell.componentKey ?? ''];
   if (!node) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+  // When fontSize is set, treat it as an explicit pixel size for the component
+  // (useful for SVG components like the knob dial). Without it, the component
+  // fills the cell as before.
+  const size = cell.fontSize;
   return (
     <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '2px' }}>
-      {node}
+      {size ? (
+        <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {node}
+        </div>
+      ) : node}
     </div>
   );
 }
