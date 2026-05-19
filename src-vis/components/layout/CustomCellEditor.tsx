@@ -1054,6 +1054,16 @@ export function CustomCellEditor({
                   style={{ left: cell.showSelectedLabel ? '14px' : '2px' }} />
               </button>
             </div>
+            <div className="flex items-center justify-between">
+              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Dropdown ausblenden (nur Einträge)</label>
+              <button
+                onClick={() => onChange({ hideSelect: !cell.hideSelect })}
+                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                style={{ background: cell.hideSelect ? 'var(--accent)' : 'var(--app-border)' }}>
+                <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                  style={{ left: cell.hideSelect ? '14px' : '2px' }} />
+              </button>
+            </div>
           </>
         );
       })()}

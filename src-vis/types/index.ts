@@ -142,6 +142,7 @@ export interface CustomCell {
   // 'select' type — dropdown that maps DP values to labels (mini enum widget per cell)
   entries?: { value: string; label: string; color?: string }[];  // 'select' cell: selectable value/label pairs
   showSelectedLabel?: boolean;   // 'select' cell: render current label next to dropdown
+  hideSelect?: boolean;          // 'select' cell: hide dropdown and render entries as a button group
 }
 
 /** Legacy: 9-element array, row-major (index = row*3 + col). Kept as alias for compat. */

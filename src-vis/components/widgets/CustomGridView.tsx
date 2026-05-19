@@ -588,8 +588,25 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
     setValue(raw);
   };
   const showLabel = cell.showSelectedLabel === true;
+  const hideSelect = cell.hideSelect === true;
   const labelText = current?.label ?? (currentStr || '–');
   const labelColor = current?.color;
+
+  if (hideSelect) {
+    return (
+      <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' }}>
+        {showLabel && (
+          <span
+            className="truncate"
+            style={{ ...cellTextStyle(cell, 'var(--text-primary)'), color: labelColor ?? cell.color ?? 'var(--text-primary)' }}
+          >
+            {labelText}
+          </span>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' }}>
       <div className="flex items-center gap-1 w-full min-w-0">
