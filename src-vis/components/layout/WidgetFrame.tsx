@@ -2975,7 +2975,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 {showGroupTypePicker && (
                   <div className="mx-1 mb-0.5 rounded-md overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
                     {WIDGET_GROUPS.map((g) => {
-                      const types = WIDGET_REGISTRY.filter((m) => m.widgetGroup === g.id && m.type !== 'calendar');
+                      const types = WIDGET_REGISTRY
+                        .filter((m) => m.widgetGroup === g.id && m.type !== 'calendar')
+                        .slice()
+                        .sort((a, b) => a.label.localeCompare(b.label, 'de'));
                       if (types.length === 0) return null;
                       return (
                         <div key={g.id} className="p-1.5">
@@ -3378,9 +3381,13 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               >
                 {WIDGET_GROUPS.map((g) => (
                   <optgroup key={g.id} label={g.label}>
-                    {WIDGET_REGISTRY.filter((m) => m.widgetGroup === g.id).map((m) => (
-                      <option key={m.type} value={m.type}>{m.label}</option>
-                    ))}
+                    {WIDGET_REGISTRY
+                      .filter((m) => m.widgetGroup === g.id)
+                      .slice()
+                      .sort((a, b) => a.label.localeCompare(b.label, 'de'))
+                      .map((m) => (
+                        <option key={m.type} value={m.type}>{m.label}</option>
+                      ))}
                   </optgroup>
                 ))}
               </select>
