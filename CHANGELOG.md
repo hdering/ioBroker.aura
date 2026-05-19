@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.9.88 (2026-05-19)
+
+- fix(knob): use knob default grid as editor fallback
+- feat(knob): empty default custom grid except dial at 2/2
+- fix(knob): honour titleAlign in bogen/skala/endless layouts
+- feat(custom-grid): allow fontSize as explicit pixel size on component cells
+- feat(knob): add custom layout with selectable dial style
+
 ## v0.9.87 (2026-05-19)
 
 - fix(knob): auto-compute label decimals to avoid duplicate scale labels
@@ -731,6 +739,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
