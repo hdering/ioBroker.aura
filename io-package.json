@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.83",
+    "version": "0.9.84",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.84": {
+        "en": "fix(editor): keep widget type when changing DP; ask before auto-switch on new widgets",
+        "de": "fix(editor): keep widget type when changing DP; ask before auto-switch on new widgets"
+      },
       "0.9.83": {
         "en": "feat(weather): pre-populate custom grid from standard layout settings",
         "de": "feat(weather): pre-populate custom grid from standard layout settings"

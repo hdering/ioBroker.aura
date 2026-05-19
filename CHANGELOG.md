@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.84 (2026-05-19)
+
+- fix(editor): keep widget type when changing DP; ask before auto-switch on new widgets
+
 ## v0.9.83 (2026-05-19)
 
 - feat(weather): pre-populate custom grid from standard layout settings
@@ -715,6 +719,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
