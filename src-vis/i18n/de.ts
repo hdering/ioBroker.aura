@@ -85,7 +85,7 @@ export const de = {
   'settings.frontend.layoutDrawerPlacementFloating': 'Schwebend',
   'settings.frontend.layoutDrawerPlacementTabbar':   'In Tab-Leiste',
   'settings.frontend.layoutDrawerPlacementHint': 'In der Tab-Leiste überlappt der Hamburger nicht mehr den ersten Tab.',
-  'settings.frontend.layoutDrawerPlacementTabbarDisabledHeader':   'Nicht verfügbar, solange der Header sichtbar ist.',
+  'settings.frontend.layoutDrawerPlacementDisabledHeader':         'Nicht relevant, solange der Header sichtbar ist – der Hamburger wird dann im Header angezeigt.',
   'settings.frontend.layoutDrawerPlacementTabbarDisabledAutoHide': 'Nicht verfügbar, wenn Auto-Ausblenden aktiv ist.',
   'settings.frontend.layoutDrawerTitle':       'Titel des Menüs',
   'settings.frontend.layoutDrawerEntryStyle':  'Darstellung der Einträge',
