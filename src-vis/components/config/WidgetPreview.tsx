@@ -246,6 +246,32 @@ function MockContent({ type, layout, title }: { type: WidgetType; layout: Widget
     );
   }
 
+  // Knob – 270° arc with line pointer at ~65%
+  if (type === 'knob') {
+    // start=135°, end=405°, ratio=0.65 → angle = 135 + 0.65*270 = 310.5°
+    const ang = 310.5;
+    const cx = 100, cy = 100, r = 70;
+    const rad = (ang * Math.PI) / 180;
+    const tipX = cx + r * Math.cos(rad);
+    const tipY = cy + r * Math.sin(rad);
+    const innerX = cx + (r * 0.35) * Math.cos(rad);
+    const innerY = cy + (r * 0.35) * Math.sin(rad);
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-1">
+        <svg viewBox="0 0 200 200" style={{ width: 90, height: 90 }}>
+          {/* Background arc 135° → 405° (opens at bottom) */}
+          <path d="M 50.5 149.5 A 70 70 0 1 1 149.5 149.5" fill="none" stroke="var(--app-border)" strokeWidth={12} strokeLinecap="round" opacity={0.35} />
+          {/* Progress arc 135° → 310.5° */}
+          <path d="M 50.5 149.5 A 70 70 0 1 1 145.3 153.2" fill="none" stroke="var(--accent)" strokeWidth={12} strokeLinecap="round" />
+          {/* Pointer line */}
+          <line x1={innerX} y1={innerY} x2={tipX} y2={tipY} stroke="var(--accent)" strokeWidth={5} strokeLinecap="round" />
+          <text x={cx} y={cy + 6} textAnchor="middle" fontSize={28} fontWeight="bold" fill="var(--text-primary)">{m.v}</text>
+        </svg>
+        {t && <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{t}</p>}
+      </div>
+    );
+  }
+
   // Camera
   if (type === 'camera') {
     return (

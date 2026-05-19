@@ -242,7 +242,9 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                   ? { streamUrl: '', refreshInterval: 5, fitMode: 'cover', showTitle: true }
                   : type === 'gauge'
                     ? { minValue: 0, maxValue: 100, unit: '', decimals: 1, showMinMax: true, colorZones: false }
-                    : finalUnit ? { unit: finalUnit } : {}),
+                    : type === 'knob'
+                      ? { minValue: 0, maxValue: 100, step: 1, unit: finalUnit || '', decimals: 0, startAngle: 135, endAngle: 405, pointerStyle: 'line', color: '#6366f1', strokeWidth: 14, showValue: true, showMinMax: false }
+                      : finalUnit ? { unit: finalUnit } : {}),
       },
     });
     onClose();

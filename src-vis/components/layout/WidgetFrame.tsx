@@ -82,6 +82,7 @@ import { UniversalWidget } from '../widgets/UniversalWidget';
 import { EnumWidget } from '../widgets/EnumWidget';
 import { LightWidget } from '../widgets/LightWidget';
 import { CarouselWidget } from '../widgets/CarouselWidget';
+import { KnobWidget } from '../widgets/KnobWidget';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
 import { WidgetClickPopup } from '../widgets/popup/WidgetClickPopup';
@@ -133,6 +134,7 @@ function getWidgetMap() {
     enum:          EnumWidget,
     light:         LightWidget,
     carousel:      CarouselWidget,
+    knob:          KnobWidget,
   } as const;
 }
 
@@ -3193,7 +3195,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           onClose={() => openPanelFor(null)}
         >
           {/* ─── 1. Name / Titel ──────────────────────────────────────────── */}
-          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (<>
+          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob'].includes(config.type) && (<>
           <div className="space-y-2.5">
             <div>
               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
@@ -3304,7 +3306,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           <div className="h-px" style={{ background: 'var(--app-border)' }} />
           </>)}
 
-          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (<>
+          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob'].includes(config.type) && (<>
           {/* ─── 2. Stil (eingeklappt) ─────────────────────────────────────── */}
           <details className="group">
             <summary className="flex items-center justify-between cursor-pointer list-none select-none">
@@ -3354,7 +3356,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
           {/* ─── 3. Widget-Typ · Layout · Icon ─────────────────────────────── */}
           <div className="space-y-2.5">
-            {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (
+            {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob'].includes(config.type) && (
               <div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
                 <input
@@ -3398,6 +3400,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'wave',     label: 'Welle' },
               ] : config.type === 'gauge' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
+              ] : config.type === 'knob' ? [
+                { value: 'default',      label: 'Bogen' },
+                { value: 'knob-scale',   label: 'Skala' },
+                { value: 'knob-endless', label: 'Endlos (3D)' },
               ] : config.type === 'chart' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
                 { value: 'card',    label: t('wf.edit.layout.card') },
@@ -3526,6 +3532,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   case 'echartsPreset': return [];
                   case 'enum':          return [];
                   case 'light':         return [];
+                  case 'knob':          return [];
                   default: return [];
                 }
               })();
@@ -3626,7 +3633,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             })()}
 
             {/* Icon picker (not for stateimage/windowcontact – icons are per-state; not for shutter/switch/dimmer/slider – in Darstellung) */}
-            {config.type !== 'stateimage' && config.type !== 'windowcontact' && !['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (() => {
+            {config.type !== 'stateimage' && config.type !== 'windowcontact' && !['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob'].includes(config.type) && (() => {
               const currentIconName = config.options?.icon as string | undefined;
               const CurrentIcon = currentIconName
                 ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))
@@ -3659,7 +3666,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             })()}
 
             {/* Icon-Größe */}
-            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group', 'carousel', 'mediaplayer', 'shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'climate', 'windowcontact', 'binarysensor', 'stateimage', 'button', 'chips', 'httpRequest', 'datepicker', 'light'].includes(config.type) && (() => {
+            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group', 'carousel', 'mediaplayer', 'shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'climate', 'windowcontact', 'binarysensor', 'stateimage', 'button', 'chips', 'httpRequest', 'datepicker', 'light', 'knob'].includes(config.type) && (() => {
               const o = config.options ?? {};
               const iconSize = (o.iconSize as number) || 20;
               const displayIconSize = draftIconSize ?? iconSize;
@@ -3683,7 +3690,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           </div>
 
           {/* ─── DARSTELLUNG ─────────────────────────────────────────────────── */}
-          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (() => {
+          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob'].includes(config.type) && (() => {
             const o = config.options ?? {};
             const setO = (patch: Record<string, unknown>) =>
               onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -3834,6 +3841,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     ? [
                         { key: 'showPalette', label: 'Farbpalette (Presets)' },
                       ]
+                    : config.type === 'knob'
+                    ? [{ key: 'showValue', label: 'Wert' }, { key: 'showMinMax', label: 'Min/Max-Beschriftung' }]
                     : config.type === 'mediaplayer'
                     ? [
                         { key: 'showCover',    label: 'Cover' },
@@ -3973,7 +3982,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           })()}
 
           {/* ─── ERWEITERT ───────────────────────────────────────────────────── */}
-          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light'].includes(config.type) && (
+          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob'].includes(config.type) && (
             <details className="group">
               <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                 <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Erweitert</span>
@@ -4110,7 +4119,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       onBlur={(e) => {
                         const id = e.target.value.trim();
                         if (!id) return;
-                        const supportsUnit = ['value', 'chart', 'gauge', 'fill'].includes(config.type);
+                        const supportsUnit = ['value', 'chart', 'gauge', 'fill', 'knob'].includes(config.type);
                         const apply = (name: string | undefined, unit: string | undefined) => {
                           let updated: typeof config = { ...config, datapoint: id };
                           if (!updated.title?.trim() && name) updated = { ...updated, title: applyDpNameFilter(name) };
@@ -4579,6 +4588,173 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         </div>
                       </div>
                     )}
+                  </>
+                );
+              })()}
+
+              {/* ── Knob config ── */}
+              {config.type === 'knob' && (() => {
+                const o   = config.options ?? {};
+                const set = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const min          = (o.minValue as number) ?? 0;
+                const max          = (o.maxValue as number) ?? 100;
+                const step         = (o.step     as number) ?? 1;
+                const startAngle   = (o.startAngle as number) ?? 135;
+                const endAngle     = (o.endAngle   as number) ?? 405;
+                const pointerStyle = (o.pointerStyle as string) ?? 'line';
+                const readOnly     = !!o.readOnly;
+                const isEndless    = config.layout === 'knob-endless';
+                const isScale      = config.layout === 'knob-scale';
+                const showRing       = (o.showRing       as boolean | undefined) ?? true;
+                const showBackground = (o.showBackground as boolean | undefined) ?? true;
+                const kCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
+                const kSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                const sectionHdr = (label: string) => (
+                  <div className="text-[10px] font-semibold uppercase tracking-wider pt-1" style={{ color: 'var(--text-secondary)' }}>{label}</div>
+                );
+                return (
+                  <>
+                    {sectionHdr('Skala')}
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Min</label>
+                        <input type="number" value={min} onChange={(e) => set({ minValue: Number(e.target.value) })} className={kCls} style={kSty} />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Max</label>
+                        <input type="number" value={max} onChange={(e) => set({ maxValue: Number(e.target.value) })} className={kCls} style={kSty} />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Schrittweite</label>
+                        <input type="number" min={0} step="any" value={step} onChange={(e) => set({ step: Number(e.target.value) || 1 })} className={kCls} style={kSty} />
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Einheit</label>
+                        <input type="text" value={(o.unit as string) ?? ''} onChange={(e) => set({ unit: e.target.value || undefined })} placeholder="°C, %, W" className={kCls} style={kSty} />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Dezimalstellen</label>
+                        <div className="flex gap-1">
+                          <input type="number" min={0} max={4}
+                            disabled={o.decimals === undefined}
+                            value={(o.decimals as number) ?? defaultDecimals}
+                            onChange={(e) => set({ decimals: Number(e.target.value) })}
+                            className={kCls} style={{ ...kSty, opacity: o.decimals === undefined ? 0.5 : 1 }} />
+                          <button
+                            onClick={() => set({ decimals: o.decimals === undefined ? defaultDecimals : undefined })}
+                            title={o.decimals === undefined ? 'Globale Einstellung aktiv – klicken für eigenen Wert' : 'Auf globale Einstellung zurücksetzen'}
+                            className="px-1.5 rounded text-[10px] font-bold shrink-0"
+                            style={{ background: o.decimals === undefined ? 'var(--accent)' : 'var(--app-border)', color: o.decimals === undefined ? '#fff' : 'var(--text-secondary)' }}>
+                            Global
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {sectionHdr('Darstellung')}
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Zeiger-Form</label>
+                      <select value={pointerStyle} onChange={(e) => set({ pointerStyle: e.target.value })} className={kCls} style={kSty}>
+                        <option value="line">Linie</option>
+                        <option value="circle">Punkt</option>
+                        <option value="arrow">Pfeil</option>
+                      </select>
+                    </div>
+                    {!isEndless && (
+                      <>
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Startwinkel (°)</label>
+                            <input type="number" value={startAngle} onChange={(e) => set({ startAngle: Number(e.target.value) })} className={kCls} style={kSty} />
+                          </div>
+                          <div className="flex-1">
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Endwinkel (°)</label>
+                            <input type="number" value={endAngle} onChange={(e) => set({ endAngle: Number(e.target.value) })} className={kCls} style={kSty} />
+                          </div>
+                        </div>
+                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                          0° = 3 Uhr, 90° = 6 Uhr, 180° = 9 Uhr, 270° = 12 Uhr. Standard 135 → 405 ergibt 270°-Bogen mit Öffnung unten.
+                        </p>
+                        {!isScale && (
+                          <div className="flex gap-2">
+                            <div className="flex-1">
+                              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Bogenbreite</label>
+                              <input type="number" min={1} max={40} value={(o.strokeWidth as number) ?? 14} onChange={(e) => set({ strokeWidth: Number(e.target.value) })} className={kCls} style={kSty} />
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <input type="color" value={(o.color as string) ?? (isScale ? '#1da7e0' : '#6366f1')}
+                            onChange={(e) => set({ color: e.target.value })}
+                            className="w-8 h-7 rounded cursor-pointer shrink-0" style={{ border: '1px solid var(--app-border)', padding: '1px' }} />
+                          <div className="flex-1">
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Akzentfarbe (Bogen & Zeiger)</label>
+                            <input type="text" value={(o.color as string) ?? (isScale ? '#1da7e0' : '#6366f1')} onChange={(e) => set({ color: e.target.value })}
+                              className={kCls + ' font-mono'} style={kSty} />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {(isEndless || isScale) && (
+                      <div className="flex-1">
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Anzahl Beschriftungen</label>
+                        <input type="number" min={2} max={36}
+                          value={(o.labelCount as number) ?? (isScale ? 11 : 10)}
+                          onChange={(e) => set({ labelCount: Number(e.target.value) || (isScale ? 11 : 10) })}
+                          className={kCls} style={kSty} />
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                          {isScale
+                            ? 'Zahlenlabels am Bogen. Standard 11 → 0, 10, …, 100 für Bereich 0–100.'
+                            : 'Hauptmarken mit Zahlenlabel um die Scheibe. Standard 10 → Beschriftung in Schritten von (Max−Min)/10.'}
+                        </p>
+                      </div>
+                    )}
+
+                    {!isEndless && (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <label className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>Rahmen</label>
+                            <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Außenring im Stil eines Drehknopfes</p>
+                          </div>
+                          <button onClick={() => set({ showRing: !showRing })}
+                            className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                            style={{ background: showRing ? 'var(--accent)' : 'var(--app-border)' }}>
+                            <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                              style={{ left: showRing ? '18px' : '2px' }} />
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <label className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>Hintergrund</label>
+                            <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Leichte graue Scheibe hinter dem Knob</p>
+                          </div>
+                          <button onClick={() => set({ showBackground: !showBackground })}
+                            className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                            style={{ background: showBackground ? 'var(--accent)' : 'var(--app-border)' }}>
+                            <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                              style={{ left: showBackground ? '18px' : '2px' }} />
+                          </button>
+                        </div>
+                      </>
+                    )}
+
+                    {sectionHdr('Verhalten')}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>Nur Anzeige (read-only)</label>
+                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Drehen deaktivieren – nur Wert anzeigen</p>
+                      </div>
+                      <button onClick={() => set({ readOnly: !readOnly })}
+                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                        style={{ background: readOnly ? 'var(--accent)' : 'var(--app-border)' }}>
+                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                          style={{ left: readOnly ? '18px' : '2px' }} />
+                      </button>
+                    </div>
                   </>
                 );
               })()}

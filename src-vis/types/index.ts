@@ -53,10 +53,12 @@ export type WidgetType =
   | 'universal'
   | 'enum'
   | 'light'
-  | 'carousel';
+  | 'carousel'
+  | 'knob';
 
 export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda' | 'flow' | 'battery' | 'production' | 'consumption' | 'loadpoints' | 'custom' | 'count'
-  | 'light-all' | 'light-brightness' | 'light-color' | 'light-temperature' | 'light-custom';
+  | 'light-all' | 'light-brightness' | 'light-color' | 'light-temperature' | 'light-custom'
+  | 'knob-endless' | 'knob-scale';
 
 // ── Light widget option types ─────────────────────────────────────────────────
 

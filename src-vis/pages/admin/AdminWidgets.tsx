@@ -63,6 +63,7 @@ function InlineEditForm({
   const isList       = config.type === 'list';
   const isThermostat = config.type === 'thermostat';
   const isGauge      = config.type === 'gauge';
+  const isKnob       = config.type === 'knob';
   const isChart      = config.type === 'chart';
   const needsDatapoint = !isClock && !isCalendar && !isHeader && !isList;
 
@@ -93,10 +94,12 @@ function InlineEditForm({
               className={inputCls}
               style={inputStyle}
             >
-              <option value="default">{t('editor.layouts.standard')}</option>
-              {!isGauge && <option value="card">{t('editor.layouts.card')}</option>}
-              {!isGauge && !isChart && <option value="compact">{t('editor.layouts.compact')}</option>}
-              {!isGauge && !isChart && <option value="minimal">{t('editor.layouts.minimal')}</option>}
+              <option value="default">{isKnob ? 'Bogen' : t('editor.layouts.standard')}</option>
+              {isKnob && <option value="knob-scale">Skala</option>}
+              {isKnob && <option value="knob-endless">Endlos (3D)</option>}
+              {!isGauge && !isKnob && <option value="card">{t('editor.layouts.card')}</option>}
+              {!isGauge && !isKnob && !isChart && <option value="compact">{t('editor.layouts.compact')}</option>}
+              {!isGauge && !isKnob && !isChart && <option value="minimal">{t('editor.layouts.minimal')}</option>}
               {isCalendar && <option value="agenda">{t('editor.layouts.agenda')}</option>}
             </select>
           </div>

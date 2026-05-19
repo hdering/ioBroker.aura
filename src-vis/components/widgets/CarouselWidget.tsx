@@ -346,7 +346,7 @@ function CarouselAddPanel({ onAdd }: { onAdd: (type: WidgetType) => void }) {
   const [open, setOpen] = useState(false);
 
   const types: WidgetType[] = [
-    'switch', 'value', 'dimmer', 'thermostat', 'gauge', 'chart', 'list', 'autolist',
+    'switch', 'value', 'dimmer', 'thermostat', 'gauge', 'knob', 'chart', 'list', 'autolist',
     'clock', 'weather', 'image', 'camera', 'iframe', 'html', 'fill', 'mediaplayer',
     'universal',
   ];
