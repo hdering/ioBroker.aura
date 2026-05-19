@@ -11,7 +11,7 @@ import { CustomGridView } from './CustomGridView';
 export type KnobPointerStyle = 'line' | 'circle' | 'arrow';
 export type KnobDialStyle    = 'bogen' | 'skala' | 'endless';
 
-// Default grid for the knob custom layout — 3×3, dial spans the middle row.
+// Default grid for the knob custom layout — 3×3, dial sits in the center cell (2/2).
 export const DEFAULT_KNOB_GRID: CustomGridDef = {
   cols: 3,
   rows: 3,
@@ -20,8 +20,8 @@ export const DEFAULT_KNOB_GRID: CustomGridDef = {
     { type: 'title',     fontSize: 12,                                  align: 'left',   valign: 'middle' },
     { type: 'empty' },
     { type: 'field',     fieldKey: 'value', fontSize: 12, bold: true,   align: 'right',  valign: 'middle' },
-    { type: 'component', componentKey: 'dial',                          align: 'center', valign: 'middle', colSpan: 3 },
     { type: 'empty' },
+    { type: 'component', componentKey: 'dial',                          align: 'center', valign: 'middle' },
     { type: 'empty' },
     { type: 'empty' },
     { type: 'empty' },
@@ -669,13 +669,14 @@ export function KnobWidget({ config }: WidgetProps) {
     );
   }
 
+  const titleAlign = (o.titleAlign as React.CSSProperties['textAlign']) ?? 'left';
   return (
     <div className="flex flex-col h-full gap-1" style={{ position: 'relative' }}>
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-2 min-w-0">
           {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
           {showTitle && (
-            <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)' }}>
+            <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign }}>
               {config.title}
             </p>
           )}
