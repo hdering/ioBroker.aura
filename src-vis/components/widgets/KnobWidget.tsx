@@ -11,17 +11,19 @@ import { CustomGridView } from './CustomGridView';
 export type KnobPointerStyle = 'line' | 'circle' | 'arrow';
 export type KnobDialStyle    = 'bogen' | 'skala' | 'endless';
 
-// Default grid for the knob custom layout — 3×3, dial sits in the center cell (2/2).
+// Default grid for the knob custom layout — 3×3, only cell 2/2 contains the dial.
+// Outer auto rows/cols collapse around the empty cells so the dial fills the widget.
 export const DEFAULT_KNOB_GRID: CustomGridDef = {
   cols: 3,
   rows: 3,
+  colSizes: ['auto', '1fr', 'auto'],
   rowSizes: ['auto', '1fr', 'auto'],
   cells: [
-    { type: 'title',     fontSize: 12,                                  align: 'left',   valign: 'middle' },
     { type: 'empty' },
-    { type: 'field',     fieldKey: 'value', fontSize: 12, bold: true,   align: 'right',  valign: 'middle' },
     { type: 'empty' },
-    { type: 'component', componentKey: 'dial',                          align: 'center', valign: 'middle' },
+    { type: 'empty' },
+    { type: 'empty' },
+    { type: 'component', componentKey: 'dial', align: 'center', valign: 'middle' },
     { type: 'empty' },
     { type: 'empty' },
     { type: 'empty' },
