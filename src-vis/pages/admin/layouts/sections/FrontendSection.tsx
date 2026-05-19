@@ -62,10 +62,24 @@ export function FrontendSection() {
               {(['floating', 'tabbar'] as const).map((v) => {
                 const labels = { floating: t('settings.frontend.layoutDrawerPlacementFloating'), tabbar: t('settings.frontend.layoutDrawerPlacementTabbar') };
                 const active = (frontend.layoutDrawerPlacement ?? 'floating') === v;
+                const tabbarDisabled = v === 'tabbar' && (frontend.showHeader || (frontend.layoutDrawerAutoHide ?? false));
+                const disabledReason = tabbarDisabled
+                  ? (frontend.showHeader
+                      ? t('settings.frontend.layoutDrawerPlacementTabbarDisabledHeader')
+                      : t('settings.frontend.layoutDrawerPlacementTabbarDisabledAutoHide'))
+                  : undefined;
                 return (
-                  <button key={v} onClick={() => updateFrontend({ layoutDrawerPlacement: v })}
-                    className="px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
-                    style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
+                  <button key={v}
+                    onClick={() => { if (!tabbarDisabled) updateFrontend({ layoutDrawerPlacement: v }); }}
+                    disabled={tabbarDisabled}
+                    title={disabledReason}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-medium ${tabbarDisabled ? 'cursor-not-allowed' : 'hover:opacity-80'}`}
+                    style={{
+                      background: active ? 'var(--accent)' : 'var(--app-bg)',
+                      color: active ? '#fff' : 'var(--text-secondary)',
+                      border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                      opacity: tabbarDisabled ? 0.4 : 1,
+                    }}>
                     {labels[v]}
                   </button>
                 );

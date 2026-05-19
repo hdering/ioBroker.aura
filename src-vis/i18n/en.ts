@@ -87,6 +87,8 @@ export const en: Record<TranslationKey, string> = {
   'settings.frontend.layoutDrawerPlacementFloating': 'Floating',
   'settings.frontend.layoutDrawerPlacementTabbar':   'In tab bar',
   'settings.frontend.layoutDrawerPlacementHint': 'Inside the tab bar the hamburger no longer overlaps the first tab.',
+  'settings.frontend.layoutDrawerPlacementTabbarDisabledHeader':   'Not available while the header is visible.',
+  'settings.frontend.layoutDrawerPlacementTabbarDisabledAutoHide': 'Not available when auto-hide is enabled.',
   'settings.frontend.layoutDrawerTitle':       'Menu title',
   'settings.frontend.layoutDrawerEntryStyle':  'Entry style',
   'settings.frontend.layoutDrawerEntryStyleIconAndName': 'Icon + name',

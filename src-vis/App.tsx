@@ -455,8 +455,8 @@ export default function App() {
   const drawerSize = frontend.layoutDrawerSize ?? 'md';
   const drawerAutoHide = frontend.layoutDrawerAutoHide ?? false;
   const drawerPlacement = frontend.layoutDrawerPlacement ?? 'floating';
-  const drawerInTabBar = drawerEnabled && !frontend.showHeader && drawerPlacement === 'tabbar';
-  const drawerFloating = drawerEnabled && !frontend.showHeader && drawerPlacement === 'floating';
+  const drawerInTabBar = drawerEnabled && !frontend.showHeader && drawerPlacement === 'tabbar' && !drawerAutoHide;
+  const drawerFloating = drawerEnabled && !frontend.showHeader && !drawerInTabBar;
   const drawerTitle = frontend.layoutDrawerTitle ?? '';
   const drawerEntryStyle = frontend.layoutDrawerEntryStyle ?? 'iconAndName';
 
