@@ -186,6 +186,15 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.89 (2026-05-19)
+- fix(layout-drawer): disable both placement buttons when header is on
+- fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on
+- feat(layout-drawer): customize title and entry display style
+- feat(layouts): drag to reorder layouts in admin list
+- feat(layout-drawer): add 'in tab bar' placement option
+- fix(layout-drawer): allow inline trigger width to fit icon + name
+
+
 ### 0.9.88 (2026-05-19)
 - fix(knob): use knob default grid as editor fallback
 - feat(knob): empty default custom grid except dial at 2/2
@@ -1507,6 +1516,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

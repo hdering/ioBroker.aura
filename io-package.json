@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.88",
+    "version": "0.9.89",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.89": {
+        "en": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
+        "de": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name"
+      },
       "0.9.88": {
         "en": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style",
         "de": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style"

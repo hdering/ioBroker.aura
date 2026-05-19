@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.9.89 (2026-05-19)
+
+- fix(layout-drawer): disable both placement buttons when header is on
+- fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on
+- feat(layout-drawer): customize title and entry display style
+- feat(layouts): drag to reorder layouts in admin list
+- feat(layout-drawer): add 'in tab bar' placement option
+- fix(layout-drawer): allow inline trigger width to fit icon + name
+
 ## v0.9.88 (2026-05-19)
 
 - fix(knob): use knob default grid as editor fallback
@@ -739,6 +748,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
