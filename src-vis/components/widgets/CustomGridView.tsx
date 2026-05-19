@@ -48,7 +48,9 @@ export function normalizeGrid(raw: unknown, fallback?: CustomGrid | CustomGridDe
     const need = cols * rows;
     const cells = (def.cells ?? []).slice(0, need);
     while (cells.length < need) cells.push({ type: 'empty' });
-    return { cols, rows, cells };
+    const colSizes = Array.isArray(def.colSizes) && def.colSizes.length === cols ? def.colSizes : undefined;
+    const rowSizes = Array.isArray(def.rowSizes) && def.rowSizes.length === rows ? def.rowSizes : undefined;
+    return { cols, rows, cells, colSizes, rowSizes };
   }
   if (Array.isArray(raw)) {
     const cells = raw.slice(0, 9);
@@ -732,15 +734,21 @@ interface CustomGridViewProps {
 
 export function CustomGridView({ config, value, rawValue, unit, extraFields, extraComponents, fallback }: CustomGridViewProps) {
   const grid = normalizeGrid(config.options?.customGrid, fallback);
-  const { cols, rows, cells } = grid;
+  const { cols, rows, cells, colSizes, rowSizes } = grid;
   const { defaultDecimals } = useGlobalSettingsStore();
+  const gridTemplateColumns = colSizes ? colSizes.join(' ') : `repeat(${cols}, 1fr)`;
+  const gridTemplateRows    = rowSizes ? rowSizes.join(' ') : `repeat(${rows}, 1fr)`;
+  // When custom row sizes are used, anchor content at top instead of CSS-grid's default
+  // "stretch" which distributes free space across auto rows (causing huge gaps).
+  const alignContent = rowSizes ? 'start' : undefined;
   return (
     <div
       className="aura-custom-grid"
       style={{
         display: 'grid',
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        gridTemplateRows: `repeat(${rows}, 1fr)`,
+        gridTemplateColumns,
+        gridTemplateRows,
+        alignContent,
         width: '100%', height: '100%', gap: '2px',
       }}
     >

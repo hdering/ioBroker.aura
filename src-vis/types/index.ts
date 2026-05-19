@@ -150,6 +150,10 @@ export interface CustomGridDef {
   cols: number;                 // 1..8
   rows: number;                 // 1..8
   cells: CustomCell[];          // length = cols*rows, row-major (index = row*cols + col)
+  /** Optional per-column CSS grid-template-columns track sizes (e.g. 'auto', '1fr', '60px'). Length must equal cols. */
+  colSizes?: string[];
+  /** Optional per-row CSS grid-template-rows track sizes (e.g. 'auto', '1fr', '40px'). Length must equal rows. */
+  rowSizes?: string[];
 }
 
 export interface ioBrokerState {

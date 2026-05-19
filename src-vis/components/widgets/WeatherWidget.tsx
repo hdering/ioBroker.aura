@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Cloud, Loader } from 'lucide-react';
-import type { WidgetProps, CustomGrid } from '../../types';
+import type { WidgetProps, CustomGrid, CustomGridDef, CustomCell } from '../../types';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useT } from '../../i18n';
 import { CustomGridView } from './CustomGridView';
@@ -18,6 +18,109 @@ export const DEFAULT_WEATHER_GRID: CustomGrid = [
   { type: 'empty' },
   { type: 'empty' },
 ];
+
+/**
+ * Build a custom-grid that mirrors the standard (default/card) layout, based on the current
+ * widget options. All non-empty cells are 'field' type so they can be styled via fontSize /
+ * color / bold like any other widget-field cell.
+ *
+ * Layout (3 columns, up to 8 rows due to grid hard cap):
+ *   - optional title row: [title cs=3]
+ *   - header block: big 'emoji' field (rowSpan=N) on the left + condition / temp /
+ *     humidityLine / feelsLikeLine stacked on the right
+ *   - per-day forecast rows: [day_i] [emoji_i] [tempRange_i]
+ *   - optional warnings row: [warningsLine cs=3]
+ */
+export function buildWeatherCustomGrid(opts: Record<string, unknown>): CustomGridDef {
+  const showTitle    = opts.showTitle !== false;
+  const showIcon     = opts.showIcon  !== false;
+  const showForecast = (opts.showForecast   as boolean) ?? true;
+  const showWarnings = (opts.showWarnings   as boolean) ?? false;
+  const showCondition= (opts.showCondition  as boolean) ?? true;
+  const showToday    = (opts.showToday      as boolean) ?? true;
+  const showCloudCvr = (opts.showCloudCover as boolean) ?? false;
+  const forecastDays = (opts.forecastDays   as number)  ?? 5;
+
+  const cols = 3;
+  const hasTitleRow = showTitle || showIcon;
+  const headerRows = (showCondition ? 1 : 0) + 1 /* temp */ + 1 /* humidity */ + 1 /* feels-like */;
+
+  // Grid hard cap is 8 rows — distribute fixed rows first, fill remainder with forecast days.
+  const titleRowCount    = hasTitleRow    ? 1 : 0;
+  const warningsRowCount = showWarnings   ? 1 : 0;
+  const maxFcRows = Math.max(0, 8 - titleRowCount - headerRows - warningsRowCount);
+  const fcRowCount = showForecast ? Math.min(forecastDays, maxFcRows) : 0;
+  const rows = titleRowCount + headerRows + fcRowCount + warningsRowCount;
+
+  const cells: CustomCell[] = [];
+
+  // ── Title row ────────────────────────────────────────────────────────────
+  if (hasTitleRow) {
+    cells.push({ type: 'field', fieldKey: 'title', align: 'left', valign: 'middle', colSpan: 3, fontSize: 12, color: 'var(--text-secondary)' });
+    cells.push({ type: 'empty' });
+    cells.push({ type: 'empty' });
+  }
+
+  // ── Header block ─────────────────────────────────────────────────────────
+  let firstHeaderRow = true;
+  const pushHeaderRow = (rightCell: CustomCell) => {
+    if (firstHeaderRow) {
+      cells.push({ type: 'field', fieldKey: 'emoji', align: 'center', valign: 'middle', rowSpan: headerRows, fontSize: 40 });
+      firstHeaderRow = false;
+    } else {
+      cells.push({ type: 'empty' });
+    }
+    cells.push({ ...rightCell, colSpan: 2 });
+    cells.push({ type: 'empty' });
+  };
+
+  if (showCondition) {
+    pushHeaderRow({ type: 'field', fieldKey: 'condition', align: 'left', valign: 'bottom', fontSize: 14, bold: true, color: 'var(--text-secondary)' });
+  }
+  pushHeaderRow({ type: 'field', fieldKey: 'temp', align: 'left', valign: 'middle', fontSize: 28, bold: true });
+  pushHeaderRow({
+    type: 'field',
+    fieldKey: showCloudCvr ? 'humidityCloud' : 'humidityLine',
+    align: 'left', valign: 'middle',
+    fontSize: 12, color: 'var(--text-secondary)',
+  });
+  pushHeaderRow({
+    type: 'field', fieldKey: 'feelsLikeLine',
+    align: 'left', valign: 'top',
+    fontSize: 12, color: 'var(--text-secondary)',
+  });
+
+  // ── Per-day forecast rows ────────────────────────────────────────────────
+  // Each row: [day name | weather emoji | temperature bar (min° + bar + max°)]
+  const dayOffset = showToday ? 0 : 1;
+  for (let i = 0; i < fcRowCount; i++) {
+    const apiIdx = i + dayOffset;
+    cells.push({ type: 'field',     fieldKey: `day${apiIdx}`,        align: 'left',   valign: 'middle', fontSize: 12, color: 'var(--text-secondary)', bold: true });
+    cells.push({ type: 'field',     fieldKey: `emoji${apiIdx}`,      align: 'center', valign: 'middle', fontSize: 16 });
+    cells.push({ type: 'component', componentKey: `tempBar${apiIdx}`, align: 'left',   valign: 'middle' });
+  }
+
+  // ── Warnings row ─────────────────────────────────────────────────────────
+  if (showWarnings) {
+    cells.push({ type: 'field', fieldKey: 'warningsLine', align: 'left', valign: 'middle', colSpan: 3, fontSize: 11, color: 'var(--accent-red, #ef4444)' });
+    cells.push({ type: 'empty' });
+    cells.push({ type: 'empty' });
+  }
+
+  // Track sizes — col 1 narrow (day name / big emoji), col 2 narrow (per-day emoji / header text),
+  // col 3 greedy (temp bar / header text continues). Content-sized rows mirror the standard flex layout.
+  const colSizes: string[] = ['auto', 'auto', '1fr'];
+  const rowSizes: string[] = [];
+  if (hasTitleRow)    rowSizes.push('auto');
+  if (showCondition)  rowSizes.push('auto');
+  rowSizes.push('auto');                          // temp
+  rowSizes.push('auto');                          // humidity
+  rowSizes.push('auto');                          // feels-like
+  for (let i = 0; i < fcRowCount; i++) rowSizes.push('auto');
+  if (showWarnings)   rowSizes.push('auto');
+
+  return { cols, rows, cells, colSizes, rowSizes };
+}
 
 // ── Open-Meteo types ──────────────────────────────────────────────────────────
 interface WeatherData {
@@ -463,6 +566,12 @@ export function WeatherWidget({ config }: WidgetProps) {
     const perDayFields: Record<string, string> = {};
     const perDayComponents: Record<string, React.ReactNode> = {};
     const maxDays = Math.min(data!.daily.time.length, 7);
+    // Global temp range over all available API days — used to scale per-day temp bars consistently.
+    const allMaxsApi = Array.from({ length: maxDays }, (_, j) => Math.round(data!.daily.temperature_2m_max[j]));
+    const allMinsApi = Array.from({ length: maxDays }, (_, j) => Math.round(data!.daily.temperature_2m_min[j]));
+    const gMin = Math.min(...allMinsApi);
+    const gMax = Math.max(...allMaxsApi);
+    const gRange = gMax - gMin || 1;
     for (let i = 0; i < maxDays; i++) {
       const di   = getWeatherInfo(data!.daily.weather_code[i], t);
       const tMax = Math.round(data!.daily.temperature_2m_max[i]);
@@ -480,6 +589,32 @@ export function WeatherWidget({ config }: WidgetProps) {
       perDayFields[`rainSum${i}`]    = rs !== undefined && rs !== null && rs > 0 ? `${rs.toFixed(1)} mm` : '';
       perDayComponents[`weather-icon-day-${i}`] = (
         <span style={{ fontSize: '2.4em', lineHeight: 1 }}>{di.emoji}</span>
+      );
+
+      // Per-day temperature bar (min° | colored bar | max°) — same visual as the forecast component.
+      const leftPct  = ((tMin - gMin) / gRange) * 100;
+      const widthPct = ((tMax - tMin) / gRange) * 100;
+      const minCol = getTempBarColor(tMin, tempThresholds);
+      const maxCol = getTempBarColor(tMax, tempThresholds);
+      const haveThr = minCol || maxCol;
+      const barBg = haveThr
+        ? `linear-gradient(to right, ${minCol ?? maxCol}, ${maxCol ?? minCol})`
+        : i === 0
+          ? 'linear-gradient(to right, var(--accent), color-mix(in srgb, var(--accent) 75%, transparent))'
+          : 'linear-gradient(to right, #06b6d4, #3b82f6)';
+      perDayComponents[`tempBar${i}`] = (
+        <div className="flex items-center gap-1.5 w-full">
+          <span className="shrink-0 text-right tabular-nums" style={{ color: 'var(--text-secondary)', minWidth: '1.75rem', fontSize: '0.75rem' }}>
+            {tMin}°
+          </span>
+          <div className="flex-1 relative min-w-0" style={{ height: '0.9rem' }}>
+            <div className="absolute inset-y-0 left-0 right-0 rounded-full opacity-15" style={{ background: 'var(--text-secondary)' }} />
+            <div className="absolute inset-y-0 rounded-full" style={{ left: `${leftPct}%`, width: `${Math.max(widthPct, 4)}%`, background: barBg }} />
+          </div>
+          <span className="font-semibold shrink-0 tabular-nums" style={{ color: i === 0 ? 'var(--accent)' : 'var(--text-primary)', minWidth: '1.75rem', fontSize: '0.75rem' }}>
+            {tMax}°
+          </span>
+        </div>
       );
     }
 
@@ -503,6 +638,21 @@ export function WeatherWidget({ config }: WidgetProps) {
           rainNow:            cur.precipitation !== undefined ? `${cur.precipitation.toFixed(1)} mm` : '',
           rainNowValue:       cur.precipitation !== undefined ? cur.precipitation.toFixed(1) : '',
           location:           locationName,
+          // Combined lines that mirror the standard layout
+          title:              config.title,
+          humidityLine:       `💧 ${cur.relative_humidity_2m}%${showHumidityLabel ? ` ${t('weather.humidity')}` : ''}`,
+          humidityCloud:      `💧 ${cur.relative_humidity_2m}%${showHumidityLabel ? ` ${t('weather.humidity')}` : ''}${cur.cloud_cover !== undefined ? ` · ☁️ ${Math.round(cur.cloud_cover)}%` : ''}`,
+          feelsLikeLine:      (() => {
+            const w = Math.round(cur.wind_speed_10m);
+            if (feelsLikeStyle === 'text')   return `${t('weather.feelsLike', { feel, wind: w })}${locationName ? ` · ${locationName}` : ''}`;
+            if (feelsLikeStyle === 'icon')   return `🌡️ ${feel} · 💨 ${w} km/h${locationName ? ` · ${locationName}` : ''}`;
+            return `${feel} · 💨 ${w} km/h${locationName ? ` · ${locationName}` : ''}`;
+          })(),
+          warningsLine:       warningsLoading
+            ? t('weather.warnings')
+            : warnings.length === 0
+              ? `✅ ${t('weather.noWarnings')}`
+              : warnings.map((w) => `${SEVERITY_EMOJI[w.severity] ?? '⚠️'} ${w.headline || w.event}`).join(' · '),
           // Backwards-compatible tomorrow shortcuts (= day1)
           dayTomorrow:        tomorrowDay,
           emojiTomorrow:      tomorrowInfo?.emoji ?? '',

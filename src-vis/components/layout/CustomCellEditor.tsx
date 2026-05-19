@@ -67,6 +67,13 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
     { key: 'weather-icon-day-4',    label: '🌤 Wetter-Emoji Tag 4 (+4)' },
     { key: 'weather-icon-day-5',    label: '🌤 Wetter-Emoji Tag 5 (+5)' },
     { key: 'weather-icon-day-6',    label: '🌤 Wetter-Emoji Tag 6 (+6)' },
+    { key: 'tempBar0',              label: '🌡 Temp-Strahler Tag 0 (heute)' },
+    { key: 'tempBar1',              label: '🌡 Temp-Strahler Tag 1 (morgen)' },
+    { key: 'tempBar2',              label: '🌡 Temp-Strahler Tag 2 (+2)' },
+    { key: 'tempBar3',              label: '🌡 Temp-Strahler Tag 3 (+3)' },
+    { key: 'tempBar4',              label: '🌡 Temp-Strahler Tag 4 (+4)' },
+    { key: 'tempBar5',              label: '🌡 Temp-Strahler Tag 5 (+5)' },
+    { key: 'tempBar6',              label: '🌡 Temp-Strahler Tag 6 (+6)' },
     { key: 'forecast',              label: '📊 Forecast-Balken (alle Tage)' },
     { key: 'warnings',              label: '⚠ DWD-Warnungen' },
   ],
@@ -169,12 +176,16 @@ const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
   ],
   weather: (() => {
     const base: { key: string; label: string }[] = [
+      { key: 'title',          label: 'Widget-Titel' },
       { key: 'temp',           label: 'Temperatur (mit °C)' },
       { key: 'tempValue',      label: 'Temperatur (nur Zahl)' },
       { key: 'feelsLike',      label: 'Gefühlt (mit °C)' },
       { key: 'feelsLikeValue', label: 'Gefühlt (nur Zahl)' },
+      { key: 'feelsLikeLine',  label: 'Gefühlt-Zeile (kombiniert)' },
       { key: 'humidity',       label: 'Luftfeuchtigkeit (mit %)' },
       { key: 'humidityValue',  label: 'Luftfeuchtigkeit (nur Zahl)' },
+      { key: 'humidityLine',   label: 'Luftfeuchtigkeit-Zeile (💧 …)' },
+      { key: 'humidityCloud',  label: 'Luftfeuchtigkeit + Bewölkung (Zeile)' },
       { key: 'wind',           label: 'Wind (mit km/h)' },
       { key: 'windValue',      label: 'Wind (nur Zahl)' },
       { key: 'condition',      label: 'Wetterlage' },
@@ -184,6 +195,7 @@ const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
       { key: 'rainNow',        label: 'Regen aktuell (mit mm)' },
       { key: 'rainNowValue',   label: 'Regen aktuell (nur Zahl)' },
       { key: 'location',       label: 'Standort' },
+      { key: 'warningsLine',   label: 'DWD-Warnungen (Text-Zeile)' },
     ];
     const dayLabel = (i: number) =>
       i === 0 ? 'Heute' : i === 1 ? 'Morgen' : `+${i} Tage`;

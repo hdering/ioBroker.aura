@@ -53,7 +53,7 @@ import { GroupWidget } from '../widgets/GroupWidget';
 import { EChartConfig } from '../config/EChartConfig';
 import { EvccWidget } from '../widgets/EvccWidget';
 import { EvccConfig } from '../widgets/EvccWidget';
-import { WeatherWidget } from '../widgets/WeatherWidget';
+import { WeatherWidget, buildWeatherCustomGrid } from '../widgets/WeatherWidget';
 import { GaugeWidget } from '../widgets/GaugeWidget';
 import { CameraWidget } from '../widgets/CameraWidget';
 import { ImageWidget } from '../widgets/ImageWidget';
@@ -3534,7 +3534,15 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         return (
                           <button
                             key={value}
-                            onClick={() => onConfigChange({ ...config, layout: value as WidgetConfig['layout'] })}
+                            onClick={() => {
+                              const nextLayout = value as WidgetConfig['layout'];
+                              const next: WidgetConfig = { ...config, layout: nextLayout };
+                              // Pre-populate weather custom grid from current settings on first switch.
+                              if (nextLayout === 'custom' && config.type === 'weather' && !config.options?.customGrid) {
+                                next.options = { ...(config.options ?? {}), customGrid: buildWeatherCustomGrid(config.options ?? {}) };
+                              }
+                              onConfigChange(next);
+                            }}
                             className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
                             style={{
                               background: active ? 'var(--accent)' : 'var(--app-bg)',
@@ -6786,7 +6794,17 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       nextCells.push(oldIdx >= 0 && cells[oldIdx] ? cells[oldIdx] : { type: 'empty' });
                     }
                   }
-                  writeGrid({ cols: c, rows: r, cells: nextCells });
+                  const resize = (arr: string[] | undefined, newLen: number): string[] | undefined => {
+                    if (!arr) return undefined;
+                    const out = arr.slice(0, newLen);
+                    while (out.length < newLen) out.push('1fr');
+                    return out;
+                  };
+                  writeGrid({
+                    cols: c, rows: r, cells: nextCells,
+                    colSizes: resize(grid.colSizes, c),
+                    rowSizes: resize(grid.rowSizes, r),
+                  });
                   if (selectedCustomCell !== null && selectedCustomCell >= need) setSelectedCustomCell(null);
                 };
                 const sel = selectedCustomCell;
@@ -6876,7 +6894,13 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
                     {/* Reset grid */}
                     <button
-                      onClick={() => { onConfigChange({ ...config, options: { ...o, customGrid: undefined } }); setSelectedCustomCell(null); }}
+                      onClick={() => {
+                        const nextGrid: CustomGridDef | undefined = config.type === 'weather'
+                          ? buildWeatherCustomGrid(o)
+                          : undefined;
+                        onConfigChange({ ...config, options: { ...o, customGrid: nextGrid } });
+                        setSelectedCustomCell(null);
+                      }}
                       className="text-[10px] px-2 py-1 rounded"
                       style={{ background: 'var(--widget-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
                     >
