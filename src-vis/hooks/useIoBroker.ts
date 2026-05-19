@@ -2,15 +2,23 @@ import { useState, useEffect, useCallback } from 'react';
 import type { ioBrokerState, ObjectViewResult } from '../types';
 import { version as appVersion } from '../../package.json';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore – socket.io-client v2 hat kein ESM-Export
-import io from 'socket.io-client';
-
 interface IoBrokerSocket {
   connected: boolean;
   on(event: string, callback: (...args: unknown[]) => void): void;
   emit(event: string, ...args: unknown[]): void;
   disconnect(): void;
+}
+
+interface IoBrokerSocketFactory {
+  connect(url: string, opts?: Record<string, unknown>): IoBrokerSocket;
+}
+
+function getIo(): IoBrokerSocketFactory {
+  const lib = (globalThis as unknown as { io?: IoBrokerSocketFactory }).io;
+  if (!lib || typeof lib.connect !== 'function') {
+    throw new Error('Socket library not loaded — expected window.io.connect (from /socket.io/socket.io.js).');
+  }
+  return lib;
 }
 
 // Module-level singleton
@@ -81,11 +89,10 @@ function getInitialUrl(): string {
 let currentUrl = getInitialUrl();
 
 function createSocket(url: string): IoBrokerSocket {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const s = (io as any)(url, {
+  const s = getIo().connect(url, {
     path: '/socket.io',
     transports: ['websocket', 'polling'],
-  }) as IoBrokerSocket;
+  });
 
   s.on('connect', () => {
     console.log(
