@@ -255,6 +255,10 @@ export function KnobWidget({ config }: WidgetProps) {
     // Number of major (labelled) ticks. Default: 10 → labels every (max−min)/10.
     const labelCount   = (o.labelCount as number) ?? 10;
     const minorPerMajor = 4;
+    const labelStep    = labelCount > 0 ? (max - min) / labelCount : 0;
+    const labelDecimals = labelStep > 0 && labelStep < 1
+      ? Math.min(3, Math.max(0, -Math.floor(Math.log10(labelStep))))
+      : 0;
 
     const ticks: React.ReactElement[] = [];
     for (let i = 0; i < labelCount; i++) {
@@ -273,7 +277,7 @@ export function KnobWidget({ config }: WidgetProps) {
               fontSize={10}
               fill="var(--text-primary)"
               style={{ pointerEvents: 'none' }}>
-          {formatNum(labelValue, 0)}
+          {formatNum(labelValue, labelDecimals)}
         </text>,
       );
       for (let j = 1; j <= minorPerMajor; j++) {
@@ -368,6 +372,10 @@ export function KnobWidget({ config }: WidgetProps) {
     const labelCount  = (o.labelCount as number) ?? 11; // default 0,10,…,100 → 11 labels
     const minorPerMajor = 4;
     const arcColor    = (o.color as string) || '#1da7e0';
+    const labelStep    = labelCount > 1 ? (max - min) / (labelCount - 1) : 0;
+    const labelDecimals = labelStep > 0 && labelStep < 1
+      ? Math.min(3, Math.max(0, -Math.floor(Math.log10(labelStep))))
+      : 0;
 
     const ticks: React.ReactElement[] = [];
     for (let i = 0; i < labelCount; i++) {
@@ -387,7 +395,7 @@ export function KnobWidget({ config }: WidgetProps) {
               fontSize={10} fontWeight={500}
               fill="var(--text-secondary)"
               style={{ pointerEvents: 'none' }}>
-          {formatNum(labelValue, 0)}
+          {formatNum(labelValue, labelDecimals)}
         </text>,
       );
       if (i < labelCount - 1) {
