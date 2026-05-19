@@ -30,6 +30,13 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
   stateimage:    [{ key: 'icon', label: 'Zustands-Icon' }, { key: 'battery-icon', label: 'Batterie-Icon' }, { key: 'reach-icon', label: 'Erreichbarkeit-Icon' }, { key: 'status-badges', label: 'Status-Badges (alle)' }],
   httpRequest:   [{ key: 'button', label: 'HTTP-Button' }],
   enum:          [{ key: 'icon', label: 'Widget-Icon' }, { key: 'select', label: 'Dropdown' }, { key: 'label', label: 'Aktuelle Auswahl' }],
+  knob:          [
+    { key: 'dial',          label: '🎛 Drehknopf' },
+    { key: 'icon',          label: 'Widget-Icon' },
+    { key: 'battery-icon',  label: 'Batterie-Icon' },
+    { key: 'reach-icon',    label: 'Erreichbarkeit-Icon' },
+    { key: 'status-badges', label: 'Status-Badges (alle)' },
+  ],
   light:         [
     { key: 'power',       label: '⏻ Ein/Aus-Taste' },
     { key: 'brightness',  label: '🔆 Helligkeit (Bar)' },
@@ -234,6 +241,14 @@ const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
     { key: 'reach',   label: 'Erreichbarkeit' },
   ],
   slider: [
+    { key: 'value',   label: 'Wert' },
+    { key: 'unit',    label: 'Einheit' },
+    { key: 'min',     label: 'Minimum' },
+    { key: 'max',     label: 'Maximum' },
+    { key: 'battery', label: 'Batterie' },
+    { key: 'reach',   label: 'Erreichbarkeit' },
+  ],
+  knob: [
     { key: 'value',   label: 'Wert' },
     { key: 'unit',    label: 'Einheit' },
     { key: 'min',     label: 'Minimum' },

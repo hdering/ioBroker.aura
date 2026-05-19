@@ -3411,6 +3411,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'default',      label: 'Bogen' },
                 { value: 'knob-scale',   label: 'Skala' },
                 { value: 'knob-endless', label: 'Endlos (3D)' },
+                { value: 'custom',       label: 'Custom' },
               ] : config.type === 'chart' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
                 { value: 'card',    label: t('wf.edit.layout.card') },
@@ -4611,8 +4612,13 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 const endAngle     = (o.endAngle   as number) ?? 405;
                 const pointerStyle = (o.pointerStyle as string) ?? 'line';
                 const readOnly     = !!o.readOnly;
-                const isEndless    = config.layout === 'knob-endless';
-                const isScale      = config.layout === 'knob-scale';
+                const isCustom     = config.layout === 'custom';
+                const dialStyle    = (o.dialStyle as string | undefined) ?? 'bogen';
+                const resolved     = isCustom
+                  ? (dialStyle === 'endless' ? 'knob-endless' : dialStyle === 'skala' ? 'knob-scale' : 'default')
+                  : (config.layout ?? 'default');
+                const isEndless    = resolved === 'knob-endless';
+                const isScale      = resolved === 'knob-scale';
                 const showRing       = (o.showRing       as boolean | undefined) ?? true;
                 const showBackground = (o.showBackground as boolean | undefined) ?? true;
                 const kCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
@@ -4662,6 +4668,19 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     </div>
 
                     {sectionHdr('Darstellung')}
+                    {isCustom && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Stil des Drehknopfes</label>
+                        <select value={dialStyle} onChange={(e) => set({ dialStyle: e.target.value })} className={kCls} style={kSty}>
+                          <option value="bogen">Bogen</option>
+                          <option value="skala">Skala</option>
+                          <option value="endless">Endlos (3D)</option>
+                        </select>
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                          Wähle das Aussehen des Knopfes, der im Custom-Raster als Komponente <code>dial</code> erscheint.
+                        </p>
+                      </div>
+                    )}
                     <div>
                       <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Zeiger-Form</label>
                       <select value={pointerStyle} onChange={(e) => set({ pointerStyle: e.target.value })} className={kCls} style={kSty}>

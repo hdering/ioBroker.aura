@@ -9,7 +9,7 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
     case 'universal':
       return ['custom'];
     case 'knob':
-      return ['default', 'knob-scale', 'knob-endless'];
+      return ['default', 'knob-scale', 'knob-endless', 'custom'];
     case 'camera':
       return ['minimal', 'default', 'custom'];
     case 'fill':

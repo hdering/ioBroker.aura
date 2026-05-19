@@ -1,13 +1,33 @@
 import { useEffect, useRef, useState } from 'react';
-import { Gauge } from 'lucide-react';
+import { Gauge, HelpCircle } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
-import type { WidgetProps } from '../../types';
+import type { WidgetProps, CustomGrid, CustomGridDef } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { formatNum } from '../../utils/formatValue';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { CustomGridView } from './CustomGridView';
 
 export type KnobPointerStyle = 'line' | 'circle' | 'arrow';
+export type KnobDialStyle    = 'bogen' | 'skala' | 'endless';
+
+// Default grid for the knob custom layout — 3×3, dial spans the middle row.
+export const DEFAULT_KNOB_GRID: CustomGridDef = {
+  cols: 3,
+  rows: 3,
+  rowSizes: ['auto', '1fr', 'auto'],
+  cells: [
+    { type: 'title',     fontSize: 12,                                  align: 'left',   valign: 'middle' },
+    { type: 'empty' },
+    { type: 'field',     fieldKey: 'value', fontSize: 12, bold: true,   align: 'right',  valign: 'middle' },
+    { type: 'component', componentKey: 'dial',                          align: 'center', valign: 'middle', colSpan: 3 },
+    { type: 'empty' },
+    { type: 'empty' },
+    { type: 'empty' },
+    { type: 'empty' },
+    { type: 'empty' },
+  ],
+};
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg * Math.PI) / 180;
@@ -79,9 +99,15 @@ export function KnobWidget({ config }: WidgetProps) {
   //   default        → bounded arc, thin track, line/arrow pointer on body
   //   knob-scale     → bounded arc, THICK outer arc with number labels, pointer at arc tip
   //   knob-endless   → jqx 3D endless dial (full circle, relative drag)
+  //   custom         → CustomGridView; the dial inside it uses options.dialStyle.
   // Pointer form (line/circle/arrow) is orthogonal to layout.
-  const isEndless  = config.layout === 'knob-endless';
-  const isScale    = config.layout === 'knob-scale';
+  const isCustom   = config.layout === 'custom';
+  const dialStyle  = (o.dialStyle as KnobDialStyle | undefined) ?? 'bogen';
+  const resolved   = isCustom
+    ? (dialStyle === 'endless' ? 'knob-endless' : dialStyle === 'skala' ? 'knob-scale' : 'default')
+    : (config.layout ?? 'default');
+  const isEndless  = resolved === 'knob-endless';
+  const isScale    = resolved === 'knob-scale';
   const infinite   = isEndless;
   const showRing       = (o.showRing       as boolean | undefined) ?? true;
   const showBackground = (o.showBackground as boolean | undefined) ?? true;
@@ -601,6 +627,48 @@ export function KnobWidget({ config }: WidgetProps) {
     );
   };
 
+  const dialEl = (
+    <svg
+      ref={svgRef}
+      viewBox={viewBoxStr}
+      preserveAspectRatio="xMidYMid meet"
+      className={readOnly ? '' : 'nodrag'}
+      style={{ width: '100%', height: '100%', maxHeight: '100%', touchAction: 'none', cursor: readOnly ? 'default' : 'pointer' }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+    >
+      {renderRingBackground()}
+      {isEndless ? renderCircleLayout() : isScale ? renderScaleLayout() : renderBoundedLayout()}
+      {renderRing()}
+    </svg>
+  );
+
+  if (isCustom) {
+    const customGrid = (o.customGrid as CustomGrid | CustomGridDef | undefined) ?? DEFAULT_KNOB_GRID;
+    const TitleIcon  = getWidgetIcon(o.icon as string | undefined, HelpCircle);
+    return (
+      <CustomGridView
+        config={{ ...config, options: { ...o, customGrid } }}
+        value={valueStr}
+        rawValue={displayVal}
+        unit={unit}
+        extraFields={{
+          value: isNaN(displayVal) ? '–' : `${formatNum(displayVal, decimals)}${unit}`,
+          unit,
+          min: String(min),
+          max: String(max),
+        }}
+        extraComponents={{
+          dial: dialEl,
+          icon: <TitleIcon size={iconSize} style={{ color: 'var(--text-secondary)' }} />,
+        }}
+        fallback={DEFAULT_KNOB_GRID}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col h-full gap-1" style={{ position: 'relative' }}>
       {(showTitle || showIcon) && (
@@ -614,21 +682,7 @@ export function KnobWidget({ config }: WidgetProps) {
         </div>
       )}
       <div className="flex-1 flex items-center justify-center min-h-0" style={{ position: 'relative' }}>
-        <svg
-          ref={svgRef}
-          viewBox={viewBoxStr}
-          preserveAspectRatio="xMidYMid meet"
-          className={readOnly ? '' : 'nodrag'}
-          style={{ width: '100%', height: '100%', maxHeight: '100%', touchAction: 'none', cursor: readOnly ? 'default' : 'pointer' }}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
-        >
-          {renderRingBackground()}
-          {isEndless ? renderCircleLayout() : isScale ? renderScaleLayout() : renderBoundedLayout()}
-          {renderRing()}
-        </svg>
+        {dialEl}
       </div>
     </div>
   );
