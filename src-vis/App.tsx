@@ -457,18 +457,20 @@ export default function App() {
   const drawerPlacement = frontend.layoutDrawerPlacement ?? 'floating';
   const drawerInTabBar = drawerEnabled && !frontend.showHeader && drawerPlacement === 'tabbar';
   const drawerFloating = drawerEnabled && !frontend.showHeader && drawerPlacement === 'floating';
+  const drawerTitle = frontend.layoutDrawerTitle ?? '';
+  const drawerEntryStyle = frontend.layoutDrawerEntryStyle ?? 'iconAndName';
 
   return (
     <div data-aura-app="frontend" className={`aura-page${layout?.slug ? ` aura-page-${layout.slug}` : ''}${activeTabSlug ? ` aura-${activeTabSlug}` : ''} h-full flex flex-col overflow-hidden`} style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}>
       <ConnectionIndicator showBadge={showBadge} />
       {drawerFloating && (
-        <LayoutDrawer activeLayoutId={layout?.id} floating size={drawerSize} autoHide={drawerAutoHide} />
+        <LayoutDrawer activeLayoutId={layout?.id} floating size={drawerSize} autoHide={drawerAutoHide} drawerTitle={drawerTitle} entryStyle={drawerEntryStyle} />
       )}
       {frontend.showHeader && (
         <header className="aura-header flex items-center justify-between px-4 sm:px-6 py-4 shrink-0"
           style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)' }}>
           <div className="flex items-center gap-3 min-w-0">
-            {drawerEnabled && <LayoutDrawer activeLayoutId={layout?.id} size={drawerSize} />}
+            {drawerEnabled && <LayoutDrawer activeLayoutId={layout?.id} size={drawerSize} drawerTitle={drawerTitle} entryStyle={drawerEntryStyle} />}
             <h1 className="aura-titel text-xl font-bold tracking-tight truncate">{frontend.headerTitle || 'Aura'}</h1>
           </div>
           <div className="flex items-center gap-3">
@@ -514,7 +516,7 @@ export default function App() {
           }
         }}
         layoutUrlBase={layoutUrlBase}
-        headerSlot={drawerInTabBar ? <LayoutDrawer activeLayoutId={layout?.id} size={drawerSize} iconOnly /> : undefined}
+        headerSlot={drawerInTabBar ? <LayoutDrawer activeLayoutId={layout?.id} size={drawerSize} iconOnly drawerTitle={drawerTitle} entryStyle={drawerEntryStyle} /> : undefined}
       />
       <div className="flex-1 min-h-0 flex flex-col">
         <Dashboard

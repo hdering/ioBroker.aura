@@ -20,6 +20,10 @@ interface LayoutDrawerProps {
   autoHide?: boolean;
   /** Inline mode: render only the menu icon (no layout name) — used inside the TabBar. */
   iconOnly?: boolean;
+  /** Custom drawer header title; empty/undefined falls back to the localized default. */
+  drawerTitle?: string;
+  /** How each entry in the drawer list is rendered. */
+  entryStyle?: 'iconAndName' | 'iconOnly' | 'nameOnly';
 }
 
 // Sizing scale for the trigger button. Icon + container scale together.
@@ -29,7 +33,15 @@ const SIZE_MAP: Record<LayoutDrawerSize, { icon: number; container: number; floa
   lg: { icon: 26, container: 44, floatIcon: 24, floatContainer: 52 },
 };
 
-export function LayoutDrawer({ activeLayoutId, floating = false, size = 'md', autoHide = false, iconOnly = false }: LayoutDrawerProps) {
+export function LayoutDrawer({
+  activeLayoutId,
+  floating = false,
+  size = 'md',
+  autoHide = false,
+  iconOnly = false,
+  drawerTitle,
+  entryStyle = 'iconAndName',
+}: LayoutDrawerProps) {
   const t = useT();
   const navigate = useNavigate();
   const layouts = useDashboardStore((s) => s.layouts);
@@ -151,7 +163,7 @@ export function LayoutDrawer({ activeLayoutId, floating = false, size = 'md', au
             <div className="flex items-center justify-between px-4 py-3 shrink-0"
               style={{ borderBottom: '1px solid var(--app-border)' }}>
               <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                {t('layoutDrawer.title')}
+                {drawerTitle?.trim() || t('layoutDrawer.title')}
               </span>
               <button
                 onClick={() => setOpen(false)}
@@ -170,7 +182,8 @@ export function LayoutDrawer({ activeLayoutId, floating = false, size = 'md', au
                   <button
                     key={layout.id}
                     onClick={() => goToLayout(layout)}
-                    className="w-full flex items-center gap-3 px-4 py-3 transition-colors hover:opacity-90 text-left"
+                    title={entryStyle === 'iconOnly' ? layout.name : undefined}
+                    className={`w-full flex items-center gap-3 px-4 py-3 transition-colors hover:opacity-90 text-left ${entryStyle === 'iconOnly' ? 'justify-center' : ''}`}
                     style={{
                       background: isActive
                         ? 'color-mix(in srgb, var(--accent) 15%, transparent)'
@@ -179,17 +192,21 @@ export function LayoutDrawer({ activeLayoutId, floating = false, size = 'md', au
                       borderLeft: `3px solid ${isActive ? 'var(--accent)' : 'transparent'}`,
                     }}
                   >
-                    <span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                      style={{
-                        background: isActive ? 'var(--accent)22' : 'var(--app-bg)',
-                        color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
-                      }}>
-                      {layout.icon
-                        ? <Icon icon={layout.icon} width={16} height={16} />
-                        : <LayoutDashboard size={15} />
-                      }
-                    </span>
-                    <span className="text-sm font-medium truncate">{layout.name}</span>
+                    {entryStyle !== 'nameOnly' && (
+                      <span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                        style={{
+                          background: isActive ? 'var(--accent)22' : 'var(--app-bg)',
+                          color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
+                        }}>
+                        {layout.icon
+                          ? <Icon icon={layout.icon} width={16} height={16} />
+                          : <LayoutDashboard size={15} />
+                        }
+                      </span>
+                    )}
+                    {entryStyle !== 'iconOnly' && (
+                      <span className="text-sm font-medium truncate">{layout.name}</span>
+                    )}
                   </button>
                 );
               })}

@@ -73,6 +73,37 @@ export function FrontendSection() {
             </div>
             <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>{t('settings.frontend.layoutDrawerPlacementHint')}</p>
           </div>
+          <div>
+            <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>{t('settings.frontend.layoutDrawerTitle')}</p>
+            <input
+              type="text"
+              value={frontend.layoutDrawerTitle ?? ''}
+              onChange={(e) => updateFrontend({ layoutDrawerTitle: e.target.value })}
+              placeholder={t('layoutDrawer.title')}
+              className="w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+            />
+          </div>
+          <div>
+            <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>{t('settings.frontend.layoutDrawerEntryStyle')}</p>
+            <div className="flex gap-1.5">
+              {(['iconAndName', 'iconOnly', 'nameOnly'] as const).map((v) => {
+                const labels = {
+                  iconAndName: t('settings.frontend.layoutDrawerEntryStyleIconAndName'),
+                  iconOnly:    t('settings.frontend.layoutDrawerEntryStyleIconOnly'),
+                  nameOnly:    t('settings.frontend.layoutDrawerEntryStyleNameOnly'),
+                };
+                const active = (frontend.layoutDrawerEntryStyle ?? 'iconAndName') === v;
+                return (
+                  <button key={v} onClick={() => updateFrontend({ layoutDrawerEntryStyle: v })}
+                    className="px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
+                    style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
+                    {labels[v]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
       <ToggleRow label={t('settings.frontend.showHeader')} value={frontend.showHeader} onChange={(v) => updateFrontend({ showHeader: v })} />

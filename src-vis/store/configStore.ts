@@ -38,6 +38,10 @@ export interface FrontendSettings {
   layoutDrawerAutoHide: boolean;
   /** When header is hidden: render hamburger as a floating top-left button, or inline in the TabBar. */
   layoutDrawerPlacement: 'floating' | 'tabbar';
+  /** Drawer header title; empty falls back to the localized default ("Layouts"). */
+  layoutDrawerTitle: string;
+  /** How entries are shown in the drawer list. */
+  layoutDrawerEntryStyle: 'iconAndName' | 'iconOnly' | 'nameOnly';
   // Super-admin access (empty = feature disabled)
   superAdminKey: string;
 }
@@ -81,6 +85,8 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
   layoutDrawerSize: 'md',
   layoutDrawerAutoHide: false,
   layoutDrawerPlacement: 'floating',
+  layoutDrawerTitle: '',
+  layoutDrawerEntryStyle: 'iconAndName',
   superAdminKey: '',
 };
 
