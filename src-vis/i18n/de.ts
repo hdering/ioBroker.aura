@@ -223,6 +223,7 @@ export const de = {
   'layouts.edit':          'Bearbeiten',
   'layouts.delete':        'Layout löschen',
   'layouts.changeIcon':    'Icon ändern',
+  'layouts.dragToReorder': 'Ziehen, um die Reihenfolge zu ändern',
   'layouts.defaultTab':    'Standard-Tab',
   'layouts.setDefaultTab': 'Als Standard-Tab setzen (wird geöffnet wenn kein Tab in der URL angegeben ist)',
 

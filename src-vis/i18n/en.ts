@@ -225,6 +225,7 @@ export const en: Record<TranslationKey, string> = {
   'layouts.edit':          'Edit',
   'layouts.delete':        'Delete Layout',
   'layouts.changeIcon':    'Change icon',
+  'layouts.dragToReorder': 'Drag to reorder',
   'layouts.defaultTab':    'Default tab',
   'layouts.setDefaultTab': 'Set as default tab (opened when no tab is specified in URL)',
 

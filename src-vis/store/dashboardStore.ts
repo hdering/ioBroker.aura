@@ -168,6 +168,7 @@ interface DashboardState {
   renameLayout: (id: string, name: string) => void;
   setLayoutSlug: (id: string, slug: string) => void;
   setLayoutIcon: (id: string, icon: string | undefined) => void;
+  reorderLayouts: (fromIndex: number, toIndex: number) => void;
   setActiveLayout: (id: string) => void;
 
   // ── Tab CRUD (on activeLayoutId) ─────────────────────────────────────────
@@ -265,6 +266,17 @@ export const useDashboardStore = create<DashboardState>()(
 
       setLayoutIcon: (id, icon) =>
         set((s) => ({ layouts: patchLayout(s.layouts, id, (l) => ({ ...l, icon })) })),
+
+      reorderLayouts: (fromIndex, toIndex) =>
+        set((s) => {
+          if (fromIndex === toIndex) return {};
+          if (fromIndex < 0 || fromIndex >= s.layouts.length) return {};
+          if (toIndex < 0 || toIndex >= s.layouts.length) return {};
+          const layouts = [...s.layouts];
+          const [moved] = layouts.splice(fromIndex, 1);
+          layouts.splice(toIndex, 0, moved);
+          return { layouts };
+        }),
 
       setActiveLayout: (id) => {
         // Pure navigation state — must not mark the store dirty (see persistManager).

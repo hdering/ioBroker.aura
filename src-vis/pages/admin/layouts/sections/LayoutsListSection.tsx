@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Pencil, Copy, Trash2, Check, X, ExternalLink, LayoutDashboard, Star } from 'lucide-react';
+import { Plus, Pencil, Copy, Trash2, Check, X, ExternalLink, LayoutDashboard, Star, GripVertical } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { useDashboardStore, type DashboardLayout } from '../../../../store/dashboardStore';
 import { IconPickerModal } from '../../../../components/config/IconPickerModal';
@@ -13,7 +13,20 @@ function layoutUrl(layout: DashboardLayout, isFirst: boolean): string {
 const inputCls = 'text-sm rounded-xl px-3 py-2 focus:outline-none w-full';
 const inputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
 
-function LayoutRow({ layout, isOnly, isFirst }: { layout: DashboardLayout; isOnly: boolean; isFirst: boolean }) {
+interface LayoutRowProps {
+  layout: DashboardLayout;
+  isOnly: boolean;
+  isFirst: boolean;
+  index: number;
+  dragIdx: number | null;
+  dragOverIdx: number | null;
+  onDragStart: (idx: number) => void;
+  onDragOver: (idx: number) => void;
+  onDragEnd: () => void;
+  onDrop: (idx: number) => void;
+}
+
+function LayoutRow({ layout, isOnly, isFirst, index, dragIdx, dragOverIdx, onDragStart, onDragOver, onDragEnd, onDrop }: LayoutRowProps) {
   const t = useT();
   const { renameLayout, setLayoutSlug, setLayoutIcon, duplicateLayout, removeLayout, setActiveLayout, setDefaultTab } = useDashboardStore();
   const navigate = useNavigate();
@@ -48,9 +61,32 @@ function LayoutRow({ layout, isOnly, isFirst }: { layout: DashboardLayout; isOnl
     navigate('/admin/editor');
   };
 
+  const isDragging   = dragIdx === index;
+  const isDragTarget = dragOverIdx === index && dragIdx !== null && dragIdx !== index;
+
   return (
-    <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+    <div
+      className="rounded-xl overflow-hidden transition-opacity"
+      style={{
+        border: '1px solid var(--app-border)',
+        opacity: isDragging ? 0.4 : 1,
+        ...(isDragTarget ? { boxShadow: '0 -2px 0 0 var(--accent)' } : {}),
+      }}
+      onDragOver={(e) => { e.preventDefault(); onDragOver(index); }}
+      onDragEnter={(e) => { e.preventDefault(); onDragOver(index); }}
+      onDrop={(e) => { e.preventDefault(); e.stopPropagation(); onDrop(index); }}
+    >
       <div className="flex items-center gap-3 px-4 py-3" style={{ background: 'var(--app-surface)' }}>
+        <span
+          draggable
+          onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; onDragStart(index); }}
+          onDragEnd={onDragEnd}
+          title={t('layouts.dragToReorder')}
+          className="flex items-center justify-center shrink-0 cursor-grab active:cursor-grabbing hover:opacity-80"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          <GripVertical size={14} />
+        </span>
         <button
           onClick={() => setIconPickerOpen(true)}
           title={t('layouts.changeIcon')}
@@ -218,7 +254,15 @@ interface LayoutsListSectionProps {
 
 export function LayoutsListSection({ onShowNew, showNew, newName, onNewNameChange, onCreate, onCancelNew }: LayoutsListSectionProps) {
   const t = useT();
-  const { layouts } = useDashboardStore();
+  const { layouts, reorderLayouts } = useDashboardStore();
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+
+  const handleDrop = (toIdx: number) => {
+    if (dragIdx !== null && dragIdx !== toIdx) reorderLayouts(dragIdx, toIdx);
+    setDragIdx(null);
+    setDragOverIdx(null);
+  };
 
   return (
     <div className="space-y-3">
@@ -256,8 +300,20 @@ export function LayoutsListSection({ onShowNew, showNew, newName, onNewNameChang
       )}
 
       <div className="space-y-3">
-        {layouts.map((layout) => (
-          <LayoutRow key={layout.id} layout={layout} isOnly={layouts.length === 1} isFirst={layouts[0]?.id === layout.id} />
+        {layouts.map((layout, idx) => (
+          <LayoutRow
+            key={layout.id}
+            layout={layout}
+            isOnly={layouts.length === 1}
+            isFirst={layouts[0]?.id === layout.id}
+            index={idx}
+            dragIdx={dragIdx}
+            dragOverIdx={dragOverIdx}
+            onDragStart={setDragIdx}
+            onDragOver={setDragOverIdx}
+            onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
+            onDrop={handleDrop}
+          />
         ))}
       </div>
     </div>
