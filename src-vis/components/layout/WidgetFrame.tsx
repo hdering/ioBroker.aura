@@ -18,6 +18,7 @@ import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import type { WidgetConfig, WidgetCondition, CustomCell, CustomGridDef, WidgetType, ClickAction, WidgetLayout } from '../../types';
 import { DEFAULT_CUSTOM_GRID, DEFAULT_UNIVERSAL_GRID, normalizeGrid } from '../widgets/CustomGridView';
+import { DEFAULT_KNOB_GRID } from '../widgets/KnobWidget';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
 import { getObjectDirect, subscribeStateDirect, getStateDirect } from '../../hooks/useIoBroker';
@@ -6983,7 +6984,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               {!['iframe', 'jsontable', 'html', 'trash', 'trashSchedule', 'header', 'fill', 'camera', 'datepicker'].includes(config.type) && ((config.layout ?? 'default') === 'custom' || config.type === 'universal') && (() => {
                 const isUniversal = config.type === 'universal';
                 const o   = config.options ?? {};
-                const fallbackGrid = isUniversal ? DEFAULT_UNIVERSAL_GRID : DEFAULT_CUSTOM_GRID;
+                const fallbackGrid = isUniversal ? DEFAULT_UNIVERSAL_GRID : config.type === 'knob' ? DEFAULT_KNOB_GRID : DEFAULT_CUSTOM_GRID;
                 const grid = normalizeGrid(o.customGrid, fallbackGrid);
                 const { cols, rows, cells } = grid;
                 const writeGrid = (next: CustomGridDef) =>
@@ -7527,7 +7528,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
       {/* Custom-Grid image file picker */}
       {customCellImagePickerOpen && selectedCustomCell !== null && (() => {
-        const fb = config.type === 'universal' ? DEFAULT_UNIVERSAL_GRID : DEFAULT_CUSTOM_GRID;
+        const fb = config.type === 'universal' ? DEFAULT_UNIVERSAL_GRID : config.type === 'knob' ? DEFAULT_KNOB_GRID : DEFAULT_CUSTOM_GRID;
         const grid = normalizeGrid(config.options?.customGrid, fb);
         const idx = selectedCustomCell;
         return (
@@ -7567,7 +7568,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
       {/* Custom-Grid DP picker */}
       {customCellPickerOpen && selectedCustomCell !== null && (() => {
-        const fb = config.type === 'universal' ? DEFAULT_UNIVERSAL_GRID : DEFAULT_CUSTOM_GRID;
+        const fb = config.type === 'universal' ? DEFAULT_UNIVERSAL_GRID : config.type === 'knob' ? DEFAULT_KNOB_GRID : DEFAULT_CUSTOM_GRID;
         const grid = normalizeGrid(config.options?.customGrid, fb);
         const idx = selectedCustomCell;
         return (
@@ -7585,7 +7586,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
       {/* Custom-Grid icon picker (icon / state-icon / switch-icon-mode cells) */}
       {customCellIconPicker !== null && selectedCustomCell !== null && (() => {
-        const fb = config.type === 'universal' ? DEFAULT_UNIVERSAL_GRID : DEFAULT_CUSTOM_GRID;
+        const fb = config.type === 'universal' ? DEFAULT_UNIVERSAL_GRID : config.type === 'knob' ? DEFAULT_KNOB_GRID : DEFAULT_CUSTOM_GRID;
         const grid = normalizeGrid(config.options?.customGrid, fb);
         const idx = selectedCustomCell;
         const slot = customCellIconPicker;
