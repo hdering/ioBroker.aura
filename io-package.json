@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.84",
+    "version": "0.9.85",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,10 @@
       }
     ],
     "news": {
+      "0.9.85": {
+        "en": "feat(knob): add knob widget with 3 layouts (Bogen / Skala / Endlos 3D)",
+        "de": "feat(knob): add knob widget with 3 layouts (Bogen / Skala / Endlos 3D)"
+      },
       "0.9.84": {
         "en": "fix(editor): keep widget type when changing DP; ask before auto-switch on new widgets",
         "de": "fix(editor): keep widget type when changing DP; ask before auto-switch on new widgets"
