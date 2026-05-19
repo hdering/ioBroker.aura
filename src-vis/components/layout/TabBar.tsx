@@ -21,6 +21,8 @@ interface TabBarProps {
   onViewTabClick?: (tab: Tab) => void;
   layoutUrlBase?: string;
   layoutId?: string;
+  /** Optional leading slot rendered before any left items / tabs (used for inline LayoutDrawer). */
+  headerSlot?: React.ReactNode;
 }
 
 const iCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
@@ -166,7 +168,7 @@ function TabConditionWrapper({
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabClick, layoutUrlBase = '', layoutId }: TabBarProps) {
+export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabClick, layoutUrlBase = '', layoutId, headerSlot }: TabBarProps) {
   const t = useT();
   const activeLayout = useActiveLayout();
   const specificLayout = useDashboardStore((s) =>
@@ -264,7 +266,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
     setSettingsTabId((prev) => (prev === tabId ? null : tabId));
   };
 
-  if (tabs.length <= 1 && readonly) return null;
+  if (tabs.length <= 1 && readonly && !headerSlot) return null;
 
   const settingsTab = tabs.find((t) => t.id === settingsTabId);
 
@@ -567,6 +569,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
         >
           {/* Zone 1: left items + tabs when alignment=left */}
           <div className="aura-scroll flex items-center gap-1 px-2 overflow-x-auto" style={{ minWidth: 0 }}>
+            {headerSlot}
             {leftItems.map(renderTabBarItem)}
             {tabsAlignment === 'left' && leftItems.length > 0 && (
               <div className="w-px self-stretch mx-1 shrink-0" style={{ background: 'var(--app-border)' }} />
@@ -608,6 +611,7 @@ export function TabBar({ readonly = false, viewTabs, viewActiveTabId, onViewTabC
         className="aura-tabs aura-scroll flex items-center gap-1 px-4 overflow-x-auto shrink-0"
         style={containerStyle}
       >
+        {headerSlot}
         {leftItems.map(renderTabBarItem)}
         {leftItems.length > 0 && <div className="w-px self-stretch mx-1 shrink-0" style={{ background: 'var(--app-border)' }} />}
         {renderTabs()}

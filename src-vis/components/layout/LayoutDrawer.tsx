@@ -18,6 +18,8 @@ interface LayoutDrawerProps {
   size?: LayoutDrawerSize;
   /** Auto-hide button: only visible when pointer/touch is near the top edge. */
   autoHide?: boolean;
+  /** Inline mode: render only the menu icon (no layout name) — used inside the TabBar. */
+  iconOnly?: boolean;
 }
 
 // Sizing scale for the trigger button. Icon + container scale together.
@@ -27,7 +29,7 @@ const SIZE_MAP: Record<LayoutDrawerSize, { icon: number; container: number; floa
   lg: { icon: 26, container: 44, floatIcon: 24, floatContainer: 52 },
 };
 
-export function LayoutDrawer({ activeLayoutId, floating = false, size = 'md', autoHide = false }: LayoutDrawerProps) {
+export function LayoutDrawer({ activeLayoutId, floating = false, size = 'md', autoHide = false, iconOnly = false }: LayoutDrawerProps) {
   const t = useT();
   const navigate = useNavigate();
   const layouts = useDashboardStore((s) => s.layouts);
@@ -120,7 +122,7 @@ export function LayoutDrawer({ activeLayoutId, floating = false, size = 'md', au
       aria-label={t('layoutDrawer.open')}
     >
       <Menu size={floating ? sz.floatIcon : sz.icon} />
-      {!floating && activeLayout && (
+      {!floating && !iconOnly && activeLayout && (
         <span className="text-sm font-medium truncate max-w-[160px]" style={{ color: 'var(--text-primary)' }}>
           {activeLayout.name}
         </span>

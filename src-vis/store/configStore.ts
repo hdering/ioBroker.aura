@@ -36,6 +36,8 @@ export interface FrontendSettings {
   layoutDrawerSize: 'sm' | 'md' | 'lg';
   /** Floating button auto-hides; reveals near top edge (mouse) or top-touch (touch). */
   layoutDrawerAutoHide: boolean;
+  /** When header is hidden: render hamburger as a floating top-left button, or inline in the TabBar. */
+  layoutDrawerPlacement: 'floating' | 'tabbar';
   // Super-admin access (empty = feature disabled)
   superAdminKey: string;
 }
@@ -78,6 +80,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
   layoutDrawerEnabled: false,
   layoutDrawerSize: 'md',
   layoutDrawerAutoHide: false,
+  layoutDrawerPlacement: 'floating',
   superAdminKey: '',
 };
 

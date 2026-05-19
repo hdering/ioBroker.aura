@@ -454,11 +454,14 @@ export default function App() {
   const drawerEnabled = (frontend.layoutDrawerEnabled ?? false) && totalLayouts > 1;
   const drawerSize = frontend.layoutDrawerSize ?? 'md';
   const drawerAutoHide = frontend.layoutDrawerAutoHide ?? false;
+  const drawerPlacement = frontend.layoutDrawerPlacement ?? 'floating';
+  const drawerInTabBar = drawerEnabled && !frontend.showHeader && drawerPlacement === 'tabbar';
+  const drawerFloating = drawerEnabled && !frontend.showHeader && drawerPlacement === 'floating';
 
   return (
     <div data-aura-app="frontend" className={`aura-page${layout?.slug ? ` aura-page-${layout.slug}` : ''}${activeTabSlug ? ` aura-${activeTabSlug}` : ''} h-full flex flex-col overflow-hidden`} style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}>
       <ConnectionIndicator showBadge={showBadge} />
-      {drawerEnabled && !frontend.showHeader && (
+      {drawerFloating && (
         <LayoutDrawer activeLayoutId={layout?.id} floating size={drawerSize} autoHide={drawerAutoHide} />
       )}
       {frontend.showHeader && (
@@ -511,6 +514,7 @@ export default function App() {
           }
         }}
         layoutUrlBase={layoutUrlBase}
+        headerSlot={drawerInTabBar ? <LayoutDrawer activeLayoutId={layout?.id} size={drawerSize} iconOnly /> : undefined}
       />
       <div className="flex-1 min-h-0 flex flex-col">
         <Dashboard
