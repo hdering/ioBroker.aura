@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.86 (2026-05-19)
+
+- fix(editor): sort widget types alphabetically within each category
+
 ## v0.9.85 (2026-05-19)
 
 - feat(knob): add knob widget with 3 layouts (Bogen / Skala / Endlos 3D)
@@ -723,6 +727,7 @@ Release v0.5.80
 - feat: Klick-Aktion ÔÇö neue Popups, Auto-Select, Schlie├ƒen-Fix
 - fix: Klick-Aktion ÔÇö Tab-Navigation + Auto-Select f├╝r Dimmer/Thermostat
 - feat: Widget-Klick-Aktion ÔÇö Popups + Navigation per Widget konfigurierbar
+
 
 
 
