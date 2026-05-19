@@ -114,7 +114,7 @@ export function LayoutDrawer({ activeLayoutId, floating = false, size = 'md', au
               opacity: proximityVisible ? 1 : 0,
               pointerEvents: proximityVisible ? 'auto' : 'none',
             }
-          : { width: sz.container, height: sz.container, color: 'var(--text-primary)' }
+          : { height: sz.container, color: 'var(--text-primary)' }
       }
       title={t('layoutDrawer.open')}
       aria-label={t('layoutDrawer.open')}
