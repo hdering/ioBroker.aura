@@ -452,6 +452,11 @@ export const en: Record<TranslationKey, string> = {
   'wf.edit.unit':           'Unit',
   'wf.edit.conditions':     'Conditions',
 
+  'wf.dpTypeMismatch.title':   'Change widget type?',
+  'wf.dpTypeMismatch.message': 'The selected datapoint matches "{suggested}" better. Current widget type: "{current}".',
+  'wf.dpTypeMismatch.switch':  'Switch to "{suggested}"',
+  'wf.dpTypeMismatch.keep':    'Keep "{current}"',
+
   'wf.edit.style.bg':     'Background',
   'wf.edit.style.accent': 'Accent Color',
   'wf.edit.style.text':   'Text',

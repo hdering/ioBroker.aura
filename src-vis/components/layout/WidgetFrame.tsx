@@ -2599,6 +2599,12 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   };
   const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'shutter_openDp' | 'shutter_closeDp' | 'dimmer_switchDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | 'iframe_urlDp' | 'light_switchDp' | 'light_brightnessDp' | 'light_hueDp' | 'light_saturationDp' | 'light_rDp' | 'light_gDp' | 'light_bDp' | 'light_colorDp' | 'light_temperatureDp' | 'light_effectDp' | null>(null);
   const [imageFilePicker, setImageFilePicker] = useState(false);
+  const [pendingTypeChange, setPendingTypeChange] = useState<{
+    suggestedType: WidgetType;
+    currentType: WidgetType;
+    onSwitch: () => void;
+    onKeep: () => void;
+  } | null>(null);
   const [cameraSlotPickerIdx, setCameraSlotPickerIdx] = useState(0);
   const [mpPickerKey, setMpPickerKey] = useState('');
   const [mpChipIdx, setMpChipIdx] = useState(0);
@@ -7068,84 +7074,106 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           onSelect={(id, unit, name, role, dpType) => {
             if (pickerTarget === 'datapoint') {
               const detected = (role || dpType) ? detectType({ id, name: name ?? id, role, type: dpType, unit, rooms: [], funcs: [], logging: [] }) : null;
-              // Don't auto-switch widget type when the user explicitly chose 'light'
-              // (picking e.g. hue.0…level would otherwise downgrade light → dimmer).
-              const typePatch = (detected && config.type !== 'light') ? { type: detected.type } : {};
-              const effectiveType = config.type === 'light' ? 'light' : (detected?.type ?? config.type);
-              const supportsUnit = ['value', 'chart', 'gauge', 'fill'].includes(effectiveType);
-              const unitAlreadySet = !!(config.options?.unit as string | undefined);
-              const resolvedUnit = unit || detected?.unit;
-              const unitPatch = supportsUnit && !unitAlreadySet && resolvedUnit ? { unit: resolvedUnit } : {};
-              const titlePatch = !config.title?.trim() && name ? { title: name } : {};
-              const updatedConfig = { ...config, ...typePatch, ...titlePatch, datapoint: id, options: { ...config.options, ...unitPatch } };
-              onConfigChange(updatedConfig);
-              // Auto-fill secondary DPs (actualDatapoint, batteryDp, unreachDp …)
-              const activeTemplate = DP_TEMPLATES.find((tpl) => tpl.widgetType === effectiveType && tpl.secondaryDps.length > 0);
-              void ensureDatapointCache().then((entries) => {
-                if (effectiveType === 'light') {
-                  // Light: cross-channel + color-mode detection (HmIP & Hue style)
-                  const detected = autoDetectLightDps(id, entries);
-                  const opts: Record<string, unknown> = {};
-                  for (const [k, v] of Object.entries(detected)) {
-                    if (v !== undefined && v !== '') opts[k] = v;
-                  }
-                  if (Object.keys(opts).length > 0)
-                    onConfigChange({ ...updatedConfig, options: { ...updatedConfig.options, ...opts } });
-                  return;
-                }
-                if (activeTemplate) {
-                  // Normal path: selected DP is primary → discover secondary siblings
-                  const parts = id.split('.');
-                  const parent = parts.slice(0, -1).join('.');
-                  const parentUp = parts.slice(0, -2).join('.');
-                  const sibs   = entries.filter((e) => e.id.startsWith(parent + '.'));
-                  const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.'));
-                  const secondaryDpOptions: Record<string, unknown> = {};
-                  for (const sdp of activeTemplate.secondaryDps) {
-                    const found = sdp.siblingNames.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean)
-                      ?? sdp.siblingNames.map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}`)?.id).find(Boolean);
-                    if (found) secondaryDpOptions[sdp.optionKey] = found;
-                  }
-                  // Generic fallback for any battery/unreach not found via template
-                  const statusDps = autoDetectStatusDps(id, entries);
-                  if (statusDps.batteryDp  && !secondaryDpOptions.batteryDp)  secondaryDpOptions.batteryDp  = statusDps.batteryDp;
-                  if (statusDps.unreachDp  && !secondaryDpOptions.unreachDp)  secondaryDpOptions.unreachDp  = statusDps.unreachDp;
-                  if (Object.keys(secondaryDpOptions).length > 0)
-                    onConfigChange({ ...updatedConfig, options: { ...updatedConfig.options, ...secondaryDpOptions } });
-                } else {
-                  // Reverse path: selected DP might be secondary (e.g. ACTUAL_TEMPERATURE)
-                  // → find primary sibling (e.g. SET_TEMPERATURE) and upgrade widget type
-                  const upgrade = findMainDpForSecondary(id, entries);
-                  const mainId = upgrade ? upgrade.mainDpId : id;
-                  const parts = mainId.split('.');
-                  const parent = parts.slice(0, -1).join('.');
-                  const parentUp = parts.slice(0, -2).join('.');
-                  const sibs   = entries.filter((e) => e.id.startsWith(parent + '.'));
-                  const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.'));
-                  const statusDps = autoDetectStatusDps(mainId, entries);
-                  if (!upgrade) {
-                    // No template and no upgrade: only fill battery/unreach if found
-                    if (statusDps.batteryDp || statusDps.unreachDp)
-                      onConfigChange({ ...updatedConfig, options: { ...updatedConfig.options, ...statusDps } });
+              // Auto-detection should only run for brand-new widgets (no DP yet).
+              // Once a DP exists, changing it must never switch the widget type
+              // (would otherwise silently turn a Switch into a Value, etc.).
+              const hasExistingDp = !!(config.datapoint && config.datapoint.trim());
+              // 'light' is its own special case: never auto-downgrade to dimmer/value
+              // when the user picks e.g. hue.0…level on an explicitly-chosen light widget.
+              const canAutoSwitch = !hasExistingDp && config.type !== 'light';
+
+              const applyDp = (allowTypeChange: boolean) => {
+                const typePatch: { type?: WidgetType } = (allowTypeChange && detected) ? { type: detected.type } : {};
+                const effectiveType = (typePatch.type ?? config.type) as WidgetType;
+                const supportsUnit = ['value', 'chart', 'gauge', 'fill'].includes(effectiveType);
+                const unitAlreadySet = !!(config.options?.unit as string | undefined);
+                const resolvedUnit = unit || detected?.unit;
+                const unitPatch = supportsUnit && !unitAlreadySet && resolvedUnit ? { unit: resolvedUnit } : {};
+                const titlePatch = !config.title?.trim() && name ? { title: name } : {};
+                const updatedConfig = { ...config, ...typePatch, ...titlePatch, datapoint: id, options: { ...config.options, ...unitPatch } };
+                onConfigChange(updatedConfig);
+                // Auto-fill secondary DPs (actualDatapoint, batteryDp, unreachDp …)
+                const activeTemplate = DP_TEMPLATES.find((tpl) => tpl.widgetType === effectiveType && tpl.secondaryDps.length > 0);
+                void ensureDatapointCache().then((entries) => {
+                  if (effectiveType === 'light') {
+                    // Light: cross-channel + color-mode detection (HmIP & Hue style)
+                    const detected = autoDetectLightDps(id, entries);
+                    const opts: Record<string, unknown> = {};
+                    for (const [k, v] of Object.entries(detected)) {
+                      if (v !== undefined && v !== '') opts[k] = v;
+                    }
+                    if (Object.keys(opts).length > 0)
+                      onConfigChange({ ...updatedConfig, options: { ...updatedConfig.options, ...opts } });
                     return;
                   }
-                  const upgradeOptions: Record<string, unknown> = { [upgrade.selectedOptionKey]: id };
-                  for (const sdp of upgrade.template.secondaryDps) {
-                    if (sdp.optionKey === upgrade.selectedOptionKey) continue;
-                    const found = sdp.siblingNames.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean)
-                      ?? sdp.siblingNames.map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}`)?.id).find(Boolean);
-                    if (found) upgradeOptions[sdp.optionKey] = found;
+                  if (activeTemplate) {
+                    // Normal path: selected DP is primary → discover secondary siblings
+                    const parts = id.split('.');
+                    const parent = parts.slice(0, -1).join('.');
+                    const parentUp = parts.slice(0, -2).join('.');
+                    const sibs   = entries.filter((e) => e.id.startsWith(parent + '.'));
+                    const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.'));
+                    const secondaryDpOptions: Record<string, unknown> = {};
+                    for (const sdp of activeTemplate.secondaryDps) {
+                      const found = sdp.siblingNames.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean)
+                        ?? sdp.siblingNames.map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}`)?.id).find(Boolean);
+                      if (found) secondaryDpOptions[sdp.optionKey] = found;
+                    }
+                    // Generic fallback for any battery/unreach not found via template
+                    const statusDps = autoDetectStatusDps(id, entries);
+                    if (statusDps.batteryDp  && !secondaryDpOptions.batteryDp)  secondaryDpOptions.batteryDp  = statusDps.batteryDp;
+                    if (statusDps.unreachDp  && !secondaryDpOptions.unreachDp)  secondaryDpOptions.unreachDp  = statusDps.unreachDp;
+                    if (Object.keys(secondaryDpOptions).length > 0)
+                      onConfigChange({ ...updatedConfig, options: { ...updatedConfig.options, ...secondaryDpOptions } });
+                  } else {
+                    // Reverse path: selected DP might be secondary (e.g. ACTUAL_TEMPERATURE)
+                    // → find primary sibling (e.g. SET_TEMPERATURE) and upgrade widget type.
+                    // Reverse-upgrade also counts as a type change → gated by allowTypeChange.
+                    const upgrade = allowTypeChange ? findMainDpForSecondary(id, entries) : null;
+                    const mainId = upgrade ? upgrade.mainDpId : id;
+                    const parts = mainId.split('.');
+                    const parent = parts.slice(0, -1).join('.');
+                    const parentUp = parts.slice(0, -2).join('.');
+                    const sibs   = entries.filter((e) => e.id.startsWith(parent + '.'));
+                    const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.'));
+                    const statusDps = autoDetectStatusDps(mainId, entries);
+                    if (!upgrade) {
+                      // No template and no upgrade: only fill battery/unreach if found
+                      if (statusDps.batteryDp || statusDps.unreachDp)
+                        onConfigChange({ ...updatedConfig, options: { ...updatedConfig.options, ...statusDps } });
+                      return;
+                    }
+                    const upgradeOptions: Record<string, unknown> = { [upgrade.selectedOptionKey]: id };
+                    for (const sdp of upgrade.template.secondaryDps) {
+                      if (sdp.optionKey === upgrade.selectedOptionKey) continue;
+                      const found = sdp.siblingNames.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean)
+                        ?? sdp.siblingNames.map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}`)?.id).find(Boolean);
+                      if (found) upgradeOptions[sdp.optionKey] = found;
+                    }
+                    if (statusDps.batteryDp  && !upgradeOptions.batteryDp)  upgradeOptions.batteryDp  = statusDps.batteryDp;
+                    if (statusDps.unreachDp  && !upgradeOptions.unreachDp)  upgradeOptions.unreachDp  = statusDps.unreachDp;
+                    onConfigChange({
+                      ...updatedConfig,
+                      type: upgrade.template.widgetType,
+                      datapoint: upgrade.mainDpId,
+                      options: { ...updatedConfig.options, ...upgradeOptions },
+                    });
                   }
-                  if (statusDps.batteryDp  && !upgradeOptions.batteryDp)  upgradeOptions.batteryDp  = statusDps.batteryDp;
-                  if (statusDps.unreachDp  && !upgradeOptions.unreachDp)  upgradeOptions.unreachDp  = statusDps.unreachDp;
-                  onConfigChange({
-                    ...updatedConfig,
-                    type: upgrade.template.widgetType,
-                    datapoint: upgrade.mainDpId,
-                    options: { ...updatedConfig.options, ...upgradeOptions },
-                  });
-                }
-              }).catch(() => { /* ignore */ });
+                }).catch(() => { /* ignore */ });
+              };
+
+              // If the picked DP suggests a different widget type on a new widget,
+              // ask the user before silently switching.
+              if (canAutoSwitch && detected && detected.type !== config.type) {
+                setPendingTypeChange({
+                  suggestedType: detected.type,
+                  currentType: config.type,
+                  onSwitch: () => { setPendingTypeChange(null); applyDp(true); },
+                  onKeep:   () => { setPendingTypeChange(null); applyDp(false); },
+                });
+              } else {
+                applyDp(canAutoSwitch);
+              }
             } else if (pickerTarget === 'localTempDatapoint') {
               onConfigChange({ ...config, options: { ...config.options, localTempDatapoint: id } });
             } else if (pickerTarget === 'shutter_activityDp') {
@@ -7230,6 +7258,37 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           onClose={() => setPickerTarget(null)}
         />
       )}
+
+      {/* DP-vs-widget-type mismatch confirmation */}
+      {pendingTypeChange && (() => {
+        const suggestedLabel = WIDGET_BY_TYPE[pendingTypeChange.suggestedType]?.label ?? pendingTypeChange.suggestedType;
+        const currentLabel   = WIDGET_BY_TYPE[pendingTypeChange.currentType]?.label   ?? pendingTypeChange.currentType;
+        return (
+          <CenteredModal title={t('wf.dpTypeMismatch.title')} onClose={pendingTypeChange.onKeep}>
+            <div className="space-y-4">
+              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                {t('wf.dpTypeMismatch.message', { suggested: suggestedLabel, current: currentLabel })}
+              </p>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={pendingTypeChange.onKeep}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
+                  style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+                >
+                  {t('wf.dpTypeMismatch.keep', { current: currentLabel })}
+                </button>
+                <button
+                  onClick={pendingTypeChange.onSwitch}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
+                  style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
+                >
+                  {t('wf.dpTypeMismatch.switch', { suggested: suggestedLabel })}
+                </button>
+              </div>
+            </div>
+          </CenteredModal>
+        );
+      })()}
 
       {/* Image file picker */}
       {imageFilePicker && (

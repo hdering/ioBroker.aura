@@ -450,6 +450,11 @@ export const de = {
   'wf.edit.unit':           'Einheit',
   'wf.edit.conditions':     'Bedingungen',
 
+  'wf.dpTypeMismatch.title':   'Widget-Typ ändern?',
+  'wf.dpTypeMismatch.message': 'Der gewählte Datenpunkt passt eher zu „{suggested}". Aktueller Widget-Typ: „{current}".',
+  'wf.dpTypeMismatch.switch':  'Auf „{suggested}" umschalten',
+  'wf.dpTypeMismatch.keep':    'Bei „{current}" bleiben',
+
   'wf.edit.style.bg':          'Hintergrund',
   'wf.edit.style.accent':      'Akzentfarbe',
   'wf.edit.style.text':        'Text',
