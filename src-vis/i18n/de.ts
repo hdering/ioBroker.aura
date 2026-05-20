@@ -253,7 +253,7 @@ export const de = {
 
   // ── Endpoints ─────────────────────────────────────────────────────────────────
   'endpoints.title':    'Endpunkte & Gruppen',
-  'endpoints.subtitle': 'Fasse Datenpunkte in Gruppen zusammen – z.B. „Alle Lichter". Gruppen können als Listen-Widget ins Dashboard eingefügt werden.',
+  'endpoints.subtitle': 'Fasse Datenpunkte in Gruppen zusammen – z.B. „Alle Lichter“. Gruppen können als Listen-Widget ins Dashboard eingefügt werden.',
 
   'endpoints.newGroup':     'Neue Gruppe (z.B. Alle Lichter)',
   'endpoints.createGroup':  'Erstellen',
@@ -367,7 +367,7 @@ export const de = {
   'widgets.noWidgets':     'Keine Widgets vorhanden',
   'widgets.noWidgetsHint': 'Erstelle Widgets im Dashboard-Editor oder hier.',
   'widgets.createFirst':   'Erstes Widget erstellen',
-  'widgets.noResults':     'Keine Widgets gefunden für „{search}"',
+  'widgets.noResults':     'Keine Widgets gefunden für „{search}“',
   'widgets.groups':        'Gruppen',
   'widgets.groupsSection': 'Gruppen & Datenpunkte',
   'widgets.newGroup':      'Neue Gruppe',
@@ -463,9 +463,9 @@ export const de = {
   'wf.edit.conditions':     'Bedingungen',
 
   'wf.dpTypeMismatch.title':   'Widget-Typ ändern?',
-  'wf.dpTypeMismatch.message': 'Der gewählte Datenpunkt passt eher zu „{suggested}". Aktueller Widget-Typ: „{current}".',
-  'wf.dpTypeMismatch.switch':  'Auf „{suggested}" umschalten',
-  'wf.dpTypeMismatch.keep':    'Bei „{current}" bleiben',
+  'wf.dpTypeMismatch.message': 'Der gewählte Datenpunkt passt eher zu „{suggested}“. Aktueller Widget-Typ: „{current}“.',
+  'wf.dpTypeMismatch.switch':  'Auf „{suggested}“ umschalten',
+  'wf.dpTypeMismatch.keep':    'Bei „{current}“ bleiben',
 
   'wf.edit.style.bg':          'Hintergrund',
   'wf.edit.style.accent':      'Akzentfarbe',
@@ -574,9 +574,9 @@ export const de = {
   'wf.weather.tempThresholdsHint':   'Ab Temperatur → Farbe · aufsteigend sortieren',
   'wf.weather.tempThresholdsEmpty':  'Keine Farbschwellen konfiguriert',
   'wf.weather.showCondition':        'Wetterbeschreibung anzeigen',
-  'wf.weather.showHumidityLabel':    'Wort „Luftfeuchtigkeit" anzeigen',
-  'wf.weather.feelsLikeStyle':       '„Gefühlt" Darstellung',
-  'wf.weather.feelsLikeStyleText':   'Text („Gefühlt …")',
+  'wf.weather.showHumidityLabel':    'Wort „Luftfeuchtigkeit“ anzeigen',
+  'wf.weather.feelsLikeStyle':       '„Gefühlt“ Darstellung',
+  'wf.weather.feelsLikeStyleText':   'Text („Gefühlt …“)',
   'wf.weather.feelsLikeStyleIcon':   'Icon (🌡️ …)',
   'wf.weather.feelsLikeStyleHidden': 'Nur Wert',
   'wf.weather.tempFontSize':         'Schriftgröße Temperatur (rem)',
