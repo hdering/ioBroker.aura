@@ -768,8 +768,11 @@ export function CustomGridView({ config, value, rawValue, unit, extraFields, ext
   const grid = normalizeGrid(config.options?.customGrid, fallback);
   const { cols, rows, cells, colSizes, rowSizes } = grid;
   const { defaultDecimals } = useGlobalSettingsStore();
-  const gridTemplateColumns = colSizes ? colSizes.join(' ') : `repeat(${cols}, 1fr)`;
-  const gridTemplateRows    = rowSizes ? rowSizes.join(' ') : `repeat(${rows}, 1fr)`;
+  // minmax(0, 1fr) — ohne die 0-Untergrenze würde CSS-Grid die Spalten/Zeilen am min-content
+  // der Zellinhalte ausrichten; ein langer Freitext in einer Außenzelle macht dann die Spalte
+  // breiter und verschiebt z.B. den Drehregler in der Mittenzelle aus der Mitte.
+  const gridTemplateColumns = colSizes ? colSizes.join(' ') : `repeat(${cols}, minmax(0, 1fr))`;
+  const gridTemplateRows    = rowSizes ? rowSizes.join(' ') : `repeat(${rows}, minmax(0, 1fr))`;
   // When custom row sizes are used, anchor content at top instead of CSS-grid's default
   // "stretch" which distributes free space across auto rows (causing huge gaps).
   const alignContent = rowSizes ? 'start' : undefined;
