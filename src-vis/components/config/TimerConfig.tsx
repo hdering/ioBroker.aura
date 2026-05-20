@@ -118,7 +118,7 @@ export function TimerConfig({ config, onConfigChange }: Props) {
               placeholder="true / false / 50 / Text"
               className={inputCls} style={inputStyle} />
             <p className={hintCls} style={hintStyle}>
-              Wird automatisch als Boolean / Zahl / Text geparst. Bei „Zeitraum“-Ereignissen wird am Ende der invertierte Wert geschrieben.
+              {'Wird automatisch als Boolean / Zahl / Text geparst. Bei „Zeitraum“-Ereignissen wird am Ende der invertierte Wert geschrieben.'}
             </p>
           </div>
         </div>
@@ -128,7 +128,7 @@ export function TimerConfig({ config, onConfigChange }: Props) {
           style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
           <p className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>Sondertage (optional)</p>
           <p className={hintCls} style={hintStyle}>
-            Quell-DPs für die Filter „Feiertage“ / „Urlaub“ / „ohne Sondertage“. Der DP-Wert muss ein JSON-Array mit Datumsangaben im Format <code className="font-mono">YYYY-MM-DD</code> sein.
+            {'Quell-DPs für die Filter „Feiertage“ / „Urlaub“ / „ohne Sondertage“. Der DP-Wert muss ein JSON-Array mit Datumsangaben im Format '}<code className="font-mono">YYYY-MM-DD</code>{' sein.'}
           </p>
 
           <div>
