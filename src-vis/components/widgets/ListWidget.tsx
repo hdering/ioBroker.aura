@@ -77,6 +77,8 @@ export interface StaticListOptions {
   sumAlign?: 'left' | 'center' | 'right';
   /** Font size of the sum line in px. Default 10. */
   sumFontSize?: number;
+  /** Show divider lines between list entries (standard/compact layouts). Default true. */
+  showDividers?: boolean;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -477,6 +479,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const globalInactiveColor = opts.inactiveColor || 'var(--text-secondary)';
   const globalActiveBg   = opts.activeBg;
   const globalInactiveBg = opts.inactiveBg;
+  const showDividers     = opts.showDividers ?? true;
   const HeaderIcon = getWidgetIcon(o.icon as string | undefined, List);
 
   // ── Shared header ──────────────────────────────────────────────────────────
@@ -617,8 +620,8 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                   className="flex items-center gap-1.5 px-2 py-1.5"
                   style={{
                     background: stateBg,
-                    borderBottom: '1px solid var(--widget-border)',
-                    borderLeft: isRight ? '1px solid var(--widget-border)' : undefined,
+                    borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
+                    borderLeft: showDividers && isRight ? '1px solid var(--widget-border)' : undefined,
                   }}>
                   {EntryIcon && <EntryIcon size={11} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
                   <span className="flex-1 text-[11px] truncate min-w-0" style={{ color: 'var(--text-primary)' }}>{label}</span>
@@ -724,7 +727,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
             return (
               <div key={entry.id}
                 className="flex items-center gap-2 px-3 py-2"
-                style={{ background: stateBg, borderBottom: '1px solid var(--widget-border)' }}>
+                style={{ background: stateBg, borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined }}>
                 {EntryIcon && <EntryIcon size={13} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
                 <div className="flex-1 min-w-0">
                   <div className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>{label}</div>
