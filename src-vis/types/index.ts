@@ -114,24 +114,24 @@ export interface TimerEvent {
   filter: TimerFilter;
   blockFromMin?: number;        // filter='blocked': start of blocked window (minutes since 00:00)
   blockToMin?: number;          // filter='blocked': end of blocked window
-  targetDp: string;             // ioBroker datapoint that is written when trigger fires
-  value: string;                // value written (parsed to bool/number/string)
 }
 
 /**
- * Persisted in WidgetConfig.options:
- *   enabled:     master switch (also mirrored to the timers.<widgetId>.enabled DP)
- *   events:      list of events (also mirrored to timers.<widgetId>.config DP — that DP is the source of truth for the scheduler)
- *   holidaysDp:  optional DP (JSON array of YYYY-MM-DD strings) — special days
- *   vacationDp:  optional DP (JSON array of YYYY-MM-DD strings) — vacation days
- *   stateBaseId: the timers.<widgetId> base path used by the backend scheduler
+ * Widget-level options. The target datapoint and value to write are configured
+ * by the admin in the widget edit panel; the dashboard user only edits the
+ * schedule (events) via the on-widget modal.
+ *
+ * Persisted in WidgetConfig.options and mirrored to aura.0.timers.<widgetId>.config
+ * for the backend scheduler.
  */
 export interface TimerWidgetOptions {
   enabled?: boolean;
   events?: TimerEvent[];
-  holidaysDp?: string;
-  vacationDp?: string;
-  stateBaseId?: string;
+  targetDp?: string;            // datapoint written when an event fires (admin-set)
+  value?: string;               // value written (parsed to bool/number/string)
+  holidaysDp?: string;          // optional DP (JSON array of YYYY-MM-DD strings) — special days
+  vacationDp?: string;          // optional DP (JSON array of YYYY-MM-DD strings) — vacation days
+  stateBaseId?: string;         // the timers.<widgetId> base path used by the backend scheduler
 }
 
 // ── Custom-Grid layout ────────────────────────────────────────────────────────

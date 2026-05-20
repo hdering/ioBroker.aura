@@ -7,9 +7,9 @@
  */
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Trash2, Database, Clock as ClockIcon, Sunrise, CalendarRange, Calendar } from 'lucide-react';
+import { X, Trash2, Clock as ClockIcon, Sunrise, CalendarRange, Calendar } from 'lucide-react';
 import type { TimerEvent, TimerWeekday, TimerTrigger, TimerFilter, TimerAstroEvent } from '../../types';
-import { DatapointPicker } from '../config/DatapointPicker';
+import { usePortalTarget, usePortalThemeVars } from '../../contexts/PortalTargetContext';
 
 interface Props {
   initial: TimerEvent;
@@ -82,7 +82,6 @@ function freshTrigger(kind: TimerTrigger['kind']): TimerTrigger {
 
 export function TimerEventModal({ initial, onSave, onCancel, onDelete }: Props) {
   const [event, setEvent] = useState<TimerEvent>(initial);
-  const [pickerOpen, setPickerOpen] = useState(false);
 
   // Close on ESC
   useEffect(() => {
@@ -100,23 +99,18 @@ export function TimerEventModal({ initial, onSave, onCancel, onDelete }: Props) 
   };
 
   const t = event.trigger;
+  const portal    = usePortalTarget();
+  const themeVars = usePortalThemeVars();
 
-  const portal = document.getElementById('portal-target') ?? document.body;
-
+  // The frontend applies its theme as a CSS rule scoped to [data-aura-app="frontend"].
+  // Portals rendered to document.body are OUTSIDE that scope, so we tag our root
+  // div with the same attribute to pick up the frontend's --app-* CSS vars.
   return createPortal(
-    <>
-      {pickerOpen && (
-        <DatapointPicker
-          currentValue={event.targetDp}
-          onSelect={(id) => { patch({ targetDp: id }); setPickerOpen(false); }}
-          onClose={() => setPickerOpen(false)}
-        />
-      )}
-
-      <div
-        className="fixed inset-0 z-[9000] flex items-center justify-center"
-        style={{ background: 'rgba(0,0,0,0.5)' }}
-        onClick={onCancel}>
+    <div
+      data-aura-app="frontend"
+      className="fixed inset-0 z-[9000] flex items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.5)', color: 'var(--text-primary)', ...themeVars }}
+      onClick={onCancel}>
         <div
           className="rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col"
           style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
@@ -285,32 +279,6 @@ export function TimerEventModal({ initial, onSave, onCancel, onDelete }: Props) 
               )}
             </div>
 
-            {/* Target DP + Value */}
-            <div>
-              <label className={labelCls} style={labelStyle}>Ziel-Datenpunkt</label>
-              <div className="flex gap-1">
-                <input type="text" value={event.targetDp}
-                  onChange={(e) => patch({ targetDp: e.target.value })}
-                  placeholder="z.B. hue.0.light.1.on"
-                  className={`flex-1 font-mono min-w-0 ${inputCls}`} style={inputStyle} />
-                <button type="button" onClick={() => setPickerOpen(true)}
-                  className="px-2 rounded-lg shrink-0"
-                  style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                  <Database size={13} />
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className={labelCls} style={labelStyle}>Wert beim Auslösen</label>
-              <input type="text" value={event.value}
-                onChange={(e) => patch({ value: e.target.value })}
-                placeholder="true / false / 50 / Text"
-                className={inputCls} style={inputStyle} />
-              <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                Wird automatisch als Boolean / Zahl / Text geparst.
-              </p>
-            </div>
           </div>
 
           {/* Footer */}
@@ -329,15 +297,13 @@ export function TimerEventModal({ initial, onSave, onCancel, onDelete }: Props) 
               Abbruch
             </button>
             <button onClick={() => onSave(event)}
-              disabled={!event.targetDp}
-              className="px-3 py-2 text-xs rounded-lg text-white hover:opacity-80 disabled:opacity-30"
+              className="px-3 py-2 text-xs rounded-lg text-white hover:opacity-80"
               style={{ background: 'var(--accent)' }}>
               Speichern
             </button>
           </div>
         </div>
-      </div>
-    </>,
+      </div>,
     portal,
   );
 }

@@ -3502,6 +3502,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'consumption', label: 'Nur Verbrauch' },
                 { value: 'loadpoints',  label: 'Nur Ladepunkte' },
                 { value: 'custom',      label: 'Custom' },
+              ] : config.type === 'timer' ? [
+                { value: 'default', label: t('wf.edit.layout.standard') },
+                { value: 'compact', label: t('wf.edit.layout.compact') },
+                { value: 'custom',  label: 'Custom' },
               ] : [
                 { value: 'default', label: t('wf.edit.layout.standard') },
                 { value: 'card',    label: t('wf.edit.layout.card') },

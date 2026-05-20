@@ -31,8 +31,6 @@ function newEvent(): TimerEvent {
     weekdays: ['mon', 'tue', 'wed', 'thu', 'fri'],
     trigger:  { kind: 'time', hour: 8, minute: 0 },
     filter:   'all-days',
-    targetDp: '',
-    value:    'true',
   };
 }
 
@@ -84,8 +82,9 @@ function TriggerIcon({ trigger, size = 12 }: { trigger: TimerTrigger; size?: num
   return <Sun size={size} />;
 }
 
-function statusColor(masterEnabled: boolean, events: TimerEvent[]): string {
-  if (events.length === 0)        return 'var(--text-secondary)';   // grey — nothing configured
+function statusColor(masterEnabled: boolean, events: TimerEvent[], hasTarget: boolean): string {
+  if (!hasTarget)                 return 'var(--text-secondary)';   // grey — admin hasn't set target yet
+  if (events.length === 0)        return 'var(--text-secondary)';   // grey — no events
   const armed = events.some((e) => e.enabled && e.weekdays.length > 0);
   if (!masterEnabled)             return '#64748b';                  // slate — master off
   if (!armed)                     return '#f59e0b';                  // orange — master on but no active event
@@ -108,6 +107,8 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
   const o = (config.options ?? {}) as Record<string, unknown>;
   const events       = (o.events as TimerEvent[] | undefined)        ?? [];
   const masterEnabled = (o.enabled as boolean | undefined)          ?? true;
+  const targetDp     = o.targetDp   as string | undefined;
+  const targetValue  = o.value      as string | undefined;
   const holidaysDp   = o.holidaysDp as string | undefined;
   const vacationDp   = o.vacationDp as string | undefined;
   const showTitle    = o.showTitle !== false;
@@ -117,7 +118,8 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
   const WidgetIcon   = getWidgetIcon(o.icon as string | undefined, Timer);
   const posClass     = contentPositionClass(o.contentPosition as string | undefined);
 
-  const statusCol = statusColor(masterEnabled, events);
+  const hasTarget = !!targetDp;
+  const statusCol = statusColor(masterEnabled, events, hasTarget);
   const enabledCount = events.filter((e) => e.enabled && e.weekdays.length > 0).length;
 
   // ── Mirror config to backend DPs whenever it changes ──────────────────────
@@ -127,6 +129,8 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
     if (!config.id) return;
     const payload: TimerConfigPayload = {
       events,
+      targetDp,
+      value: targetValue,
       holidaysDp,
       vacationDp,
       title: config.title,
@@ -136,7 +140,7 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
       publishTimerConfig(config.id, config.title || 'Zeitschaltuhr', payload);
       lastPublishedRef.current = serialized;
     }
-  }, [config.id, config.title, events, holidaysDp, vacationDp]);
+  }, [config.id, config.title, events, targetDp, targetValue, holidaysDp, vacationDp]);
 
   const lastEnabledRef = useRef<boolean | null>(null);
   useEffect(() => {
@@ -184,8 +188,63 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
     setEditing(null);
   };
 
-  const visibleEvents = events.slice(0, 4);
+  const layout = config.layout ?? 'default';
+  const isCompact = layout === 'compact';
+  const visibleEvents = events.slice(0, isCompact ? 2 : 4);
   const hiddenCount   = events.length - visibleEvents.length;
+
+  // ── Compact layout: one-line header + tight event list ─────────────────────
+  if (isCompact) {
+    return (
+      <div className={`flex flex-col h-full gap-1 ${posClass}`}>
+        <div className="flex items-center gap-1.5">
+          {showIcon && <WidgetIcon size={14} style={{ color: statusCol, flexShrink: 0 }} />}
+          {showTitle && (
+            <p className="text-[11px] flex-1 truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+              {config.title}
+            </p>
+          )}
+          <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+            {events.length === 0 ? '—' : `${enabledCount}/${events.length}`}
+          </span>
+          <button onClick={toggleMaster}
+            className="nodrag relative w-8 h-4 rounded-full transition-colors shrink-0"
+            style={{ background: masterEnabled ? 'var(--accent-green)' : 'var(--app-border)' }}>
+            <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+              style={{ left: masterEnabled ? '18px' : '2px' }} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-hidden flex flex-col gap-0.5">
+          {visibleEvents.map((ev) => (
+            <button key={ev.id} onClick={() => setEditing(ev)}
+              className="nodrag flex items-center gap-1 text-[10px] text-left hover:opacity-80"
+              style={{ color: 'var(--text-primary)' }}>
+              <span className="w-2 h-2 rounded-full shrink-0"
+                style={{ background: ev.enabled && masterEnabled ? 'var(--accent-green)' : 'var(--app-border)' }} />
+              <TriggerIcon trigger={ev.trigger} />
+              <span className="font-mono">{formatTrigger(ev.trigger)}</span>
+              <span className="flex-1 truncate" style={{ color: 'var(--text-secondary)' }}>
+                {ev.label || (ev.trigger.kind === 'time' || ev.trigger.kind === 'astro' ? weekdaysText(ev.weekdays) : '')}
+              </span>
+            </button>
+          ))}
+          <button onClick={() => setEditing('new')}
+            className="nodrag mt-auto py-1 text-[10px] rounded-md hover:opacity-80"
+            style={{ background: 'transparent', color: 'var(--text-secondary)', border: '1px dashed var(--app-border)' }}>
+            + Ereignis
+          </button>
+        </div>
+        {editing && (
+          <TimerEventModal
+            initial={editing === 'new' ? newEvent() : editing}
+            onSave={saveFromModal}
+            onCancel={() => setEditing(null)}
+            onDelete={editing === 'new' ? undefined : deleteFromModal}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={`flex flex-col h-full gap-1.5 ${posClass}`}>
@@ -214,10 +273,13 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
       </div>
 
       {/* Status sub-line */}
-      <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-        {events.length === 0
-          ? 'Nicht konfiguriert'
-          : `${enabledCount} aktiv${enabledCount === 1 ? '' : 'e'} / ${events.length} Ereignis${events.length === 1 ? '' : 'se'}`}
+      <p className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}
+        title={hasTarget ? `Ziel: ${targetDp} ← ${targetValue ?? 'true'}` : 'Kein Ziel-Datenpunkt — bitte Admin'}>
+        {!hasTarget
+          ? '⚠ Admin: Ziel-DP fehlt'
+          : events.length === 0
+            ? 'Keine Ereignisse — über „+" hinzufügen'
+            : `${enabledCount} aktiv${enabledCount === 1 ? '' : 'e'} / ${events.length} Ereignis${events.length === 1 ? '' : 'se'}`}
       </p>
 
       {/* Event list (compact) */}
@@ -243,10 +305,11 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
                   <TriggerIcon trigger={ev.trigger} />
                   {formatTrigger(ev.trigger)}
                 </span>
-                <span className="text-[10px] flex-1 truncate text-right font-mono" style={{ color: 'var(--text-secondary)' }}
-                  title={`${ev.targetDp} ← ${ev.value}`}>
-                  → {ev.value}
-                </span>
+                {ev.label ? (
+                  <span className="text-[10px] flex-1 truncate text-right" style={{ color: 'var(--text-secondary)' }}>
+                    {ev.label}
+                  </span>
+                ) : <span className="flex-1" />}
                 <Pencil size={10} className="opacity-0 group-hover:opacity-60 shrink-0" style={{ color: 'var(--text-secondary)' }} />
               </button>
             </div>

@@ -1060,15 +1060,14 @@ class Aura extends utils.Adapter {
     return true;
   }
 
-  async _writeTarget(ev, override) {
-    const target = ev.targetDp;
-    if (!target) return;
-    const val = override !== undefined ? override : this._parseValue(ev.value);
+  async _writeTarget(targetDp, baseValue, ev, override) {
+    if (!targetDp) return;
+    const val = override !== undefined ? override : this._parseValue(baseValue);
     try {
-      await this.setForeignStateAsync(target, val, false);
-      this.log.info(`[timers] fired ${ev.label || ev.id}: ${target} ← ${JSON.stringify(val)}`);
+      await this.setForeignStateAsync(targetDp, val, false);
+      this.log.info(`[timers] fired ${ev.label || ev.id}: ${targetDp} ← ${JSON.stringify(val)}`);
     } catch (e) {
-      this.log.warn(`[timers] write failed (${target}): ${e.message}`);
+      this.log.warn(`[timers] write failed (${targetDp}): ${e.message}`);
     }
   }
 
@@ -1106,12 +1105,15 @@ class Aura extends utils.Adapter {
       if (!entry.enabled) continue;
       const payload = entry.payload;
       if (!payload || !Array.isArray(payload.events)) continue;
+      const targetDp = payload.targetDp;
+      if (!targetDp) continue;                            // admin hasn't configured the target yet
+      const baseValue = payload.value != null ? payload.value : 'true';
 
       const holidays = await this._resolveSpecialDays(payload.holidaysDp);
       const vacation = await this._resolveSpecialDays(payload.vacationDp);
 
       for (const ev of payload.events) {
-        if (!ev || !ev.enabled || !ev.targetDp) continue;
+        if (!ev || !ev.enabled) continue;
 
         // Determine candidate fire times for today (or absolute for once/range)
         const candidates = []; // [{ ts, key, invert? }]
@@ -1150,10 +1152,10 @@ class Aura extends utils.Adapter {
 
           let writeVal;
           if (c.invert) {
-            const v = this._parseValue(ev.value);
+            const v = this._parseValue(baseValue);
             writeVal = typeof v === 'boolean' ? !v : (typeof v === 'number' ? 0 : '');
           }
-          await this._writeTarget(ev, writeVal);
+          await this._writeTarget(targetDp, baseValue, ev, writeVal);
           this._timerFired.add(c.key);
 
           if (c.isOnce) {
