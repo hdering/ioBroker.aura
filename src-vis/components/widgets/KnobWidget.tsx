@@ -12,12 +12,12 @@ export type KnobPointerStyle = 'line' | 'circle' | 'arrow';
 export type KnobDialStyle    = 'bogen' | 'skala' | 'endless';
 
 // Default grid for the knob custom layout — 3×3, only cell 2/2 contains the dial.
-// Outer auto rows/cols collapse around the empty cells so the dial fills the widget.
+// No explicit colSizes/rowSizes so CustomGridView's minmax(0, 1fr) fallback applies:
+// outer rows/cols stay symmetric regardless of content (Freitext in 3/1 vs. 3/3),
+// keeping the dial in the geometric center. The dial occupies the middle third.
 export const DEFAULT_KNOB_GRID: CustomGridDef = {
   cols: 3,
   rows: 3,
-  colSizes: ['auto', '1fr', 'auto'],
-  rowSizes: ['auto', '1fr', 'auto'],
   cells: [
     { type: 'empty' },
     { type: 'empty' },
@@ -30,6 +30,13 @@ export const DEFAULT_KNOB_GRID: CustomGridDef = {
     { type: 'empty' },
   ],
 };
+
+// Detect the legacy DEFAULT_KNOB_GRID colSizes/rowSizes ['auto','1fr','auto'] so we
+// can drop them on read. There's no UI to set these directly — anything stored
+// with these values was inherited from the old default, which caused the dial to
+// shift off-center as soon as Freitext of unequal length was added to outer cells.
+const isLegacyKnobAxis = (arr: string[] | undefined): boolean =>
+  !!arr && arr.length === 3 && arr[0] === 'auto' && arr[1] === '1fr' && arr[2] === 'auto';
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg * Math.PI) / 180;
@@ -648,7 +655,16 @@ export function KnobWidget({ config }: WidgetProps) {
   );
 
   if (isCustom) {
-    const customGrid = (o.customGrid as CustomGrid | CustomGridDef | undefined) ?? DEFAULT_KNOB_GRID;
+    let customGrid = (o.customGrid as CustomGrid | CustomGridDef | undefined) ?? DEFAULT_KNOB_GRID;
+    // Migrate legacy ['auto','1fr','auto'] axis sizes (old DEFAULT_KNOB_GRID) so existing
+    // widgets get the centered behaviour without forcing the user to rebuild them.
+    if (customGrid && !Array.isArray(customGrid) && (isLegacyKnobAxis(customGrid.colSizes) || isLegacyKnobAxis(customGrid.rowSizes))) {
+      customGrid = {
+        ...customGrid,
+        colSizes: isLegacyKnobAxis(customGrid.colSizes) ? undefined : customGrid.colSizes,
+        rowSizes: isLegacyKnobAxis(customGrid.rowSizes) ? undefined : customGrid.rowSizes,
+      };
+    }
     const TitleIcon  = getWidgetIcon(o.icon as string | undefined, HelpCircle);
     return (
       <CustomGridView
