@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.91",
+    "version": "0.9.92",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,85 +105,96 @@
       }
     ],
     "news": {
+      "0.9.92": {
+        "en": "Release v0.9.92",
+        "de": "Release v0.9.92",
+        "ru": "Release v0.9.92",
+        "pt": "Release v0.9.92",
+        "nl": "Release v0.9.92",
+        "fr": "Release v0.9.92",
+        "it": "Release v0.9.92",
+        "es": "Release v0.9.92",
+        "pl": "Release v0.9.92",
+        "uk": "Release v0.9.92",
+        "zh-cn": "Release v0.9.92"
+      },
       "0.9.91": {
         "en": "Release v0.9.91",
-        "de": "Release v0.9.91"
+        "de": "Release v0.9.91",
+        "ru": "Release v0.9.91",
+        "pt": "Release v0.9.91",
+        "nl": "Release v0.9.91",
+        "fr": "Release v0.9.91",
+        "it": "Release v0.9.91",
+        "es": "Release v0.9.91",
+        "pl": "Release v0.9.91",
+        "uk": "Release v0.9.91",
+        "zh-cn": "Release v0.9.91"
       },
       "0.9.90": {
         "en": "feat(universal-widget): hide dropdown option for select cell",
-        "de": "feat(universal-widget): hide dropdown option for select cell"
+        "de": "feat(universal-widget): hide dropdown option for select cell",
+        "ru": "feat(universal-widget): hide dropdown option for select cell",
+        "pt": "feat(universal-widget): hide dropdown option for select cell",
+        "nl": "feat(universal-widget): hide dropdown option for select cell",
+        "fr": "feat(universal-widget): hide dropdown option for select cell",
+        "it": "feat(universal-widget): hide dropdown option for select cell",
+        "es": "feat(universal-widget): hide dropdown option for select cell",
+        "pl": "feat(universal-widget): hide dropdown option for select cell",
+        "uk": "feat(universal-widget): hide dropdown option for select cell",
+        "zh-cn": "feat(universal-widget): hide dropdown option for select cell"
       },
       "0.9.89": {
         "en": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
-        "de": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name"
+        "de": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
+        "ru": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
+        "pt": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
+        "nl": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
+        "fr": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
+        "it": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
+        "es": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
+        "pl": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
+        "uk": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
+        "zh-cn": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name"
       },
       "0.9.88": {
         "en": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style",
-        "de": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style"
+        "de": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style",
+        "ru": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style",
+        "pt": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style",
+        "nl": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style",
+        "fr": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style",
+        "it": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style",
+        "es": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style",
+        "pl": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style",
+        "uk": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style",
+        "zh-cn": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style"
       },
       "0.9.87": {
         "en": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
-        "de": "fix(knob): auto-compute label decimals to avoid duplicate scale labels"
+        "de": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
+        "ru": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
+        "pt": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
+        "nl": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
+        "fr": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
+        "it": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
+        "es": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
+        "pl": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
+        "uk": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
+        "zh-cn": "fix(knob): auto-compute label decimals to avoid duplicate scale labels"
       },
       "0.9.86": {
         "en": "fix(editor): sort widget types alphabetically within each category",
-        "de": "fix(editor): sort widget types alphabetically within each category"
-      },
-      "0.9.85": {
-        "en": "feat(knob): add knob widget with 3 layouts (Bogen / Skala / Endlos 3D)",
-        "de": "feat(knob): add knob widget with 3 layouts (Bogen / Skala / Endlos 3D)"
-      },
-      "0.9.84": {
-        "en": "fix(editor): keep widget type when changing DP; ask before auto-switch on new widgets",
-        "de": "fix(editor): keep widget type when changing DP; ask before auto-switch on new widgets"
-      },
-      "0.9.83": {
-        "en": "feat(weather): pre-populate custom grid from standard layout settings",
-        "de": "feat(weather): pre-populate custom grid from standard layout settings"
-      },
-      "0.9.82": {
-        "en": "fix(conditions): hidden+reflow widgets inside groups now hide and slide up",
-        "de": "fix(conditions): hidden+reflow widgets inside groups now hide and slide up"
-      },
-      "0.9.81": {
-        "en": "fix(icons): allow null fallback in getWidgetIcon; fix(icons): broken Iconify IDs fall back to widget default; picker filters them; fix(jsontable): autoHeight effect no longer clobbers option toggles",
-        "de": "fix(icons): allow null fallback in getWidgetIcon; fix(icons): broken Iconify IDs fall back to widget default; picker filters them; fix(jsontable): autoHeight effect no longer clobbers option toggles"
-      },
-      "0.9.80": {
-        "en": "fix(conditions): hidden+reflow widgets reappear on live DP change",
-        "de": "fix(conditions): hidden+reflow widgets reappear on live DP change"
-      },
-      "0.9.79": {
-        "en": "fix(light): autoDetect mixed DPs from different zigbee devices",
-        "de": "fix(light): autoDetect mixed DPs from different zigbee devices"
-      },
-      "0.9.78": {
-        "en": "Release v0.9.78",
-        "de": "Release v0.9.78"
-      },
-      "0.9.77": {
-        "en": "fix(backup): create aura.0.backups meta namespace for file storage (beta)",
-        "de": "fix(backup): create aura.0.backups meta namespace for file storage (beta)"
-      },
-      "0.9.75": {
-        "en": "fix(backup): store auto-backups as files instead of single state (beta)",
-        "de": "fix(backup): store auto-backups as files instead of single state (beta)"
-      },
-      "0.9.73": {
-        "en": "chore(carousel): hide from widget pickers until production-ready (beta)",
-        "de": "chore(carousel): hide from widget pickers until production-ready (beta)"
-      },
-      "0.9.72": {
-        "en": "fix(group-defs): block save until hydration completes — prevents data loss (beta)",
-        "de": "fix(group-defs): block save until hydration completes — prevents data loss (beta)"
-      },
-      "0.9.71": {
-        "en": "feat(carousel): new widget type — swipeable slides hosting other widgets (beta)",
-        "de": "feat(carousel): new widget type — swipeable slides hosting other widgets (beta)"
-      },
-      "0.9.70": {
-        "en": "Release v0.9.70 (beta)",
-        "de": "Release v0.9.70 (beta)"
+        "de": "fix(editor): sort widget types alphabetically within each category",
+        "ru": "fix(editor): sort widget types alphabetically within each category",
+        "pt": "fix(editor): sort widget types alphabetically within each category",
+        "nl": "fix(editor): sort widget types alphabetically within each category",
+        "fr": "fix(editor): sort widget types alphabetically within each category",
+        "it": "fix(editor): sort widget types alphabetically within each category",
+        "es": "fix(editor): sort widget types alphabetically within each category",
+        "pl": "fix(editor): sort widget types alphabetically within each category",
+        "uk": "fix(editor): sort widget types alphabetically within each category",
+        "zh-cn": "fix(editor): sort widget types alphabetically within each category"
       }
     }
   },
