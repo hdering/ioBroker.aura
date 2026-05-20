@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.64 (2026-05-17)
+- feat(list): show sum of numeric values in static/dynamic list
+
 ## 0.9.62 (2026-05-17)
 - fix(backup): auto-save also writes auto-backup
 

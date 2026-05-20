@@ -186,6 +186,11 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.95 (2026-05-20)
+- feat(list): toggle row dividers in static and auto list widgets
+- feat(static-list): drag-handle to reorder data point entries
+
+
 ### 0.9.94 (2026-05-20)
 - fix(custom-grid): prevent descender clipping on free-text cells
 - ci: add dependabot auto-merge workflow (S8913)
@@ -276,10 +281,6 @@ Release v0.9.78
 - chore(backup): surface writeBackup errors and server ack in console
 
 
-### 0.9.64 (2026-05-17)
-- feat(list): show sum of numeric values in static/dynamic list
-
-
 ## License
 
 MIT License
@@ -291,6 +292,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
