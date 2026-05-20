@@ -26,6 +26,7 @@ export default defineConfig({
           items: [
             { text: 'Übersicht', link: '/widgets/' },
             { text: 'Schalter', link: '/widgets/schalter' },
+            { text: 'Zeitschaltuhr', link: '/widgets/zeitschaltuhr' },
           ],
         },
       ],

@@ -46,6 +46,7 @@
 | Müllabfuhr-Zeitplan | Detaillierter Müllabfuhr-Kalender | geplant |
 | Uhrzeit | Aktuelle Uhrzeit und Datum | geplant |
 | Wetter | Wetterdaten vom ioBroker-Wetter-Adapter | geplant |
+| [Zeitschaltuhr](./zeitschaltuhr) | Datenpunkte zeitgesteuert (Wochentag · Astro · Einmalig · Zeitraum) | ✓ dokumentiert |
 
 ## Layout
 
