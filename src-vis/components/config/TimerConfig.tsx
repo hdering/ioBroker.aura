@@ -34,6 +34,9 @@ export function TimerConfig({ config, onConfigChange }: Props) {
   const value      = (o.value as string | undefined)      ?? 'true';
   const holidaysDp = (o.holidaysDp as string | undefined) ?? '';
   const vacationDp = (o.vacationDp as string | undefined) ?? '';
+  const showMaster = o.showMasterSwitch !== false;
+  const showEvents = o.showEvents !== false;
+  const showAdd    = o.showAddButton !== false;
 
   const [pickerTarget, setPickerTarget] = useState<PickerTarget | null>(null);
 
@@ -64,6 +67,27 @@ export function TimerConfig({ config, onConfigChange }: Props) {
       )}
 
       <div className="space-y-3">
+        {/* ── Anzeige-Elemente ────────────────────────────────────────── */}
+        <div className="rounded-xl p-2 space-y-1.5"
+          style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
+          <p className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>Anzeige-Elemente</p>
+          {([
+            { key: 'showMasterSwitch', label: 'Master-Schalter', val: showMaster },
+            { key: 'showEvents',       label: 'Ereignis-Liste',  val: showEvents },
+            { key: 'showAddButton',    label: '+ Ereignis-Button', val: showAdd },
+          ] as const).map(({ key, label, val }) => (
+            <div key={key} className="flex items-center justify-between">
+              <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>{label}</span>
+              <button onClick={() => setOpts({ [key]: !val })}
+                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}>
+                <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                  style={{ left: val ? '14px' : '2px' }} />
+              </button>
+            </div>
+          ))}
+        </div>
+
         {/* ── Ziel-Aktion (admin-only) ─────────────────────────────────── */}
         <div className="rounded-xl p-2 space-y-2"
           style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>

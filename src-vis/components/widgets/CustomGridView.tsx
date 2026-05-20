@@ -591,20 +591,32 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
   };
   const showLabel = cell.showSelectedLabel === true;
   const hideSelect = cell.hideSelect === true;
+  const display = cell.entryDisplay ?? 'text';
+  const showIcon = display === 'icon' || display === 'icon-text';
+  const showText = display === 'text' || display === 'icon-text';
   const labelText = current?.label ?? (currentStr || '–');
   const labelColor = current?.color;
+  const finalColor = labelColor ?? cell.color ?? 'var(--text-primary)';
+  const iconSize = cell.fontSize ?? 16;
+  const Icon = current?.icon ? getWidgetIcon(current.icon, HelpCircle) : null;
+
+  const selectedView = () => (
+    <div className="flex items-center gap-1 min-w-0" style={{ flex: '1 1 auto', minWidth: 0 }}>
+      {showIcon && Icon && <Icon size={iconSize} style={{ color: finalColor, flexShrink: 0 }} />}
+      {showText && (
+        <span
+          style={{ ...cellTextStyle(cell, 'var(--text-primary)'), color: finalColor, minWidth: 0, flex: '1 1 0' }}
+        >
+          {labelText}
+        </span>
+      )}
+    </div>
+  );
 
   if (hideSelect) {
     return (
       <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' }}>
-        {showLabel && (
-          <span
-            className="truncate"
-            style={{ ...cellTextStyle(cell, 'var(--text-primary)'), color: labelColor ?? cell.color ?? 'var(--text-primary)' }}
-          >
-            {labelText}
-          </span>
-        )}
+        {showLabel && selectedView()}
       </div>
     );
   }
@@ -612,15 +624,8 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
   return (
     <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' }}>
       <div className="flex items-center gap-1 w-full min-w-0">
-        {showLabel && (
-          <span
-            className="truncate"
-            style={{ ...cellTextStyle(cell, 'var(--text-primary)'), color: labelColor ?? cell.color ?? 'var(--text-primary)', flex: '1 1 auto', minWidth: 0 }}
-          >
-            {labelText}
-          </span>
-        )}
-        <div className="relative inline-flex items-center" style={{ minWidth: 0, flex: showLabel ? '0 0 auto' : '1 1 auto' }}>
+        {showLabel && selectedView()}
+        <div className="relative inline-flex items-center" style={{ minWidth: 0, flex: showLabel ? '0 1 auto' : '1 1 auto' }}>
           <select
             value={current?.value ?? ''}
             onChange={(e) => onPick(e.target.value)}

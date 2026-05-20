@@ -22,6 +22,7 @@ import {
   type TimerConfigPayload,
 } from '../../utils/publishTimerConfig';
 import { TimerEventModal } from './TimerEventModal';
+import { CustomGridView } from './CustomGridView';
 
 function newEvent(): TimerEvent {
   return {
@@ -113,6 +114,9 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
   const vacationDp   = o.vacationDp as string | undefined;
   const showTitle    = o.showTitle !== false;
   const showIcon     = o.showIcon  !== false;
+  const showMaster   = o.showMasterSwitch !== false;
+  const showEvents   = o.showEvents   !== false;
+  const showAdd      = o.showAddButton !== false;
   const titleAlign   = (o.titleAlign as string) ?? 'left';
   const iconSize     = (o.iconSize as number) || 20;
   const WidgetIcon   = getWidgetIcon(o.icon as string | undefined, Timer);
@@ -190,15 +194,132 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
 
   const layout = config.layout ?? 'default';
   const isCompact = layout === 'compact';
+  const isCustom  = layout === 'custom';
   const visibleEvents = events.slice(0, isCompact ? 2 : 4);
   const hiddenCount   = events.length - visibleEvents.length;
+
+  // ── Reusable building blocks (also used as extraComponents in custom layout) ─
+  const masterSwitch = (
+    <button onClick={toggleMaster}
+      className="nodrag relative w-10 h-5 rounded-full transition-colors shrink-0"
+      style={{ background: masterEnabled ? 'var(--accent-green)' : 'var(--app-border)' }}
+      aria-label="Zeitschaltuhr ein/aus"
+      title={masterEnabled ? 'Master aktiv' : 'Master aus — Ereignisse bleiben gespeichert'}>
+      <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+        style={{ left: masterEnabled ? '22px' : '2px' }} />
+    </button>
+  );
+
+  const statusBubble = (
+    <span className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}
+      title={hasTarget ? `Ziel: ${targetDp} ← ${targetValue ?? 'true'}` : 'Kein Ziel-Datenpunkt — bitte Admin'}>
+      {!hasTarget
+        ? '⚠ Admin: Ziel-DP fehlt'
+        : events.length === 0
+          ? 'Keine Ereignisse'
+          : `${enabledCount}/${events.length} aktiv`}
+    </span>
+  );
+
+  const eventList = (
+    <div className="flex flex-col gap-1 w-full">
+      {visibleEvents.map((ev) => {
+        const isLive = ev.enabled && ev.weekdays.length > 0 && masterEnabled;
+        return (
+          <div key={ev.id}
+            className="flex items-center gap-1.5 rounded-lg px-1.5 py-1 group"
+            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
+            <button onClick={() => toggleEvent(ev.id)}
+              className="nodrag w-3 h-3 rounded-full shrink-0 transition-colors"
+              style={{ background: isLive ? 'var(--accent-green)' : 'var(--app-border)' }}
+              title={ev.enabled ? 'Aktiv – Klick deaktiviert' : 'Inaktiv – Klick aktiviert'} />
+            <button onClick={() => setEditing(ev)}
+              className="nodrag flex-1 flex items-center gap-1.5 min-w-0 text-left"
+              title="Bearbeiten">
+              <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)', minWidth: 48 }}>
+                {ev.trigger.kind === 'once' || ev.trigger.kind === 'range' ? '—' : weekdaysText(ev.weekdays)}
+              </span>
+              <span className="flex items-center gap-1 text-[10px] shrink-0" style={{ color: 'var(--text-primary)' }}>
+                <TriggerIcon trigger={ev.trigger} />
+                {formatTrigger(ev.trigger)}
+              </span>
+              {ev.label ? (
+                <span className="text-[10px] flex-1 truncate text-right" style={{ color: 'var(--text-secondary)' }}>
+                  {ev.label}
+                </span>
+              ) : <span className="flex-1" />}
+              <Pencil size={10} className="opacity-0 group-hover:opacity-60 shrink-0" style={{ color: 'var(--text-secondary)' }} />
+            </button>
+          </div>
+        );
+      })}
+      {hiddenCount > 0 && (
+        <p className="text-[10px] italic" style={{ color: 'var(--text-secondary)' }}>
+          +{hiddenCount} weitere
+        </p>
+      )}
+      {events.length === 0 && (
+        <p className="text-[10px] italic text-center" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+          Noch keine Ereignisse
+        </p>
+      )}
+    </div>
+  );
+
+  const addButton = (
+    <button onClick={() => setEditing('new')}
+      className="nodrag w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] rounded-lg hover:opacity-80 transition-opacity"
+      style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px dashed var(--app-border)' }}>
+      <Plus size={12} /> Ereignis hinzufügen
+    </button>
+  );
+
+  const iconNode = showIcon
+    ? <WidgetIcon size={iconSize} style={{ color: statusCol, flexShrink: 0 }} />
+    : null;
+
+  const modal = editing && (
+    <TimerEventModal
+      initial={editing === 'new' ? newEvent() : editing}
+      onSave={saveFromModal}
+      onCancel={() => setEditing(null)}
+      onDelete={editing === 'new' ? undefined : deleteFromModal}
+    />
+  );
+
+  // ── Custom layout: user-defined grid via CustomGridView ────────────────────
+  if (isCustom) {
+    return (
+      <div className="relative w-full h-full">
+        <CustomGridView
+          config={config}
+          value={hasTarget ? (events.length === 0 ? '0' : String(enabledCount)) : '—'}
+          extraFields={{
+            status:  hasTarget ? `${enabledCount}/${events.length}` : 'Ziel-DP fehlt',
+            target:  targetDp ?? '',
+            value:   targetValue ?? '',
+            count:   String(events.length),
+            enabled: String(enabledCount),
+          }}
+          extraComponents={{
+            icon:    iconNode,
+            master:  showMaster ? masterSwitch : null,
+            status:  statusBubble,
+            events:  eventList,
+            add:     showAdd ? addButton : null,
+          }}
+        />
+        {modal}
+      </div>
+    );
+  }
 
   // ── Compact layout: one-line header + tight event list ─────────────────────
   if (isCompact) {
     return (
       <div className={`flex flex-col h-full gap-1 ${posClass}`}>
         <div className="flex items-center gap-1.5">
-          {showIcon && <WidgetIcon size={14} style={{ color: statusCol, flexShrink: 0 }} />}
+          {iconNode}
           {showTitle && (
             <p className="text-[11px] flex-1 truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
               {config.title}
@@ -207,41 +328,40 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
           <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
             {events.length === 0 ? '—' : `${enabledCount}/${events.length}`}
           </span>
-          <button onClick={toggleMaster}
-            className="nodrag relative w-8 h-4 rounded-full transition-colors shrink-0"
-            style={{ background: masterEnabled ? 'var(--accent-green)' : 'var(--app-border)' }}>
-            <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-              style={{ left: masterEnabled ? '18px' : '2px' }} />
-          </button>
-        </div>
-        <div className="flex-1 overflow-hidden flex flex-col gap-0.5">
-          {visibleEvents.map((ev) => (
-            <button key={ev.id} onClick={() => setEditing(ev)}
-              className="nodrag flex items-center gap-1 text-[10px] text-left hover:opacity-80"
-              style={{ color: 'var(--text-primary)' }}>
-              <span className="w-2 h-2 rounded-full shrink-0"
-                style={{ background: ev.enabled && masterEnabled ? 'var(--accent-green)' : 'var(--app-border)' }} />
-              <TriggerIcon trigger={ev.trigger} />
-              <span className="font-mono">{formatTrigger(ev.trigger)}</span>
-              <span className="flex-1 truncate" style={{ color: 'var(--text-secondary)' }}>
-                {ev.label || (ev.trigger.kind === 'time' || ev.trigger.kind === 'astro' ? weekdaysText(ev.weekdays) : '')}
-              </span>
+          {showMaster && (
+            <button onClick={toggleMaster}
+              className="nodrag relative w-8 h-4 rounded-full transition-colors shrink-0"
+              style={{ background: masterEnabled ? 'var(--accent-green)' : 'var(--app-border)' }}>
+              <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                style={{ left: masterEnabled ? '18px' : '2px' }} />
             </button>
-          ))}
-          <button onClick={() => setEditing('new')}
-            className="nodrag mt-auto py-1 text-[10px] rounded-md hover:opacity-80"
-            style={{ background: 'transparent', color: 'var(--text-secondary)', border: '1px dashed var(--app-border)' }}>
-            + Ereignis
-          </button>
+          )}
         </div>
-        {editing && (
-          <TimerEventModal
-            initial={editing === 'new' ? newEvent() : editing}
-            onSave={saveFromModal}
-            onCancel={() => setEditing(null)}
-            onDelete={editing === 'new' ? undefined : deleteFromModal}
-          />
+        {showEvents && (
+          <div className="flex-1 overflow-hidden flex flex-col gap-0.5">
+            {visibleEvents.map((ev) => (
+              <button key={ev.id} onClick={() => setEditing(ev)}
+                className="nodrag flex items-center gap-1 text-[10px] text-left hover:opacity-80"
+                style={{ color: 'var(--text-primary)' }}>
+                <span className="w-2 h-2 rounded-full shrink-0"
+                  style={{ background: ev.enabled && masterEnabled ? 'var(--accent-green)' : 'var(--app-border)' }} />
+                <TriggerIcon trigger={ev.trigger} />
+                <span className="font-mono">{formatTrigger(ev.trigger)}</span>
+                <span className="flex-1 truncate" style={{ color: 'var(--text-secondary)' }}>
+                  {ev.label || (ev.trigger.kind === 'time' || ev.trigger.kind === 'astro' ? weekdaysText(ev.weekdays) : '')}
+                </span>
+              </button>
+            ))}
+            {showAdd && (
+              <button onClick={() => setEditing('new')}
+                className="nodrag mt-auto py-1 text-[10px] rounded-md hover:opacity-80"
+                style={{ background: 'transparent', color: 'var(--text-secondary)', border: '1px dashed var(--app-border)' }}>
+                + Ereignis
+              </button>
+            )}
+          </div>
         )}
+        {modal}
       </div>
     );
   }
@@ -250,26 +370,13 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
     <div className={`flex flex-col h-full gap-1.5 ${posClass}`}>
       {/* Header */}
       <div className="flex items-center gap-2">
-        {showIcon && (
-          <div className="flex items-center justify-center shrink-0 rounded-full"
-            style={{ width: 24, height: 24, background: `color-mix(in srgb, ${statusCol} 18%, transparent)` }}>
-            <WidgetIcon size={iconSize - 4} style={{ color: statusCol }} />
-          </div>
-        )}
+        {iconNode}
         {showTitle && (
           <p className="text-xs flex-1 truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
             {config.title}
           </p>
         )}
-        {/* Master switch */}
-        <button onClick={toggleMaster}
-          className="nodrag relative w-10 h-5 rounded-full transition-colors shrink-0"
-          style={{ background: masterEnabled ? 'var(--accent-green)' : 'var(--app-border)' }}
-          aria-label="Zeitschaltuhr ein/aus"
-          title={masterEnabled ? 'Master aktiv' : 'Master aus — Ereignisse bleiben gespeichert'}>
-          <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-            style={{ left: masterEnabled ? '22px' : '2px' }} />
-        </button>
+        {showMaster && masterSwitch}
       </div>
 
       {/* Status sub-line */}
@@ -282,66 +389,18 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
             : `${enabledCount} aktiv${enabledCount === 1 ? '' : 'e'} / ${events.length} Ereignis${events.length === 1 ? '' : 'se'}`}
       </p>
 
-      {/* Event list (compact) */}
-      <div className="flex-1 overflow-hidden flex flex-col gap-1">
-        {visibleEvents.map((ev) => {
-          const isLive = ev.enabled && ev.weekdays.length > 0 && masterEnabled;
-          return (
-            <div key={ev.id}
-              className="flex items-center gap-1.5 rounded-lg px-1.5 py-1 group"
-              style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
-              <button onClick={() => toggleEvent(ev.id)}
-                className="nodrag w-3 h-3 rounded-full shrink-0 transition-colors"
-                style={{ background: isLive ? 'var(--accent-green)' : 'var(--app-border)' }}
-                aria-label={ev.enabled ? 'Deaktivieren' : 'Aktivieren'}
-                title={ev.enabled ? 'Aktiv – Klick deaktiviert' : 'Inaktiv – Klick aktiviert'} />
-              <button onClick={() => setEditing(ev)}
-                className="nodrag flex-1 flex items-center gap-1.5 min-w-0 text-left"
-                title="Bearbeiten">
-                <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)', minWidth: 48 }}>
-                  {ev.trigger.kind === 'once' || ev.trigger.kind === 'range' ? '—' : weekdaysText(ev.weekdays)}
-                </span>
-                <span className="flex items-center gap-1 text-[10px] shrink-0" style={{ color: 'var(--text-primary)' }}>
-                  <TriggerIcon trigger={ev.trigger} />
-                  {formatTrigger(ev.trigger)}
-                </span>
-                {ev.label ? (
-                  <span className="text-[10px] flex-1 truncate text-right" style={{ color: 'var(--text-secondary)' }}>
-                    {ev.label}
-                  </span>
-                ) : <span className="flex-1" />}
-                <Pencil size={10} className="opacity-0 group-hover:opacity-60 shrink-0" style={{ color: 'var(--text-secondary)' }} />
-              </button>
-            </div>
-          );
-        })}
-        {hiddenCount > 0 && (
-          <p className="text-[10px] italic" style={{ color: 'var(--text-secondary)' }}>
-            +{hiddenCount} weitere
-          </p>
-        )}
-        {events.length === 0 && (
-          <p className="text-[10px] italic text-center" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-            Noch keine Ereignisse — über „+" hinzufügen
-          </p>
-        )}
-
-        {/* Add-event button — always available, frontend UI */}
-        <button onClick={() => setEditing('new')}
-          className="nodrag mt-auto w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] rounded-lg hover:opacity-80 transition-opacity"
-          style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px dashed var(--app-border)' }}>
-          <Plus size={12} /> Ereignis hinzufügen
-        </button>
-      </div>
-
-      {editing && (
-        <TimerEventModal
-          initial={editing === 'new' ? newEvent() : editing}
-          onSave={saveFromModal}
-          onCancel={() => setEditing(null)}
-          onDelete={editing === 'new' ? undefined : deleteFromModal}
-        />
+      {/* Event list */}
+      {showEvents && (
+        <div className="flex-1 overflow-hidden flex flex-col gap-1">
+          {eventList}
+          {showAdd && <div className="mt-auto pt-1">{addButton}</div>}
+        </div>
       )}
+      {!showEvents && showAdd && (
+        <div className="mt-auto">{addButton}</div>
+      )}
+
+      {modal}
     </div>
   );
 }
