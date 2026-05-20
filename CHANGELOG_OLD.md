@@ -1,8 +1,5 @@
 # Changelog (older entries)
 
-## 0.9.80 (2026-05-18)
-- fix(conditions): hidden+reflow widgets reappear on live DP change
-
 ## 0.9.79 (2026-05-17)
 - fix(light): autoDetect mixed DPs from different zigbee devices
 
