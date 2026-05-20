@@ -75,7 +75,9 @@ function cellTextStyle(cell: CustomCell, defaultColor: string): React.CSSPropert
     overflow:     cell.allowOverflow ? 'visible' : 'hidden',
     textOverflow: cell.allowOverflow ? undefined  : 'ellipsis',
     whiteSpace:   'nowrap',
-    lineHeight:   1.15,
+    // 1.3 (not 1.15) so descenders (g, j, p, q, y) aren't clipped by overflow:hidden.
+    lineHeight:   1.3,
+    paddingBottom: '0.1em',
     position:     cell.allowOverflow ? 'relative' : undefined,
     zIndex:       cell.allowOverflow ? 1           : undefined,
   };
