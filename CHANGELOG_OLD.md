@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.66 (2026-05-17)
+- chore(backup): surface writeBackup errors and server ack in console
+
 ## 0.9.64 (2026-05-17)
 - feat(list): show sum of numeric values in static/dynamic list
 

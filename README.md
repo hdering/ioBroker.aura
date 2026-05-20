@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.96 (2026-05-20)
+- feat(weather): bar-only temp-strahl variant in custom layout
+
+
 ### 0.9.95 (2026-05-20)
 - feat(list): toggle row dividers in static and auto list widgets
 - feat(static-list): drag-handle to reorder data point entries
@@ -277,10 +281,6 @@ Release v0.9.78
 - feat(list): configurable alignment + font size for sum line
 
 
-### 0.9.66 (2026-05-17)
-- chore(backup): surface writeBackup errors and server ack in console
-
-
 ## License
 
 MIT License
@@ -292,6 +292,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

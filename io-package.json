@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.95",
+    "version": "0.9.96",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,19 @@
       }
     ],
     "news": {
+      "0.9.96": {
+        "en": "feat(weather): bar-only temp-strahl variant in custom layout",
+        "de": "feat(weather): bar-only temp-strahl variant in custom layout",
+        "ru": "feat(weather): bar-only temp-strahl variant in custom layout",
+        "pt": "feat(weather): bar-only temp-strahl variant in custom layout",
+        "nl": "feat(weather): bar-only temp-strahl variant in custom layout",
+        "fr": "feat(weather): bar-only temp-strahl variant in custom layout",
+        "it": "feat(weather): bar-only temp-strahl variant in custom layout",
+        "es": "feat(weather): bar-only temp-strahl variant in custom layout",
+        "pl": "feat(weather): bar-only temp-strahl variant in custom layout",
+        "uk": "feat(weather): bar-only temp-strahl variant in custom layout",
+        "zh-cn": "feat(weather): bar-only temp-strahl variant in custom layout"
+      },
       "0.9.95": {
         "en": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries",
         "de": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries",
@@ -182,19 +195,6 @@
         "pl": "feat(universal-widget): hide dropdown option for select cell",
         "uk": "feat(universal-widget): hide dropdown option for select cell",
         "zh-cn": "feat(universal-widget): hide dropdown option for select cell"
-      },
-      "0.9.89": {
-        "en": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
-        "de": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
-        "ru": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
-        "pt": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
-        "nl": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
-        "fr": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
-        "it": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
-        "es": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
-        "pl": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
-        "uk": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name",
-        "zh-cn": "fix(layout-drawer): disable both placement buttons when header is on; fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on; feat(layout-drawer): customize title and entry display style; feat(layouts): drag to reorder layouts in admin list; feat(layout-drawer): add 'in tab bar' placement option; fix(layout-drawer): allow inline trigger width to fit icon + name"
       }
     }
   },
