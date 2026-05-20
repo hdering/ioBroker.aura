@@ -415,7 +415,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         {!hasTarget
           ? '⚠ Admin: Ziel-DP fehlt'
           : events.length === 0
-            ? 'Keine Ereignisse — über „+" hinzufügen'
+            ? 'Keine Ereignisse — über „+“ hinzufügen'
             : `${enabledCount} aktiv${enabledCount === 1 ? '' : 'e'} / ${events.length} Ereignis${events.length === 1 ? '' : 'se'}`}
       </p>
 
