@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.96",
+    "version": "0.9.97",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,19 @@
       }
     ],
     "news": {
+      "0.9.97": {
+        "en": "Release v0.9.97",
+        "de": "Release v0.9.97",
+        "ru": "Release v0.9.97",
+        "pt": "Release v0.9.97",
+        "nl": "Release v0.9.97",
+        "fr": "Release v0.9.97",
+        "it": "Release v0.9.97",
+        "es": "Release v0.9.97",
+        "pl": "Release v0.9.97",
+        "uk": "Release v0.9.97",
+        "zh-cn": "Release v0.9.97"
+      },
       "0.9.96": {
         "en": "feat(weather): bar-only temp-strahl variant in custom layout",
         "de": "feat(weather): bar-only temp-strahl variant in custom layout",
@@ -182,19 +195,6 @@
         "pl": "Release v0.9.91",
         "uk": "Release v0.9.91",
         "zh-cn": "Release v0.9.91"
-      },
-      "0.9.90": {
-        "en": "feat(universal-widget): hide dropdown option for select cell",
-        "de": "feat(universal-widget): hide dropdown option for select cell",
-        "ru": "feat(universal-widget): hide dropdown option for select cell",
-        "pt": "feat(universal-widget): hide dropdown option for select cell",
-        "nl": "feat(universal-widget): hide dropdown option for select cell",
-        "fr": "feat(universal-widget): hide dropdown option for select cell",
-        "it": "feat(universal-widget): hide dropdown option for select cell",
-        "es": "feat(universal-widget): hide dropdown option for select cell",
-        "pl": "feat(universal-widget): hide dropdown option for select cell",
-        "uk": "feat(universal-widget): hide dropdown option for select cell",
-        "zh-cn": "feat(universal-widget): hide dropdown option for select cell"
       }
     }
   },
