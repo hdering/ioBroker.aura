@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.78 (2026-05-17)
+Release v0.9.78
+
 ## 0.9.69 (2026-05-17)
 - fix(fill): center horizontal battery silhouette in viewBox
 - feat(list): configurable alignment + font size for sum line
