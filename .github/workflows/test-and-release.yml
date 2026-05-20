@@ -13,9 +13,10 @@ on:
   release:
     types: [published]
 
+# Cancel previous PR/branch runs when a new commit is pushed
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')) }}
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check-and-lint:
