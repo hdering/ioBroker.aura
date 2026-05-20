@@ -109,12 +109,10 @@ export function TimerEventModal({ initial, onSave, onCancel, onDelete }: Props) 
     <div
       data-aura-app="frontend"
       className="fixed inset-0 z-[9000] flex items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.5)', color: 'var(--text-primary)', ...themeVars }}
-      onClick={onCancel}>
+      style={{ background: 'rgba(0,0,0,0.5)', color: 'var(--text-primary)', ...themeVars }}>
         <div
           className="rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col"
-          style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
-          onClick={(e) => e.stopPropagation()}>
+          style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
           {/* Header */}
           <div className="flex items-center gap-2 px-4 py-3 border-b" style={{ borderColor: 'var(--app-border)' }}>
             <p className="text-sm font-semibold flex-1" style={{ color: 'var(--text-primary)' }}>
