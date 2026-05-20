@@ -616,6 +616,12 @@ export function WeatherWidget({ config }: WidgetProps) {
           </span>
         </div>
       );
+      perDayComponents[`tempBarOnly${i}`] = (
+        <div className="relative w-full" style={{ height: '0.9rem' }}>
+          <div className="absolute inset-y-0 left-0 right-0 rounded-full opacity-15" style={{ background: 'var(--text-secondary)' }} />
+          <div className="absolute inset-y-0 rounded-full" style={{ left: `${leftPct}%`, width: `${Math.max(widthPct, 4)}%`, background: barBg }} />
+        </div>
+      );
     }
 
     return (
