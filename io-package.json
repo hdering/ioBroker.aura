@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.99",
+    "version": "99.99.99",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,19 @@
       }
     ],
     "news": {
+      "99.99.99": {
+        "en": "Release v99.99.99",
+        "de": "Release v99.99.99",
+        "ru": "Release v99.99.99",
+        "pt": "Release v99.99.99",
+        "nl": "Release v99.99.99",
+        "fr": "Release v99.99.99",
+        "it": "Release v99.99.99",
+        "es": "Release v99.99.99",
+        "pl": "Release v99.99.99",
+        "uk": "Release v99.99.99",
+        "zh-cn": "Release v99.99.99"
+      },
       "0.9.99": {
         "en": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
         "de": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
@@ -182,19 +195,6 @@
         "pl": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
         "uk": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
         "zh-cn": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)"
-      },
-      "0.9.92": {
-        "en": "Release v0.9.92",
-        "de": "Release v0.9.92",
-        "ru": "Release v0.9.92",
-        "pt": "Release v0.9.92",
-        "nl": "Release v0.9.92",
-        "fr": "Release v0.9.92",
-        "it": "Release v0.9.92",
-        "es": "Release v0.9.92",
-        "pl": "Release v0.9.92",
-        "uk": "Release v0.9.92",
-        "zh-cn": "Release v0.9.92"
       }
     }
   },
