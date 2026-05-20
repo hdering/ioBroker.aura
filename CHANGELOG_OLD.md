@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.79 (2026-05-17)
+- fix(light): autoDetect mixed DPs from different zigbee devices
+
 ## 0.9.78 (2026-05-17)
 Release v0.9.78
 

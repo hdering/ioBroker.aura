@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.98",
+    "version": "0.9.99",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,18 +105,18 @@
       }
     ],
     "news": {
-      "0.9.98": {
-        "en": "fix(timer): read-only in edit mode, frontend save flush, no object warnings; fix(timer): icon size, hide DP picker, custom layout, hide-able master; fix(timer): adopt template config panel layout; fix(timer): non-dismissible backdrop on event modal; fix(timer): admin-only target DP, layout list, modal theme, DP examples; feat(timer): Zeitschaltuhr widget with backend scheduler",
-        "de": "fix(timer): read-only in edit mode, frontend save flush, no object warnings; fix(timer): icon size, hide DP picker, custom layout, hide-able master; fix(timer): adopt template config panel layout; fix(timer): non-dismissible backdrop on event modal; fix(timer): admin-only target DP, layout list, modal theme, DP examples; feat(timer): Zeitschaltuhr widget with backend scheduler",
-        "ru": "fix(timer): read-only in edit mode, frontend save flush, no object warnings; fix(timer): icon size, hide DP picker, custom layout, hide-able master; fix(timer): adopt template config panel layout; fix(timer): non-dismissible backdrop on event modal; fix(timer): admin-only target DP, layout list, modal theme, DP examples; feat(timer): Zeitschaltuhr widget with backend scheduler",
-        "pt": "fix(timer): read-only in edit mode, frontend save flush, no object warnings; fix(timer): icon size, hide DP picker, custom layout, hide-able master; fix(timer): adopt template config panel layout; fix(timer): non-dismissible backdrop on event modal; fix(timer): admin-only target DP, layout list, modal theme, DP examples; feat(timer): Zeitschaltuhr widget with backend scheduler",
-        "nl": "fix(timer): read-only in edit mode, frontend save flush, no object warnings; fix(timer): icon size, hide DP picker, custom layout, hide-able master; fix(timer): adopt template config panel layout; fix(timer): non-dismissible backdrop on event modal; fix(timer): admin-only target DP, layout list, modal theme, DP examples; feat(timer): Zeitschaltuhr widget with backend scheduler",
-        "fr": "fix(timer): read-only in edit mode, frontend save flush, no object warnings; fix(timer): icon size, hide DP picker, custom layout, hide-able master; fix(timer): adopt template config panel layout; fix(timer): non-dismissible backdrop on event modal; fix(timer): admin-only target DP, layout list, modal theme, DP examples; feat(timer): Zeitschaltuhr widget with backend scheduler",
-        "it": "fix(timer): read-only in edit mode, frontend save flush, no object warnings; fix(timer): icon size, hide DP picker, custom layout, hide-able master; fix(timer): adopt template config panel layout; fix(timer): non-dismissible backdrop on event modal; fix(timer): admin-only target DP, layout list, modal theme, DP examples; feat(timer): Zeitschaltuhr widget with backend scheduler",
-        "es": "fix(timer): read-only in edit mode, frontend save flush, no object warnings; fix(timer): icon size, hide DP picker, custom layout, hide-able master; fix(timer): adopt template config panel layout; fix(timer): non-dismissible backdrop on event modal; fix(timer): admin-only target DP, layout list, modal theme, DP examples; feat(timer): Zeitschaltuhr widget with backend scheduler",
-        "pl": "fix(timer): read-only in edit mode, frontend save flush, no object warnings; fix(timer): icon size, hide DP picker, custom layout, hide-able master; fix(timer): adopt template config panel layout; fix(timer): non-dismissible backdrop on event modal; fix(timer): admin-only target DP, layout list, modal theme, DP examples; feat(timer): Zeitschaltuhr widget with backend scheduler",
-        "uk": "fix(timer): read-only in edit mode, frontend save flush, no object warnings; fix(timer): icon size, hide DP picker, custom layout, hide-able master; fix(timer): adopt template config panel layout; fix(timer): non-dismissible backdrop on event modal; fix(timer): admin-only target DP, layout list, modal theme, DP examples; feat(timer): Zeitschaltuhr widget with backend scheduler",
-        "zh-cn": "fix(timer): read-only in edit mode, frontend save flush, no object warnings; fix(timer): icon size, hide DP picker, custom layout, hide-able master; fix(timer): adopt template config panel layout; fix(timer): non-dismissible backdrop on event modal; fix(timer): admin-only target DP, layout list, modal theme, DP examples; feat(timer): Zeitschaltuhr widget with backend scheduler"
+      "0.9.99": {
+        "en": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
+        "de": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
+        "ru": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
+        "pt": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
+        "nl": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
+        "fr": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
+        "it": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
+        "es": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
+        "pl": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
+        "uk": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
+        "zh-cn": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference"
       },
       "0.9.97": {
         "en": "Release v0.9.97",
