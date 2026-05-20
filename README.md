@@ -186,6 +186,12 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.94 (2026-05-20)
+- fix(custom-grid): prevent descender clipping on free-text cells
+- ci: add dependabot auto-merge workflow (S8913)
+- fix(ci): match ioBroker.example concurrency pattern exactly (E3009)
+
+
 ### 0.9.93 (2026-05-20)
 - chore(repo): adapter-checker compliance (E3008/E3009/W0050)
 
@@ -274,10 +280,6 @@ Release v0.9.78
 - feat(list): show sum of numeric values in static/dynamic list
 
 
-### 0.9.62 (2026-05-17)
-- fix(backup): auto-save also writes auto-backup
-
-
 ## License
 
 MIT License
@@ -289,6 +291,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

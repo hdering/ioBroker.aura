@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.93",
+    "version": "0.9.94",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,19 @@
       }
     ],
     "news": {
+      "0.9.94": {
+        "en": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
+        "de": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
+        "ru": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
+        "pt": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
+        "nl": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
+        "fr": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
+        "it": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
+        "es": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
+        "pl": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
+        "uk": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
+        "zh-cn": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)"
+      },
       "0.9.93": {
         "en": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
         "de": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
@@ -182,19 +195,6 @@
         "pl": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style",
         "uk": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style",
         "zh-cn": "fix(knob): use knob default grid as editor fallback; feat(knob): empty default custom grid except dial at 2/2; fix(knob): honour titleAlign in bogen/skala/endless layouts; feat(custom-grid): allow fontSize as explicit pixel size on component cells; feat(knob): add custom layout with selectable dial style"
-      },
-      "0.9.87": {
-        "en": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
-        "de": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
-        "ru": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
-        "pt": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
-        "nl": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
-        "fr": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
-        "it": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
-        "es": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
-        "pl": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
-        "uk": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
-        "zh-cn": "fix(knob): auto-compute label decimals to avoid duplicate scale labels"
       }
     }
   },
