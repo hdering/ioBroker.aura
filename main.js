@@ -421,6 +421,12 @@ class Aura extends utils.Adapter {
       return;
     }
 
+    // Timer widget config/enabled — frontend writes ack=false, ingest into schedule map
+    if (id.startsWith(`${this.namespace}.timers.`) && state) {
+      this._ingestTimerState(id, state.val);
+      return;
+    }
+
     // Client register relay: frontend writes {clientId, name} → adapter creates object tree
     if (id.endsWith('clients.register') && state && !state.ack && state.val) {
       let reg;
@@ -812,6 +818,7 @@ class Aura extends utils.Adapter {
     await this.setObjectNotExistsAsync('admin', { type: 'channel', common: { name: 'Admin access' }, native: {} });
     await this.setObjectNotExistsAsync('clients', { type: 'channel', common: { name: 'Connected clients' }, native: {} });
     await this.setObjectNotExistsAsync('lists',   { type: 'channel', common: { name: 'List widget exports' }, native: {} });
+    await this.setObjectNotExistsAsync('timers',  { type: 'channel', common: { name: 'Zeitschaltuhren (timer widgets)' }, native: {} });
 
     await this.setObjectNotExistsAsync('config.dashboard', {
       type: 'state',
@@ -897,6 +904,29 @@ class Aura extends utils.Adapter {
     this.subscribeStates('clients.deleteRequest');
     this.subscribeStates('clients.register');
 
+    // ── Timer widget scheduler ─────────────────────────────────────────────
+    // Subscribe to per-widget config/enabled DPs and run a tick to evaluate
+    // due triggers. The frontend (TimerWidget) writes config as JSON to
+    // aura.<inst>.timers.<widgetId>.config and master state to .enabled.
+    this.subscribeStates('timers.*');
+    this._timerState = new Map(); // widgetId → { enabled, payload }
+    this._timerFired = new Set(); // dedupe key → true (cleared at midnight)
+    this._timerLastDay = this._currentDayKey();
+    try {
+      const existing = await this.getStatesAsync(`${this.namespace}.timers.*`);
+      for (const [fullId, st] of Object.entries(existing || {})) {
+        if (!st) continue;
+        this._ingestTimerState(fullId, st.val);
+      }
+      this.log.info(`[timers] loaded ${this._timerState.size} timer widget(s)`);
+    } catch (e) {
+      this.log.warn(`[timers] initial scan failed: ${e.message}`);
+    }
+    const tickSec = Math.max(5, Math.min(600, Number(this.config.timerTickSeconds) || 30));
+    this._timerTickMs = tickSec * 1000;
+    this._timerInterval = setInterval(() => this._timerTick().catch((e) => this.log.warn(`[timers] tick error: ${e.message}`)), this._timerTickMs);
+    this.log.info(`[timers] scheduler tick = ${tickSec}s`);
+
     // Update localLinks to point to the aura HTTP server port
     {
       const base = this.config.customUrl ? this.config.customUrl.replace(/\/+$/, '') : null;
@@ -941,8 +971,205 @@ class Aura extends utils.Adapter {
     this.log.info('aura ready');
   }
 
+  // ── Timer scheduler helpers ──────────────────────────────────────────────
+
+  _currentDayKey(d = new Date()) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  /**
+   * Parse a state value coming from one of the timers.* DPs and update the
+   * in-memory schedule map. Called both during initial scan and on state changes.
+   */
+  _ingestTimerState(fullId, val) {
+    // fullId: aura.<inst>.timers.<widgetId>.{config|enabled}
+    const m = fullId.match(/^.+\.timers\.([^.]+)\.(config|enabled)$/);
+    if (!m) return;
+    const widgetId = m[1];
+    const kind = m[2];
+    const entry = this._timerState.get(widgetId) || { enabled: true, payload: null };
+    if (kind === 'enabled') {
+      entry.enabled = val === true || val === 'true' || val === 1 || val === '1';
+    } else if (kind === 'config') {
+      if (val == null || val === '') {
+        entry.payload = null;
+      } else {
+        try {
+          entry.payload = typeof val === 'string' ? JSON.parse(val) : val;
+        } catch (e) {
+          this.log.warn(`[timers] config parse error (${widgetId}): ${e.message}`);
+          entry.payload = null;
+        }
+      }
+    }
+    this._timerState.set(widgetId, entry);
+  }
+
+  async _resolveSpecialDays(dp) {
+    if (!dp) return new Set();
+    try {
+      const st = await this.getForeignStateAsync(dp);
+      if (!st || st.val == null) return new Set();
+      const arr = typeof st.val === 'string' ? JSON.parse(st.val) : st.val;
+      return new Set(Array.isArray(arr) ? arr.map(String) : []);
+    } catch {
+      return new Set();
+    }
+  }
+
+  _weekdayMatches(weekdays, date) {
+    if (!Array.isArray(weekdays) || weekdays.length === 0) return false;
+    const map = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    return weekdays.includes(map[date.getDay()]);
+  }
+
+  _parseValue(raw) {
+    if (typeof raw !== 'string') return raw;
+    const s = raw.trim();
+    if (s === '') return '';
+    if (s.toLowerCase() === 'true') return true;
+    if (s.toLowerCase() === 'false') return false;
+    if (/^-?\d+(\.\d+)?$/.test(s)) return Number(s);
+    return s;
+  }
+
+  _astroPattern(event) {
+    // Map our event names to ioBroker getAstroDate patterns.
+    if (event === 'sunrise')   return 'sunrise';
+    if (event === 'sunset')    return 'sunset';
+    if (event === 'dawn')      return 'dawn';
+    if (event === 'dusk')      return 'dusk';
+    if (event === 'solarNoon') return 'solarNoon';
+    return 'sunset';
+  }
+
+  async _filterPasses(ev, date, holidays, vacation) {
+    const dayKey = this._currentDayKey(date);
+    if (ev.filter === 'all-days') return true;
+    if (ev.filter === 'no-special')    return !holidays.has(dayKey) && !vacation.has(dayKey);
+    if (ev.filter === 'only-holidays') return holidays.has(dayKey);
+    if (ev.filter === 'only-vacation') return vacation.has(dayKey);
+    if (ev.filter === 'blocked') {
+      const minNow = date.getHours() * 60 + date.getMinutes();
+      const from = Number.isFinite(ev.blockFromMin) ? ev.blockFromMin : 0;
+      const to   = Number.isFinite(ev.blockToMin)   ? ev.blockToMin   : 0;
+      // window may wrap midnight if from > to
+      const inWindow = from <= to ? (minNow >= from && minNow < to) : (minNow >= from || minNow < to);
+      return !inWindow;
+    }
+    return true;
+  }
+
+  async _writeTarget(ev, override) {
+    const target = ev.targetDp;
+    if (!target) return;
+    const val = override !== undefined ? override : this._parseValue(ev.value);
+    try {
+      await this.setForeignStateAsync(target, val, false);
+      this.log.info(`[timers] fired ${ev.label || ev.id}: ${target} ← ${JSON.stringify(val)}`);
+    } catch (e) {
+      this.log.warn(`[timers] write failed (${target}): ${e.message}`);
+    }
+  }
+
+  /**
+   * One-shot disable for 'once' events — write back the updated config with
+   * the event flipped to enabled=false so it doesn't fire again after restart.
+   */
+  async _disableOnceEvent(widgetId, eventId) {
+    const entry = this._timerState.get(widgetId);
+    if (!entry || !entry.payload || !Array.isArray(entry.payload.events)) return;
+    const next = {
+      ...entry.payload,
+      events: entry.payload.events.map((e) => (e.id === eventId ? { ...e, enabled: false } : e)),
+    };
+    entry.payload = next;
+    this._timerState.set(widgetId, entry);
+    try {
+      await this.setStateAsync(`timers.${widgetId}.config`, JSON.stringify(next), false);
+    } catch (e) {
+      this.log.warn(`[timers] could not persist disabled 'once' event: ${e.message}`);
+    }
+  }
+
+  async _timerTick() {
+    const now = new Date();
+    const dayKey = this._currentDayKey(now);
+    if (dayKey !== this._timerLastDay) {
+      this._timerFired.clear();
+      this._timerLastDay = dayKey;
+    }
+    const windowMs = this._timerTickMs;
+    const winStart = now.getTime() - windowMs;
+
+    for (const [widgetId, entry] of this._timerState.entries()) {
+      if (!entry.enabled) continue;
+      const payload = entry.payload;
+      if (!payload || !Array.isArray(payload.events)) continue;
+
+      const holidays = await this._resolveSpecialDays(payload.holidaysDp);
+      const vacation = await this._resolveSpecialDays(payload.vacationDp);
+
+      for (const ev of payload.events) {
+        if (!ev || !ev.enabled || !ev.targetDp) continue;
+
+        // Determine candidate fire times for today (or absolute for once/range)
+        const candidates = []; // [{ ts, key, invert? }]
+
+        if (ev.trigger.kind === 'time') {
+          if (!this._weekdayMatches(ev.weekdays, now)) continue;
+          const ts = new Date(now);
+          ts.setHours(ev.trigger.hour, ev.trigger.minute, 0, 0);
+          candidates.push({ ts: ts.getTime(), key: `${widgetId}:${ev.id}:${dayKey}:time` });
+        } else if (ev.trigger.kind === 'astro') {
+          if (!this._weekdayMatches(ev.weekdays, now)) continue;
+          let astroDate;
+          try {
+            astroDate = this.getAstroDate(this._astroPattern(ev.trigger.event), now, ev.trigger.offsetMin || 0);
+          } catch (e) {
+            this.log.warn(`[timers] astro failed (${ev.trigger.event}): ${e.message}`);
+            continue;
+          }
+          if (!astroDate) continue;
+          candidates.push({ ts: astroDate.getTime(), key: `${widgetId}:${ev.id}:${dayKey}:astro` });
+        } else if (ev.trigger.kind === 'once') {
+          const ts = Date.parse(ev.trigger.iso);
+          if (!Number.isFinite(ts)) continue;
+          candidates.push({ ts, key: `${widgetId}:${ev.id}:once`, isOnce: true });
+        } else if (ev.trigger.kind === 'range') {
+          const fts = Date.parse(ev.trigger.fromIso);
+          const tts = Date.parse(ev.trigger.toIso);
+          if (Number.isFinite(fts)) candidates.push({ ts: fts, key: `${widgetId}:${ev.id}:range:start` });
+          if (Number.isFinite(tts)) candidates.push({ ts: tts, key: `${widgetId}:${ev.id}:range:end`, invert: true });
+        }
+
+        for (const c of candidates) {
+          if (c.ts < winStart || c.ts > now.getTime()) continue;
+          if (this._timerFired.has(c.key)) continue;
+          if (!await this._filterPasses(ev, now, holidays, vacation)) continue;
+
+          let writeVal;
+          if (c.invert) {
+            const v = this._parseValue(ev.value);
+            writeVal = typeof v === 'boolean' ? !v : (typeof v === 'number' ? 0 : '');
+          }
+          await this._writeTarget(ev, writeVal);
+          this._timerFired.add(c.key);
+
+          if (c.isOnce) {
+            await this._disableOnceEvent(widgetId, ev.id);
+          }
+        }
+      }
+    }
+  }
+
   onUnload(callback) {
     try {
+      if (this._timerInterval) {
+        clearInterval(this._timerInterval);
+        this._timerInterval = null;
+      }
       if (this._httpServer) {
         this._httpServer.close(() => callback());
       } else {

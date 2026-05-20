@@ -14,7 +14,7 @@ import {
   Zap, TrendingUp, SlidersHorizontal, Thermometer, BarChart2, List,
   Clock, CalendarDays, Heading2, Layers2, Cloud, Gauge, Camera, ImageIcon, MonitorDot, Droplets, Truck, AlignJustify, Table2,
   DoorOpen, ShieldAlert, ToggleRight, LineChart, Code2, CalendarClock, Music, CalendarCheck2, Tag, Globe, MousePointerClick, Wind,
-  LayoutGrid, ListChecks, Lightbulb, CircleDot, /* GalleryHorizontal — re-import when carousel is re-enabled */
+  LayoutGrid, ListChecks, Lightbulb, CircleDot, Timer, /* GalleryHorizontal — re-import when carousel is re-enabled */
   type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -415,6 +415,15 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     addMode: 'datapoint',          widgetGroup: 'control',
     mock: { t: 'Drehregler', v: '65', u: '%' },
     hint: 'Wert über Drehknopf einstellen – 3 Zeigertypen (Linie/Kreis/Pfeil), Winkelbereich konfigurierbar',
+  },
+  {
+    type: 'timer',
+    label: 'Zeitschaltuhr',        shortLabel: 'Timer',
+    Icon: Timer,                   iconName: 'Timer',     color: '#0ea5e9',
+    defaultW: 8,                   defaultH: 5,
+    addMode: 'free',               widgetGroup: 'special',
+    mock: { t: 'Zeitschaltuhr', v: '3 Ereignisse' },
+    hint: 'Zeitgesteuerte Ereignisse — Wochentag/Astro/Einmalig/Zeitraum, schreibt Ziel-DP automatisch (Backend-Scheduler)',
   },
   // Carousel widget disabled — not yet ready for production use.
   // Re-enable by uncommenting; all supporting code (widgetMap, types, i18n,

@@ -177,6 +177,38 @@
       "md": 6,
       "lg": 4,
       "xl": 4
+    },
+    "_timerHeader": {
+      "type": "header",
+      "text": {
+        "en": "Timer widget scheduler",
+        "de": "Zeitschaltuhr-Scheduler"
+      },
+      "size": 2,
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "timerTickSeconds": {
+      "type": "number",
+      "label": {
+        "en": "Tick interval (s)",
+        "de": "Prüfintervall (s)"
+      },
+      "help": {
+        "en": "How often the backend scheduler checks for due timer events. Lower = more precise but more CPU. Range: 5–600. Default: 30.",
+        "de": "Wie oft der Backend-Scheduler nach fälligen Zeitschaltuhr-Ereignissen prüft. Kleiner = präziser, aber mehr CPU. Bereich: 5–600. Standard: 30."
+      },
+      "min": 5,
+      "max": 600,
+      "default": 30,
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     }
   }
 }

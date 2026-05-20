@@ -214,7 +214,8 @@
         "path": "/opt/iobroker/iobroker-data/files"
       }
     ],
-    "fsAllowWrite": false
+    "fsAllowWrite": false,
+    "timerTickSeconds": 30
   },
   "objects": [],
   "instanceObjects": [
@@ -286,6 +287,14 @@
       "type": "channel",
       "common": {
         "name": "Admin access"
+      },
+      "native": {}
+    },
+    {
+      "_id": "timers",
+      "type": "channel",
+      "common": {
+        "name": "Zeitschaltuhren (timer widgets)"
       },
       "native": {}
     },

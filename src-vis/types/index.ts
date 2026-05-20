@@ -54,7 +54,8 @@ export type WidgetType =
   | 'enum'
   | 'light'
   | 'carousel'
-  | 'knob';
+  | 'knob'
+  | 'timer';
 
 export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda' | 'flow' | 'battery' | 'production' | 'consumption' | 'loadpoints' | 'custom' | 'count'
   | 'light-all' | 'light-brightness' | 'light-color' | 'light-temperature' | 'light-custom'
@@ -75,6 +76,62 @@ export interface LightEffect {
   value: string;
   /** Optional preview color (hex) for the chip */
   color?: string;
+}
+
+// ── Timer / Zeitschaltuhr widget ──────────────────────────────────────────────
+
+export type TimerWeekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+
+export type TimerAstroEvent = 'sunrise' | 'sunset' | 'dawn' | 'dusk' | 'solarNoon';
+
+export type TimerTrigger =
+  | { kind: 'time';  hour: number; minute: number }
+  | { kind: 'astro'; event: TimerAstroEvent; offsetMin: number }
+  | { kind: 'once';  iso: string }                       // YYYY-MM-DDTHH:mm — fires once at this moment
+  | { kind: 'range'; fromIso: string; toIso: string };   // fires once at fromIso, once at toIso
+
+/**
+ * Filter that restricts on which days the trigger may fire.
+ * - all-days:       no restriction (default)
+ * - no-special:     skip days listed in holidaysDp / vacationDp
+ * - only-holidays:  fire ONLY on days listed in holidaysDp
+ * - only-vacation:  fire ONLY on days listed in vacationDp
+ * - blocked:        skip if current time is within blockFromMin..blockToMin
+ */
+export type TimerFilter =
+  | 'all-days'
+  | 'no-special'
+  | 'only-holidays'
+  | 'only-vacation'
+  | 'blocked';
+
+export interface TimerEvent {
+  id: string;
+  enabled: boolean;
+  label?: string;
+  weekdays: TimerWeekday[];     // empty array = never fires
+  trigger: TimerTrigger;
+  filter: TimerFilter;
+  blockFromMin?: number;        // filter='blocked': start of blocked window (minutes since 00:00)
+  blockToMin?: number;          // filter='blocked': end of blocked window
+  targetDp: string;             // ioBroker datapoint that is written when trigger fires
+  value: string;                // value written (parsed to bool/number/string)
+}
+
+/**
+ * Persisted in WidgetConfig.options:
+ *   enabled:     master switch (also mirrored to the timers.<widgetId>.enabled DP)
+ *   events:      list of events (also mirrored to timers.<widgetId>.config DP — that DP is the source of truth for the scheduler)
+ *   holidaysDp:  optional DP (JSON array of YYYY-MM-DD strings) — special days
+ *   vacationDp:  optional DP (JSON array of YYYY-MM-DD strings) — vacation days
+ *   stateBaseId: the timers.<widgetId> base path used by the backend scheduler
+ */
+export interface TimerWidgetOptions {
+  enabled?: boolean;
+  events?: TimerEvent[];
+  holidaysDp?: string;
+  vacationDp?: string;
+  stateBaseId?: string;
 }
 
 // ── Custom-Grid layout ────────────────────────────────────────────────────────
@@ -140,9 +197,10 @@ export interface CustomCell {
   trueText?:  string;            // 'state-text' cell: label rendered for truthy value
   falseText?: string;            // 'state-text' cell: label rendered for falsy value
   // 'select' type — dropdown that maps DP values to labels (mini enum widget per cell)
-  entries?: { value: string; label: string; color?: string }[];  // 'select' cell: selectable value/label pairs
+  entries?: { value: string; label: string; color?: string; icon?: string }[];  // 'select' cell: selectable value/label pairs (icon: Lucide/Iconify ID)
   showSelectedLabel?: boolean;   // 'select' cell: render current label next to dropdown
   hideSelect?: boolean;          // 'select' cell: hide dropdown and render entries as a button group
+  entryDisplay?: 'icon' | 'icon-text' | 'text';  // 'select' cell: how the current entry is shown (default 'text')
 }
 
 /** Legacy: 9-element array, row-major (index = row*3 + col). Kept as alias for compat. */

@@ -84,6 +84,8 @@ import { EnumWidget } from '../widgets/EnumWidget';
 import { LightWidget } from '../widgets/LightWidget';
 import { CarouselWidget } from '../widgets/CarouselWidget';
 import { KnobWidget } from '../widgets/KnobWidget';
+import { TimerWidget } from '../widgets/TimerWidget';
+import { TimerConfig } from '../config/TimerConfig';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
 import { WidgetClickPopup } from '../widgets/popup/WidgetClickPopup';
@@ -136,6 +138,7 @@ function getWidgetMap() {
     light:         LightWidget,
     carousel:      CarouselWidget,
     knob:          KnobWidget,
+    timer:         TimerWidget,
   } as const;
 }
 
@@ -5447,6 +5450,11 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               {/* ── Trash / Müllabfuhr config ── */}
               {config.type === 'trash' && (
                 <TrashConfig config={config} onConfigChange={onConfigChange} />
+              )}
+
+              {/* ── Timer / Zeitschaltuhr config ── */}
+              {config.type === 'timer' && (
+                <TimerConfig config={config} onConfigChange={onConfigChange} />
               )}
 
               {/* ── TrashSchedule / Müllabfuhr-Zeitplan config ── */}
