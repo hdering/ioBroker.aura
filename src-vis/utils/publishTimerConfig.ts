@@ -11,8 +11,17 @@
  * states are created on-demand here. The adapter subscribes to timers.* and
  * rebuilds its in-memory schedule whenever a state changes.
  */
-import { setObjectDirect, setStateDirect, deleteObjectDirect } from '../hooks/useIoBroker';
+import { setStateDirect, deleteObjectDirect, getSocket } from '../hooks/useIoBroker';
 import type { TimerEvent } from '../types';
+
+/** Promise wrapper around setObject so callers can await object creation
+ *  before writing the corresponding state — otherwise iobroker logs
+ *  "State has no existing object" warnings. */
+function setObjectAsync(id: string, obj: object): Promise<void> {
+  return new Promise((resolve) => {
+    getSocket().emit('setObject', id, obj, () => resolve());
+  });
+}
 
 const NAMESPACE = 'aura.0.timers';
 
@@ -37,54 +46,62 @@ export interface TimerConfigPayload {
   title?: string;
 }
 
-const ensuredObjects = new Set<string>();
+/** widgetId → pending object-creation promise. While the promise is unresolved,
+ *  any state writes wait on it so they hit ioBroker after the object exists. */
+const ensurePromises = new Map<string, Promise<void>>();
 
-function ensureObjects(widgetId: string, title: string): void {
-  if (ensuredObjects.has(widgetId)) return;
-  setObjectDirect(timerChannelId(widgetId), {
-    type: 'channel',
-    common: { name: title || 'Zeitschaltuhr' },
-    native: {},
-  });
-  setObjectDirect(timerConfigStateId(widgetId), {
-    type: 'state',
-    common: {
-      name: `${title || 'Zeitschaltuhr'} — config`,
-      type: 'string',
-      role: 'json',
-      read: true,
-      write: true,
-      def: '',
-    },
-    native: {},
-  });
-  setObjectDirect(timerEnabledStateId(widgetId), {
-    type: 'state',
-    common: {
-      name: `${title || 'Zeitschaltuhr'} — enabled`,
-      type: 'boolean',
-      role: 'switch',
-      read: true,
-      write: true,
-      def: true,
-    },
-    native: {},
-  });
-  ensuredObjects.add(widgetId);
+function ensureObjects(widgetId: string, title: string): Promise<void> {
+  const existing = ensurePromises.get(widgetId);
+  if (existing) return existing;
+  const p = (async () => {
+    await setObjectAsync(timerChannelId(widgetId), {
+      type: 'channel',
+      common: { name: title || 'Zeitschaltuhr' },
+      native: {},
+    });
+    await setObjectAsync(timerConfigStateId(widgetId), {
+      type: 'state',
+      common: {
+        name: `${title || 'Zeitschaltuhr'} — config`,
+        type: 'string',
+        role: 'json',
+        read: true,
+        write: true,
+        def: '',
+      },
+      native: {},
+    });
+    await setObjectAsync(timerEnabledStateId(widgetId), {
+      type: 'state',
+      common: {
+        name: `${title || 'Zeitschaltuhr'} — enabled`,
+        type: 'boolean',
+        role: 'switch',
+        read: true,
+        write: true,
+        def: true,
+      },
+      native: {},
+    });
+  })();
+  ensurePromises.set(widgetId, p);
+  return p;
 }
 
 export function publishTimerConfig(widgetId: string, title: string, payload: TimerConfigPayload): void {
-  ensureObjects(widgetId, title);
-  setStateDirect(timerConfigStateId(widgetId), JSON.stringify(payload), false);
+  void ensureObjects(widgetId, title).then(() => {
+    setStateDirect(timerConfigStateId(widgetId), JSON.stringify(payload), false);
+  });
 }
 
 export function publishTimerEnabled(widgetId: string, title: string, enabled: boolean): void {
-  ensureObjects(widgetId, title);
-  setStateDirect(timerEnabledStateId(widgetId), enabled, false);
+  void ensureObjects(widgetId, title).then(() => {
+    setStateDirect(timerEnabledStateId(widgetId), enabled, false);
+  });
 }
 
 export async function unpublishTimer(widgetId: string): Promise<void> {
-  ensuredObjects.delete(widgetId);
+  ensurePromises.delete(widgetId);
   await deleteObjectDirect(timerConfigStateId(widgetId));
   await deleteObjectDirect(timerEnabledStateId(widgetId));
   await deleteObjectDirect(timerChannelId(widgetId));

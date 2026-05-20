@@ -23,6 +23,18 @@ import {
 } from '../../utils/publishTimerConfig';
 import { TimerEventModal } from './TimerEventModal';
 import { CustomGridView } from './CustomGridView';
+import { saveAll, saveToIoBroker } from '../../store/persistManager';
+
+/**
+ * Flush the dashboard config to ioBroker immediately after a user edit.
+ * The frontend uses `ignoreDirty: true` in useConfigSync, so a pending-but-
+ * unsaved change is otherwise overwritten by the next stateChange echo or
+ * poll. Calling saveToIoBroker() arms the `isSavingRecently` window (5 s)
+ * that suppresses our own echo and prevents the rollback.
+ */
+function flushDashboard() {
+  try { saveAll(); saveToIoBroker(); } catch { /* offline / not configured */ }
+}
 
 function newEvent(): TimerEvent {
   return {
@@ -104,7 +116,7 @@ function weekdaysText(wd: TimerWeekday[]): string {
   return WEEKDAY_ORDER.filter((d) => set.has(d)).map((d) => WEEKDAY_LABEL_SHORT[d]).join(' ');
 }
 
-export function TimerWidget({ config, onConfigChange }: WidgetProps) {
+export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const o = (config.options ?? {}) as Record<string, unknown>;
   const events       = (o.events as TimerEvent[] | undefined)        ?? [];
   const masterEnabled = (o.enabled as boolean | undefined)          ?? true;
@@ -165,11 +177,13 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
 
   const toggleMaster = () => {
     onConfigChange({ ...config, options: { ...o, enabled: !masterEnabled } });
+    setTimeout(flushDashboard, 0);
   };
 
   const toggleEvent = (eventId: string) => {
     const next = events.map((e) => e.id === eventId ? { ...e, enabled: !e.enabled } : e);
     onConfigChange({ ...config, options: { ...o, events: next } });
+    setTimeout(flushDashboard, 0);
   };
 
   // ── Modal state ─────────────────────────────────────────────────────────────
@@ -183,6 +197,7 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
       onConfigChange({ ...config, options: { ...o, events: events.map((x) => x.id === ev.id ? ev : x) } });
     }
     setEditing(null);
+    setTimeout(flushDashboard, 0);
   };
 
   const deleteFromModal = () => {
@@ -190,6 +205,7 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
       onConfigChange({ ...config, options: { ...o, events: events.filter((x) => x.id !== editing.id) } });
     }
     setEditing(null);
+    setTimeout(flushDashboard, 0);
   };
 
   const layout = config.layout ?? 'default';
@@ -198,13 +214,19 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
   const visibleEvents = events.slice(0, isCompact ? 2 : 4);
   const hiddenCount   = events.length - visibleEvents.length;
 
+  // In edit mode the widget is shown inside the admin editor for layout/styling
+  // only — interaction is disabled so the admin can't accidentally toggle the
+  // master, add events, or open the event modal from the preview.
+  const interactive = !editMode;
+
   // ── Reusable building blocks (also used as extraComponents in custom layout) ─
   const masterSwitch = (
-    <button onClick={toggleMaster}
+    <button onClick={interactive ? toggleMaster : undefined}
+      disabled={!interactive}
       className="nodrag relative w-10 h-5 rounded-full transition-colors shrink-0"
-      style={{ background: masterEnabled ? 'var(--accent-green)' : 'var(--app-border)' }}
+      style={{ background: masterEnabled ? 'var(--accent-green)' : 'var(--app-border)', cursor: interactive ? 'pointer' : 'default', opacity: interactive ? 1 : 0.6 }}
       aria-label="Zeitschaltuhr ein/aus"
-      title={masterEnabled ? 'Master aktiv' : 'Master aus — Ereignisse bleiben gespeichert'}>
+      title={interactive ? (masterEnabled ? 'Master aktiv' : 'Master aus — Ereignisse bleiben gespeichert') : 'Im Bearbeitungsmodus deaktiviert'}>
       <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
         style={{ left: masterEnabled ? '22px' : '2px' }} />
     </button>
@@ -228,14 +250,17 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
         return (
           <div key={ev.id}
             className="flex items-center gap-1.5 rounded-lg px-1.5 py-1 group"
-            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
-            <button onClick={() => toggleEvent(ev.id)}
+            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', opacity: interactive ? 1 : 0.7 }}>
+            <button onClick={interactive ? () => toggleEvent(ev.id) : undefined}
+              disabled={!interactive}
               className="nodrag w-3 h-3 rounded-full shrink-0 transition-colors"
-              style={{ background: isLive ? 'var(--accent-green)' : 'var(--app-border)' }}
-              title={ev.enabled ? 'Aktiv – Klick deaktiviert' : 'Inaktiv – Klick aktiviert'} />
-            <button onClick={() => setEditing(ev)}
+              style={{ background: isLive ? 'var(--accent-green)' : 'var(--app-border)', cursor: interactive ? 'pointer' : 'default' }}
+              title={interactive ? (ev.enabled ? 'Aktiv – Klick deaktiviert' : 'Inaktiv – Klick aktiviert') : ''} />
+            <button onClick={interactive ? () => setEditing(ev) : undefined}
+              disabled={!interactive}
               className="nodrag flex-1 flex items-center gap-1.5 min-w-0 text-left"
-              title="Bearbeiten">
+              style={{ cursor: interactive ? 'pointer' : 'default' }}
+              title={interactive ? 'Bearbeiten' : ''}>
               <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)', minWidth: 48 }}>
                 {ev.trigger.kind === 'once' || ev.trigger.kind === 'range' ? '—' : weekdaysText(ev.weekdays)}
               </span>
@@ -248,7 +273,7 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
                   {ev.label}
                 </span>
               ) : <span className="flex-1" />}
-              <Pencil size={10} className="opacity-0 group-hover:opacity-60 shrink-0" style={{ color: 'var(--text-secondary)' }} />
+              {interactive && <Pencil size={10} className="opacity-0 group-hover:opacity-60 shrink-0" style={{ color: 'var(--text-secondary)' }} />}
             </button>
           </div>
         );
@@ -267,9 +292,11 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
   );
 
   const addButton = (
-    <button onClick={() => setEditing('new')}
+    <button onClick={interactive ? () => setEditing('new') : undefined}
+      disabled={!interactive}
       className="nodrag w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] rounded-lg hover:opacity-80 transition-opacity"
-      style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px dashed var(--app-border)' }}>
+      style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px dashed var(--app-border)', cursor: interactive ? 'pointer' : 'default', opacity: interactive ? 1 : 0.6 }}
+      title={interactive ? 'Neues Ereignis' : 'Im Bearbeitungsmodus deaktiviert'}>
       <Plus size={12} /> Ereignis hinzufügen
     </button>
   );
@@ -329,9 +356,10 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
             {events.length === 0 ? '—' : `${enabledCount}/${events.length}`}
           </span>
           {showMaster && (
-            <button onClick={toggleMaster}
+            <button onClick={interactive ? toggleMaster : undefined}
+              disabled={!interactive}
               className="nodrag relative w-8 h-4 rounded-full transition-colors shrink-0"
-              style={{ background: masterEnabled ? 'var(--accent-green)' : 'var(--app-border)' }}>
+              style={{ background: masterEnabled ? 'var(--accent-green)' : 'var(--app-border)', cursor: interactive ? 'pointer' : 'default', opacity: interactive ? 1 : 0.6 }}>
               <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
                 style={{ left: masterEnabled ? '18px' : '2px' }} />
             </button>
@@ -340,9 +368,10 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
         {showEvents && (
           <div className="flex-1 overflow-hidden flex flex-col gap-0.5">
             {visibleEvents.map((ev) => (
-              <button key={ev.id} onClick={() => setEditing(ev)}
+              <button key={ev.id} onClick={interactive ? () => setEditing(ev) : undefined}
+                disabled={!interactive}
                 className="nodrag flex items-center gap-1 text-[10px] text-left hover:opacity-80"
-                style={{ color: 'var(--text-primary)' }}>
+                style={{ color: 'var(--text-primary)', cursor: interactive ? 'pointer' : 'default', opacity: interactive ? 1 : 0.7 }}>
                 <span className="w-2 h-2 rounded-full shrink-0"
                   style={{ background: ev.enabled && masterEnabled ? 'var(--accent-green)' : 'var(--app-border)' }} />
                 <TriggerIcon trigger={ev.trigger} />
@@ -353,9 +382,10 @@ export function TimerWidget({ config, onConfigChange }: WidgetProps) {
               </button>
             ))}
             {showAdd && (
-              <button onClick={() => setEditing('new')}
+              <button onClick={interactive ? () => setEditing('new') : undefined}
+                disabled={!interactive}
                 className="nodrag mt-auto py-1 text-[10px] rounded-md hover:opacity-80"
-                style={{ background: 'transparent', color: 'var(--text-secondary)', border: '1px dashed var(--app-border)' }}>
+                style={{ background: 'transparent', color: 'var(--text-secondary)', border: '1px dashed var(--app-border)', cursor: interactive ? 'pointer' : 'default', opacity: interactive ? 1 : 0.6 }}>
                 + Ereignis
               </button>
             )}
