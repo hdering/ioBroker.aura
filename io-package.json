@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.92",
+    "version": "0.9.93",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,19 @@
       }
     ],
     "news": {
+      "0.9.93": {
+        "en": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
+        "de": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
+        "ru": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
+        "pt": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
+        "nl": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
+        "fr": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
+        "it": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
+        "es": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
+        "pl": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
+        "uk": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
+        "zh-cn": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)"
+      },
       "0.9.92": {
         "en": "Release v0.9.92",
         "de": "Release v0.9.92",
@@ -182,19 +195,6 @@
         "pl": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
         "uk": "fix(knob): auto-compute label decimals to avoid duplicate scale labels",
         "zh-cn": "fix(knob): auto-compute label decimals to avoid duplicate scale labels"
-      },
-      "0.9.86": {
-        "en": "fix(editor): sort widget types alphabetically within each category",
-        "de": "fix(editor): sort widget types alphabetically within each category",
-        "ru": "fix(editor): sort widget types alphabetically within each category",
-        "pt": "fix(editor): sort widget types alphabetically within each category",
-        "nl": "fix(editor): sort widget types alphabetically within each category",
-        "fr": "fix(editor): sort widget types alphabetically within each category",
-        "it": "fix(editor): sort widget types alphabetically within each category",
-        "es": "fix(editor): sort widget types alphabetically within each category",
-        "pl": "fix(editor): sort widget types alphabetically within each category",
-        "uk": "fix(editor): sort widget types alphabetically within each category",
-        "zh-cn": "fix(editor): sort widget types alphabetically within each category"
       }
     }
   },

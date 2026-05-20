@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.93 (2026-05-20)
+- chore(repo): adapter-checker compliance (E3008/E3009/W0050)
+
+
 ### 0.9.92 (2026-05-20)
 Release v0.9.92
 
@@ -274,10 +278,6 @@ Release v0.9.78
 - fix(backup): auto-save also writes auto-backup
 
 
-### 0.9.60 (2026-05-17)
-- feat(json-table): add image column type
-
-
 ## License
 
 MIT License
@@ -289,6 +289,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
