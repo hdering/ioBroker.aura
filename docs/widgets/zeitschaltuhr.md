@@ -4,7 +4,7 @@ Schreibt einen Datenpunkt zeitgesteuert. Wochentag, Uhrzeit, Astro-Ereignis (Son
 
 Der **Anwender** legt im Frontend per Tipp aufs Widget Ereignisse an (nur Zeitpunkt). **Was** beim Auslösen geschrieben wird, konfiguriert der Admin im Widget-Edit-Panel.
 
-![](./assets/zeitschaltuhr/uebersicht.png)
+<!-- Screenshot folgt: ./assets/zeitschaltuhr/uebersicht.png -->
 
 ## Datenpunkt
 
@@ -24,17 +24,17 @@ Pro Widget legt der Adapter zwei States unter `aura.0.timers.<widget-id>` an: `c
 ### Default
 Statussymbol, Titel, Master-Schalter, Status-Zeile, Ereignisliste, Hinzufügen-Button — für mittlere Zellen.
 
-![](./assets/zeitschaltuhr/layout-default.png)
+<!-- Screenshot folgt: ./assets/zeitschaltuhr/layout-default.png -->
 
 ### Compact
 Eine Kopfzeile mit Icon, Titel, Master und Zähler; darunter die Ereignisse in einer Zeile pro Eintrag — für schmale Zellen.
 
-![](./assets/zeitschaltuhr/layout-compact.png)
+<!-- Screenshot folgt: ./assets/zeitschaltuhr/layout-compact.png -->
 
 ### Custom
 Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, `status`, `events`, `add`.
 
-![](./assets/zeitschaltuhr/layout-custom.png)
+<!-- Screenshot folgt: ./assets/zeitschaltuhr/layout-custom.png -->
 
 ## Statusfarbe
 
@@ -91,7 +91,7 @@ DP liefert ein JSON-Array von Datumsangaben. Wenn nicht gesetzt, sind die Filter
 
 Tipp auf einen Eintrag oder den **+ Ereignis**-Button öffnet das Modal. Schließt nur über X · Abbruch · ESC (kein Klick außerhalb).
 
-![](./assets/zeitschaltuhr/event-modal.png)
+<!-- Screenshot folgt: ./assets/zeitschaltuhr/event-modal.png -->
 
 ### Auslöser
 
