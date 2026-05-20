@@ -5,7 +5,7 @@
  * manually one at a time via the DatapointPicker (object browser).
  */
 import { useState, useEffect } from 'react';
-import { Database, X, ChevronRight, Settings2 } from 'lucide-react';
+import { Database, X, ChevronRight, Settings2, GripVertical } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../types';
 import type { StaticListEntry, StaticListOptions } from '../widgets/ListWidget';
@@ -64,12 +64,26 @@ function EntryRow({
   onUpdate,
   onRemove,
   defaultDecimals,
+  index,
+  isDragging,
+  isDragTarget,
+  onDragStart,
+  onDragOver,
+  onDragEnd,
+  onDrop,
 }: {
   entry: StaticListEntry;
   resolvedName?: string;
   onUpdate: (patch: Partial<StaticListEntry>) => void;
   onRemove: () => void;
   defaultDecimals: number;
+  index: number;
+  isDragging: boolean;
+  isDragTarget: boolean;
+  onDragStart: (idx: number) => void;
+  onDragOver: (idx: number) => void;
+  onDragEnd: () => void;
+  onDrop: (idx: number) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
@@ -77,8 +91,27 @@ function EntryRow({
   const iCls = 'w-full text-[10px] rounded px-2 py-1 focus:outline-none font-mono';
 
   return (
-    <div className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+    <div
+      className="rounded-lg overflow-hidden transition-opacity"
+      style={{
+        border: '1px solid var(--app-border)',
+        opacity: isDragging ? 0.4 : 1,
+        ...(isDragTarget ? { boxShadow: '0 -2px 0 0 var(--accent)' } : {}),
+      }}
+      onDragOver={(e) => { e.preventDefault(); onDragOver(index); }}
+      onDragEnter={(e) => { e.preventDefault(); onDragOver(index); }}
+      onDrop={(e) => { e.preventDefault(); e.stopPropagation(); onDrop(index); }}
+    >
       <div className="flex items-center gap-1.5 px-2 py-1.5" style={{ background: 'var(--app-bg)' }}>
+        <span
+          draggable
+          onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; onDragStart(index); }}
+          onDragEnd={onDragEnd}
+          title="Ziehen zum Sortieren"
+          className="shrink-0 cursor-grab active:cursor-grabbing hover:opacity-80 flex items-center"
+          style={{ color: 'var(--text-secondary)' }}>
+          <GripVertical size={11} />
+        </span>
         <button onClick={() => setExpanded(e => !e)}
           className="shrink-0 hover:opacity-70 transition-transform"
           style={{ color: 'var(--text-secondary)', transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
@@ -290,6 +323,8 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
   const entries = opts.entries ?? [];
   const [showPicker, setShowPicker] = useState(false);
   const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const { defaultDecimals } = useGlobalSettingsStore();
 
   useEffect(() => {
@@ -317,6 +352,22 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
   const updateEntry = (id: string, patch: Partial<StaticListEntry>) =>
     setOpts({ entries: entries.map(e => e.id === id ? { ...e, ...patch } : e) });
 
+  const reorderEntries = (fromIdx: number, toIdx: number) => {
+    if (fromIdx === toIdx) return;
+    if (fromIdx < 0 || fromIdx >= entries.length) return;
+    if (toIdx < 0 || toIdx >= entries.length) return;
+    const next = [...entries];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
+    setOpts({ entries: next });
+  };
+
+  const handleDrop = (toIdx: number) => {
+    if (dragIdx !== null && dragIdx !== toIdx) reorderEntries(dragIdx, toIdx);
+    setDragIdx(null);
+    setDragOverIdx(null);
+  };
+
   return (
     <>
       {/* ── Add DP ── */}
@@ -342,7 +393,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
               </button>
             </div>
             <div className="aura-scroll space-y-1 max-h-72 overflow-y-auto">
-              {entries.map(e => (
+              {entries.map((e, idx) => (
                 <EntryRow
                   key={e.id}
                   entry={e}
@@ -350,9 +401,21 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                   onUpdate={patch => updateEntry(e.id, patch)}
                   onRemove={() => removeEntry(e.id)}
                   defaultDecimals={defaultDecimals}
+                  index={idx}
+                  isDragging={dragIdx === idx}
+                  isDragTarget={dragOverIdx === idx && dragIdx !== null && dragIdx !== idx}
+                  onDragStart={setDragIdx}
+                  onDragOver={setDragOverIdx}
+                  onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
+                  onDrop={handleDrop}
                 />
               ))}
             </div>
+            {(opts.sortBy ?? 'none') !== 'none' && (
+              <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                Hinweis: Sortierung „{opts.sortBy === 'label' ? 'Name' : 'Wert'}“ ist aktiv — manuelle Reihenfolge wirkt erst, wenn Sortierung auf „Keine“ steht.
+              </p>
+            )}
           </div>
           <div style={{ height: 1, background: 'var(--app-border)' }} />
         </>
