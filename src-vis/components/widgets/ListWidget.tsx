@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Filter, List } from 'lucide-react';
+import { Filter, List, Power } from 'lucide-react';
 import { useIoBroker, getObjectViewDirect } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
@@ -37,6 +37,14 @@ export interface StaticListEntry {
   activeBg?: string;
   /** Per-DP entry background when off/false/0. Overrides global inactiveBg. */
   inactiveBg?: string;
+  /** Per-DP icon size in px (entry icon + switch icon). Falls back to per-layout default. */
+  iconSize?: number;
+  /** Per-DP label font size in px. Falls back to per-layout default. */
+  fontSize?: number;
+  /** When switch is shown: 'slide' = toggle (default), 'icon' = clickable power icon. */
+  switchStyle?: 'slide' | 'icon';
+  /** Show last-change timestamp under this entry. */
+  showLastChange?: boolean;
 }
 
 export interface StaticListOptions {
@@ -79,6 +87,8 @@ export interface StaticListOptions {
   sumFontSize?: number;
   /** Show divider lines between list entries (standard/compact layouts). Default true. */
   showDividers?: boolean;
+  /** Hide the frontend filter chip in the widget header. Default false. */
+  hideFilterButton?: boolean;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -132,7 +142,18 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
   const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
   const on = val === true || val === 1;
   const displayType = entry.displayType ?? 'auto';
+  const switchStyle = entry.switchStyle ?? 'slide';
   const thresholdColor = getThresholdColor(val, entry.colorThresholds ?? globalThresholds);
+
+  // Reusable: power icon as toggle (used when switchStyle === 'icon')
+  const renderIconToggle = (active: boolean, onClick: () => void) => (
+    <button onClick={writable ? onClick : undefined}
+      className="shrink-0 flex items-center justify-center"
+      style={{ color: active ? activeColor : inactiveColor, cursor: writable ? 'pointer' : 'default', background: 'transparent', padding: 2 }}
+      aria-pressed={active}>
+      <Power size={entry.iconSize ?? 22} strokeWidth={active ? 2.5 : 1.75} />
+    </button>
+  );
 
   // Forced "Nur Wert" — skip role/switch/slider, render text only
   if (displayType === 'value') {
@@ -178,6 +199,7 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
       else if (typeof val === 'number') setState(entry.id, forcedOn ? 0 : 1);
       else setState(entry.id, !forcedOn);
     };
+    if (switchStyle === 'icon') return renderIconToggle(forcedOn, writeToggle);
     if (hasLabels) {
       const fill = forcedOn ? activeColor : inactiveColor;
       return (
@@ -225,6 +247,9 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
   }
 
   if (isBoolLike) {
+    if (switchStyle === 'icon') {
+      return renderIconToggle(on, () => setState(entry.id, isBool ? !on : on ? 0 : 1));
+    }
     if (hasLabels) {
       const fill = on ? activeColor : inactiveColor;
       return (
@@ -512,39 +537,41 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
           )}
         </div>
       </div>
-      <div className="relative shrink-0">
-        <button
-          onClick={() => setShowFilter(v => !v)}
-          className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] hover:opacity-80"
-          style={{
-            background: valueFilter !== 'all' ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
-            color: valueFilter !== 'all' ? 'var(--accent)' : 'var(--text-secondary)',
-            border: `1px solid ${valueFilter !== 'all' ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'transparent'}`,
-          }}
-          title="Filter">
-          <Filter size={10} />
-          {valueFilter !== 'all' && <span>{filterLabels[valueFilter]}</span>}
-        </button>
-        {showFilter && (
-          <>
-            <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
-            <div className="absolute right-0 top-6 rounded-lg shadow-xl z-20 overflow-hidden min-w-[110px]"
-              style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
-              {(Object.keys(filterLabels) as FilterMode[]).map(mode => (
-                <button key={mode}
-                  onClick={() => { saveOpts({ valueFilter: mode }); setShowFilter(false); }}
-                  className="w-full px-3 py-2 text-xs text-left hover:opacity-80"
-                  style={{
-                    background: valueFilter === mode ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent',
-                    color: valueFilter === mode ? 'var(--accent)' : 'var(--text-primary)',
-                  }}>
-                  {filterLabels[mode]}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
+      {!opts.hideFilterButton && (
+        <div className="relative shrink-0">
+          <button
+            onClick={() => setShowFilter(v => !v)}
+            className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] hover:opacity-80"
+            style={{
+              background: valueFilter !== 'all' ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
+              color: valueFilter !== 'all' ? 'var(--accent)' : 'var(--text-secondary)',
+              border: `1px solid ${valueFilter !== 'all' ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'transparent'}`,
+            }}
+            title="Filter">
+            <Filter size={10} />
+            {valueFilter !== 'all' && <span>{filterLabels[valueFilter]}</span>}
+          </button>
+          {showFilter && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
+              <div className="absolute right-0 top-6 rounded-lg shadow-xl z-20 overflow-hidden min-w-[110px]"
+                style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
+                {(Object.keys(filterLabels) as FilterMode[]).map(mode => (
+                  <button key={mode}
+                    onClick={() => { saveOpts({ valueFilter: mode }); setShowFilter(false); }}
+                    className="w-full px-3 py-2 text-xs text-left hover:opacity-80"
+                    style={{
+                      background: valueFilter === mode ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent',
+                      color: valueFilter === mode ? 'var(--accent)' : 'var(--text-primary)',
+                    }}>
+                    {filterLabels[mode]}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   ) : null;
 
@@ -576,17 +603,26 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
               const entryActiveColor   = entry.activeColor   || globalActiveColor;
               const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
               const stateBg = (eOn ? (entry.activeBg || globalActiveBg) : (entry.inactiveBg || globalInactiveBg)) || 'var(--app-bg)';
+              const entryIconSize = entry.iconSize ?? 11;
+              const entryFontSize = entry.fontSize;
+              const lcTs = entry.showLastChange ? (states[entry.id]?.lc || states[entry.id]?.ts || 0) : 0;
               return (
                 <div key={entry.id}
                   className="rounded-xl p-2.5 flex flex-col gap-2 relative"
                   style={{ background: stateBg, border: '1px solid var(--widget-border)' }}>
-                  <span className="flex items-center gap-1 text-[10px] truncate leading-tight" style={{ color: 'var(--text-secondary)' }}>
-                    {EntryIcon && <EntryIcon size={11} className="shrink-0" />}
+                  <span className={entryFontSize ? 'flex items-center gap-1 truncate leading-tight' : 'flex items-center gap-1 text-[10px] truncate leading-tight'}
+                    style={{ color: 'var(--text-secondary)', fontSize: entryFontSize ?? undefined }}>
+                    {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0" />}
                     {label}
                   </span>
                   <div className="flex items-center justify-center">
                     <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} />
                   </div>
+                  {lcTs > 0 && (
+                    <div className="text-[9px] truncate text-center" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                      {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -615,6 +651,9 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
               const entryActiveColor   = entry.activeColor   || globalActiveColor;
               const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
               const stateBg = eOn ? (entry.activeBg || globalActiveBg) : (entry.inactiveBg || globalInactiveBg);
+              const entryIconSize = entry.iconSize ?? 11;
+              const entryFontSize = entry.fontSize;
+              const lcTs = entry.showLastChange ? (states[entry.id]?.lc || states[entry.id]?.ts || 0) : 0;
               return (
                 <div key={entry.id}
                   className="flex items-center gap-1.5 px-2 py-1.5"
@@ -623,8 +662,16 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
                     borderLeft: showDividers && isRight ? '1px solid var(--widget-border)' : undefined,
                   }}>
-                  {EntryIcon && <EntryIcon size={11} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
-                  <span className="flex-1 text-[11px] truncate min-w-0" style={{ color: 'var(--text-primary)' }}>{label}</span>
+                  {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
+                  <div className="flex-1 min-w-0">
+                    <span className={entryFontSize ? 'block truncate' : 'block text-[11px] truncate'}
+                      style={{ color: 'var(--text-primary)', fontSize: entryFontSize ?? undefined }}>{label}</span>
+                    {lcTs > 0 && (
+                      <span className="block text-[8px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
+                      </span>
+                    )}
+                  </div>
                   <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} />
                 </div>
               );
@@ -675,6 +722,10 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
               const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
               const clickable = writable && !roleDisplay && !forceValue && (forceSwitch || isBoolLike);
 
+              const entryIconSize = entry.iconSize ?? 11;
+              const entryFontSize = entry.fontSize;
+              const lcTs = entry.showLastChange ? (states[entry.id]?.lc || states[entry.id]?.ts || 0) : 0;
+              const lcText = lcTs > 0 ? formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs) : '';
               return (
                 <button key={entry.id}
                   onClick={() => {
@@ -686,14 +737,16 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     } else if (isBool) setState(entry.id, !on);
                     else if (isBoolLike) setState(entry.id, on ? 0 : 1);
                   }}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors hover:opacity-80"
+                  title={lcText || undefined}
+                  className={entryFontSize ? 'flex items-center gap-1.5 px-2.5 py-1 rounded-full font-medium transition-colors hover:opacity-80' : 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors hover:opacity-80'}
                   style={{
                     background: stateBg ?? (pillColor ? `color-mix(in srgb, ${pillColor} 12%, transparent)` : 'var(--app-bg)'),
                     color: pillColor ?? 'var(--text-secondary)',
                     border: `1px solid ${stateBg ? 'transparent' : (pillColor ? `color-mix(in srgb, ${pillColor} 34%, transparent)` : 'var(--widget-border)')}`,
                     cursor: clickable ? 'pointer' : 'default',
+                    fontSize: entryFontSize ?? undefined,
                   }}>
-                  {EntryIcon && <EntryIcon size={11} className="shrink-0 opacity-70" />}
+                  {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0 opacity-70" />}
                   <span className="opacity-70 truncate" style={{ maxWidth: 80 }}>{label}</span>
                   <span className="font-semibold tabular-nums" style={{ color: forceSwitch || isBoolLike || roleDisplay ? 'inherit' : 'var(--text-primary)' }}>
                     {valueStr}
@@ -724,13 +777,19 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
             const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
             const stateBg = eOn ? (entry.activeBg || globalActiveBg) : (entry.inactiveBg || globalInactiveBg);
 
+            const entryIconSize = entry.iconSize ?? 13;
+            const entryFontSize = entry.fontSize;
+            const lcTs = entry.showLastChange ? (states[entry.id]?.lc || states[entry.id]?.ts || 0) : 0;
             return (
               <div key={entry.id}
                 className="flex items-center gap-2 px-3 py-2"
                 style={{ background: stateBg, borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined }}>
-                {EntryIcon && <EntryIcon size={13} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
+                {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>{label}</div>
+                  <div className={entryFontSize ? 'truncate' : 'text-xs truncate'}
+                    style={{ color: 'var(--text-primary)', fontSize: entryFontSize ?? undefined }}>
+                    {label}
+                  </div>
                   {opts.showRoom && (resolvedRooms[entry.id]?.join(', ') || null) && (
                     <div className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
                       {resolvedRooms[entry.id].join(', ')}
@@ -739,6 +798,11 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                   {opts.showId && (
                     <div className="text-[9px] truncate font-mono" style={{ color: 'var(--text-secondary)' }}>
                       {entry.id}
+                    </div>
+                  )}
+                  {lcTs > 0 && (
+                    <div className="text-[9px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                      {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
                     </div>
                   )}
                 </div>

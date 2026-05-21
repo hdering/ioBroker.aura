@@ -117,12 +117,15 @@ function EntryRow({
           style={{ color: 'var(--text-secondary)', transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
           <ChevronRight size={11} />
         </button>
-        {entry.icon && (
-          <button onClick={() => setIconPickerOpen(true)} className="shrink-0 hover:opacity-70 p-0.5"
-            style={{ color: 'var(--text-secondary)' }}>
-            <Icon icon={toIconifyId(entry.icon)} width={11} height={11} />
-          </button>
-        )}
+        {entry.icon && (() => {
+          const previewSize = Math.max(11, Math.min(28, entry.iconSize ?? 11));
+          return (
+            <button onClick={() => setIconPickerOpen(true)} className="shrink-0 hover:opacity-70 p-0.5"
+              style={{ color: 'var(--text-secondary)' }}>
+              <Icon icon={toIconifyId(entry.icon)} width={previewSize} height={previewSize} />
+            </button>
+          );
+        })()}
         <span className="flex-1 text-[10px] truncate" style={{ color: 'var(--text-primary)' }}>
           {entry.label || resolvedName || entry.id.split('.').pop() || entry.id}
         </span>
@@ -207,6 +210,53 @@ function EntryRow({
               })}
             </div>
           </div>
+
+          {/* Schalter-Stil (nur wenn Darstellung Schalter oder Auto bool) */}
+          <div>
+            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Schalter-Stil</label>
+            <div className="flex gap-1">
+              {(['slide', 'icon'] as const).map(v => {
+                const lbl = v === 'slide' ? 'Schiebeschalter' : 'Icon';
+                const active = (entry.switchStyle ?? 'slide') === v;
+                return (
+                  <button key={v}
+                    onClick={() => onUpdate({ switchStyle: v === 'slide' ? undefined : v })}
+                    className="flex-1 text-[10px] py-1 rounded transition-colors"
+                    style={{
+                      background: active ? 'var(--accent)' : 'var(--app-bg)',
+                      color: active ? '#fff' : 'var(--text-secondary)',
+                      border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                    }}>
+                    {lbl}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Icon- und Schriftgröße */}
+          <div className="grid grid-cols-2 gap-1.5">
+            <div>
+              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Icon-Größe (px)</label>
+              <input type="number" min={8} max={96}
+                className={iCls} style={iSty} placeholder="Auto"
+                value={entry.iconSize ?? ''}
+                onChange={e => {
+                  const n = parseInt(e.target.value, 10);
+                  onUpdate({ iconSize: isFinite(n) && n > 0 ? n : undefined });
+                }} />
+            </div>
+            <div>
+              <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Schriftgröße (px)</label>
+              <input type="number" min={8} max={96}
+                className={iCls} style={iSty} placeholder="Auto"
+                value={entry.fontSize ?? ''}
+                onChange={e => {
+                  const n = parseInt(e.target.value, 10);
+                  onUpdate({ fontSize: isFinite(n) && n > 0 ? n : undefined });
+                }} />
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-1.5">
             <ColorField label="Textfarbe AN"
               value={entry.activeColor} fallback="#22c55e"
@@ -241,6 +291,17 @@ function EntryRow({
                 </button>
               )}
             </div>
+          </div>
+
+          {/* Letzte Änderung anzeigen */}
+          <div className="flex items-center justify-between">
+            <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Letzte Änderung anzeigen</label>
+            <button onClick={() => onUpdate({ showLastChange: !entry.showLastChange })}
+              className="relative w-9 h-5 rounded-full transition-colors"
+              style={{ background: entry.showLastChange ? 'var(--accent)' : 'var(--app-border)' }}>
+              <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
+                style={{ left: entry.showLastChange ? '18px' : '2px' }} />
+            </button>
           </div>
 
           {/* Farbschwellen */}
@@ -576,6 +637,15 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
               </button>
             );
           })}
+        </div>
+        <div className="flex items-center justify-between mt-1.5">
+          <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Filter-Button im Frontend anzeigen</label>
+          <button onClick={() => setOpts({ hideFilterButton: !(opts.hideFilterButton ?? false) })}
+            className="relative w-9 h-5 rounded-full transition-colors"
+            style={{ background: !(opts.hideFilterButton ?? false) ? 'var(--accent)' : 'var(--app-border)' }}>
+            <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
+              style={{ left: !(opts.hideFilterButton ?? false) ? '18px' : '2px' }} />
+          </button>
         </div>
         <div className="grid grid-cols-2 gap-1.5 mt-1.5">
           <div>
