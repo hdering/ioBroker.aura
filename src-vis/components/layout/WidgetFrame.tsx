@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect, lazy, Suspense } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useSyncExternalStore, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useT, t, type TranslationKey } from '../../i18n';
@@ -94,6 +94,22 @@ import { usePopupConfigStore } from '../../store/popupConfigStore';
 
 // Stable empty array – avoids creating a new reference on every render when no conditions are set
 const NO_CONDITIONS: WidgetCondition[] = [];
+
+// ── Global custom-cell clipboard (shared across all WidgetFrames) ───────────
+let cellClipboardData: CustomCell | null = null;
+const cellClipboardListeners = new Set<() => void>();
+function subscribeCellClipboard(fn: () => void) {
+  cellClipboardListeners.add(fn);
+  return () => { cellClipboardListeners.delete(fn); };
+}
+function getCellClipboardSnapshot() { return cellClipboardData; }
+function setCellClipboard(v: CustomCell | null) {
+  cellClipboardData = v;
+  cellClipboardListeners.forEach(fn => fn());
+}
+function useCellClipboard() {
+  return useSyncExternalStore(subscribeCellClipboard, getCellClipboardSnapshot, getCellClipboardSnapshot);
+}
 
 // Defined as a function so it's evaluated lazily, avoiding circular-init issues.
 function getWidgetMap() {
@@ -2625,11 +2641,81 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   const [selectedCustomCell,   setSelectedCustomCell]   = useState<number | null>(null);
   const [customCellDragIdx,    setCustomCellDragIdx]    = useState<number | null>(null);
   const [customCellDragOver,   setCustomCellDragOver]   = useState<number | null>(null);
-  const [customCellOverwrite,  setCustomCellOverwrite]  = useState<{ from: number; to: number } | null>(null);
+  const [customCellOverwrite,  setCustomCellOverwrite]  = useState<
+    | { kind: 'drop'; from: number; to: number; mode: 'move' | 'copy' }
+    | { kind: 'paste'; to: number; cell: CustomCell }
+    | null
+  >(null);
+  const [customCellContextMenu, setCustomCellContextMenu] = useState<{ idx: number; x: number; y: number } | null>(null);
+  const cellClipboard = useCellClipboard();
+  const widgetFramePortalTarget = usePortalTarget();
   const [customCellPickerOpen,      setCustomCellPickerOpen]      = useState(false);
   const [customCellImagePickerOpen, setCustomCellImagePickerOpen] = useState(false);
   const [customCellIconPicker, setCustomCellIconPicker] = useState<'iconName' | 'trueIcon' | 'falseIcon' | null>(null);
   const [draftIconSize, setDraftIconSize] = useState<number | null>(null);
+
+  // ── Custom-cell copy/cut/paste helpers (used by context menu + keyboard shortcuts) ──
+  const resolveCustomGrid = (): CustomGridDef => {
+    const fb = config.type === 'universal' ? DEFAULT_UNIVERSAL_GRID : config.type === 'knob' ? DEFAULT_KNOB_GRID : DEFAULT_CUSTOM_GRID;
+    return normalizeGrid(config.options?.customGrid, fb);
+  };
+  const writeCustomGrid = (g: CustomGridDef) => {
+    onConfigChange({ ...config, options: { ...(config.options ?? {}), customGrid: g } });
+  };
+  const cellCopy = (idx: number) => {
+    const g = resolveCustomGrid();
+    const c = g.cells[idx];
+    if (!c || c.type === 'empty') return;
+    setCellClipboard({ ...c });
+  };
+  const cellCut = (idx: number) => {
+    const g = resolveCustomGrid();
+    const c = g.cells[idx];
+    if (!c || c.type === 'empty') return;
+    setCellClipboard({ ...c });
+    writeCustomGrid({ ...g, cells: g.cells.map((cc, i) => i === idx ? { type: 'empty' as const } : cc) });
+  };
+  const cellPaste = (idx: number) => {
+    const clip = cellClipboardData;
+    if (!clip) return;
+    const g = resolveCustomGrid();
+    const tgt = g.cells[idx];
+    if (tgt && tgt.type !== 'empty') {
+      setCustomCellOverwrite({ kind: 'paste', to: idx, cell: { ...clip } });
+      return;
+    }
+    writeCustomGrid({ ...g, cells: g.cells.map((c, i) => i === idx ? { ...clip } : c) });
+    setSelectedCustomCell(idx);
+  };
+  const cellClear = (idx: number) => {
+    const g = resolveCustomGrid();
+    writeCustomGrid({ ...g, cells: g.cells.map((c, i) => i === idx ? { type: 'empty' as const } : c) });
+  };
+
+  // Ctrl+C / Ctrl+X / Ctrl+V on the selected custom cell
+  useEffect(() => {
+    if (selectedCustomCell === null) return;
+    const handler = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const tgt = e.target as HTMLElement | null;
+      if (tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.tagName === 'SELECT' || tgt.isContentEditable)) return;
+      const k = e.key.toLowerCase();
+      if (k === 'c') { e.preventDefault(); cellCopy(selectedCustomCell); }
+      else if (k === 'x') { e.preventDefault(); cellCut(selectedCustomCell); }
+      else if (k === 'v') { e.preventDefault(); cellPaste(selectedCustomCell); }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [selectedCustomCell, config, onConfigChange]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Escape closes the cell context menu
+  useEffect(() => {
+    if (!customCellContextMenu) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCustomCellContextMenu(null); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [customCellContextMenu]);
+
   const menuBtnRef = useRef<HTMLButtonElement>(null);
   const Widget = getWidgetMap()[config.type as keyof ReturnType<typeof getWidgetMap>];
   const currentLayout = config.layout ?? 'default';
@@ -7067,7 +7153,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       </div>
                     </div>
 
-                    {/* Cell picker — dynamic grid (drag & drop to move cells) */}
+                    {/* Cell picker — dynamic grid (drag&drop move, Ctrl+drag copy, right-click menu) */}
                     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 4 }}>
                       {cells.map((cell, i) => {
                         const active = sel === i;
@@ -7077,6 +7163,24 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         const isDragOver  = customCellDragOver === i && customCellDragIdx !== null && customCellDragIdx !== i;
                         const canDrag = cell.type !== 'empty';
                         const borderColor = isDragOver ? 'var(--accent)' : active ? 'var(--accent)' : 'var(--app-border)';
+                        const performDropMove = (from: number, to: number) => {
+                          const src = cells[from];
+                          if (!src) return;
+                          const nextCells = cells.map((c, idx) => {
+                            if (idx === to)   return src;
+                            if (idx === from) return { type: 'empty' as const };
+                            return c;
+                          });
+                          writeGrid({ ...grid, cells: nextCells });
+                          if (selectedCustomCell === from) setSelectedCustomCell(to);
+                          else if (selectedCustomCell === to) setSelectedCustomCell(null);
+                        };
+                        const performDropCopy = (from: number, to: number) => {
+                          const src = cells[from];
+                          if (!src) return;
+                          const nextCells = cells.map((c, idx) => (idx === to ? { ...src } : c));
+                          writeGrid({ ...grid, cells: nextCells });
+                        };
                         return (
                           <button
                             key={i}
@@ -7084,13 +7188,13 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             onDragStart={(e) => {
                               if (!canDrag) { e.preventDefault(); return; }
                               setCustomCellDragIdx(i);
-                              e.dataTransfer.effectAllowed = 'move';
+                              e.dataTransfer.effectAllowed = 'copyMove';
                               try { e.dataTransfer.setData('text/plain', String(i)); } catch { /* noop */ }
                             }}
                             onDragOver={(e) => {
                               if (customCellDragIdx === null || customCellDragIdx === i) return;
                               e.preventDefault();
-                              e.dataTransfer.dropEffect = 'move';
+                              e.dataTransfer.dropEffect = (e.ctrlKey || e.metaKey) ? 'copy' : 'move';
                               if (customCellDragOver !== i) setCustomCellDragOver(i);
                             }}
                             onDragLeave={() => { if (customCellDragOver === i) setCustomCellDragOver(null); }}
@@ -7100,22 +7204,21 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               setCustomCellDragIdx(null);
                               setCustomCellDragOver(null);
                               if (from === null || from === i) return;
+                              const mode: 'move' | 'copy' = (e.ctrlKey || e.metaKey) ? 'copy' : 'move';
                               const targetCell = cells[i];
                               if (targetCell && targetCell.type !== 'empty') {
-                                setCustomCellOverwrite({ from, to: i });
+                                setCustomCellOverwrite({ kind: 'drop', from, to: i, mode });
                                 return;
                               }
-                              const sourceCell = cells[from];
-                              const nextCells = cells.map((c, idx) => {
-                                if (idx === i)    return sourceCell;
-                                if (idx === from) return { type: 'empty' as const };
-                                return c;
-                              });
-                              writeGrid({ ...grid, cells: nextCells });
-                              if (selectedCustomCell === from) setSelectedCustomCell(i);
-                              else if (selectedCustomCell === i) setSelectedCustomCell(null);
+                              if (mode === 'copy') performDropCopy(from, i);
+                              else                 performDropMove(from, i);
                             }}
                             onDragEnd={() => { setCustomCellDragIdx(null); setCustomCellDragOver(null); }}
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              setSelectedCustomCell(i);
+                              setCustomCellContextMenu({ idx: i, x: e.clientX, y: e.clientY });
+                            }}
                             onClick={() => setSelectedCustomCell(active ? null : i)}
                             className="rounded text-[10px] transition-colors"
                             style={{
@@ -7583,28 +7686,110 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
         />
       )}
 
-      {/* Custom-Grid overwrite confirmation (drag & drop onto occupied cell) */}
+      {/* Custom-Grid cell context menu (right-click on a cell) */}
+      {customCellContextMenu && (() => {
+        const g = resolveCustomGrid();
+        const idx = customCellContextMenu.idx;
+        const cell = g.cells[idx];
+        const hasContent = !!(cell && cell.type !== 'empty');
+        const hasClip = !!cellClipboard;
+        const MENU_W = 200;
+        const MENU_H = 180;
+        const left = Math.min(customCellContextMenu.x, window.innerWidth - MENU_W - 8);
+        const top  = Math.min(customCellContextMenu.y, window.innerHeight - MENU_H - 8);
+        const itemBase: React.CSSProperties = {
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '6px 10px', fontSize: 12, cursor: 'pointer',
+          color: 'var(--text-primary)', background: 'transparent', border: 'none', width: '100%', textAlign: 'left',
+        };
+        const itemDisabled: React.CSSProperties = { ...itemBase, color: 'var(--text-secondary)', opacity: 0.4, cursor: 'not-allowed' };
+        const close = () => setCustomCellContextMenu(null);
+        const onItem = (fn: () => void, enabled: boolean) => () => { if (enabled) { fn(); close(); } };
+        return createPortal(
+          <>
+            <div
+              className="fixed inset-0 z-[9998]"
+              style={{ background: 'transparent' }}
+              onMouseDown={close}
+              onContextMenu={(e) => { e.preventDefault(); close(); }}
+            />
+            <div
+              className="fixed z-[9999] rounded-lg shadow-2xl py-1"
+              style={{
+                background: 'var(--app-surface)',
+                border: '1px solid var(--app-border)',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+                left, top, minWidth: MENU_W,
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <button
+                style={hasContent ? itemBase : itemDisabled}
+                onClick={onItem(() => cellCopy(idx), hasContent)}
+                onMouseEnter={(e) => { if (hasContent) e.currentTarget.style.background = 'var(--app-bg)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <span>Kopieren</span><span style={{ opacity: 0.55, fontSize: 10 }}>Strg+C</span>
+              </button>
+              <button
+                style={hasContent ? itemBase : itemDisabled}
+                onClick={onItem(() => cellCut(idx), hasContent)}
+                onMouseEnter={(e) => { if (hasContent) e.currentTarget.style.background = 'var(--app-bg)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <span>Ausschneiden</span><span style={{ opacity: 0.55, fontSize: 10 }}>Strg+X</span>
+              </button>
+              <button
+                style={hasClip ? itemBase : itemDisabled}
+                onClick={onItem(() => cellPaste(idx), hasClip)}
+                onMouseEnter={(e) => { if (hasClip) e.currentTarget.style.background = 'var(--app-bg)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <span>Einfügen</span><span style={{ opacity: 0.55, fontSize: 10 }}>Strg+V</span>
+              </button>
+              <div style={{ height: 1, background: 'var(--app-border)', margin: '4px 6px' }} />
+              <button
+                style={hasContent ? itemBase : itemDisabled}
+                onClick={onItem(() => cellClear(idx), hasContent)}
+                onMouseEnter={(e) => { if (hasContent) e.currentTarget.style.background = 'var(--app-bg)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <span>Leeren</span>
+              </button>
+            </div>
+          </>,
+          widgetFramePortalTarget,
+        );
+      })()}
+
+      {/* Custom-Grid overwrite confirmation (drag&drop or paste onto occupied cell) */}
       {customCellOverwrite && (() => {
         const fb = config.type === 'universal' ? DEFAULT_UNIVERSAL_GRID : config.type === 'knob' ? DEFAULT_KNOB_GRID : DEFAULT_CUSTOM_GRID;
         const grid = normalizeGrid(config.options?.customGrid, fb);
-        const { from, to } = customCellOverwrite;
         const gCols = grid.cols;
+        const op = customCellOverwrite;
+        const to = op.to;
         const targetCell = grid.cells[to];
-        const sourceCell = grid.cells[from];
-        const fromLabel = `${Math.floor(from / gCols) + 1}/${(from % gCols) + 1}`;
-        const toLabel   = `${Math.floor(to   / gCols) + 1}/${(to   % gCols) + 1}`;
+        const toLabel   = `${Math.floor(to / gCols) + 1}/${(to % gCols) + 1}`;
         const targetTypeLabel = (targetCell && CELL_LABELS[targetCell.type]) ?? targetCell?.type ?? '';
+        const fromLabel = op.kind === 'drop' ? `${Math.floor(op.from / gCols) + 1}/${(op.from % gCols) + 1}` : null;
+        const sourceCell: CustomCell | undefined = op.kind === 'drop' ? grid.cells[op.from] : op.cell;
+        const actionLabel = op.kind === 'paste' ? 'Einfügen' : op.mode === 'copy' ? 'Kopieren' : 'Verschieben';
         const onCancel = () => setCustomCellOverwrite(null);
         const onConfirm = () => {
           if (!sourceCell) { setCustomCellOverwrite(null); return; }
           const nextCells = grid.cells.map((c, idx) => {
-            if (idx === to)   return sourceCell;
-            if (idx === from) return { type: 'empty' as const };
+            if (idx === to) return op.kind === 'drop' ? sourceCell : { ...sourceCell };
+            if (op.kind === 'drop' && op.mode === 'move' && idx === op.from) return { type: 'empty' as const };
             return c;
           });
           onConfigChange({ ...config, options: { ...(config.options ?? {}), customGrid: { ...grid, cells: nextCells } } });
-          if (selectedCustomCell === from) setSelectedCustomCell(to);
-          else if (selectedCustomCell === to) setSelectedCustomCell(null);
+          if (op.kind === 'drop' && op.mode === 'move') {
+            if (selectedCustomCell === op.from) setSelectedCustomCell(to);
+            else if (selectedCustomCell === to) setSelectedCustomCell(null);
+          } else {
+            setSelectedCustomCell(to);
+          }
           setCustomCellOverwrite(null);
         };
         return (
@@ -7612,7 +7797,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             <div className="space-y-4">
               <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
                 Zielzelle <strong>{toLabel}</strong> enthält bereits &bdquo;{targetTypeLabel}&ldquo;.
-                Soll der Inhalt von <strong>{fromLabel}</strong> diese Zelle überschreiben?
+                {fromLabel
+                  ? <> Soll der Inhalt von <strong>{fromLabel}</strong> ({actionLabel.toLowerCase()}) diese Zelle überschreiben?</>
+                  : <> Inhalt aus der Zwischenablage einfügen und überschreiben?</>}
               </p>
               <div className="flex gap-2 justify-end">
                 <button
