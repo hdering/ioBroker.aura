@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.91 (2026-05-20)
+Release v0.9.91
+
 ## 0.9.90 (2026-05-19)
 - feat(universal-widget): hide dropdown option for select cell
 
