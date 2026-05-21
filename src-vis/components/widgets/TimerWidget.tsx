@@ -11,7 +11,7 @@
  *   - title + master switch
  *   - compact list of up to N events (weekday chips, trigger preview, target DP)
  */
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Timer, Sun, Sunset, Sunrise, Moon, CalendarRange, Clock, Plus, Pencil } from 'lucide-react';
 import type { WidgetProps, TimerEvent, TimerWeekday, TimerTrigger } from '../../types';
 import { contentPositionClass } from '../../utils/widgetUtils';
@@ -118,7 +118,9 @@ function weekdaysText(wd: TimerWeekday[]): string {
 
 export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const o = (config.options ?? {}) as Record<string, unknown>;
-  const events       = (o.events as TimerEvent[] | undefined)        ?? [];
+  // Wrap the ?? [] fallback so an unconfigured widget doesn't hand a fresh array
+  // to the publish effect on every render, which would re-publish on every tick.
+  const events = useMemo(() => (o.events as TimerEvent[] | undefined) ?? [], [o.events]);
   const masterEnabled = (o.enabled as boolean | undefined)          ?? true;
   const targetDp     = o.targetDp   as string | undefined;
   const targetValue  = o.value      as string | undefined;

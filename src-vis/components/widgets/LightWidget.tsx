@@ -334,7 +334,9 @@ const TAB_META: Record<LightTab, { icon: LucideIcon; key: LightTab }> = {
 };
 
 export function LightWidget({ config, onConfigChange }: WidgetProps) {
-  const o = config.options ?? {};
+  // Memoise the ?? {} fallback so dependents (persistTab callback below) don't
+  // see a brand-new object reference on every render when options is undefined.
+  const o = useMemo(() => config.options ?? {}, [config.options]);
   const { setState } = useIoBroker();
 
   // ── Resolved options ────────────────────────────────────────────────────────
@@ -437,7 +439,9 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
   const [dragCT,  setDragCT]  = useState<number | null>(null);
 
   const displayBri = dragBri ?? (brightnessVal ?? briMin);
-  const displayHS  = dragHS  ?? [hue, sat];
+  // Tuple literal — memoise so accentOn's useMemo dep doesn't see a new array
+  // every render when not dragging.
+  const displayHS  = useMemo<[number, number]>(() => dragHS ?? [hue, sat], [dragHS, hue, sat]);
   const displayCT  = dragCT  ?? (ctVal ?? Math.round((ctMin + ctMax) / 2));
 
   // ── Power / on detection ───────────────────────────────────────────────────

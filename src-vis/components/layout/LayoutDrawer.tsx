@@ -90,9 +90,11 @@ export function LayoutDrawer({
 
   // Portal target: prefer the frontend container so the drawer inherits per-layout
   // theme CSS vars (otherwise vars scoped to [data-aura-app="frontend"] don't apply).
+  // Resolved once on mount — the frontend container is part of the App shell and
+  // doesn't get re-mounted underneath the drawer.
   const portalTarget = useMemo<HTMLElement>(() => {
     return (document.querySelector('[data-aura-app="frontend"]') as HTMLElement | null) ?? document.body;
-  }, [open]);
+  }, []);
 
   const sz = SIZE_MAP[size];
 

@@ -245,7 +245,7 @@ function proxyWebSocket(req, socket, targetWsUrl, log) {
   try {
     targetUrl = new URL(targetWsUrl);
     if (!['ws:', 'wss:'].includes(targetUrl.protocol)) throw new Error('Only ws/wss');
-  } catch (e) {
+  } catch {
     socket.write('HTTP/1.1 400 Bad Request\r\n\r\n');
     socket.destroy();
     return;
