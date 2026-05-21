@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.82 (2026-05-18)
+- fix(conditions): hidden+reflow widgets inside groups now hide and slide up
+
 ## 0.9.81 (2026-05-18)
 - fix(icons): allow null fallback in getWidgetIcon
 - fix(icons): broken Iconify IDs fall back to widget default; picker filters them

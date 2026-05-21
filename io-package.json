@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.101",
+    "version": "0.9.102",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,18 +105,18 @@
       }
     ],
     "news": {
-      "0.9.101": {
-        "en": "fix(lint): stabilise hook deps and drop unused catch binding",
-        "de": "fix(lint): stabilise hook deps and drop unused catch binding",
-        "ru": "fix(lint): stabilise hook deps and drop unused catch binding",
-        "pt": "fix(lint): stabilise hook deps and drop unused catch binding",
-        "nl": "fix(lint): stabilise hook deps and drop unused catch binding",
-        "fr": "fix(lint): stabilise hook deps and drop unused catch binding",
-        "it": "fix(lint): stabilise hook deps and drop unused catch binding",
-        "es": "fix(lint): stabilise hook deps and drop unused catch binding",
-        "pl": "fix(lint): stabilise hook deps and drop unused catch binding",
-        "uk": "fix(lint): stabilise hook deps and drop unused catch binding",
-        "zh-cn": "fix(lint): stabilise hook deps and drop unused catch binding"
+      "0.9.102": {
+        "en": "Release v0.9.102",
+        "de": "Release v0.9.102",
+        "ru": "Release v0.9.102",
+        "pt": "Release v0.9.102",
+        "nl": "Release v0.9.102",
+        "fr": "Release v0.9.102",
+        "it": "Release v0.9.102",
+        "es": "Release v0.9.102",
+        "pl": "Release v0.9.102",
+        "uk": "Release v0.9.102",
+        "zh-cn": "Release v0.9.102"
       },
       "0.9.99": {
         "en": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
