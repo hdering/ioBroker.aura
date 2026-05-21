@@ -218,6 +218,8 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
   const [adminInstance, setAdminInstance] = useState<string>('admin.0');
   const [auraInstance,  setAuraInstance]  = useState<string>('aura.0');
   const [actionError,   setActionError]   = useState<string | null>(null);
+  /** null = not pinged yet; { ok, version } = backend handler is alive */
+  const [backendInfo,   setBackendInfo]   = useState<{ ok: boolean; version?: string; error?: string } | null>(null);
 
   const Icon = getWidgetIcon((o.icon as string) ?? 'ServerCog', ServerCog);
 
@@ -288,18 +290,57 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
     return () => u();
   }, [connected, adminInstance]);
 
+  // Ping aura backend on mount and whenever the detected instance changes,
+  // so the widget can tell the user whether the handler is reachable at all.
+  useEffect(() => {
+    if (!connected) return;
+    let cancelled = false;
+    (async () => {
+      const result = await sendToDirect<{ ok: boolean; version?: string }>(auraInstance, 'auraPing', {}, 5000);
+      if (cancelled) return;
+      if (result && typeof result === 'object' && '__timeout' in result) {
+        setBackendInfo({ ok: false, error: `Timeout (kein onMessage-Handler in ${auraInstance})` });
+      } else if (typeof result === 'string') {
+        setBackendInfo({ ok: false, error: `Berechtigung verweigert (${result})` });
+      } else if (result?.ok) {
+        setBackendInfo({ ok: true, version: result.version });
+      } else {
+        setBackendInfo({ ok: false, error: 'unbekannte Antwort' });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [connected, auraInstance]);
+
   // Actions — go through aura backend so we don't depend on socket-port permissions.
   // Backend handler in main.js spawns `iobroker upgrade <name>` via the host's cmdExec.
+  const handleResult = (label: string, result: unknown): boolean => {
+    if (result && typeof result === 'object' && '__timeout' in (result as object)) {
+      setActionError(`${label}: keine Antwort von ${auraInstance} (30 s) — läuft die aura-Instanz mit dem neuen Code?`);
+      return false;
+    }
+    if (typeof result === 'string') {
+      setActionError(`${label}: ${result === 'permissionError' ? 'Berechtigung verweigert (Anonymous-User braucht sendTo-Rechte)' : result}`);
+      return false;
+    }
+    const r = result as { ok?: boolean; error?: string; stderr?: string } | null;
+    if (!r?.ok) {
+      setActionError(`${label}: ${r?.error ?? r?.stderr ?? 'fehlgeschlagen'}`);
+      return false;
+    }
+    return true;
+  };
+
   const restartInstance = async (inst: AdapterInstance) => {
     setActionError(null);
-    const result = await sendToDirect<{ ok: boolean; error?: string }>(auraInstance, 'restartAdapter', { id: inst.id });
-    if (!result?.ok) setActionError(`Neustart ${inst.id}: ${result?.error ?? 'keine Antwort von aura'}`);
+    const result = await sendToDirect(auraInstance, 'restartAdapter', { id: inst.id });
+    handleResult(`Neustart ${inst.id}`, result);
   };
 
   const installUpdate = async (inst: AdapterInstance) => {
     setActionError(null);
-    const result = await sendToDirect<{ ok: boolean; error?: string; stderr?: string }>(auraInstance, 'upgradeAdapter', { name: inst.adapter });
-    if (!result?.ok) setActionError(`Update ${inst.adapter}: ${result?.error ?? result?.stderr ?? 'fehlgeschlagen'}`);
+    // Upgrades take longer than the default 30s — npm install can run 1-3 minutes.
+    const result = await sendToDirect(auraInstance, 'upgradeAdapter', { name: inst.adapter }, 5 * 60 * 1000);
+    handleResult(`Update ${inst.adapter}`, result);
   };
 
   // Filter + sort
@@ -365,6 +406,26 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
           </span>
         )}
       </div>
+
+      {/* Backend status — only render when actions are enabled, so users see if the backend is unreachable */}
+      {(allowRestart || allowUpdate) && (
+        <div
+          className="flex items-center gap-1.5 text-[10px] shrink-0 px-2 py-0.5 rounded"
+          style={{
+            background: backendInfo?.ok ? '#22c55e11' : backendInfo ? '#ef444422' : 'var(--app-bg)',
+            color: backendInfo?.ok ? '#22c55e' : backendInfo ? '#ef4444' : 'var(--text-secondary)',
+            border: `1px solid ${backendInfo?.ok ? '#22c55e44' : backendInfo ? '#ef444455' : 'var(--app-border)'}`,
+          }}
+          title={backendInfo?.error ?? ''}
+        >
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: backendInfo?.ok ? '#22c55e' : backendInfo ? '#ef4444' : '#94a3b8' }} />
+          <span className="truncate">
+            {backendInfo === null ? `Prüfe ${auraInstance}…` :
+             backendInfo.ok      ? `Backend: ${auraInstance}${backendInfo.version ? ` v${backendInfo.version}` : ''}` :
+                                   `Backend nicht erreichbar: ${backendInfo.error}`}
+          </span>
+        </div>
+      )}
 
       {/* Search */}
       {showSearch && instances.length > 5 && (

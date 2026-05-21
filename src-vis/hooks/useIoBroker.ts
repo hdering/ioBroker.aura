@@ -312,10 +312,15 @@ export function extendObjectDirect(id: string, patch: object): Promise<void> {
   });
 }
 
-/** Send a command/message to another adapter instance or host (sendTo). */
-export function sendToDirect<T = unknown>(target: string, command: string, payload: unknown): Promise<T | null> {
+/** Send a command/message to another adapter instance or host (sendTo).
+ *  Resolves with the callback result, or { __timeout: true } after timeoutMs (default 30s).
+ *  Permission errors come back as the string 'permissionError'. */
+export function sendToDirect<T = unknown>(target: string, command: string, payload: unknown, timeoutMs = 30000): Promise<T | { __timeout: true } | string | null> {
   return new Promise((resolve) => {
-    getSocket().emit('sendTo', target, command, payload, (result: unknown) => resolve((result as T) ?? null));
+    let settled = false;
+    const done = (v: T | { __timeout: true } | string | null) => { if (!settled) { settled = true; resolve(v); } };
+    getSocket().emit('sendTo', target, command, payload, (result: unknown) => done((result as T) ?? null));
+    setTimeout(() => done({ __timeout: true }), timeoutMs);
   });
 }
 

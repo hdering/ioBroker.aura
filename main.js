@@ -1177,6 +1177,14 @@ class Aura extends utils.Adapter {
     };
 
     try {
+      if (msg.command === 'auraPing') {
+        // Connectivity check from frontend: tells widget the new handler is actually running.
+        let version = '';
+        try { version = require('./package.json').version; } catch { /* ignore */ }
+        reply({ ok: true, version, namespace: this.namespace });
+        return;
+      }
+
       if (msg.command === 'restartAdapter') {
         const id = String(msg.message?.id || '').trim();
         if (!id || !/^[a-z0-9_\-]+\.\d+$/i.test(id)) {
