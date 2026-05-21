@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.100",
+    "version": "0.9.101",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,18 +105,18 @@
       }
     ],
     "news": {
-      "0.9.100": {
-        "en": "fix(knob): remove legacy auto/1fr/auto axis sizes so dial stays centered; fix(custom-grid): use minmax(0, 1fr) so cell contents don't unbalance tracks; fix(docs): drop unresolved screenshot placeholders for timer page; fix(lint): wrap typographic quotes in JSX expressions; Revert \"chore: bump version to 99.99.99\"",
-        "de": "fix(knob): remove legacy auto/1fr/auto axis sizes so dial stays centered; fix(custom-grid): use minmax(0, 1fr) so cell contents don't unbalance tracks; fix(docs): drop unresolved screenshot placeholders for timer page; fix(lint): wrap typographic quotes in JSX expressions; Revert \"chore: bump version to 99.99.99\"",
-        "ru": "fix(knob): remove legacy auto/1fr/auto axis sizes so dial stays centered; fix(custom-grid): use minmax(0, 1fr) so cell contents don't unbalance tracks; fix(docs): drop unresolved screenshot placeholders for timer page; fix(lint): wrap typographic quotes in JSX expressions; Revert \"chore: bump version to 99.99.99\"",
-        "pt": "fix(knob): remove legacy auto/1fr/auto axis sizes so dial stays centered; fix(custom-grid): use minmax(0, 1fr) so cell contents don't unbalance tracks; fix(docs): drop unresolved screenshot placeholders for timer page; fix(lint): wrap typographic quotes in JSX expressions; Revert \"chore: bump version to 99.99.99\"",
-        "nl": "fix(knob): remove legacy auto/1fr/auto axis sizes so dial stays centered; fix(custom-grid): use minmax(0, 1fr) so cell contents don't unbalance tracks; fix(docs): drop unresolved screenshot placeholders for timer page; fix(lint): wrap typographic quotes in JSX expressions; Revert \"chore: bump version to 99.99.99\"",
-        "fr": "fix(knob): remove legacy auto/1fr/auto axis sizes so dial stays centered; fix(custom-grid): use minmax(0, 1fr) so cell contents don't unbalance tracks; fix(docs): drop unresolved screenshot placeholders for timer page; fix(lint): wrap typographic quotes in JSX expressions; Revert \"chore: bump version to 99.99.99\"",
-        "it": "fix(knob): remove legacy auto/1fr/auto axis sizes so dial stays centered; fix(custom-grid): use minmax(0, 1fr) so cell contents don't unbalance tracks; fix(docs): drop unresolved screenshot placeholders for timer page; fix(lint): wrap typographic quotes in JSX expressions; Revert \"chore: bump version to 99.99.99\"",
-        "es": "fix(knob): remove legacy auto/1fr/auto axis sizes so dial stays centered; fix(custom-grid): use minmax(0, 1fr) so cell contents don't unbalance tracks; fix(docs): drop unresolved screenshot placeholders for timer page; fix(lint): wrap typographic quotes in JSX expressions; Revert \"chore: bump version to 99.99.99\"",
-        "pl": "fix(knob): remove legacy auto/1fr/auto axis sizes so dial stays centered; fix(custom-grid): use minmax(0, 1fr) so cell contents don't unbalance tracks; fix(docs): drop unresolved screenshot placeholders for timer page; fix(lint): wrap typographic quotes in JSX expressions; Revert \"chore: bump version to 99.99.99\"",
-        "uk": "fix(knob): remove legacy auto/1fr/auto axis sizes so dial stays centered; fix(custom-grid): use minmax(0, 1fr) so cell contents don't unbalance tracks; fix(docs): drop unresolved screenshot placeholders for timer page; fix(lint): wrap typographic quotes in JSX expressions; Revert \"chore: bump version to 99.99.99\"",
-        "zh-cn": "fix(knob): remove legacy auto/1fr/auto axis sizes so dial stays centered; fix(custom-grid): use minmax(0, 1fr) so cell contents don't unbalance tracks; fix(docs): drop unresolved screenshot placeholders for timer page; fix(lint): wrap typographic quotes in JSX expressions; Revert \"chore: bump version to 99.99.99\""
+      "0.9.101": {
+        "en": "fix(lint): stabilise hook deps and drop unused catch binding",
+        "de": "fix(lint): stabilise hook deps and drop unused catch binding",
+        "ru": "fix(lint): stabilise hook deps and drop unused catch binding",
+        "pt": "fix(lint): stabilise hook deps and drop unused catch binding",
+        "nl": "fix(lint): stabilise hook deps and drop unused catch binding",
+        "fr": "fix(lint): stabilise hook deps and drop unused catch binding",
+        "it": "fix(lint): stabilise hook deps and drop unused catch binding",
+        "es": "fix(lint): stabilise hook deps and drop unused catch binding",
+        "pl": "fix(lint): stabilise hook deps and drop unused catch binding",
+        "uk": "fix(lint): stabilise hook deps and drop unused catch binding",
+        "zh-cn": "fix(lint): stabilise hook deps and drop unused catch binding"
       },
       "0.9.99": {
         "en": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",

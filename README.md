@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.101 (2026-05-21)
+- fix(lint): stabilise hook deps and drop unused catch binding
+
+
 ### 0.9.100 (2026-05-21)
 - fix(knob): remove legacy auto/1fr/auto axis sizes so dial stays centered
 - fix(custom-grid): use minmax(0, 1fr) so cell contents don't unbalance tracks
@@ -285,12 +289,6 @@ Release v0.9.91
 - fix(conditions): hidden+reflow widgets inside groups now hide and slide up
 
 
-### 0.9.81 (2026-05-18)
-- fix(icons): allow null fallback in getWidgetIcon
-- fix(icons): broken Iconify IDs fall back to widget default; picker filters them
-- fix(jsontable): autoHeight effect no longer clobbers option toggles
-
-
 ## License
 
 MIT License
@@ -302,6 +300,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
