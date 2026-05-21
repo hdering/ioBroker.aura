@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.85 (2026-05-19)
+- feat(knob): add knob widget with 3 layouts (Bogen / Skala / Endlos 3D)
+
 ## 0.9.84 (2026-05-19)
 - fix(editor): keep widget type when changing DP; ask before auto-switch on new widgets
 

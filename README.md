@@ -186,6 +186,11 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.105 (2026-05-21)
+- feat(adapter-status): backend onMessage handlers for restart + upgrade
+- feat(widget): add adapter-status widget (instances list with optional restart/update)
+
+
 ### 0.9.104 (2026-05-21)
 - feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\" touch use case)
 
@@ -290,10 +295,6 @@ Release v0.9.91
 - fix(editor): sort widget types alphabetically within each category
 
 
-### 0.9.85 (2026-05-19)
-- feat(knob): add knob widget with 3 layouts (Bogen / Skala / Endlos 3D)
-
-
 ## License
 
 MIT License
@@ -305,6 +306,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

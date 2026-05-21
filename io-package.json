@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.104",
+    "version": "0.9.105",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,19 @@
       }
     ],
     "news": {
+      "0.9.105": {
+        "en": "feat(adapter-status): backend onMessage handlers for restart + upgrade; feat(widget): add adapter-status widget (instances list with optional restart/update)",
+        "de": "feat(adapter-status): backend onMessage handlers for restart + upgrade; feat(widget): add adapter-status widget (instances list with optional restart/update)",
+        "ru": "feat(adapter-status): backend onMessage handlers for restart + upgrade; feat(widget): add adapter-status widget (instances list with optional restart/update)",
+        "pt": "feat(adapter-status): backend onMessage handlers for restart + upgrade; feat(widget): add adapter-status widget (instances list with optional restart/update)",
+        "nl": "feat(adapter-status): backend onMessage handlers for restart + upgrade; feat(widget): add adapter-status widget (instances list with optional restart/update)",
+        "fr": "feat(adapter-status): backend onMessage handlers for restart + upgrade; feat(widget): add adapter-status widget (instances list with optional restart/update)",
+        "it": "feat(adapter-status): backend onMessage handlers for restart + upgrade; feat(widget): add adapter-status widget (instances list with optional restart/update)",
+        "es": "feat(adapter-status): backend onMessage handlers for restart + upgrade; feat(widget): add adapter-status widget (instances list with optional restart/update)",
+        "pl": "feat(adapter-status): backend onMessage handlers for restart + upgrade; feat(widget): add adapter-status widget (instances list with optional restart/update)",
+        "uk": "feat(adapter-status): backend onMessage handlers for restart + upgrade; feat(widget): add adapter-status widget (instances list with optional restart/update)",
+        "zh-cn": "feat(adapter-status): backend onMessage handlers for restart + upgrade; feat(widget): add adapter-status widget (instances list with optional restart/update)"
+      },
       "0.9.104": {
         "en": "feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\\\" touch use case)",
         "de": "feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\\\" touch use case)",
@@ -182,19 +195,6 @@
         "pl": "feat(weather): bar-only temp-strahl variant in custom layout",
         "uk": "feat(weather): bar-only temp-strahl variant in custom layout",
         "zh-cn": "feat(weather): bar-only temp-strahl variant in custom layout"
-      },
-      "0.9.95": {
-        "en": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries",
-        "de": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries",
-        "ru": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries",
-        "pt": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries",
-        "nl": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries",
-        "fr": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries",
-        "it": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries",
-        "es": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries",
-        "pl": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries",
-        "uk": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries",
-        "zh-cn": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries"
       }
     }
   },
