@@ -6,7 +6,6 @@ import {
   getObjectViewDirect,
   subscribeStateDirect,
   getStateDirect,
-  extendObjectDirect,
   sendToDirect,
   useIoBroker,
 } from '../../hooks/useIoBroker';
@@ -217,6 +216,8 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
   const [updates,   setUpdates]     = useState<Record<string, UpdateInfo>>({});
   const [query,     setQuery]       = useState('');
   const [adminInstance, setAdminInstance] = useState<string>('admin.0');
+  const [auraInstance,  setAuraInstance]  = useState<string>('aura.0');
+  const [actionError,   setActionError]   = useState<string | null>(null);
 
   const Icon = getWidgetIcon((o.icon as string) ?? 'ServerCog', ServerCog);
 
@@ -229,6 +230,7 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
       if (cancelled) return;
       const list: AdapterInstance[] = [];
       let firstAdmin: string | null = null;
+      let firstAura:  string | null = null;
       for (const row of result.rows) {
         const id = row.id; // "system.adapter.<adapter>.<n>"
         if (!id.startsWith('system.adapter.')) continue;
@@ -251,10 +253,12 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
           icon:     (c as { extIcon?: string; icon?: string }).extIcon ?? (c as { icon?: string }).icon,
         });
         if (!firstAdmin && adapter === 'admin') firstAdmin = rest;
+        if (!firstAura  && adapter === 'aura'  && c.enabled === true) firstAura = rest;
       }
       list.sort((a, b) => a.id.localeCompare(b.id));
       setInstances(list);
       if (firstAdmin) setAdminInstance(firstAdmin);
+      if (firstAura)  setAuraInstance(firstAura);
     })();
     return () => { cancelled = true; };
   }, [connected]);
@@ -284,26 +288,18 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
     return () => u();
   }, [connected, adminInstance]);
 
-  // Actions
+  // Actions — go through aura backend so we don't depend on socket-port permissions.
+  // Backend handler in main.js spawns `iobroker upgrade <name>` via the host's cmdExec.
   const restartInstance = async (inst: AdapterInstance) => {
-    // Standard trick: extendObject triggers a publish; controller will restart adapter
-    // if common.enabled is true. We toggle to guarantee a restart even when alive=true.
-    await extendObjectDirect(`system.adapter.${inst.id}`, { common: { enabled: false } });
-    await new Promise(r => setTimeout(r, 800));
-    await extendObjectDirect(`system.adapter.${inst.id}`, { common: { enabled: true } });
+    setActionError(null);
+    const result = await sendToDirect<{ ok: boolean; error?: string }>(auraInstance, 'restartAdapter', { id: inst.id });
+    if (!result?.ok) setActionError(`Neustart ${inst.id}: ${result?.error ?? 'keine Antwort von aura'}`);
   };
 
   const installUpdate = async (inst: AdapterInstance) => {
-    // Try host command first (works on most ioBroker installs >= 4.x).
-    // Fall back to admin upgrade message.
-    const hostId = inst.host ? `system.host.${inst.host}` : '';
-    if (hostId) {
-      // Some hosts accept "upgradeAdapter" with the adapter name
-      const result = await sendToDirect(hostId, 'upgradeAdapter', { name: inst.adapter });
-      if (result !== null) return;
-    }
-    // Fallback: send to admin instance
-    await sendToDirect(adminInstance, 'cmdExec', { data: `upgrade ${inst.adapter}` });
+    setActionError(null);
+    const result = await sendToDirect<{ ok: boolean; error?: string; stderr?: string }>(auraInstance, 'upgradeAdapter', { name: inst.adapter });
+    if (!result?.ok) setActionError(`Update ${inst.adapter}: ${result?.error ?? result?.stderr ?? 'fehlgeschlagen'}`);
   };
 
   // Filter + sort
@@ -382,6 +378,18 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
             className="flex-1 bg-transparent text-xs focus:outline-none"
             style={{ color: 'var(--text-primary)' }}
           />
+        </div>
+      )}
+
+      {/* Error toast */}
+      {actionError && (
+        <div
+          className="flex items-start gap-1.5 text-[10px] px-2 py-1 rounded shrink-0"
+          style={{ background: '#ef444422', color: '#ef4444', border: '1px solid #ef444455' }}
+        >
+          <AlertTriangle size={12} className="shrink-0 mt-0.5" />
+          <span className="flex-1 break-words">{actionError}</span>
+          <button onClick={() => setActionError(null)} className="shrink-0 opacity-70 hover:opacity-100" title="Schließen">×</button>
         </div>
       )}
 

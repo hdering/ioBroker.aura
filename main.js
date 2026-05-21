@@ -407,6 +407,7 @@ class Aura extends utils.Adapter {
     super({ ...options, name: 'aura' });
     this.on('ready', this.onReady.bind(this));
     this.on('stateChange', this.onStateChange.bind(this));
+    this.on('message', this.onMessage.bind(this));
     this.on('unload', this.onUnload.bind(this));
     this._httpServer = null;
   }
@@ -1163,6 +1164,86 @@ class Aura extends utils.Adapter {
           }
         }
       }
+    }
+  }
+
+  // ── onMessage: frontend → backend RPC (adapter-status widget) ───────────────
+  // Frontend calls sendTo('aura.0', 'upgradeAdapter' | 'restartAdapter', payload, cb).
+  // We acknowledge via this.sendTo(msg.from, msg.command, result, msg.callback).
+  async onMessage(msg) {
+    if (!msg || !msg.command) return;
+    const reply = (result) => {
+      if (msg.callback && msg.from) this.sendTo(msg.from, msg.command, result, msg.callback);
+    };
+
+    try {
+      if (msg.command === 'restartAdapter') {
+        const id = String(msg.message?.id || '').trim();
+        if (!id || !/^[a-z0-9_\-]+\.\d+$/i.test(id)) {
+          reply({ ok: false, error: `Invalid instance id: ${id}` });
+          return;
+        }
+        const objId = `system.adapter.${id}`;
+        const obj = await this.getForeignObjectAsync(objId);
+        if (!obj) { reply({ ok: false, error: `Object not found: ${objId}` }); return; }
+        // Toggle common.enabled: false → 600ms → true forces controller to restart.
+        const wasEnabled = obj.common?.enabled === true;
+        await this.extendForeignObjectAsync(objId, { common: { enabled: false } });
+        await new Promise(r => setTimeout(r, 600));
+        await this.extendForeignObjectAsync(objId, { common: { enabled: true } });
+        this.log.info(`[adapter-status] restart ${id} (was ${wasEnabled ? 'enabled' : 'disabled'})`);
+        reply({ ok: true });
+        return;
+      }
+
+      if (msg.command === 'upgradeAdapter') {
+        const name = String(msg.message?.name || '').trim();
+        if (!name || !/^[a-z0-9_\-]+$/i.test(name)) {
+          reply({ ok: false, error: `Invalid adapter name: ${name}` });
+          return;
+        }
+        // Find a host that runs this adapter (use the first instance's common.host).
+        const instances = await this.getObjectViewAsync('system', 'instance', { startkey: `system.adapter.${name}.`, endkey: `system.adapter.${name}.香` });
+        const host = instances?.rows?.[0]?.value?.common?.host;
+        if (!host) { reply({ ok: false, error: `No host found for adapter ${name}` }); return; }
+
+        const execId = Date.now();
+        const hostTarget = `system.host.${host}`;
+        const out = [];
+        const err = [];
+        let exitCode = null;
+
+        // Forward host cmdStdout / cmdStderr / cmdExit back to caller (one final reply on exit).
+        const onSubMsg = (subMsg) => {
+          if (!subMsg || subMsg.message?.id !== execId) return;
+          if (subMsg.command === 'cmdStdout') out.push(String(subMsg.message.data ?? ''));
+          else if (subMsg.command === 'cmdStderr') err.push(String(subMsg.message.data ?? ''));
+          else if (subMsg.command === 'cmdExit') {
+            if (exitCode !== null) return; // host fires cmdExit twice — keep only first
+            exitCode = subMsg.message.data;
+            this.removeListener('message', onSubMsg);
+            this.log.info(`[adapter-status] upgrade ${name} exit ${exitCode}`);
+            reply({ ok: exitCode === 0, exitCode, stdout: out.join('\n'), stderr: err.join('\n') });
+          }
+        };
+        this.on('message', onSubMsg);
+
+        // Safety timeout — if host never responds (unlikely), tell the frontend.
+        setTimeout(() => {
+          if (exitCode === null) {
+            this.removeListener('message', onSubMsg);
+            this.log.warn(`[adapter-status] upgrade ${name} timeout (no cmdExit from ${hostTarget})`);
+            reply({ ok: false, error: 'timeout', stdout: out.join('\n'), stderr: err.join('\n') });
+          }
+        }, 5 * 60 * 1000);
+
+        this.log.info(`[adapter-status] upgrade ${name} via ${hostTarget}`);
+        this.sendToHost(host, 'cmdExec', { data: `upgrade ${name}`, id: execId });
+        return;
+      }
+    } catch (e) {
+      this.log.error(`[adapter-status] ${msg.command} failed: ${e?.message ?? e}`);
+      reply({ ok: false, error: e?.message ?? String(e) });
     }
   }
 
