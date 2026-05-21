@@ -2625,6 +2625,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   const [selectedCustomCell,   setSelectedCustomCell]   = useState<number | null>(null);
   const [customCellDragIdx,    setCustomCellDragIdx]    = useState<number | null>(null);
   const [customCellDragOver,   setCustomCellDragOver]   = useState<number | null>(null);
+  const [customCellOverwrite,  setCustomCellOverwrite]  = useState<{ from: number; to: number } | null>(null);
   const [customCellPickerOpen,      setCustomCellPickerOpen]      = useState(false);
   const [customCellImagePickerOpen, setCustomCellImagePickerOpen] = useState(false);
   const [customCellIconPicker, setCustomCellIconPicker] = useState<'iconName' | 'trueIcon' | 'falseIcon' | null>(null);
@@ -7100,11 +7101,11 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               setCustomCellDragOver(null);
                               if (from === null || from === i) return;
                               const targetCell = cells[i];
-                              const sourceCell = cells[from];
                               if (targetCell && targetCell.type !== 'empty') {
-                                const targetLabel = `${Math.floor(i / cols) + 1}/${(i % cols) + 1}`;
-                                if (!window.confirm(`Zelle ${targetLabel} enthält bereits "${CELL_LABELS[targetCell.type] ?? targetCell.type}". Überschreiben?`)) return;
+                                setCustomCellOverwrite({ from, to: i });
+                                return;
                               }
+                              const sourceCell = cells[from];
                               const nextCells = cells.map((c, idx) => {
                                 if (idx === i)    return sourceCell;
                                 if (idx === from) return { type: 'empty' as const };
@@ -7581,6 +7582,58 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           onClose={() => setSiImagePickerState(null)}
         />
       )}
+
+      {/* Custom-Grid overwrite confirmation (drag & drop onto occupied cell) */}
+      {customCellOverwrite && (() => {
+        const fb = config.type === 'universal' ? DEFAULT_UNIVERSAL_GRID : config.type === 'knob' ? DEFAULT_KNOB_GRID : DEFAULT_CUSTOM_GRID;
+        const grid = normalizeGrid(config.options?.customGrid, fb);
+        const { from, to } = customCellOverwrite;
+        const gCols = grid.cols;
+        const targetCell = grid.cells[to];
+        const sourceCell = grid.cells[from];
+        const fromLabel = `${Math.floor(from / gCols) + 1}/${(from % gCols) + 1}`;
+        const toLabel   = `${Math.floor(to   / gCols) + 1}/${(to   % gCols) + 1}`;
+        const targetTypeLabel = (targetCell && CELL_LABELS[targetCell.type]) ?? targetCell?.type ?? '';
+        const onCancel = () => setCustomCellOverwrite(null);
+        const onConfirm = () => {
+          if (!sourceCell) { setCustomCellOverwrite(null); return; }
+          const nextCells = grid.cells.map((c, idx) => {
+            if (idx === to)   return sourceCell;
+            if (idx === from) return { type: 'empty' as const };
+            return c;
+          });
+          onConfigChange({ ...config, options: { ...(config.options ?? {}), customGrid: { ...grid, cells: nextCells } } });
+          if (selectedCustomCell === from) setSelectedCustomCell(to);
+          else if (selectedCustomCell === to) setSelectedCustomCell(null);
+          setCustomCellOverwrite(null);
+        };
+        return (
+          <CenteredModal title="Zelle überschreiben?" onClose={onCancel}>
+            <div className="space-y-4">
+              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                Zielzelle <strong>{toLabel}</strong> enthält bereits &bdquo;{targetTypeLabel}&ldquo;.
+                Soll der Inhalt von <strong>{fromLabel}</strong> diese Zelle überschreiben?
+              </p>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={onCancel}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
+                  style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+                >
+                  Abbrechen
+                </button>
+                <button
+                  onClick={onConfirm}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
+                  style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
+                >
+                  Überschreiben
+                </button>
+              </div>
+            </div>
+          </CenteredModal>
+        );
+      })()}
 
       {/* Custom-Grid image file picker */}
       {customCellImagePickerOpen && selectedCustomCell !== null && (() => {
