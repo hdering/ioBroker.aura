@@ -255,12 +255,16 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
           icon:     (c as { extIcon?: string; icon?: string }).extIcon ?? (c as { icon?: string }).icon,
         });
         if (!firstAdmin && adapter === 'admin') firstAdmin = rest;
-        if (!firstAura  && adapter === 'aura'  && c.enabled === true) firstAura = rest;
+        // Take first aura found regardless of enabled flag — if there's only one
+        // (disabled) aura instance, we still want to surface "not running" rather
+        // than silently falling back to the hardcoded 'aura.0' default.
+        if (!firstAura && adapter === 'aura') firstAura = rest;
       }
       list.sort((a, b) => a.id.localeCompare(b.id));
       setInstances(list);
       if (firstAdmin) setAdminInstance(firstAdmin);
       if (firstAura)  setAuraInstance(firstAura);
+      console.info('[adapter-status] detected', { aura: firstAura, admin: firstAdmin, totalInstances: list.length });
     })();
     return () => { cancelled = true; };
   }, [connected]);
@@ -292,24 +296,34 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
 
   // Ping aura backend on mount and whenever the detected instance changes,
   // so the widget can tell the user whether the handler is reachable at all.
+  const auraAlive = states[`system.adapter.${auraInstance}.alive`]?.val === true;
+
+  const doPing = async () => {
+    setBackendInfo(null);
+    console.info(`[adapter-status] pinging ${auraInstance}…`);
+    const result = await sendToDirect<{ ok: boolean; version?: string }>(auraInstance, 'auraPing', {}, 8000);
+    console.info(`[adapter-status] ping result:`, result);
+    if (result && typeof result === 'object' && '__timeout' in result) {
+      const hint = auraAlive
+        ? `aura läuft (alive=true), antwortet aber nicht — alte Version im Speicher? Adapter neu starten.`
+        : `aura läuft nicht (alive=false oder nicht gestartet).`;
+      setBackendInfo({ ok: false, error: `Timeout nach 8 s · ${hint}` });
+    } else if (typeof result === 'string') {
+      setBackendInfo({ ok: false, error: `${result === 'permissionError' ? 'sendTo verboten (Anonymous-User in iobroker.web braucht "sendTo"-Berechtigung)' : result}` });
+    } else if (result && typeof result === 'object' && (result as { ok?: boolean }).ok) {
+      setBackendInfo({ ok: true, version: (result as { version?: string }).version });
+    } else {
+      setBackendInfo({ ok: false, error: 'unerwartete Antwort (siehe Browser-Konsole)' });
+    }
+  };
+
   useEffect(() => {
     if (!connected) return;
     let cancelled = false;
-    (async () => {
-      const result = await sendToDirect<{ ok: boolean; version?: string }>(auraInstance, 'auraPing', {}, 5000);
-      if (cancelled) return;
-      if (result && typeof result === 'object' && '__timeout' in result) {
-        setBackendInfo({ ok: false, error: `Timeout (kein onMessage-Handler in ${auraInstance})` });
-      } else if (typeof result === 'string') {
-        setBackendInfo({ ok: false, error: `Berechtigung verweigert (${result})` });
-      } else if (result?.ok) {
-        setBackendInfo({ ok: true, version: result.version });
-      } else {
-        setBackendInfo({ ok: false, error: 'unbekannte Antwort' });
-      }
-    })();
+    void (async () => { if (!cancelled) await doPing(); })();
     return () => { cancelled = true; };
-  }, [connected, auraInstance]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connected, auraInstance, auraAlive]);
 
   // Actions — go through aura backend so we don't depend on socket-port permissions.
   // Backend handler in main.js spawns `iobroker upgrade <name>` via the host's cmdExec.
@@ -419,11 +433,14 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
           title={backendInfo?.error ?? ''}
         >
           <span className="w-1.5 h-1.5 rounded-full" style={{ background: backendInfo?.ok ? '#22c55e' : backendInfo ? '#ef4444' : '#94a3b8' }} />
-          <span className="truncate">
+          <span className="flex-1 truncate">
             {backendInfo === null ? `Prüfe ${auraInstance}…` :
              backendInfo.ok      ? `Backend: ${auraInstance}${backendInfo.version ? ` v${backendInfo.version}` : ''}` :
-                                   `Backend nicht erreichbar: ${backendInfo.error}`}
+                                   `Backend (${auraInstance}): ${backendInfo.error}`}
           </span>
+          <button onClick={() => void doPing()} className="shrink-0 opacity-70 hover:opacity-100" title="Erneut prüfen">
+            <RotateCcw size={11} />
+          </button>
         </div>
       )}
 
