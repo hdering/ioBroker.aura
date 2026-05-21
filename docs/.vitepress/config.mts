@@ -29,6 +29,12 @@ export default defineConfig({
             { text: 'Zeitschaltuhr', link: '/widgets/zeitschaltuhr' },
           ],
         },
+        {
+          text: 'Konzepte',
+          items: [
+            { text: 'Custom-Layout', link: '/widgets/custom-layout' },
+          ],
+        },
       ],
       '/einstellungen/': [
         {

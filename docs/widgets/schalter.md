@@ -28,7 +28,7 @@ Eine Zeile mit Icon, Titel und Schalter — für Listen mit vielen Schaltern.
 ![](./assets/schalter/layout-compact.png)
 
 ### Custom
-Icon, Titel, Status und Schalter frei in einer Zellenmatrix platzieren.
+Icon, Titel, Status und Schalter frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
 
 ![](./assets/schalter/layout-custom.png)
 

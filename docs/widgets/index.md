@@ -2,6 +2,12 @@
 
 Übersicht über alle Widget-Typen in ioBroker.aura. Die Detail-Seiten entstehen nach und nach — wo bereits Doku existiert, ist der Name verlinkt.
 
+## Konzepte
+
+| Thema | Beschreibung |
+| --- | --- |
+| [Custom-Layout](./custom-layout) | Freies Zellenraster mit Drag&Drop, Kopieren, Strg+C/V – verfügbar in allen Widgets mit Layout-Auswahl |
+
 ## Steuerung & Anzeige
 
 | Widget | Beschreibung | Status |
