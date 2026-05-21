@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.107",
+    "version": "0.9.108",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.108": {
+        "en": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura",
+        "de": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura",
+        "ru": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura",
+        "pt": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura",
+        "nl": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura",
+        "fr": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura",
+        "it": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura",
+        "es": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura",
+        "pl": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura",
+        "uk": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura",
+        "zh-cn": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura"
+      },
       "0.9.107": {
         "en": "fix(adapter-status): better aura detection + retry button + console diagnostics",
         "de": "fix(adapter-status): better aura detection + retry button + console diagnostics",
@@ -183,19 +196,6 @@
         "pl": "Release v0.9.102",
         "uk": "Release v0.9.102",
         "zh-cn": "Release v0.9.102"
-      },
-      "0.9.99": {
-        "en": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
-        "de": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
-        "ru": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
-        "pt": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
-        "nl": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
-        "fr": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
-        "it": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
-        "es": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
-        "pl": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
-        "uk": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
-        "zh-cn": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference"
       }
     }
   },

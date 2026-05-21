@@ -1,5 +1,12 @@
 # Changelog (older entries)
 
+## 0.9.88 (2026-05-19)
+- fix(knob): use knob default grid as editor fallback
+- feat(knob): empty default custom grid except dial at 2/2
+- fix(knob): honour titleAlign in bogen/skala/endless layouts
+- feat(custom-grid): allow fontSize as explicit pixel size on component cells
+- feat(knob): add custom layout with selectable dial style
+
 ## 0.9.87 (2026-05-19)
 - fix(knob): auto-compute label decimals to avoid duplicate scale labels
 
