@@ -186,6 +186,11 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.109 (2026-05-21)
+- feat(adapter-status): add frontend filter pills (admin-toggleable)
+- chore(adapter-status): remove backend-health ping, status row, and debug console output
+
+
 ### 0.9.108 (2026-05-21)
 - fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura
 
@@ -282,15 +287,6 @@ Release v0.9.91
 - feat(universal-widget): hide dropdown option for select cell
 
 
-### 0.9.89 (2026-05-19)
-- fix(layout-drawer): disable both placement buttons when header is on
-- fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on
-- feat(layout-drawer): customize title and entry display style
-- feat(layouts): drag to reorder layouts in admin list
-- feat(layout-drawer): add 'in tab bar' placement option
-- fix(layout-drawer): allow inline trigger width to fit icon + name
-
-
 ## License
 
 MIT License
@@ -302,6 +298,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

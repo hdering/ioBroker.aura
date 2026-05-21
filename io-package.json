@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.108",
+    "version": "0.9.109",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.109": {
+        "en": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
+        "de": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
+        "ru": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
+        "pt": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
+        "nl": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
+        "fr": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
+        "it": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
+        "es": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
+        "pl": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
+        "uk": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
+        "zh-cn": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output"
+      },
       "0.9.108": {
         "en": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura",
         "de": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura",
@@ -183,19 +196,6 @@
         "pl": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20",
         "uk": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20",
         "zh-cn": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20"
-      },
-      "0.9.102": {
-        "en": "Release v0.9.102",
-        "de": "Release v0.9.102",
-        "ru": "Release v0.9.102",
-        "pt": "Release v0.9.102",
-        "nl": "Release v0.9.102",
-        "fr": "Release v0.9.102",
-        "it": "Release v0.9.102",
-        "es": "Release v0.9.102",
-        "pl": "Release v0.9.102",
-        "uk": "Release v0.9.102",
-        "zh-cn": "Release v0.9.102"
       }
     }
   },
