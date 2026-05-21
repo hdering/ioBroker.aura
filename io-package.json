@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.106",
+    "version": "0.9.107",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,19 @@
       }
     ],
     "news": {
+      "0.9.107": {
+        "en": "fix(adapter-status): better aura detection + retry button + console diagnostics",
+        "de": "fix(adapter-status): better aura detection + retry button + console diagnostics",
+        "ru": "fix(adapter-status): better aura detection + retry button + console diagnostics",
+        "pt": "fix(adapter-status): better aura detection + retry button + console diagnostics",
+        "nl": "fix(adapter-status): better aura detection + retry button + console diagnostics",
+        "fr": "fix(adapter-status): better aura detection + retry button + console diagnostics",
+        "it": "fix(adapter-status): better aura detection + retry button + console diagnostics",
+        "es": "fix(adapter-status): better aura detection + retry button + console diagnostics",
+        "pl": "fix(adapter-status): better aura detection + retry button + console diagnostics",
+        "uk": "fix(adapter-status): better aura detection + retry button + console diagnostics",
+        "zh-cn": "fix(adapter-status): better aura detection + retry button + console diagnostics"
+      },
       "0.9.106": {
         "en": "feat(adapter-status): backend ping + timeout + visible backend health row",
         "de": "feat(adapter-status): backend ping + timeout + visible backend health row",
@@ -182,19 +195,6 @@
         "pl": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
         "uk": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference",
         "zh-cn": "fix(lint): auto-fix mixed typographic quotes; fix(lint): typographic quote in timer empty-state text; docs(timer): add Zeitschaltuhr widget reference"
-      },
-      "0.9.97": {
-        "en": "Release v0.9.97",
-        "de": "Release v0.9.97",
-        "ru": "Release v0.9.97",
-        "pt": "Release v0.9.97",
-        "nl": "Release v0.9.97",
-        "fr": "Release v0.9.97",
-        "it": "Release v0.9.97",
-        "es": "Release v0.9.97",
-        "pl": "Release v0.9.97",
-        "uk": "Release v0.9.97",
-        "zh-cn": "Release v0.9.97"
       }
     }
   },

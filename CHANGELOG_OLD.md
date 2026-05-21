@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.87 (2026-05-19)
+- fix(knob): auto-compute label decimals to avoid duplicate scale labels
+
 ## 0.9.86 (2026-05-19)
 - fix(editor): sort widget types alphabetically within each category
 
