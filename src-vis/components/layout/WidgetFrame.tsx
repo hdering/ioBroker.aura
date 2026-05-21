@@ -5599,7 +5599,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 return (
                   <>
                     <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Filter</label>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Standard-Filter</label>
                       <select value={filterMode} onChange={(e) => set({ filterMode: e.target.value })} className={aCls} style={aSty}>
                         <option value="all">Alle anzeigen</option>
                         <option value="enabled">Nur aktivierte</option>
@@ -5615,6 +5615,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         <option value="status">Nach Status (laufend zuerst)</option>
                       </select>
                     </div>
+                    <Toggle label="Filter-Buttons im Frontend" k="showFilter" def={true} hint="Nutzer können den Filter umschalten" />
                     <Toggle label="Suchfeld anzeigen" k="showSearch" def={true} hint="Erscheint ab > 5 Instanzen" />
                     <Toggle label="Version anzeigen"  k="showVersion" def={true} />
                     <Toggle label="Kompakte Darstellung" k="compact"   def={false} hint="Untertitel/Beschreibung ausblenden" />

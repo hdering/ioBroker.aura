@@ -14,6 +14,16 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
+type FilterMode = 'all' | 'enabled' | 'running' | 'stopped' | 'updates';
+
+const FILTER_LABELS: Record<FilterMode, string> = {
+  all:      'Alle',
+  enabled:  'Aktiv',
+  running:  'Läuft',
+  stopped:  'Gestoppt',
+  updates:  'Updates',
+};
+
 interface AdapterInstance {
   /** "adapter.0" (no leading "system.adapter.") */
   id:       string;
@@ -205,7 +215,8 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
   const allowUpdate  = !!o.allowUpdate;
   const showVersion  = o.showVersion !== false;
   const showSearch   = o.showSearch  !== false;
-  const filter       = (o.filterMode as 'all' | 'enabled' | 'running' | 'stopped' | 'updates') ?? 'all';
+  const showFilter   = o.showFilter  !== false;
+  const defaultFilter = (o.filterMode as FilterMode) ?? 'all';
   const compact      = !!o.compact;
   const sortBy       = (o.sortBy as 'name' | 'status') ?? 'name';
 
@@ -215,6 +226,9 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
   const [states,    setStates]      = useState<Record<string, ioBrokerState | null>>({});
   const [updates,   setUpdates]     = useState<Record<string, UpdateInfo>>({});
   const [query,     setQuery]       = useState('');
+  const [filter,    setFilter]      = useState<FilterMode>(defaultFilter);
+  // Reset to admin-configured default when the option changes (live edit mode).
+  useEffect(() => { setFilter(defaultFilter); }, [defaultFilter]);
   const [adminInstance, setAdminInstance] = useState<string>('admin.0');
   const [auraInstance,  setAuraInstance]  = useState<string>('aura.0');
   const [actionError,   setActionError]   = useState<string | null>(null);
@@ -386,6 +400,35 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
           </span>
         )}
       </div>
+
+      {/* Filter pills */}
+      {showFilter && (
+        <div className="flex items-center gap-1 flex-wrap shrink-0">
+          {(Object.keys(FILTER_LABELS) as FilterMode[]).map(f => {
+            const active = filter === f;
+            const count =
+              f === 'all'      ? counts.total :
+              f === 'enabled'  ? counts.running + counts.stopped :
+              f === 'running'  ? counts.running :
+              f === 'stopped'  ? counts.stopped :
+              f === 'updates'  ? counts.hasUpdate : 0;
+            return (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                style={{
+                  background: active ? 'var(--accent)' : 'var(--app-bg)',
+                  color:      active ? '#fff' : 'var(--text-secondary)',
+                  border:     `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                }}
+              >
+                {FILTER_LABELS[f]} <span className="opacity-70">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Search */}
       {showSearch && instances.length > 5 && (
