@@ -630,6 +630,16 @@ function ChartHistoryConfig({ config, onConfigChange }: { config: WidgetConfig; 
               <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.history.yAxisCompact')}</span>
             </label>
           )}
+          {/* X-Achse anzeigen */}
+          <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={(o.showXAxis as boolean | undefined) ?? true}
+              onChange={(e) => set({ showXAxis: e.target.checked })}
+              className="rounded"
+            />
+            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.history.showXAxis')}</span>
+          </label>
         </div>
       )}
 

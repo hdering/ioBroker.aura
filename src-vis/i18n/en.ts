@@ -508,6 +508,7 @@ export const en: Record<TranslationKey, string> = {
   'wf.history.lockRange':'Lock time range (hide selector in frontend)',
   'wf.history.showYAxis':'Show Y-axis',
   'wf.history.yAxisCompact':'Compact (7000 → 7K)',
+  'wf.history.showXAxis':'Show X-axis',
 
   // Calendar config
   'wf.cal.addCalendar':    'Add Calendar',

@@ -506,6 +506,7 @@ export const de = {
   'wf.history.lockRange':     'Zeitraum sperren (Wechsler im Frontend ausblenden)',
   'wf.history.showYAxis':     'Y-Achse anzeigen',
   'wf.history.yAxisCompact':  'Kompakt (7000 → 7K)',
+  'wf.history.showXAxis':     'X-Achse anzeigen',
 
   // Calendar config
   'wf.cal.addCalendar':       'Kalender hinzufügen',

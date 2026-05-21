@@ -59,6 +59,7 @@ export function EChartWidget({ config }: WidgetProps) {
   const echartRightMax = o.echartRightMax as number | string | undefined;
   const echartJsonExtra   = (o.echartJsonExtra   as string  | undefined) ?? '';
   const echartShowYAxis   = (o.echartShowYAxis   as boolean | undefined) ?? true;
+  const echartShowXAxis   = (o.echartShowXAxis   as boolean | undefined) ?? true;
   const echartMode        = (o.echartMode        as string  | undefined) ?? 'timeseries';
   const isGauge = config.layout === 'gauge' as string;
 
@@ -187,14 +188,16 @@ export function EChartWidget({ config }: WidgetProps) {
         left: echartShowYAxis ? 60 : 12,
         right: 12,
         top: 16,
-        bottom: 40,
+        bottom: echartShowXAxis ? 40 : 12,
         containLabel: false,
       },
       xAxis: {
         type: 'category',
         data: categories,
-        axisLabel: { color: '#888', fontSize: 10 },
-        axisLine: { lineStyle: { color: '#444' } },
+        show: echartShowXAxis,
+        axisLabel: { show: echartShowXAxis, color: '#888', fontSize: 10 },
+        axisTick: { show: echartShowXAxis },
+        axisLine: { show: echartShowXAxis, lineStyle: { color: '#444' } },
         splitLine: { show: false },
       },
       yAxis: {
@@ -344,13 +347,15 @@ export function EChartWidget({ config }: WidgetProps) {
       left: echartShowYAxis ? 60 : 12,
       right: hasRightAxis && echartShowYAxis ? 60 : 12,
       top: echartShowLegend ? 30 : 16,
-      bottom: 40,
+      bottom: echartShowXAxis ? 40 : 12,
       containLabel: false,
     },
     xAxis: {
       type: 'time',
-      axisLabel: { color: '#888', fontSize: 10 },
-      axisLine: { lineStyle: { color: '#444' } },
+      show: echartShowXAxis,
+      axisLabel: { show: echartShowXAxis, color: '#888', fontSize: 10 },
+      axisTick: { show: echartShowXAxis },
+      axisLine: { show: echartShowXAxis, lineStyle: { color: '#444' } },
       splitLine: { show: false },
     },
     yAxis: [leftAxis, rightAxis],

@@ -54,6 +54,7 @@ export function ChartWidget({ config }: WidgetProps) {
   const avgColor        = (o.avgColor   as string | undefined) ?? lineColor;
   const showYAxis       = o.showYAxis === true;
   const yAxisCompact    = o.yAxisCompact !== false;
+  const showXAxis       = o.showXAxis !== false;
   const WidgetIcon      = getWidgetIcon(o.icon as string | undefined, TrendingUp);
 
   // ── Frontend-local range selection (starts from admin config, switchable at runtime) ──
@@ -258,6 +259,7 @@ export function ChartWidget({ config }: WidgetProps) {
                 type="number"
                 domain={['dataMin', 'dataMax']}
                 scale="time"
+                hide={!showXAxis}
                 tickFormatter={(ts) => formatTick(ts, effectiveRangeMs)}
                 tick={tickStyle}
                 tickLine={false}
