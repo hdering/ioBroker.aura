@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.105",
+    "version": "0.9.106",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,19 @@
       }
     ],
     "news": {
+      "0.9.106": {
+        "en": "feat(adapter-status): backend ping + timeout + visible backend health row",
+        "de": "feat(adapter-status): backend ping + timeout + visible backend health row",
+        "ru": "feat(adapter-status): backend ping + timeout + visible backend health row",
+        "pt": "feat(adapter-status): backend ping + timeout + visible backend health row",
+        "nl": "feat(adapter-status): backend ping + timeout + visible backend health row",
+        "fr": "feat(adapter-status): backend ping + timeout + visible backend health row",
+        "it": "feat(adapter-status): backend ping + timeout + visible backend health row",
+        "es": "feat(adapter-status): backend ping + timeout + visible backend health row",
+        "pl": "feat(adapter-status): backend ping + timeout + visible backend health row",
+        "uk": "feat(adapter-status): backend ping + timeout + visible backend health row",
+        "zh-cn": "feat(adapter-status): backend ping + timeout + visible backend health row"
+      },
       "0.9.105": {
         "en": "feat(adapter-status): backend onMessage handlers for restart + upgrade; feat(widget): add adapter-status widget (instances list with optional restart/update)",
         "de": "feat(adapter-status): backend onMessage handlers for restart + upgrade; feat(widget): add adapter-status widget (instances list with optional restart/update)",
@@ -182,19 +195,6 @@
         "pl": "Release v0.9.97",
         "uk": "Release v0.9.97",
         "zh-cn": "Release v0.9.97"
-      },
-      "0.9.96": {
-        "en": "feat(weather): bar-only temp-strahl variant in custom layout",
-        "de": "feat(weather): bar-only temp-strahl variant in custom layout",
-        "ru": "feat(weather): bar-only temp-strahl variant in custom layout",
-        "pt": "feat(weather): bar-only temp-strahl variant in custom layout",
-        "nl": "feat(weather): bar-only temp-strahl variant in custom layout",
-        "fr": "feat(weather): bar-only temp-strahl variant in custom layout",
-        "it": "feat(weather): bar-only temp-strahl variant in custom layout",
-        "es": "feat(weather): bar-only temp-strahl variant in custom layout",
-        "pl": "feat(weather): bar-only temp-strahl variant in custom layout",
-        "uk": "feat(weather): bar-only temp-strahl variant in custom layout",
-        "zh-cn": "feat(weather): bar-only temp-strahl variant in custom layout"
       }
     }
   },

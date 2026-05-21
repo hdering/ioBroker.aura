@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.86 (2026-05-19)
+- fix(editor): sort widget types alphabetically within each category
+
 ## 0.9.85 (2026-05-19)
 - feat(knob): add knob widget with 3 layouts (Bogen / Skala / Endlos 3D)
 
