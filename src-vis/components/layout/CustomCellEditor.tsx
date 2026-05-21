@@ -705,6 +705,31 @@ export function CustomCellEditor({
                 className="w-full h-1" style={{ accentColor: 'var(--accent)' }} />
             </div>
           )}
+          <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Wert-Anzeige</label>
+            <div className="flex gap-1">
+              {([
+                ['none',   'Aus'],
+                ['left',   'Links'],
+                ['right',  'Rechts'],
+                ['top',    'Oben'],
+                ['bottom', 'Unten'],
+              ] as const).map(([val, lbl]) => {
+                const active = (cell.valuePosition ?? 'none') === val;
+                return (
+                  <button key={val} onClick={() => onChange({ valuePosition: val })}
+                    className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                    style={{
+                      background: active ? 'var(--accent)' : 'var(--app-bg)',
+                      color:      active ? '#fff'          : 'var(--text-secondary)',
+                      border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                    }}>
+                    {lbl}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
 

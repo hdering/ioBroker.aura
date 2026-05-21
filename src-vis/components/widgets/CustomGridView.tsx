@@ -271,7 +271,7 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
 }
 
 /** Range slider bound to a numeric DP. Supports bar-style rendering. */
-function SliderCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
+function SliderCellView({ cell, index, cols, rows, defaultDecimals }: { cell: CustomCell; index: number; cols: number; rows: number; defaultDecimals: number }) {
   const { value, setValue } = useDatapoint(cell.dpId ?? '');
   const [pending, setPending] = useState<number | null>(null);
   const min        = cell.min  ?? 0;
@@ -284,6 +284,9 @@ function SliderCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
   const num        = typeof value === 'number' ? value : Number(value ?? min);
   const displayVal = pending ?? (Number.isFinite(num) ? num : min);
   const fillRatio  = Math.max(0, Math.min(1, (displayVal - min) / (max - min)));
+  const valuePos   = cell.valuePosition ?? 'none';
+  const decimals   = cell.decimals ?? defaultDecimals;
+  const valueLabel = `${cell.prefix ?? ''}${Number.isFinite(num) ? formatNum(displayVal, decimals) : '–'}${cell.suffix ?? ''}`;
 
   const writeStepped = (v: number) => {
     const stepped = Math.round(v / step) * step;
@@ -310,57 +313,88 @@ function SliderCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
 
   if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
 
-  if (barStyle) {
+  const barEl = (
+    <div
+      className="nodrag relative rounded-2xl overflow-hidden select-none cursor-pointer"
+      style={{
+        width:      isVertical ? `${barSize}%` : '100%',
+        height:     isVertical ? '100%'        : `${barSize}%`,
+        background: `color-mix(in srgb, ${color} 20%, var(--app-bg))`,
+      }}
+      onPointerDown={onBarPointerDown}
+      onPointerMove={onBarPointerMove}
+      onPointerUp={() => setPending(null)}
+    >
+      {isVertical ? (
+        <div className="absolute bottom-0 left-0 right-0 rounded-t-2xl"
+          style={{ height: `${fillRatio * 100}%`, background: color }} />
+      ) : (
+        <div className="absolute top-0 left-0 bottom-0 rounded-r-2xl"
+          style={{ width: `${fillRatio * 100}%`, background: color }} />
+      )}
+      {isVertical ? (
+        <div className="absolute pointer-events-none rounded-full"
+          style={{ top: `${(1 - fillRatio) * 100}%`, transform: 'translateY(6px)', left: '20%', right: '20%', height: '3px', background: 'rgba(255,255,255,0.85)' }} />
+      ) : (
+        <div className="absolute pointer-events-none rounded-full"
+          style={{ left: `${fillRatio * 100}%`, transform: 'translateX(-9px)', top: '20%', bottom: '20%', width: '3px', background: 'rgba(255,255,255,0.85)' }} />
+      )}
+    </div>
+  );
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const vertAttrs: any = isVertical ? { orient: 'vertical' } : {};
+  const nativeEl = (
+    <input
+      {...vertAttrs}
+      type="range"
+      min={min} max={max} step={step}
+      value={displayVal}
+      onChange={(e) => setValue(Number(e.target.value))}
+      className="nodrag w-full h-1.5 rounded-full appearance-none cursor-pointer"
+      style={{
+        accentColor: color,
+        ...(isVertical ? { writingMode: 'vertical-lr' as React.CSSProperties['writingMode'], direction: 'rtl', height: '100%', width: 'auto' } : {}),
+      }}
+    />
+  );
+
+  const controlEl = barStyle ? barEl : nativeEl;
+  const wrapStyle = barStyle
+    ? { ...cellWrapStyle(cell, index, cols, rows), padding: '4px' }
+    : { ...cellWrapStyle(cell, index, cols, rows), padding: '4px 8px' };
+
+  if (valuePos === 'none') {
     return (
-      <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '4px' }}>
+      <div className={`aura-custom-cell-${index}`} style={wrapStyle}>
         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div
-            className="nodrag relative rounded-2xl overflow-hidden select-none cursor-pointer"
-            style={{
-              width:      isVertical ? `${barSize}%` : '100%',
-              height:     isVertical ? '100%'        : `${barSize}%`,
-              background: `color-mix(in srgb, ${color} 20%, var(--app-bg))`,
-            }}
-            onPointerDown={onBarPointerDown}
-            onPointerMove={onBarPointerMove}
-            onPointerUp={() => setPending(null)}
-          >
-            {isVertical ? (
-              <div className="absolute bottom-0 left-0 right-0 rounded-t-2xl"
-                style={{ height: `${fillRatio * 100}%`, background: color }} />
-            ) : (
-              <div className="absolute top-0 left-0 bottom-0 rounded-r-2xl"
-                style={{ width: `${fillRatio * 100}%`, background: color }} />
-            )}
-            {isVertical ? (
-              <div className="absolute pointer-events-none rounded-full"
-                style={{ top: `${(1 - fillRatio) * 100}%`, transform: 'translateY(6px)', left: '20%', right: '20%', height: '3px', background: 'rgba(255,255,255,0.85)' }} />
-            ) : (
-              <div className="absolute pointer-events-none rounded-full"
-                style={{ left: `${fillRatio * 100}%`, transform: 'translateX(-9px)', top: '20%', bottom: '20%', width: '3px', background: 'rgba(255,255,255,0.85)' }} />
-            )}
-          </div>
+          {controlEl}
         </div>
       </div>
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const vertAttrs: any = isVertical ? { orient: 'vertical' } : {};
+  const flexDir =
+    valuePos === 'left'  ? 'row' :
+    valuePos === 'right' ? 'row-reverse' :
+    valuePos === 'top'   ? 'column' :
+                           'column-reverse';
+  const valueEl = (
+    <span
+      style={{ ...cellTextStyle(cell, 'var(--text-primary)'), flexShrink: 0, textAlign: 'center', minWidth: (valuePos === 'left' || valuePos === 'right') ? '2.5em' : undefined }}
+    >
+      {valueLabel}
+    </span>
+  );
+
   return (
-    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '4px 8px' }}>
-      <input
-        {...vertAttrs}
-        type="range"
-        min={min} max={max} step={step}
-        value={displayVal}
-        onChange={(e) => setValue(Number(e.target.value))}
-        className="nodrag w-full h-1.5 rounded-full appearance-none cursor-pointer"
-        style={{
-          accentColor: color,
-          ...(isVertical ? { writingMode: 'vertical-lr' as React.CSSProperties['writingMode'], direction: 'rtl', height: '100%', width: 'auto' } : {}),
-        }}
-      />
+    <div className={`aura-custom-cell-${index}`} style={wrapStyle}>
+      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: flexDir, alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+        {valueEl}
+        <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+          {controlEl}
+        </div>
+      </div>
     </div>
   );
 }
@@ -793,7 +827,7 @@ export function CustomGridView({ config, value, rawValue, unit, extraFields, ext
           case 'image':      return <ImageCellView      key={i} cell={cell} index={i} cols={cols} rows={rows} />;
           case 'component':  return <ComponentCellView  key={i} cell={cell} index={i} cols={cols} rows={rows} extraComponents={extraComponents} />;
           case 'switch':     return <SwitchCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-          case 'slider':     return <SliderCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+          case 'slider':     return <SliderCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} defaultDecimals={defaultDecimals} />;
           case 'button':     return <ButtonCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} />;
           case 'icon':       return <IconCellView       key={i} cell={cell} index={i} cols={cols} rows={rows} />;
           case 'state-icon': return <StateIconCellView  key={i} cell={cell} index={i} cols={cols} rows={rows} />;

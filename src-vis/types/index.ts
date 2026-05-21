@@ -172,6 +172,7 @@ export interface CustomCell {
   barStyle?:    boolean;
   barSize?:     number;
   orientation?: 'horizontal' | 'vertical';
+  valuePosition?: 'none' | 'left' | 'right' | 'top' | 'bottom';  // 'slider' cell: where to render the current DP value (default 'none')
   // 'button' type
   sendValue?: string;           // payload sent to dpId on click (parsed as bool/number/string)
   // 'icon' / 'state-icon' type
