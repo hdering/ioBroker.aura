@@ -585,7 +585,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
               </div>
               <div>
                 <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Schriftgröße (px)</label>
-                <input type="number" min={8} max={48}
+                <input type="number" min={8} max={96}
                   className="w-full text-[10px] rounded px-2 py-1 focus:outline-none tabular-nums"
                   style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
                   placeholder="10"

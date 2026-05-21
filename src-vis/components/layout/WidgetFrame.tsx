@@ -324,7 +324,7 @@ function CalendarEditPanel({ config, onConfigChange }: { config: WidgetConfig; o
             {Math.round(((o.calFontScale as number) ?? 1) * 100)} %
           </span>
         </div>
-        <input type="range" min={0.5} max={3} step={0.05}
+        <input type="range" min={0.5} max={6} step={0.05}
           value={(o.calFontScale as number) ?? 1}
           onChange={(e) => setOpts({ calFontScale: Number(e.target.value) })}
           className="w-full h-1"
@@ -1270,14 +1270,14 @@ function WeatherConfigSection({ o, set, onOpenPicker }: WeatherConfigSectionProp
       </div>
       <div>
         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.tempFontSize')}</label>
-        <input type="number" min={0} max={6} step={0.1} value={tempFontSize}
+        <input type="number" min={0} max={12} step={0.1} value={tempFontSize}
           onChange={(e) => set({ tempFontSize: Number(e.target.value) || undefined })}
           placeholder="0 = auto" className={iCls} style={iSty} />
         <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>{t('wf.weather.tempFontSizeHint')}</p>
       </div>
       <div>
         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.fontScale')}</label>
-        <input type="number" min={0.3} max={4} step={0.05} value={fontScale}
+        <input type="number" min={0.3} max={8} step={0.05} value={fontScale}
           onChange={(e) => set({ fontScale: Number(e.target.value) || undefined })}
           className={iCls} style={iSty} />
         <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>{t('wf.weather.fontScaleHint')}</p>
@@ -1377,7 +1377,7 @@ function WeatherConfigSection({ o, set, onOpenPicker }: WeatherConfigSectionProp
           </div>
           <div>
             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.forecastRowGap')}</label>
-            <input type="number" min={0} max={4} step={0.05} value={forecastRowGap}
+            <input type="number" min={0} max={8} step={0.05} value={forecastRowGap}
               onChange={(e) => set({ forecastRowGap: Number(e.target.value) || undefined })}
               placeholder="0 = auto" className={iCls} style={iSty} />
             <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>{t('wf.weather.forecastRowGapHint')}</p>
@@ -2374,7 +2374,7 @@ function ChipsEditPanel({
           <div className="flex items-center gap-2">
             <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{tHook('cw.layout.gap' as never)}</label>
             <input
-              type="number" min={0} max={32}
+              type="number" min={0} max={96}
               value={(o.gap as number) ?? 6}
               onChange={(e) => setO({ gap: Number(e.target.value) })}
               className="text-xs rounded-lg px-2 py-1.5 focus:outline-none"
@@ -3793,7 +3793,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon-Größe</label>
                     <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{displayIconSize} px</span>
                   </div>
-                  <input type="range" min={12} max={128} step={4} value={displayIconSize}
+                  <input type="range" min={12} max={256} step={4} value={displayIconSize}
                     onChange={(e) => setDraftIconSize(Number(e.target.value))}
                     onPointerUp={(e) => {
                       onConfigChange({ ...config, options: { ...o, iconSize: Number((e.target as HTMLInputElement).value) } });
@@ -4026,7 +4026,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon-Größe</label>
                           <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{displayIconSize} px</span>
                         </div>
-                        <input type="range" min={12} max={128} step={4} value={displayIconSize}
+                        <input type="range" min={12} max={256} step={4} value={displayIconSize}
                           onChange={(e) => setDraftIconSize(Number(e.target.value))}
                           onPointerUp={(e) => {
                             onConfigChange({ ...config, options: { ...o, iconSize: Number((e.target as HTMLInputElement).value) } });
@@ -4404,7 +4404,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon-Größe</label>
                             <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{ctrlIconSize} px</span>
                           </div>
-                          <input type="range" min={16} max={96} step={2} value={ctrlIconSize}
+                          <input type="range" min={16} max={192} step={2} value={ctrlIconSize}
                             onChange={(e) => set({ controlIconSize: Number(e.target.value) })}
                             className="w-full h-1"
                             style={{ accentColor: 'var(--accent)' }} />
@@ -5622,7 +5622,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       {!!(o.switchDp as string) && (() => {
                         const raw = o.powerButtonSize;
                         const pxVal = typeof raw === 'number' && Number.isFinite(raw)
-                          ? Math.max(40, Math.min(240, Math.round(raw)))
+                          ? Math.max(40, Math.min(480, Math.round(raw)))
                           : 120;
                         return (
                           <div className="mt-2">
@@ -5630,7 +5630,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               <label className="text-[11px]" style={hint}>Schalter-Größe (max.)</label>
                               <span className="text-[10px] font-mono" style={hint}>{pxVal} px</span>
                             </div>
-                            <input type="range" min={40} max={240} step={4} value={pxVal}
+                            <input type="range" min={40} max={480} step={4} value={pxVal}
                               onChange={(e) => setO({ powerButtonSize: Number(e.target.value) })}
                               className="w-full" />
                           </div>
@@ -5659,7 +5659,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       {!!(o.brightnessDp as string) && (() => {
                         const raw = o.brightnessBarSize;
                         const pxVal = typeof raw === 'number' && Number.isFinite(raw)
-                          ? Math.max(60, Math.min(400, Math.round(raw)))
+                          ? Math.max(60, Math.min(800, Math.round(raw)))
                           : 220;
                         return (
                           <div className="mt-2">
@@ -5667,7 +5667,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               <label className="text-[11px]" style={hint}>Helligkeits-Balken-Größe (max.)</label>
                               <span className="text-[10px] font-mono" style={hint}>{pxVal} px</span>
                             </div>
-                            <input type="range" min={60} max={400} step={4} value={pxVal}
+                            <input type="range" min={60} max={800} step={4} value={pxVal}
                               onChange={(e) => setO({ brightnessBarSize: Number(e.target.value) })}
                               className="w-full" />
                           </div>
@@ -5769,7 +5769,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         {(() => {
                           const raw = o.colorWheelSize;
                           const wheelSizePx = typeof raw === 'number' && Number.isFinite(raw)
-                            ? Math.max(80, Math.min(400, Math.round(raw)))
+                            ? Math.max(80, Math.min(800, Math.round(raw)))
                             : 240;
                           return (
                             <div className="mt-2">
@@ -5777,7 +5777,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                 <label className="text-[11px]" style={hint}>Farbrad-Größe (max.)</label>
                                 <span className="text-[10px] font-mono" style={hint}>{wheelSizePx} px</span>
                               </div>
-                              <input type="range" min={80} max={400} step={4} value={wheelSizePx}
+                              <input type="range" min={80} max={800} step={4} value={wheelSizePx}
                                 onChange={(e) => setO({ colorWheelSize: Number(e.target.value) })}
                                 className="w-full" />
                             </div>
@@ -5807,7 +5807,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       {(!!(o.temperatureDp as string) || colorMode === 'hm-color') && (() => {
                         const raw = o.ctSliderSize;
                         const pxVal = typeof raw === 'number' && Number.isFinite(raw)
-                          ? Math.max(60, Math.min(400, Math.round(raw)))
+                          ? Math.max(60, Math.min(800, Math.round(raw)))
                           : 220;
                         return (
                           <div className="mt-2">
@@ -5815,7 +5815,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               <label className="text-[11px]" style={hint}>Lichtwärme-Slider-Größe (max.)</label>
                               <span className="text-[10px] font-mono" style={hint}>{pxVal} px</span>
                             </div>
-                            <input type="range" min={60} max={400} step={4} value={pxVal}
+                            <input type="range" min={60} max={800} step={4} value={pxVal}
                               onChange={(e) => setO({ ctSliderSize: Number(e.target.value) })}
                               className="w-full" />
                           </div>
@@ -5900,7 +5900,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                 <label className="text-[11px]" style={hint}>Farbpalette-Größe</label>
                                 <span className="text-[10px] font-mono" style={hint}>{paletteSizePx} px</span>
                               </div>
-                              <input type="range" min={12} max={96} step={1} value={paletteSizePx}
+                              <input type="range" min={12} max={192} step={1} value={paletteSizePx}
                                 onChange={(e) => setO({ paletteSize: Number(e.target.value) })}
                                 className="w-full" />
                             </>
@@ -6636,7 +6636,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon-Größe</label>
                           <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{siDisplayIconSize} px</span>
                         </div>
-                        <input type="range" min={12} max={128} step={4} value={siDisplayIconSize}
+                        <input type="range" min={12} max={256} step={4} value={siDisplayIconSize}
                           onChange={(e) => setDraftIconSize(Number(e.target.value))}
                           onPointerUp={(e) => {
                             onConfigChange({ ...config, options: { ...o, iconSize: Number((e.target as HTMLInputElement).value) } });

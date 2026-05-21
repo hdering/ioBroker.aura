@@ -207,7 +207,7 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
       {/* Font size */}
       <div>
         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Schriftgröße (px)</label>
-        <input type="number" min={8} max={20} value={(o.fontSize as number) ?? 12}
+        <input type="number" min={8} max={96} value={(o.fontSize as number) ?? 12}
           onChange={(e) => set({ fontSize: Number(e.target.value) })}
           className={jCls} style={jSty} />
       </div>
@@ -283,7 +283,7 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
               {col.image && (
                 <div className="flex items-center gap-2">
                   <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Bildgröße (px)</label>
-                  <input type="number" min={8} max={256} value={col.imageSize ?? 32}
+                  <input type="number" min={8} max={512} value={col.imageSize ?? 32}
                     onChange={(e) => updateCol(idx, { imageSize: Number(e.target.value) || undefined })}
                     className={jCls + ' flex-1'} style={jSty} />
                 </div>

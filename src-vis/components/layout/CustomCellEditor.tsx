@@ -619,7 +619,7 @@ export function CustomCellEditor({
                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon-Größe</label>
                     <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{ctrlIconSize} px</span>
                   </div>
-                  <input type="range" min={16} max={96} step={2} value={ctrlIconSize}
+                  <input type="range" min={16} max={192} step={2} value={ctrlIconSize}
                     onChange={(e) => onChange({ fontSize: Number(e.target.value) })}
                     className="w-full h-1"
                     style={{ accentColor: 'var(--accent)' }} />
@@ -1311,7 +1311,7 @@ export function CustomCellEditor({
             <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>Schriftgröße</label>
             <input
               type="number"
-              min={8} max={96} step={1}
+              min={8} max={192} step={1}
               value={cell.fontSize ?? ''}
               onChange={(e) => onChange({ fontSize: e.target.value ? Number(e.target.value) : undefined })}
               placeholder="auto"
