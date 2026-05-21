@@ -2708,12 +2708,24 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
     return () => document.removeEventListener('keydown', handler);
   }, [selectedCustomCell, config, onConfigChange]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Escape closes the cell context menu
+  // Escape + outside-click close the cell context menu
+  const cellMenuRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!customCellContextMenu) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCustomCellContextMenu(null); };
+    const onDown = (e: MouseEvent) => {
+      if (cellMenuRef.current && !cellMenuRef.current.contains(e.target as Node)) {
+        setCustomCellContextMenu(null);
+      }
+    };
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onDown, true);
+    document.addEventListener('contextmenu', onDown, true);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onDown, true);
+      document.removeEventListener('contextmenu', onDown, true);
+    };
   }, [customCellContextMenu]);
 
   const menuBtnRef = useRef<HTMLButtonElement>(null);
@@ -7706,23 +7718,17 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
         const close = () => setCustomCellContextMenu(null);
         const onItem = (fn: () => void, enabled: boolean) => () => { if (enabled) { fn(); close(); } };
         return createPortal(
-          <>
-            <div
-              className="fixed inset-0 z-[9998]"
-              style={{ background: 'transparent' }}
-              onMouseDown={close}
-              onContextMenu={(e) => { e.preventDefault(); close(); }}
-            />
-            <div
-              className="fixed z-[9999] rounded-lg shadow-2xl py-1"
-              style={{
-                background: 'var(--app-surface)',
-                border: '1px solid var(--app-border)',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
-                left, top, minWidth: MENU_W,
-              }}
-              onMouseDown={(e) => e.stopPropagation()}
-            >
+          <div
+            ref={cellMenuRef}
+            className="fixed z-[9999] rounded-lg shadow-2xl py-1"
+            style={{
+              background: 'var(--app-surface)',
+              border: '1px solid var(--app-border)',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+              left, top, minWidth: MENU_W,
+            }}
+            onContextMenu={(e) => e.preventDefault()}
+          >
               <button
                 style={hasContent ? itemBase : itemDisabled}
                 onClick={onItem(() => cellCopy(idx), hasContent)}
@@ -7756,8 +7762,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               >
                 <span>Leeren</span>
               </button>
-            </div>
-          </>,
+          </div>,
           widgetFramePortalTarget,
         );
       })()}
