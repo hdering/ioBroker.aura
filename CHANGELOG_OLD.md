@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.90 (2026-05-19)
+- feat(universal-widget): hide dropdown option for select cell
+
 ## 0.9.89 (2026-05-19)
 - fix(layout-drawer): disable both placement buttons when header is on
 - fix(layout-drawer): disable 'in tab bar' when header on or auto-hide on

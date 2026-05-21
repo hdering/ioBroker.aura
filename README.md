@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.110 (2026-05-21)
+- feat(universal-widget): slider cell can show DP value at left/right/top/bottom
+
+
 ### 0.9.109 (2026-05-21)
 - feat(adapter-status): add frontend filter pills (admin-toggleable)
 - chore(adapter-status): remove backend-health ping, status row, and debug console output
@@ -283,10 +287,6 @@ Release v0.9.92
 Release v0.9.91
 
 
-### 0.9.90 (2026-05-19)
-- feat(universal-widget): hide dropdown option for select cell
-
-
 ## License
 
 MIT License
@@ -298,6 +298,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
