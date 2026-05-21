@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.103",
+    "version": "0.9.104",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,19 @@
       }
     ],
     "news": {
+      "0.9.104": {
+        "en": "feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\\\" touch use case)",
+        "de": "feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\\\" touch use case)",
+        "ru": "feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\\\" touch use case)",
+        "pt": "feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\\\" touch use case)",
+        "nl": "feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\\\" touch use case)",
+        "fr": "feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\\\" touch use case)",
+        "it": "feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\\\" touch use case)",
+        "es": "feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\\\" touch use case)",
+        "pl": "feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\\\" touch use case)",
+        "uk": "feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\\\" touch use case)",
+        "zh-cn": "feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\\\" touch use case)"
+      },
       "0.9.103": {
         "en": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20",
         "de": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20",
@@ -182,19 +195,6 @@
         "pl": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries",
         "uk": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries",
         "zh-cn": "feat(list): toggle row dividers in static and auto list widgets; feat(static-list): drag-handle to reorder data point entries"
-      },
-      "0.9.94": {
-        "en": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
-        "de": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
-        "ru": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
-        "pt": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
-        "nl": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
-        "fr": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
-        "it": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
-        "es": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
-        "pl": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
-        "uk": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
-        "zh-cn": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)"
       }
     }
   },

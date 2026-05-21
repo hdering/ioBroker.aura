@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.84 (2026-05-19)
+- fix(editor): keep widget type when changing DP; ask before auto-switch on new widgets
+
 ## 0.9.83 (2026-05-19)
 - feat(weather): pre-populate custom grid from standard layout settings
 
