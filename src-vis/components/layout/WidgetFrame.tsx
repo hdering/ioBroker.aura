@@ -7005,8 +7005,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   writeGrid({ ...grid, cells: cells.map((c, i) => i === idx ? { ...c, ...patch } : c) });
                 };
                 const setDims = (nextCols: number, nextRows: number) => {
-                  const c = Math.max(1, Math.min(8, nextCols));
-                  const r = Math.max(1, Math.min(8, nextRows));
+                  const c = Math.max(1, Math.min(20, nextCols));
+                  const r = Math.max(1, Math.min(20, nextRows));
                   const need = c * r;
                   const nextCells: CustomCell[] = [];
                   for (let row = 0; row < r; row++) {
@@ -7047,7 +7047,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       <div className="flex-1">
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Spalten</label>
                         <input
-                          type="number" min={1} max={8} step={1}
+                          type="number" min={1} max={20} step={1}
                           value={cols}
                           onChange={(e) => setDims(Number(e.target.value) || 1, rows)}
                           className={inputCls} style={inputSty}
@@ -7056,7 +7056,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       <div className="flex-1">
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Zeilen</label>
                         <input
-                          type="number" min={1} max={8} step={1}
+                          type="number" min={1} max={20} step={1}
                           value={rows}
                           onChange={(e) => setDims(cols, Number(e.target.value) || 1)}
                           className={inputCls} style={inputSty}

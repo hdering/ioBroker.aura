@@ -43,8 +43,8 @@ export const DEFAULT_UNIVERSAL_GRID: CustomGridDef = {
 export function normalizeGrid(raw: unknown, fallback?: CustomGrid | CustomGridDef): CustomGridDef {
   if (raw && typeof raw === 'object' && !Array.isArray(raw) && 'cells' in raw) {
     const def = raw as CustomGridDef;
-    const cols = Math.max(1, Math.min(8, def.cols || 3));
-    const rows = Math.max(1, Math.min(8, def.rows || 3));
+    const cols = Math.max(1, Math.min(20, def.cols || 3));
+    const rows = Math.max(1, Math.min(20, def.rows || 3));
     const need = cols * rows;
     const cells = (def.cells ?? []).slice(0, need);
     while (cells.length < need) cells.push({ type: 'empty' });
