@@ -186,6 +186,15 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.103 (2026-05-21)
+- docs(custom-layout): add shared doc page for custom grid + cell move/copy
+- fix(custom-layout): close cell context menu on outside click via document listener
+- feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells
+- feat(custom-layout): in-app overwrite dialog for cell drag&drop
+- feat(custom-layout): drag & drop cells in grid editor with overwrite confirm
+- feat(custom-layout): raise grid max from 8x8 to 20x20
+
+
 ### 0.9.102 (2026-05-21)
 Release v0.9.102
 
@@ -285,10 +294,6 @@ Release v0.9.91
 - fix(editor): keep widget type when changing DP; ask before auto-switch on new widgets
 
 
-### 0.9.83 (2026-05-19)
-- feat(weather): pre-populate custom grid from standard layout settings
-
-
 ## License
 
 MIT License
@@ -300,6 +305,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

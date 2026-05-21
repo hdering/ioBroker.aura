@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.83 (2026-05-19)
+- feat(weather): pre-populate custom grid from standard layout settings
+
 ## 0.9.82 (2026-05-18)
 - fix(conditions): hidden+reflow widgets inside groups now hide and slide up
 

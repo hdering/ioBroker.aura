@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.102",
+    "version": "0.9.103",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -105,6 +105,19 @@
       }
     ],
     "news": {
+      "0.9.103": {
+        "en": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20",
+        "de": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20",
+        "ru": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20",
+        "pt": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20",
+        "nl": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20",
+        "fr": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20",
+        "it": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20",
+        "es": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20",
+        "pl": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20",
+        "uk": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20",
+        "zh-cn": "docs(custom-layout): add shared doc page for custom grid + cell move/copy; fix(custom-layout): close cell context menu on outside click via document listener; feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells; feat(custom-layout): in-app overwrite dialog for cell drag&drop; feat(custom-layout): drag & drop cells in grid editor with overwrite confirm; feat(custom-layout): raise grid max from 8x8 to 20x20"
+      },
       "0.9.102": {
         "en": "Release v0.9.102",
         "de": "Release v0.9.102",
@@ -182,19 +195,6 @@
         "pl": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
         "uk": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)",
         "zh-cn": "fix(custom-grid): prevent descender clipping on free-text cells; ci: add dependabot auto-merge workflow (S8913); fix(ci): match ioBroker.example concurrency pattern exactly (E3009)"
-      },
-      "0.9.93": {
-        "en": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
-        "de": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
-        "ru": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
-        "pt": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
-        "nl": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
-        "fr": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
-        "it": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
-        "es": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
-        "pl": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
-        "uk": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)",
-        "zh-cn": "chore(repo): adapter-checker compliance (E3008/E3009/W0050)"
       }
     }
   },
