@@ -14,7 +14,7 @@ import {
   Zap, TrendingUp, SlidersHorizontal, Thermometer, BarChart2, List,
   Clock, CalendarDays, Heading2, Layers2, Cloud, Gauge, Camera, ImageIcon, MonitorDot, Droplets, Truck, AlignJustify, Table2,
   DoorOpen, ShieldAlert, ToggleRight, LineChart, Code2, CalendarClock, Music, CalendarCheck2, Tag, Globe, MousePointerClick, Wind,
-  LayoutGrid, ListChecks, Lightbulb, CircleDot, Timer, /* GalleryHorizontal — re-import when carousel is re-enabled */
+  LayoutGrid, ListChecks, Lightbulb, CircleDot, Timer, ServerCog, /* GalleryHorizontal — re-import when carousel is re-enabled */
   type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -424,6 +424,15 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     addMode: 'free',               widgetGroup: 'special',
     mock: { t: 'Zeitschaltuhr', v: '3 Ereignisse' },
     hint: 'Zeitgesteuerte Ereignisse — Wochentag/Astro/Einmalig/Zeitraum, schreibt Ziel-DP automatisch (Backend-Scheduler)',
+  },
+  {
+    type: 'adapterstatus',
+    label: 'Adapter-Status',       shortLabel: 'Adapter',
+    Icon: ServerCog,               iconName: 'ServerCog', color: '#0ea5e9',
+    defaultW: 10,                  defaultH: 8,
+    addMode: 'free',               widgetGroup: 'special',
+    mock: { t: 'Adapter-Status', v: '' },
+    hint: 'Liste aller ioBroker-Instanzen mit Status, Update-Hinweisen und optionalen Neustart-/Update-Aktionen',
   },
   // Carousel widget disabled — not yet ready for production use.
   // Re-enable by uncommenting; all supporting code (widgetMap, types, i18n,

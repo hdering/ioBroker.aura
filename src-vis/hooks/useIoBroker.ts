@@ -305,6 +305,20 @@ export function setObjectDirect(id: string, obj: object): void {
   getSocket().emit('setObject', id, obj, () => { /* ignore result */ });
 }
 
+/** Merge a partial object patch into an existing ioBroker object (used to toggle common.enabled). */
+export function extendObjectDirect(id: string, patch: object): Promise<void> {
+  return new Promise((resolve) => {
+    getSocket().emit('extendObject', id, patch, () => resolve());
+  });
+}
+
+/** Send a command/message to another adapter instance or host (sendTo). */
+export function sendToDirect<T = unknown>(target: string, command: string, payload: unknown): Promise<T | null> {
+  return new Promise((resolve) => {
+    getSocket().emit('sendTo', target, command, payload, (result: unknown) => resolve((result as T) ?? null));
+  });
+}
+
 /** Delete an ioBroker object by ID. Returns a promise that resolves when done. */
 export function deleteObjectDirect(id: string): Promise<void> {
   return new Promise((resolve) => {

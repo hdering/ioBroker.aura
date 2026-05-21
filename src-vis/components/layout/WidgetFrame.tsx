@@ -85,6 +85,7 @@ import { LightWidget } from '../widgets/LightWidget';
 import { CarouselWidget } from '../widgets/CarouselWidget';
 import { KnobWidget } from '../widgets/KnobWidget';
 import { TimerWidget } from '../widgets/TimerWidget';
+import { AdapterStatusWidget } from '../widgets/AdapterStatusWidget';
 import { TimerConfig } from '../config/TimerConfig';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
@@ -155,6 +156,7 @@ function getWidgetMap() {
     carousel:      CarouselWidget,
     knob:          KnobWidget,
     timer:         TimerWidget,
+    adapterstatus: AdapterStatusWidget,
   } as const;
 }
 
@@ -3303,7 +3305,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           onClose={() => openPanelFor(null)}
         >
           {/* ─── 1. Name / Titel ──────────────────────────────────────────── */}
-          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer'].includes(config.type) && (<>
+          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer', 'adapterstatus'].includes(config.type) && (<>
           <div className="space-y-2.5">
             <div>
               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
@@ -3414,7 +3416,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           <div className="h-px" style={{ background: 'var(--app-border)' }} />
           </>)}
 
-          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer'].includes(config.type) && (<>
+          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer', 'adapterstatus'].includes(config.type) && (<>
           {/* ─── 2. Stil (eingeklappt) ─────────────────────────────────────── */}
           <details className="group">
             <summary className="flex items-center justify-between cursor-pointer list-none select-none">
@@ -3464,7 +3466,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
           {/* ─── 3. Widget-Typ · Layout · Icon ─────────────────────────────── */}
           <div className="space-y-2.5">
-            {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer'].includes(config.type) && (
+            {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer', 'adapterstatus'].includes(config.type) && (
               <div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
                 <input
@@ -3499,7 +3501,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             </div>
 
             {/* ── Layout & Sichtbare Felder (kombiniert, eingeklappt) ── */}
-            {config.type !== 'header' && config.type !== 'iframe' && config.type !== 'jsontable' && config.type !== 'html' && (() => {
+            {config.type !== 'header' && config.type !== 'iframe' && config.type !== 'jsontable' && config.type !== 'html' && config.type !== 'adapterstatus' && (() => {
               const activeLayout = config.layout ?? 'default';
               const layouts: { value: string; label: string }[] = config.type === 'camera' ? [
                 { value: 'minimal', label: 'Minimal' },
@@ -3750,7 +3752,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             })()}
 
             {/* Icon picker (not for stateimage/windowcontact – icons are per-state; not for shutter/switch/dimmer/slider – in Darstellung) */}
-            {config.type !== 'stateimage' && config.type !== 'windowcontact' && !['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer'].includes(config.type) && (() => {
+            {config.type !== 'stateimage' && config.type !== 'windowcontact' && !['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer', 'adapterstatus'].includes(config.type) && (() => {
               const currentIconName = config.options?.icon as string | undefined;
               const CurrentIcon = currentIconName
                 ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))
@@ -3783,7 +3785,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             })()}
 
             {/* Icon-Größe */}
-            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group', 'carousel', 'mediaplayer', 'shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'climate', 'windowcontact', 'binarysensor', 'stateimage', 'button', 'chips', 'httpRequest', 'datepicker', 'light', 'knob', 'timer'].includes(config.type) && (() => {
+            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group', 'carousel', 'mediaplayer', 'shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'climate', 'windowcontact', 'binarysensor', 'stateimage', 'button', 'chips', 'httpRequest', 'datepicker', 'light', 'knob', 'timer', 'adapterstatus'].includes(config.type) && (() => {
               const o = config.options ?? {};
               const iconSize = (o.iconSize as number) || 20;
               const displayIconSize = draftIconSize ?? iconSize;
@@ -3807,7 +3809,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           </div>
 
           {/* ─── DARSTELLUNG ─────────────────────────────────────────────────── */}
-          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer'].includes(config.type) && (() => {
+          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer', 'adapterstatus'].includes(config.type) && (() => {
             const o = config.options ?? {};
             const setO = (patch: Record<string, unknown>) =>
               onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -4099,7 +4101,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           })()}
 
           {/* ─── ERWEITERT ───────────────────────────────────────────────────── */}
-          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer'].includes(config.type) && (
+          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer', 'adapterstatus'].includes(config.type) && (
             <details className="group">
               <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                 <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Erweitert</span>
@@ -4216,7 +4218,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 <CalendarEditPanel config={config} onConfigChange={onConfigChange} />
               )}
 
-              {config.type !== 'list' && config.type !== 'clock' && config.type !== 'calendar' && config.type !== 'header' && config.type !== 'group' && config.type !== 'button' && config.type !== 'evcc' && config.type !== 'echart' && config.type !== 'weather' && config.type !== 'camera' && config.type !== 'autolist' && config.type !== 'image' && config.type !== 'iframe' && config.type !== 'trash' && config.type !== 'trashSchedule' && config.type !== 'echartsPreset' && config.type !== 'html' && config.type !== 'mediaplayer' && config.type !== 'chips' && config.type !== 'httpRequest' && config.type !== 'universal' && config.type !== 'timer' && (
+              {config.type !== 'list' && config.type !== 'clock' && config.type !== 'calendar' && config.type !== 'header' && config.type !== 'group' && config.type !== 'button' && config.type !== 'evcc' && config.type !== 'echart' && config.type !== 'weather' && config.type !== 'camera' && config.type !== 'autolist' && config.type !== 'image' && config.type !== 'iframe' && config.type !== 'trash' && config.type !== 'trashSchedule' && config.type !== 'echartsPreset' && config.type !== 'html' && config.type !== 'mediaplayer' && config.type !== 'chips' && config.type !== 'httpRequest' && config.type !== 'universal' && config.type !== 'timer' && config.type !== 'adapterstatus' && (
                 <div>
                   <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                     {config.type === 'thermostat'     ? 'Soll-Temperatur Datenpunkt' :
@@ -5566,6 +5568,62 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               {config.type === 'trashSchedule' && (
                 <TrashScheduleConfig config={config} onConfigChange={onConfigChange} />
               )}
+
+              {/* ── Adapter-Status config ── */}
+              {config.type === 'adapterstatus' && (() => {
+                const o = config.options ?? {};
+                const set = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const aCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
+                const aSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                const filterMode = (o.filterMode as string) ?? 'all';
+                const sortBy     = (o.sortBy     as string) ?? 'name';
+                const Toggle = ({ label, k, def, hint }: { label: string; k: string; def?: boolean; hint?: string }) => {
+                  const val = (o[k] as boolean | undefined) ?? def ?? false;
+                  return (
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{label}</label>
+                        {hint && <span className="text-[10px] opacity-60" style={{ color: 'var(--text-secondary)' }}>{hint}</span>}
+                      </div>
+                      <button
+                        onClick={() => set({ [k]: !val })}
+                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                        style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}>
+                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                          style={{ left: val ? '18px' : '2px' }} />
+                      </button>
+                    </div>
+                  );
+                };
+                return (
+                  <>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Filter</label>
+                      <select value={filterMode} onChange={(e) => set({ filterMode: e.target.value })} className={aCls} style={aSty}>
+                        <option value="all">Alle anzeigen</option>
+                        <option value="enabled">Nur aktivierte</option>
+                        <option value="running">Nur laufende</option>
+                        <option value="stopped">Nur gestoppte</option>
+                        <option value="updates">Nur mit Update</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Sortierung</label>
+                      <select value={sortBy} onChange={(e) => set({ sortBy: e.target.value })} className={aCls} style={aSty}>
+                        <option value="name">Nach Name</option>
+                        <option value="status">Nach Status (laufend zuerst)</option>
+                      </select>
+                    </div>
+                    <Toggle label="Suchfeld anzeigen" k="showSearch" def={true} hint="Erscheint ab > 5 Instanzen" />
+                    <Toggle label="Version anzeigen"  k="showVersion" def={true} />
+                    <Toggle label="Kompakte Darstellung" k="compact"   def={false} hint="Untertitel/Beschreibung ausblenden" />
+                    <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
+                    <Toggle label="Neustart erlauben"        k="allowRestart" def={false} hint="Button zum Neustarten der Instanz" />
+                    <Toggle label="Update-Installation erlauben" k="allowUpdate"  def={false} hint="Button zum Installieren verfügbarer Updates (Host-Befehl)" />
+                  </>
+                );
+              })()}
 
               {config.type === 'light' && (() => {
                 const o = config.options ?? {};

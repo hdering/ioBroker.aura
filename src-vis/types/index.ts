@@ -55,7 +55,8 @@ export type WidgetType =
   | 'light'
   | 'carousel'
   | 'knob'
-  | 'timer';
+  | 'timer'
+  | 'adapterstatus';
 
 export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda' | 'flow' | 'battery' | 'production' | 'consumption' | 'loadpoints' | 'custom' | 'count'
   | 'light-all' | 'light-brightness' | 'light-color' | 'light-temperature' | 'light-custom'
