@@ -2623,6 +2623,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   const [wcImagePickerState, setWcImagePickerState] = useState<'closed' | 'tilted' | 'open' | null>(null);
   const [siImagePickerState, setSiImagePickerState] = useState<'true' | 'false' | null>(null);
   const [selectedCustomCell,   setSelectedCustomCell]   = useState<number | null>(null);
+  const [customCellDragIdx,    setCustomCellDragIdx]    = useState<number | null>(null);
+  const [customCellDragOver,   setCustomCellDragOver]   = useState<number | null>(null);
   const [customCellPickerOpen,      setCustomCellPickerOpen]      = useState(false);
   const [customCellImagePickerOpen, setCustomCellImagePickerOpen] = useState(false);
   const [customCellIconPicker, setCustomCellIconPicker] = useState<'iconName' | 'trueIcon' | 'falseIcon' | null>(null);
@@ -7064,23 +7066,65 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       </div>
                     </div>
 
-                    {/* Cell picker — dynamic grid */}
+                    {/* Cell picker — dynamic grid (drag & drop to move cells) */}
                     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 4 }}>
                       {cells.map((cell, i) => {
                         const active = sel === i;
                         const row = Math.floor(i / cols) + 1;
                         const col = (i % cols) + 1;
+                        const isDragging = customCellDragIdx === i;
+                        const isDragOver  = customCellDragOver === i && customCellDragIdx !== null && customCellDragIdx !== i;
+                        const canDrag = cell.type !== 'empty';
+                        const borderColor = isDragOver ? 'var(--accent)' : active ? 'var(--accent)' : 'var(--app-border)';
                         return (
                           <button
                             key={i}
+                            draggable={canDrag}
+                            onDragStart={(e) => {
+                              if (!canDrag) { e.preventDefault(); return; }
+                              setCustomCellDragIdx(i);
+                              e.dataTransfer.effectAllowed = 'move';
+                              try { e.dataTransfer.setData('text/plain', String(i)); } catch { /* noop */ }
+                            }}
+                            onDragOver={(e) => {
+                              if (customCellDragIdx === null || customCellDragIdx === i) return;
+                              e.preventDefault();
+                              e.dataTransfer.dropEffect = 'move';
+                              if (customCellDragOver !== i) setCustomCellDragOver(i);
+                            }}
+                            onDragLeave={() => { if (customCellDragOver === i) setCustomCellDragOver(null); }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const from = customCellDragIdx;
+                              setCustomCellDragIdx(null);
+                              setCustomCellDragOver(null);
+                              if (from === null || from === i) return;
+                              const targetCell = cells[i];
+                              const sourceCell = cells[from];
+                              if (targetCell && targetCell.type !== 'empty') {
+                                const targetLabel = `${Math.floor(i / cols) + 1}/${(i % cols) + 1}`;
+                                if (!window.confirm(`Zelle ${targetLabel} enthält bereits "${CELL_LABELS[targetCell.type] ?? targetCell.type}". Überschreiben?`)) return;
+                              }
+                              const nextCells = cells.map((c, idx) => {
+                                if (idx === i)    return sourceCell;
+                                if (idx === from) return { type: 'empty' as const };
+                                return c;
+                              });
+                              writeGrid({ ...grid, cells: nextCells });
+                              if (selectedCustomCell === from) setSelectedCustomCell(i);
+                              else if (selectedCustomCell === i) setSelectedCustomCell(null);
+                            }}
+                            onDragEnd={() => { setCustomCellDragIdx(null); setCustomCellDragOver(null); }}
                             onClick={() => setSelectedCustomCell(active ? null : i)}
                             className="rounded text-[10px] transition-colors"
                             style={{
                               background: active ? 'var(--accent)' : 'var(--widget-bg)',
                               color:      active ? '#fff' : 'var(--text-secondary)',
-                              border:     `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                              border:     `${isDragOver ? 2 : 1}px solid ${borderColor}`,
                               minHeight: 36,
                               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
+                              opacity: isDragging ? 0.4 : 1,
+                              cursor: canDrag ? 'grab' : 'pointer',
                             }}
                           >
                             <span>{CELL_LABELS[cell.type] ?? cell.type}</span>
