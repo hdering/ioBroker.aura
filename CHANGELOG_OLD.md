@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.95 (2026-05-20)
+- feat(list): toggle row dividers in static and auto list widgets
+- feat(static-list): drag-handle to reorder data point entries
+
 ## 0.9.94 (2026-05-20)
 - fix(custom-grid): prevent descender clipping on free-text cells
 - ci: add dependabot auto-merge workflow (S8913)

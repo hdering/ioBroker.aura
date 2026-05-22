@@ -186,6 +186,15 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.115 (2026-05-22)
+- fix(value): isolate htmlTemplate textarea from parent re-renders
+- fix(value): defer htmlTemplate select() and add Copy button fallback
+- feat(value): double-click on htmlTemplate textarea selects all
+- fix(value): htmlTemplate as textarea for proper copy/select behavior
+- fix(value): htmlTemplate replaces only value block, not whole widget
+- feat(clock,value): font-size options for time, date, custom, value
+
+
 ### 0.9.114 (2026-05-22)
 - feat(timer): allow per-event value override (admin-gated)
 
@@ -280,11 +289,6 @@ Release v0.9.97
 - feat(weather): bar-only temp-strahl variant in custom layout
 
 
-### 0.9.95 (2026-05-20)
-- feat(list): toggle row dividers in static and auto list widgets
-- feat(static-list): drag-handle to reorder data point entries
-
-
 ## License
 
 MIT License
@@ -296,6 +300,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
