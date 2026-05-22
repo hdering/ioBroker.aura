@@ -4365,11 +4365,28 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               )}
               {config.type === 'value' && (
                 <div>
-                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>HTML-Template (optional)</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>HTML-Template (optional)</label>
+                    {((config.options?.htmlTemplate as string) ?? '').length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard((config.options?.htmlTemplate as string) ?? '')}
+                        className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-80 flex items-center gap-1"
+                        style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+                        title="In Zwischenablage kopieren"
+                      >
+                        <Copy size={10} /> Kopieren
+                      </button>
+                    )}
+                  </div>
                   <textarea
                     value={(config.options?.htmlTemplate as string) ?? ''}
                     onChange={(e) => onConfigChange({ ...config, options: { ...config.options, htmlTemplate: e.target.value || undefined } })}
-                    onDoubleClick={(e) => (e.currentTarget as HTMLTextAreaElement).select()}
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      const el = e.currentTarget as HTMLTextAreaElement;
+                      requestAnimationFrame(() => el.select());
+                    }}
                     placeholder='z.B. <b style="color:var(--accent)">{dp}</b> °C'
                     rows={3}
                     spellCheck={false}
