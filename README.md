@@ -186,6 +186,11 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.116 (2026-05-22)
+- fix(socket): refuse subscribe for invalid ID patterns
+- fix(iframe): guard iframeUrlDp against URL strings
+
+
 ### 0.9.115 (2026-05-22)
 - fix(value): isolate htmlTemplate textarea from parent re-renders
 - fix(value): defer htmlTemplate select() and add Copy button fallback
@@ -285,10 +290,6 @@ Release v0.9.102
 Release v0.9.97
 
 
-### 0.9.96 (2026-05-20)
-- feat(weather): bar-only temp-strahl variant in custom layout
-
-
 ## License
 
 MIT License
@@ -300,6 +301,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

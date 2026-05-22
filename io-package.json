@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.115",
+    "version": "0.9.116",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.116": {
+        "en": "fix(socket): refuse subscribe for invalid ID patterns; fix(iframe): guard iframeUrlDp against URL strings",
+        "de": "fix(socket): refuse subscribe for invalid ID patterns; fix(iframe): guard iframeUrlDp against URL strings",
+        "ru": "fix(socket): refuse subscribe for invalid ID patterns; fix(iframe): guard iframeUrlDp against URL strings",
+        "pt": "fix(socket): refuse subscribe for invalid ID patterns; fix(iframe): guard iframeUrlDp against URL strings",
+        "nl": "fix(socket): refuse subscribe for invalid ID patterns; fix(iframe): guard iframeUrlDp against URL strings",
+        "fr": "fix(socket): refuse subscribe for invalid ID patterns; fix(iframe): guard iframeUrlDp against URL strings",
+        "it": "fix(socket): refuse subscribe for invalid ID patterns; fix(iframe): guard iframeUrlDp against URL strings",
+        "es": "fix(socket): refuse subscribe for invalid ID patterns; fix(iframe): guard iframeUrlDp against URL strings",
+        "pl": "fix(socket): refuse subscribe for invalid ID patterns; fix(iframe): guard iframeUrlDp against URL strings",
+        "uk": "fix(socket): refuse subscribe for invalid ID patterns; fix(iframe): guard iframeUrlDp against URL strings",
+        "zh-cn": "fix(socket): refuse subscribe for invalid ID patterns; fix(iframe): guard iframeUrlDp against URL strings"
+      },
       "0.9.115": {
         "en": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value",
         "de": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value",
@@ -183,19 +196,6 @@
         "pl": "feat(universal-widget): slider cell can show DP value at left/right/top/bottom",
         "uk": "feat(universal-widget): slider cell can show DP value at left/right/top/bottom",
         "zh-cn": "feat(universal-widget): slider cell can show DP value at left/right/top/bottom"
-      },
-      "0.9.109": {
-        "en": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
-        "de": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
-        "ru": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
-        "pt": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
-        "nl": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
-        "fr": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
-        "it": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
-        "es": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
-        "pl": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
-        "uk": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output",
-        "zh-cn": "feat(adapter-status): add frontend filter pills (admin-toggleable); chore(adapter-status): remove backend-health ping, status row, and debug console output"
       }
     }
   },
