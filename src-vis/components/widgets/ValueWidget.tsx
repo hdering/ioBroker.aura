@@ -53,6 +53,13 @@ export function ValueWidget({ config }: WidgetProps) {
 
   const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
+  const htmlValueNode = htmlTemplate ? (
+    <div
+      // eslint-disable-next-line react/no-danger
+      dangerouslySetInnerHTML={{ __html: htmlTemplate.replace(/\{dp\}/g, displayValue) }}
+    />
+  ) : null;
+
   // --- CUSTOM ---
   if (layout === 'custom') return (
     <CustomGridView
@@ -70,17 +77,6 @@ export function ValueWidget({ config }: WidgetProps) {
     />
   );
 
-  // HTML template mode: replaces the entire widget content
-  if (htmlTemplate) {
-    return (
-      <div
-        className="h-full w-full"
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: htmlTemplate.replace(/\{dp\}/g, displayValue) }}
-      />
-    );
-  }
-
   // --- CARD: Akzent-Leiste links, großer Wert zentriert ---
   if (layout === 'card') {
     return (
@@ -94,10 +90,12 @@ export function ValueWidget({ config }: WidgetProps) {
             </div>
           )}
           {showValue && (
-            <div>
-              <span className={`${valueSizeCls} font-bold`} style={{ color: valueColor, ...valueSizeStyle }}>{displayValue}</span>
-              {showUnit && unit && <span className="text-lg ml-1 font-medium" style={{ color: accentColor }}>{unit}</span>}
-            </div>
+            htmlValueNode ?? (
+              <div>
+                <span className={`${valueSizeCls} font-bold`} style={{ color: valueColor, ...valueSizeStyle }}>{displayValue}</span>
+                {showUnit && unit && <span className="text-lg ml-1 font-medium" style={{ color: accentColor }}>{unit}</span>}
+              </div>
+            )
           )}
         </div>
         <StatusBadges config={config} />
@@ -116,9 +114,11 @@ export function ValueWidget({ config }: WidgetProps) {
           </div>
         )}
         {showValue && (
-          <span className={`${valueSizeCls} font-bold shrink-0`} style={{ color: valueColor, ...valueSizeStyle }}>
-            {displayValue}{showUnit && unit && <span className="text-sm ml-0.5" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
-          </span>
+          htmlValueNode ?? (
+            <span className={`${valueSizeCls} font-bold shrink-0`} style={{ color: valueColor, ...valueSizeStyle }}>
+              {displayValue}{showUnit && unit && <span className="text-sm ml-0.5" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
+            </span>
+          )
         )}
         <StatusBadges config={config} />
       </div>
@@ -130,10 +130,12 @@ export function ValueWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full" style={{ position: 'relative' }}>
         {showValue && (
-          <div className="flex items-baseline gap-1 leading-none">
-            <span className={`${valueSizeCls} font-bold`} style={{ color: accentColor, ...valueSizeStyle }}>{displayValue}</span>
-            {showUnit && unit && <span className="text-lg font-medium" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
-          </div>
+          htmlValueNode ?? (
+            <div className="flex items-baseline gap-1 leading-none">
+              <span className={`${valueSizeCls} font-bold`} style={{ color: accentColor, ...valueSizeStyle }}>{displayValue}</span>
+              {showUnit && unit && <span className="text-lg font-medium" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
+            </div>
+          )
         )}
         {showTitle && <span className="text-xs mt-2 truncate max-w-full" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
         <StatusBadges config={config} />
@@ -155,10 +157,12 @@ export function ValueWidget({ config }: WidgetProps) {
         </div>
       )}
       {showValue && (
-        <div className="flex items-end gap-1.5">
-          <span className={`${valueSizeCls} font-bold`} style={{ color: valueColor, ...valueSizeStyle }}>{displayValue}</span>
-          {showUnit && unit && <span className="text-sm mb-0.5" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
-        </div>
+        htmlValueNode ?? (
+          <div className="flex items-end gap-1.5">
+            <span className={`${valueSizeCls} font-bold`} style={{ color: valueColor, ...valueSizeStyle }}>{displayValue}</span>
+            {showUnit && unit && <span className="text-sm mb-0.5" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
+          </div>
+        )
       )}
       <StatusBadges config={config} />
     </div>
