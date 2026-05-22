@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.94 (2026-05-20)
+- fix(custom-grid): prevent descender clipping on free-text cells
+- ci: add dependabot auto-merge workflow (S8913)
+- fix(ci): match ioBroker.example concurrency pattern exactly (E3009)
+
 ## 0.9.93 (2026-05-20)
 - chore(repo): adapter-checker compliance (E3008/E3009/W0050)
 

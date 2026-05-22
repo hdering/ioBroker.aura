@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.113",
+    "version": "0.9.114",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.114": {
+        "en": "feat(timer): allow per-event value override (admin-gated)",
+        "de": "feat(timer): allow per-event value override (admin-gated)",
+        "ru": "feat(timer): allow per-event value override (admin-gated)",
+        "pt": "feat(timer): allow per-event value override (admin-gated)",
+        "nl": "feat(timer): allow per-event value override (admin-gated)",
+        "fr": "feat(timer): allow per-event value override (admin-gated)",
+        "it": "feat(timer): allow per-event value override (admin-gated)",
+        "es": "feat(timer): allow per-event value override (admin-gated)",
+        "pl": "feat(timer): allow per-event value override (admin-gated)",
+        "uk": "feat(timer): allow per-event value override (admin-gated)",
+        "zh-cn": "feat(timer): allow per-event value override (admin-gated)"
+      },
       "0.9.113": {
         "en": "fix(widgets): guard null state in last-change subscribers",
         "de": "fix(widgets): guard null state in last-change subscribers",
@@ -183,19 +196,6 @@
         "pl": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura",
         "uk": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura",
         "zh-cn": "fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura"
-      },
-      "0.9.107": {
-        "en": "fix(adapter-status): better aura detection + retry button + console diagnostics",
-        "de": "fix(adapter-status): better aura detection + retry button + console diagnostics",
-        "ru": "fix(adapter-status): better aura detection + retry button + console diagnostics",
-        "pt": "fix(adapter-status): better aura detection + retry button + console diagnostics",
-        "nl": "fix(adapter-status): better aura detection + retry button + console diagnostics",
-        "fr": "fix(adapter-status): better aura detection + retry button + console diagnostics",
-        "it": "fix(adapter-status): better aura detection + retry button + console diagnostics",
-        "es": "fix(adapter-status): better aura detection + retry button + console diagnostics",
-        "pl": "fix(adapter-status): better aura detection + retry button + console diagnostics",
-        "uk": "fix(adapter-status): better aura detection + retry button + console diagnostics",
-        "zh-cn": "fix(adapter-status): better aura detection + retry button + console diagnostics"
       }
     }
   },
