@@ -2760,7 +2760,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
     });
 
     return subscribeStateDirect(id, (s) => {
-      setLastChangedTs(s.lc > 0 ? s.lc : s.ts);
+      if (s) setLastChangedTs(s.lc > 0 ? s.lc : s.ts);
     });
   }, [config.datapoint, config.options?.lastChangeDatapoint]);
 

@@ -522,7 +522,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const unsubs = entries.map(e =>
       subscribe(e.id, s => {
         setStates(prev => ({ ...prev, [e.id]: s }));
-        setLastChangedTs(prev => Math.max(prev, s.lc > 0 ? s.lc : s.ts));
+        if (s) setLastChangedTs(prev => Math.max(prev, s.lc > 0 ? s.lc : s.ts));
       })
     );
     ensureDatapointCache().then(cache => {
