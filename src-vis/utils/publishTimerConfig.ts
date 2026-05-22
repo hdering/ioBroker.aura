@@ -41,6 +41,7 @@ export interface TimerConfigPayload {
   events: TimerEvent[];
   targetDp?: string;       // widget-level: where to write when an event fires
   value?: string;          // widget-level: what to write (parsed bool/number/string)
+  allowEventValue?: boolean; // when true, backend honors per-event ev.value overrides
   holidaysDp?: string;
   vacationDp?: string;
   title?: string;

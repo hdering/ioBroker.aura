@@ -122,10 +122,11 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
   // to the publish effect on every render, which would re-publish on every tick.
   const events = useMemo(() => (o.events as TimerEvent[] | undefined) ?? [], [o.events]);
   const masterEnabled = (o.enabled as boolean | undefined)          ?? true;
-  const targetDp     = o.targetDp   as string | undefined;
-  const targetValue  = o.value      as string | undefined;
-  const holidaysDp   = o.holidaysDp as string | undefined;
-  const vacationDp   = o.vacationDp as string | undefined;
+  const targetDp        = o.targetDp        as string | undefined;
+  const targetValue     = o.value           as string | undefined;
+  const allowEventValue = o.allowEventValue === true;
+  const holidaysDp      = o.holidaysDp      as string | undefined;
+  const vacationDp      = o.vacationDp      as string | undefined;
   const showTitle    = o.showTitle !== false;
   const showIcon     = o.showIcon  !== false;
   const showMaster   = o.showMasterSwitch !== false;
@@ -149,6 +150,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
       events,
       targetDp,
       value: targetValue,
+      allowEventValue,
       holidaysDp,
       vacationDp,
       title: config.title,
@@ -158,7 +160,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
       publishTimerConfig(config.id, config.title || 'Zeitschaltuhr', payload);
       lastPublishedRef.current = serialized;
     }
-  }, [config.id, config.title, events, targetDp, targetValue, holidaysDp, vacationDp]);
+  }, [config.id, config.title, events, targetDp, targetValue, allowEventValue, holidaysDp, vacationDp]);
 
   const lastEnabledRef = useRef<boolean | null>(null);
   useEffect(() => {
@@ -310,6 +312,8 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const modal = editing && (
     <TimerEventModal
       initial={editing === 'new' ? newEvent() : editing}
+      allowValue={allowEventValue}
+      defaultValue={targetValue}
       onSave={saveFromModal}
       onCancel={() => setEditing(null)}
       onDelete={editing === 'new' ? undefined : deleteFromModal}

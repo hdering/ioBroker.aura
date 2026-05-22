@@ -115,6 +115,7 @@ export interface TimerEvent {
   filter: TimerFilter;
   blockFromMin?: number;        // filter='blocked': start of blocked window (minutes since 00:00)
   blockToMin?: number;          // filter='blocked': end of blocked window
+  value?: string;               // per-event override — only honored when allowEventValue is on
 }
 
 /**
@@ -130,6 +131,7 @@ export interface TimerWidgetOptions {
   events?: TimerEvent[];
   targetDp?: string;            // datapoint written when an event fires (admin-set)
   value?: string;               // value written (parsed to bool/number/string)
+  allowEventValue?: boolean;    // when true, frontend modal shows per-event value field (overrides widget value)
   holidaysDp?: string;          // optional DP (JSON array of YYYY-MM-DD strings) — special days
   vacationDp?: string;          // optional DP (JSON array of YYYY-MM-DD strings) — vacation days
   stateBaseId?: string;         // the timers.<widgetId> base path used by the backend scheduler

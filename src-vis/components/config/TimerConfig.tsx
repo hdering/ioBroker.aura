@@ -30,13 +30,14 @@ const hintStyle: React.CSSProperties = { color: 'var(--text-secondary)', opacity
 
 export function TimerConfig({ config, onConfigChange }: Props) {
   const o = config.options ?? {};
-  const targetDp   = (o.targetDp as string | undefined)   ?? '';
-  const value      = (o.value as string | undefined)      ?? 'true';
-  const holidaysDp = (o.holidaysDp as string | undefined) ?? '';
-  const vacationDp = (o.vacationDp as string | undefined) ?? '';
-  const showMaster = o.showMasterSwitch !== false;
-  const showEvents = o.showEvents !== false;
-  const showAdd    = o.showAddButton !== false;
+  const targetDp        = (o.targetDp as string | undefined)   ?? '';
+  const value           = (o.value as string | undefined)      ?? 'true';
+  const allowEventValue = o.allowEventValue === true;
+  const holidaysDp      = (o.holidaysDp as string | undefined) ?? '';
+  const vacationDp      = (o.vacationDp as string | undefined) ?? '';
+  const showMaster      = o.showMasterSwitch !== false;
+  const showEvents      = o.showEvents !== false;
+  const showAdd         = o.showAddButton !== false;
 
   const [pickerTarget, setPickerTarget] = useState<PickerTarget | null>(null);
 
@@ -120,6 +121,21 @@ export function TimerConfig({ config, onConfigChange }: Props) {
             <p className={hintCls} style={hintStyle}>
               {'Wird automatisch als Boolean / Zahl / Text geparst. Bei „Zeitraum“-Ereignissen wird am Ende der invertierte Wert geschrieben.'}
             </p>
+          </div>
+
+          <div className="flex items-center justify-between pt-1">
+            <div className="min-w-0 pr-2">
+              <p className="text-[11px]" style={{ color: 'var(--text-primary)' }}>Wert pro Ereignis erlauben</p>
+              <p className={hintCls} style={hintStyle}>
+                Anwender darf pro Ereignis einen eigenen Wert setzen (überschreibt den Standardwert).
+              </p>
+            </div>
+            <button onClick={() => setOpts({ allowEventValue: !allowEventValue })}
+              className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+              style={{ background: allowEventValue ? 'var(--accent)' : 'var(--app-border)' }}>
+              <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                style={{ left: allowEventValue ? '14px' : '2px' }} />
+            </button>
           </div>
         </div>
 

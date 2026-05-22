@@ -13,6 +13,10 @@ import { usePortalTarget, usePortalThemeVars } from '../../contexts/PortalTarget
 
 interface Props {
   initial: TimerEvent;
+  /** Admin opt-in: when true, the modal shows a per-event value override field. */
+  allowValue?: boolean;
+  /** Widget-level default value, shown as placeholder in the per-event field. */
+  defaultValue?: string;
   onSave:   (ev: TimerEvent) => void;
   onCancel: () => void;
   onDelete?: () => void;       // only shown when editing an existing event
@@ -80,7 +84,7 @@ function freshTrigger(kind: TimerTrigger['kind']): TimerTrigger {
   return { kind: 'range', fromIso: isoNow, toIso: isoEnd };
 }
 
-export function TimerEventModal({ initial, onSave, onCancel, onDelete }: Props) {
+export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onCancel, onDelete }: Props) {
   const [event, setEvent] = useState<TimerEvent>(initial);
 
   // Close on ESC
@@ -276,6 +280,21 @@ export function TimerEventModal({ initial, onSave, onCancel, onDelete }: Props) 
                 </div>
               )}
             </div>
+
+            {/* Per-event value override (only when admin opted in) */}
+            {allowValue && (
+              <div>
+                <label className={labelCls} style={labelStyle}>Wert beim Auslösen</label>
+                <input type="text"
+                  value={event.value ?? ''}
+                  onChange={(e) => patch({ value: e.target.value })}
+                  placeholder={defaultValue ? `Standard: ${defaultValue}` : 'true / false / 50 / Text'}
+                  className={inputCls} style={inputStyle} />
+                <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                  Leer lassen, um den Standardwert zu verwenden. Wird als Boolean / Zahl / Text geparst.
+                </p>
+              </div>
+            )}
 
           </div>
 

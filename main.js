@@ -1108,7 +1108,8 @@ class Aura extends utils.Adapter {
       if (!payload || !Array.isArray(payload.events)) continue;
       const targetDp = payload.targetDp;
       if (!targetDp) continue;                            // admin hasn't configured the target yet
-      const baseValue = payload.value != null ? payload.value : 'true';
+      const widgetBaseValue = payload.value != null ? payload.value : 'true';
+      const allowEventValue = payload.allowEventValue === true;
 
       const holidays = await this._resolveSpecialDays(payload.holidaysDp);
       const vacation = await this._resolveSpecialDays(payload.vacationDp);
@@ -1150,6 +1151,12 @@ class Aura extends utils.Adapter {
           if (c.ts < winStart || c.ts > now.getTime()) continue;
           if (this._timerFired.has(c.key)) continue;
           if (!await this._filterPasses(ev, now, holidays, vacation)) continue;
+
+          // Per-event override only honored when admin opted in; empty string falls back too.
+          const evValue = allowEventValue && typeof ev.value === 'string' && ev.value !== ''
+            ? ev.value
+            : null;
+          const baseValue = evValue != null ? evValue : widgetBaseValue;
 
           let writeVal;
           if (c.invert) {
