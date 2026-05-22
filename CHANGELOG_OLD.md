@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.93 (2026-05-20)
+- chore(repo): adapter-checker compliance (E3008/E3009/W0050)
+
 ## 0.9.92 (2026-05-20)
 Release v0.9.92
 

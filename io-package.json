@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.112",
+    "version": "0.9.113",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.113": {
+        "en": "fix(widgets): guard null state in last-change subscribers",
+        "de": "fix(widgets): guard null state in last-change subscribers",
+        "ru": "fix(widgets): guard null state in last-change subscribers",
+        "pt": "fix(widgets): guard null state in last-change subscribers",
+        "nl": "fix(widgets): guard null state in last-change subscribers",
+        "fr": "fix(widgets): guard null state in last-change subscribers",
+        "it": "fix(widgets): guard null state in last-change subscribers",
+        "es": "fix(widgets): guard null state in last-change subscribers",
+        "pl": "fix(widgets): guard null state in last-change subscribers",
+        "uk": "fix(widgets): guard null state in last-change subscribers",
+        "zh-cn": "fix(widgets): guard null state in last-change subscribers"
+      },
       "0.9.112": {
         "en": "feat(chart): option to hide X-axis in simple and advanced chart widgets",
         "de": "feat(chart): option to hide X-axis in simple and advanced chart widgets",
@@ -183,19 +196,6 @@
         "pl": "fix(adapter-status): better aura detection + retry button + console diagnostics",
         "uk": "fix(adapter-status): better aura detection + retry button + console diagnostics",
         "zh-cn": "fix(adapter-status): better aura detection + retry button + console diagnostics"
-      },
-      "0.9.106": {
-        "en": "feat(adapter-status): backend ping + timeout + visible backend health row",
-        "de": "feat(adapter-status): backend ping + timeout + visible backend health row",
-        "ru": "feat(adapter-status): backend ping + timeout + visible backend health row",
-        "pt": "feat(adapter-status): backend ping + timeout + visible backend health row",
-        "nl": "feat(adapter-status): backend ping + timeout + visible backend health row",
-        "fr": "feat(adapter-status): backend ping + timeout + visible backend health row",
-        "it": "feat(adapter-status): backend ping + timeout + visible backend health row",
-        "es": "feat(adapter-status): backend ping + timeout + visible backend health row",
-        "pl": "feat(adapter-status): backend ping + timeout + visible backend health row",
-        "uk": "feat(adapter-status): backend ping + timeout + visible backend health row",
-        "zh-cn": "feat(adapter-status): backend ping + timeout + visible backend health row"
       }
     }
   },
