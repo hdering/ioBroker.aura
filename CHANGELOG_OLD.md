@@ -1,5 +1,13 @@
 # Changelog (older entries)
 
+## 0.9.98 (2026-05-20)
+- fix(timer): read-only in edit mode, frontend save flush, no object warnings
+- fix(timer): icon size, hide DP picker, custom layout, hide-able master
+- fix(timer): adopt template config panel layout
+- fix(timer): non-dismissible backdrop on event modal
+- fix(timer): admin-only target DP, layout list, modal theme, DP examples
+- feat(timer): Zeitschaltuhr widget with backend scheduler
+
 ## 0.9.97 (2026-05-20)
 Release v0.9.97
 
