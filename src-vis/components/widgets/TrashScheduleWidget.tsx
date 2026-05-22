@@ -582,7 +582,7 @@ export function TrashScheduleConfig({
             </div>
             {binSizeOpt > 0 && (
               <input
-                type="range" min={32} max={96} step={2}
+                type="range" min={32} max={192} step={2}
                 value={binSizeOpt}
                 onChange={(e) => setO({ binSize: Number(e.target.value) })}
                 className="w-full accent-[var(--accent)]"
@@ -595,7 +595,7 @@ export function TrashScheduleConfig({
               Listenansicht ({listBinSize}px)
             </label>
             <input
-              type="range" min={24} max={72} step={2}
+              type="range" min={24} max={144} step={2}
               value={listBinSize}
               onChange={(e) => setO({ listBinSize: Number(e.target.value) })}
               className="w-full accent-[var(--accent)]"
@@ -615,7 +615,7 @@ export function TrashScheduleConfig({
                   Namen ({nameFontSize}px)
                 </label>
                 <input
-                  type="range" min={8} max={18} step={1}
+                  type="range" min={8} max={48} step={1}
                   value={nameFontSize}
                   onChange={(e) => setO({ nameFontSize: Number(e.target.value) })}
                   className="w-full accent-[var(--accent)]"
@@ -628,7 +628,7 @@ export function TrashScheduleConfig({
                   Tage ({daysFontSize}px)
                 </label>
                 <input
-                  type="range" min={8} max={18} step={1}
+                  type="range" min={8} max={48} step={1}
                   value={daysFontSize}
                   onChange={(e) => setO({ daysFontSize: Number(e.target.value) })}
                   className="w-full accent-[var(--accent)]"
@@ -641,7 +641,7 @@ export function TrashScheduleConfig({
                   Datum ({dateFontSize}px)
                 </label>
                 <input
-                  type="range" min={8} max={18} step={1}
+                  type="range" min={8} max={48} step={1}
                   value={dateFontSize}
                   onChange={(e) => setO({ dateFontSize: Number(e.target.value) })}
                   className="w-full accent-[var(--accent)]"
