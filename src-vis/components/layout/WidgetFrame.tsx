@@ -1056,6 +1056,39 @@ function CenteredModal({
   );
 }
 
+// ── HtmlTemplateInput ────────────────────────────────────────────────────────
+// Isoliert die textarea vom häufigen Parent-Re-Render (subscribeStateDirect/Intervals),
+// damit DOM-Selektion (Drag-Mark, Doppelklick, Ctrl+A) nicht ständig gecleart wird.
+// Memo-Vergleich nur über value; onCommit landet in einer Ref, damit eine neue
+// Closure pro Parent-Render keinen Re-Render auslöst.
+const HtmlTemplateInput = React.memo(function HtmlTemplateInput({
+  value,
+  onCommit,
+}: {
+  value: string;
+  onCommit: (v: string) => void;
+}) {
+  const [local, setLocal] = useState(value);
+  const commitRef = useRef(onCommit);
+  useEffect(() => { commitRef.current = onCommit; });
+  useEffect(() => { setLocal(value); }, [value]);
+  return (
+    <textarea
+      value={local}
+      onChange={(e) => { setLocal(e.target.value); commitRef.current(e.target.value); }}
+      onDoubleClick={(e) => (e.currentTarget as HTMLTextAreaElement).select()}
+      placeholder='z.B. <b style="color:var(--accent)">{dp}</b> °C'
+      rows={3}
+      spellCheck={false}
+      autoComplete="off"
+      autoCorrect="off"
+      autoCapitalize="off"
+      className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono resize-y"
+      style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+    />
+  );
+}, (prev, next) => prev.value === next.value);
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface WidgetFrameProps {
@@ -4379,22 +4412,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       </button>
                     )}
                   </div>
-                  <textarea
+                  <HtmlTemplateInput
                     value={(config.options?.htmlTemplate as string) ?? ''}
-                    onChange={(e) => onConfigChange({ ...config, options: { ...config.options, htmlTemplate: e.target.value || undefined } })}
-                    onDoubleClick={(e) => {
-                      e.stopPropagation();
-                      const el = e.currentTarget as HTMLTextAreaElement;
-                      requestAnimationFrame(() => el.select());
-                    }}
-                    placeholder='z.B. <b style="color:var(--accent)">{dp}</b> °C'
-                    rows={3}
-                    spellCheck={false}
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono resize-y"
-                    style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                    onCommit={(v) => onConfigChange({ ...config, options: { ...config.options, htmlTemplate: v || undefined } })}
                   />
                   <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
                     {'{dp}'} wird durch den Wert ersetzt · Beispiel: {'<span style="font-size:2em">{dp}</span> kW'}
