@@ -4220,6 +4220,54 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         Tokens: HH mm ss dd MM yyyy EE EEEE MMMM
                       </p>
                     </div>
+                    {(o.customFormat as string)?.trim() ? (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.clock.customFontSize')}</label>
+                        <input
+                          type="number"
+                          min={0}
+                          max={200}
+                          value={(o.customFontSize as number) ?? ''}
+                          onChange={(e) => set({ customFontSize: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value) || 0) })}
+                          placeholder={t('wf.clock.fontSizeAuto')}
+                          className={inputCls}
+                          style={inputStyle}
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        {display !== 'date' && (
+                          <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.clock.timeFontSize')}</label>
+                            <input
+                              type="number"
+                              min={0}
+                              max={200}
+                              value={(o.timeFontSize as number) ?? ''}
+                              onChange={(e) => set({ timeFontSize: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value) || 0) })}
+                              placeholder={t('wf.clock.fontSizeAuto')}
+                              className={inputCls}
+                              style={inputStyle}
+                            />
+                          </div>
+                        )}
+                        {display !== 'time' && (
+                          <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.clock.dateFontSize')}</label>
+                            <input
+                              type="number"
+                              min={0}
+                              max={200}
+                              value={(o.dateFontSize as number) ?? ''}
+                              onChange={(e) => set({ dateFontSize: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value) || 0) })}
+                              placeholder={t('wf.clock.fontSizeAuto')}
+                              className={inputCls}
+                              style={inputStyle}
+                            />
+                          </div>
+                        )}
+                      </>
+                    )}
                   </>
                 );
               })()}
@@ -4329,6 +4377,21 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
                     {'{dp}'} wird durch den Wert ersetzt · Beispiel: {'<span style="font-size:2em">{dp}</span> kW'}
                   </p>
+                </div>
+              )}
+              {config.type === 'value' && (
+                <div>
+                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.value.fontSize')}</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={200}
+                    value={(config.options?.valueFontSize as number) ?? ''}
+                    onChange={(e) => onConfigChange({ ...config, options: { ...config.options, valueFontSize: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value) || 0) } })}
+                    placeholder={t('wf.clock.fontSizeAuto')}
+                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                    style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                  />
                 </div>
               )}
               {config.type === 'switch' && (() => {

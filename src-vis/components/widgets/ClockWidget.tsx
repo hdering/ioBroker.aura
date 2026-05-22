@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 import { Clock } from 'lucide-react';
 import type { WidgetProps } from '../../types';
 import { useT } from '../../i18n';
@@ -58,7 +58,13 @@ export function ClockWidget({ config }: WidgetProps) {
   const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, Clock);
   const dateLength = (opts.dateLength as 'short' | 'long') ?? 'short';
   const customFormat = opts.customFormat as string | undefined;
+  const timeFontSize = Number(opts.timeFontSize) || 0;
+  const dateFontSize = Number(opts.dateFontSize) || 0;
+  const customFontSize = Number(opts.customFontSize) || 0;
   const layout = config.layout ?? 'default';
+
+  const sizeStyle = (px: number): CSSProperties => (px > 0 ? { fontSize: `${px}px` } : {});
+  const sizeCls = (px: number, fallback: string) => (px > 0 ? '' : fallback);
 
   const timeStr = formatTime(now, showSeconds);
   const customStr = customFormat ? applyCustomFormat(now, customFormat, t) : '';
@@ -79,16 +85,21 @@ export function ClockWidget({ config }: WidgetProps) {
 
   // ---------- MINIMAL ----------
   if (layout === 'minimal') {
+    const primaryCls = customFormat ? 'aura-clock-custom' : display === 'date' ? 'aura-clock-date' : 'aura-clock-time';
+    const primaryPx = customFormat ? customFontSize : display === 'date' ? dateFontSize : timeFontSize;
     return (
       <div className="flex flex-col items-center justify-center h-full gap-1">
         <p
-          className={`${customFormat ? 'aura-clock-custom' : display === 'date' ? 'aura-clock-date' : 'aura-clock-time'} text-xl font-bold tabular-nums leading-none text-center`}
-          style={{ color: 'var(--accent)' }}
+          className={`${primaryCls} ${sizeCls(primaryPx, 'text-xl')} font-bold tabular-nums leading-none text-center`}
+          style={{ color: 'var(--accent)', ...sizeStyle(primaryPx) }}
         >
           {customFormat ? customStr : display === 'date' ? <DateText date={now} length={dateLength} t={t} /> : timeStr}
         </p>
         {!customFormat && display === 'datetime' && (
-          <p className="aura-clock-date text-xs" style={{ color: 'var(--text-secondary)' }}>
+          <p
+            className={`aura-clock-date ${sizeCls(dateFontSize, 'text-xs')}`}
+            style={{ color: 'var(--text-secondary)', ...sizeStyle(dateFontSize) }}
+          >
             <DateText date={now} length={dateLength} t={t} />
           </p>
         )}
@@ -101,7 +112,10 @@ export function ClockWidget({ config }: WidgetProps) {
     if (customFormat) {
       return (
         <div className="flex flex-col items-center justify-center h-full gap-1">
-          <p className="aura-clock-custom text-xl font-bold tabular-nums text-center" style={{ color: 'var(--accent)', lineHeight: 1.1 }}>
+          <p
+            className={`aura-clock-custom ${sizeCls(customFontSize, 'text-xl')} font-bold tabular-nums text-center`}
+            style={{ color: 'var(--accent)', lineHeight: 1.1, ...sizeStyle(customFontSize) }}
+          >
             {customStr}
           </p>
           {(showTitle || showIcon) && (
@@ -116,12 +130,18 @@ export function ClockWidget({ config }: WidgetProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-1.5">
         {display !== 'date' && (
-          <p className="aura-clock-time text-xl font-bold tabular-nums leading-none" style={{ color: 'var(--accent)' }}>
+          <p
+            className={`aura-clock-time ${sizeCls(timeFontSize, 'text-xl')} font-bold tabular-nums leading-none`}
+            style={{ color: 'var(--accent)', ...sizeStyle(timeFontSize) }}
+          >
             {timeStr}
           </p>
         )}
         {display !== 'time' && (
-          <p className={`aura-clock-date ${display === 'date' ? 'text-2xl font-bold tabular-nums' : 'text-sm'}`} style={{ color: display === 'date' ? 'var(--accent)' : 'var(--text-secondary)' }}>
+          <p
+            className={`aura-clock-date ${display === 'date' ? `${sizeCls(dateFontSize, 'text-2xl')} font-bold tabular-nums` : sizeCls(dateFontSize, 'text-sm')}`}
+            style={{ color: display === 'date' ? 'var(--accent)' : 'var(--text-secondary)', ...sizeStyle(dateFontSize) }}
+          >
             <DateText date={now} length={dateLength} t={t} />
           </p>
         )}
@@ -146,7 +166,12 @@ export function ClockWidget({ config }: WidgetProps) {
           </div>
         )}
         <div className="flex-1 flex items-center justify-center">
-          <p className="aura-clock-custom text-xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>{customStr}</p>
+          <p
+            className={`aura-clock-custom ${sizeCls(customFontSize, 'text-xl')} font-bold tabular-nums`}
+            style={{ color: 'var(--text-primary)', ...sizeStyle(customFontSize) }}
+          >
+            {customStr}
+          </p>
         </div>
       </div>
     );
@@ -162,12 +187,18 @@ export function ClockWidget({ config }: WidgetProps) {
       )}
       <div className="flex-1 flex flex-col items-center justify-center gap-0.5">
         {display !== 'date' && (
-          <p className="aura-clock-time text-xl font-bold tabular-nums leading-none" style={{ color: 'var(--text-primary)' }}>
+          <p
+            className={`aura-clock-time ${sizeCls(timeFontSize, 'text-xl')} font-bold tabular-nums leading-none`}
+            style={{ color: 'var(--text-primary)', ...sizeStyle(timeFontSize) }}
+          >
             {timeStr}
           </p>
         )}
         {display !== 'time' && (
-          <p className={`aura-clock-date ${display === 'date' ? 'text-xl font-bold' : 'text-sm'}`} style={{ color: display === 'date' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+          <p
+            className={`aura-clock-date ${display === 'date' ? `${sizeCls(dateFontSize, 'text-xl')} font-bold` : sizeCls(dateFontSize, 'text-sm')}`}
+            style={{ color: display === 'date' ? 'var(--text-primary)' : 'var(--text-secondary)', ...sizeStyle(dateFontSize) }}
+          >
             <DateText date={now} length={dateLength} t={t} />
           </p>
         )}

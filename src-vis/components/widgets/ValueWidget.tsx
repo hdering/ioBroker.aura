@@ -26,6 +26,9 @@ export function ValueWidget({ config }: WidgetProps) {
   const showValue = o.showValue !== false;
   const showUnit  = o.showUnit  !== false;
   const iconSize  = (o.iconSize as number) || 20;
+  const valueFontSize = Number(o.valueFontSize) || 0;
+  const valueSizeStyle = valueFontSize > 0 ? { fontSize: `${valueFontSize}px`, lineHeight: 1.1 } : undefined;
+  const valueSizeCls = valueFontSize > 0 ? '' : 'text-xl';
   const { defaultDecimals } = useGlobalSettingsStore();
   const decimals = (o.decimals as number) ?? defaultDecimals;
 
@@ -92,7 +95,7 @@ export function ValueWidget({ config }: WidgetProps) {
           )}
           {showValue && (
             <div>
-              <span className="text-xl font-bold" style={{ color: valueColor }}>{displayValue}</span>
+              <span className={`${valueSizeCls} font-bold`} style={{ color: valueColor, ...valueSizeStyle }}>{displayValue}</span>
               {showUnit && unit && <span className="text-lg ml-1 font-medium" style={{ color: accentColor }}>{unit}</span>}
             </div>
           )}
@@ -113,7 +116,7 @@ export function ValueWidget({ config }: WidgetProps) {
           </div>
         )}
         {showValue && (
-          <span className="text-xl font-bold shrink-0" style={{ color: valueColor }}>
+          <span className={`${valueSizeCls} font-bold shrink-0`} style={{ color: valueColor, ...valueSizeStyle }}>
             {displayValue}{showUnit && unit && <span className="text-sm ml-0.5" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
           </span>
         )}
@@ -128,7 +131,7 @@ export function ValueWidget({ config }: WidgetProps) {
       <div className="flex flex-col items-center justify-center h-full" style={{ position: 'relative' }}>
         {showValue && (
           <div className="flex items-baseline gap-1 leading-none">
-            <span className="text-xl font-bold" style={{ color: accentColor }}>{displayValue}</span>
+            <span className={`${valueSizeCls} font-bold`} style={{ color: accentColor, ...valueSizeStyle }}>{displayValue}</span>
             {showUnit && unit && <span className="text-lg font-medium" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
           </div>
         )}
@@ -153,7 +156,7 @@ export function ValueWidget({ config }: WidgetProps) {
       )}
       {showValue && (
         <div className="flex items-end gap-1.5">
-          <span className="text-xl font-bold" style={{ color: valueColor }}>{displayValue}</span>
+          <span className={`${valueSizeCls} font-bold`} style={{ color: valueColor, ...valueSizeStyle }}>{displayValue}</span>
           {showUnit && unit && <span className="text-sm mb-0.5" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
         </div>
       )}

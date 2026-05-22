@@ -497,6 +497,11 @@ export const en: Record<TranslationKey, string> = {
   'wf.clock.short':        'Short (04/07/2026)',
   'wf.clock.long':         'Long (Monday, April 7, 2026)',
   'wf.clock.customFormat': 'Custom Format',
+  'wf.clock.timeFontSize':   'Time font size (px)',
+  'wf.clock.dateFontSize':   'Date font size (px)',
+  'wf.clock.customFontSize': 'Custom font size (px)',
+  'wf.clock.fontSizeAuto':   'auto',
+  'wf.value.fontSize':       'Value font size (px)',
 
   // History (chart)
   'wf.history.title':    'Historical Data',

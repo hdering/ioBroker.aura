@@ -495,6 +495,11 @@ export const de = {
   'wf.clock.short':           'Kurz (07.04.2026)',
   'wf.clock.long':            'Lang (Montag, 7. April 2026)',
   'wf.clock.customFormat':    'Eigenes Format',
+  'wf.clock.timeFontSize':    'Schriftgröße Uhrzeit (px)',
+  'wf.clock.dateFontSize':    'Schriftgröße Datum (px)',
+  'wf.clock.customFontSize':  'Schriftgröße eig. Format (px)',
+  'wf.clock.fontSizeAuto':    'auto',
+  'wf.value.fontSize':        'Schriftgröße Wert (px)',
 
   // History (chart)
   'wf.history.title':         'Verlaufsdaten',
