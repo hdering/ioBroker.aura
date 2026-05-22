@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.97 (2026-05-20)
+Release v0.9.97
+
 ## 0.9.96 (2026-05-20)
 - feat(weather): bar-only temp-strahl variant in custom layout
 
