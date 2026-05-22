@@ -4366,12 +4366,16 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               {config.type === 'value' && (
                 <div>
                   <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>HTML-Template (optional)</label>
-                  <input
-                    type="text"
+                  <textarea
                     value={(config.options?.htmlTemplate as string) ?? ''}
                     onChange={(e) => onConfigChange({ ...config, options: { ...config.options, htmlTemplate: e.target.value || undefined } })}
                     placeholder='z.B. <b style="color:var(--accent)">{dp}</b> °C'
-                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono"
+                    rows={3}
+                    spellCheck={false}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono resize-y"
                     style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
                   />
                   <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
