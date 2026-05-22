@@ -9,7 +9,11 @@ const LOAD_TIMEOUT_MS = 8000;
 
 export function IframeWidget({ config }: WidgetProps) {
   const opts             = config.options ?? {};
-  const iframeUrlDp      = (opts.iframeUrlDp      as string)  ?? '';
+  const urlMode          = (opts.iframeUrlMode    as string)  ?? 'static';
+  const rawIframeUrlDp   = (opts.iframeUrlDp      as string)  ?? '';
+  // Guard against URL-strings accidentally living in iframeUrlDp (would crash ioBroker subscribe with "Invalid pattern").
+  const isLikelyStateId  = !!rawIframeUrlDp && !/[\/?#&=:\s]/.test(rawIframeUrlDp) && rawIframeUrlDp.includes('.');
+  const iframeUrlDp      = urlMode === 'datapoint' && isLikelyStateId ? rawIframeUrlDp : '';
   const { value: dpUrl } = useDatapoint(iframeUrlDp);
   const staticUrl        = (opts.iframeUrl        as string)  ?? '';
   const rawUrl           = iframeUrlDp && dpUrl != null && dpUrl !== '' ? String(dpUrl) : staticUrl;
