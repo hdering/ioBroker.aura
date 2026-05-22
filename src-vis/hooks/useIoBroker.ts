@@ -26,6 +26,15 @@ export function getStateFromCache(id: string): ioBrokerState | null {
   return stateCache.get(id) ?? null;
 }
 
+// ioBroker rejects ID patterns that contain URL/query characters with
+// "Invalid pattern on subscribe". Filter them out client-side so a stale
+// URL accidentally stored in a DP-field can never crash the socket.
+function isValidStateId(id: unknown): id is string {
+  return typeof id === 'string'
+    && id.length > 0
+    && !/[\s\/?#&=:]/.test(id);
+}
+
 /** Fetch multiple state IDs in parallel and warm the cache. Returns when all have resolved (or 4 s timeout). */
 export function prefetchStates(
   ids: string[],
@@ -96,7 +105,14 @@ function createSocket(url: string): IoBrokerSocket {
       'background:#0f172a;color:#94a3b8;border-radius:0 3px 3px 0;padding:2px 6px;',
     );
     connectionListeners.forEach((fn) => fn(true));
-    // Re-subscribe and fetch current state for all active subscriptions
+    // Re-subscribe and fetch current state for all active subscriptions.
+    // Drop any stale entries with invalid ID pattern (would crash backend with "Invalid pattern on subscribe").
+    Array.from(subscribers.keys()).forEach((id) => {
+      if (!isValidStateId(id)) {
+        if (import.meta.env.DEV) console.warn('[useIoBroker] dropping stale invalid subscription on reconnect:', id);
+        subscribers.delete(id);
+      }
+    });
     subscribers.forEach((callbacks, id) => {
       s.emit('subscribe', id);
       s.emit('getState', id, (_err: unknown, state: unknown) => {
@@ -162,6 +178,10 @@ export function useIoBroker() {
 
   const subscribe = useCallback(
     (id: string, callback: (state: ioBrokerState) => void): (() => void) => {
+      if (!isValidStateId(id)) {
+        if (import.meta.env.DEV) console.warn('[useIoBroker] refused subscribe with invalid ID pattern:', id);
+        return () => {};
+      }
       if (!subscribers.has(id)) {
         subscribers.set(id, new Set());
         getSocket().emit('subscribe', id);
@@ -267,7 +287,10 @@ export function getHistoryDirect(
 // ── Direct state subscription (non-hook) ──────────────────────────────────────
 /** Subscribe to a datapoint without a React hook. Returns an unsubscribe function. */
 export function subscribeStateDirect(id: string, callback: (state: ioBrokerState) => void): () => void {
-  if (!id) return () => {};
+  if (!isValidStateId(id)) {
+    if (import.meta.env.DEV) console.warn('[useIoBroker] refused subscribeStateDirect with invalid ID pattern:', id);
+    return () => {};
+  }
   if (!subscribers.has(id)) {
     subscribers.set(id, new Set());
     getSocket().emit('subscribe', id);
