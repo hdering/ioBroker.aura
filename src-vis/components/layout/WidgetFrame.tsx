@@ -4369,6 +4369,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   <textarea
                     value={(config.options?.htmlTemplate as string) ?? ''}
                     onChange={(e) => onConfigChange({ ...config, options: { ...config.options, htmlTemplate: e.target.value || undefined } })}
+                    onDoubleClick={(e) => (e.currentTarget as HTMLTextAreaElement).select()}
                     placeholder='z.B. <b style="color:var(--accent)">{dp}</b> °C'
                     rows={3}
                     spellCheck={false}
