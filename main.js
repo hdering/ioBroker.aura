@@ -407,6 +407,7 @@ class Aura extends utils.Adapter {
     super({ ...options, name: 'aura' });
     this.on('ready', this.onReady.bind(this));
     this.on('stateChange', this.onStateChange.bind(this));
+    this.on('objectChange', this.onObjectChange.bind(this));
     this.on('message', this.onMessage.bind(this));
     this.on('unload', this.onUnload.bind(this));
     this._httpServer = null;
@@ -532,6 +533,43 @@ class Aura extends utils.Adapter {
       } else {
         await this.setStateAsync('calendar.response', JSON.stringify({ id: req.id, error: String(err) }), true);
       }
+    }
+  }
+
+  // Called when a timer-widget state OBJECT appears, changes, or is deleted.
+  // Pairs with subscribeObjects('timers.*') in onReady — the moment a freshly
+  // copied/created widget's state object lands, we read its current value and
+  // ingest it. Without this, the scheduler would only see the widget on next
+  // adapter restart. Deletes are handled symmetrically to keep _timerState in
+  // sync with what actually exists on disk.
+  async onObjectChange(id, obj) {
+    if (!id.startsWith(`${this.namespace}.timers.`)) return;
+    const m = id.match(/^.+\.timers\.([^.]+)\.(config|enabled)$/);
+    if (!m) return;
+    const widgetId = m[1];
+    const kind = m[2];
+
+    if (obj && obj.type === 'state') {
+      try {
+        const localId = id.slice(this.namespace.length + 1);
+        const st = await this.getStateAsync(localId);
+        // Treat a missing value the same as the initial-scan path: ingest with
+        // null/'' so the entry exists but stays inert until a real value lands.
+        this._ingestTimerState(id, st ? st.val : (kind === 'enabled' ? true : ''));
+      } catch (e) {
+        this.log.warn(`[timers] objectChange ingest failed (${id}): ${e.message}`);
+      }
+      return;
+    }
+
+    if (!obj) {
+      // Object deleted — drop the widget entry if both halves are gone.
+      const entry = this._timerState.get(widgetId);
+      if (!entry) return;
+      if (kind === 'config') entry.payload = null;
+      else if (kind === 'enabled') entry.enabled = true;
+      if (entry.payload === null) this._timerState.delete(widgetId);
+      else this._timerState.set(widgetId, entry);
     }
   }
 
@@ -910,6 +948,15 @@ class Aura extends utils.Adapter {
     // due triggers. The frontend (TimerWidget) writes config as JSON to
     // aura.<inst>.timers.<widgetId>.config and master state to .enabled.
     this.subscribeStates('timers.*');
+    // Also watch for new timer state OBJECTS — when a fresh widget is created
+    // (especially as a copy of an existing one) the frontend calls setObject for
+    // aura.0.timers.<UUID>.{config,enabled} before writing the value. Some
+    // backends do not deliver the very first setState through the pattern
+    // subscription installed at startup, so the new widget would only get
+    // picked up on the next adapter restart. The object-change handler ingests
+    // the current value as soon as the object appears, so the scheduler sees
+    // the widget within seconds instead of requiring a restart.
+    this.subscribeObjects('timers.*');
     this._timerState = new Map(); // widgetId → { enabled, payload }
     this._timerFired = new Set(); // dedupe key → true (cleared at midnight)
     this._timerLastDay = this._currentDayKey();

@@ -111,12 +111,30 @@ export function isPending(key: string): boolean {
   return pending.has(key) || hasDirtyFlag(key);
 }
 
-const savedAtMap = new Map<string, number>();
-/** Per-key recency check — narrowly suppresses the echo of our own ioBroker write. */
-export function isSavingRecently(key?: string): boolean {
-  if (key) return Date.now() - (savedAtMap.get(key) ?? 0) < 5000;
-  for (const t of savedAtMap.values()) {
-    if (Date.now() - t < 5000) return true;
+// Tracks the value we last wrote per key, with a TTL. The echo guard suppresses
+// inbound stateChange iff (a) we wrote recently AND (b) the inbound value is
+// byte-identical to what we wrote — i.e. it is actually our own echo, not a
+// concurrent write from another tab/device that just happens to fall inside
+// the 5 s window.
+const savedAtMap = new Map<string, { ts: number; value: string }>();
+const SAVED_TTL_MS = 5000;
+/** Per-key recency check — suppresses the echo of our own ioBroker write only
+ *  when the inbound value matches what we wrote. Callers that have the inbound
+ *  raw value SHOULD pass it as `incomingValue`; otherwise the check falls back
+ *  to a pure TTL gate (kept for the no-arg poll-fallback path). */
+export function isSavingRecently(key?: string, incomingValue?: string): boolean {
+  if (key) {
+    const entry = savedAtMap.get(key);
+    if (!entry) return false;
+    if (Date.now() - entry.ts >= SAVED_TTL_MS) {
+      savedAtMap.delete(key);
+      return false;
+    }
+    if (incomingValue !== undefined && incomingValue !== entry.value) return false;
+    return true;
+  }
+  for (const entry of savedAtMap.values()) {
+    if (Date.now() - entry.ts < SAVED_TTL_MS) return true;
   }
   return false;
 }
@@ -300,7 +318,7 @@ export function saveToIoBroker({ backup = true, all = false }: { backup?: boolea
     const raw = getRaw(key);
     if (raw) {
       setStateDirect(IOBROKER_STATE_MAP[key], raw);
-      savedAtMap.set(key, now);
+      savedAtMap.set(key, { ts: now, value: raw });
       clearDirtyFlag(key);
     }
     pending.delete(key);

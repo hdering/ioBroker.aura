@@ -61,8 +61,14 @@ export function useConfigSync(connected: boolean, configLoaded: React.MutableRef
         subscribeStateDirect(stateId, (state) => {
           if (!state?.val || !configLoaded.current) return;
           if (!ignoreDirty && isPending(key)) return;
-          if (isSavingRecently(key)) return;
-          if (applyOneState(key, String(state.val))) {
+          const incoming = String(state.val);
+          // Suppress only the byte-identical echo of our own recent write —
+          // a different value within the TTL is a concurrent write from
+          // another tab/device and MUST be applied (otherwise editing a
+          // widget in one tab right after saving in another tab loses the
+          // change because it falls inside the 5 s window).
+          if (isSavingRecently(key, incoming)) return;
+          if (applyOneState(key, incoming)) {
             rehydrateAll(false);
             discardPendingKey(key);
           }
@@ -79,13 +85,16 @@ export function useConfigSync(connected: boolean, configLoaded: React.MutableRef
     if (!configLoaded.current) return;
     const pollKeys = (Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[])
       .filter((k) => k !== 'aura-group-defs')
-      .filter((k) => ignoreDirty || !isPending(k))
-      .filter((k) => !isSavingRecently(k));
+      .filter((k) => ignoreDirty || !isPending(k));
     Promise.all(
       pollKeys.map((key) =>
         getStateDirect(IOBROKER_STATE_MAP[key]).then((state) => {
           if (!state?.val) return null;
-          return applyOneState(key, String(state.val)) ? key : null;
+          const incoming = String(state.val);
+          // Same value-aware guard as the subscribe path: only skip if this
+          // is exactly our own recent write echoing back.
+          if (isSavingRecently(key, incoming)) return null;
+          return applyOneState(key, incoming) ? key : null;
         }),
       ),
     ).then((results) => {
