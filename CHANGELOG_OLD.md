@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.104 (2026-05-21)
+- feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\" touch use case)
+
 ## 0.9.103 (2026-05-21)
 - docs(custom-layout): add shared doc page for custom grid + cell move/copy
 - fix(custom-layout): close cell context menu on outside click via document listener
