@@ -88,6 +88,8 @@ export interface AutoListOptions {
   sumFontSize?: number;
   /** Show divider lines between list entries (standard/compact layouts). Default true. */
   showDividers?: boolean;
+  /** Show last-change timestamp under every entry (global toggle — dynamic list has no per-DP config). */
+  showEntryLastChange?: boolean;
 }
 
 export interface DiscoveredDp {
@@ -683,6 +685,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
   const globalActiveBg   = opts.activeBg;
   const globalInactiveBg = opts.inactiveBg;
   const showDividers     = opts.showDividers ?? true;
+  const showEntryLastChange = !!opts.showEntryLastChange;
   const HeaderIcon = getWidgetIcon(o.icon as string | undefined, List);
 
   // ── Shared header ──────────────────────────────────────────────────────────
@@ -806,6 +809,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
               const entryActiveColor   = entry.activeColor   || globalActiveColor;
               const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
               const stateBg = (eOn ? (entry.activeBg || globalActiveBg) : (entry.inactiveBg || globalInactiveBg)) || 'var(--app-bg)';
+              const lcTs = showEntryLastChange ? (state?.lc || state?.ts || 0) : 0;
               return (
                 <div key={entry.id}
                   className="rounded-xl p-2.5 flex flex-col gap-2 relative"
@@ -819,6 +823,11 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                       {entry.rooms.join(', ')}
                     </span>
                   ) : null}
+                  {lcTs > 0 && (
+                    <div className="text-[9px] truncate text-center" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                      {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -847,6 +856,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
               const entryActiveColor   = entry.activeColor   || globalActiveColor;
               const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
               const stateBg = eOn ? (entry.activeBg || globalActiveBg) : (entry.inactiveBg || globalInactiveBg);
+              const lcTs = showEntryLastChange ? (state?.lc || state?.ts || 0) : 0;
               return (
                 <div key={entry.id}
                   className="flex items-center gap-1.5 px-2 py-1.5"
@@ -855,7 +865,14 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
                     borderLeft: showDividers && isRight ? '1px solid var(--widget-border)' : undefined,
                   }}>
-                  <span className="flex-1 text-[11px] truncate min-w-0" style={{ color: 'var(--text-primary)' }}>{label}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="block text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>{label}</span>
+                    {lcTs > 0 && (
+                      <span className="block text-[8px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
+                      </span>
+                    )}
+                  </div>
                   <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} />
                 </div>
               );
@@ -897,6 +914,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
               const eOn = isActive(val);
               const stateBg = eOn ? (entry.activeBg || globalActiveBg) : (entry.inactiveBg || globalInactiveBg);
               const pillColor = roleDisplay ? roleDisplay.color : (isBoolLike && on ? entryActiveColor : (hasLabels ? entryInactiveColor : null));
+              const lcTs = showEntryLastChange ? (state?.lc || state?.ts || 0) : 0;
+              const lcText = lcTs > 0 ? formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs) : '';
 
               return (
                 <button key={entry.id}
@@ -905,6 +924,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     if (isBool) setState(entry.id, !on);
                     else if (isBoolLike) setState(entry.id, on ? 0 : 1);
                   }}
+                  title={lcText || undefined}
                   className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors hover:opacity-80"
                   style={{
                     background: stateBg ?? (pillColor ? `color-mix(in srgb, ${pillColor} 12%, transparent)` : 'var(--app-bg)'),
@@ -942,6 +962,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
             const entryActiveColor   = entry.activeColor   || globalActiveColor;
             const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
             const stateBg = eOn ? (entry.activeBg || globalActiveBg) : (entry.inactiveBg || globalInactiveBg);
+            const lcTs = showEntryLastChange ? (state?.lc || state?.ts || 0) : 0;
             return (
               <div key={entry.id} className="flex items-center gap-2 px-3 py-2"
                 style={{ background: stateBg, borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined }}>
@@ -955,6 +976,11 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                   {opts.showId && (
                     <div className="text-[9px] truncate font-mono" style={{ color: 'var(--text-secondary)' }}>
                       {entry.id}
+                    </div>
+                  )}
+                  {lcTs > 0 && (
+                    <div className="text-[9px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                      {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
                     </div>
                   )}
                 </div>
