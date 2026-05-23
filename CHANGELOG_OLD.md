@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.99 (2026-05-20)
+- fix(lint): auto-fix mixed typographic quotes
+- fix(lint): typographic quote in timer empty-state text
+- docs(timer): add Zeitschaltuhr widget reference
+
 ## 0.9.98 (2026-05-20)
 - fix(timer): read-only in edit mode, frontend save flush, no object warnings
 - fix(timer): icon size, hide DP picker, custom layout, hide-able master

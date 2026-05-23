@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.118",
+    "version": "0.9.119",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.119": {
+        "en": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
+        "de": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
+        "ru": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
+        "pt": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
+        "nl": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
+        "fr": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
+        "it": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
+        "es": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
+        "pl": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
+        "uk": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
+        "zh-cn": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget"
+      },
       "0.9.118": {
         "en": "feat(timer): remove custom layout option from Zeitschaltuhr",
         "de": "feat(timer): remove custom layout option from Zeitschaltuhr",
@@ -183,19 +196,6 @@
         "pl": "fix(widgets): guard null state in last-change subscribers",
         "uk": "fix(widgets): guard null state in last-change subscribers",
         "zh-cn": "fix(widgets): guard null state in last-change subscribers"
-      },
-      "0.9.112": {
-        "en": "feat(chart): option to hide X-axis in simple and advanced chart widgets",
-        "de": "feat(chart): option to hide X-axis in simple and advanced chart widgets",
-        "ru": "feat(chart): option to hide X-axis in simple and advanced chart widgets",
-        "pt": "feat(chart): option to hide X-axis in simple and advanced chart widgets",
-        "nl": "feat(chart): option to hide X-axis in simple and advanced chart widgets",
-        "fr": "feat(chart): option to hide X-axis in simple and advanced chart widgets",
-        "it": "feat(chart): option to hide X-axis in simple and advanced chart widgets",
-        "es": "feat(chart): option to hide X-axis in simple and advanced chart widgets",
-        "pl": "feat(chart): option to hide X-axis in simple and advanced chart widgets",
-        "uk": "feat(chart): option to hide X-axis in simple and advanced chart widgets",
-        "zh-cn": "feat(chart): option to hide X-axis in simple and advanced chart widgets"
       }
     }
   },
