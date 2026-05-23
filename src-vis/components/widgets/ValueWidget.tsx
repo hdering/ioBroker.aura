@@ -110,7 +110,7 @@ export function ValueWidget({ config }: WidgetProps) {
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-2 min-w-0">
             {showIcon && <CompactIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-            {showTitle && <span className="text-sm truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</span>}
+            {showTitle && <span className="text-sm truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</span>}
           </div>
         )}
         {showValue && (
