@@ -186,6 +186,11 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.122 (2026-05-23)
+- style(value): remove bold weight from value text
+- fix(value): use text-primary for compact title to match SwitchWidget
+
+
 ### 0.9.121 (2026-05-23)
 - fix(timer): keep copied widgets in sync without F5 + register them without adapter restart
 - feat(autolist): global toggle to show last-change timestamp per entry
@@ -277,10 +282,6 @@ npm run build:adapter
 - feat(custom-layout): raise grid max from 8x8 to 20x20
 
 
-### 0.9.102 (2026-05-21)
-Release v0.9.102
-
-
 ## License
 
 MIT License
@@ -292,6 +293,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

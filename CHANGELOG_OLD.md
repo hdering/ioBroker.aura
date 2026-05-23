@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.102 (2026-05-21)
+Release v0.9.102
+
 ## 0.9.101 (2026-05-21)
 - fix(lint): stabilise hook deps and drop unused catch binding
 

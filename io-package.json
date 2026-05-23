@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.121",
+    "version": "0.9.122",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.122": {
+        "en": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
+        "de": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
+        "ru": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
+        "pt": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
+        "nl": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
+        "fr": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
+        "it": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
+        "es": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
+        "pl": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
+        "uk": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
+        "zh-cn": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget"
+      },
       "0.9.121": {
         "en": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
         "de": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
@@ -183,19 +196,6 @@
         "pl": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value",
         "uk": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value",
         "zh-cn": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value"
-      },
-      "0.9.114": {
-        "en": "feat(timer): allow per-event value override (admin-gated)",
-        "de": "feat(timer): allow per-event value override (admin-gated)",
-        "ru": "feat(timer): allow per-event value override (admin-gated)",
-        "pt": "feat(timer): allow per-event value override (admin-gated)",
-        "nl": "feat(timer): allow per-event value override (admin-gated)",
-        "fr": "feat(timer): allow per-event value override (admin-gated)",
-        "it": "feat(timer): allow per-event value override (admin-gated)",
-        "es": "feat(timer): allow per-event value override (admin-gated)",
-        "pl": "feat(timer): allow per-event value override (admin-gated)",
-        "uk": "feat(timer): allow per-event value override (admin-gated)",
-        "zh-cn": "feat(timer): allow per-event value override (admin-gated)"
       }
     }
   },
