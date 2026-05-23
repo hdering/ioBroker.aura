@@ -2628,6 +2628,21 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
     if ((src.type === 'group' || src.type === 'carousel') && src.options?.defId) {
       return { ...src, options: { ...src.options, defId: cloneGroupDef(src.options.defId as string) } };
     }
+    // TIMER widgets: deep-clone options + regenerate event IDs so the copy is independent
+    // from the original (otherwise events array reference + event ids are shared, which
+    // breaks editing and makes the stateBaseId fixup race with modal saves).
+    if (src.type === 'timer' && src.options) {
+      const o = src.options as Record<string, unknown>;
+      const rawEvents = (o.events as Array<Record<string, unknown>> | undefined) ?? [];
+      const events = rawEvents.map((e) => ({
+        ...e,
+        id: `t_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      }));
+      const nextOpts = { ...o, events } as Record<string, unknown>;
+      // stateBaseId will be re-set by TimerWidget's useLayoutEffect against the new widget id
+      delete nextOpts.stateBaseId;
+      return { ...src, options: nextOpts };
+    }
     return src;
   }
 
