@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.101 (2026-05-21)
+- fix(lint): stabilise hook deps and drop unused catch binding
+
 ## 0.9.100 (2026-05-21)
 - fix(knob): remove legacy auto/1fr/auto axis sizes so dial stays centered
 - fix(custom-grid): use minmax(0, 1fr) so cell contents don't unbalance tracks

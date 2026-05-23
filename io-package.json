@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.120",
+    "version": "0.9.121",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.121": {
+        "en": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
+        "de": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
+        "ru": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
+        "pt": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
+        "nl": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
+        "fr": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
+        "it": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
+        "es": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
+        "pl": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
+        "uk": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
+        "zh-cn": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry"
+      },
       "0.9.120": {
         "en": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
         "de": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
@@ -183,19 +196,6 @@
         "pl": "feat(timer): allow per-event value override (admin-gated)",
         "uk": "feat(timer): allow per-event value override (admin-gated)",
         "zh-cn": "feat(timer): allow per-event value override (admin-gated)"
-      },
-      "0.9.113": {
-        "en": "fix(widgets): guard null state in last-change subscribers",
-        "de": "fix(widgets): guard null state in last-change subscribers",
-        "ru": "fix(widgets): guard null state in last-change subscribers",
-        "pt": "fix(widgets): guard null state in last-change subscribers",
-        "nl": "fix(widgets): guard null state in last-change subscribers",
-        "fr": "fix(widgets): guard null state in last-change subscribers",
-        "it": "fix(widgets): guard null state in last-change subscribers",
-        "es": "fix(widgets): guard null state in last-change subscribers",
-        "pl": "fix(widgets): guard null state in last-change subscribers",
-        "uk": "fix(widgets): guard null state in last-change subscribers",
-        "zh-cn": "fix(widgets): guard null state in last-change subscribers"
       }
     }
   },
