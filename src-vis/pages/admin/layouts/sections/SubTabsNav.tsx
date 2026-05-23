@@ -1,14 +1,13 @@
-import { Palette, Type, LayoutGrid, SlidersHorizontal, Code2, AlignJustify } from 'lucide-react';
+import { Palette, Type, LayoutGrid, SlidersHorizontal, AlignJustify } from 'lucide-react';
 import { useT } from '../../../../i18n';
 
-export type SubTab = 'theme' | 'typo' | 'grid' | 'guidelines' | 'css' | 'tabbar';
+export type SubTab = 'theme' | 'typo' | 'grid' | 'guidelines' | 'tabbar';
 
 const ALL_TABS: { id: SubTab; labelKey: string; icon: React.ElementType }[] = [
   { id: 'theme',      labelKey: 'layouts.subtab.theme',      icon: Palette },
   { id: 'typo',       labelKey: 'layouts.subtab.typo',       icon: Type },
   { id: 'grid',       labelKey: 'layouts.subtab.grid',       icon: LayoutGrid },
   { id: 'guidelines', labelKey: 'layouts.subtab.guidelines', icon: SlidersHorizontal },
-  { id: 'css',        labelKey: 'layouts.subtab.css',        icon: Code2 },
   { id: 'tabbar',     labelKey: 'layouts.subtab.tabbar',     icon: AlignJustify },
 ];
 

@@ -44,6 +44,10 @@ export interface LayoutSettings {
   // CSS
   customCSS?: string;
   customCSSEnabled?: boolean;
+  // JS
+  customJS?: string;
+  customJSEnabled?: boolean;
+  customJSInEditor?: boolean;
   // Typography
   fontScale?: number;
   // Spacing (Theme section)

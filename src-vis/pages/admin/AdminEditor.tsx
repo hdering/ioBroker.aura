@@ -17,6 +17,7 @@ import type { WidgetConfig, WidgetType, WidgetLayout } from '../../types';
 import { WIDGET_REGISTRY, WIDGET_BY_TYPE, getEffectiveSize } from '../../widgetRegistry';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { useConfigStore } from '../../store/configStore';
+import { useCustomJs } from '../../hooks/useCustomJs';
 import { useT } from '../../i18n';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { DP_TEMPLATES, DP_TEMPLATE_CATEGORIES, detectWidgetTypeFromRole, findTemplateByRole, findMainDpForSecondary, autoDetectStatusDps } from '../../utils/dpTemplates';
@@ -1136,6 +1137,9 @@ export function AdminEditor() {
 
   const { frontend, updateFrontend } = useConfigStore();
   const guidelinesEnabled = frontend.guidelinesEnabled ?? false;
+
+  // Run custom JS inside the editor preview when `customJSInEditor` is enabled.
+  useCustomJs(activeLayoutId, true);
   const [showTabWizard, setShowTabWizard] = useState(false);
   const [showManual, setShowManual] = useState(false);
   const [showImport, setShowImport] = useState(false);

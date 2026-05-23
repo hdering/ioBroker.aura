@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sun, Moon, Settings } from 'lucide-react';
 import { useIoBroker, setStateDirect, subscribeStateDirect, prefetchStates } from './hooks/useIoBroker';
+import { useCustomJs } from './hooks/useCustomJs';
 import { useConfigSync } from './hooks/useConfigSync';
 import { useVersionGuard } from './hooks/useVersionGuard';
 import { useConnectionStore } from './store/connectionStore';
@@ -323,6 +324,9 @@ export default function App() {
     const enabled = effectiveSettings.customCSSEnabled ?? true;
     styleRef.current.textContent = enabled ? css : '';
   }, [effectiveSettings.customCSS, effectiveSettings.customCSSEnabled, frontend.customCSS, frontend.customCSSEnabled]);
+
+  // Custom JS — runs always in frontend; installs window.aura helper API.
+  useCustomJs(layout?.id, false);
 
   // Apply per-layout theme overrides on top of global ThemeProvider vars.
   // Written as a scoped <style> rule ([data-aura-app="frontend"] { ... }) so that

@@ -9,6 +9,9 @@ import type { ThemeVars } from '../themes';
 const LAYOUT_FRONTEND_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = [
   'customCSS',
   'customCSSEnabled',
+  'customJS',
+  'customJSEnabled',
+  'customJSInEditor',
   'fontScale',
   'gridRowHeight',
   'gridSnapX',

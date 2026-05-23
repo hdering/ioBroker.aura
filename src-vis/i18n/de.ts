@@ -31,6 +31,7 @@ export const de = {
   'admin.nav.overview':     'Übersicht',
   'admin.nav.editor':       'Dashboard-Editor',
   'admin.nav.layouts':      'Layouts',
+  'admin.nav.cssjs':        'CSS & JS',
   'admin.nav.widgets':      'Widgets',
   'admin.nav.popups':       'Popups',
   'admin.nav.theme':        'Theme & CSS',
@@ -351,6 +352,19 @@ export const de = {
   'theme.css.lines':    '{count} Zeilen',
   'theme.css.empty':    'Kein Custom CSS',
   'theme.css.enabled':  'CSS aktiv',
+
+  'theme.js.title':    'Globales JavaScript',
+  'theme.js.subtitle': 'Helfer-Funktionen für Widget-onClick. API: window.aura.setState(id, val), getState(id), subscribeState(id, cb).',
+  'theme.js.warning':  '⚠ Script läuft mit deinen Frontend-Berechtigungen und kann alle ioBroker-Datenpunkte lesen und schreiben. Nur eigenen, vertrauten Code einfügen.',
+  'theme.js.lines':    '{count} Zeilen',
+  'theme.js.empty':    'Kein Custom JS',
+  'theme.js.enabled':  'JS aktiv',
+  'theme.js.inEditor': 'Auch im Dashboard-Editor ausführen',
+
+  'cssjs.title':    'CSS & JS',
+  'cssjs.subtitle': 'Eigenes CSS und JavaScript global oder pro Layout einbinden.',
+  'cssjs.tab.css':  'Custom CSS',
+  'cssjs.tab.js':   'Custom JS',
 
   // ── Widgets page ──────────────────────────────────────────────────────────────
   'widgets.fromIoBroker':  'Aus ioBroker wählen',

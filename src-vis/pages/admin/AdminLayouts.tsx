@@ -13,7 +13,6 @@ import { TypographySpacingSection } from './layouts/sections/TypographySpacingSe
 import { GridSection } from './layouts/sections/GridSection';
 import { WizardMaxDpsSection } from './layouts/sections/WizardMaxDpsSection';
 import { GuidelinesSection } from './layouts/sections/GuidelinesSection';
-import { CustomCssSection } from './layouts/sections/CustomCssSection';
 import { TabBarSection } from './layouts/sections/TabBarSection';
 
 // ── ActiveSection ─────────────────────────────────────────────────────────────
@@ -42,8 +41,6 @@ function ActiveSection({ subTab, contextId, onContextChange }: {
       );
     case 'guidelines':
       return <GuidelinesSection contextId={contextId} onContextChange={onContextChange} />;
-    case 'css':
-      return <CustomCssSection contextId={contextId} onContextChange={onContextChange} />;
     case 'tabbar':
       return <TabBarSection contextId={contextId} />;
     default:
@@ -82,7 +79,7 @@ export function AdminLayouts() {
   }, [layouts, rawContextId, searchParams, setSearchParams]);
 
   const subTab: SubTab = (() => {
-    const valid: SubTab[] = ['theme', 'typo', 'grid', 'guidelines', 'css', 'tabbar'];
+    const valid: SubTab[] = ['theme', 'typo', 'grid', 'guidelines', 'tabbar'];
     if (!tabParam || !valid.includes(tabParam)) return 'theme';
     if (tabParam === 'tabbar' && contextId === null) return 'theme';
     return tabParam;

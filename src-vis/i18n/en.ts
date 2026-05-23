@@ -33,6 +33,7 @@ export const en: Record<TranslationKey, string> = {
   'admin.nav.overview':     'Overview',
   'admin.nav.editor':       'Dashboard Editor',
   'admin.nav.layouts':      'Layouts',
+  'admin.nav.cssjs':        'CSS & JS',
   'admin.nav.widgets':      'Widgets',
   'admin.nav.popups':       'Popups',
   'admin.nav.theme':        'Theme & CSS',
@@ -353,6 +354,19 @@ export const en: Record<TranslationKey, string> = {
   'theme.css.lines':    '{count} lines',
   'theme.css.empty':    'No Custom CSS',
   'theme.css.enabled':  'CSS active',
+
+  'theme.js.title':    'Global JavaScript',
+  'theme.js.subtitle': 'Helper functions for widget onClick handlers. API: window.aura.setState(id, val), getState(id), subscribeState(id, cb).',
+  'theme.js.warning':  '⚠ Script runs with your frontend permissions and can read/write all ioBroker datapoints. Only paste code you trust.',
+  'theme.js.lines':    '{count} lines',
+  'theme.js.empty':    'No Custom JS',
+  'theme.js.enabled':  'JS active',
+  'theme.js.inEditor': 'Also run in dashboard editor',
+
+  'cssjs.title':    'CSS & JS',
+  'cssjs.subtitle': 'Inject custom CSS and JavaScript globally or per layout.',
+  'cssjs.tab.css':  'Custom CSS',
+  'cssjs.tab.js':   'Custom JS',
 
   // ── Widgets page ──────────────────────────────────────────────────────────────
   'widgets.fromIoBroker': 'Select from ioBroker',
