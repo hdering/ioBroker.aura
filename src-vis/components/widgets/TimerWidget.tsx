@@ -141,11 +141,28 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const statusCol = statusColor(masterEnabled, events, hasTarget);
   const enabledCount = events.filter((e) => e.enabled && e.weekdays.length > 0).length;
 
+  // Assign a stable, instance-unique stateBaseId on first mount. Copies / group
+  // clones get a fresh path because copyConfig + cloneChildren strip stateBaseId,
+  // so they never collide on the backend with the original — even though their
+  // config.id (top-level) or child id (inside a group def) may match.
+  useLayoutEffect(() => {
+    if (!o.stateBaseId) {
+      const seg = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `t-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      onConfigChange({ ...config, options: { ...o, stateBaseId: `aura.0.timers.${seg}` } });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Path segment for publish*/unpublish* (last component of stateBaseId).
+  // Null until useLayoutEffect has stamped one in — publish effects gate on it.
+  const backendKey = ((o.stateBaseId as string | undefined)?.split('.').pop()) || null;
+
   // ── Mirror config to backend DPs whenever it changes ──────────────────────
-  // The adapter scheduler subscribes to aura.0.timers.<widgetId>.{config,enabled}.
+  // The adapter scheduler subscribes to aura.0.timers.<backendKey>.{config,enabled}.
   const lastPublishedRef = useRef<string>('');
   useEffect(() => {
-    if (!config.id) return;
+    if (!backendKey) return;
     const payload: TimerConfigPayload = {
       events,
       targetDp,
@@ -157,27 +174,19 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     };
     const serialized = JSON.stringify(payload);
     if (serialized !== lastPublishedRef.current) {
-      publishTimerConfig(config.id, config.title || 'Zeitschaltuhr', payload);
+      publishTimerConfig(backendKey, config.title || 'Zeitschaltuhr', payload);
       lastPublishedRef.current = serialized;
     }
-  }, [config.id, config.title, events, targetDp, targetValue, allowEventValue, holidaysDp, vacationDp]);
+  }, [backendKey, config.title, events, targetDp, targetValue, allowEventValue, holidaysDp, vacationDp]);
 
   const lastEnabledRef = useRef<boolean | null>(null);
   useEffect(() => {
-    if (!config.id) return;
+    if (!backendKey) return;
     if (lastEnabledRef.current !== masterEnabled) {
-      publishTimerEnabled(config.id, config.title || 'Zeitschaltuhr', masterEnabled);
+      publishTimerEnabled(backendKey, config.title || 'Zeitschaltuhr', masterEnabled);
       lastEnabledRef.current = masterEnabled;
     }
-  }, [config.id, config.title, masterEnabled]);
-
-  // Persist stateBaseId in options so other tools can find the scheduler DPs.
-  useLayoutEffect(() => {
-    const expected = `aura.0.timers.${config.id}`;
-    if (o.stateBaseId !== expected) {
-      onConfigChange({ ...config, options: { ...o, stateBaseId: expected } });
-    }
-  }, [config.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [backendKey, config.title, masterEnabled]);
 
   const toggleMaster = () => {
     onConfigChange({ ...config, options: { ...o, enabled: !masterEnabled } });
