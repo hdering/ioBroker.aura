@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.123 (2026-05-23)
+Release v0.9.123
+
+
 ### 0.9.122 (2026-05-23)
 - style(value): remove bold weight from value text
 - fix(value): use text-primary for compact title to match SwitchWidget
@@ -273,15 +277,6 @@ npm run build:adapter
 - feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\" touch use case)
 
 
-### 0.9.103 (2026-05-21)
-- docs(custom-layout): add shared doc page for custom grid + cell move/copy
-- fix(custom-layout): close cell context menu on outside click via document listener
-- feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells
-- feat(custom-layout): in-app overwrite dialog for cell drag&drop
-- feat(custom-layout): drag & drop cells in grid editor with overwrite confirm
-- feat(custom-layout): raise grid max from 8x8 to 20x20
-
-
 ## License
 
 MIT License
@@ -293,6 +288,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.122",
+    "version": "0.9.123",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.123": {
+        "en": "Release v0.9.123",
+        "de": "Release v0.9.123",
+        "ru": "Release v0.9.123",
+        "pt": "Release v0.9.123",
+        "nl": "Release v0.9.123",
+        "fr": "Release v0.9.123",
+        "it": "Release v0.9.123",
+        "es": "Release v0.9.123",
+        "pl": "Release v0.9.123",
+        "uk": "Release v0.9.123",
+        "zh-cn": "Release v0.9.123"
+      },
       "0.9.122": {
         "en": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
         "de": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
@@ -183,19 +196,6 @@
         "pl": "fix(socket): refuse subscribe for invalid ID patterns; fix(iframe): guard iframeUrlDp against URL strings",
         "uk": "fix(socket): refuse subscribe for invalid ID patterns; fix(iframe): guard iframeUrlDp against URL strings",
         "zh-cn": "fix(socket): refuse subscribe for invalid ID patterns; fix(iframe): guard iframeUrlDp against URL strings"
-      },
-      "0.9.115": {
-        "en": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value",
-        "de": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value",
-        "ru": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value",
-        "pt": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value",
-        "nl": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value",
-        "fr": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value",
-        "it": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value",
-        "es": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value",
-        "pl": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value",
-        "uk": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value",
-        "zh-cn": "fix(value): isolate htmlTemplate textarea from parent re-renders; fix(value): defer htmlTemplate select() and add Copy button fallback; feat(value): double-click on htmlTemplate textarea selects all; fix(value): htmlTemplate as textarea for proper copy/select behavior; fix(value): htmlTemplate replaces only value block, not whole widget; feat(clock,value): font-size options for time, date, custom, value"
       }
     }
   },

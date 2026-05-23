@@ -1,5 +1,13 @@
 # Changelog (older entries)
 
+## 0.9.103 (2026-05-21)
+- docs(custom-layout): add shared doc page for custom grid + cell move/copy
+- fix(custom-layout): close cell context menu on outside click via document listener
+- feat(custom-layout): ctrl+drag copy, right-click menu and ctrl+c/x/v for cells
+- feat(custom-layout): in-app overwrite dialog for cell drag&drop
+- feat(custom-layout): drag & drop cells in grid editor with overwrite confirm
+- feat(custom-layout): raise grid max from 8x8 to 20x20
+
 ## 0.9.102 (2026-05-21)
 Release v0.9.102
 
