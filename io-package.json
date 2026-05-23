@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.119",
+    "version": "0.9.120",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,18 +106,18 @@
       }
     ],
     "news": {
-      "0.9.119": {
-        "en": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
-        "de": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
-        "ru": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
-        "pt": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
-        "nl": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
-        "fr": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
-        "it": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
-        "es": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
-        "pl": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
-        "uk": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget",
-        "zh-cn": "fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr; fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget"
+      "0.9.120": {
+        "en": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
+        "de": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
+        "ru": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
+        "pt": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
+        "nl": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
+        "fr": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
+        "it": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
+        "es": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
+        "pl": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
+        "uk": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
+        "zh-cn": "feat(timer): decouple Zeitschaltuhr backend path from widget id"
       },
       "0.9.118": {
         "en": "feat(timer): remove custom layout option from Zeitschaltuhr",

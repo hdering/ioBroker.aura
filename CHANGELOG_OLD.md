@@ -1,5 +1,12 @@
 # Changelog (older entries)
 
+## 0.9.100 (2026-05-21)
+- fix(knob): remove legacy auto/1fr/auto axis sizes so dial stays centered
+- fix(custom-grid): use minmax(0, 1fr) so cell contents don't unbalance tracks
+- fix(docs): drop unresolved screenshot placeholders for timer page
+- fix(lint): wrap typographic quotes in JSX expressions
+- Revert "chore: bump version to 99.99.99"
+
 ## 0.9.99 (2026-05-20)
 - fix(lint): auto-fix mixed typographic quotes
 - fix(lint): typographic quote in timer empty-state text
