@@ -90,6 +90,20 @@ function cloneChildren(children: WidgetConfig[]): WidgetConfig[] {
     if ((child.type === 'group' || child.type === 'carousel') && child.options?.defId) {
       return { ...child, options: { ...child.options, defId: cloneGroupDef(child.options.defId as string) } };
     }
+    // Timer children: regenerate event ids and drop stateBaseId so the clone
+    // doesn't share the events array / event ids with the original (mirrors
+    // the top-level copyConfig handling in WidgetFrame).
+    if (child.type === 'timer' && child.options) {
+      const o = child.options as Record<string, unknown>;
+      const rawEvents = (o.events as Array<Record<string, unknown>> | undefined) ?? [];
+      const events = rawEvents.map((e) => ({
+        ...e,
+        id: `t_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      }));
+      const nextOpts = { ...o, events } as Record<string, unknown>;
+      delete nextOpts.stateBaseId;
+      return { ...child, options: nextOpts };
+    }
     return child;
   });
 }
