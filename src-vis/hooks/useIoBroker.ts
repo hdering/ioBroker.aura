@@ -29,10 +29,12 @@ export function getStateFromCache(id: string): ioBrokerState | null {
 // ioBroker rejects ID patterns that contain URL/query characters with
 // "Invalid pattern on subscribe". Filter them out client-side so a stale
 // URL accidentally stored in a DP-field can never crash the socket.
+// NOTE: '#' is a legitimate separator in some adapters (e.g. Shelly:
+// shelly.0.SHSW-25#XXXXXX#1.Relay0.Switch) and must NOT be filtered.
 function isValidStateId(id: unknown): id is string {
   return typeof id === 'string'
     && id.length > 0
-    && !/[\s\/?#&=:]/.test(id);
+    && !/[\s\/?&=:]/.test(id);
 }
 
 /** Fetch multiple state IDs in parallel and warm the cache. Returns when all have resolved (or 4 s timeout). */
