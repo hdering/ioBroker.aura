@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.105 (2026-05-21)
+- feat(adapter-status): backend onMessage handlers for restart + upgrade
+- feat(widget): add adapter-status widget (instances list with optional restart/update)
+
 ## 0.9.104 (2026-05-21)
 - feat(widget-config): raise max input limits for fonts, icons and sizes (HiDPI/10\" touch use case)
 

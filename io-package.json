@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.124",
+    "version": "0.9.125",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.125": {
+        "en": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
+        "de": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
+        "ru": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
+        "pt": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
+        "nl": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
+        "fr": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
+        "it": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
+        "es": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
+        "pl": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
+        "uk": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
+        "zh-cn": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe"
+      },
       "0.9.124": {
         "en": "feat(admin): add Custom JS feature and 'CSS & JS' menu page",
         "de": "feat(admin): add Custom JS feature and 'CSS & JS' menu page",
@@ -183,19 +196,6 @@
         "pl": "feat(timer): remove custom layout option from Zeitschaltuhr",
         "uk": "feat(timer): remove custom layout option from Zeitschaltuhr",
         "zh-cn": "feat(timer): remove custom layout option from Zeitschaltuhr"
-      },
-      "0.9.117": {
-        "en": "feat(trashSchedule): raise max for bin/font size sliders (HiDPI/touch)",
-        "de": "feat(trashSchedule): raise max for bin/font size sliders (HiDPI/touch)",
-        "ru": "feat(trashSchedule): raise max for bin/font size sliders (HiDPI/touch)",
-        "pt": "feat(trashSchedule): raise max for bin/font size sliders (HiDPI/touch)",
-        "nl": "feat(trashSchedule): raise max for bin/font size sliders (HiDPI/touch)",
-        "fr": "feat(trashSchedule): raise max for bin/font size sliders (HiDPI/touch)",
-        "it": "feat(trashSchedule): raise max for bin/font size sliders (HiDPI/touch)",
-        "es": "feat(trashSchedule): raise max for bin/font size sliders (HiDPI/touch)",
-        "pl": "feat(trashSchedule): raise max for bin/font size sliders (HiDPI/touch)",
-        "uk": "feat(trashSchedule): raise max for bin/font size sliders (HiDPI/touch)",
-        "zh-cn": "feat(trashSchedule): raise max for bin/font size sliders (HiDPI/touch)"
       }
     }
   },
