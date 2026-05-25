@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.106 (2026-05-21)
+- feat(adapter-status): backend ping + timeout + visible backend health row
+
 ## 0.9.105 (2026-05-21)
 - feat(adapter-status): backend onMessage handlers for restart + upgrade
 - feat(widget): add adapter-status widget (instances list with optional restart/update)
