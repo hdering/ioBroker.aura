@@ -95,7 +95,7 @@ export function CustomJsSection({ contextId, onContextChange }: CustomJsSectionP
         disabled={!jsEnabled}
         rows={16}
         spellCheck={false}
-        placeholder={`// Helfer-Funktionen, die von Widgets via onClick="test(state.id)" aufgerufen werden.\n// API: window.aura.setState(id, val), aura.getState(id), aura.subscribeState(id, cb)\n\nfunction removeMsg(id) {\n  window.aura.setState('0_userdata.0.messageHandler.removeMsgID', id);\n  console.log('removed: ' + id);\n}`}
+        placeholder={`// Helfer-Funktionen, die von Widgets via onClick="test(state.id)" aufgerufen werden.\n// API: window.aura.setState(id, val), aura.getState(id), aura.subscribeState(id, cb)\n\n@import url('https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js');\n\nfunction removeMsg(id) {\n  window.aura.setState('0_userdata.0.messageHandler.removeMsgID', id);\n  console.log('removed: ' + id);\n}`}
         className="w-full rounded-xl px-4 py-3 text-xs font-mono focus:outline-none resize-none disabled:opacity-40 disabled:cursor-not-allowed"
         style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)', lineHeight: 1.7 }}
       />
