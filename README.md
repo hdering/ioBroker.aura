@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.130 (2026-05-25)
+- fix(timer): only rename channel on explicit save, not per keystroke
+
+
 ### 0.9.129 (2026-05-25)
 - fix(timer): rename channel/states when title changes in AdminWidgets
 - feat(timer): mirror widget title into ioBroker channel + state names
@@ -275,10 +279,6 @@ Release v0.9.123
 - feat(static-list): per-DP icon/font size, switch icon style, last-change, hide filter
 
 
-### 0.9.110 (2026-05-21)
-- feat(universal-widget): slider cell can show DP value at left/right/top/bottom
-
-
 ## License
 
 MIT License
@@ -290,6 +290,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
