@@ -25,23 +25,23 @@ export function GridSection({ contextId, onContextChange }: GridSectionProps) {
   const effectiveMob   = (mob ?? 600) as number;
 
   return (
-    <div className="rounded-xl p-4 space-y-3" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
-      <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>
-        {t('settings.grid.title')}
-      </p>
-      <div className="pb-2 mb-1 border-b" style={{ borderColor: 'var(--app-border)' }}>
+    <div className="rounded-xl p-6 space-y-4" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+          {t('settings.grid.title')}
+        </h2>
         <LayoutContextSwitcher selectedId={contextId} onChange={onContextChange} />
       </div>
-      <SliderSetting
-        label={t('settings.grid.rowHeight')}
-        value={effectiveRowH}
-        min={10} max={160} step={10} unit=" px"
-        onChange={(v) => set('gridRowHeight', v)}
-        isOverridden={rowHOv}
-        onClearOverride={() => clear('gridRowHeight')}
-        presets={[{ label: '20', value: 20 }, { label: '40', value: 40 }, { label: '60', value: 60 }, { label: '80', value: 80 }, { label: '120', value: 120 }]}
-      />
-      <div className="border-t pt-3" style={{ borderColor: 'var(--app-border)' }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <SliderSetting
+          label={t('settings.grid.rowHeight')}
+          value={effectiveRowH}
+          min={10} max={160} step={10} unit=" px"
+          onChange={(v) => set('gridRowHeight', v)}
+          isOverridden={rowHOv}
+          onClearOverride={() => clear('gridRowHeight')}
+          presets={[{ label: '20', value: 20 }, { label: '40', value: 40 }, { label: '60', value: 60 }, { label: '80', value: 80 }, { label: '120', value: 120 }]}
+        />
         <SliderSetting
           label={t('settings.grid.snapX')}
           value={effectiveSnapX}
@@ -56,8 +56,6 @@ export function GridSection({ contextId, onContextChange }: GridSectionProps) {
           onClearOverride={() => clear('gridSnapX')}
           presets={[{ label: '20', value: 20 }, { label: '40', value: 40 }, { label: '60', value: 60 }, { label: '80', value: 80 }, { label: '120', value: 120 }]}
         />
-      </div>
-      <div className="border-t pt-3" style={{ borderColor: 'var(--app-border)' }}>
         <SliderSetting
           label={t('settings.grid.mobileBreak')}
           value={effectiveMob}

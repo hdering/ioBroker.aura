@@ -31,19 +31,22 @@ export function GuidelinesSection({ contextId, onContextChange }: GuidelinesSect
   const effectiveEnabled = (enabled ?? false) as boolean;
 
   return (
-    <div className="rounded-xl p-4 space-y-3" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
-      <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>Hilfslinien</p>
-      <div className="pb-2 mb-1 border-b" style={{ borderColor: 'var(--app-border)' }}>
+    <div className="rounded-xl p-6 space-y-4" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div>
+          <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Hilfslinien</h2>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+            Rote gestrichelte Linien im Editor zur Orientierung bei der Layout-Planung für ein Zielgerät.
+          </p>
+        </div>
         <LayoutContextSwitcher selectedId={contextId} onChange={onContextChange} />
       </div>
-      <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-        Zeigt rote gestrichelte Linien im Editor (und optional im Frontend) zur Orientierung bei der Layout-Planung für ein Zielgerät.
-      </p>
 
-      <div>
-        <div className="flex items-center justify-between">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <div className="flex items-center justify-between rounded-lg px-3 py-2"
+          style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
           <div className="flex items-center gap-1.5">
-            <p className="text-sm" style={{ color: 'var(--text-primary)' }}>Aktiv</p>
+            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Aktiv</p>
             {enabledOv && (
               <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)' }}>
                 Layout
@@ -59,34 +62,11 @@ export function GuidelinesSection({ contextId, onContextChange }: GuidelinesSect
             <Toggle value={effectiveEnabled} onChange={(v) => set('guidelinesEnabled', v)} />
           </div>
         </div>
-      </div>
 
-      <SliderSetting
-        label="Breite"
-        value={effectiveW}
-        min={320} max={3840} step={10} unit=" px"
-        onChange={(v) => set('guidelinesWidth', v)}
-        isOverridden={wOv}
-        onClearOverride={() => clear('guidelinesWidth')}
-        presets={[{ label: '768', value: 768 }, { label: '1024', value: 1024 }, { label: '1280', value: 1280 }, { label: '1920', value: 1920 }]}
-      />
-
-      <div className="border-t pt-3" style={{ borderColor: 'var(--app-border)' }}>
-        <SliderSetting
-          label="Höhe"
-          value={effectiveH}
-          min={320} max={2160} step={10} unit=" px"
-          onChange={(v) => set('guidelinesHeight', v)}
-          isOverridden={hOv}
-          onClearOverride={() => clear('guidelinesHeight')}
-          presets={[{ label: '600', value: 600 }, { label: '768', value: 768 }, { label: '800', value: 800 }, { label: '1024', value: 1024 }, { label: '1080', value: 1080 }]}
-        />
-      </div>
-
-      <div className="border-t pt-3" style={{ borderColor: 'var(--app-border)' }}>
-        <div className="flex items-center justify-between py-2">
+        <div className="flex items-center justify-between rounded-lg px-3 py-2"
+          style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
           <div className="flex items-center gap-1.5">
-            <p className="text-sm" style={{ color: 'var(--text-primary)' }}>Im Frontend anzeigen</p>
+            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Im Frontend anzeigen</p>
             {showFeOv && (
               <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)' }}>
                 Layout
@@ -102,6 +82,26 @@ export function GuidelinesSection({ contextId, onContextChange }: GuidelinesSect
             <Toggle value={effectiveShowFe} onChange={(v) => set('guidelinesShowInFrontend', v)} />
           </div>
         </div>
+
+        <SliderSetting
+          label="Breite"
+          value={effectiveW}
+          min={320} max={3840} step={10} unit=" px"
+          onChange={(v) => set('guidelinesWidth', v)}
+          isOverridden={wOv}
+          onClearOverride={() => clear('guidelinesWidth')}
+          presets={[{ label: '768', value: 768 }, { label: '1024', value: 1024 }, { label: '1280', value: 1280 }, { label: '1920', value: 1920 }]}
+        />
+
+        <SliderSetting
+          label="Höhe"
+          value={effectiveH}
+          min={320} max={2160} step={10} unit=" px"
+          onChange={(v) => set('guidelinesHeight', v)}
+          isOverridden={hOv}
+          onClearOverride={() => clear('guidelinesHeight')}
+          presets={[{ label: '600', value: 600 }, { label: '768', value: 768 }, { label: '800', value: 800 }, { label: '1024', value: 1024 }, { label: '1080', value: 1080 }]}
+        />
       </div>
     </div>
   );

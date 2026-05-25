@@ -84,7 +84,7 @@ export function ThemeVarsSection({ contextId, onContextChange }: ThemeVarsSectio
           </button>
         </div>
       </div>
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-5">
         {VAR_GROUPS.map(({ labelKey, keys }) => (
           <div key={labelKey}>
             <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-secondary)' }}>{t(labelKey as never)}</p>
@@ -96,14 +96,14 @@ export function ThemeVarsSection({ contextId, onContextChange }: ThemeVarsSectio
                 const varLabelKey = VAR_LABEL_KEYS[key];
                 const isOv = isThemeOv(key);
                 return (
-                  <div key={key} className="flex items-center gap-3">
-                    <label className="text-xs w-32 shrink-0 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
+                  <div key={key} className="flex items-center gap-2">
+                    <label className="text-xs w-24 shrink-0 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
                       {varLabelKey ? t(varLabelKey as never) : key}
                       {isOv && (
                         <span className="text-[9px] px-1 py-0.5 rounded font-medium" style={{ background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)' }}>L</span>
                       )}
                     </label>
-                    <div className="flex items-center gap-2 flex-1">
+                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
                       {isColor(current) && (
                         <input type="color" value={current.startsWith('#') ? current : '#000000'}
                           onChange={(e) => setThemeVar(key, e.target.value)}
@@ -113,7 +113,7 @@ export function ThemeVarsSection({ contextId, onContextChange }: ThemeVarsSectio
                       <input type="text" value={custom ?? ''}
                         placeholder={base}
                         onChange={(e) => { if (e.target.value) setThemeVar(key, e.target.value); else clearThemeVar(key); }}
-                        className="flex-1 text-xs rounded-lg px-3 py-2 focus:outline-none font-mono"
+                        className="flex-1 min-w-0 text-xs rounded-lg px-2 py-2 focus:outline-none font-mono"
                         style={{ background: 'var(--app-bg)', color: custom ? 'var(--text-primary)' : 'var(--text-secondary)', border: `1px solid ${custom ? 'var(--accent)' : 'var(--app-border)'}` }} />
                       {custom && (
                         <button onClick={() => clearThemeVar(key)}
