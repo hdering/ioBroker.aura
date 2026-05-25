@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.126",
+    "version": "0.9.127",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.127": {
+        "en": "perf(chart): cache getObject + drop duplicate fetch in history path",
+        "de": "perf(chart): cache getObject + drop duplicate fetch in history path",
+        "ru": "perf(chart): cache getObject + drop duplicate fetch in history path",
+        "pt": "perf(chart): cache getObject + drop duplicate fetch in history path",
+        "nl": "perf(chart): cache getObject + drop duplicate fetch in history path",
+        "fr": "perf(chart): cache getObject + drop duplicate fetch in history path",
+        "it": "perf(chart): cache getObject + drop duplicate fetch in history path",
+        "es": "perf(chart): cache getObject + drop duplicate fetch in history path",
+        "pl": "perf(chart): cache getObject + drop duplicate fetch in history path",
+        "uk": "perf(chart): cache getObject + drop duplicate fetch in history path",
+        "zh-cn": "perf(chart): cache getObject + drop duplicate fetch in history path"
+      },
       "0.9.126": {
         "en": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning",
         "de": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning",
@@ -183,19 +196,6 @@
         "pl": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
         "uk": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
         "zh-cn": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry"
-      },
-      "0.9.120": {
-        "en": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
-        "de": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
-        "ru": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
-        "pt": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
-        "nl": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
-        "fr": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
-        "it": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
-        "es": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
-        "pl": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
-        "uk": "feat(timer): decouple Zeitschaltuhr backend path from widget id",
-        "zh-cn": "feat(timer): decouple Zeitschaltuhr backend path from widget id"
       }
     }
   },

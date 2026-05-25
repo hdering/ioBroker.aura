@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.107 (2026-05-21)
+- fix(adapter-status): better aura detection + retry button + console diagnostics
+
 ## 0.9.106 (2026-05-21)
 - feat(adapter-status): backend ping + timeout + visible backend health row
 
