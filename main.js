@@ -1275,6 +1275,22 @@ class Aura extends utils.Adapter {
         return;
       }
 
+      if (msg.command === 'renameTimer') {
+        const widgetId = String(msg.message?.widgetId || '').trim();
+        const title = String(msg.message?.title || '');
+        if (!widgetId || !/^[a-zA-Z0-9_-]+$/.test(widgetId)) {
+          reply({ ok: false, error: `Invalid widgetId: ${widgetId}` });
+          return;
+        }
+        try {
+          await this._syncTimerName(widgetId, title);
+          reply({ ok: true });
+        } catch (e) {
+          reply({ ok: false, error: e?.message || String(e) });
+        }
+        return;
+      }
+
       if (msg.command === 'deleteTimer') {
         const widgetId = String(msg.message?.widgetId || '').trim();
         if (!widgetId || !/^[a-zA-Z0-9_-]+$/.test(widgetId)) {

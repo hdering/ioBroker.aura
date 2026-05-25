@@ -122,3 +122,20 @@ export function unpublishTimerForWidget(widget: { type?: string; options?: Recor
   if (!backendKey) return;
   void unpublishTimer(backendKey);
 }
+
+/** Push a title change to ioBroker for a timer widget even when no live
+ *  TimerWidget is mounted (e.g. when renaming from AdminWidgets, which uses a
+ *  mocked preview). Runs via sendTo so the adapter does the extendObject under
+ *  full permissions. No-op for non-timer widgets / widgets without stateBaseId. */
+const lastRenameSent = new Map<string, string>();
+export function renameTimerForWidget(widget: { type?: string; title?: string; options?: Record<string, unknown> } | null | undefined): void {
+  if (!widget || widget.type !== 'timer') return;
+  const stateBaseId = widget.options?.stateBaseId;
+  if (typeof stateBaseId !== 'string') return;
+  const backendKey = stateBaseId.split('.').pop();
+  if (!backendKey) return;
+  const title = widget.title || 'Zeitschaltuhr';
+  if (lastRenameSent.get(backendKey) === title) return;
+  lastRenameSent.set(backendKey, title);
+  void sendToDirect('aura.0', 'renameTimer', { widgetId: backendKey, title });
+}
