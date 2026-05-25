@@ -1274,6 +1274,22 @@ class Aura extends utils.Adapter {
         return;
       }
 
+      if (msg.command === 'listTimers') {
+        try {
+          const channels = await this.getChannelsOfAsync('timers');
+          const prefix = `${this.namespace}.timers.`;
+          const widgetIds = (channels || [])
+            .map((c) => c._id || '')
+            .filter((id) => id.startsWith(prefix))
+            .map((id) => id.slice(prefix.length))
+            .filter((id) => id && !id.includes('.')); // direct children only
+          reply({ ok: true, widgetIds });
+        } catch (e) {
+          reply({ ok: false, error: e?.message || String(e) });
+        }
+        return;
+      }
+
       if (msg.command === 'renameTimer') {
         const widgetId = String(msg.message?.widgetId || '').trim();
         const title = String(msg.message?.title || '');

@@ -216,6 +216,11 @@ export const en: Record<TranslationKey, string> = {
   'dashboard.nav.externalUrl': 'For external URLs specify the full URL (https://…).',
   'dashboard.nav.copy':        'Copy',
 
+  'dashboard.orphans.title':   '{count} orphaned timer DP(s) in ioBroker',
+  'dashboard.orphans.hint':    'These objects exist in ioBroker but no longer belong to any timer widget. Cleaning up removes them from the object tree.',
+  'dashboard.orphans.refresh': 'Refresh',
+  'dashboard.orphans.cleanup': 'Clean up',
+
   // ── Layouts ───────────────────────────────────────────────────────────────────
   'layouts.title':    'Layouts',
   'layouts.subtitle': 'Each layout has its own tabs and widgets — ideal for different tablets or rooms.',

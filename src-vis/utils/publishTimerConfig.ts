@@ -147,3 +147,22 @@ export function renameTimerForWidget(widget: { type?: string; title?: string; op
 export function renameAllTimers(widgets: Array<{ type?: string; title?: string; options?: Record<string, unknown> }>): void {
   for (const w of widgets) renameTimerForWidget(w);
 }
+
+/** Ask the adapter which widgetIds currently have an aura.0.timers.<id>
+ *  channel in ioBroker. Used by the orphan detector on the Übersicht page. */
+export async function listTimerIds(): Promise<string[]> {
+  const r = await sendToDirect<{ ok: boolean; widgetIds?: string[] }>('aura.0', 'listTimers', {});
+  if (r && typeof r === 'object' && 'widgetIds' in r && Array.isArray((r as { widgetIds?: string[] }).widgetIds)) {
+    return (r as { widgetIds: string[] }).widgetIds;
+  }
+  return [];
+}
+
+/** Extract the backendKey segment from a widget's stateBaseId, or null. */
+export function timerBackendKey(widget: { type?: string; options?: Record<string, unknown> } | null | undefined): string | null {
+  if (!widget || widget.type !== 'timer') return null;
+  const stateBaseId = widget.options?.stateBaseId;
+  if (typeof stateBaseId !== 'string') return null;
+  const seg = stateBaseId.split('.').pop();
+  return seg || null;
+}
