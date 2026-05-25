@@ -16,6 +16,7 @@ import { loadConfigFromIoBroker, applyRaw } from '../../utils/configLoader';
 import { markGroupDefsHydrated } from '../../store/groupDefsStore';
 import { useAdminPrefsStore } from '../../store/adminPrefsStore';
 import { useIoBroker, getObjectDirect } from '../../hooks/useIoBroker';
+import { renameAllTimers } from '../../utils/publishTimerConfig';
 import { useVersionGuard } from '../../hooks/useVersionGuard';
 import { useT } from '../../i18n';
 
@@ -30,6 +31,8 @@ function useSaveState() {
     try {
       saveAll();
       saveToIoBroker();
+      const widgets = useDashboardStore.getState().layouts.flatMap((l) => l.tabs.flatMap((t) => t.widgets));
+      renameAllTimers(widgets);
     } catch {
       setSaveError('Speichern fehlgeschlagen: localStorage-Speicher voll');
     }

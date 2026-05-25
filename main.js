@@ -1049,11 +1049,10 @@ class Aura extends utils.Adapter {
           entry.payload = null;
         }
       }
-      // Mirror the widget title into ioBroker channel + state names so the
-      // object tree stays in sync with the user-visible name in vis.
-      if (entry.payload && typeof entry.payload.title === 'string') {
-        this._syncTimerName(widgetId, entry.payload.title).catch(() => {});
-      }
+      // NOTE: we deliberately do NOT call _syncTimerName here. TimerWidget
+      // republishes the config state on every keystroke while mounted, so a
+      // rename-on-ingest would spam the object DB. Title sync happens only on
+      // explicit save via the renameTimer onMessage handler.
     }
     this._timerState.set(widgetId, entry);
   }

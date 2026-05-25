@@ -123,10 +123,12 @@ export function unpublishTimerForWidget(widget: { type?: string; options?: Recor
   void unpublishTimer(backendKey);
 }
 
-/** Push a title change to ioBroker for a timer widget even when no live
- *  TimerWidget is mounted (e.g. when renaming from AdminWidgets, which uses a
- *  mocked preview). Runs via sendTo so the adapter does the extendObject under
- *  full permissions. No-op for non-timer widgets / widgets without stateBaseId. */
+/** Push a title change to ioBroker for a timer widget. Runs via sendTo so the
+ *  adapter does the extendObject under full permissions. Caller is responsible
+ *  for triggering this at the right moment (typically on an explicit save) —
+ *  the AdminWidgets InlineEditForm calls onUpdate per keystroke, so calling
+ *  this from there would spam the adapter. No-op for non-timer widgets /
+ *  widgets without stateBaseId / when the title matches the last sent value. */
 const lastRenameSent = new Map<string, string>();
 export function renameTimerForWidget(widget: { type?: string; title?: string; options?: Record<string, unknown> } | null | undefined): void {
   if (!widget || widget.type !== 'timer') return;
@@ -138,4 +140,10 @@ export function renameTimerForWidget(widget: { type?: string; title?: string; op
   if (lastRenameSent.get(backendKey) === title) return;
   lastRenameSent.set(backendKey, title);
   void sendToDirect('aura.0', 'renameTimer', { widgetId: backendKey, title });
+}
+
+/** Walk a list of widgets and push rename for every timer. Cheap thanks to the
+ *  lastRenameSent cache + the adapter's no-op-if-name-matches check. */
+export function renameAllTimers(widgets: Array<{ type?: string; title?: string; options?: Record<string, unknown> }>): void {
+  for (const w of widgets) renameTimerForWidget(w);
 }
