@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.131",
+    "version": "0.9.132",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.132": {
+        "en": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets",
+        "de": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets",
+        "ru": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets",
+        "pt": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets",
+        "nl": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets",
+        "fr": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets",
+        "it": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets",
+        "es": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets",
+        "pl": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets",
+        "uk": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets",
+        "zh-cn": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets"
+      },
       "0.9.131": {
         "en": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
         "de": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
@@ -183,19 +196,6 @@
         "pl": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning",
         "uk": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning",
         "zh-cn": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning"
-      },
-      "0.9.125": {
-        "en": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
-        "de": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
-        "ru": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
-        "pt": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
-        "nl": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
-        "fr": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
-        "it": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
-        "es": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
-        "pl": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
-        "uk": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
-        "zh-cn": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe"
       }
     }
   },

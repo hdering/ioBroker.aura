@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.112 (2026-05-21)
+- feat(chart): option to hide X-axis in simple and advanced chart widgets
+
 ## 0.9.111 (2026-05-21)
 - feat(static-list): per-DP icon/font size, switch icon style, last-change, hide filter
 
