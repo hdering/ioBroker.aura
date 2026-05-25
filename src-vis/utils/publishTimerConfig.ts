@@ -103,14 +103,22 @@ export function publishTimerEnabled(widgetId: string, title: string, enabled: bo
 
 export async function unpublishTimer(widgetId: string): Promise<void> {
   ensurePromises.delete(widgetId);
-  await deleteObjectDirect(timerConfigStateId(widgetId));
-  await deleteObjectDirect(timerEnabledStateId(widgetId));
-  await deleteObjectDirect(timerChannelId(widgetId));
+  const ids = [timerConfigStateId(widgetId), timerEnabledStateId(widgetId), timerChannelId(widgetId)];
+  console.info('[aura-timer] unpublishTimer →', ids);
+  for (const id of ids) {
+    try {
+      await deleteObjectDirect(id);
+      console.info('[aura-timer] delObject ok', id);
+    } catch (e) {
+      console.warn('[aura-timer] delObject failed', id, e);
+    }
+  }
 }
 
 /** Cleanup backend DPs for a widget about to be deleted. Safe to call for any
  *  widget type — only acts on type==='timer' with a stamped stateBaseId. */
 export function unpublishTimerForWidget(widget: { type?: string; options?: Record<string, unknown> } | null | undefined): void {
+  console.info('[aura-timer] unpublishTimerForWidget called', { type: widget?.type, stateBaseId: widget?.options?.stateBaseId });
   if (!widget || widget.type !== 'timer') return;
   const stateBaseId = widget.options?.stateBaseId;
   if (typeof stateBaseId !== 'string') return;

@@ -376,8 +376,10 @@ export function sendToDirect<T = unknown>(target: string, command: string, paylo
 /** Delete an ioBroker object by ID. Returns a promise that resolves when done. */
 export function deleteObjectDirect(id: string): Promise<void> {
   invalidateObjectCache(id);
-  return new Promise((resolve) => {
-    getSocket().emit('delObject', id, (_err: unknown) => resolve());
+  return new Promise((resolve, reject) => {
+    getSocket().emit('delObject', id, (err: unknown) => {
+      if (err) reject(err); else resolve();
+    });
   });
 }
 
