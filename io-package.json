@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.128",
+    "version": "0.9.129",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.129": {
+        "en": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
+        "de": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
+        "ru": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
+        "pt": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
+        "nl": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
+        "fr": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
+        "it": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
+        "es": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
+        "pl": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
+        "uk": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
+        "zh-cn": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names"
+      },
       "0.9.128": {
         "en": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
         "de": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
@@ -183,19 +196,6 @@
         "pl": "Release v0.9.123",
         "uk": "Release v0.9.123",
         "zh-cn": "Release v0.9.123"
-      },
-      "0.9.122": {
-        "en": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
-        "de": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
-        "ru": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
-        "pt": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
-        "nl": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
-        "fr": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
-        "it": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
-        "es": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
-        "pl": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
-        "uk": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
-        "zh-cn": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget"
       }
     }
   },

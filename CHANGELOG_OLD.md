@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.109 (2026-05-21)
+- feat(adapter-status): add frontend filter pills (admin-toggleable)
+- chore(adapter-status): remove backend-health ping, status row, and debug console output
+
 ## 0.9.108 (2026-05-21)
 - fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura
 
