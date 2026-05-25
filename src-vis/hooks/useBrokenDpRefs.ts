@@ -24,6 +24,10 @@ function collectRefs(widget: WidgetConfig, location: string): BrokenRef[] {
     if (typeof dp !== 'string') return;
     const trimmed = dp.trim();
     if (!trimmed) return;
+    // Popup widgets use handlebars-style placeholders like "{{dp}}" that are
+    // resolved at render time — they are not real ioBroker IDs and would
+    // always show up as "missing" if we checked them.
+    if (trimmed.includes('{{') || trimmed.includes('}}')) return;
     refs.push({
       widgetId: widget.id,
       widgetTitle: widget.title || '(ohne Titel)',
