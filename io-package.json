@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.127",
+    "version": "0.9.128",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.128": {
+        "en": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
+        "de": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
+        "ru": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
+        "pt": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
+        "nl": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
+        "fr": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
+        "it": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
+        "es": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
+        "pl": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
+        "uk": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
+        "zh-cn": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted"
+      },
       "0.9.127": {
         "en": "perf(chart): cache getObject + drop duplicate fetch in history path",
         "de": "perf(chart): cache getObject + drop duplicate fetch in history path",
@@ -183,19 +196,6 @@
         "pl": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
         "uk": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget",
         "zh-cn": "style(value): remove bold weight from value text; fix(value): use text-primary for compact title to match SwitchWidget"
-      },
-      "0.9.121": {
-        "en": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
-        "de": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
-        "ru": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
-        "pt": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
-        "nl": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
-        "fr": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
-        "it": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
-        "es": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
-        "pl": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
-        "uk": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry",
-        "zh-cn": "fix(timer): keep copied widgets in sync without F5 + register them without adapter restart; feat(autolist): global toggle to show last-change timestamp per entry"
       }
     }
   },

@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.108 (2026-05-21)
+- fix(adapter-status): set common.messagebox=true so sendTo actually reaches aura
+
 ## 0.9.107 (2026-05-21)
 - fix(adapter-status): better aura detection + retry button + console diagnostics
 
