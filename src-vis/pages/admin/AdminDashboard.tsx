@@ -1,6 +1,6 @@
 import { useDashboardStore } from '../../store/dashboardStore';
 import { useIoBroker } from '../../hooks/useIoBroker';
-import { Layers, Wifi, WifiOff, Layout, Hash, Copy, Check, AlertTriangle, RefreshCw, Trash2 } from 'lucide-react';
+import { Layers, Wifi, WifiOff, Layout, Hash, Copy, Check, AlertTriangle, CheckCircle2, RefreshCw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useT } from '../../i18n';
 import { copyToClipboard } from '../../utils/clipboard';
@@ -35,13 +35,41 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+function OrphanRow({ label, ns, ids }: { label: string; ns: 'timers' | 'lists'; ids: string[] }) {
+  const clean = ids.length === 0;
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-primary)' }}>
+        <span
+          className="inline-flex items-center justify-center text-[10px] font-bold rounded-full w-5 h-5"
+          style={{
+            background: clean ? 'color-mix(in srgb, var(--accent-green) 18%, transparent)' : 'color-mix(in srgb, var(--accent-yellow) 22%, transparent)',
+            color: clean ? 'var(--accent-green)' : 'var(--accent-yellow)',
+          }}
+        >
+          {ids.length}
+        </span>
+        <span>{label}</span>
+      </div>
+      {ids.length > 0 && (
+        <ul className="aura-scroll text-xs font-mono max-h-24 overflow-y-auto space-y-0.5 px-3 py-1.5 rounded-lg ml-7"
+            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}>
+          {ids.map((id) => <li key={id}>aura.0.{ns}.{id}</li>)}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function TimerOrphansSection() {
   const t = useT();
-  const { orphans, loading, refresh, cleanup } = useTimerOrphans();
+  const { timer, list, loading, refresh, cleanup } = useTimerOrphans();
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState(false);
 
-  if (orphans.length === 0 && !loading) return null;
+  const total = timer.length + list.length;
+  const clean = total === 0;
+  const accent = clean ? 'var(--accent-green)' : 'var(--accent-yellow)';
 
   const handleCleanup = async () => {
     setBusy(true);
@@ -52,13 +80,15 @@ function TimerOrphansSection() {
   return (
     <div
       className="rounded-xl p-5 space-y-3"
-      style={{ background: 'var(--app-surface)', border: '1px solid var(--accent-yellow)' }}
+      style={{ background: 'var(--app-surface)', border: `1px solid ${accent}` }}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <AlertTriangle size={16} style={{ color: 'var(--accent-yellow)' }} />
+          {clean
+            ? <CheckCircle2 size={16} style={{ color: accent }} />
+            : <AlertTriangle size={16} style={{ color: accent }} />}
           <h2 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
-            {t('dashboard.orphans.title', { count: orphans.length })}
+            {clean ? t('dashboard.orphans.titleClean') : t('dashboard.orphans.title', { count: total })}
           </h2>
         </div>
         <div className="flex items-center gap-2">
@@ -72,7 +102,7 @@ function TimerOrphansSection() {
             <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
             {t('dashboard.orphans.refresh')}
           </button>
-          {confirm ? (
+          {!clean && (confirm ? (
             <>
               <button
                 onClick={handleCleanup}
@@ -95,27 +125,22 @@ function TimerOrphansSection() {
           ) : (
             <button
               onClick={() => setConfirm(true)}
-              disabled={orphans.length === 0}
-              className="flex items-center gap-1.5 px-2.5 h-7 text-xs rounded-lg text-white hover:opacity-80 disabled:opacity-50"
+              className="flex items-center gap-1.5 px-2.5 h-7 text-xs rounded-lg text-white hover:opacity-80"
               style={{ background: 'var(--accent-red)' }}
             >
               <Trash2 size={12} />
               {t('dashboard.orphans.cleanup')}
             </button>
-          )}
+          ))}
         </div>
       </div>
-      {orphans.length > 0 && (
-        <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-          {t('dashboard.orphans.hint')}
-        </p>
-      )}
-      {orphans.length > 0 && (
-        <ul className="aura-scroll text-xs font-mono max-h-32 overflow-y-auto space-y-0.5 px-3 py-2 rounded-lg"
-            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}>
-          {orphans.map((id) => <li key={id}>aura.0.timers.{id}</li>)}
-        </ul>
-      )}
+      <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+        {clean ? t('dashboard.orphans.hintClean') : t('dashboard.orphans.hint')}
+      </p>
+      <div className="space-y-3 pt-1">
+        <OrphanRow label={t('dashboard.orphans.timerLabel')} ns="timers" ids={timer} />
+        <OrphanRow label={t('dashboard.orphans.listLabel')}  ns="lists"  ids={list}  />
+      </div>
     </div>
   );
 }

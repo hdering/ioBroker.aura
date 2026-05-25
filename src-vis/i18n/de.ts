@@ -214,10 +214,14 @@ export const de = {
   'dashboard.nav.externalUrl': 'Für externe URLs die vollständige URL angeben (https://…).',
   'dashboard.nav.copy':        'Kopieren',
 
-  'dashboard.orphans.title':   '{count} verwaiste Zeitschaltuhr-DPs in ioBroker',
-  'dashboard.orphans.hint':    'Diese Datenpunkte existieren in ioBroker, gehören aber zu keinem Timer-Widget mehr. Bereinigen entfernt sie aus dem Objektbaum.',
-  'dashboard.orphans.refresh': 'Aktualisieren',
-  'dashboard.orphans.cleanup': 'Aufräumen',
+  'dashboard.orphans.title':      '{count} verwaiste DPs in ioBroker',
+  'dashboard.orphans.titleClean': 'Keine verwaisten DPs in ioBroker',
+  'dashboard.orphans.hint':       'Diese Datenpunkte existieren in ioBroker, gehören aber zu keinem Widget mehr. Bereinigen entfernt sie aus dem Objektbaum.',
+  'dashboard.orphans.hintClean':  'Jeder aura.0.timers.* und aura.0.lists.* Datenpunkt gehört zu einem existierenden Widget.',
+  'dashboard.orphans.timerLabel': 'Zeitschaltuhr-DPs ohne Widget',
+  'dashboard.orphans.listLabel':  'Listen-DPs ohne Widget',
+  'dashboard.orphans.refresh':    'Aktualisieren',
+  'dashboard.orphans.cleanup':    'Aufräumen',
 
   // ── Layouts ───────────────────────────────────────────────────────────────────
   'layouts.title':    'Layouts',

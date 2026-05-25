@@ -1274,19 +1274,34 @@ class Aura extends utils.Adapter {
         return;
       }
 
-      if (msg.command === 'listTimers') {
+      if (msg.command === 'listTimers' || msg.command === 'listLists') {
+        const ns = msg.command === 'listTimers' ? 'timers' : 'lists';
         try {
-          const channels = await this.getChannelsOfAsync('timers');
-          const prefix = `${this.namespace}.timers.`;
+          const channels = await this.getChannelsOfAsync(ns);
+          const prefix = `${this.namespace}.${ns}.`;
           const widgetIds = (channels || [])
             .map((c) => c._id || '')
             .filter((id) => id.startsWith(prefix))
             .map((id) => id.slice(prefix.length))
-            .filter((id) => id && !id.includes('.')); // direct children only
+            .filter((id) => id && !id.includes('.'));
           reply({ ok: true, widgetIds });
         } catch (e) {
           reply({ ok: false, error: e?.message || String(e) });
         }
+        return;
+      }
+
+      if (msg.command === 'deleteList') {
+        const widgetId = String(msg.message?.widgetId || '').trim();
+        if (!widgetId) { reply({ ok: false, error: `Invalid widgetId: ${widgetId}` }); return; }
+        const base = `lists.${widgetId}`;
+        const results = {};
+        try { await this.delObjectAsync(`${base}.count`); results.count = 'ok'; }
+        catch (e) { results.count = e?.message || String(e); }
+        try { await this.delObjectAsync(base); results.channel = 'ok'; }
+        catch (e) { results.channel = e?.message || String(e); }
+        this.log.info(`[lists] deleteList ${this.namespace}.${base} → ${JSON.stringify(results)}`);
+        reply({ ok: true, results });
         return;
       }
 

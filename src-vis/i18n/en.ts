@@ -216,10 +216,14 @@ export const en: Record<TranslationKey, string> = {
   'dashboard.nav.externalUrl': 'For external URLs specify the full URL (https://…).',
   'dashboard.nav.copy':        'Copy',
 
-  'dashboard.orphans.title':   '{count} orphaned timer DP(s) in ioBroker',
-  'dashboard.orphans.hint':    'These objects exist in ioBroker but no longer belong to any timer widget. Cleaning up removes them from the object tree.',
-  'dashboard.orphans.refresh': 'Refresh',
-  'dashboard.orphans.cleanup': 'Clean up',
+  'dashboard.orphans.title':      '{count} orphaned DP(s) in ioBroker',
+  'dashboard.orphans.titleClean': 'No orphaned DPs in ioBroker',
+  'dashboard.orphans.hint':       'These objects exist in ioBroker but no longer belong to any widget. Cleaning up removes them from the object tree.',
+  'dashboard.orphans.hintClean':  'Every aura.0.timers.* and aura.0.lists.* datapoint belongs to an existing widget.',
+  'dashboard.orphans.timerLabel': 'Timer DPs without a widget',
+  'dashboard.orphans.listLabel':  'List DPs without a widget',
+  'dashboard.orphans.refresh':    'Refresh',
+  'dashboard.orphans.cleanup':    'Clean up',
 
   // ── Layouts ───────────────────────────────────────────────────────────────────
   'layouts.title':    'Layouts',
