@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.132",
+    "version": "0.9.133",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.133": {
+        "en": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
+        "de": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
+        "ru": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
+        "pt": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
+        "nl": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
+        "fr": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
+        "it": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
+        "es": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
+        "pl": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
+        "uk": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
+        "zh-cn": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS"
+      },
       "0.9.132": {
         "en": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets",
         "de": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets",
@@ -183,19 +196,6 @@
         "pl": "perf(chart): cache getObject + drop duplicate fetch in history path",
         "uk": "perf(chart): cache getObject + drop duplicate fetch in history path",
         "zh-cn": "perf(chart): cache getObject + drop duplicate fetch in history path"
-      },
-      "0.9.126": {
-        "en": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning",
-        "de": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning",
-        "ru": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning",
-        "pt": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning",
-        "nl": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning",
-        "fr": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning",
-        "it": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning",
-        "es": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning",
-        "pl": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning",
-        "uk": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning",
-        "zh-cn": "fix(useDatapointList): skip rows with missing value.common; fix(lists): declare list-count state writable to silence ioBroker read-only warning"
       }
     }
   },

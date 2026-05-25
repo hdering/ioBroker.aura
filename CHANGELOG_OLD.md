@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.113 (2026-05-22)
+- fix(widgets): guard null state in last-change subscribers
+
 ## 0.9.112 (2026-05-21)
 - feat(chart): option to hide X-axis in simple and advanced chart widgets
 
