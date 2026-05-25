@@ -6,6 +6,7 @@ import { X, Pencil, Database, Sparkles, EyeOff, ChevronDown, Plus, Trash2, Downl
 import { setDragBridge } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
 import { exportWidget } from '../../utils/widgetExportImport';
+import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
 import { copyToClipboard } from '../../utils/clipboard';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
@@ -3326,7 +3327,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             {confirmDelete ? (
               <div className="flex gap-1 px-1 pb-1">
                 <button
-                  onClick={() => onRemove(config.id)}
+                  onClick={() => { unpublishTimerForWidget(config); onRemove(config.id); }}
                   className="flex-1 text-xs py-1.5 rounded-md text-white hover:opacity-80"
                   style={{ background: 'var(--accent-red)' }}
                 >

@@ -107,3 +107,14 @@ export async function unpublishTimer(widgetId: string): Promise<void> {
   await deleteObjectDirect(timerEnabledStateId(widgetId));
   await deleteObjectDirect(timerChannelId(widgetId));
 }
+
+/** Cleanup backend DPs for a widget about to be deleted. Safe to call for any
+ *  widget type — only acts on type==='timer' with a stamped stateBaseId. */
+export function unpublishTimerForWidget(widget: { type?: string; options?: Record<string, unknown> } | null | undefined): void {
+  if (!widget || widget.type !== 'timer') return;
+  const stateBaseId = widget.options?.stateBaseId;
+  if (typeof stateBaseId !== 'string') return;
+  const backendKey = stateBaseId.split('.').pop();
+  if (!backendKey) return;
+  void unpublishTimer(backendKey);
+}

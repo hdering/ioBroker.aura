@@ -14,6 +14,7 @@ import type { WidgetConfig, WidgetType, WidgetLayout } from '../../types';
 import { WIDGET_REGISTRY } from '../../widgetRegistry';
 import { useConfigStore } from '../../store/configStore';
 import { exportWidget } from '../../utils/widgetExportImport';
+import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
 
 // ── Meta (derived from central registry) ─────────────────────────────────────
 
@@ -753,7 +754,11 @@ export function AdminWidgets() {
               entries={byType.get(type) ?? []}
               tabs={tabs}
               onUpdate={(tabId, widgetId, config) => updateWidgetInTab(tabId, widgetId, config)}
-              onDelete={(tabId, widgetId) => removeWidgetInTab(tabId, widgetId)}
+              onDelete={(tabId, widgetId) => {
+                const widget = tabs.find((tb) => tb.id === tabId)?.widgets.find((w) => w.id === widgetId);
+                unpublishTimerForWidget(widget);
+                removeWidgetInTab(tabId, widgetId);
+              }}
               onCopy={handleCopy}
               onMove={handleMove}
               defaultOpen={i === 0}
