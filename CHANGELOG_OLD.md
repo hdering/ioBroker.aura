@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.111 (2026-05-21)
+- feat(static-list): per-DP icon/font size, switch icon style, last-change, hide filter
+
 ## 0.9.110 (2026-05-21)
 - feat(universal-widget): slider cell can show DP value at left/right/top/bottom
 

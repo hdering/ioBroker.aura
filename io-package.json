@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.130",
+    "version": "0.9.131",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.131": {
+        "en": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
+        "de": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
+        "ru": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
+        "pt": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
+        "nl": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
+        "fr": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
+        "it": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
+        "es": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
+        "pl": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
+        "uk": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
+        "zh-cn": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup"
+      },
       "0.9.130": {
         "en": "fix(timer): only rename channel on explicit save, not per keystroke",
         "de": "fix(timer): only rename channel on explicit save, not per keystroke",
@@ -183,19 +196,6 @@
         "pl": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
         "uk": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe",
         "zh-cn": "fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe"
-      },
-      "0.9.124": {
-        "en": "feat(admin): add Custom JS feature and 'CSS & JS' menu page",
-        "de": "feat(admin): add Custom JS feature and 'CSS & JS' menu page",
-        "ru": "feat(admin): add Custom JS feature and 'CSS & JS' menu page",
-        "pt": "feat(admin): add Custom JS feature and 'CSS & JS' menu page",
-        "nl": "feat(admin): add Custom JS feature and 'CSS & JS' menu page",
-        "fr": "feat(admin): add Custom JS feature and 'CSS & JS' menu page",
-        "it": "feat(admin): add Custom JS feature and 'CSS & JS' menu page",
-        "es": "feat(admin): add Custom JS feature and 'CSS & JS' menu page",
-        "pl": "feat(admin): add Custom JS feature and 'CSS & JS' menu page",
-        "uk": "feat(admin): add Custom JS feature and 'CSS & JS' menu page",
-        "zh-cn": "feat(admin): add Custom JS feature and 'CSS & JS' menu page"
       }
     }
   },
