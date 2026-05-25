@@ -474,7 +474,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
             </div>
             {(opts.sortBy ?? 'none') !== 'none' && (
               <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                Hinweis: Sortierung „{opts.sortBy === 'label' ? 'Name' : 'Wert'}“ ist aktiv — manuelle Reihenfolge wirkt erst, wenn Sortierung auf „Keine“ steht.
+                {`Hinweis: Sortierung „${opts.sortBy === 'label' ? 'Name' : 'Wert'}" ist aktiv — manuelle Reihenfolge wirkt erst, wenn Sortierung auf „Keine" steht.`}
               </p>
             )}
           </div>
