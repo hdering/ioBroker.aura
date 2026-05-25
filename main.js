@@ -1291,6 +1291,23 @@ class Aura extends utils.Adapter {
         return;
       }
 
+      if (msg.command === 'checkDps') {
+        const ids = Array.isArray(msg.message?.ids)
+          ? msg.message.ids.filter((id) => typeof id === 'string' && id)
+          : [];
+        const missing = [];
+        await Promise.all(ids.map(async (id) => {
+          try {
+            const obj = await this.getForeignObjectAsync(id);
+            if (!obj) missing.push(id);
+          } catch {
+            missing.push(id);
+          }
+        }));
+        reply({ ok: true, missing });
+        return;
+      }
+
       if (msg.command === 'deleteList') {
         const widgetId = String(msg.message?.widgetId || '').trim();
         if (!widgetId) { reply({ ok: false, error: `Invalid widgetId: ${widgetId}` }); return; }

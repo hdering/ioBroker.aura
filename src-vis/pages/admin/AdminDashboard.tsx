@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useT } from '../../i18n';
 import { copyToClipboard } from '../../utils/clipboard';
 import { useTimerOrphans } from '../../hooks/useTimerOrphans';
+import { useBrokenDpRefs } from '../../hooks/useBrokenDpRefs';
 
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) {
   return (
@@ -145,6 +146,70 @@ function TimerOrphansSection() {
   );
 }
 
+function BrokenDpRefsSection() {
+  const t = useT();
+  const { broken, loading, refresh } = useBrokenDpRefs();
+  const clean = broken.length === 0;
+  const accent = clean ? 'var(--accent-green)' : 'var(--accent-yellow)';
+
+  return (
+    <div
+      className="rounded-xl p-5 space-y-3"
+      style={{ background: 'var(--app-surface)', border: `1px solid ${accent}` }}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          {clean
+            ? <CheckCircle2 size={16} style={{ color: accent }} />
+            : <AlertTriangle size={16} style={{ color: accent }} />}
+          <h2 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+            {clean ? t('dashboard.brokenDps.titleClean') : t('dashboard.brokenDps.title', { count: broken.length })}
+          </h2>
+        </div>
+        <button
+          onClick={() => void refresh()}
+          disabled={loading}
+          className="flex items-center gap-1.5 px-2.5 h-7 text-xs rounded-lg hover:opacity-80 disabled:opacity-50"
+          style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+        >
+          <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+          {t('dashboard.orphans.refresh')}
+        </button>
+      </div>
+      <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+        {clean ? t('dashboard.brokenDps.hintClean') : t('dashboard.brokenDps.hint')}
+      </p>
+      {!clean && (
+        <div className="aura-scroll max-h-64 overflow-y-auto rounded-lg" style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
+          <table className="w-full text-xs">
+            <thead>
+              <tr style={{ color: 'var(--text-secondary)' }}>
+                <th className="text-left font-medium px-3 py-1.5">{t('dashboard.brokenDps.colWidget')}</th>
+                <th className="text-left font-medium px-3 py-1.5">{t('dashboard.brokenDps.colLocation')}</th>
+                <th className="text-left font-medium px-3 py-1.5">{t('dashboard.brokenDps.colField')}</th>
+                <th className="text-left font-medium px-3 py-1.5">{t('dashboard.brokenDps.colDp')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {broken.map((ref, i) => (
+                <tr key={`${ref.widgetId}-${ref.field}-${i}`} style={{ color: 'var(--text-primary)', borderTop: '1px solid var(--app-border)' }}>
+                  <td className="px-3 py-1.5">
+                    <span className="font-medium">{ref.widgetTitle}</span>
+                    <span className="ml-1.5" style={{ color: 'var(--text-secondary)' }}>· {ref.widgetType}</span>
+                  </td>
+                  <td className="px-3 py-1.5" style={{ color: 'var(--text-secondary)' }}>{ref.location}</td>
+                  <td className="px-3 py-1.5 font-mono" style={{ color: 'var(--text-secondary)' }}>{ref.field}</td>
+                  <td className="px-3 py-1.5 font-mono" style={{ color: 'var(--accent-red)' }}>{ref.dp}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function AdminDashboard() {
   const t = useT();
   const { layouts } = useDashboardStore();
@@ -160,6 +225,7 @@ export function AdminDashboard() {
       </div>
 
       <TimerOrphansSection />
+      <BrokenDpRefsSection />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

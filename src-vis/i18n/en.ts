@@ -225,6 +225,15 @@ export const en: Record<TranslationKey, string> = {
   'dashboard.orphans.refresh':    'Refresh',
   'dashboard.orphans.cleanup':    'Clean up',
 
+  'dashboard.brokenDps.title':      '{count} widget reference(s) to missing DPs',
+  'dashboard.brokenDps.titleClean': 'All widget DP references are valid',
+  'dashboard.brokenDps.hint':       'The following widgets reference datapoints that do not exist in ioBroker. Update the datapoint in the widget or recreate it in the adapter.',
+  'dashboard.brokenDps.hintClean':  'Every datapoint used by a widget exists in ioBroker.',
+  'dashboard.brokenDps.colWidget':   'Widget',
+  'dashboard.brokenDps.colLocation': 'Location',
+  'dashboard.brokenDps.colField':    'Field',
+  'dashboard.brokenDps.colDp':       'Datapoint',
+
   // ── Layouts ───────────────────────────────────────────────────────────────────
   'layouts.title':    'Layouts',
   'layouts.subtitle': 'Each layout has its own tabs and widgets — ideal for different tablets or rooms.',

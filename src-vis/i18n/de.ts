@@ -223,6 +223,15 @@ export const de = {
   'dashboard.orphans.refresh':    'Aktualisieren',
   'dashboard.orphans.cleanup':    'Aufräumen',
 
+  'dashboard.brokenDps.title':      '{count} Widget-Referenz(en) auf fehlende DPs',
+  'dashboard.brokenDps.titleClean': 'Alle Widget-DP-Referenzen sind gültig',
+  'dashboard.brokenDps.hint':       'Die folgenden Widgets verweisen auf Datenpunkte, die in ioBroker nicht (mehr) existieren. Datenpunkt im Widget anpassen oder im Adapter wieder anlegen.',
+  'dashboard.brokenDps.hintClean':  'Jeder von einem Widget verwendete Datenpunkt existiert in ioBroker.',
+  'dashboard.brokenDps.colWidget':   'Widget',
+  'dashboard.brokenDps.colLocation': 'Ort',
+  'dashboard.brokenDps.colField':    'Feld',
+  'dashboard.brokenDps.colDp':       'Datenpunkt',
+
   // ── Layouts ───────────────────────────────────────────────────────────────────
   'layouts.title':    'Layouts',
   'layouts.subtitle': 'Jedes Layout hat eigene Tabs und Widgets — ideal für verschiedene Tablets oder Räume.',
