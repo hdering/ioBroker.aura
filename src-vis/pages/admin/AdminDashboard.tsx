@@ -6,6 +6,7 @@ import { useT } from '../../i18n';
 import { copyToClipboard } from '../../utils/clipboard';
 import { useTimerOrphans } from '../../hooks/useTimerOrphans';
 import { useBrokenDpRefs } from '../../hooks/useBrokenDpRefs';
+import { Link } from 'react-router-dom';
 
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) {
   return (
@@ -194,7 +195,13 @@ function BrokenDpRefsSection() {
               {broken.map((ref, i) => (
                 <tr key={`${ref.widgetId}-${ref.field}-${i}`} style={{ color: 'var(--text-primary)', borderTop: '1px solid var(--app-border)' }}>
                   <td className="px-3 py-1.5">
-                    <span className="font-medium">{ref.widgetTitle}</span>
+                    {ref.routeTo ? (
+                      <Link to={ref.routeTo} className="hover:underline" style={{ color: 'var(--accent)' }}>
+                        <span className="font-medium">{ref.widgetTitle}</span>
+                      </Link>
+                    ) : (
+                      <span className="font-medium">{ref.widgetTitle}</span>
+                    )}
                     <span className="ml-1.5" style={{ color: 'var(--text-secondary)' }}>· {ref.widgetType}</span>
                   </td>
                   <td className="px-3 py-1.5" style={{ color: 'var(--text-secondary)' }}>{ref.location}</td>

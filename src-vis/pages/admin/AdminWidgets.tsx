@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useT } from '../../i18n';
@@ -298,6 +299,7 @@ function WidgetRow({
   onDelete,
   onCopy,
   onMove,
+  focused,
 }: {
   entry: WidgetEntry;
   tabs: Tab[];
@@ -305,12 +307,22 @@ function WidgetRow({
   onDelete: () => void;
   onCopy: (target: TabTarget) => void;
   onMove: (target: TabTarget) => void;
+  focused?: boolean;
 }) {
   const t = useT();
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(!!focused);
+  const rowRef = useRef<HTMLDivElement>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showCopy, setShowCopy] = useState(false);
   const [draft, setDraft] = useState<WidgetConfig>(entry.config);
+
+  // Deep-link target: auto-open + scroll into view.
+  useEffect(() => {
+    if (!focused) return;
+    setEditing(true);
+    setDraft(entry.config);
+    queueMicrotask(() => rowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  }, [focused]); // eslint-disable-line react-hooks/exhaustive-deps
   const copyBtnRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null);
@@ -352,7 +364,11 @@ function WidgetRow({
   };
 
   return (
-    <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+    <div
+      ref={rowRef}
+      className="rounded-xl overflow-hidden"
+      style={{ border: `1px solid ${focused ? 'var(--accent)' : 'var(--app-border)'}` }}
+    >
       <div
         className="flex items-center gap-3 px-4 py-3"
         style={{ background: editing ? 'color-mix(in srgb, var(--accent) 6%, var(--app-bg))' : 'var(--app-bg)' }}
@@ -520,6 +536,7 @@ function TypeSection({
   onCopy,
   onMove,
   defaultOpen,
+  focusedId,
 }: {
   type: WidgetType;
   entries: WidgetEntry[];
@@ -529,9 +546,12 @@ function TypeSection({
   onCopy: (entry: WidgetEntry, target: TabTarget) => void;
   onMove: (entry: WidgetEntry, target: TabTarget) => void;
   defaultOpen: boolean;
+  focusedId?: string;
 }) {
   const t = useT();
-  const [open, setOpen] = useState(defaultOpen);
+  const hasFocused = !!focusedId && entries.some((e) => e.config.id === focusedId);
+  const [open, setOpen] = useState(defaultOpen || hasFocused);
+  useEffect(() => { if (hasFocused) setOpen(true); }, [hasFocused]);
   const meta = TYPE_META[type];
 
   return (
@@ -570,6 +590,7 @@ function TypeSection({
               onDelete={() => onDelete(entry.tab.id, entry.config.id)}
               onCopy={(target) => onCopy(entry, target)}
               onMove={(target) => onMove(entry, target)}
+              focused={focusedId === entry.config.id}
             />
           ))}
           {entries.length === 0 && (
@@ -636,10 +657,22 @@ function DefaultSizesDialog({ onClose }: { onClose: () => void }) {
 
 export function AdminWidgets() {
   const t = useT();
-  const { updateWidgetInTab, removeWidgetInTab, addWidgetToLayoutTab, removeWidgetFromLayoutTab, activeLayoutId } = useDashboardStore();
+  const { updateWidgetInTab, removeWidgetInTab, addWidgetToLayoutTab, removeWidgetFromLayoutTab, activeLayoutId, setActiveLayoutAndTab } = useDashboardStore();
   const tabs = useActiveLayout().tabs;
   const [showSizes, setShowSizes] = useState(false);
   const [search, setSearch] = useState('');
+  const [searchParams] = useSearchParams();
+  const focusId = searchParams.get('focus') || undefined;
+  const focusLayout = searchParams.get('layout') || undefined;
+  const focusTab = searchParams.get('tab') || undefined;
+
+  // Switch to the layout/tab that holds the focused widget so it shows up in
+  // the list (AdminWidgets only renders widgets from the active layout).
+  useEffect(() => {
+    if (focusLayout && focusTab && focusLayout !== activeLayoutId) {
+      setActiveLayoutAndTab(focusLayout, focusTab);
+    }
+  }, [focusLayout, focusTab, activeLayoutId, setActiveLayoutAndTab]);
 
   // Flatten all widgets with their tab
   const allEntries = useMemo<WidgetEntry[]>(() =>
@@ -762,6 +795,7 @@ export function AdminWidgets() {
               onCopy={handleCopy}
               onMove={handleMove}
               defaultOpen={i === 0}
+              focusedId={focusId}
             />
           ))}
         </div>

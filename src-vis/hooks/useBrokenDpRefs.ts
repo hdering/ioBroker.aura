@@ -13,12 +13,13 @@ export interface BrokenRef {
   location: string; // e.g. "Layout / Tab"
   field: string;    // e.g. "datapoint" or "options.targetDp"
   dp: string;
+  routeTo?: string; // optional deep link to the widget's edit UI
 }
 
 /** Collect all DP-bearing string fields in a widget config. Picks up the
  *  top-level `datapoint` plus any nested key ending in `Dp` or `Datapoint`
  *  inside options (handles TimerWidget events[].targetDp, light_*Dp, etc.). */
-function collectRefs(widget: WidgetConfig, location: string): BrokenRef[] {
+function collectRefs(widget: WidgetConfig, location: string, routeTo: string | undefined): BrokenRef[] {
   const refs: BrokenRef[] = [];
   const push = (field: string, dp: string) => {
     if (typeof dp !== 'string') return;
@@ -35,6 +36,7 @@ function collectRefs(widget: WidgetConfig, location: string): BrokenRef[] {
       location,
       field,
       dp: trimmed,
+      routeTo,
     });
   };
 
@@ -68,20 +70,23 @@ function collectAllRefs(): BrokenRef[] {
   for (const l of layouts) {
     for (const tab of l.tabs) {
       for (const w of tab.widgets) {
-        out.push(...collectRefs(w, `${l.name} / ${tab.name}`));
+        const route = `/admin/widgets?focus=${encodeURIComponent(w.id)}&layout=${encodeURIComponent(l.id)}&tab=${encodeURIComponent(tab.id)}`;
+        out.push(...collectRefs(w, `${l.name} / ${tab.name}`, route));
       }
     }
   }
   const defs = useGroupDefsStore.getState().defs;
   for (const [defId, children] of Object.entries(defs)) {
     for (const w of children) {
-      out.push(...collectRefs(w, `Group ${defId.slice(0, 8)}`));
+      // No deep link target for group children — they live inside a group def,
+      // not in a standalone admin page.
+      out.push(...collectRefs(w, `Group ${defId.slice(0, 8)}`, undefined));
     }
   }
   const views = usePopupConfigStore.getState().views;
   for (const v of views) {
     for (const w of v.widgets) {
-      out.push(...collectRefs(w, `Popup ${v.name || v.id}`));
+      out.push(...collectRefs(w, `Popup ${v.name || v.id}`, `/admin/popups/${encodeURIComponent(v.id)}?focus=${encodeURIComponent(w.id)}`));
     }
   }
   return out;
