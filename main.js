@@ -1258,6 +1258,27 @@ class Aura extends utils.Adapter {
         return;
       }
 
+      if (msg.command === 'deleteTimer') {
+        const widgetId = String(msg.message?.widgetId || '').trim();
+        if (!widgetId || !/^[a-zA-Z0-9_-]+$/.test(widgetId)) {
+          reply({ ok: false, error: `Invalid widgetId: ${widgetId}` });
+          return;
+        }
+        const base = `${this.namespace}.timers.${widgetId}`;
+        const localBase = `timers.${widgetId}`;
+        const results = {};
+        for (const sub of ['config', 'enabled']) {
+          try { await this.delObjectAsync(`${localBase}.${sub}`); results[sub] = 'ok'; }
+          catch (e) { results[sub] = e?.message || String(e); }
+        }
+        try { await this.delObjectAsync(localBase); results.channel = 'ok'; }
+        catch (e) { results.channel = e?.message || String(e); }
+        this._timerState.delete(widgetId);
+        this.log.info(`[timers] deleteTimer ${base} → ${JSON.stringify(results)}`);
+        reply({ ok: true, results });
+        return;
+      }
+
       if (msg.command === 'upgradeAdapter') {
         const name = String(msg.message?.name || '').trim();
         if (!name || !/^[a-z0-9_\-]+$/i.test(name)) {

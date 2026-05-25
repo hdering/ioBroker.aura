@@ -373,13 +373,14 @@ export function sendToDirect<T = unknown>(target: string, command: string, paylo
   });
 }
 
-/** Delete an ioBroker object by ID. Returns a promise that resolves when done. */
+/** Delete an ioBroker object by ID. Returns a promise that resolves when done.
+ *  NOTE: the web socket silently drops delObject for non-admin sessions — the
+ *  callback never fires, so this promise hangs. Callers that need guaranteed
+ *  deletion should route via sendTo→adapter onMessage instead. */
 export function deleteObjectDirect(id: string): Promise<void> {
   invalidateObjectCache(id);
-  return new Promise((resolve, reject) => {
-    getSocket().emit('delObject', id, (err: unknown) => {
-      if (err) reject(err); else resolve();
-    });
+  return new Promise((resolve) => {
+    getSocket().emit('delObject', id, (_err: unknown) => resolve());
   });
 }
 
