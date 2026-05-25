@@ -380,6 +380,7 @@ export const en: Record<TranslationKey, string> = {
   'theme.js.empty':    'No Custom JS',
   'theme.js.enabled':  'JS active',
   'theme.js.inEditor': 'Also run in dashboard editor',
+  'theme.js.importHint': '💡 Order: put all @import lines at the very top, then your JS code (function, const, …). @import between code lines is treated as a syntax error.',
 
   'cssjs.title':    'CSS & JS',
   'cssjs.subtitle': 'Inject custom CSS and JavaScript globally or per layout.',

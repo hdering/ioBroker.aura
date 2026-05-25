@@ -89,6 +89,12 @@ export function CustomJsSection({ contextId, onContextChange }: CustomJsSectionP
       >
         {t('theme.js.warning')}
       </div>
+      <div
+        className="text-[11px] mb-3 px-3 py-2 rounded-lg"
+        style={{ background: 'color-mix(in srgb, var(--accent) 8%, transparent)', color: 'var(--text-secondary)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)' }}
+      >
+        {t('theme.js.importHint')}
+      </div>
       <textarea
         value={jsValue}
         onChange={(e) => setJs({ customJS: e.target.value })}

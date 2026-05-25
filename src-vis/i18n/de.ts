@@ -378,6 +378,7 @@ export const de = {
   'theme.js.empty':    'Kein Custom JS',
   'theme.js.enabled':  'JS aktiv',
   'theme.js.inEditor': 'Auch im Dashboard-Editor ausführen',
+  'theme.js.importHint': "💡 Reihenfolge: zuerst alle @import-Zeilen ganz oben, danach dein JS-Code (function, const, …). @import zwischen Code-Zeilen wird als Syntaxfehler interpretiert.",
 
   'cssjs.title':    'CSS & JS',
   'cssjs.subtitle': 'Eigenes CSS und JavaScript global oder pro Layout einbinden.',
