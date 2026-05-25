@@ -117,6 +117,10 @@ async function loadAll(): Promise<DatapointEntry[]> {
   }
 
   return stateResult.rows.filter((row) => {
+    // Some user DBs contain malformed state rows where row.value or
+    // row.value.common is missing — filter them out here so the .map below
+    // can dereference common safely.
+    if (!row?.value?.common) return false;
     // e.g. "hm-rpc.0.ABC.STATE" → prefix "hm-rpc.0"
     const dot2 = row.id.indexOf('.', row.id.indexOf('.') + 1);
     const prefix = dot2 !== -1 ? row.id.slice(0, dot2) : row.id;
@@ -132,8 +136,9 @@ async function loadAll(): Promise<DatapointEntry[]> {
       if (e) { e.rooms.forEach((r) => roomsSet.add(r)); e.funcs.forEach((f) => funcsSet.add(f)); }
     }
 
+    const common = row.value.common;
     // Compose name: closest parent (channel preferred over device) › state name
-    const stateName = resolveName(row.value.common.name, '');
+    const stateName = resolveName(common.name, '');
     let parentName = '';
     for (let i = parts.length - 1; i >= 2; i--) {
       const pName = parentNames.get(parts.slice(0, i).join('.'));
@@ -150,7 +155,7 @@ async function loadAll(): Promise<DatapointEntry[]> {
       name = parts[parts.length - 1] ?? row.id;
     }
 
-    const custom = row.value.common.custom ?? {};
+    const custom = common.custom ?? {};
     const logging = Object.entries(custom)
       .filter(([, cfg]) => cfg?.enabled === true)
       .map(([id]) => id);
@@ -158,10 +163,10 @@ async function loadAll(): Promise<DatapointEntry[]> {
     return {
       id: row.id,
       name,
-      type: row.value.common.type,
-      unit: row.value.common.unit,
-      role: row.value.common.role,
-      write: row.value.common.write !== false ? undefined : false,
+      type: common.type,
+      unit: common.unit,
+      role: common.role,
+      write: common.write !== false ? undefined : false,
       rooms: [...roomsSet],
       funcs: [...funcsSet],
       logging,
