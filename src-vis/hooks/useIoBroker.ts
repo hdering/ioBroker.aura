@@ -242,12 +242,34 @@ export interface ioBrokerObject {
   };
 }
 
-export function getObjectDirect(id: string): Promise<ioBrokerObject | null> {
-  return new Promise((resolve) => {
-    getSocket().emit('getObject', id, (_err: unknown, obj: ioBrokerObject | null) =>
-      resolve(obj ?? null),
-    );
+// Object cache: definitions change rarely, so we cache them for the session.
+// Invalidated automatically by setObjectDirect / extendObjectDirect / deleteObjectDirect.
+const objectCache = new Map<string, ioBrokerObject | null>();
+const objectInflight = new Map<string, Promise<ioBrokerObject | null>>();
+
+export function invalidateObjectCache(id?: string): void {
+  if (id) { objectCache.delete(id); objectInflight.delete(id); }
+  else    { objectCache.clear();    objectInflight.clear(); }
+}
+
+export function getObjectDirect(
+  id: string,
+  opts?: { skipCache?: boolean },
+): Promise<ioBrokerObject | null> {
+  if (!opts?.skipCache) {
+    if (objectCache.has(id))   return Promise.resolve(objectCache.get(id) ?? null);
+    const inflight = objectInflight.get(id);
+    if (inflight) return inflight;
+  }
+  const p = new Promise<ioBrokerObject | null>((resolve) => {
+    getSocket().emit('getObject', id, (_err: unknown, obj: ioBrokerObject | null) => {
+      objectCache.set(id, obj ?? null);
+      objectInflight.delete(id);
+      resolve(obj ?? null);
+    });
   });
+  objectInflight.set(id, p);
+  return p;
 }
 
 // ── History adapter ────────────────────────────────────────────────────────────
@@ -327,11 +349,13 @@ export function setStateDirect(id: string, val: boolean | number | string, ack =
 
 /** Create or update an ioBroker object definition without a React hook. */
 export function setObjectDirect(id: string, obj: object): void {
+  invalidateObjectCache(id);
   getSocket().emit('setObject', id, obj, () => { /* ignore result */ });
 }
 
 /** Merge a partial object patch into an existing ioBroker object (used to toggle common.enabled). */
 export function extendObjectDirect(id: string, patch: object): Promise<void> {
+  invalidateObjectCache(id);
   return new Promise((resolve) => {
     getSocket().emit('extendObject', id, patch, () => resolve());
   });
@@ -351,6 +375,7 @@ export function sendToDirect<T = unknown>(target: string, command: string, paylo
 
 /** Delete an ioBroker object by ID. Returns a promise that resolves when done. */
 export function deleteObjectDirect(id: string): Promise<void> {
+  invalidateObjectCache(id);
   return new Promise((resolve) => {
     getSocket().emit('delObject', id, (_err: unknown) => resolve());
   });

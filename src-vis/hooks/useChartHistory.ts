@@ -62,7 +62,9 @@ export function useChartHistory(
   const [adapters, setAdapters]   = useState<DetectedAdapter[]>([]);
   const [history, setHistory]     = useState<ChartDataPoint[]>([]);
   const [current, setCurrent]     = useState<number | null>(null);
-  const [loading, setLoading]     = useState(false);
+  // Start in loading state when a DP is set so the spinner shows on first paint instead of
+  // the "Warte auf Daten" placeholder during the initial socket round-trip(s).
+  const [loading, setLoading]     = useState<boolean>(!!datapointId);
   const [refreshTick, setRefreshTick] = useState(0);
   const mountedRef = useRef(true);
   useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
@@ -99,6 +101,10 @@ export function useChartHistory(
   }, [datapointId, connected]);
 
   // ── 3. Verlaufsdaten laden ────────────────────────────────────────────────
+  // Fires immediately when datapointId, effectiveInstance and connection are known.
+  // The numeric-check getObject was previously chained here, adding a sequential
+  // round-trip before getHistory. Non-numeric values are filtered out below regardless
+  // of the requested aggregate, so we skip that pre-flight fetch.
   useEffect(() => {
     if (!datapointId || !effectiveInstance || !connected) return;
     setLoading(true);
@@ -108,16 +114,13 @@ export function useChartHistory(
     const end   = Date.now();
     const start = end - rangeMs;
     const step  = getStep(rangeMs);
-    getObjectDirect(datapointId).then((obj) => {
-      const isNumeric = obj?.common?.type !== 'string';
-      return getHistoryDirect(datapointId, {
-        instance:  effectiveInstance,
-        start,
-        end,
-        step,
-        aggregate: step && isNumeric ? 'average' : 'none',
-        count:     1000,
-      });
+    getHistoryDirect(datapointId, {
+      instance:  effectiveInstance,
+      start,
+      end,
+      step,
+      aggregate: step ? 'average' : 'none',
+      count:     500,
     }).then((data: HistoryEntry[]) => {
       if (!mountedRef.current) return;
       const points: ChartDataPoint[] = data
