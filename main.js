@@ -1049,8 +1049,25 @@ class Aura extends utils.Adapter {
           entry.payload = null;
         }
       }
+      // Mirror the widget title into ioBroker channel + state names so the
+      // object tree stays in sync with the user-visible name in vis.
+      if (entry.payload && typeof entry.payload.title === 'string') {
+        this._syncTimerName(widgetId, entry.payload.title).catch(() => {});
+      }
     }
     this._timerState.set(widgetId, entry);
+  }
+
+  async _syncTimerName(widgetId, title) {
+    const base = `timers.${widgetId}`;
+    const ch = await this.getObjectAsync(base);
+    if (!ch) return;
+    const want = title || 'Zeitschaltuhr';
+    if (ch.common?.name === want) return;
+    await this.extendObjectAsync(base, { common: { name: want } });
+    await this.extendObjectAsync(`${base}.config`, { common: { name: `${want} — config` } });
+    await this.extendObjectAsync(`${base}.enabled`, { common: { name: `${want} — enabled` } });
+    this.log.info(`[timers] renamed ${this.namespace}.${base} → "${want}"`);
   }
 
   async _resolveSpecialDays(dp) {
