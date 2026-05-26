@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.136",
+    "version": "0.9.137",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.137": {
+        "en": "feat(camera): allow stream URL to come from a datapoint",
+        "de": "feat(camera): allow stream URL to come from a datapoint",
+        "ru": "feat(camera): allow stream URL to come from a datapoint",
+        "pt": "feat(camera): allow stream URL to come from a datapoint",
+        "nl": "feat(camera): allow stream URL to come from a datapoint",
+        "fr": "feat(camera): allow stream URL to come from a datapoint",
+        "it": "feat(camera): allow stream URL to come from a datapoint",
+        "es": "feat(camera): allow stream URL to come from a datapoint",
+        "pl": "feat(camera): allow stream URL to come from a datapoint",
+        "uk": "feat(camera): allow stream URL to come from a datapoint",
+        "zh-cn": "feat(camera): allow stream URL to come from a datapoint"
+      },
       "0.9.136": {
         "en": "Release v0.9.136",
         "de": "Release v0.9.136",
@@ -183,19 +196,6 @@
         "pl": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
         "uk": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
         "zh-cn": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup"
-      },
-      "0.9.130": {
-        "en": "fix(timer): only rename channel on explicit save, not per keystroke",
-        "de": "fix(timer): only rename channel on explicit save, not per keystroke",
-        "ru": "fix(timer): only rename channel on explicit save, not per keystroke",
-        "pt": "fix(timer): only rename channel on explicit save, not per keystroke",
-        "nl": "fix(timer): only rename channel on explicit save, not per keystroke",
-        "fr": "fix(timer): only rename channel on explicit save, not per keystroke",
-        "it": "fix(timer): only rename channel on explicit save, not per keystroke",
-        "es": "fix(timer): only rename channel on explicit save, not per keystroke",
-        "pl": "fix(timer): only rename channel on explicit save, not per keystroke",
-        "uk": "fix(timer): only rename channel on explicit save, not per keystroke",
-        "zh-cn": "fix(timer): only rename channel on explicit save, not per keystroke"
       }
     }
   },

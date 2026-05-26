@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.117 (2026-05-22)
+- feat(trashSchedule): raise max for bin/font size sliders (HiDPI/touch)
+
 ## 0.9.116 (2026-05-22)
 - fix(socket): refuse subscribe for invalid ID patterns
 - fix(iframe): guard iframeUrlDp against URL strings
