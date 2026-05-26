@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.137",
+    "version": "0.9.138",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.138": {
+        "en": "chore: rebuild www bundle; feat(widgets): add aura-widget-* CSS hook classes across all widgets; fix(echart): make history instance optional in comparison mode",
+        "de": "chore: rebuild www bundle; feat(widgets): add aura-widget-* CSS hook classes across all widgets; fix(echart): make history instance optional in comparison mode",
+        "ru": "chore: rebuild www bundle; feat(widgets): add aura-widget-* CSS hook classes across all widgets; fix(echart): make history instance optional in comparison mode",
+        "pt": "chore: rebuild www bundle; feat(widgets): add aura-widget-* CSS hook classes across all widgets; fix(echart): make history instance optional in comparison mode",
+        "nl": "chore: rebuild www bundle; feat(widgets): add aura-widget-* CSS hook classes across all widgets; fix(echart): make history instance optional in comparison mode",
+        "fr": "chore: rebuild www bundle; feat(widgets): add aura-widget-* CSS hook classes across all widgets; fix(echart): make history instance optional in comparison mode",
+        "it": "chore: rebuild www bundle; feat(widgets): add aura-widget-* CSS hook classes across all widgets; fix(echart): make history instance optional in comparison mode",
+        "es": "chore: rebuild www bundle; feat(widgets): add aura-widget-* CSS hook classes across all widgets; fix(echart): make history instance optional in comparison mode",
+        "pl": "chore: rebuild www bundle; feat(widgets): add aura-widget-* CSS hook classes across all widgets; fix(echart): make history instance optional in comparison mode",
+        "uk": "chore: rebuild www bundle; feat(widgets): add aura-widget-* CSS hook classes across all widgets; fix(echart): make history instance optional in comparison mode",
+        "zh-cn": "chore: rebuild www bundle; feat(widgets): add aura-widget-* CSS hook classes across all widgets; fix(echart): make history instance optional in comparison mode"
+      },
       "0.9.137": {
         "en": "feat(camera): allow stream URL to come from a datapoint",
         "de": "feat(camera): allow stream URL to come from a datapoint",
@@ -183,19 +196,6 @@
         "pl": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets",
         "uk": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets",
         "zh-cn": "feat(brokenDps): deep-link to the broken widget from the overview panel; fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets"
-      },
-      "0.9.131": {
-        "en": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
-        "de": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
-        "ru": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
-        "pt": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
-        "nl": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
-        "fr": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
-        "it": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
-        "es": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
-        "pl": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
-        "uk": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup",
-        "zh-cn": "fix(lint): auto-fix mixed typographic quotes; fix(StaticListConfig): wrap German typographic quotes in JS expression; feat(orphans): widget->DP reference check across all widgets; feat(orphans): always-visible panel with timer + list DP detection; feat(timer): orphan detector in overview with refresh + confirm-cleanup"
       }
     }
   },

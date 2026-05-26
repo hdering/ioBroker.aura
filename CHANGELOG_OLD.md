@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.118 (2026-05-22)
+- feat(timer): remove custom layout option from Zeitschaltuhr
+
 ## 0.9.117 (2026-05-22)
 - feat(trashSchedule): raise max for bin/font size sliders (HiDPI/touch)
 
