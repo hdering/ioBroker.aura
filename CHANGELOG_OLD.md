@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.114 (2026-05-22)
+- feat(timer): allow per-event value override (admin-gated)
+
 ## 0.9.113 (2026-05-22)
 - fix(widgets): guard null state in last-change subscribers
 

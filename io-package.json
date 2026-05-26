@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.133",
+    "version": "0.9.134",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.134": {
+        "en": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
+        "de": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
+        "ru": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
+        "pt": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
+        "nl": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
+        "fr": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
+        "it": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
+        "es": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
+        "pl": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
+        "uk": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
+        "zh-cn": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs"
+      },
       "0.9.133": {
         "en": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
         "de": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
@@ -183,19 +196,6 @@
         "pl": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
         "uk": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
         "zh-cn": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted"
-      },
-      "0.9.127": {
-        "en": "perf(chart): cache getObject + drop duplicate fetch in history path",
-        "de": "perf(chart): cache getObject + drop duplicate fetch in history path",
-        "ru": "perf(chart): cache getObject + drop duplicate fetch in history path",
-        "pt": "perf(chart): cache getObject + drop duplicate fetch in history path",
-        "nl": "perf(chart): cache getObject + drop duplicate fetch in history path",
-        "fr": "perf(chart): cache getObject + drop duplicate fetch in history path",
-        "it": "perf(chart): cache getObject + drop duplicate fetch in history path",
-        "es": "perf(chart): cache getObject + drop duplicate fetch in history path",
-        "pl": "perf(chart): cache getObject + drop duplicate fetch in history path",
-        "uk": "perf(chart): cache getObject + drop duplicate fetch in history path",
-        "zh-cn": "perf(chart): cache getObject + drop duplicate fetch in history path"
       }
     }
   },
