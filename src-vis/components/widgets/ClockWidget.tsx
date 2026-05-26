@@ -88,9 +88,9 @@ export function ClockWidget({ config }: WidgetProps) {
     const primaryCls = customFormat ? 'aura-clock-custom' : display === 'date' ? 'aura-clock-date' : 'aura-clock-time';
     const primaryPx = customFormat ? customFontSize : display === 'date' ? dateFontSize : timeFontSize;
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-1">
+      <div className="aura-widget-row flex flex-col items-center justify-center h-full gap-1">
         <p
-          className={`${primaryCls} ${sizeCls(primaryPx, 'text-xl')} font-bold tabular-nums leading-none text-center`}
+          className={`aura-widget-value ${primaryCls} ${sizeCls(primaryPx, 'text-xl')} font-bold tabular-nums leading-none text-center`}
           style={{ color: 'var(--accent)', ...sizeStyle(primaryPx) }}
         >
           {customFormat ? customStr : display === 'date' ? <DateText date={now} length={dateLength} t={t} /> : timeStr}
@@ -111,27 +111,27 @@ export function ClockWidget({ config }: WidgetProps) {
   if (layout === 'card') {
     if (customFormat) {
       return (
-        <div className="flex flex-col items-center justify-center h-full gap-1">
+        <div className="aura-widget-row flex flex-col items-center justify-center h-full gap-1">
           <p
-            className={`aura-clock-custom ${sizeCls(customFontSize, 'text-xl')} font-bold tabular-nums text-center`}
+            className={`aura-widget-value aura-clock-custom ${sizeCls(customFontSize, 'text-xl')} font-bold tabular-nums text-center`}
             style={{ color: 'var(--accent)', lineHeight: 1.1, ...sizeStyle(customFontSize) }}
           >
             {customStr}
           </p>
           {(showTitle || showIcon) && (
             <div className="flex items-center gap-1 mt-1 min-w-0">
-              {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-              {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+              {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+              {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
             </div>
           )}
         </div>
       );
     }
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-1.5">
+      <div className="aura-widget-row flex flex-col items-center justify-center h-full gap-1.5">
         {display !== 'date' && (
           <p
-            className={`aura-clock-time ${sizeCls(timeFontSize, 'text-xl')} font-bold tabular-nums leading-none`}
+            className={`aura-widget-value aura-clock-time ${sizeCls(timeFontSize, 'text-xl')} font-bold tabular-nums leading-none`}
             style={{ color: 'var(--accent)', ...sizeStyle(timeFontSize) }}
           >
             {timeStr}
@@ -139,7 +139,7 @@ export function ClockWidget({ config }: WidgetProps) {
         )}
         {display !== 'time' && (
           <p
-            className={`aura-clock-date ${display === 'date' ? `${sizeCls(dateFontSize, 'text-2xl')} font-bold tabular-nums` : sizeCls(dateFontSize, 'text-sm')}`}
+            className={`aura-widget-value aura-clock-date ${display === 'date' ? `${sizeCls(dateFontSize, 'text-2xl')} font-bold tabular-nums` : sizeCls(dateFontSize, 'text-sm')}`}
             style={{ color: display === 'date' ? 'var(--accent)' : 'var(--text-secondary)', ...sizeStyle(dateFontSize) }}
           >
             <DateText date={now} length={dateLength} t={t} />
@@ -147,8 +147,8 @@ export function ClockWidget({ config }: WidgetProps) {
         )}
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 mt-1 min-w-0">
-            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+            {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
         )}
       </div>
@@ -158,16 +158,16 @@ export function ClockWidget({ config }: WidgetProps) {
   // ---------- DEFAULT ----------
   if (customFormat) {
     return (
-      <div className="flex flex-col h-full">
+      <div className="aura-widget-row flex flex-col h-full">
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 shrink-0 min-w-0">
-            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+            {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
         )}
         <div className="flex-1 flex items-center justify-center">
           <p
-            className={`aura-clock-custom ${sizeCls(customFontSize, 'text-xl')} font-bold tabular-nums`}
+            className={`aura-widget-value aura-clock-custom ${sizeCls(customFontSize, 'text-xl')} font-bold tabular-nums`}
             style={{ color: 'var(--text-primary)', ...sizeStyle(customFontSize) }}
           >
             {customStr}
@@ -178,17 +178,17 @@ export function ClockWidget({ config }: WidgetProps) {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="aura-widget-row flex flex-col h-full">
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-1 shrink-0 min-w-0">
-          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
       <div className="flex-1 flex flex-col items-center justify-center gap-0.5">
         {display !== 'date' && (
           <p
-            className={`aura-clock-time ${sizeCls(timeFontSize, 'text-xl')} font-bold tabular-nums leading-none`}
+            className={`aura-widget-value aura-clock-time ${sizeCls(timeFontSize, 'text-xl')} font-bold tabular-nums leading-none`}
             style={{ color: 'var(--text-primary)', ...sizeStyle(timeFontSize) }}
           >
             {timeStr}
@@ -196,7 +196,7 @@ export function ClockWidget({ config }: WidgetProps) {
         )}
         {display !== 'time' && (
           <p
-            className={`aura-clock-date ${display === 'date' ? `${sizeCls(dateFontSize, 'text-xl')} font-bold` : sizeCls(dateFontSize, 'text-sm')}`}
+            className={`aura-widget-value aura-clock-date ${display === 'date' ? `${sizeCls(dateFontSize, 'text-xl')} font-bold` : sizeCls(dateFontSize, 'text-sm')}`}
             style={{ color: display === 'date' ? 'var(--text-primary)' : 'var(--text-secondary)', ...sizeStyle(dateFontSize) }}
           >
             <DateText date={now} length={dateLength} t={t} />

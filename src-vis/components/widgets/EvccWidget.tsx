@@ -722,7 +722,7 @@ export function EvccWidget({ config }: WidgetProps) {
 
   if (!connected) {
     return (
-      <div className="flex flex-col h-full">
+      <div className="aura-widget-row flex flex-col h-full">
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
@@ -757,7 +757,7 @@ export function EvccWidget({ config }: WidgetProps) {
 
   // ── Layout: battery only ──────────────────────────────────────────────────
   if (layout === 'battery') return (
-    <div className="flex flex-col h-full">
+    <div className="aura-widget-row flex flex-col h-full">
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
           {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
@@ -770,7 +770,7 @@ export function EvccWidget({ config }: WidgetProps) {
 
   // ── Layout: production only ───────────────────────────────────────────────
   if (layout === 'production') return (
-    <div className="flex flex-col h-full">
+    <div className="aura-widget-row flex flex-col h-full">
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
           {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
@@ -783,7 +783,7 @@ export function EvccWidget({ config }: WidgetProps) {
 
   // ── Layout: consumption only ──────────────────────────────────────────────
   if (layout === 'consumption') return (
-    <div className="flex flex-col h-full">
+    <div className="aura-widget-row flex flex-col h-full">
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
           {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
@@ -797,7 +797,7 @@ export function EvccWidget({ config }: WidgetProps) {
   // ── Layout: loadpoints only ───────────────────────────────────────────────
   if (layout === 'loadpoints') {
     return (
-      <div className="aura-scroll flex flex-col gap-2 h-full overflow-auto">
+      <div className="aura-widget-row aura-scroll flex flex-col gap-2 h-full overflow-auto">
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 shrink-0 min-w-0">
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
@@ -814,7 +814,7 @@ export function EvccWidget({ config }: WidgetProps) {
   // ── Layout: compact ───────────────────────────────────────────────────────
   if (layout === 'compact') {
     return (
-      <div className="flex flex-col gap-1.5 h-full justify-center px-1">
+      <div className="aura-widget-row flex flex-col gap-1.5 h-full justify-center px-1">
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 shrink-0 min-w-0">
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
@@ -832,7 +832,7 @@ export function EvccWidget({ config }: WidgetProps) {
   // ── Layout: flow (SVG node graph) ────────────────────────────────────────
   if (layout === 'flow') {
     return (
-      <div className="aura-scroll flex flex-col gap-2 h-full overflow-auto">
+      <div className="aura-widget-row aura-scroll flex flex-col gap-2 h-full overflow-auto">
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 shrink-0 min-w-0">
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
@@ -851,7 +851,7 @@ export function EvccWidget({ config }: WidgetProps) {
 
   // ── Layout: default / card ────────────────────────────────────────────────
   return (
-    <div className="aura-scroll flex flex-col gap-2 h-full overflow-auto">
+    <div className="aura-widget-row aura-scroll flex flex-col gap-2 h-full overflow-auto">
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-1 shrink-0 min-w-0">
           {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}

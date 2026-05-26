@@ -58,7 +58,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
         reach,
       }}
       extraComponents={{
-        icon:            <Icon size={iconSize} style={{ color, flexShrink: 0 }} />,
+        icon:            <Icon className="aura-widget-icon" size={iconSize} style={{ color, flexShrink: 0 }} />,
         'battery-icon':  batteryIcon,
         'reach-icon':    reachIcon,
         'status-badges': statusBadges,
@@ -69,7 +69,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
   // ── CARD ─────────────────────────────────────────────────────────────────
   if (layout === 'card') {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-2 rounded-widget"
+      <div className="aura-widget-row w-full h-full flex flex-col items-center justify-center gap-2 rounded-widget"
         style={{
           position: 'relative',
           background: isActive
@@ -77,10 +77,10 @@ export function BinarySensorWidget({ config }: WidgetProps) {
             : 'var(--app-bg)',
           border: `2px solid ${color}`,
         }}>
-        {showIcon && <Icon size={iconSize} style={{ color: isActive ? '#fff' : color }} />}
+        {showIcon && <Icon className="aura-widget-icon" size={iconSize} style={{ color: isActive ? '#fff' : color }} />}
         <div className="text-center">
-          {showTitle && <p className="font-bold text-sm" style={{ color: isActive ? '#fff' : 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
-          {showLabel && <p className="text-xs opacity-80" style={{ color: isActive ? '#fff' : color }}>{label}</p>}
+          {showTitle && <p className="aura-widget-title font-bold text-sm" style={{ color: isActive ? '#fff' : 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          {showLabel && <p className="aura-widget-value text-xs opacity-80" style={{ color: isActive ? '#fff' : color }}>{label}</p>}
         </div>
         <StatusBadges config={config} />
       </div>
@@ -90,16 +90,16 @@ export function BinarySensorWidget({ config }: WidgetProps) {
   // ── COMPACT ──────────────────────────────────────────────────────────────
   if (layout === 'compact') {
     return (
-      <div className="flex items-center gap-2 h-full" style={{ position: 'relative' }}>
-        {showIcon && <Icon size={iconSize} style={{ color, flexShrink: 0 }} />}
+      <div className="aura-widget-row flex items-center gap-2 h-full" style={{ position: 'relative' }}>
+        {showIcon && <Icon className="aura-widget-icon" size={iconSize} style={{ color, flexShrink: 0 }} />}
         {showTitle && (
-          <span className="flex-1 text-sm truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+          <span className="aura-widget-title flex-1 text-sm truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
             {config.title}
           </span>
         )}
         {!showTitle && <span className="flex-1" />}
         {showLabel && (
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
+          <span className="aura-widget-value text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
             style={{ background: `${color}22`, color, border: `1px solid ${color}55` }}>
             {label}
           </span>
@@ -112,10 +112,10 @@ export function BinarySensorWidget({ config }: WidgetProps) {
   // ── MINIMAL ──────────────────────────────────────────────────────────────
   if (layout === 'minimal') {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-1" style={{ position: 'relative' }}>
-        {showIcon && <Icon size={iconSize} style={{ color }} />}
-        {showLabel && <span className="text-xl font-bold" style={{ color }}>{label}</span>}
-        {showTitle && <span className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
+      <div className="aura-widget-row flex flex-col items-center justify-center h-full gap-1" style={{ position: 'relative' }}>
+        {showIcon && <Icon className="aura-widget-icon" size={iconSize} style={{ color }} />}
+        {showLabel && <span className="aura-widget-value text-xl font-bold" style={{ color }}>{label}</span>}
+        {showTitle && <span className="aura-widget-title text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
         <StatusBadges config={config} />
       </div>
     );
@@ -125,14 +125,14 @@ export function BinarySensorWidget({ config }: WidgetProps) {
   const posClass = contentPositionClass(opts.contentPosition as string | undefined);
 
   return (
-    <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
+    <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-2">
-          {showIcon && <Icon size={iconSize} style={{ color, flexShrink: 0 }} />}
-          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          {showIcon && <Icon className="aura-widget-icon" size={iconSize} style={{ color, flexShrink: 0 }} />}
+          {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
-      {showLabel && <span className="text-base font-semibold" style={{ color }}>{label}</span>}
+      {showLabel && <span className="aura-widget-value text-base font-semibold" style={{ color }}>{label}</span>}
       <StatusBadges config={config} />
     </div>
   );

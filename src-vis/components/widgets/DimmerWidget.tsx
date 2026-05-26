@@ -80,7 +80,7 @@ export function DimmerWidget({ config }: WidgetProps) {
   const toggleBtn = showToggle && (
     <button
       onClick={handleToggle}
-      className="nodrag relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"
+      className="aura-widget-action nodrag relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"
       style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}
     >
       <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -92,12 +92,12 @@ export function DimmerWidget({ config }: WidgetProps) {
       onChange={(e) => handleSliderChange(Number(e.target.value))}
       onMouseUp={handleSliderRelease} onTouchEnd={handleSliderRelease}
       style={{ '--slider-thumb-color': 'var(--accent-yellow)' } as CSSProperties}
-      className="nodrag w-full h-2 rounded-lg appearance-none cursor-pointer" />
+      className="aura-widget-action nodrag w-full h-2 rounded-lg appearance-none cursor-pointer" />
   );
 
   const barTrack = (
     <div
-      className="nodrag relative rounded-2xl overflow-hidden cursor-pointer select-none"
+      className="aura-widget-action nodrag relative rounded-2xl overflow-hidden cursor-pointer select-none"
       style={{
         width: '100%',
         height: `${barSize}%`,
@@ -148,13 +148,13 @@ export function DimmerWidget({ config }: WidgetProps) {
             onChange={(e) => handleSliderChange(Number(e.target.value))}
             onMouseUp={handleSliderRelease} onTouchEnd={handleSliderRelease}
             style={{ width: '100%' }}
-            className="nodrag h-1.5 rounded-full appearance-none cursor-pointer"
+            className="aura-widget-action nodrag h-1.5 rounded-full appearance-none cursor-pointer"
           />
         ),
         toggle: (
           <button
             onClick={handleToggle}
-            className="nodrag relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"
+            className="aura-widget-action nodrag relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"
             style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}
           >
             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -167,12 +167,12 @@ export function DimmerWidget({ config }: WidgetProps) {
   // --- COMPACT ---
   if (layout === 'compact') {
     return (
-      <div className="flex flex-col justify-center h-full gap-1.5" style={{ position: 'relative' }}>
+      <div className="aura-widget-row flex flex-col justify-center h-full gap-1.5" style={{ position: 'relative' }}>
         <div className="flex items-center gap-2">
-          {showIcon && <CompactIcon size={iconSize} style={{ color: isOn ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }} />}
-          {showTitle && <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
+          {showIcon && <CompactIcon className="aura-widget-icon" size={iconSize} style={{ color: isOn ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <span className="aura-widget-title flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
           {!showTitle && <span className="flex-1" />}
-          {showValue && <span className="text-xl font-bold shrink-0" style={{ color: valueColor }}>{displayLevel}%</span>}
+          {showValue && <span className="aura-widget-value text-xl font-bold shrink-0" style={{ color: valueColor }}>{displayLevel}%</span>}
           {toggleBtn}
         </div>
         {showSlider && (barStyle
@@ -181,7 +181,7 @@ export function DimmerWidget({ config }: WidgetProps) {
               onChange={(e) => handleSliderChange(Number(e.target.value))}
               onMouseUp={handleSliderRelease} onTouchEnd={handleSliderRelease}
               style={{ '--slider-thumb-color': 'var(--accent-yellow)' } as CSSProperties}
-              className="nodrag ml-6 h-1.5 rounded-full appearance-none cursor-pointer" />
+              className="aura-widget-action nodrag ml-6 h-1.5 rounded-full appearance-none cursor-pointer" />
         )}
         <StatusBadges config={config} />
       </div>
@@ -191,8 +191,8 @@ export function DimmerWidget({ config }: WidgetProps) {
   // --- MINIMAL: Nur Slider + Prozentzahl ---
   if (layout === 'minimal') {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-3" style={{ position: 'relative' }}>
-        {showValue && <span className="text-xl font-bold" style={{ color: thresholdColor ?? (isOn ? 'var(--accent-yellow)' : 'var(--text-secondary)') }}>{level}%</span>}
+      <div className="aura-widget-row flex flex-col items-center justify-center h-full gap-3" style={{ position: 'relative' }}>
+        {showValue && <span className="aura-widget-value text-xl font-bold" style={{ color: thresholdColor ?? (isOn ? 'var(--accent-yellow)' : 'var(--text-secondary)') }}>{level}%</span>}
         {showSlider && (barStyle
           ? <div style={{ height: 40, width: '100%' }}>{barTrack}</div>
           : slider
@@ -205,17 +205,17 @@ export function DimmerWidget({ config }: WidgetProps) {
 
   // --- DEFAULT ---
   return (
-    <div className="flex flex-col h-full justify-between" style={{ position: 'relative' }}>
+    <div className="aura-widget-row flex flex-col h-full justify-between" style={{ position: 'relative' }}>
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-2">
-          {showIcon && <CompactIcon size={iconSize} style={{ color: isOn ? 'var(--accent-yellow)' : 'var(--text-secondary)' }} />}
-          {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
+          {showIcon && <CompactIcon className="aura-widget-icon" size={iconSize} style={{ color: isOn ? 'var(--accent-yellow)' : 'var(--text-secondary)' }} />}
+          {showTitle && <p className="aura-widget-title text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
         </div>
       )}
       <div className="space-y-2">
         {showValue && (
           <div className="flex justify-between items-center">
-            <span className="text-xl font-bold" style={{ color: valueColor }}>{level}%</span>
+            <span className="aura-widget-value text-xl font-bold" style={{ color: valueColor }}>{level}%</span>
             {showToggle
               ? toggleBtn
               : <div className="w-3 h-3 rounded-full transition-all"

@@ -224,7 +224,7 @@ export function CarouselWidget({ config, editMode, onConfigChange }: WidgetProps
     : 0;
 
   return (
-    <div className="relative flex flex-col h-full" {...dragHandlers}>
+    <div className="aura-widget-row relative flex flex-col h-full" {...dragHandlers}>
       {dragOver && (
         <div className="nodrag pointer-events-none absolute inset-0 z-20 rounded-[inherit] border-2 border-dashed flex items-center justify-center"
           style={{ borderColor: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 10%, transparent)' }}>

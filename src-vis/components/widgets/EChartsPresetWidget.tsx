@@ -38,11 +38,11 @@ export function EChartsPresetWidget({ config, editMode }: WidgetProps) {
 
   if (!presetId) {
     return (
-      <div className="flex flex-col h-full p-2">
+      <div className="aura-widget-row flex flex-col h-full p-2">
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+            {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
         )}
         <div className="flex flex-col items-center justify-center flex-1 gap-2" style={{ color: 'var(--text-secondary)' }}>
@@ -58,14 +58,14 @@ export function EChartsPresetWidget({ config, editMode }: WidgetProps) {
 
   return (
     <>
-      <div className="flex flex-col w-full h-full">
+      <div className="aura-widget-row flex flex-col w-full h-full">
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2">
-            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+            {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
         )}
-        <div className="flex-1 overflow-hidden relative min-h-0" style={{ borderRadius: 'inherit' }}>
+        <div className="aura-widget-value flex-1 overflow-hidden relative min-h-0" style={{ borderRadius: 'inherit' }}>
           <iframe
             src={url}
             title={config.title || 'eCharts'}

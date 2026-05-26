@@ -20,18 +20,19 @@ type StateCfg = {
 
 // ── State display (icon or base64 image) ──────────────────────────────────────
 
-function StateDisplay({ cfg, size }: { cfg: StateCfg; size: number }) {
+function StateDisplay({ cfg, size, className }: { cfg: StateCfg; size: number; className?: string }) {
   if (cfg.type === 'base64' && cfg.base64) {
     return (
       <img
         src={resolveAssetUrl(cfg.base64)}
+        className={className}
         style={{ width: size, height: size, objectFit: 'contain', flexShrink: 0 }}
         alt=""
       />
     );
   }
   const Icon = getWidgetIcon(cfg.icon, CircleDot);
-  return <Icon size={size} style={{ color: cfg.color, flexShrink: 0 }} />;
+  return <Icon className={className} size={size} style={{ color: cfg.color, flexShrink: 0 }} />;
 }
 
 // ── Widget ────────────────────────────────────────────────────────────────────
@@ -77,7 +78,7 @@ export function StateImageWidget({ config }: WidgetProps) {
         reach,
       }}
       extraComponents={{
-        icon:            <StateDisplay cfg={cfg} size={iconSize} />,
+        icon:            <StateDisplay cfg={cfg} size={iconSize} className="aura-widget-icon" />,
         'battery-icon':  batteryIcon,
         'reach-icon':    reachIcon,
         'status-badges': statusBadges,
@@ -88,15 +89,15 @@ export function StateImageWidget({ config }: WidgetProps) {
   // ── CARD ──────────────────────────────────────────────────────────────────
   if (layout === 'card') {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-2 rounded-widget"
+      <div className="aura-widget-row w-full h-full flex flex-col items-center justify-center gap-2 rounded-widget"
         style={{ position: 'relative', background: 'var(--app-bg)', border: `2px solid ${cfg.color}` }}>
-        {showIcon && <StateDisplay cfg={cfg} size={iconSize} />}
+        {showIcon && <StateDisplay cfg={cfg} size={iconSize} className="aura-widget-icon" />}
         <div className="text-center">
           {showTitle && (
-            <p className="font-bold text-sm" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>
+            <p className="aura-widget-title font-bold text-sm" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>
           )}
           {showLabel && (
-            <p className="text-xs" style={{ color: cfg.color }}>{cfg.label}</p>
+            <p className="aura-widget-value text-xs" style={{ color: cfg.color }}>{cfg.label}</p>
           )}
         </div>
         <StatusBadges config={config} />
@@ -107,16 +108,16 @@ export function StateImageWidget({ config }: WidgetProps) {
   // ── COMPACT ──────────────────────────────────────────────────────────────
   if (layout === 'compact') {
     return (
-      <div className="flex items-center gap-2 h-full" style={{ position: 'relative' }}>
-        {showIcon && <StateDisplay cfg={cfg} size={iconSize} />}
+      <div className="aura-widget-row flex items-center gap-2 h-full" style={{ position: 'relative' }}>
+        {showIcon && <StateDisplay cfg={cfg} size={iconSize} className="aura-widget-icon" />}
         {showTitle && (
-          <span className="flex-1 text-sm truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+          <span className="aura-widget-title flex-1 text-sm truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
             {config.title}
           </span>
         )}
         {!showTitle && <span className="flex-1" />}
         {showLabel && (
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
+          <span className="aura-widget-value text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
             style={{ background: `${cfg.color}22`, color: cfg.color, border: `1px solid ${cfg.color}55` }}>
             {cfg.label}
           </span>
@@ -129,13 +130,13 @@ export function StateImageWidget({ config }: WidgetProps) {
   // ── MINIMAL ───────────────────────────────────────────────────────────────
   if (layout === 'minimal') {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-1" style={{ position: 'relative' }}>
-        {showIcon && <StateDisplay cfg={cfg} size={iconSize} />}
+      <div className="aura-widget-row flex flex-col items-center justify-center h-full gap-1" style={{ position: 'relative' }}>
+        {showIcon && <StateDisplay cfg={cfg} size={iconSize} className="aura-widget-icon" />}
         {showLabel && (
-          <span className="text-xl font-bold" style={{ color: cfg.color }}>{cfg.label}</span>
+          <span className="aura-widget-value text-xl font-bold" style={{ color: cfg.color }}>{cfg.label}</span>
         )}
         {showTitle && (
-          <span className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>
+          <span className="aura-widget-title text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>
         )}
         <StatusBadges config={config} />
       </div>
@@ -145,15 +146,15 @@ export function StateImageWidget({ config }: WidgetProps) {
   // ── DEFAULT ───────────────────────────────────────────────────────────────
   const posClass = contentPositionClass(opts.contentPosition as string | undefined);
   return (
-    <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
+    <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-2">
-          {showIcon && <StateDisplay cfg={cfg} size={iconSize} />}
-          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          {showIcon && <StateDisplay cfg={cfg} size={iconSize} className="aura-widget-icon" />}
+          {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
       {showLabel && (
-        <span className="text-base font-semibold" style={{ color: cfg.color }}>{cfg.label}</span>
+        <span className="aura-widget-value text-base font-semibold" style={{ color: cfg.color }}>{cfg.label}</span>
       )}
       <StatusBadges config={config} />
     </div>

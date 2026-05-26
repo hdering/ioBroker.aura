@@ -160,26 +160,26 @@ export function DatePickerWidget({ config }: WidgetProps) {
 
   const dateInput = !timeOnly ? (
     <input type="date" value={dateVal} onChange={(e) => handleDate(e.target.value)}
-      className="nodrag focus:outline-none" style={inputSty} />
+      className="aura-widget-action nodrag focus:outline-none" style={inputSty} />
   ) : null;
 
   const timeInput = showTime ? (
     <input type="time" value={timeVal} onChange={(e) => handleTime(e.target.value)}
-      className="nodrag focus:outline-none" style={inputSty} />
+      className="aura-widget-action nodrag focus:outline-none" style={inputSty} />
   ) : null;
 
   // ── CARD ─────────────────────────────────────────────────────────────────
   if (layout === 'card') {
     return (
-      <div className="flex flex-col h-full gap-2 items-center justify-center" style={{ position: 'relative' }}>
-        {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--accent)', opacity: 0.8 }} />}
-        {showTitle && <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+      <div className="aura-widget-row flex flex-col h-full gap-2 items-center justify-center" style={{ position: 'relative' }}>
+        {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--accent)', opacity: 0.8 }} />}
+        {showTitle && <p className="aura-widget-title text-xs font-medium" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         <div className="flex flex-wrap justify-center gap-1.5">
           {dateInput}
           {timeInput}
         </div>
         {showCurrent && (
-          <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Gesetzt: {currentDisplay}</p>
+          <p className="aura-widget-value text-[11px]" style={{ color: 'var(--text-secondary)' }}>Gesetzt: {currentDisplay}</p>
         )}
         <StatusBadges config={config} />
       </div>
@@ -189,9 +189,9 @@ export function DatePickerWidget({ config }: WidgetProps) {
   // ── COMPACT ───────────────────────────────────────────────────────────────
   if (layout === 'compact') {
     return (
-      <div className="flex items-center gap-2 h-full" style={{ position: 'relative' }}>
-        {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--accent)', flexShrink: 0 }} />}
-        {showTitle && <span className="text-sm truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
+      <div className="aura-widget-row flex items-center gap-2 h-full" style={{ position: 'relative' }}>
+        {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--accent)', flexShrink: 0 }} />}
+        {showTitle && <span className="aura-widget-title text-sm truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
         {!showTitle && <span className="flex-1" />}
         <div className="flex items-center gap-1 shrink-0">
           {dateInput}
@@ -205,12 +205,12 @@ export function DatePickerWidget({ config }: WidgetProps) {
   // ── MINIMAL ───────────────────────────────────────────────────────────────
   if (layout === 'minimal') {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-1.5" style={{ position: 'relative' }}>
+      <div className="aura-widget-row flex flex-col items-center justify-center h-full gap-1.5" style={{ position: 'relative' }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {dateInput}
           {timeInput}
         </div>
-        {showCurrent && <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{currentDisplay}</p>}
+        {showCurrent && <p className="aura-widget-value text-[10px]" style={{ color: 'var(--text-secondary)' }}>{currentDisplay}</p>}
         <StatusBadges config={config} />
       </div>
     );
@@ -219,11 +219,11 @@ export function DatePickerWidget({ config }: WidgetProps) {
   // ── DEFAULT ───────────────────────────────────────────────────────────────
   const posClass = contentPositionClass(o.contentPosition as string | undefined);
   return (
-    <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
+    <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-1 shrink-0 min-w-0">
-          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
       <div className="flex flex-wrap gap-1.5">
@@ -231,7 +231,7 @@ export function DatePickerWidget({ config }: WidgetProps) {
         {timeInput}
       </div>
       {showCurrent && (
-        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Gesetzt: {currentDisplay}</p>
+        <p className="aura-widget-value text-[11px]" style={{ color: 'var(--text-secondary)' }}>Gesetzt: {currentDisplay}</p>
       )}
       <StatusBadges config={config} />
     </div>

@@ -380,7 +380,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
   // ── no sources configured ────────────────────────────────────────────────
   if (sources.length === 0) {
     return (
-      <div className="flex flex-col h-full">
+      <div className="aura-widget-row flex flex-col h-full">
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
@@ -398,7 +398,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
   // ── full error (all sources failed) ─────────────────────────────────────
   if (errors.length > 0 && events.length === 0) {
     return (
-      <div className="flex flex-col h-full gap-1.5 overflow-hidden">
+      <div className="aura-widget-row flex flex-col h-full gap-1.5 overflow-hidden">
         <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
           <div className="flex items-center gap-1 min-w-0 flex-1">
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
@@ -439,7 +439,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
   // ── MINIMAL ──────────────────────────────────────────────────────────────
   if (layout === 'minimal') {
     return (
-      <div className="flex flex-col h-full">
+      <div className="aura-widget-row flex flex-col h-full">
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
@@ -501,7 +501,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     const showMore     = options.showMore     !== false;
 
     return (
-      <div className="flex flex-col h-full">
+      <div className="aura-widget-row flex flex-col h-full">
         {/* header row */}
         <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
           <div className="flex items-center gap-1 min-w-0 flex-1">
@@ -558,7 +558,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
   // ── AGENDA ───────────────────────────────────────────────────────────────
   if (layout === 'agenda') {
     return (
-      <div className="flex flex-col h-full gap-1 overflow-hidden">
+      <div className="aura-widget-row flex flex-col h-full gap-1 overflow-hidden">
         <div className="flex items-center justify-between shrink-0 mb-0.5 gap-1 min-w-0">
           <div className="flex items-center gap-1 min-w-0 flex-1">
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
@@ -624,7 +624,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
 
   // ── DEFAULT ──────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full gap-1.5 overflow-hidden">
+    <div className="aura-widget-row flex flex-col h-full gap-1.5 overflow-hidden">
       <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
         <div className="flex items-center gap-1 min-w-0 flex-1">
           {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}

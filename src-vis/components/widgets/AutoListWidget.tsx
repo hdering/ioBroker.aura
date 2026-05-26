@@ -693,10 +693,10 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     <div className="shrink-0 py-1.5 flex items-center justify-between"
       style={{ borderBottom: '1px solid var(--widget-border)' }}>
       <div className="flex items-center gap-1.5 min-w-0 flex-1">
-        {showIcon && <HeaderIcon size={iconSize} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
+        {showIcon && <HeaderIcon size={iconSize} className="aura-widget-icon shrink-0" style={{ color: 'var(--text-secondary)' }} />}
         <div className="flex-1 min-w-0">
           {showTitle && (
-            <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+            <p className="aura-widget-title text-xs font-semibold truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
               {config.title || 'Dynamische Liste'}
               {showCount && entries.length > 0 && (
                 <span className="ml-1 opacity-50">
@@ -777,7 +777,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
   if (layout === 'count') {
     const count = effectiveFilter === 'all' ? entries.length : visibleEntries.length;
     return (
-      <div className="relative flex flex-col items-center justify-center h-full gap-1">
+      <div className="aura-widget-row relative flex flex-col items-center justify-center h-full gap-1">
         {showIcon && <HeaderIcon size={iconSize} style={{ color: 'var(--text-secondary)', opacity: 0.7 }} />}
         <span className="text-xl font-bold tabular-nums leading-none" style={{ color: 'var(--text-primary)' }}>
           {count}
@@ -795,7 +795,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
   // ── KACHELN (card) ─────────────────────────────────────────────────────────
   if (layout === 'card') {
     return (
-      <div className="relative flex flex-col h-full">
+      <div className="aura-widget-row relative flex flex-col h-full">
         {header}
         {empty}
         {visibleEntries.length > 0 && (
@@ -841,7 +841,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
   // ── KOMPAKT (compact) — 2-column dense list ────────────────────────────────
   if (layout === 'compact') {
     return (
-      <div className="relative flex flex-col h-full">
+      <div className="aura-widget-row relative flex flex-col h-full">
         {header}
         {empty}
         {visibleEntries.length > 0 && (
@@ -887,7 +887,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
   // ── BADGES (minimal) — inline pill per entry ───────────────────────────────
   if (layout === 'minimal') {
     return (
-      <div className="relative flex flex-col h-full">
+      <div className="aura-widget-row relative flex flex-col h-full">
         {header}
         {empty}
         {visibleEntries.length > 0 && (

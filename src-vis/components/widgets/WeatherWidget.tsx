@@ -374,7 +374,7 @@ export function WeatherWidget({ config }: WidgetProps) {
   // ── Warnings-only mode ────────────────────────────────────────────────────
   if (!showWeather && showWarnings) {
     return (
-      <div ref={containerRef} className="aura-scroll flex flex-col h-full gap-1.5 overflow-auto">
+      <div ref={containerRef} className="aura-widget-row aura-scroll flex flex-col h-full gap-1.5 overflow-auto">
         {locationName && (
           <div className="shrink-0 font-semibold" style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
             {locationName}
@@ -389,7 +389,7 @@ export function WeatherWidget({ config }: WidgetProps) {
   if (!showWeather && !showWarnings) {
     if (localTemp !== null) {
       return (
-        <div ref={containerRef} className="flex flex-col items-center justify-center h-full gap-1">
+        <div ref={containerRef} className="aura-widget-row flex flex-col items-center justify-center h-full gap-1">
           <span className="font-black tabular-nums" style={{ color: 'var(--text-primary)', fontSize: fs(2.25) }}>
             {Math.round(localTemp)}°
           </span>
@@ -397,7 +397,7 @@ export function WeatherWidget({ config }: WidgetProps) {
       );
     }
     return (
-      <div ref={containerRef} className="flex items-center justify-center h-full" style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
+      <div ref={containerRef} className="aura-widget-row flex items-center justify-center h-full" style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
         {t('weather.noData')}
       </div>
     );
@@ -406,7 +406,7 @@ export function WeatherWidget({ config }: WidgetProps) {
   // ── Loading state (online weather) ────────────────────────────────────────
   if (showWeather && loading && !data) {
     return (
-      <div ref={containerRef} className="flex items-center justify-center h-full">
+      <div ref={containerRef} className="aura-widget-row flex items-center justify-center h-full">
         <Loader size={24 * scale} className="animate-spin" style={{ color: 'var(--text-secondary)' }} />
       </div>
     );
@@ -414,7 +414,7 @@ export function WeatherWidget({ config }: WidgetProps) {
 
   if (showWeather && !data) {
     return (
-      <div ref={containerRef} className="flex flex-col items-center justify-center h-full gap-2" style={{ color: 'var(--text-secondary)' }}>
+      <div ref={containerRef} className="aura-widget-row flex flex-col items-center justify-center h-full gap-2" style={{ color: 'var(--text-secondary)' }}>
         <span style={{ fontSize: fs(1.5) }}>🌡️</span>
         <span style={{ fontSize: fs(0.75) }}>{t('weather.noData')}</span>
       </div>
@@ -685,7 +685,7 @@ export function WeatherWidget({ config }: WidgetProps) {
   // ── MINIMAL ──────────────────────────────────────────────────────────────
   if (layout === 'minimal') {
     return (
-      <div ref={containerRef} className="flex flex-col h-full gap-1.5">
+      <div ref={containerRef} className="aura-widget-row flex flex-col h-full gap-1.5">
         <div className="flex flex-col items-center justify-center flex-1 gap-1">
           <span style={{ fontSize: fs(2.5), lineHeight: 1 }}>{info.emoji}</span>
           <span className="font-black tabular-nums" style={{ color: 'var(--text-primary)', fontSize: fs(1.875) }}>
@@ -704,7 +704,7 @@ export function WeatherWidget({ config }: WidgetProps) {
   // ── COMPACT ───────────────────────────────────────────────────────────────
   if (layout === 'compact') {
     return (
-      <div ref={containerRef} className="flex items-center gap-2 h-full">
+      <div ref={containerRef} className="aura-widget-row flex items-center gap-2 h-full">
         <span style={{ fontSize: fs(1.4), lineHeight: 1, flexShrink: 0 }}>{info.emoji}</span>
         <span className="font-bold tabular-nums shrink-0" style={{ color: 'var(--text-primary)', fontSize: fs(1.25) }}>{tempStr}</span>
         <span className="flex-1 truncate min-w-0" style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
@@ -716,7 +716,7 @@ export function WeatherWidget({ config }: WidgetProps) {
 
   // ── DEFAULT / CARD ────────────────────────────────────────────────────────
   return (
-    <div ref={containerRef} className="aura-scroll flex flex-col h-full gap-2 overflow-auto">
+    <div ref={containerRef} className="aura-widget-row aura-scroll flex flex-col h-full gap-2 overflow-auto">
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
           {showIcon && <WidgetIcon size={iconSize * scale} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}

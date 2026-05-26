@@ -51,7 +51,7 @@ export function EnumWidget({ config }: WidgetProps) {
   };
 
   const selectEl = showSelect ? (
-    <div className="relative inline-flex items-center" style={{ minWidth: 0 }}>
+    <div className="aura-widget-action relative inline-flex items-center" style={{ minWidth: 0 }}>
       <select
         value={current?.value ?? ''}
         onChange={(e) => onPick(e.target.value)}
@@ -79,9 +79,9 @@ export function EnumWidget({ config }: WidgetProps) {
         config={config}
         value={currentLabel}
         extraComponents={{
-          icon:   showIcon  ? <WidgetIcon size={iconSize} style={{ color: currentColor ?? 'var(--accent)', flexShrink: 0 }} /> : null,
+          icon:   showIcon  ? <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: currentColor ?? 'var(--accent)', flexShrink: 0 }} /> : null,
           select: selectEl,
-          label:  showValue ? <span className="text-base font-semibold truncate" style={{ color: currentColor ?? 'var(--text-primary)' }}>{currentLabel}</span> : null,
+          label:  showValue ? <span className="aura-widget-value text-base font-semibold truncate" style={{ color: currentColor ?? 'var(--text-primary)' }}>{currentLabel}</span> : null,
         }}
       />
     );
@@ -90,16 +90,16 @@ export function EnumWidget({ config }: WidgetProps) {
   // --- COMPACT ---
   if (layout === 'compact') {
     return (
-      <div className="flex items-center justify-between h-full gap-2" style={{ position: 'relative' }}>
+      <div className="aura-widget-row flex items-center justify-between h-full gap-2" style={{ position: 'relative' }}>
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-2 min-w-0">
-            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-            {showTitle && <span className="text-sm truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</span>}
+            {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <span className="aura-widget-title text-sm truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</span>}
           </div>
         )}
         <div className="flex items-center gap-2 shrink-0 min-w-0">
           {showValue && (
-            <span className="text-base font-semibold truncate" style={{ color: currentColor ?? 'var(--text-primary)' }}>{currentLabel}</span>
+            <span className="aura-widget-value text-base font-semibold truncate" style={{ color: currentColor ?? 'var(--text-primary)' }}>{currentLabel}</span>
           )}
           {selectEl}
         </div>
@@ -111,12 +111,12 @@ export function EnumWidget({ config }: WidgetProps) {
   // --- MINIMAL: Label groß zentriert, Dropdown darunter ---
   if (layout === 'minimal') {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2" style={{ position: 'relative' }}>
+      <div className="aura-widget-row flex flex-col items-center justify-center h-full gap-2" style={{ position: 'relative' }}>
         {showValue && (
-          <span className="text-xl font-bold truncate max-w-full" style={{ color: currentColor ?? 'var(--accent)' }}>{currentLabel}</span>
+          <span className="aura-widget-value text-xl font-bold truncate max-w-full" style={{ color: currentColor ?? 'var(--accent)' }}>{currentLabel}</span>
         )}
         {selectEl}
-        {showTitle && <span className="text-xs mt-1 truncate max-w-full" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
+        {showTitle && <span className="aura-widget-title text-xs mt-1 truncate max-w-full" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
         <StatusBadges config={config} />
       </div>
     );
@@ -126,18 +126,18 @@ export function EnumWidget({ config }: WidgetProps) {
   if (layout === 'card') {
     const accent = currentColor ?? 'var(--accent)';
     return (
-      <div className="flex h-full gap-3" style={{ position: 'relative' }}>
+      <div className="aura-widget-row flex h-full gap-3" style={{ position: 'relative' }}>
         <div className="w-1 rounded-full self-stretch" style={{ background: accent }} />
         <div className="flex flex-col justify-between flex-1 min-w-0">
           {(showTitle || showIcon) && (
             <div className="flex items-center gap-2">
-              {showIcon && <WidgetIcon size={iconSize} style={{ color: accent }} />}
-              {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
+              {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: accent }} />}
+              {showTitle && <p className="aura-widget-title text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
             </div>
           )}
           <div className="flex items-center gap-2 flex-wrap min-w-0">
             {showValue && (
-              <span className="text-xl font-bold truncate" style={{ color: accent }}>{currentLabel}</span>
+              <span className="aura-widget-value text-xl font-bold truncate" style={{ color: accent }}>{currentLabel}</span>
             )}
             {selectEl}
           </div>
@@ -153,16 +153,16 @@ export function EnumWidget({ config }: WidgetProps) {
   const titleStyle = titlePositionStyle(titlePos);
 
   return (
-    <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
+    <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-2" style={titleStyle}>
-          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-          {showTitle && <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1', minWidth: 0 }}>{config.title}</p>}
+          {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="aura-widget-title text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1', minWidth: 0 }}>{config.title}</p>}
         </div>
       )}
       <div className="flex items-center gap-2 flex-wrap min-w-0">
         {showValue && (
-          <span className="text-base font-semibold truncate" style={{ color: currentColor ?? 'var(--text-primary)' }}>{currentLabel}</span>
+          <span className="aura-widget-value text-base font-semibold truncate" style={{ color: currentColor ?? 'var(--text-primary)' }}>{currentLabel}</span>
         )}
         {selectEl}
       </div>

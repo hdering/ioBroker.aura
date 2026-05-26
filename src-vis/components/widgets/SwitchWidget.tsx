@@ -55,7 +55,7 @@ export function SwitchWidget({ config }: WidgetProps) {
   const iconControlButton = (extraClass = '') => (
     <button
       onClick={handleToggle}
-      className={`nodrag flex items-center justify-center shrink-0 transition-transform hover:scale-110 focus:outline-none ${extraClass}`}
+      className={`aura-widget-action nodrag flex items-center justify-center shrink-0 transition-transform hover:scale-110 focus:outline-none ${extraClass}`}
       style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
       aria-label={isOn ? 'AN' : 'AUS'}
     >
@@ -77,7 +77,7 @@ export function SwitchWidget({ config }: WidgetProps) {
           toggle: isIconMode ? iconControlButton() : (
             <button
               onClick={handleToggle}
-              className="nodrag relative w-10 h-5 rounded-full transition-colors focus:outline-none"
+              className="aura-widget-action nodrag relative w-10 h-5 rounded-full transition-colors focus:outline-none"
               style={{ background: isOn ? 'var(--accent)' : 'var(--app-border)' }}
             >
               <span
@@ -97,7 +97,7 @@ export function SwitchWidget({ config }: WidgetProps) {
     return (
       <button
         onClick={handleToggle}
-        className="w-full h-full flex flex-col items-center justify-center gap-3 rounded-widget transition-all duration-300"
+        className="aura-widget-row aura-widget-action w-full h-full flex flex-col items-center justify-center gap-3 rounded-widget transition-all duration-300"
         style={{
           position: 'relative',
           background: isOn ? 'linear-gradient(135deg, var(--accent-green), color-mix(in srgb, var(--accent-green) 60%, black))' : 'var(--app-bg)',
@@ -105,12 +105,13 @@ export function SwitchWidget({ config }: WidgetProps) {
         }}
       >
         {showIcon && <WidgetIcon
+          className="aura-widget-icon"
           size={iconSize}
           style={{ color: isOn ? '#fff' : 'var(--text-secondary)', filter: isOn ? 'drop-shadow(0 0 8px rgba(255,255,255,0.5))' : 'none' }}
         />}
         <div className="text-center">
-          {showTitle && <p className="font-bold text-sm" style={{ color: isOn ? '#fff' : 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
-          {showLabel && <p className="text-xs opacity-70" style={{ color: isOn ? '#fff' : 'var(--text-secondary)' }}>{isOn ? 'AN' : 'AUS'}</p>}
+          {showTitle && <p className="aura-widget-title font-bold text-sm" style={{ color: isOn ? '#fff' : 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          {showLabel && <p className="aura-widget-value text-xs opacity-70" style={{ color: isOn ? '#fff' : 'var(--text-secondary)' }}>{isOn ? 'AN' : 'AUS'}</p>}
         </div>
         <StatusBadges config={config} />
         {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
@@ -121,13 +122,13 @@ export function SwitchWidget({ config }: WidgetProps) {
   // --- COMPACT: Zeile mit Icon + Titel + Toggle ---
   if (layout === 'compact') {
     return (
-      <div className="flex items-center gap-2 h-full" style={{ position: 'relative' }}>
-        {showIcon && <WidgetIcon size={iconSize} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} />}
-        {showTitle && <span className="flex-1 text-sm truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
+      <div className="aura-widget-row flex items-center gap-2 h-full" style={{ position: 'relative' }}>
+        {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} />}
+        {showTitle && <span className="aura-widget-title flex-1 text-sm truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
         {!showTitle && <span className="flex-1" />}
         {isIconMode ? iconControlButton() : (
           <button onClick={handleToggle}
-            className="relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"
+            className="aura-widget-action relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"
             style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}>
             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
           </button>
@@ -144,22 +145,22 @@ export function SwitchWidget({ config }: WidgetProps) {
   const titleStyle = titlePositionStyle(titlePos);
 
   return (
-    <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
+    <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-2" style={titleStyle}>
-          {showIcon && <WidgetIcon size={iconSize} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} />}
-          {showTitle && <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1', minWidth: 0 }}>{config.title}</p>}
+          {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="aura-widget-title text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1', minWidth: 0 }}>{config.title}</p>}
         </div>
       )}
       <div className="flex items-center justify-between">
         {showLabel && (
-          <span className="text-base font-semibold" style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)' }}>
+          <span className="aura-widget-value text-base font-semibold" style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)' }}>
             {isOn ? 'AN' : 'AUS'}
           </span>
         )}
         {isIconMode ? iconControlButton(!showLabel ? 'ml-auto' : '') : (
           <button onClick={handleToggle}
-            className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none ${!showLabel ? 'ml-auto' : ''}`}
+            className={`aura-widget-action relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none ${!showLabel ? 'ml-auto' : ''}`}
             style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}>
             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-6' : 'translate-x-0'}`} />
           </button>

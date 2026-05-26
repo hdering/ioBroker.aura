@@ -239,14 +239,14 @@ export function GaugeWidget({ config }: WidgetProps) {
   const GaugeIcon = getWidgetIcon(opts.icon as string | undefined, Gauge);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="aura-widget-row flex flex-col h-full">
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-1.5 mb-1 min-w-0">
-          {showIcon && <GaugeIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-          {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
+          {showIcon && <GaugeIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="aura-widget-title text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
         </div>
       )}
-      <div className="flex-1 flex items-center justify-center">
+      <div className="aura-widget-value flex-1 flex items-center justify-center">
         <GaugeSVG {...gaugeProps} scale={0.95} />
       </div>
       {secondaryBadges.length > 0 && (

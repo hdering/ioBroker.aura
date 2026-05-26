@@ -21,10 +21,10 @@ export function HeaderWidget({ config }: Props) {
 
   if (layout === 'minimal') {
     return (
-      <div className="flex items-center gap-3 h-full px-1">
-        {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+      <div className="aura-widget-row flex items-center gap-3 h-full px-1">
+        {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
         {showTitle && (
-          <span className="text-xs font-semibold tracking-widest uppercase shrink-0" style={{ color: 'var(--text-secondary)' }}>
+          <span className="aura-widget-title text-xs font-semibold tracking-widest uppercase shrink-0" style={{ color: 'var(--text-secondary)' }}>
             {config.title}
           </span>
         )}
@@ -35,11 +35,11 @@ export function HeaderWidget({ config }: Props) {
 
   if (layout === 'compact') {
     return (
-      <div className="flex items-center gap-3 h-full">
+      <div className="aura-widget-row flex items-center gap-3 h-full">
         <div className="w-1 self-stretch rounded-full" style={{ background: 'var(--accent)' }} />
-        {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-primary)', flexShrink: 0 }} />}
+        {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-primary)', flexShrink: 0 }} />}
         {showTitle && (
-          <span className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
+          <span className="aura-widget-title font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
             {config.title}
           </span>
         )}
@@ -49,21 +49,21 @@ export function HeaderWidget({ config }: Props) {
 
   // default / card
   return (
-    <div className="flex flex-col justify-center h-full gap-0.5">
+    <div className="aura-widget-row flex flex-col justify-center h-full gap-0.5">
       <div className="flex items-center gap-3" style={{ justifyContent }}>
         {titleAlign === 'left' && (
           <div className="w-1 self-stretch rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
         )}
-        {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-primary)', flexShrink: 0 }} />}
+        {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-primary)', flexShrink: 0 }} />}
         {showTitle && (
-          <h2 className="font-bold text-xl leading-tight" style={{ color: 'var(--text-primary)' }}>
+          <h2 className="aura-widget-title font-bold text-xl leading-tight" style={{ color: 'var(--text-primary)' }}>
             {config.title}
           </h2>
         )}
       </div>
       {subtitle && showSubtitle && (
         <p
-          className={`text-xs mt-0.5 ${titleAlign === 'left' ? 'pl-4' : ''}`}
+          className={`aura-widget-value text-xs mt-0.5 ${titleAlign === 'left' ? 'pl-4' : ''}`}
           style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}
         >
           {subtitle}

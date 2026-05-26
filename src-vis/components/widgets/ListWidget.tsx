@@ -512,10 +512,10 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     <div className="shrink-0 flex items-center justify-between py-1.5"
       style={{ borderBottom: '1px solid var(--widget-border)' }}>
       <div className="flex items-center gap-1.5 min-w-0 flex-1">
-        {showIcon && <HeaderIcon size={iconSize} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
+        {showIcon && <HeaderIcon size={iconSize} className="aura-widget-icon shrink-0" style={{ color: 'var(--text-secondary)' }} />}
         <div className="flex-1 min-w-0">
           {showTitle && (
-            <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+            <p className="aura-widget-title text-xs font-semibold truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
               {config.title || 'Statische Liste'}
               {showCount && entries.length > 0 && (
                 <span className="ml-1 opacity-50">
@@ -589,7 +589,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   // ── KACHELN (card) ─────────────────────────────────────────────────────────
   if (layout === 'card') {
     return (
-      <div className="relative flex flex-col h-full">
+      <div className="aura-widget-row relative flex flex-col h-full">
         {header}
         {empty}
         {visibleEntries.length > 0 && (
@@ -636,7 +636,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   // ── KOMPAKT (compact) — 2-column dense list ────────────────────────────────
   if (layout === 'compact') {
     return (
-      <div className="relative flex flex-col h-full">
+      <div className="aura-widget-row relative flex flex-col h-full">
         {header}
         {empty}
         {visibleEntries.length > 0 && (
@@ -686,7 +686,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   // ── BADGES (minimal) — inline pill per entry ───────────────────────────────
   if (layout === 'minimal') {
     return (
-      <div className="relative flex flex-col h-full">
+      <div className="aura-widget-row relative flex flex-col h-full">
         {header}
         {empty}
         {visibleEntries.length > 0 && (

@@ -90,14 +90,14 @@ export function ChipsWidget({ config }: WidgetProps) {
     chipStyle === 'ghost' ? 'none' : `1px solid ${active ? 'var(--accent)44' : 'var(--app-border)'}`;
 
   return (
-    <div className="relative w-full h-full flex flex-col gap-1.5">
+    <div className="aura-widget-row relative w-full h-full flex flex-col gap-1.5">
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-1.5 shrink-0 min-w-0">
-          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
-      <div className="nodrag flex-1 flex flex-col" style={{ justifyContent: valignJustify }}>
+      <div className="aura-widget-action nodrag flex-1 flex flex-col" style={{ justifyContent: valignJustify }}>
       <div className="nodrag" style={containerStyle}>
         {chips.map((chip) => {
           const active = isActive(chip);

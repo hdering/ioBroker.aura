@@ -161,19 +161,19 @@ export function ClimateWidget({ config }: WidgetProps) {
   ) : null;
 
   return (
-    <div ref={containerRef} className="flex flex-col h-full gap-1">
+    <div ref={containerRef} className="aura-widget-row flex flex-col h-full gap-1">
 
       {/* Title */}
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-1 min-w-0 shrink-0" style={{ justifyContent: titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'flex-end' : 'flex-start' }}>
-          {showIcon && <TempIcon size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0 }} />}
-          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          {showIcon && <TempIcon className="aura-widget-icon" size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0 }} />}
+          {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
 
       {/* Main values */}
       {(showActualTemp || showHumidity || showTargetTemp) && (
-        <div className="flex items-end justify-between gap-2">
+        <div className="aura-widget-value flex items-end justify-between gap-2">
           {showActualTemp && (
             <div className="flex flex-col leading-none">
               <span className="font-black" style={{ fontSize: Math.round(30 * fontScale), color: 'var(--text-primary)' }}>

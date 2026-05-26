@@ -129,13 +129,13 @@ export function SliderWidget({ config }: WidgetProps) {
           : { width: '100%' }),
         ...(readOnly ? { opacity: 1, cursor: 'default' } : {}),
       } as unknown as CSSProperties}
-      className={`nodrag h-1.5 rounded-full appearance-none${readOnly ? '' : ' cursor-pointer'}`}
+      className={`aura-widget-action nodrag h-1.5 rounded-full appearance-none${readOnly ? '' : ' cursor-pointer'}`}
     />
   );
 
   const barTrack = (
     <div
-      className={`nodrag relative rounded-2xl overflow-hidden select-none${readOnly ? '' : ' cursor-pointer'}`}
+      className={`aura-widget-action nodrag relative rounded-2xl overflow-hidden select-none${readOnly ? '' : ' cursor-pointer'}`}
       style={{
         width:      isVertical ? `${barSize}%` : '100%',
         height:     isVertical ? '100%'        : `${barSize}%`,
@@ -185,7 +185,7 @@ export function SliderWidget({ config }: WidgetProps) {
   );
 
   const actionsEl = actions.length > 0 ? (
-    <div className="nodrag flex items-center gap-1 flex-wrap">
+    <div className="aura-widget-action nodrag flex items-center gap-1 flex-wrap">
       {actions.map((a) => {
         const Icon = getWidgetIcon(a.icon, SlidersHorizontal);
         return (
@@ -227,9 +227,9 @@ export function SliderWidget({ config }: WidgetProps) {
 
   if (isVertical) {
     return (
-      <div className="flex flex-col h-full items-center gap-1" style={{ position: 'relative' }}>
+      <div className="aura-widget-row flex flex-col h-full items-center gap-1" style={{ position: 'relative' }}>
         {showValue && (
-          <p className="text-xl font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>{valueStr}</p>
+          <p className="aura-widget-value text-xl font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>{valueStr}</p>
         )}
         {showMinMax && <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>{max}</span>}
         <div className={`flex-1 flex items-center justify-center min-h-0${barStyle ? ' w-full' : ''}`}>
@@ -243,14 +243,14 @@ export function SliderWidget({ config }: WidgetProps) {
   }
 
   return (
-    <div className="flex flex-col h-full gap-2" style={{ position: 'relative' }}>
+    <div className="aura-widget-row flex flex-col h-full gap-2" style={{ position: 'relative' }}>
       {(showTitle || showIcon || showValue) && (
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
-            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+            {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
-          {showValue && <p className="text-xl font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>{valueStr}</p>}
+          {showValue && <p className="aura-widget-value text-xl font-bold shrink-0" style={{ color: 'var(--text-primary)' }}>{valueStr}</p>}
         </div>
       )}
       <div className="flex-1 flex items-center gap-2 min-h-0">

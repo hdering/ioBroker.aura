@@ -19,13 +19,13 @@ export function UniversalWidget({ config }: WidgetProps) {
   const hasHeader  = (showTitle && config.title) || showIcon;
 
   return (
-    <div className="aura-widget-universal flex flex-col w-full h-full gap-2" style={{ position: 'relative' }}>
+    <div className="aura-widget-row aura-widget-universal flex flex-col w-full h-full gap-2" style={{ position: 'relative' }}>
       {hasHeader && (
         <div className="flex items-center gap-2 shrink-0">
-          {showIcon && <Icon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showIcon && <Icon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
           {showTitle && config.title && (
             <p
-              className="text-xs"
+              className="aura-widget-title text-xs"
               style={{
                 color: 'var(--text-secondary)',
                 textAlign: titleAlign as React.CSSProperties['textAlign'],

@@ -107,7 +107,7 @@ export function TrashWidget({ config }: WidgetProps) {
 
   if (bins.length === 0) {
     return (
-      <div className="flex flex-col h-full">
+      <div className="aura-widget-row flex flex-col h-full">
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
             {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
@@ -125,7 +125,7 @@ export function TrashWidget({ config }: WidgetProps) {
   const binSize = bins.length <= 2 ? 72 : bins.length <= 4 ? 58 : 44;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="aura-widget-row flex flex-col h-full">
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
           {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}

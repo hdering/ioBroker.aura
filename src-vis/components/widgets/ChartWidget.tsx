@@ -157,14 +157,14 @@ export function ChartWidget({ config }: WidgetProps) {
   // ── CARD ─────────────────────────────────────────────────────────────────
   if (layout === 'card') {
     return (
-      <div ref={containerRef} className="flex flex-col h-full">
+      <div ref={containerRef} className="aura-widget-row flex flex-col h-full">
         <div className="flex items-start justify-between mb-1">
           <div className="flex items-start gap-1.5 min-w-0 flex-1">
-            {showIcon && <WidgetIcon size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0, marginTop: 2 }} />}
+            {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0, marginTop: 2 }} />}
             <div className="min-w-0 flex-1">
-              {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+              {showTitle && <p className="aura-widget-title text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
               {current !== null && (
-                <p className="text-xl font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                <p className="aura-widget-value text-xl font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>
                   {formatNum(current, decimals)}
                   {unit && <span className="text-lg ml-1 font-medium" style={{ color: unitColor }}>{unit}</span>}
                 </p>
@@ -222,12 +222,12 @@ export function ChartWidget({ config }: WidgetProps) {
       <div className="flex justify-between items-start mb-1">
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 min-w-0 flex-1">
-            {showIcon && <WidgetIcon size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0 }} />}
-            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+            {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0 }} />}
+            {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
         )}
         {current !== null && (
-          <div className="flex flex-col items-end shrink-0 ml-2">
+          <div className="aura-widget-value flex flex-col items-end shrink-0 ml-2">
             <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
               {formatNum(current, decimals)}{unit ? ` ${unit}` : ''}
             </span>

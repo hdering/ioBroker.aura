@@ -61,11 +61,11 @@ export function IframeWidget({ config }: WidgetProps) {
 
   if (!url) {
     return (
-      <div className="flex flex-col h-full">
+      <div className="aura-widget-row flex flex-col h-full">
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2">
-            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-            {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+            {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
         )}
         <div className="flex flex-col items-center justify-center flex-1 gap-2" style={{ color: 'var(--text-secondary)' }}>
@@ -83,14 +83,14 @@ export function IframeWidget({ config }: WidgetProps) {
     : undefined;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="aura-widget-row flex flex-col h-full">
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2">
-          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
-      <div className="relative flex-1 overflow-hidden group" style={{ borderRadius: 'inherit' }}>
+      <div className="aura-widget-value relative flex-1 overflow-hidden group" style={{ borderRadius: 'inherit' }}>
         <iframe
           key={iframeKey}
           src={url}

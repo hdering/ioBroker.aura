@@ -80,18 +80,18 @@ export function ValueWidget({ config }: WidgetProps) {
   // --- CARD: Akzent-Leiste links, großer Wert zentriert ---
   if (layout === 'card') {
     return (
-      <div className="flex h-full gap-3" style={{ position: 'relative' }}>
+      <div className="aura-widget-row flex h-full gap-3" style={{ position: 'relative' }}>
         <div className="w-1 rounded-full self-stretch" style={{ background: accentColor }} />
         <div className="flex flex-col justify-between flex-1">
           {(showTitle || showIcon) && (
             <div className="flex items-center gap-2">
-              {showIcon && <CardIcon size={iconSize} style={{ color: accentColor }} />}
-              {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
+              {showIcon && <CardIcon className="aura-widget-icon" size={iconSize} style={{ color: accentColor }} />}
+              {showTitle && <p className="aura-widget-title text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</p>}
             </div>
           )}
           {showValue && (
             htmlValueNode ?? (
-              <div>
+              <div className="aura-widget-value">
                 <span className={`${valueSizeCls}`} style={{ color: valueColor, ...valueSizeStyle }}>{displayValue}</span>
                 {showUnit && unit && <span className="text-lg ml-1 font-medium" style={{ color: accentColor }}>{unit}</span>}
               </div>
@@ -106,16 +106,16 @@ export function ValueWidget({ config }: WidgetProps) {
   // --- COMPACT: Inline-Darstellung ---
   if (layout === 'compact') {
     return (
-      <div className="flex items-center justify-between h-full gap-2" style={{ position: 'relative' }}>
+      <div className="aura-widget-row flex items-center justify-between h-full gap-2" style={{ position: 'relative' }}>
         {(showTitle || showIcon) && (
           <div className="flex items-center gap-2 min-w-0">
-            {showIcon && <CompactIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-            {showTitle && <span className="text-sm truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</span>}
+            {showIcon && <CompactIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && <span className="aura-widget-title text-sm truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'], flex: '1', minWidth: 0 }}>{config.title}</span>}
           </div>
         )}
         {showValue && (
           htmlValueNode ?? (
-            <span className={`${valueSizeCls} shrink-0`} style={{ color: valueColor, ...valueSizeStyle }}>
+            <span className={`aura-widget-value ${valueSizeCls} shrink-0`} style={{ color: valueColor, ...valueSizeStyle }}>
               {displayValue}{showUnit && unit && <span className="text-sm ml-0.5" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
             </span>
           )
@@ -128,16 +128,16 @@ export function ValueWidget({ config }: WidgetProps) {
   // --- MINIMAL: Nur Zahl, sehr groß ---
   if (layout === 'minimal') {
     return (
-      <div className="flex flex-col items-center justify-center h-full" style={{ position: 'relative' }}>
+      <div className="aura-widget-row flex flex-col items-center justify-center h-full" style={{ position: 'relative' }}>
         {showValue && (
           htmlValueNode ?? (
-            <div className="flex items-baseline gap-1 leading-none">
+            <div className="aura-widget-value flex items-baseline gap-1 leading-none">
               <span className={`${valueSizeCls}`} style={{ color: accentColor, ...valueSizeStyle }}>{displayValue}</span>
               {showUnit && unit && <span className="text-lg font-medium" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
             </div>
           )
         )}
-        {showTitle && <span className="text-xs mt-2 truncate max-w-full" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
+        {showTitle && <span className="aura-widget-title text-xs mt-2 truncate max-w-full" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
         <StatusBadges config={config} />
       </div>
     );
@@ -149,16 +149,16 @@ export function ValueWidget({ config }: WidgetProps) {
   const titleStyle = titlePositionStyle(titlePos);
 
   return (
-    <div className={`flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
+    <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-2" style={titleStyle}>
-          {showIcon && <DefaultIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-          {showTitle && <p className="text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1', minWidth: 0 }}>{config.title}</p>}
+          {showIcon && <DefaultIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showTitle && <p className="aura-widget-title text-xs" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1', minWidth: 0 }}>{config.title}</p>}
         </div>
       )}
       {showValue && (
         htmlValueNode ?? (
-          <div className="flex items-end gap-1.5">
+          <div className="aura-widget-value flex items-end gap-1.5">
             <span className={`${valueSizeCls}`} style={{ color: valueColor, ...valueSizeStyle }}>{displayValue}</span>
             {showUnit && unit && <span className="text-sm mb-0.5" style={{ color: 'var(--text-secondary)' }}>{unit}</span>}
           </div>

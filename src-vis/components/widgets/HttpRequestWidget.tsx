@@ -76,7 +76,7 @@ export function HttpRequestWidget({ config }: WidgetProps) {
     <button
       onClick={handleClick}
       disabled={status === 'loading' || !url}
-      className="nodrag flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-all active:scale-95 focus:outline-none disabled:opacity-40 shrink-0"
+      className="aura-widget-action nodrag flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-all active:scale-95 focus:outline-none disabled:opacity-40 shrink-0"
       style={{ background: buttonColor, color: '#fff' }}
     >
       <Globe size={14} />
@@ -102,10 +102,10 @@ export function HttpRequestWidget({ config }: WidgetProps) {
   // ── MINIMAL ───────────────────────────────────────────────────────────────
   if (layout === 'minimal') {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-1" style={{ position: 'relative' }}>
+      <div className="aura-widget-row flex flex-col items-center justify-center h-full gap-1" style={{ position: 'relative' }}>
         {btn}
         {showStatus && statusLabel && (
-          <span className="text-[10px]" style={{ color: statusColor }}>{statusLabel}</span>
+          <span className="aura-widget-value text-[10px]" style={{ color: statusColor }}>{statusLabel}</span>
         )}
         {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
       </div>
@@ -115,13 +115,13 @@ export function HttpRequestWidget({ config }: WidgetProps) {
   // ── COMPACT ───────────────────────────────────────────────────────────────
   if (layout === 'compact') {
     return (
-      <div className="flex items-center gap-2 h-full" style={{ position: 'relative' }}>
+      <div className="aura-widget-row flex items-center gap-2 h-full" style={{ position: 'relative' }}>
         {showTitle && (
-          <p className="flex-1 min-w-0 text-sm truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>
+          <p className="aura-widget-title flex-1 min-w-0 text-sm truncate" style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>
         )}
         {!showTitle && <span className="flex-1" />}
         {showStatus && statusLabel && (
-          <span className="text-[10px] shrink-0" style={{ color: statusColor }}>{statusLabel}</span>
+          <span className="aura-widget-value text-[10px] shrink-0" style={{ color: statusColor }}>{statusLabel}</span>
         )}
         {btn}
         {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
@@ -132,16 +132,16 @@ export function HttpRequestWidget({ config }: WidgetProps) {
   // ── DEFAULT / CARD ────────────────────────────────────────────────────────
   const posClass = contentPositionClass(o.contentPosition as string | undefined);
   return (
-    <div className={`flex flex-col h-full gap-3 ${posClass}`} style={{ position: 'relative' }}>
+    <div className={`aura-widget-row flex flex-col h-full gap-3 ${posClass}`} style={{ position: 'relative' }}>
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-2">
-          {showIcon && <WidgetIcon size={iconSize} style={{ color: buttonColor, flexShrink: 0 }} />}
-          {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+          {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: buttonColor, flexShrink: 0 }} />}
+          {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
         </div>
       )}
       {btn}
       {showStatus && statusLabel && (
-        <span className="text-xs" style={{ color: statusColor }}>{statusLabel}</span>
+        <span className="aura-widget-value text-xs" style={{ color: statusColor }}>{statusLabel}</span>
       )}
       {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
     </div>

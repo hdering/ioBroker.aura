@@ -33,9 +33,9 @@ export function ButtonWidget({ config }: WidgetProps) {
 
   if (layout === 'compact') {
     return (
-      <div className="flex items-center gap-2.5 h-full px-1">
-        {showIcon && WidgetIcon && <WidgetIcon size={iconSize} style={{ color, flexShrink: 0 }} />}
-        <span className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{label}</span>
+      <div className="aura-widget-row flex items-center gap-2.5 h-full px-1">
+        {showIcon && WidgetIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color, flexShrink: 0 }} />}
+        <span className="aura-widget-action text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{label}</span>
         <span className="ml-auto text-xs" style={{ color: 'var(--text-secondary)' }}>›</span>
       </div>
     );
@@ -43,10 +43,10 @@ export function ButtonWidget({ config }: WidgetProps) {
 
   if (layout === 'minimal') {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="aura-widget-row flex items-center justify-center h-full">
         {showIcon && WidgetIcon
-          ? <WidgetIcon size={iconSize} style={{ color }} />
-          : <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{label}</span>
+          ? <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color }} />
+          : <span className="aura-widget-action text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{label}</span>
         }
       </div>
     );
@@ -55,13 +55,13 @@ export function ButtonWidget({ config }: WidgetProps) {
   // default / card — title at top, then centered icon + label
   const posClass = contentPositionClass((o.contentPosition as string | undefined) ?? 'cc');
   return (
-    <div className="flex flex-col h-full gap-1">
+    <div className="aura-widget-row flex flex-col h-full gap-1">
       {showTitle && (
-        <p className="text-xs truncate shrink-0 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>
+        <p className="aura-widget-title text-xs truncate shrink-0 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>
       )}
       <div className={`flex flex-col gap-2 flex-1 ${posClass}`}>
-        {showIcon && WidgetIcon && <WidgetIcon size={iconSize} style={{ color }} />}
-        <span className="text-sm font-medium text-center leading-tight" style={{ color: 'var(--text-primary)' }}>
+        {showIcon && WidgetIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color }} />}
+        <span className="aura-widget-action text-sm font-medium text-center leading-tight" style={{ color: 'var(--text-primary)' }}>
           {label}
         </span>
       </div>

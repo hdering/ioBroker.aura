@@ -56,7 +56,7 @@ function IconBtn({ icon: Icon, size = 'sm', onClick, active }: {
   return (
     <button
       onClick={onClick}
-      className={`${pad} rounded-full hover:opacity-80 transition-opacity`}
+      className={`aura-widget-action ${pad} rounded-full hover:opacity-80 transition-opacity`}
       style={{
         background: active ? 'var(--accent)22' : 'var(--app-bg)',
         color: active ? 'var(--accent)' : 'var(--text-secondary)',
@@ -73,7 +73,7 @@ function PlayPauseBtn({ playing, onClick }: { playing: boolean; onClick: () => v
   return (
     <button
       onClick={onClick}
-      className="p-2.5 rounded-full hover:opacity-80 transition-opacity"
+      className="aura-widget-action p-2.5 rounded-full hover:opacity-80 transition-opacity"
       style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
     >
       <Icon size={18} fill="currentColor" />
@@ -96,7 +96,7 @@ function VolumeSlider({ pct, step, onChange, compact }: {
       value={pct}
       onChange={(e) => onChange(Number(e.target.value))}
       style={{ accentColor: 'var(--accent)', width: compact ? '72px' : '100%' }}
-      className="nodrag h-1.5 rounded-full appearance-none cursor-pointer"
+      className="aura-widget-action nodrag h-1.5 rounded-full appearance-none cursor-pointer"
     />
   );
 }
@@ -307,17 +307,17 @@ export function MediaplayerWidget({ config }: WidgetProps) {
   // ── MOBILE: vertikaler Aufbau ────────────────────────────────────────────────
   if (isMobile) {
     return (
-      <div className="flex flex-col gap-3 w-full">
+      <div className="aura-widget-row flex flex-col gap-3 w-full">
         {/* Cover: halbe Widget-Breite, quadratisch, zentriert */}
         {showCover && (
-          <div className="rounded-xl overflow-hidden self-center shrink-0" style={{ width: '50%', aspectRatio: '1 / 1' }}>
+          <div className="aura-widget-icon rounded-xl overflow-hidden self-center shrink-0" style={{ width: '50%', aspectRatio: '1 / 1' }}>
             <CoverImage src={coverStr} Icon={showIcon ? WidgetIcon : null} iconSize={iconSize} />
           </div>
         )}
 
         {/* Titel + Untertitel */}
         <div className="shrink-0 space-y-0.5 text-center min-w-0">
-          <p className="text-base font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+          <p className="aura-widget-title text-base font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
             {titleStr || '–'}
           </p>
           {showSubtitle && subtitle && (
@@ -400,18 +400,18 @@ export function MediaplayerWidget({ config }: WidgetProps) {
   // ── COMPACT ──────────────────────────────────────────────────────────────────
   if (layout === 'compact') {
     return (
-      <div className="flex flex-col h-full gap-1 justify-center">
+      <div className="aura-widget-row flex flex-col h-full gap-1 justify-center">
         <div className="flex items-center gap-2 min-w-0">
           {/* Cover thumbnail */}
           {showCover && (
-            <div className="shrink-0 rounded-md overflow-hidden" style={{ width: 36, height: 36 }}>
+            <div className="aura-widget-icon shrink-0 rounded-md overflow-hidden" style={{ width: 36, height: 36 }}>
               <CoverImage src={coverStr} Icon={showIcon ? WidgetIcon : null} iconSize={iconSize} />
             </div>
           )}
 
           {/* Title + Artist */}
           <div className="flex flex-col flex-1 min-w-0 leading-tight">
-            <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+            <p className="aura-widget-title text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
               {titleStr || '–'}
             </p>
             {showSubtitle && subtitle && (
@@ -457,13 +457,13 @@ export function MediaplayerWidget({ config }: WidgetProps) {
 
   // ── DEFAULT ──────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full gap-2" style={{ position: 'relative' }}>
+    <div className="aura-widget-row flex flex-col h-full gap-2" style={{ position: 'relative' }}>
       {/* Main row: cover füllt volle Höhe, rechts alle Elemente */}
       <div className="flex gap-3 flex-1 min-h-0">
 
         {/* Cover: self-stretch + aspect-ratio → quadratisch, so groß wie die Zeile */}
         {showCover && (
-          <div className="shrink-0 self-stretch rounded-xl overflow-hidden" style={{ aspectRatio: '1 / 1' }}>
+          <div className="aura-widget-icon shrink-0 self-stretch rounded-xl overflow-hidden" style={{ aspectRatio: '1 / 1' }}>
             <CoverImage src={coverStr} Icon={showIcon ? WidgetIcon : null} iconSize={iconSize} />
           </div>
         )}
@@ -472,7 +472,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
         <div className="flex flex-col flex-1 min-w-0 gap-1 min-h-0">
           {/* Track info */}
           <div className="shrink-0 space-y-0.5 min-w-0">
-            <p className="text-sm font-semibold truncate leading-snug" style={{ color: 'var(--text-primary)' }}>
+            <p className="aura-widget-title text-sm font-semibold truncate leading-snug" style={{ color: 'var(--text-primary)' }}>
               {titleStr || '–'}
             </p>
             {showSubtitle && subtitle && (

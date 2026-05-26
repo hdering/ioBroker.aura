@@ -241,7 +241,7 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
 
   if (!config.datapoint || all.length === 0) {
     return (
-      <div className="flex flex-col h-full">
+      <div className="aura-widget-row flex flex-col h-full">
         {(showTitle || showIcon) && (
           <TitleRow config={config} TitleIcon={TitleIcon} iconSize={iconSize} titleAlign={titleAlign} showTitle={showTitle} showIcon={showIcon} />
         )}
@@ -261,7 +261,7 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
 
   if (visible.length === 0) {
     return (
-      <div className="flex flex-col h-full">
+      <div className="aura-widget-row flex flex-col h-full">
         {(showTitle || showIcon) && (
           <TitleRow config={config} TitleIcon={TitleIcon} iconSize={iconSize} titleAlign={titleAlign} showTitle={showTitle} showIcon={showIcon} />
         )}
@@ -276,7 +276,7 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
   // ── LIST layout ───────────────────────────────────────────────────────────
   if (layout === 'list') {
     return (
-      <div className="flex flex-col h-full">
+      <div className="aura-widget-row flex flex-col h-full">
         {(showTitle || showIcon) && (
           <TitleRow config={config} TitleIcon={TitleIcon} iconSize={iconSize} titleAlign={titleAlign} showTitle={showTitle} showIcon={showIcon} />
         )}
@@ -308,7 +308,7 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
       : visible.length <= 2 ? 72 : visible.length <= 4 ? 58 : 44;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="aura-widget-row flex flex-col h-full">
       {(showTitle || showIcon) && (
         <TitleRow config={config} TitleIcon={TitleIcon} iconSize={iconSize} titleAlign={titleAlign} showTitle={showTitle} showIcon={showIcon} />
       )}

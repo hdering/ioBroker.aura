@@ -332,7 +332,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
   // ── Custom layout: user-defined grid via CustomGridView ────────────────────
   if (isCustom) {
     return (
-      <div className="relative w-full h-full">
+      <div className="aura-widget-row relative w-full h-full">
         <CustomGridView
           config={config}
           value={hasTarget ? (events.length === 0 ? '0' : String(enabledCount)) : '—'}
@@ -359,7 +359,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
   // ── Compact layout: one-line header + tight event list ─────────────────────
   if (isCompact) {
     return (
-      <div className={`flex flex-col h-full gap-1 ${posClass}`}>
+      <div className={`aura-widget-row flex flex-col h-full gap-1 ${posClass}`}>
         <div className="flex items-center gap-1.5">
           {iconNode}
           {showTitle && (
@@ -412,7 +412,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
   }
 
   return (
-    <div className={`flex flex-col h-full gap-1.5 ${posClass}`}>
+    <div className={`aura-widget-row flex flex-col h-full gap-1.5 ${posClass}`}>
       {/* Header */}
       <div className="flex items-center gap-2">
         {iconNode}

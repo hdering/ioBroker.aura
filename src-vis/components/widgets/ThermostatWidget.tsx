@@ -71,7 +71,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
   const setTemp = (v: number) => setState(config.datapoint, clamp(v, minTemp, maxTemp, step));
 
   const PlusMinus = () => (
-    <div className="flex flex-col gap-1 shrink-0">
+    <div className="aura-widget-action flex flex-col gap-1 shrink-0">
       <button
         onClick={(e) => { e.stopPropagation(); setTemp(target + step); }}
         className="w-8 h-8 rounded-lg font-bold text-lg hover:opacity-70 focus:outline-none active:scale-95 transition-all"
@@ -107,9 +107,9 @@ export function ThermostatWidget({ config }: WidgetProps) {
           reach,
         }}
         extraComponents={{
-          icon:            showIcon ? <ThermoIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} /> : null,
-          'btn-plus':      <button className="nodrag" style={btnSty} onClick={() => setTemp(target + step)}>+</button>,
-          'btn-minus':     <button className="nodrag" style={btnSty} onClick={() => setTemp(target - step)}>−</button>,
+          icon:            showIcon ? <ThermoIcon className="aura-widget-icon" size={iconSize} style={{ color: accentColor, flexShrink: 0 }} /> : null,
+          'btn-plus':      <button className="aura-widget-action nodrag" style={btnSty} onClick={() => setTemp(target + step)}>+</button>,
+          'btn-minus':     <button className="aura-widget-action nodrag" style={btnSty} onClick={() => setTemp(target - step)}>−</button>,
           'battery-icon':  batteryIcon,
           'reach-icon':    reachIcon,
           'status-badges': statusBadges,
@@ -122,12 +122,12 @@ export function ThermostatWidget({ config }: WidgetProps) {
   if (layout === 'compact') {
     return (
       <>
-        <div className="flex items-center gap-2 h-full" style={{ position: 'relative' }}>
-          {showIcon && <ThermoIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />}
-          {showTitle && <span className="flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{displayTitle}</span>}
+        <div className="aura-widget-row flex items-center gap-2 h-full" style={{ position: 'relative' }}>
+          {showIcon && <ThermoIcon className="aura-widget-icon" size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />}
+          {showTitle && <span className="aura-widget-title flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{displayTitle}</span>}
           {!showTitle && <span className="flex-1" />}
           {showSetpoint && (
-            <span className="text-xl font-bold shrink-0" style={{ color: valueColor }}>
+            <span className="aura-widget-value text-xl font-bold shrink-0" style={{ color: valueColor }}>
               {formatNum(target, decimals)}°C
               {showActualTemp && actual !== null && (
                 <span className="font-normal text-xs ml-1" style={{ color: 'var(--text-secondary)' }}>
@@ -137,7 +137,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
             </span>
           )}
           {showControls && (
-            <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+            <div className="aura-widget-action flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
               <button onClick={() => setTemp(target - step)}
                 className="w-6 h-6 rounded font-bold text-sm hover:opacity-70 active:scale-95 transition-all"
                 style={{ background: 'var(--app-border)', color: 'var(--text-primary)' }}>−</button>
@@ -156,10 +156,10 @@ export function ThermostatWidget({ config }: WidgetProps) {
   if (layout === 'minimal') {
     return (
       <>
-        <div className="flex flex-col items-center justify-center h-full gap-2" style={{ position: 'relative' }}>
-          {showIcon && <ThermoIcon size={iconSize} style={{ color: accentColor }} />}
+        <div className="aura-widget-row flex flex-col items-center justify-center h-full gap-2" style={{ position: 'relative' }}>
+          {showIcon && <ThermoIcon className="aura-widget-icon" size={iconSize} style={{ color: accentColor }} />}
           {showSetpoint && (
-            <span className="text-xl font-bold" style={{ color: valueColor, lineHeight: 1 }}>
+            <span className="aura-widget-value text-xl font-bold" style={{ color: valueColor, lineHeight: 1 }}>
               {formatNum(target, decimals)}°C
             </span>
           )}
@@ -167,7 +167,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
             <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('thermo.actual')} {formatNum(actual, decimals)}°C</span>
           )}
           {showControls && (
-            <div className="flex gap-2 mt-1" onClick={(e) => e.stopPropagation()}>
+            <div className="aura-widget-action flex gap-2 mt-1" onClick={(e) => e.stopPropagation()}>
               <button onClick={() => setTemp(target - step)}
                 className="w-8 h-8 rounded-full font-bold hover:opacity-70 active:scale-95 transition-all"
                 style={{ background: 'var(--app-border)', color: 'var(--text-primary)' }}>−</button>
@@ -185,13 +185,13 @@ export function ThermostatWidget({ config }: WidgetProps) {
   // ── DEFAULT ───────────────────────────────────────────────────────────────
   return (
     <>
-      <div className="flex flex-col h-full gap-2" style={{ position: 'relative' }}>
+      <div className="aura-widget-row flex flex-col h-full gap-2" style={{ position: 'relative' }}>
         {/* Title row */}
         {(showTitle || showIcon) && (
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 min-w-0 flex-1">
-              {showIcon && <ThermoIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />}
-              {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{displayTitle}</p>}
+              {showIcon && <ThermoIcon className="aura-widget-icon" size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />}
+              {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{displayTitle}</p>}
             </div>
             <StatusIcon />
           </div>
@@ -199,7 +199,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
 
         {/* Temperature */}
         <div className="flex items-center justify-between flex-1">
-          <div>
+          <div className="aura-widget-value">
             {showSetpoint && (
               <>
                 <p className="text-xl font-bold leading-none" style={{ color: valueColor }}>

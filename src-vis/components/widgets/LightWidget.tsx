@@ -646,16 +646,16 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
   );
 
   const titleEl = (
-    <span className="text-xs truncate block w-full" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
+    <span className="aura-widget-title text-xs truncate block w-full" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
       {config.title}
     </span>
   );
   const statusEl = (
-    <span className="text-base font-semibold truncate block w-full" style={{ color: 'var(--text-primary)', textAlign: statusAlign as React.CSSProperties['textAlign'] }}>
+    <span className="aura-widget-value text-base font-semibold truncate block w-full" style={{ color: 'var(--text-primary)', textAlign: statusAlign as React.CSSProperties['textAlign'] }}>
       {stateText}
     </span>
   );
-  const iconEl = <CompactIcon size={iconSize} style={{ color: accent, flexShrink: 0 }} />;
+  const iconEl = <CompactIcon className="aura-widget-icon" size={iconSize} style={{ color: accent, flexShrink: 0 }} />;
 
   // ── Custom grid layout — user places elements freely ──────────────────────
   if (layout === 'custom') {
@@ -689,7 +689,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
   };
 
   return (
-    <div className="flex flex-col h-full" style={{ position: 'relative', gap: 8 }}>
+    <div className="aura-widget-row flex flex-col h-full" style={{ position: 'relative', gap: 8 }}>
       {/* Header */}
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-2 shrink-0">
@@ -708,7 +708,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
       )}
 
       {/* Main control – fills available space */}
-      <div className="flex-1 min-h-0 flex items-stretch justify-center">
+      <div className="aura-widget-action flex-1 min-h-0 flex items-stretch justify-center">
         {tabContent[activeTab]}
       </div>
 

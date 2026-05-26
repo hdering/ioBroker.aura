@@ -373,14 +373,14 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
   }, [instances, states, updates]);
 
   return (
-    <div className="w-full h-full flex flex-col gap-2 overflow-hidden">
+    <div className="aura-widget-row w-full h-full flex flex-col gap-2 overflow-hidden">
       {/* Header */}
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-2 shrink-0">
-          {showIcon && <Icon size={iconSize} style={{ color: 'var(--accent)' }} className="shrink-0" />}
+          {showIcon && <Icon size={iconSize} style={{ color: 'var(--accent)' }} className="aura-widget-icon shrink-0" />}
           {showTitle && (
             <p
-              className="text-xs flex-1 min-w-0 truncate"
+              className="aura-widget-title text-xs flex-1 min-w-0 truncate"
               style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}
             >
               {config.title || 'Adapter-Status'}

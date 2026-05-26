@@ -641,7 +641,7 @@ export function KnobWidget({ config }: WidgetProps) {
       ref={svgRef}
       viewBox={viewBoxStr}
       preserveAspectRatio="xMidYMid meet"
-      className={readOnly ? '' : 'nodrag'}
+      className={`aura-widget-value aura-widget-action${readOnly ? '' : ' nodrag'}`}
       style={{ width: '100%', height: '100%', maxHeight: '100%', touchAction: 'none', cursor: readOnly ? 'default' : 'pointer' }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -680,7 +680,7 @@ export function KnobWidget({ config }: WidgetProps) {
         }}
         extraComponents={{
           dial: dialEl,
-          icon: <TitleIcon size={iconSize} style={{ color: 'var(--text-secondary)' }} />,
+          icon: <TitleIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)' }} />,
         }}
         fallback={DEFAULT_KNOB_GRID}
       />
@@ -689,12 +689,12 @@ export function KnobWidget({ config }: WidgetProps) {
 
   const titleAlign = (o.titleAlign as React.CSSProperties['textAlign']) ?? 'left';
   return (
-    <div className="flex flex-col h-full gap-1" style={{ position: 'relative' }}>
+    <div className="aura-widget-row flex flex-col h-full gap-1" style={{ position: 'relative' }}>
       {(showTitle || showIcon) && (
         <div className="flex items-center gap-2 min-w-0">
-          {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+          {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
           {showTitle && (
-            <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign }}>
+            <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign }}>
               {config.title}
             </p>
           )}

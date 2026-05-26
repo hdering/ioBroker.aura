@@ -196,7 +196,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
   // ── Mobile layout ──────────────────────────────────────────────────────────
   if (isMobile) {
     return (
-      <div className="relative flex flex-col" {...dragHandlers}>
+      <div className="aura-widget-row relative flex flex-col" {...dragHandlers}>
         {isDragOver && (
           <div className="nodrag pointer-events-none absolute inset-0 z-20 rounded-[inherit] border-2 border-dashed flex items-center justify-center"
             style={{ borderColor: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 10%, transparent)' }}>
@@ -241,7 +241,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
   });
 
   return (
-    <div className="relative flex flex-col h-full" {...dragHandlers}>
+    <div className="aura-widget-row relative flex flex-col h-full" {...dragHandlers}>
       {isDragOver && (
         <div className="nodrag pointer-events-none absolute inset-0 z-20 rounded-[inherit] border-2 border-dashed flex items-center justify-center"
           style={{ borderColor: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 10%, transparent)' }}>
