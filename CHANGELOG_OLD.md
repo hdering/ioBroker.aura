@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.116 (2026-05-22)
+- fix(socket): refuse subscribe for invalid ID patterns
+- fix(iframe): guard iframeUrlDp against URL strings
+
 ## 0.9.115 (2026-05-22)
 - fix(value): isolate htmlTemplate textarea from parent re-renders
 - fix(value): defer htmlTemplate select() and add Copy button fallback

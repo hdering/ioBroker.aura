@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.135",
+    "version": "0.9.136",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.136": {
+        "en": "Release v0.9.136",
+        "de": "Release v0.9.136",
+        "ru": "Release v0.9.136",
+        "pt": "Release v0.9.136",
+        "nl": "Release v0.9.136",
+        "fr": "Release v0.9.136",
+        "it": "Release v0.9.136",
+        "es": "Release v0.9.136",
+        "pl": "Release v0.9.136",
+        "uk": "Release v0.9.136",
+        "zh-cn": "Release v0.9.136"
+      },
       "0.9.135": {
         "en": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
         "de": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
@@ -183,19 +196,6 @@
         "pl": "fix(timer): only rename channel on explicit save, not per keystroke",
         "uk": "fix(timer): only rename channel on explicit save, not per keystroke",
         "zh-cn": "fix(timer): only rename channel on explicit save, not per keystroke"
-      },
-      "0.9.129": {
-        "en": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
-        "de": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
-        "ru": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
-        "pt": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
-        "nl": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
-        "fr": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
-        "it": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
-        "es": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
-        "pl": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
-        "uk": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
-        "zh-cn": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names"
       }
     }
   },
