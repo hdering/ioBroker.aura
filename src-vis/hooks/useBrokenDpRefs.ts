@@ -85,7 +85,7 @@ function collectAllRefs(): BrokenRef[] {
             });
           }
         }
-        const route = `/admin/widgets?focus=${encodeURIComponent(w.id)}&layout=${encodeURIComponent(l.id)}&tab=${encodeURIComponent(tab.id)}`;
+        const route = `/admin/editor?layout=${encodeURIComponent(l.id)}&tab=${encodeURIComponent(tab.id)}&focus=${encodeURIComponent(w.id)}`;
         out.push(...collectRefs(w, `${l.name} / ${tab.name}`, route));
       }
     }
@@ -99,7 +99,7 @@ function collectAllRefs(): BrokenRef[] {
         ? `${parentLoc.layoutName} / ${parentLoc.tabName} · in ${parentLoc.parent.title || parentLoc.parent.type}`
         : `Group ${defId.slice(0, 8)}`;
       const route = parentLoc
-        ? `/admin/widgets?focus=${encodeURIComponent(parentLoc.parent.id)}&layout=${encodeURIComponent(parentLoc.layoutId)}&tab=${encodeURIComponent(parentLoc.tabId)}`
+        ? `/admin/editor?layout=${encodeURIComponent(parentLoc.layoutId)}&tab=${encodeURIComponent(parentLoc.tabId)}&focus=${encodeURIComponent(parentLoc.parent.id)}`
         : undefined;
       out.push(...collectRefs(w, location, route));
     }

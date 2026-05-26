@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, memo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { shallow } from 'zustand/shallow';
 import { Plus, Trash2, Edit3, Check, Database, Wand2, Smartphone, GripVertical, Upload, Settings, X, Ruler, ChevronDown, ChevronRight, Download } from 'lucide-react';
@@ -1131,9 +1132,24 @@ export function AdminEditor() {
   const tabs = useDashboardStore((s) => (s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0]).tabs);
   // Stable action references — never cause re-renders
   const setActiveLayout = useDashboardStore((s) => s.setActiveLayout);
+  const setActiveLayoutAndTab = useDashboardStore((s) => s.setActiveLayoutAndTab);
   const addWidget = useDashboardStore((s) => s.addWidget);
   const addTab = useDashboardStore((s) => s.addTab);
   const addTabFromImportOuter = useDashboardStore((s) => s.addTabFromImport);
+
+  // Deep-link support: ?layout=<id>&tab=<id>&focus=<widgetId>
+  // Used by the overview's broken-DP / orphan panels to jump straight to the
+  // widget's tab. Focus param is reserved for a future highlight pass.
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const layoutParam = searchParams.get('layout');
+    const tabParam = searchParams.get('tab');
+    if (layoutParam && tabParam) {
+      setActiveLayoutAndTab(layoutParam, tabParam);
+    } else if (layoutParam) {
+      setActiveLayout(layoutParam);
+    }
+  }, [searchParams, setActiveLayout, setActiveLayoutAndTab]);
 
   const { frontend, updateFrontend } = useConfigStore();
   const guidelinesEnabled = frontend.guidelinesEnabled ?? false;
