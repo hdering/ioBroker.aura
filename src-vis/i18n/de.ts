@@ -856,6 +856,7 @@ export const de = {
   'widget.climate':       'Raumklima',
   'widget.enum':          'Auswahlfeld',
   'widget.carousel':      'Karussell',
+  'widget.input':         'Eingabefeld',
 
   // ── Weather Widget ────────────────────────────────────────────────────────────
   'weather.sunny':       'Sonnig',

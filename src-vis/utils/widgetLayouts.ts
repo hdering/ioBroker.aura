@@ -8,6 +8,8 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
   switch (widgetType) {
     case 'universal':
       return ['custom'];
+    case 'input':
+      return ['default', 'custom'];
     case 'knob':
       return ['default', 'knob-scale', 'knob-endless', 'custom'];
     case 'camera':

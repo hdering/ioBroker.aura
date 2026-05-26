@@ -14,7 +14,7 @@ import {
   Zap, TrendingUp, SlidersHorizontal, Thermometer, BarChart2, List,
   Clock, CalendarDays, Heading2, Layers2, Cloud, Gauge, Camera, ImageIcon, MonitorDot, Droplets, Truck, AlignJustify, Table2,
   DoorOpen, ShieldAlert, ToggleRight, LineChart, Code2, CalendarClock, Music, CalendarCheck2, Tag, Globe, MousePointerClick, Wind,
-  LayoutGrid, ListChecks, Lightbulb, CircleDot, Timer, ServerCog, /* GalleryHorizontal — re-import when carousel is re-enabled */
+  LayoutGrid, ListChecks, Lightbulb, CircleDot, Timer, ServerCog, TextCursorInput, /* GalleryHorizontal — re-import when carousel is re-enabled */
   type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -433,6 +433,15 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     addMode: 'free',               widgetGroup: 'special',
     mock: { t: 'Adapter-Status', v: '' },
     hint: 'Liste aller ioBroker-Instanzen mit Status, Update-Hinweisen und optionalen Neustart-/Update-Aktionen',
+  },
+  {
+    type: 'input',
+    label: 'Eingabefeld',          shortLabel: 'Eingabe',
+    Icon: TextCursorInput,         iconName: 'TextCursorInput', color: '#0ea5e9',
+    defaultW: 10,                  defaultH: 3,
+    addMode: 'datapoint',          widgetGroup: 'control',
+    mock: { t: 'Eingabe', v: 'Text…' },
+    hint: 'Text per Tastatur eingeben und in einen Datenpunkt schreiben (live oder nach Bestätigung)',
   },
   // Carousel widget disabled — not yet ready for production use.
   // Re-enable by uncommenting; all supporting code (widgetMap, types, i18n,

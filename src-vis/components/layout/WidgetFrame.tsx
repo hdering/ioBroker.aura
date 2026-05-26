@@ -88,6 +88,7 @@ import { CarouselWidget } from '../widgets/CarouselWidget';
 import { KnobWidget } from '../widgets/KnobWidget';
 import { TimerWidget } from '../widgets/TimerWidget';
 import { AdapterStatusWidget } from '../widgets/AdapterStatusWidget';
+import { InputWidget } from '../widgets/InputWidget';
 import { TimerConfig } from '../config/TimerConfig';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
@@ -97,6 +98,45 @@ import { usePopupConfigStore } from '../../store/popupConfigStore';
 
 // Stable empty array – avoids creating a new reference on every render when no conditions are set
 const NO_CONDITIONS: WidgetCondition[] = [];
+
+// ── Edit-Dialog Template (siehe widget-config-template.md) ──────────────────
+// Single source of truth for "which widget gets which visible-field toggle in
+// the Darstellung block". Adding a new widget type only needs an entry here
+// (or nothing — empty = just showTitle/showIcon).
+const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: string }[]>> = {
+  shutter:       [{ key: 'showValue',     label: 'Position %' },        { key: 'showControls',   label: 'Steuerknöpfe' }, { key: 'showSlider', label: 'Schieberegler' }],
+  switch:        [{ key: 'showLabel',     label: 'Status (AN/AUS)' }],
+  dimmer:        [{ key: 'showValue',     label: 'Prozentwert' },       { key: 'showSlider',     label: 'Schieberegler' }, { key: 'showToggle', label: 'An/Aus-Schalter' }],
+  slider:        [{ key: 'showValue',     label: 'Wert' },              { key: 'showUnit',       label: 'Einheit' },       { key: 'showMinMax', label: 'Min/Max-Beschriftung' }],
+  thermostat:    [{ key: 'showSetpoint',  label: 'Solltemperatur' },    { key: 'showActualTemp', label: 'Isttemperatur' }, { key: 'showControls', label: 'Tasten ±' }],
+  value:         [{ key: 'showValue',     label: 'Wert' },              { key: 'showUnit',       label: 'Einheit' }],
+  enum:          [{ key: 'showValue',     label: 'Aktuelle Auswahl' },  { key: 'showSelect',     label: 'Dropdown' }],
+  climate:       [{ key: 'showActualTemp', label: 'Ist-Temperatur' },   { key: 'showTargetTemp', label: 'Soll-Temperatur' }, { key: 'showHumidity', label: 'Luftfeuchtigkeit' }, { key: 'showComfort', label: 'Komfortzone' }, { key: 'showChart', label: 'Temperaturverlauf' }],
+  windowcontact: [{ key: 'showLabel',     label: 'Status-Text' }],
+  binarysensor:  [{ key: 'showLabel',     label: 'Status-Text' }],
+  stateimage:    [{ key: 'showLabel',     label: 'Status-Text' }],
+  calendar:      [{ key: 'showCalName',   label: 'Kalender-Name' },     { key: 'showSummary',    label: 'Terminname' },    { key: 'showDate', label: 'Datum / Uhrzeit' }, { key: 'showLocation', label: 'Ort' }, { key: 'showMore', label: '+ weitere Termine' }],
+  datepicker:    [{ key: 'showCurrentValue', label: 'Gesetzter Wert' }],
+  header:        [{ key: 'showSubtitle',  label: 'Untertitel' }],
+  light:         [{ key: 'showPalette',   label: 'Farbpalette (Presets)' }],
+  knob:          [{ key: 'showValue',     label: 'Wert' },              { key: 'showMinMax',     label: 'Min/Max-Beschriftung' }],
+  mediaplayer:   [
+    { key: 'showCover',    label: 'Cover' },
+    { key: 'showSubtitle', label: 'Untertitel (Artist · Album)' },
+    { key: 'showSource',   label: 'Quelle' },
+    { key: 'showShuffle',  label: 'Shuffle' },
+    { key: 'showPrev',     label: 'Vorheriger' },
+    { key: 'showNext',     label: 'Nächster' },
+    { key: 'showRepeat',   label: 'Repeat' },
+    { key: 'showVolume',   label: 'Lautstärke-Slider' },
+    { key: 'showMute',     label: 'Mute' },
+    { key: 'showChips',    label: 'Schnellzugriff-Chips' },
+  ],
+};
+
+// Widget types that don't get a "Custom" entry in the Layout picker.
+// Mirror of NO_CUSTOM in src-vis/utils/widgetLayouts.ts.
+const NO_CUSTOM_LAYOUT_TYPES: WidgetType[] = ['iframe', 'jsontable', 'html', 'trash', 'trashSchedule', 'header', 'fill', 'list', 'autolist', 'datepicker', 'adapterstatus'];
 
 // ── Global custom-cell clipboard (shared across all WidgetFrames) ───────────
 let cellClipboardData: CustomCell | null = null;
@@ -159,6 +199,7 @@ function getWidgetMap() {
     knob:          KnobWidget,
     timer:         TimerWidget,
     adapterstatus: AdapterStatusWidget,
+    input:         InputWidget,
   } as const;
 }
 
@@ -170,10 +211,6 @@ const REFRESH_OPTIONS = [
 ];
 const inputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
 const inputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
-
-// ── VisibilityToggles ─────────────────────────────────────────────────────────
-
-type VisField = { key: string; label: string };
 
 // ── CalendarEditPanel ─────────────────────────────────────────────────────────
 
@@ -3372,8 +3409,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           storageKey="aura.widget.editModalSize"
           onClose={() => openPanelFor(null)}
         >
-          {/* ─── 1. Name / Titel ──────────────────────────────────────────── */}
-          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer', 'adapterstatus'].includes(config.type) && (<>
+          {/* ─── 1. Widget-Typ · Name · Layout ─────────────────────────────── */}
           <div className="space-y-2.5">
             <div>
               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
@@ -3385,167 +3421,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
               />
             </div>
-            <div className="flex items-center justify-between">
-              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.hideName')}</label>
-              <button
-                onClick={() => onConfigChange({ ...config, options: { ...(config.options ?? {}), hideTitle: !(config.options?.hideTitle) } })}
-                className="relative w-9 h-5 rounded-full transition-colors"
-                style={{ background: config.options?.hideTitle ? 'var(--accent)' : 'var(--app-border)' }}
-              >
-                <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                  style={{ left: config.options?.hideTitle ? '18px' : '2px' }} />
-              </button>
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.titlePosition')}</label>
-              <div className="flex gap-1">
-                {(['left', 'center', 'right'] as const).map((p) => {
-                  const labels: Record<string, string> = { left: t('wf.edit.posLeft'), center: t('wf.edit.posCenter'), right: t('wf.edit.posRight') };
-                  const active = ((config.options?.titleAlign as string) ?? 'left') === p;
-                  return (
-                    <button key={p}
-                      onClick={() => onConfigChange({ ...config, options: { ...(config.options ?? {}), titleAlign: p } })}
-                      className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
-                      style={{
-                        background: active ? 'var(--accent)' : 'var(--app-bg)',
-                        color:      active ? '#fff' : 'var(--text-secondary)',
-                        border:     `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                      }}>
-                      {labels[p]}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.showLastChange')}</label>
-              <button
-                onClick={() => onConfigChange({ ...config, options: { ...(config.options ?? {}), showLastChange: !showLastChange } })}
-                className="relative w-9 h-5 rounded-full transition-colors"
-                style={{ background: showLastChange ? 'var(--accent)' : 'var(--app-border)' }}
-              >
-                <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                  style={{ left: showLastChange ? '18px' : '2px' }} />
-              </button>
-            </div>
-            {showLastChange && (
-              <div className="flex items-center gap-2">
-                <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.position')}</label>
-                <div className="flex gap-1">
-                  {(['left', 'center', 'right'] as const).map((p) => {
-                    const labels: Record<string, string> = { left: t('wf.edit.posLeft'), center: t('wf.edit.posCenter'), right: t('wf.edit.posRight') };
-                    const active = lastChangePos === p;
-                    return (
-                      <button key={p}
-                        onClick={() => onConfigChange({ ...config, options: { ...(config.options ?? {}), lastChangePosition: p } })}
-                        className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
-                        style={{
-                          background: active ? 'var(--accent)' : 'var(--app-bg)',
-                          color:      active ? '#fff' : 'var(--text-secondary)',
-                          border:     `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                        }}>
-                        {labels[p]}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-            {showLastChange && !config.datapoint && (
-              <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                  Datenpunkt <span style={{ opacity: 0.6 }}>(für Zeitstempel, da kein Haupt-Datenpunkt)</span>
-                </label>
-                <input type="text"
-                  value={(config.options?.lastChangeDatapoint as string) ?? ''}
-                  onChange={(e) => onConfigChange({ ...config, options: { ...(config.options ?? {}), lastChangeDatapoint: e.target.value || undefined } })}
-                  placeholder="z.B. evcc.0.status.pvPower"
-                  className="w-full text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none"
-                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
-                />
-              </div>
-            )}
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>Transparenz-Modus</label>
-                <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Hintergrund, Rahmen und Schatten entfernen</p>
-              </div>
-              <button
-                onClick={() => onConfigChange({ ...config, options: { ...(config.options ?? {}), transparent: !(config.options?.transparent) } })}
-                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                style={{ background: config.options?.transparent ? 'var(--accent)' : 'var(--app-border)' }}
-              >
-                <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                  style={{ left: config.options?.transparent ? '18px' : '2px' }} />
-              </button>
-            </div>
-          </div>
-
-          <div className="h-px" style={{ background: 'var(--app-border)' }} />
-          </>)}
-
-          {!['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer', 'adapterstatus'].includes(config.type) && (<>
-          {/* ─── 2. Stil (eingeklappt) ─────────────────────────────────────── */}
-          <details className="group">
-            <summary className="flex items-center justify-between cursor-pointer list-none select-none">
-              <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.style')}</span>
-              <div className="flex items-center gap-2">
-                {overrides && Object.keys(overrides).length > 0 && (
-                  <button
-                    onClick={(e) => { e.preventDefault(); const { styleOverride: _, ...rest } = config.options ?? {}; onConfigChange({ ...config, options: rest }); }}
-                    className="text-[10px] hover:opacity-70"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    {t('wf.edit.styleReset')}
-                  </button>
-                )}
-                <ChevronDown size={13} className="transition-transform group-open:rotate-180" style={{ color: 'var(--text-secondary)' }} />
-              </div>
-            </summary>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-2.5">
-              {STYLE_FIELDS.map(({ key, labelKey, type }) => (
-                <div key={key}>
-                  <label className="text-[10px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>{t(labelKey as Parameters<typeof t>[0])}</label>
-                  {type === 'color' ? (
-                    <div className="flex gap-1">
-                      <input type="color" value={overrides?.[key] ?? '#3b82f6'}
-                        onChange={(e) => onConfigChange({ ...config, options: { ...config.options, styleOverride: { ...overrides, [key]: e.target.value } } })}
-                        className="w-6 h-[26px] rounded cursor-pointer border-0 p-0 shrink-0" />
-                      <input type="text" value={overrides?.[key] ?? ''}
-                        onChange={(e) => { const val = e.target.value; const next = { ...overrides, [key]: val }; if (!val) delete next[key]; onConfigChange({ ...config, options: { ...config.options, styleOverride: Object.keys(next).length ? next : undefined } }); }}
-                        placeholder="auto"
-                        className="flex-1 text-[10px] rounded px-1.5 py-1 min-w-0 focus:outline-none font-mono"
-                        style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
-                    </div>
-                  ) : (
-                    <input type="text" value={overrides?.[key] ?? ''}
-                      onChange={(e) => { const val = e.target.value; const next = { ...overrides, [key]: val }; if (!val) delete next[key]; onConfigChange({ ...config, options: { ...config.options, styleOverride: Object.keys(next).length ? next : undefined } }); }}
-                      placeholder="auto"
-                      className="w-full text-[10px] rounded px-1.5 py-1 focus:outline-none font-mono"
-                      style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
-                  )}
-                </div>
-              ))}
-            </div>
-          </details>
-
-          <div className="h-px" style={{ background: 'var(--app-border)' }} />
-          </>)}
-
-          {/* ─── 3. Widget-Typ · Layout · Icon ─────────────────────────────── */}
-          <div className="space-y-2.5">
-            {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer', 'adapterstatus'].includes(config.type) && (
-              <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.name')}</label>
-                <input
-                  type="text"
-                  value={config.title}
-                  onChange={(e) => onConfigChange({ ...config, title: e.target.value })}
-                  className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                  style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
-                />
-              </div>
-            )}
             <div>
               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.widgetType')}</label>
               <select
@@ -3606,6 +3481,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'minimal', label: t('wf.edit.layout.minimal') },
                 { value: 'custom',  label: 'Custom' },
               ] : config.type === 'slider' ? [
+                { value: 'default', label: t('wf.edit.layout.standard') },
+                { value: 'custom',  label: 'Custom' },
+              ] : config.type === 'input' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
                 { value: 'custom',  label: 'Custom' },
               ] : config.type === 'button' ? [
@@ -3683,103 +3561,37 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'minimal', label: t('wf.edit.layout.minimal') },
                 ...(config.type === 'calendar' ? [{ value: 'agenda', label: t('wf.edit.layout.agenda') }] : []),
                 ...(config.type === 'autolist' ? [{ value: 'count', label: 'Anzahl' }] : []),
-                ...(!['iframe', 'jsontable', 'html', 'trash', 'trashSchedule', 'header', 'fill', 'list', 'autolist', 'datepicker'].includes(config.type) ? [{ value: 'custom', label: 'Custom' }] : []),
+                ...(!NO_CUSTOM_LAYOUT_TYPES.includes(config.type) ? [{ value: 'custom', label: 'Custom' }] : []),
               ];
-              const o = config.options ?? {};
-              const setO = (patch: Record<string, unknown>) =>
-                onConfigChange({ ...config, options: { ...o, ...patch } });
-              const visFields: VisField[] = (() => {
-                switch (config.type) {
-                  case 'switch':        return [];
-                  case 'value':         return [];
-                  case 'dimmer':        return [];
-                  case 'thermostat':    return [];
-                  case 'shutter':       return [];
-                  case 'gauge':         return [];
-                  case 'clock':         return [];
-                  case 'weather':       return [];
-                  case 'windowcontact': return [];
-                  case 'binarysensor':  return [];
-                  case 'datepicker':   return [];
-                  case 'stateimage':    return [];
-                  case 'chart':         return [];
-                  case 'climate':       return [];
-                  case 'echart':        return [];
-                  case 'list':          return [];
-                  case 'autolist':      return [];
-                  case 'fill':          return [];
-                  case 'calendar':      return [];
-                  case 'trash':         return [];
-                  case 'trashSchedule': return [];
-                  case 'mediaplayer':    return [];
-                  case 'chips':  return [];
-                  case 'button': return [];
-                  case 'slider':        return [];
-                  case 'echartsPreset': return [];
-                  case 'enum':          return [];
-                  case 'light':         return [];
-                  case 'knob':          return [];
-                  default: return [];
-                }
-              })();
               return (
-                <details className="group">
-                  <summary className="flex items-center justify-between cursor-pointer list-none select-none">
-                    {/* Layout buttons in the summary row – always clickable */}
-                    <div className="flex items-center gap-1 flex-wrap" onClick={(e) => e.preventDefault()}>
-                      <span className="text-[11px] shrink-0 mr-0.5" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.layout')}</span>
-                      {layouts.map(({ value, label }) => {
-                        const active = activeLayout === value;
-                        return (
-                          <button
-                            key={value}
-                            onClick={() => {
-                              const nextLayout = value as WidgetConfig['layout'];
-                              const next: WidgetConfig = { ...config, layout: nextLayout };
-                              // Pre-populate weather custom grid from current settings on first switch.
-                              if (nextLayout === 'custom' && config.type === 'weather' && !config.options?.customGrid) {
-                                next.options = { ...(config.options ?? {}), customGrid: buildWeatherCustomGrid(config.options ?? {}) };
-                              }
-                              onConfigChange(next);
-                            }}
-                            className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
-                            style={{
-                              background: active ? 'var(--accent)' : 'var(--app-bg)',
-                              color:      active ? '#fff' : 'var(--text-secondary)',
-                              border:     `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                            }}
-                          >
-                            {label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {visFields.length > 0 && (
-                      <ChevronDown size={13} className="transition-transform group-open:rotate-180 shrink-0 ml-1" style={{ color: 'var(--text-secondary)' }} />
-                    )}
-                  </summary>
-                  {visFields.length > 0 && (
-                    <div className="mt-2 space-y-1.5">
-                      <p className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>Sichtbare Felder</p>
-                      {visFields.map(({ key, label }) => {
-                        const val = o[key] !== false;
-                        return (
-                          <div key={key} className="flex items-center justify-between">
-                            <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>{label}</span>
-                            <button
-                              onClick={() => setO({ [key]: !val })}
-                              className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                              style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
-                            >
-                              <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                style={{ left: val ? '14px' : '2px' }} />
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </details>
+                <div className="flex items-center gap-1 flex-wrap">
+                  <span className="text-[11px] shrink-0 mr-0.5" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.layout')}</span>
+                  {layouts.map(({ value, label }) => {
+                    const active = activeLayout === value;
+                    return (
+                      <button
+                        key={value}
+                        onClick={() => {
+                          const nextLayout = value as WidgetConfig['layout'];
+                          const next: WidgetConfig = { ...config, layout: nextLayout };
+                          // Pre-populate weather custom grid from current settings on first switch.
+                          if (nextLayout === 'custom' && config.type === 'weather' && !config.options?.customGrid) {
+                            next.options = { ...(config.options ?? {}), customGrid: buildWeatherCustomGrid(config.options ?? {}) };
+                          }
+                          onConfigChange(next);
+                        }}
+                        className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                        style={{
+                          background: active ? 'var(--accent)' : 'var(--app-bg)',
+                          color:      active ? '#fff' : 'var(--text-secondary)',
+                          border:     `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
               );
             })()}
 
@@ -3818,65 +3630,13 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               );
             })()}
 
-            {/* Icon picker (not for stateimage/windowcontact – icons are per-state; not for shutter/switch/dimmer/slider – in Darstellung) */}
-            {config.type !== 'stateimage' && config.type !== 'windowcontact' && !['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer', 'adapterstatus'].includes(config.type) && (() => {
-              const currentIconName = config.options?.icon as string | undefined;
-              const CurrentIcon = currentIconName
-                ? (getWidgetIcon(currentIconName, (() => null) as unknown as import('lucide-react').LucideIcon))
-                : null;
-              return (
-                <div>
-                  <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.icon')}</label>
-                  <button
-                    onClick={() => setIconPickerOpen(true)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
-                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}
-                  >
-                    {CurrentIcon
-                      ? <CurrentIcon size={14} style={{ flexShrink: 0 }} />
-                      : <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />}
-                    <span className="flex-1 truncate" style={{ color: currentIconName ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-                      {currentIconName ?? 'Icon auswählen…'}
-                    </span>
-                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>›</span>
-                  </button>
-                  {iconPickerOpen && (
-                    <IconPickerModal
-                      current={currentIconName ?? ''}
-                      onSelect={(name) => onConfigChange({ ...config, options: { ...(config.options ?? {}), icon: name || undefined } })}
-                      onClose={() => setIconPickerOpen(false)}
-                    />
-                  )}
-                </div>
-              );
-            })()}
-
-            {/* Icon-Größe */}
-            {!['clock', 'calendar', 'gauge', 'chart', 'echart', 'echartsPreset', 'fill', 'iframe', 'html', 'jsontable', 'image', 'camera', 'list', 'autolist', 'header', 'trash', 'trashSchedule', 'evcc', 'weather', 'group', 'carousel', 'mediaplayer', 'shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'climate', 'windowcontact', 'binarysensor', 'stateimage', 'button', 'chips', 'httpRequest', 'datepicker', 'light', 'knob', 'timer', 'adapterstatus'].includes(config.type) && (() => {
-              const o = config.options ?? {};
-              const iconSize = (o.iconSize as number) || 20;
-              const displayIconSize = draftIconSize ?? iconSize;
-              return (
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon-Größe</label>
-                    <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{displayIconSize} px</span>
-                  </div>
-                  <input type="range" min={12} max={256} step={4} value={displayIconSize}
-                    onChange={(e) => setDraftIconSize(Number(e.target.value))}
-                    onPointerUp={(e) => {
-                      onConfigChange({ ...config, options: { ...o, iconSize: Number((e.target as HTMLInputElement).value) } });
-                      setDraftIconSize(null);
-                    }}
-                    className="w-full h-1"
-                    style={{ accentColor: 'var(--accent)' }} />
-                </div>
-              );
-            })()}
           </div>
 
           {/* ─── DARSTELLUNG ─────────────────────────────────────────────────── */}
-          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer', 'adapterstatus'].includes(config.type) && (() => {
+          {/* Always shown — every widget type uses the same Darstellung template
+              (siehe widget-config-template.md). Per-widget toggles come from
+              VIS_FIELDS_PER_TYPE. */}
+          {(() => {
             const o = config.options ?? {};
             const setO = (patch: Record<string, unknown>) =>
               onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -3951,99 +3711,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                       </div>
                     );
                   })()}
-                  {(config.type === 'shutter'
-                    ? [{ key: 'showValue', label: 'Position %' }, { key: 'showControls', label: 'Steuerknöpfe' }, { key: 'showSlider', label: 'Schieberegler' }]
-                    : config.type === 'switch'
-                    ? [{ key: 'showLabel', label: 'Status (AN/AUS)' }]
-                    : config.type === 'dimmer'
-                    ? [{ key: 'showValue', label: 'Prozentwert' }, { key: 'showSlider', label: 'Schieberegler' }, { key: 'showToggle', label: 'An/Aus-Schalter' }]
-                    : config.type === 'slider'
-                    ? [{ key: 'showValue', label: 'Wert' }, { key: 'showUnit', label: 'Einheit' }, { key: 'showMinMax', label: 'Min/Max-Beschriftung' }]
-                    : config.type === 'thermostat'
-                    ? [{ key: 'showSetpoint', label: 'Solltemperatur' }, { key: 'showActualTemp', label: 'Isttemperatur' }, { key: 'showControls', label: 'Tasten ±' }]
-                    : config.type === 'value'
-                    ? [{ key: 'showValue', label: 'Wert' }, { key: 'showUnit', label: 'Einheit' }]
-                    : config.type === 'enum'
-                    ? [{ key: 'showValue', label: 'Aktuelle Auswahl' }, { key: 'showSelect', label: 'Dropdown' }]
-                    : config.type === 'gauge'
-                    ? []
-                    : config.type === 'chart'
-                    ? []
-                    : config.type === 'climate'
-                    ? [{ key: 'showActualTemp', label: 'Ist-Temperatur' }, { key: 'showTargetTemp', label: 'Soll-Temperatur' }, { key: 'showHumidity', label: 'Luftfeuchtigkeit' }, { key: 'showComfort', label: 'Komfortzone' }, { key: 'showChart', label: 'Temperaturverlauf' }]
-                    : config.type === 'echart'
-                    ? []
-                    : config.type === 'echartsPreset'
-                    ? []
-                    : config.type === 'list'
-                    ? []
-                    : config.type === 'autolist'
-                    ? []
-                    : config.type === 'fill'
-                    ? []
-                    : config.type === 'windowcontact'
-                    ? [{ key: 'showLabel', label: 'Status-Text' }]
-                    : config.type === 'binarysensor'
-                    ? [{ key: 'showLabel', label: 'Status-Text' }]
-                    : config.type === 'stateimage'
-                    ? [{ key: 'showLabel', label: 'Status-Text' }]
-                    : config.type === 'chips'
-                    ? []
-                    : config.type === 'button'
-                    ? []
-                    : config.type === 'httpRequest'
-                    ? []
-                    : config.type === 'clock'
-                    ? []
-                    : config.type === 'weather'
-                    ? []
-                    : config.type === 'calendar'
-                    ? [{ key: 'showCalName', label: 'Kalender-Name' }, { key: 'showSummary', label: 'Terminname' }, { key: 'showDate', label: 'Datum / Uhrzeit' }, { key: 'showLocation', label: 'Ort' }, { key: 'showMore', label: '+ weitere Termine' }]
-                    : config.type === 'evcc'
-                    ? []
-                    : config.type === 'camera'
-                    ? []
-                    : config.type === 'image'
-                    ? []
-                    : config.type === 'trash'
-                    ? []
-                    : config.type === 'trashSchedule'
-                    ? []
-                    : config.type === 'iframe'
-                    ? []
-                    : config.type === 'jsontable'
-                    ? []
-                    : config.type === 'datepicker'
-                    ? [{ key: 'showCurrentValue', label: 'Gesetzter Wert' }]
-                    : config.type === 'html'
-                    ? []
-                    : config.type === 'header'
-                    ? [{ key: 'showSubtitle', label: 'Untertitel' }]
-                    : config.type === 'group'
-                    ? []
-                    : config.type === 'carousel'
-                    ? []
-                    : config.type === 'light'
-                    ? [
-                        { key: 'showPalette', label: 'Farbpalette (Presets)' },
-                      ]
-                    : config.type === 'knob'
-                    ? [{ key: 'showValue', label: 'Wert' }, { key: 'showMinMax', label: 'Min/Max-Beschriftung' }]
-                    : config.type === 'mediaplayer'
-                    ? [
-                        { key: 'showCover',    label: 'Cover' },
-                        { key: 'showSubtitle', label: 'Untertitel (Artist · Album)' },
-                        { key: 'showSource',   label: 'Quelle' },
-                        { key: 'showShuffle',  label: 'Shuffle' },
-                        { key: 'showPrev',     label: 'Vorheriger' },
-                        { key: 'showNext',     label: 'Nächster' },
-                        { key: 'showRepeat',   label: 'Repeat' },
-                        { key: 'showVolume',   label: 'Lautstärke-Slider' },
-                        { key: 'showMute',     label: 'Mute' },
-                        { key: 'showChips',    label: 'Schnellzugriff-Chips' },
-                      ]
-                    : [] as { key: string; label: string }[]
-                  ).map(({ key, label }) => {
+                  {(VIS_FIELDS_PER_TYPE[config.type] ?? []).map(({ key, label }) => {
                     const val = o[key] !== false;
                     return (
                       <div key={key} className="flex items-center justify-between">
@@ -4168,7 +3836,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           })()}
 
           {/* ─── ERWEITERT ───────────────────────────────────────────────────── */}
-          {['shutter', 'switch', 'dimmer', 'slider', 'thermostat', 'value', 'gauge', 'chart', 'climate', 'echart', 'echartsPreset', 'list', 'autolist', 'fill', 'windowcontact', 'binarysensor', 'stateimage', 'chips', 'button', 'httpRequest', 'clock', 'weather', 'calendar', 'evcc', 'camera', 'image', 'trash', 'trashSchedule', 'iframe', 'jsontable', 'datepicker', 'html', 'header', 'group', 'carousel', 'mediaplayer', 'universal', 'enum', 'light', 'knob', 'timer', 'adapterstatus'].includes(config.type) && (
+          {/* Always shown — CSS-Overrides apply to every widget type. */}
+          {(
             <details className="group">
               <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                 <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>Erweitert</span>
@@ -7569,6 +7238,88 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           <option key={key} value={key}>{label}</option>
                         ))}
                       </select>
+                    </div>
+                  </>
+                );
+              })()}
+
+              {config.type === 'input' && (() => {
+                const o = config.options ?? {};
+                const set = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const multiline  = !!o.multiline;
+                const submitMode = ((o.submitMode as string) ?? 'submit') as 'live' | 'submit';
+                const readOnly   = !!o.readOnly;
+                const showSubmit = o.showSubmit !== false;
+                const placeholder = (o.placeholder as string) ?? '';
+                const maxLength   = o.maxLength as number | undefined;
+                const inputCls3 = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
+                const inputSty3 = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                const Toggle = ({ on, onClick }: { on: boolean; onClick: () => void }) => (
+                  <button onClick={onClick}
+                    className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                    style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}>
+                    <span className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                      style={{ left: on ? '14px' : '2px' }} />
+                  </button>
+                );
+                return (
+                  <>
+                    {/* Mehrzeilig */}
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Mehrzeilig (Textarea)</label>
+                      <Toggle on={multiline} onClick={() => set({ multiline: !multiline })} />
+                    </div>
+                    {/* Übertragungs-Modus */}
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Übertragen</label>
+                      <div className="flex gap-1">
+                        {([
+                          { v: 'submit', label: 'Nach Bestätigung (Enter / Senden)' },
+                          { v: 'live',   label: 'Bei jedem Tastenschlag' },
+                        ] as const).map(({ v, label }) => {
+                          const active = submitMode === v;
+                          return (
+                            <button key={v} onClick={() => set({ submitMode: v })}
+                              className="flex-1 text-[10px] py-1.5 px-2 rounded-lg transition-colors"
+                              style={{
+                                background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                color:      active ? '#fff' : 'var(--text-secondary)',
+                                border:     `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                              }}>
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {/* Senden-Button (nur im Submit-Modus relevant) */}
+                    {submitMode === 'submit' && (
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Senden-Button anzeigen</label>
+                        <Toggle on={showSubmit} onClick={() => set({ showSubmit: !showSubmit })} />
+                      </div>
+                    )}
+                    {/* Platzhalter */}
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Platzhalter</label>
+                      <input type="text" value={placeholder}
+                        onChange={(e) => set({ placeholder: e.target.value || undefined })}
+                        placeholder="z.B. Nachricht eingeben…"
+                        className={inputCls3} style={inputSty3} />
+                    </div>
+                    {/* Maximale Länge */}
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Maximale Länge (leer = unbegrenzt)</label>
+                      <input type="number" min={1} value={maxLength ?? ''}
+                        onChange={(e) => set({ maxLength: e.target.value ? Number(e.target.value) : undefined })}
+                        placeholder="unbegrenzt"
+                        className={inputCls3} style={inputSty3} />
+                    </div>
+                    {/* Schreibschutz */}
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Schreibschutz (nur anzeigen)</label>
+                      <Toggle on={readOnly} onClick={() => set({ readOnly: !readOnly })} />
                     </div>
                   </>
                 );

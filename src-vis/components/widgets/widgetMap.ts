@@ -35,6 +35,7 @@ import { CarouselWidget } from './CarouselWidget';
 import { KnobWidget } from './KnobWidget';
 import { TimerWidget } from './TimerWidget';
 import { AdapterStatusWidget } from './AdapterStatusWidget';
+import { InputWidget } from './InputWidget';
 
 // Chart widgets are heavy (recharts ~380 KB, echarts ~1.1 MB) — lazy-loaded so
 // dashboards without charts skip the cost. Consumers must render these inside
@@ -85,6 +86,7 @@ export function getWidgetMap() {
     knob:          KnobWidget,
     timer:         TimerWidget,
     adapterstatus: AdapterStatusWidget,
+    input:         InputWidget,
   } as const;
 }
 

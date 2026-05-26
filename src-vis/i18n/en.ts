@@ -858,6 +858,7 @@ export const en: Record<TranslationKey, string> = {
   'widget.climate':       'Room Climate',
   'widget.enum':          'Selection Field',
   'widget.carousel':      'Carousel',
+  'widget.input':         'Input field',
 
   // ── Weather Widget ────────────────────────────────────────────────────────────
   'weather.sunny':       'Sunny',

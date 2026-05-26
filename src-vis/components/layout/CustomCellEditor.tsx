@@ -50,6 +50,11 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
     { key: 'icon',        label: 'Widget-Icon' },
   ],
   button:        [{ key: 'icon', label: 'Button-Icon' }],
+  input:         [
+    { key: 'input',  label: '⌨ Eingabefeld' },
+    { key: 'submit', label: '➤ Senden-Button' },
+    { key: 'icon',   label: 'Widget-Icon' },
+  ],
   mediaplayer:   [
     { key: 'play-pause',     label: '▶ / ⏸ Play / Pause' },
     { key: 'prev',           label: '⏮ Vorheriger Titel' },
