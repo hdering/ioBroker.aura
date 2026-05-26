@@ -67,22 +67,44 @@ function collectRefs(widget: WidgetConfig, location: string, routeTo: string | u
 function collectAllRefs(): BrokenRef[] {
   const out: BrokenRef[] = [];
   const layouts = useDashboardStore.getState().layouts;
+
+  // Build a defId -> parent location map first so group children can deep-link
+  // to whichever group/carousel widget on the dashboard hosts their def.
+  type ParentLoc = { parent: WidgetConfig; layoutId: string; layoutName: string; tabId: string; tabName: string };
+  const defIdToParent = new Map<string, ParentLoc>();
   for (const l of layouts) {
     for (const tab of l.tabs) {
       for (const w of tab.widgets) {
+        if ((w.type === 'group' || w.type === 'carousel') && typeof w.options?.defId === 'string') {
+          // First-wins: a defId can in principle be referenced from multiple
+          // hosts, but in practice it points to one. Pick the first to keep
+          // the deep-link stable.
+          if (!defIdToParent.has(w.options.defId)) {
+            defIdToParent.set(w.options.defId, {
+              parent: w, layoutId: l.id, layoutName: l.name, tabId: tab.id, tabName: tab.name,
+            });
+          }
+        }
         const route = `/admin/widgets?focus=${encodeURIComponent(w.id)}&layout=${encodeURIComponent(l.id)}&tab=${encodeURIComponent(tab.id)}`;
         out.push(...collectRefs(w, `${l.name} / ${tab.name}`, route));
       }
     }
   }
+
   const defs = useGroupDefsStore.getState().defs;
   for (const [defId, children] of Object.entries(defs)) {
+    const parentLoc = defIdToParent.get(defId);
     for (const w of children) {
-      // No deep link target for group children — they live inside a group def,
-      // not in a standalone admin page.
-      out.push(...collectRefs(w, `Group ${defId.slice(0, 8)}`, undefined));
+      const location = parentLoc
+        ? `${parentLoc.layoutName} / ${parentLoc.tabName} · in ${parentLoc.parent.title || parentLoc.parent.type}`
+        : `Group ${defId.slice(0, 8)}`;
+      const route = parentLoc
+        ? `/admin/widgets?focus=${encodeURIComponent(parentLoc.parent.id)}&layout=${encodeURIComponent(parentLoc.layoutId)}&tab=${encodeURIComponent(parentLoc.tabId)}`
+        : undefined;
+      out.push(...collectRefs(w, location, route));
     }
   }
+
   const views = usePopupConfigStore.getState().views;
   for (const v of views) {
     for (const w of v.widgets) {
