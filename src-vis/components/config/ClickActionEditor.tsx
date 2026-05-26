@@ -4,6 +4,7 @@ import type { WidgetConfig, ClickAction } from '../../types';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { usePopupConfigStore } from '../../store/popupConfigStore';
 import { DatapointPicker } from './DatapointPicker';
+import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 
 function normalizeAction(action: ClickAction): ClickAction {
   switch (action.kind) {
@@ -281,11 +282,43 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
               className={inputCls} style={inputStyle}
             />
           </div>
-          <Toggle
-            checked={action.sandbox ?? false}
-            onChange={(v) => setAction({ ...action, sandbox: v })}
-            label="Sandbox aktiv"
-          />
+          {(() => {
+            const preset = (action.sandboxPreset ?? (action.sandbox ? 'extended' : 'off')) as SandboxPreset;
+            const info = SANDBOX_PRESETS.find((p) => p.value === preset) ?? SANDBOX_PRESETS[0];
+            return (
+              <div>
+                <label className={labelCls} style={labelStyle}>Sandbox</label>
+                <select
+                  value={preset}
+                  onChange={(e) => setAction({ ...action, sandboxPreset: e.target.value as SandboxPreset, sandbox: undefined })}
+                  className={inputCls}
+                  style={inputStyle}
+                >
+                  {SANDBOX_PRESETS.map((p) => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
+                  ))}
+                </select>
+                <p className="text-[10px] mt-1 leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                  {info.description}
+                </p>
+                {preset !== 'off' && preset !== 'custom' && info.flags && (
+                  <p className="text-[10px] mt-0.5 font-mono leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>
+                    {info.flags}
+                  </p>
+                )}
+                {preset === 'custom' && (
+                  <input
+                    type="text"
+                    value={action.sandboxCustom ?? ''}
+                    onChange={(e) => setAction({ ...action, sandboxCustom: e.target.value || undefined })}
+                    placeholder="allow-scripts allow-forms"
+                    className={inputCls + ' font-mono mt-1'}
+                    style={inputStyle}
+                  />
+                )}
+              </div>
+            );
+          })()}
         </div>
       )}
 

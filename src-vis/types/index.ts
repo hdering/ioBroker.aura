@@ -275,7 +275,7 @@ export type ClickAction =
   | { kind: 'popup-shutter' }
   | { kind: 'popup-mediaplayer' }
   | { kind: 'popup-image';     url?: string;  dp?: string;  fit?: 'contain' | 'cover' }
-  | { kind: 'popup-iframe';    url: string;   sandbox?: boolean }
+  | { kind: 'popup-iframe';    url: string;   sandbox?: boolean; sandboxPreset?: 'off' | 'minimal' | 'standard' | 'extended' | 'full' | 'custom'; sandboxCustom?: string }
   | { kind: 'popup-json';      json?: string; dp?: string }
   | { kind: 'popup-html';      html?: string; dp?: string }
   | { kind: 'popup-widget';    widgetId?: string }

@@ -1,6 +1,7 @@
 import { Code2 } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { resolveSandboxAttr, type SandboxPreset } from '../../utils/iframeSandbox';
 import type { WidgetProps } from '../../types';
 
 export function HtmlWidget({ config }: WidgetProps) {
@@ -8,6 +9,9 @@ export function HtmlWidget({ config }: WidgetProps) {
   const htmlContent   = (opts.htmlContent   as string)  ?? '';
   const htmlDatapoint = (opts.htmlDatapoint as string)  ?? '';
   const scrollable    = (opts.scrollable    as boolean) ?? true;
+  const sandboxPreset = (opts.sandboxPreset as SandboxPreset | undefined);
+  const sandboxCustom = (opts.sandboxCustom as string | undefined);
+  const sandboxAttr   = resolveSandboxAttr(sandboxPreset, sandboxCustom, 'standard');
   const showTitle     = opts.showTitle  !== false;
   const showIcon      = opts.showIcon   !== false;
   const iconSize      = (opts.iconSize  as number) || 20;
@@ -48,7 +52,7 @@ export function HtmlWidget({ config }: WidgetProps) {
       )}
       <iframe
         srcDoc={html}
-        sandbox="allow-scripts"
+        sandbox={sandboxAttr}
         title={config.title || 'HTML'}
         className="aura-widget-value flex-1 min-h-0 w-full block"
         style={{ border: 'none' }}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MonitorDot, AlertTriangle } from 'lucide-react';
 import type { ClickAction } from '../../../types';
+import { resolveSandboxAttr } from '../../../utils/iframeSandbox';
 
 interface Props {
   action: Extract<ClickAction, { kind: 'popup-iframe' }>;
@@ -18,9 +19,11 @@ export function IframePopupBody({ action }: Props) {
     );
   }
 
-  const sandboxAttr = action.sandbox
-    ? 'allow-scripts allow-same-origin allow-forms'
-    : undefined;
+  const sandboxAttr = resolveSandboxAttr(
+    action.sandboxPreset,
+    action.sandboxCustom,
+    action.sandbox ? 'extended' : 'off',
+  );
 
   return (
     <div style={{ width: 'min(88vw, 860px)', height: 'min(80vh, 680px)', position: 'relative' }}>

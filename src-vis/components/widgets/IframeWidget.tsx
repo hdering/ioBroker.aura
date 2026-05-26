@@ -4,6 +4,7 @@ import { useIframeStore } from '../../store/iframeStore';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { resolveSandboxAttr, type SandboxPreset } from '../../utils/iframeSandbox';
 
 const LOAD_TIMEOUT_MS = 8000;
 
@@ -23,6 +24,8 @@ export function IframeWidget({ config }: WidgetProps) {
   const allowInteraction = !!(opts.allowInteraction ?? true);
   const refreshSeconds   = (opts.refreshInterval   as number)  ?? 0;
   const sandboxEnabled   = (opts.sandbox           as boolean) ?? false;
+  const sandboxPreset    = (opts.sandboxPreset     as SandboxPreset | undefined);
+  const sandboxCustom    = (opts.sandboxCustom     as string | undefined);
   const fullscreenButton = (opts.fullscreenButton  as boolean) ?? false;
   const showTitle   = opts.showTitle  !== false;
   const showIcon    = opts.showIcon   !== false;
@@ -78,9 +81,11 @@ export function IframeWidget({ config }: WidgetProps) {
 
   const iframeKey = keepAlive ? `ka-${url}` : `${url}-${tick}`;
 
-  const sandboxAttr = sandboxEnabled
-    ? 'allow-scripts allow-forms allow-popups allow-presentation'
-    : undefined;
+  const sandboxAttr = resolveSandboxAttr(
+    sandboxPreset,
+    sandboxCustom,
+    sandboxEnabled ? 'extended' : 'off',
+  );
 
   return (
     <div className="aura-widget-row flex flex-col h-full">

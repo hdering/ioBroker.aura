@@ -1,3 +1,5 @@
+import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
+
 interface Props {
   options: Record<string, unknown>;
   onChange: (patch: Record<string, unknown>) => void;
@@ -69,6 +71,58 @@ export function HtmlConfig({ options: o, onChange, onOpenPicker }: Props) {
           onToggle={() => set({ scrollable: !((o.scrollable as boolean) ?? true) })}
         />
       </div>
+
+      {/* Sandbox */}
+      <SandboxPicker
+        preset={(o.sandboxPreset as SandboxPreset | undefined) ?? 'standard'}
+        custom={(o.sandboxCustom as string | undefined) ?? ''}
+        onChangePreset={(p) => set({ sandboxPreset: p })}
+        onChangeCustom={(s) => set({ sandboxCustom: s || undefined })}
+      />
     </>
+  );
+}
+
+function SandboxPicker({
+  preset, custom, onChangePreset, onChangeCustom,
+}: {
+  preset: SandboxPreset;
+  custom: string;
+  onChangePreset: (p: SandboxPreset) => void;
+  onChangeCustom: (s: string) => void;
+}) {
+  const info = SANDBOX_PRESETS.find((p) => p.value === preset) ?? SANDBOX_PRESETS[2];
+  return (
+    <div>
+      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Sandbox</label>
+      <select
+        value={preset}
+        onChange={(e) => onChangePreset(e.target.value as SandboxPreset)}
+        className={iCls}
+        style={iSty}
+      >
+        {SANDBOX_PRESETS.map((p) => (
+          <option key={p.value} value={p.value}>{p.label}</option>
+        ))}
+      </select>
+      <p className="text-[10px] mt-1 leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+        {info.description}
+      </p>
+      {preset !== 'off' && preset !== 'custom' && info.flags && (
+        <p className="text-[10px] mt-0.5 font-mono leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>
+          {info.flags}
+        </p>
+      )}
+      {preset === 'custom' && (
+        <input
+          type="text"
+          value={custom}
+          onChange={(e) => onChangeCustom(e.target.value)}
+          placeholder="allow-scripts allow-forms"
+          className={iCls + ' font-mono mt-1'}
+          style={iSty}
+        />
+      )}
+    </div>
   );
 }

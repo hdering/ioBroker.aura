@@ -10,6 +10,7 @@ import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
 import { useFocusedWidgetId } from '../../contexts/FocusedWidgetContext';
 import { copyToClipboard } from '../../utils/clipboard';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
@@ -5168,18 +5169,43 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none" style={iSty} />
                       </div>
                     )}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Sandbox aktiv</label>
-                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>Schränkt Berechtigungen des iFrames ein</p>
-                      </div>
-                      <button onClick={() => set({ sandbox: !(o.sandbox ?? false) })}
-                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                        style={{ background: (o.sandbox ?? false) ? 'var(--accent)' : 'var(--app-border)' }}>
-                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                          style={{ left: (o.sandbox ?? false) ? '18px' : '2px' }} />
-                      </button>
-                    </div>
+                    {(() => {
+                      const preset = ((o.sandboxPreset as SandboxPreset | undefined) ?? ((o.sandbox as boolean) ? 'extended' : 'off')) as SandboxPreset;
+                      const info = SANDBOX_PRESETS.find((p) => p.value === preset) ?? SANDBOX_PRESETS[0];
+                      return (
+                        <div>
+                          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Sandbox</label>
+                          <select
+                            value={preset}
+                            onChange={(e) => set({ sandboxPreset: e.target.value, sandbox: undefined })}
+                            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                            style={iSty}
+                          >
+                            {SANDBOX_PRESETS.map((p) => (
+                              <option key={p.value} value={p.value}>{p.label}</option>
+                            ))}
+                          </select>
+                          <p className="text-[10px] mt-1 leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                            {info.description}
+                          </p>
+                          {preset !== 'off' && preset !== 'custom' && info.flags && (
+                            <p className="text-[10px] mt-0.5 font-mono leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>
+                              {info.flags}
+                            </p>
+                          )}
+                          {preset === 'custom' && (
+                            <input
+                              type="text"
+                              value={(o.sandboxCustom as string) ?? ''}
+                              onChange={(e) => set({ sandboxCustom: e.target.value || undefined })}
+                              placeholder="allow-scripts allow-forms"
+                              className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono mt-1"
+                              style={iSty}
+                            />
+                          )}
+                        </div>
+                      );
+                    })()}
                     <div className="flex items-center justify-between">
                       <div>
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Vollbild-Button anzeigen</label>
