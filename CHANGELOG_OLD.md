@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.120 (2026-05-23)
+- feat(timer): decouple Zeitschaltuhr backend path from widget id
+
 ## 0.9.119 (2026-05-23)
 - fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr
 - fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget

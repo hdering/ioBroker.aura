@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.139",
+    "version": "0.9.140",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,18 +106,18 @@
       }
     ],
     "news": {
-      "0.9.139": {
-        "en": "feat(widgets): add input widget + refactor edit dialog to template",
-        "de": "feat(widgets): add input widget + refactor edit dialog to template",
-        "ru": "feat(widgets): add input widget + refactor edit dialog to template",
-        "pt": "feat(widgets): add input widget + refactor edit dialog to template",
-        "nl": "feat(widgets): add input widget + refactor edit dialog to template",
-        "fr": "feat(widgets): add input widget + refactor edit dialog to template",
-        "it": "feat(widgets): add input widget + refactor edit dialog to template",
-        "es": "feat(widgets): add input widget + refactor edit dialog to template",
-        "pl": "feat(widgets): add input widget + refactor edit dialog to template",
-        "uk": "feat(widgets): add input widget + refactor edit dialog to template",
-        "zh-cn": "feat(widgets): add input widget + refactor edit dialog to template"
+      "0.9.140": {
+        "en": "feat(timer): re-add custom layout + placeable elements",
+        "de": "feat(timer): re-add custom layout + placeable elements",
+        "ru": "feat(timer): re-add custom layout + placeable elements",
+        "pt": "feat(timer): re-add custom layout + placeable elements",
+        "nl": "feat(timer): re-add custom layout + placeable elements",
+        "fr": "feat(timer): re-add custom layout + placeable elements",
+        "it": "feat(timer): re-add custom layout + placeable elements",
+        "es": "feat(timer): re-add custom layout + placeable elements",
+        "pl": "feat(timer): re-add custom layout + placeable elements",
+        "uk": "feat(timer): re-add custom layout + placeable elements",
+        "zh-cn": "feat(timer): re-add custom layout + placeable elements"
       },
       "0.9.138": {
         "en": "chore: rebuild www bundle; feat(widgets): add aura-widget-* CSS hook classes across all widgets; fix(echart): make history instance optional in comparison mode",

@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.140 (2026-05-26)
+- feat(timer): re-add custom layout + placeable elements
+
+
 ### 0.9.139 (2026-05-26)
 - feat(widgets): add input widget + refactor edit dialog to template
 
@@ -278,10 +282,6 @@ Release v0.9.123
 - feat(autolist): global toggle to show last-change timestamp per entry
 
 
-### 0.9.120 (2026-05-23)
-- feat(timer): decouple Zeitschaltuhr backend path from widget id
-
-
 ## License
 
 MIT License
@@ -293,6 +293,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
