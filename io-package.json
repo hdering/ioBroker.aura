@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.134",
+    "version": "0.9.135",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.135": {
+        "en": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
+        "de": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
+        "ru": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
+        "pt": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
+        "nl": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
+        "fr": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
+        "it": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
+        "es": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
+        "pl": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
+        "uk": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
+        "zh-cn": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list"
+      },
       "0.9.134": {
         "en": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
         "de": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
@@ -183,19 +196,6 @@
         "pl": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
         "uk": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names",
         "zh-cn": "fix(timer): rename channel/states when title changes in AdminWidgets; feat(timer): mirror widget title into ioBroker channel + state names"
-      },
-      "0.9.128": {
-        "en": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
-        "de": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
-        "ru": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
-        "pt": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
-        "nl": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
-        "fr": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
-        "it": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
-        "es": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
-        "pl": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
-        "uk": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted",
-        "zh-cn": "fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated); debug(timer): log unpublish path + surface delObject errors; fix(timer): unpublish ioBroker DPs when widget is deleted"
       }
     }
   },

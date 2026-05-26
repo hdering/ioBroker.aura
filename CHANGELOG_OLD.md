@@ -1,5 +1,13 @@
 # Changelog (older entries)
 
+## 0.9.115 (2026-05-22)
+- fix(value): isolate htmlTemplate textarea from parent re-renders
+- fix(value): defer htmlTemplate select() and add Copy button fallback
+- feat(value): double-click on htmlTemplate textarea selects all
+- fix(value): htmlTemplate as textarea for proper copy/select behavior
+- fix(value): htmlTemplate replaces only value block, not whole widget
+- feat(clock,value): font-size options for time, date, custom, value
+
 ## 0.9.114 (2026-05-22)
 - feat(timer): allow per-event value override (admin-gated)
 

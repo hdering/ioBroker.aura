@@ -186,6 +186,11 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.135 (2026-05-26)
+- feat(brokenDps): pulse-highlight the focused widget in the editor preview
+- feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list
+
+
 ### 0.9.134 (2026-05-26)
 - feat(brokenDps): deep-link group children to their host group widget
 - feat(orphans): show channel common.name next to orphan DP IDs
@@ -277,15 +282,6 @@ Release v0.9.123
 - fix(iframe): guard iframeUrlDp against URL strings
 
 
-### 0.9.115 (2026-05-22)
-- fix(value): isolate htmlTemplate textarea from parent re-renders
-- fix(value): defer htmlTemplate select() and add Copy button fallback
-- feat(value): double-click on htmlTemplate textarea selects all
-- fix(value): htmlTemplate as textarea for proper copy/select behavior
-- fix(value): htmlTemplate replaces only value block, not whole widget
-- feat(clock,value): font-size options for time, date, custom, value
-
-
 ## License
 
 MIT License
@@ -297,6 +293,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
