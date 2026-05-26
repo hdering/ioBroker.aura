@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.141",
+    "version": "0.9.142",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.142": {
+        "en": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
+        "de": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
+        "ru": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
+        "pt": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
+        "nl": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
+        "fr": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
+        "it": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
+        "es": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
+        "pl": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
+        "uk": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
+        "zh-cn": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura"
+      },
       "0.9.141": {
         "en": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets",
         "de": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets",
@@ -183,19 +196,6 @@
         "pl": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
         "uk": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
         "zh-cn": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list"
-      },
-      "0.9.134": {
-        "en": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
-        "de": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
-        "ru": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
-        "pt": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
-        "nl": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
-        "fr": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
-        "it": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
-        "es": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
-        "pl": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
-        "uk": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
-        "zh-cn": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs"
       }
     }
   },

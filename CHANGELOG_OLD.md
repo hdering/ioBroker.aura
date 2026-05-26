@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.122 (2026-05-23)
+- style(value): remove bold weight from value text
+- fix(value): use text-primary for compact title to match SwitchWidget
+
 ## 0.9.121 (2026-05-23)
 - fix(timer): keep copied widgets in sync without F5 + register them without adapter restart
 - feat(autolist): global toggle to show last-change timestamp per entry
