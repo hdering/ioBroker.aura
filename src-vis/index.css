@@ -28,6 +28,20 @@ html, body, #root {
   100% { transform: translateX(100%) scaleX(0.3); }
 }
 
+/* Deep-link focus highlight on a widget in the editor preview. Triggered by
+ * AdminEditor when ?focus=<id> is set; cleared after ~3.5s so the pulse is
+ * transient. The class lives on .aura-widget so it composes with the existing
+ * editor ring without fighting it. */
+@keyframes aura-focus-pulse {
+  0%   { box-shadow: 0 0 0 0 var(--accent), 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); }
+  50%  { box-shadow: 0 0 0 4px var(--accent), 0 0 0 14px color-mix(in srgb, var(--accent) 30%, transparent); }
+  100% { box-shadow: 0 0 0 0 var(--accent), 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent); }
+}
+.aura-widget-focused {
+  animation: aura-focus-pulse 1.2s ease-in-out 3 both;
+  z-index: 5;
+}
+
 /* ── Frontend font scale ─────────────────────────────────────────────────────
    Scales all Tailwind text-* utilities within the frontend app container.
    The --font-scale CSS variable is set by ThemeProvider from configStore.

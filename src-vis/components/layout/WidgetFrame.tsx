@@ -7,6 +7,7 @@ import { setDragBridge } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
 import { exportWidget } from '../../utils/widgetExportImport';
 import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
+import { useFocusedWidgetId } from '../../contexts/FocusedWidgetContext';
 import { copyToClipboard } from '../../utils/clipboard';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
@@ -2588,6 +2589,13 @@ function ChipsEditPanel({
 export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDuplicate }: WidgetFrameProps) {
   const t = useT();
   const { defaultDecimals } = useGlobalSettingsStore();
+  const focusedWidgetId = useFocusedWidgetId();
+  const isFocused = focusedWidgetId === config.id;
+  const focusRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isFocused) return;
+    queueMicrotask(() => focusRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  }, [isFocused]);
   const [openPanel, setOpenPanel] = useState<'menu' | 'edit' | 'conditions' | 'action' | 'group-mobile-order' | null>(null);
   const [popupOpen, setPopupOpen] = useState(false);
   const [idCopied, setIdCopied] = useState(false);
@@ -2952,7 +2960,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
   return (
     <div
-      className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''}`}
+      ref={focusRef}
+      className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${isFocused ? 'aura-widget-focused' : ''}`}
       onClick={handleWidgetClick}
       style={isHeader || isTransparent ? {
         background: 'transparent',

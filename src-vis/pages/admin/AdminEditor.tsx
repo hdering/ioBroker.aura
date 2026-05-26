@@ -12,6 +12,7 @@ import { ConditionEditor } from '../../components/config/ConditionEditor';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useGroupStore } from '../../store/groupStore';
 import { Dashboard } from '../../components/layout/Dashboard';
+import { FocusedWidgetContext } from '../../contexts/FocusedWidgetContext';
 import { TabWizard } from '../../components/config/TabWizard';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
 import type { WidgetConfig, WidgetType, WidgetLayout } from '../../types';
@@ -1139,8 +1140,9 @@ export function AdminEditor() {
 
   // Deep-link support: ?layout=<id>&tab=<id>&focus=<widgetId>
   // Used by the overview's broken-DP / orphan panels to jump straight to the
-  // widget's tab. Focus param is reserved for a future highlight pass.
+  // widget's tab and pulse-highlight the widget in the preview.
   const [searchParams] = useSearchParams();
+  const [focusedWidgetId, setFocusedWidgetId] = useState<string | null>(null);
   useEffect(() => {
     const layoutParam = searchParams.get('layout');
     const tabParam = searchParams.get('tab');
@@ -1148,6 +1150,14 @@ export function AdminEditor() {
       setActiveLayoutAndTab(layoutParam, tabParam);
     } else if (layoutParam) {
       setActiveLayout(layoutParam);
+    }
+    const focusParam = searchParams.get('focus');
+    if (focusParam) {
+      setFocusedWidgetId(focusParam);
+      // Clear after the pulse animation has had time to play. WidgetFrame
+      // applies the highlight class while this matches its config.id.
+      const tid = setTimeout(() => setFocusedWidgetId(null), 3500);
+      return () => clearTimeout(tid);
     }
   }, [searchParams, setActiveLayout, setActiveLayoutAndTab]);
 
@@ -1225,7 +1235,9 @@ export function AdminEditor() {
       {/* Dashboard preview with edit mode */}
       <div className="flex-1 flex overflow-hidden" style={{ background: 'var(--app-bg)' }}>
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Dashboard editMode={true} />
+          <FocusedWidgetContext.Provider value={focusedWidgetId}>
+            <Dashboard editMode={true} />
+          </FocusedWidgetContext.Provider>
         </div>
         {showMobileOrder && (
           <MobileOrderPanel layoutId={activeLayoutId} />
