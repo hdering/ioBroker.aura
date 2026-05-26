@@ -55,6 +55,13 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
     { key: 'submit', label: '➤ Senden-Button' },
     { key: 'icon',   label: 'Widget-Icon' },
   ],
+  timer:         [
+    { key: 'icon',   label: 'Status-Icon' },
+    { key: 'master', label: '⏻ Master-Schalter' },
+    { key: 'status', label: 'Status-Text' },
+    { key: 'events', label: 'Ereignis-Liste' },
+    { key: 'add',    label: '+ Ereignis-Button' },
+  ],
   mediaplayer:   [
     { key: 'play-pause',     label: '▶ / ⏸ Play / Pause' },
     { key: 'prev',           label: '⏮ Vorheriger Titel' },
@@ -273,11 +280,11 @@ const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
     { key: 'status', label: 'Status (letzter Request)' },
   ],
   timer: [
-    { key: 'icon',   label: 'Status-Icon' },
-    { key: 'master', label: 'Master-Schalter' },
-    { key: 'status', label: 'Status-Text' },
-    { key: 'events', label: 'Ereignis-Liste' },
-    { key: 'add',    label: '+ Ereignis-Button' },
+    { key: 'status',  label: 'Status (X/Y)' },
+    { key: 'count',   label: 'Anzahl Ereignisse' },
+    { key: 'enabled', label: 'Aktive Ereignisse' },
+    { key: 'target',  label: 'Ziel-DP' },
+    { key: 'value',   label: 'Ziel-Wert' },
   ],
 };
 
