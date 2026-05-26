@@ -37,7 +37,7 @@ function deepMerge(
 }
 
 export function EChartWidget({ config }: WidgetProps) {
-  const { subscribe, connected } = useIoBroker();
+  const { subscribe, getState, connected } = useIoBroker();
 
   const layout = config.layout ?? 'default';
 
@@ -63,7 +63,7 @@ export function EChartWidget({ config }: WidgetProps) {
   const echartMode        = (o.echartMode        as string  | undefined) ?? 'timeseries';
   const isGauge = config.layout === 'gauge' as string;
 
-  const seriesDataMap = useMultiSeriesData(echartSeries, connected, subscribe);
+  const seriesDataMap = useMultiSeriesData(echartSeries, connected, subscribe, getState);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const chartRef = useRef<any>(null);

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getHistoryDirect, type HistoryEntry } from './useIoBroker';
+import { getHistoryDirect, getStateFromCache, type HistoryEntry } from './useIoBroker';
 import type { ioBrokerState } from '../types';
 
 export type EChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d';
@@ -43,6 +43,7 @@ export function useMultiSeriesData(
   series: EChartSeriesConfig[],
   connected: boolean,
   subscribe: (id: string, cb: (state: ioBrokerState) => void) => () => void,
+  getState?: (id: string) => Promise<ioBrokerState | null>,
 ): Map<string, SeriesDataResult> {
   const [resultsMap, setResultsMap] = useState<Map<string, SeriesDataResult>>(new Map());
   const mountedRef = useRef(true);
@@ -71,13 +72,37 @@ export function useMultiSeriesData(
     });
 
     series.forEach((s) => {
-      if (!s.datapointId || !s.historyInstance) {
+      if (!s.datapointId) {
         setResultsMap((prev) => {
           const next = new Map(prev);
           const existing = next.get(s.id);
           next.set(s.id, { data: existing?.data ?? [], current: existing?.current ?? null, loading: false });
           return next;
         });
+        return;
+      }
+
+      if (!s.historyInstance) {
+        // No history adapter configured — seed current value from live state so
+        // comparison-mode bars (and timeseries first point) render immediately.
+        const cached = getStateFromCache(s.datapointId);
+        const seedFromState = (state: ioBrokerState | null) => {
+          if (!mountedRef.current) return;
+          const val = typeof state?.val === 'number' ? (state.val as number) : null;
+          setResultsMap((prev) => {
+            const next = new Map(prev);
+            const existing = next.get(s.id);
+            next.set(s.id, { data: existing?.data ?? [], current: val, loading: false });
+            return next;
+          });
+        };
+        if (cached) {
+          seedFromState(cached);
+        } else if (getState) {
+          getState(s.datapointId).then(seedFromState).catch(() => seedFromState(null));
+        } else {
+          seedFromState(null);
+        }
         return;
       }
 
