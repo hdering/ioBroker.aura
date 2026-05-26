@@ -2688,7 +2688,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       setOpenPanel(panel);
     }
   };
-  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'shutter_openDp' | 'shutter_closeDp' | 'dimmer_switchDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | 'iframe_urlDp' | 'light_switchDp' | 'light_brightnessDp' | 'light_hueDp' | 'light_saturationDp' | 'light_rDp' | 'light_gDp' | 'light_bDp' | 'light_colorDp' | 'light_temperatureDp' | 'light_effectDp' | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'shutter_openDp' | 'shutter_closeDp' | 'dimmer_switchDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_urlDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | 'iframe_urlDp' | 'light_switchDp' | 'light_brightnessDp' | 'light_hueDp' | 'light_saturationDp' | 'light_rDp' | 'light_gDp' | 'light_bDp' | 'light_colorDp' | 'light_temperatureDp' | 'light_effectDp' | null>(null);
   const [imageFilePicker, setImageFilePicker] = useState(false);
   const [pendingTypeChange, setPendingTypeChange] = useState<{
     suggestedType: WidgetType;
@@ -5069,22 +5069,58 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 const cCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
                 const cSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
                 const fitMode = (o.fitMode as string) ?? 'cover';
+                const camUrlMode = (o.streamUrlMode as string) ?? 'static';
                 return (
                   <>
                     <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Stream-URL</label>
-                      <input type="url" value={(o.streamUrl as string) ?? ''} onChange={(e) => set({ streamUrl: e.target.value || undefined })} placeholder="http://…/stream.mjpg" className={cCls + ' font-mono'} style={cSty} />
-                      {(() => {
-                        const url = (o.streamUrl as string) ?? '';
-                        const mixedContent = url.startsWith('http://') && window.location.protocol === 'https:';
-                        if (!mixedContent) return null;
-                        return (
-                          <p className="text-[10px] mt-1 leading-tight" style={{ color: '#f59e0b' }}>
-                            ⚠ Mixed Content: Aura läuft über HTTPS, die Stream-URL ist HTTP. Desktop-Browser erlauben dies oft, mobile WebViews (z.B. Fully Kiosk) blockieren es. Lösung: in Fully Kiosk → Advanced Web Settings → <em>Allow Mixed Content</em> aktivieren, oder go2rtc per HTTPS bereitstellen.
-                          </p>
-                        );
-                      })()}
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>URL-Quelle</label>
+                      <div className="flex gap-1">
+                        {(['static', 'datapoint'] as const).map((m) => (
+                          <button key={m}
+                            onClick={() => set({ streamUrlMode: m })}
+                            className="flex-1 text-[11px] py-1 rounded-lg transition-colors"
+                            style={{
+                              background: camUrlMode === m ? 'var(--accent)' : 'var(--app-bg)',
+                              color: camUrlMode === m ? '#fff' : 'var(--text-secondary)',
+                              border: '1px solid var(--app-border)',
+                            }}>
+                            {m === 'static' ? 'Direkte URL' : 'Datenpunkt'}
+                          </button>
+                        ))}
+                      </div>
                     </div>
+                    {camUrlMode === 'static' && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Stream-URL</label>
+                        <input type="url" value={(o.streamUrl as string) ?? ''} onChange={(e) => set({ streamUrl: e.target.value || undefined })} placeholder="http://…/stream.mjpg" className={cCls + ' font-mono'} style={cSty} />
+                        {(() => {
+                          const url = (o.streamUrl as string) ?? '';
+                          const mixedContent = url.startsWith('http://') && window.location.protocol === 'https:';
+                          if (!mixedContent) return null;
+                          return (
+                            <p className="text-[10px] mt-1 leading-tight" style={{ color: '#f59e0b' }}>
+                              ⚠ Mixed Content: Aura läuft über HTTPS, die Stream-URL ist HTTP. Desktop-Browser erlauben dies oft, mobile WebViews (z.B. Fully Kiosk) blockieren es. Lösung: in Fully Kiosk → Advanced Web Settings → <em>Allow Mixed Content</em> aktivieren, oder go2rtc per HTTPS bereitstellen.
+                            </p>
+                          );
+                        })()}
+                      </div>
+                    )}
+                    {camUrlMode === 'datapoint' && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                          URL-Datenpunkt <span style={{ opacity: 0.6 }}>(Wert = Stream-URL)</span>
+                        </label>
+                        <div className="flex gap-1">
+                          <input type="text" value={(o.streamUrlDp as string) ?? ''}
+                            onChange={(e) => set({ streamUrlDp: e.target.value || undefined })}
+                            placeholder="adapter.0.channel.url"
+                            className={cCls + ' flex-1 font-mono min-w-0'} style={cSty} />
+                          <button type="button" onClick={() => setPickerTarget('camera_urlDp')}
+                            className="px-2 rounded-lg shrink-0"
+                            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>…</button>
+                        </div>
+                      </div>
+                    )}
                     <div>
                       <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Aktualisierung (Sek., 0 = MJPEG)</label>
                       <input type="number" min={0} value={(o.refreshInterval as number) ?? 5} onChange={(e) => set({ refreshInterval: Number(e.target.value) })} className={cCls} style={cSty} />
@@ -7629,6 +7665,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             pickerTarget === 'status_batteryDp'         ? ((config.options?.batteryDp  as string) ?? '') :
             pickerTarget === 'status_unreachDp'         ? ((config.options?.unreachDp  as string) ?? '') :
             pickerTarget === 'camera_wakeUpDp'          ? ((config.options?.wakeUpDp   as string) ?? '') :
+            pickerTarget === 'camera_urlDp'             ? ((config.options?.streamUrlDp as string) ?? '') :
             pickerTarget === 'html_dp'                  ? ((config.options?.htmlDatapoint as string) ?? '') :
             pickerTarget === 'mp_dp'   ? ((config.options?.[mpPickerKey] as string) ?? '') :
             pickerTarget === 'mp_chip' ? (() => { const chips = (config.options?.chips as Array<{ dp: string }>) ?? []; return chips[mpChipIdx]?.dp ?? ''; })() :
@@ -7793,6 +7830,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               onConfigChange({ ...config, options: { ...config.options, unreachDp: id } });
             } else if (pickerTarget === 'camera_wakeUpDp') {
               onConfigChange({ ...config, options: { ...config.options, wakeUpDp: id } });
+            } else if (pickerTarget === 'camera_urlDp') {
+              onConfigChange({ ...config, options: { ...config.options, streamUrlDp: id } });
             } else if (pickerTarget === 'climate_humidityDp') {
               onConfigChange({ ...config, options: { ...config.options, humidityDatapoint: id } });
             } else if (pickerTarget === 'climate_targetDp') {

@@ -4,6 +4,7 @@ import { Camera, BatteryMedium, Thermometer, Shield, Activity, Building2, Refres
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { WidgetProps } from '../../types';
 import { setStateDirect, subscribeStateDirect } from '../../hooks/useIoBroker';
+import { useDatapoint } from '../../hooks/useDatapoint';
 import type { ioBrokerState } from '../../types';
 
 // ── Exported types (used by WidgetFrame config) ───────────────────────────────
@@ -458,7 +459,16 @@ function StreamCell({ wakeUpDp, wakeUpMode, waking, streamReady, stopReason, doW
 
 export function CameraWidget({ config, editMode }: WidgetProps) {
   const opts            = config.options ?? {};
-  const streamUrl       = (opts.streamUrl       as string)              ?? '';
+  const streamUrlMode   = (opts.streamUrlMode   as string)              ?? 'static';
+  const rawStreamUrlDp  = (opts.streamUrlDp     as string)              ?? '';
+  // Guard against URL-strings accidentally living in streamUrlDp (would crash ioBroker subscribe with "Invalid pattern").
+  const isLikelyStateId = !!rawStreamUrlDp && !/[\?#&=:\s]/.test(rawStreamUrlDp) && rawStreamUrlDp.includes('.');
+  const streamUrlDp     = streamUrlMode === 'datapoint' && isLikelyStateId ? rawStreamUrlDp : '';
+  const { value: dpStreamUrl } = useDatapoint(streamUrlDp);
+  const staticStreamUrl = (opts.streamUrl       as string)              ?? '';
+  const streamUrl       = streamUrlDp && dpStreamUrl != null && dpStreamUrl !== ''
+    ? String(dpStreamUrl)
+    : staticStreamUrl;
   const refreshInterval = (opts.refreshInterval as number)              ?? 5;
   const fitMode         = (opts.fitMode         as 'cover' | 'contain') ?? 'cover';
   const showTimestamp   = (opts.showTimestamp   as boolean)             ?? true;
@@ -685,7 +695,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
       return (
         <>
           <div ref={containerRef} onClick={editMode ? undefined : doWake}
-            className="flex flex-col items-center justify-center h-full gap-2 select-none rounded-[inherit]"
+            className="aura-widget-row flex flex-col items-center justify-center h-full gap-2 select-none rounded-[inherit]"
             style={{ background: 'var(--app-bg)', cursor: editMode ? 'default' : 'pointer' }}>
             <div className="flex items-center justify-center rounded-full w-10 h-10"
               style={{ background: isReactivate ? 'rgba(239,68,68,0.15)' : 'var(--accent)', opacity: isReactivate ? 1 : 0.85, border: isReactivate ? '1.5px solid #ef4444' : 'none' }}>
@@ -693,8 +703,8 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
             </div>
             {(showTitle || showIcon) && (
               <div className="flex items-center gap-1 min-w-0 max-w-[80%] justify-center">
-                {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-                {showTitle && <p className="text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+                {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+                {showTitle && <p className="aura-widget-title text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
               </div>
             )}
             {stopReason === 'timeout' && <p className="text-[10px]" style={{ color: '#ef4444' }}>Stream beendet</p>}
@@ -708,10 +718,10 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
     if (needsWake && wakeUpMode === 'onView' && !waking && !streamReady) {
       return (
         <>
-          <div ref={containerRef} className="flex flex-col items-center justify-center h-full gap-2 rounded-[inherit]"
+          <div ref={containerRef} className="aura-widget-row flex flex-col items-center justify-center h-full gap-2 rounded-[inherit]"
             style={{ background: 'var(--app-bg)' }}>
-            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)' }} />}
-            {showTitle && <p className="text-xs truncate max-w-[80%]" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+            {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)' }} />}
+            {showTitle && <p className="aura-widget-title text-xs truncate max-w-[80%]" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
           {portal}
         </>
@@ -720,10 +730,10 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
     if (waking) {
       return (
         <>
-          <div ref={containerRef} className="flex flex-col items-center justify-center h-full gap-2 rounded-[inherit]"
+          <div ref={containerRef} className="aura-widget-row flex flex-col items-center justify-center h-full gap-2 rounded-[inherit]"
             style={{ background: 'var(--app-bg)' }}>
-            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--accent)' }} />}
-            {showTitle && <p className="text-xs truncate max-w-[80%]" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+            {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--accent)' }} />}
+            {showTitle && <p className="aura-widget-title text-xs truncate max-w-[80%]" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
             <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Kamera wird aktiviert…</p>
           </div>
           {portal}
@@ -732,7 +742,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
     }
     return (
       <>
-        <div ref={containerRef} className="h-full w-full overflow-hidden rounded-[inherit]">
+        <div ref={containerRef} className="aura-widget-row aura-widget-value h-full w-full overflow-hidden rounded-[inherit]">
           <StreamView {...svProps} />
         </div>
         {portal}
@@ -745,7 +755,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
     const vidH = Math.max(20, Math.min(85, videoRatio));
     return (
       <>
-        <div ref={containerRef} className="h-full w-full overflow-hidden rounded-[inherit] flex flex-col"
+        <div ref={containerRef} className="aura-widget-row h-full w-full overflow-hidden rounded-[inherit] flex flex-col"
           style={{ background: 'var(--widget-bg)' }}>
           <div style={{ height: `${vidH}%`, flexShrink: 0, overflow: 'hidden' }}>
             <StreamCell {...scProps} />
@@ -753,8 +763,8 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
           <div style={{ height: `${100 - vidH}%`, overflow: 'hidden auto', display: 'flex', flexDirection: 'column', gap: '2px', padding: '4px' }}>
             {(showTitle || showIcon) && (
               <div className="flex items-center gap-1 shrink-0 min-w-0" style={{ paddingBottom: '2px' }}>
-                {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-                {showTitle && <p className="text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
+                {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+                {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
               </div>
             )}
             {infoItems.length === 0
@@ -776,7 +786,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
   if (cameraTemplate === 'stream-full') {
     return (
       <>
-        <div ref={containerRef} className="relative h-full w-full overflow-hidden rounded-[inherit]">
+        <div ref={containerRef} className="aura-widget-row relative h-full w-full overflow-hidden rounded-[inherit]">
           <StreamCell {...scProps} />
           <div className="absolute bottom-0 left-0 right-0 flex gap-1 p-1.5 flex-wrap justify-start items-end pointer-events-none"
             style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.55))' }}>
@@ -820,7 +830,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
   return (
     <>
       <div ref={containerRef}
-        className="h-full w-full overflow-hidden rounded-[inherit]"
+        className="aura-widget-row h-full w-full overflow-hidden rounded-[inherit]"
         style={{
           display: 'grid',
           gap: '2px',
