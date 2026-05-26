@@ -1,5 +1,12 @@
 import { useEffect } from 'react';
-import { setStateDirect, getStateDirect, subscribeStateDirect } from './useIoBroker';
+import {
+  setStateDirect,
+  getStateDirect,
+  subscribeStateDirect,
+  getObjectDirect,
+  getObjectViewDirect,
+  sendToDirect,
+} from './useIoBroker';
 import { useEffectiveSettings } from './useEffectiveSettings';
 import { useConfigStore } from '../store/configStore';
 
@@ -12,6 +19,14 @@ function installAuraApi() {
     setState: (id: string, val: boolean | number | string, ack = false) => setStateDirect(id, val, ack),
     getState: (id: string) => getStateDirect(id),
     subscribeState: (id: string, cb: (state: unknown) => void) => subscribeStateDirect(id, cb),
+    getObject: (id: string, opts?: { skipCache?: boolean }) => getObjectDirect(id, opts),
+    getObjectView: (
+      type: 'state' | 'channel' | 'device' | 'enum' | 'instance' | 'chart' | 'folder',
+      startkey?: string,
+      endkey?: string,
+    ) => getObjectViewDirect(type, startkey, endkey),
+    sendTo: (target: string, command: string, payload: unknown, timeoutMs?: number) =>
+      sendToDirect(target, command, payload, timeoutMs),
   };
 }
 

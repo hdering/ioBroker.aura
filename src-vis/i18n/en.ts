@@ -374,7 +374,7 @@ export const en: Record<TranslationKey, string> = {
   'theme.css.enabled':  'CSS active',
 
   'theme.js.title':    'Global JavaScript',
-  'theme.js.subtitle': "Helper functions for widget onClick handlers. API: window.aura.setState(id, val), getState(id), subscribeState(id, cb). Load external scripts via @import url('…'); at the top.",
+  'theme.js.subtitle': "Helper functions for widget onClick handlers. API: window.aura.setState / getState / subscribeState / getObject / getObjectView / sendTo. Load external scripts via @import url('…'); at the top.",
   'theme.js.warning':  '⚠ Script runs with your frontend permissions and can read/write all ioBroker datapoints. Only paste code you trust.',
   'theme.js.lines':    '{count} lines',
   'theme.js.empty':    'No Custom JS',

@@ -372,7 +372,7 @@ export const de = {
   'theme.css.enabled':  'CSS aktiv',
 
   'theme.js.title':    'Globales JavaScript',
-  'theme.js.subtitle': "Helfer-Funktionen für Widget-onClick. API: window.aura.setState(id, val), getState(id), subscribeState(id, cb). Externe Scripts via @import url('…'); am Anfang einbinden.",
+  'theme.js.subtitle': "Helfer-Funktionen für Widget-onClick. API: window.aura.setState / getState / subscribeState / getObject / getObjectView / sendTo. Externe Scripts via @import url('…'); am Anfang einbinden.",
   'theme.js.warning':  '⚠ Script läuft mit deinen Frontend-Berechtigungen und kann alle ioBroker-Datenpunkte lesen und schreiben. Nur eigenen, vertrauten Code einfügen.',
   'theme.js.lines':    '{count} Zeilen',
   'theme.js.empty':    'Kein Custom JS',
