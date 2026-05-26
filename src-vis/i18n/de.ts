@@ -532,6 +532,11 @@ export const de = {
   'wf.clock.dateFontSize':    'Schriftgröße Datum (px)',
   'wf.clock.customFontSize':  'Schriftgröße eig. Format (px)',
   'wf.clock.fontSizeAuto':    'auto',
+  'wf.clock.showWeek':        'Kalenderwoche anzeigen',
+  'wf.clock.showCity':        'Ort anzeigen',
+  'wf.clock.showSunrise':     'Sonnenaufgang anzeigen',
+  'wf.clock.showSunset':      'Sonnenuntergang anzeigen',
+  'wf.clock.extrasFontSize':  'Schriftgröße Zusatzinfo (px)',
   'wf.value.fontSize':        'Schriftgröße Wert (px)',
 
   // History (chart)
@@ -912,6 +917,7 @@ export const de = {
   'clock.month.3': 'April',    'clock.month.4': 'Mai',     'clock.month.5': 'Juni',
   'clock.month.6': 'Juli',     'clock.month.7': 'August',  'clock.month.8': 'September',
   'clock.month.9': 'Oktober',  'clock.month.10': 'November','clock.month.11': 'Dezember',
+  'clock.kw':       'KW ',
 
   // ── AutoListConfig ────────────────────────────────────────────────────────────
   'autolist.trueText':  'Text für AN / true / 1',

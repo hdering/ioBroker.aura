@@ -62,6 +62,13 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
     { key: 'events', label: 'Ereignis-Liste' },
     { key: 'add',    label: '+ Ereignis-Button' },
   ],
+  clock:         [
+    { key: 'icon',         label: 'Widget-Icon' },
+    { key: 'sunrise-icon', label: '🌅 Sonnenaufgang-Icon' },
+    { key: 'sunset-icon',  label: '🌇 Sonnenuntergang-Icon' },
+    { key: 'city-icon',    label: '📍 Ort-Icon' },
+    { key: 'week-icon',    label: '📅 KW-Icon' },
+  ],
   mediaplayer:   [
     { key: 'play-pause',     label: '▶ / ⏸ Play / Pause' },
     { key: 'prev',           label: '⏮ Vorheriger Titel' },
@@ -121,9 +128,14 @@ const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
     { key: 'count',    label: 'Anzahl Termine' },
   ],
   clock: [
-    { key: 'time',   label: 'Uhrzeit' },
-    { key: 'date',   label: 'Datum' },
-    { key: 'custom', label: 'Benutzerdefiniert' },
+    { key: 'time',    label: 'Uhrzeit' },
+    { key: 'date',    label: 'Datum' },
+    { key: 'custom',  label: 'Benutzerdefiniert' },
+    { key: 'city',    label: '📍 Ort' },
+    { key: 'sunrise', label: '🌅 Sonnenaufgang' },
+    { key: 'sunset',  label: '🌇 Sonnenuntergang' },
+    { key: 'week',    label: 'Kalenderwoche (Nr.)' },
+    { key: 'kw',      label: 'Kalenderwoche (KW xx)' },
   ],
   value: [
     { key: 'unit',    label: 'Einheit' },

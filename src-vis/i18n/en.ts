@@ -534,6 +534,11 @@ export const en: Record<TranslationKey, string> = {
   'wf.clock.dateFontSize':   'Date font size (px)',
   'wf.clock.customFontSize': 'Custom font size (px)',
   'wf.clock.fontSizeAuto':   'auto',
+  'wf.clock.showWeek':       'Show calendar week',
+  'wf.clock.showCity':       'Show city',
+  'wf.clock.showSunrise':    'Show sunrise',
+  'wf.clock.showSunset':     'Show sunset',
+  'wf.clock.extrasFontSize': 'Extras font size (px)',
   'wf.value.fontSize':       'Value font size (px)',
 
   // History (chart)
@@ -914,6 +919,7 @@ export const en: Record<TranslationKey, string> = {
   'clock.month.3': 'April',    'clock.month.4': 'May',      'clock.month.5': 'June',
   'clock.month.6': 'July',     'clock.month.7': 'August',   'clock.month.8': 'September',
   'clock.month.9': 'October',  'clock.month.10': 'November','clock.month.11': 'December',
+  'clock.kw':       'CW ',
 
   // ── AutoListConfig ────────────────────────────────────────────────────────────
   'autolist.trueText':  'Text for ON / true / 1',

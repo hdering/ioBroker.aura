@@ -3945,7 +3945,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         style={inputStyle}
                       />
                       <p className="text-[10px] mt-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
-                        Tokens: HH mm ss dd MM yyyy EE EEEE MMMM
+                        Tokens: HH mm ss dd MM yyyy EE EEEE MMMM ww SR SS CT
                       </p>
                     </div>
                     {(o.customFormat as string)?.trim() ? (
@@ -3995,6 +3995,35 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           </div>
                         )}
                       </>
+                    )}
+                    {/* Extras: KW / City / Sunrise / Sunset toggles */}
+                    {(['showWeek', 'showCity', 'showSunrise', 'showSunset'] as const).map((key) => (
+                      <div key={key} className="flex items-center justify-between">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t(`wf.clock.${key}` as Parameters<typeof t>[0])}</label>
+                        <button
+                          onClick={() => set({ [key]: !o[key] })}
+                          className="relative w-9 h-5 rounded-full transition-colors"
+                          style={{ background: o[key] ? 'var(--accent)' : 'var(--app-border)' }}
+                        >
+                          <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                            style={{ left: o[key] ? '18px' : '2px' }} />
+                        </button>
+                      </div>
+                    ))}
+                    {(o.showWeek || o.showCity || o.showSunrise || o.showSunset) && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.clock.extrasFontSize')}</label>
+                        <input
+                          type="number"
+                          min={0}
+                          max={200}
+                          value={(o.extrasFontSize as number) ?? ''}
+                          onChange={(e) => set({ extrasFontSize: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value) || 0) })}
+                          placeholder={t('wf.clock.fontSizeAuto')}
+                          className={inputCls}
+                          style={inputStyle}
+                        />
+                      </div>
                     )}
                   </>
                 );

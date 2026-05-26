@@ -53,6 +53,7 @@
   "dependencies": {
     "@iconify/react": "^6.0.2",
     "@iobroker/adapter-core": "^3.3.2",
+    "@types/suncalc": "^1.9.2",
     "dompurify": "^3.4.1",
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.6",
@@ -65,6 +66,7 @@
     "react-router-dom": "^7.14.0",
     "recharts": "^2.12.7",
     "socket.io-client": "^2.5.0",
+    "suncalc": "^1.9.0",
     "zustand": "^4.5.4"
   },
   "devDependencies": {
