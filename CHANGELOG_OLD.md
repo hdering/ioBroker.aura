@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.119 (2026-05-23)
+- fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr
+- fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget
+
 ## 0.9.118 (2026-05-22)
 - feat(timer): remove custom layout option from Zeitschaltuhr
 

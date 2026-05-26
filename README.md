@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.139 (2026-05-26)
+- feat(widgets): add input widget + refactor edit dialog to template
+
+
 ### 0.9.138 (2026-05-26)
 - chore: rebuild www bundle
 - feat(widgets): add aura-widget-* CSS hook classes across all widgets
@@ -278,11 +282,6 @@ Release v0.9.123
 - feat(timer): decouple Zeitschaltuhr backend path from widget id
 
 
-### 0.9.119 (2026-05-23)
-- fix(timer): also freshen Timer event ids when cloning groups that contain a Zeitschaltuhr
-- fix(timer): regenerate event ids and clone options when duplicating a Zeitschaltuhr widget
-
-
 ## License
 
 MIT License
@@ -294,6 +293,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
