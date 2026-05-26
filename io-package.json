@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.143",
+    "version": "0.9.144",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.144": {
+        "en": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
+        "de": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
+        "ru": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
+        "pt": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
+        "nl": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
+        "fr": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
+        "it": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
+        "es": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
+        "pl": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
+        "uk": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
+        "zh-cn": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week"
+      },
       "0.9.143": {
         "en": "feat(clock): add city, sunrise, sunset, calendar week",
         "de": "feat(clock): add city, sunrise, sunset, calendar week",
@@ -183,19 +196,6 @@
         "pl": "Release v0.9.136",
         "uk": "Release v0.9.136",
         "zh-cn": "Release v0.9.136"
-      },
-      "0.9.135": {
-        "en": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
-        "de": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
-        "ru": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
-        "pt": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
-        "nl": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
-        "fr": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
-        "it": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
-        "es": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
-        "pl": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
-        "uk": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list",
-        "zh-cn": "feat(brokenDps): pulse-highlight the focused widget in the editor preview; feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list"
       }
     }
   },

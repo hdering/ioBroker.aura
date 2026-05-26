@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.124 (2026-05-23)
+- feat(admin): add Custom JS feature and 'CSS & JS' menu page
+
 ## 0.9.123 (2026-05-23)
 Release v0.9.123
 
