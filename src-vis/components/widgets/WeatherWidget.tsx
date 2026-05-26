@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Cloud, Loader } from 'lucide-react';
 import type { WidgetProps, CustomGrid, CustomGridDef, CustomCell } from '../../types';
 import { useDatapoint } from '../../hooks/useDatapoint';
+import { useAdapterWeather } from '../../hooks/useAdapterWeather';
 import { useT } from '../../i18n';
 import { CustomGridView } from './CustomGridView';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -265,6 +266,9 @@ export function WeatherWidget({ config }: WidgetProps) {
   const showCloudCover   = (opts.showCloudCover  as boolean) ?? false;
   const tempThresholds   = (opts.forecastTempThresholds as [number, string][] | undefined);
   const localTempDp      = (opts.localTempDatapoint as string) ?? '';
+  const dataSource       = (opts.dataSource as 'online' | 'adapter') ?? 'online';
+  const adapterPath      = (opts.adapterLocationPath as string) ?? '';
+  const useAdapter       = dataSource === 'adapter' && adapterPath.length > 0;
   const layout           = config.layout ?? 'default';
   const showTitle        = opts.showTitle !== false;
   const showIcon         = opts.showIcon  !== false;
@@ -312,13 +316,13 @@ export function WeatherWidget({ config }: WidgetProps) {
     ? Number(localTempRaw)
     : null;
 
-  // ── Online weather ────────────────────────────────────────────────────────
-  const [data, setData]       = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(false);
+  // ── Online weather (REST) ─────────────────────────────────────────────────
+  const [onlineData, setOnlineData]       = useState<WeatherData | null>(null);
+  const [onlineLoading, setOnlineLoading] = useState(true);
+  const [onlineError, setOnlineError]     = useState(false);
 
   useEffect(() => {
-    if (!showWeather) { setLoading(false); return; }
+    if (!showWeather || useAdapter) { setOnlineLoading(false); return; }
     let cancelled = false;
     const fetchWeather = async () => {
       try {
@@ -332,16 +336,24 @@ export function WeatherWidget({ config }: WidgetProps) {
         const res = await fetch(url);
         if (!res.ok) throw new Error('HTTP error');
         const json = await res.json() as WeatherData;
-        if (!cancelled) { setData(json); setError(false); setLoading(false); }
+        if (!cancelled) { setOnlineData(json); setOnlineError(false); setOnlineLoading(false); }
       } catch {
-        if (!cancelled) { setError(true); setLoading(false); }
+        if (!cancelled) { setOnlineError(true); setOnlineLoading(false); }
       }
     };
-    setLoading(true);
+    setOnlineLoading(true);
     fetchWeather();
     const id = setInterval(fetchWeather, refreshMin * 60_000);
     return () => { cancelled = true; clearInterval(id); };
-  }, [lat, lon, refreshMin, forecastDays, showWeather]);
+  }, [lat, lon, refreshMin, forecastDays, showWeather, useAdapter]);
+
+  // ── Adapter weather (ioBroker open-meteo-weather.*) ──────────────────────
+  const adapter = useAdapterWeather(useAdapter ? adapterPath : '');
+
+  // ── Effective data / loading / error (source-agnostic) ────────────────────
+  const data:    WeatherData | null = useAdapter ? (adapter.data as WeatherData | null) : onlineData;
+  const loading: boolean             = useAdapter ? adapter.loading : onlineLoading;
+  const error:   boolean             = useAdapter ? adapter.error   : onlineError;
 
   // ── DWD warnings (Brightsky) ──────────────────────────────────────────────
   const [warnings, setWarnings]           = useState<DwdWarning[]>([]);

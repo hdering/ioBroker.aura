@@ -589,6 +589,13 @@ export const de = {
   'wf.group.transparentHint': 'Hintergrund, Rahmen und Schatten entfernen',
 
   // Weather config
+  'wf.weather.dataSource':      'Datenquelle',
+  'wf.weather.dsOnline':        'Online',
+  'wf.weather.dsAdapter':       'ioBroker Adapter',
+  'wf.weather.dsOnlineHint':    'Daten direkt von api.open-meteo.com (Internet erforderlich)',
+  'wf.weather.dsAdapterHint':   'Daten vom installierten open-meteo-weather Adapter (offlinefähig)',
+  'wf.weather.adapterPath':     'Adapter-Standort',
+  'wf.weather.adapterPathHint': 'z.B. open-meteo-weather.0.Berlin — beliebigen Sub-DP wählen, der Pfad wird automatisch gekürzt',
   'wf.weather.locationSearch':  'Standort suchen',
   'wf.weather.cityPlaceholder': 'Stadt oder Adresse eingeben',
   'wf.weather.search':          'Suchen',
@@ -600,7 +607,7 @@ export const de = {
   'wf.weather.locationName':    'Standortname',
   'wf.weather.locationPh':      'z.B. München',
   'wf.weather.refreshMin':      'Aktualisierung (Min.)',
-  'wf.weather.showWeather':     'Online-Wetter anzeigen',
+  'wf.weather.showWeather':     'Wetterdaten anzeigen',
   'wf.weather.showForecast':    'Vorhersage anzeigen',
   'wf.weather.forecastDays':    'Vorhersagetage',
   'wf.weather.showToday':       'Heutigen Tag anzeigen',

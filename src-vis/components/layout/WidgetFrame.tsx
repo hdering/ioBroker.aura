@@ -1212,8 +1212,9 @@ interface WeatherConfigSectionProps {
   o: Record<string, unknown>;
   set: (patch: Record<string, unknown>) => void;
   onOpenPicker: () => void;
+  onOpenAdapterPicker: () => void;
 }
-function WeatherConfigSection({ o, set, onOpenPicker }: WeatherConfigSectionProps) {
+function WeatherConfigSection({ o, set, onOpenPicker, onOpenAdapterPicker }: WeatherConfigSectionProps) {
   const t = useT();
   const [addressInput, setAddressInput] = useState('');
   const [geocoding,    setGeocoding]    = useState(false);
@@ -1268,8 +1269,59 @@ function WeatherConfigSection({ o, set, onOpenPicker }: WeatherConfigSectionProp
     set({ forecastTempThresholds: next.length ? next : undefined });
   const toHex = (c: string) => { const m = c.match(/#[0-9a-fA-F]{6}/); return m ? m[0] : '#fde047'; };
 
+  const dataSource    = (o.dataSource as 'online' | 'adapter') ?? 'online';
+  const adapterPath   = (o.adapterLocationPath as string) ?? '';
+  const segBtnBase    = 'flex-1 text-[11px] py-1.5 rounded-md transition-colors';
+
   return (
     <>
+      {/* ── Data source ── */}
+      <div>
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.dataSource')}</label>
+        <div className="flex gap-1 p-0.5 rounded-lg" style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
+          <button
+            onClick={() => set({ dataSource: 'online' })}
+            className={segBtnBase}
+            style={{ background: dataSource === 'online' ? 'var(--accent)' : 'transparent', color: dataSource === 'online' ? '#fff' : 'var(--text-secondary)' }}
+          >{t('wf.weather.dsOnline')}</button>
+          <button
+            onClick={() => set({ dataSource: 'adapter' })}
+            className={segBtnBase}
+            style={{ background: dataSource === 'adapter' ? 'var(--accent)' : 'transparent', color: dataSource === 'adapter' ? '#fff' : 'var(--text-secondary)' }}
+          >{t('wf.weather.dsAdapter')}</button>
+        </div>
+        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+          {dataSource === 'adapter' ? t('wf.weather.dsAdapterHint') : t('wf.weather.dsOnlineHint')}
+        </p>
+      </div>
+
+      {/* ── Adapter location path (only when adapter mode) ── */}
+      {dataSource === 'adapter' && (
+        <div>
+          <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.adapterPath')}</label>
+          <div className="flex gap-1.5">
+            <input
+              type="text"
+              value={adapterPath}
+              onChange={(e) => set({ adapterLocationPath: e.target.value || undefined })}
+              placeholder="open-meteo-weather.0.Standort"
+              className={iCls + ' flex-1 font-mono'}
+              style={iSty}
+            />
+            <button
+              onClick={onOpenAdapterPicker}
+              className="text-xs px-2.5 rounded-lg shrink-0"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+            >…</button>
+          </div>
+          <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+            {t('wf.weather.adapterPathHint')}
+          </p>
+        </div>
+      )}
+
+      <hr style={{ borderColor: 'var(--app-border)' }} />
+
       {/* ── Display toggles ── */}
       <div className="flex items-center justify-between">
         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.showWeather')}</label>
@@ -2726,7 +2778,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       setOpenPanel(panel);
     }
   };
-  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'shutter_openDp' | 'shutter_closeDp' | 'dimmer_switchDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_urlDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | 'iframe_urlDp' | 'light_switchDp' | 'light_brightnessDp' | 'light_hueDp' | 'light_saturationDp' | 'light_rDp' | 'light_gDp' | 'light_bDp' | 'light_colorDp' | 'light_temperatureDp' | 'light_effectDp' | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'shutter_openDp' | 'shutter_closeDp' | 'dimmer_switchDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_urlDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | 'iframe_urlDp' | 'light_switchDp' | 'light_brightnessDp' | 'light_hueDp' | 'light_saturationDp' | 'light_rDp' | 'light_gDp' | 'light_bDp' | 'light_colorDp' | 'light_temperatureDp' | 'light_effectDp' | 'weather_adapterPath' | null>(null);
   const [imageFilePicker, setImageFilePicker] = useState(false);
   const [pendingTypeChange, setPendingTypeChange] = useState<{
     suggestedType: WidgetType;
@@ -4758,7 +4810,12 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 const o   = config.options ?? {};
                 const set = (patch: Record<string, unknown>) =>
                   onConfigChange({ ...config, options: { ...o, ...patch } });
-                return <WeatherConfigSection o={o} set={set} onOpenPicker={() => setPickerTarget('localTempDatapoint')} />;
+                return <WeatherConfigSection
+                  o={o}
+                  set={set}
+                  onOpenPicker={() => setPickerTarget('localTempDatapoint')}
+                  onOpenAdapterPicker={() => setPickerTarget('weather_adapterPath')}
+                />;
               })()}
 
               {/* ── Camera config ── */}
@@ -7449,6 +7506,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           currentValue={
             pickerTarget === 'datapoint'           ? config.datapoint :
             pickerTarget === 'localTempDatapoint'  ? ((config.options?.localTempDatapoint as string) ?? '') :
+            pickerTarget === 'weather_adapterPath' ? ((config.options?.adapterLocationPath as string) ?? '') :
             pickerTarget === 'shutter_activityDp'  ? ((config.options?.activityDp as string) ?? '') :
             pickerTarget === 'shutter_directionDp' ? ((config.options?.directionDp as string) ?? '') :
             pickerTarget === 'shutter_stopDp'      ? ((config.options?.stopDp as string) ?? '') :
@@ -7593,6 +7651,12 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               }
             } else if (pickerTarget === 'localTempDatapoint') {
               onConfigChange({ ...config, options: { ...config.options, localTempDatapoint: id } });
+            } else if (pickerTarget === 'weather_adapterPath') {
+              // User can pick any sub-state of the location device — strip down
+              // to the location prefix (everything before ".weather.").
+              const idx = id.indexOf('.weather.');
+              const prefix = idx > 0 ? id.slice(0, idx) : id;
+              onConfigChange({ ...config, options: { ...config.options, adapterLocationPath: prefix } });
             } else if (pickerTarget === 'shutter_activityDp') {
               onConfigChange({ ...config, options: { ...config.options, activityDp: id } });
             } else if (pickerTarget === 'shutter_directionDp') {

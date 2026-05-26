@@ -591,6 +591,13 @@ export const en: Record<TranslationKey, string> = {
   'wf.group.transparentHint': 'Remove background, border and shadow',
 
   // Weather config
+  'wf.weather.dataSource':      'Data Source',
+  'wf.weather.dsOnline':        'Online',
+  'wf.weather.dsAdapter':       'ioBroker Adapter',
+  'wf.weather.dsOnlineHint':    'Fetched directly from api.open-meteo.com (requires internet)',
+  'wf.weather.dsAdapterHint':   'Read from the installed open-meteo-weather adapter (works offline)',
+  'wf.weather.adapterPath':     'Adapter location',
+  'wf.weather.adapterPathHint': 'e.g. open-meteo-weather.0.Berlin — pick any sub-state, the prefix is detected automatically',
   'wf.weather.locationSearch':  'Search Location',
   'wf.weather.cityPlaceholder': 'Enter city or address',
   'wf.weather.search':          'Search',
@@ -602,7 +609,7 @@ export const en: Record<TranslationKey, string> = {
   'wf.weather.locationName':    'Location Name',
   'wf.weather.locationPh':      'e.g. Munich',
   'wf.weather.refreshMin':      'Refresh (min.)',
-  'wf.weather.showWeather':     'Show online weather',
+  'wf.weather.showWeather':     'Show weather data',
   'wf.weather.showForecast':    'Show Forecast',
   'wf.weather.forecastDays':    'Forecast Days',
   'wf.weather.showToday':       'Show Today',
