@@ -4,7 +4,7 @@ import { Layers, Wifi, WifiOff, Layout, Hash, Copy, Check, AlertTriangle, CheckC
 import { useState } from 'react';
 import { useT } from '../../i18n';
 import { copyToClipboard } from '../../utils/clipboard';
-import { useTimerOrphans } from '../../hooks/useTimerOrphans';
+import { useTimerOrphans, type OrphanItem } from '../../hooks/useTimerOrphans';
 import { useBrokenDpRefs } from '../../hooks/useBrokenDpRefs';
 import { Link } from 'react-router-dom';
 
@@ -37,8 +37,8 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-function OrphanRow({ label, ns, ids }: { label: string; ns: 'timers' | 'lists'; ids: string[] }) {
-  const clean = ids.length === 0;
+function OrphanRow({ label, ns, items }: { label: string; ns: 'timers' | 'lists'; items: OrphanItem[] }) {
+  const clean = items.length === 0;
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-primary)' }}>
@@ -49,14 +49,21 @@ function OrphanRow({ label, ns, ids }: { label: string; ns: 'timers' | 'lists'; 
             color: clean ? 'var(--accent-green)' : 'var(--accent-yellow)',
           }}
         >
-          {ids.length}
+          {items.length}
         </span>
         <span>{label}</span>
       </div>
-      {ids.length > 0 && (
-        <ul className="aura-scroll text-xs font-mono max-h-24 overflow-y-auto space-y-0.5 px-3 py-1.5 rounded-lg ml-7"
+      {items.length > 0 && (
+        <ul className="aura-scroll text-xs max-h-32 overflow-y-auto space-y-0.5 px-3 py-1.5 rounded-lg ml-7"
             style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}>
-          {ids.map((id) => <li key={id}>aura.0.{ns}.{id}</li>)}
+          {items.map((it) => (
+            <li key={it.id} className="font-mono flex items-baseline gap-2">
+              <span>aura.0.{ns}.{it.id}</span>
+              {it.name && (
+                <span className="font-sans" style={{ color: 'var(--text-primary)' }}>— {it.name}</span>
+              )}
+            </li>
+          ))}
         </ul>
       )}
     </div>
@@ -140,8 +147,8 @@ function TimerOrphansSection() {
         {clean ? t('dashboard.orphans.hintClean') : t('dashboard.orphans.hint')}
       </p>
       <div className="space-y-3 pt-1">
-        <OrphanRow label={t('dashboard.orphans.timerLabel')} ns="timers" ids={timer} />
-        <OrphanRow label={t('dashboard.orphans.listLabel')}  ns="lists"  ids={list}  />
+        <OrphanRow label={t('dashboard.orphans.timerLabel')} ns="timers" items={timer} />
+        <OrphanRow label={t('dashboard.orphans.listLabel')}  ns="lists"  items={list}  />
       </div>
     </div>
   );

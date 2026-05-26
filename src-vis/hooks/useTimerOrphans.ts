@@ -19,25 +19,31 @@ function visitAllWidgets(visit: (w: WidgetConfig) => void): void {
   for (const v of views) for (const w of v.widgets) visit(w);
 }
 
-async function fetchRemoteIds(command: 'listTimers' | 'listLists'): Promise<string[]> {
-  const r = await sendToDirect<{ ok: boolean; widgetIds?: string[] }>('aura.0', command, {});
-  if (r && typeof r === 'object' && 'widgetIds' in r && Array.isArray((r as { widgetIds?: string[] }).widgetIds)) {
-    return (r as { widgetIds: string[] }).widgetIds;
+export interface OrphanItem { id: string; name: string }
+
+async function fetchRemoteItems(command: 'listTimers' | 'listLists'): Promise<OrphanItem[]> {
+  const r = await sendToDirect<{ ok: boolean; items?: OrphanItem[]; widgetIds?: string[] }>('aura.0', command, {});
+  if (r && typeof r === 'object') {
+    const items = (r as { items?: OrphanItem[] }).items;
+    if (Array.isArray(items)) return items.map((it) => ({ id: String(it.id || ''), name: String(it.name || '') })).filter((it) => it.id);
+    // Backward compatibility: older adapter only returned widgetIds.
+    const ids = (r as { widgetIds?: string[] }).widgetIds;
+    if (Array.isArray(ids)) return ids.map((id) => ({ id: String(id), name: '' }));
   }
   return [];
 }
 
 export interface OrphansState {
-  timer: string[];
-  list: string[];
+  timer: OrphanItem[];
+  list: OrphanItem[];
   loading: boolean;
   refresh: () => Promise<void>;
   cleanup: () => Promise<{ ok: number; fail: number }>;
 }
 
 export function useTimerOrphans(): OrphansState {
-  const [timer, setTimer] = useState<string[]>([]);
-  const [list, setList] = useState<string[]>([]);
+  const [timer, setTimer] = useState<OrphanItem[]>([]);
+  const [list, setList] = useState<OrphanItem[]>([]);
   const [loading, setLoading] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -51,11 +57,11 @@ export function useTimerOrphans(): OrphansState {
         if (w.type === 'list' || w.type === 'autolist') knownList.add(w.id);
       });
       const [remoteTimer, remoteList] = await Promise.all([
-        fetchRemoteIds('listTimers'),
-        fetchRemoteIds('listLists'),
+        fetchRemoteItems('listTimers'),
+        fetchRemoteItems('listLists'),
       ]);
-      setTimer(remoteTimer.filter((id) => !knownTimer.has(id)));
-      setList(remoteList.filter((id) => !knownList.has(id)));
+      setTimer(remoteTimer.filter((it) => !knownTimer.has(it.id)));
+      setList(remoteList.filter((it) => !knownList.has(it.id)));
     } finally {
       setLoading(false);
     }
@@ -69,8 +75,8 @@ export function useTimerOrphans(): OrphansState {
       if (r && typeof r === 'object' && 'ok' in r && (r as { ok: boolean }).ok) ok++;
       else fail++;
     };
-    for (const id of timer) await send('deleteTimer', id);
-    for (const id of list)  await send('deleteList',  id);
+    for (const it of timer) await send('deleteTimer', it.id);
+    for (const it of list)  await send('deleteList',  it.id);
     await refresh();
     return { ok, fail };
   }, [timer, list, refresh]);

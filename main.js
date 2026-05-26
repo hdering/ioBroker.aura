@@ -1279,12 +1279,12 @@ class Aura extends utils.Adapter {
         try {
           const channels = await this.getChannelsOfAsync(ns);
           const prefix = `${this.namespace}.${ns}.`;
-          const widgetIds = (channels || [])
-            .map((c) => c._id || '')
-            .filter((id) => id.startsWith(prefix))
-            .map((id) => id.slice(prefix.length))
-            .filter((id) => id && !id.includes('.'));
-          reply({ ok: true, widgetIds });
+          const items = (channels || [])
+            .filter((c) => (c?._id || '').startsWith(prefix))
+            .map((c) => ({ id: (c._id).slice(prefix.length), name: c?.common?.name || '' }))
+            .filter((it) => it.id && !it.id.includes('.'));
+          // Legacy field kept for older frontends that only consume the IDs.
+          reply({ ok: true, items, widgetIds: items.map((it) => it.id) });
         } catch (e) {
           reply({ ok: false, error: e?.message || String(e) });
         }
