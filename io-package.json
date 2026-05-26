@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.140",
+    "version": "0.9.141",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.141": {
+        "en": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets",
+        "de": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets",
+        "ru": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets",
+        "pt": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets",
+        "nl": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets",
+        "fr": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets",
+        "it": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets",
+        "es": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets",
+        "pl": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets",
+        "uk": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets",
+        "zh-cn": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets"
+      },
       "0.9.140": {
         "en": "feat(timer): re-add custom layout + placeable elements",
         "de": "feat(timer): re-add custom layout + placeable elements",
@@ -183,19 +196,6 @@
         "pl": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
         "uk": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs",
         "zh-cn": "feat(brokenDps): deep-link group children to their host group widget; feat(orphans): show channel common.name next to orphan DP IDs"
-      },
-      "0.9.133": {
-        "en": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
-        "de": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
-        "ru": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
-        "pt": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
-        "nl": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
-        "fr": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
-        "it": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
-        "es": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
-        "pl": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
-        "uk": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS",
-        "zh-cn": "feat(customJs): show import-order hint above editor; feat(customJs): support @import url() at top of custom JS"
       }
     }
   },

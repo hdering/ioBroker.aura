@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.121 (2026-05-23)
+- fix(timer): keep copied widgets in sync without F5 + register them without adapter restart
+- feat(autolist): global toggle to show last-change timestamp per entry
+
 ## 0.9.120 (2026-05-23)
 - feat(timer): decouple Zeitschaltuhr backend path from widget id
 

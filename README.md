@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.141 (2026-05-26)
+- feat(iframe): sandbox preset dropdown for html/iframe/popup widgets
+
+
 ### 0.9.140 (2026-05-26)
 - feat(timer): re-add custom layout + placeable elements
 
@@ -277,11 +281,6 @@ Release v0.9.123
 - fix(value): use text-primary for compact title to match SwitchWidget
 
 
-### 0.9.121 (2026-05-23)
-- fix(timer): keep copied widgets in sync without F5 + register them without adapter restart
-- feat(autolist): global toggle to show last-change timestamp per entry
-
-
 ## License
 
 MIT License
@@ -293,6 +292,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
