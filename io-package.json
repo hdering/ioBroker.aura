@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.142",
+    "version": "0.9.143",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,18 +106,18 @@
       }
     ],
     "news": {
-      "0.9.142": {
-        "en": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
-        "de": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
-        "ru": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
-        "pt": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
-        "nl": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
-        "fr": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
-        "it": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
-        "es": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
-        "pl": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
-        "uk": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura",
-        "zh-cn": "feat(custom-js): expose getObject, getObjectView, sendTo on window.aura"
+      "0.9.143": {
+        "en": "feat(clock): add city, sunrise, sunset, calendar week",
+        "de": "feat(clock): add city, sunrise, sunset, calendar week",
+        "ru": "feat(clock): add city, sunrise, sunset, calendar week",
+        "pt": "feat(clock): add city, sunrise, sunset, calendar week",
+        "nl": "feat(clock): add city, sunrise, sunset, calendar week",
+        "fr": "feat(clock): add city, sunrise, sunset, calendar week",
+        "it": "feat(clock): add city, sunrise, sunset, calendar week",
+        "es": "feat(clock): add city, sunrise, sunset, calendar week",
+        "pl": "feat(clock): add city, sunrise, sunset, calendar week",
+        "uk": "feat(clock): add city, sunrise, sunset, calendar week",
+        "zh-cn": "feat(clock): add city, sunrise, sunset, calendar week"
       },
       "0.9.141": {
         "en": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets",

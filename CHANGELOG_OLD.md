@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.123 (2026-05-23)
+Release v0.9.123
+
 ## 0.9.122 (2026-05-23)
 - style(value): remove bold weight from value text
 - fix(value): use text-primary for compact title to match SwitchWidget
