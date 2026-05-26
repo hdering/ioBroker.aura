@@ -1213,8 +1213,9 @@ interface WeatherConfigSectionProps {
   set: (patch: Record<string, unknown>) => void;
   onOpenPicker: () => void;
   onOpenAdapterPicker: () => void;
+  layout: string;
 }
-function WeatherConfigSection({ o, set, onOpenPicker, onOpenAdapterPicker }: WeatherConfigSectionProps) {
+function WeatherConfigSection({ o, set, onOpenPicker, onOpenAdapterPicker, layout }: WeatherConfigSectionProps) {
   const t = useT();
   const [addressInput, setAddressInput] = useState('');
   const [geocoding,    setGeocoding]    = useState(false);
@@ -1581,6 +1582,36 @@ function WeatherConfigSection({ o, set, onOpenPicker, onOpenAdapterPicker }: Wea
             {tempThresholds.length === 0 && (
               <p className="text-[10px] italic" style={{ color: 'var(--text-secondary)', opacity: 0.45 }}>{t('wf.weather.tempThresholdsEmpty')}</p>
             )}
+          </div>
+        </>
+      )}
+
+      {/* ── Custom-layout temp-bar sizing (only relevant in custom layout) ── */}
+      {layout === 'custom' && (
+        <>
+          <hr style={{ borderColor: 'var(--app-border)' }} />
+          <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+            {t('wf.weather.customSection')}
+          </div>
+          <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.barFontSize')}</label>
+            <input
+              type="number" min={0.4} max={3} step={0.05}
+              value={(o.customForecastBarFontSize as number) ?? 0.75}
+              onChange={(e) => set({ customForecastBarFontSize: Number(e.target.value) || undefined })}
+              className={iCls} style={iSty}
+            />
+            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>{t('wf.weather.barFontSizeHint')}</p>
+          </div>
+          <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.weather.barHeight')}</label>
+            <input
+              type="number" min={0.1} max={4} step={0.05}
+              value={(o.customForecastBarHeight as number) ?? 0.9}
+              onChange={(e) => set({ customForecastBarHeight: Number(e.target.value) || undefined })}
+              className={iCls} style={iSty}
+            />
+            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>{t('wf.weather.barHeightHint')}</p>
           </div>
         </>
       )}
@@ -4815,6 +4846,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   set={set}
                   onOpenPicker={() => setPickerTarget('localTempDatapoint')}
                   onOpenAdapterPicker={() => setPickerTarget('weather_adapterPath')}
+                  layout={config.layout ?? 'default'}
                 />;
               })()}
 

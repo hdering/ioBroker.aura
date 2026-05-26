@@ -569,6 +569,15 @@ export function WeatherWidget({ config }: WidgetProps) {
 
   if (layout === 'custom') {
     const customGrid = (opts.customGrid as CustomGrid | undefined) ?? DEFAULT_WEATHER_GRID;
+    // Custom-layout typography & sizing for the temp-bar component.
+    const barFontSize  = ((opts.customForecastBarFontSize as number) || 0.75);   // rem
+    const barHeight    = ((opts.customForecastBarHeight   as number) || 0.9);    // rem
+    const fmtRainLine = (rp?: number | null, rs?: number | null): string => {
+      const parts: string[] = [];
+      if (rp !== undefined && rp !== null) parts.push(`${rp}%`);
+      if (rs !== undefined && rs !== null && rs > 0) parts.push(`${rs.toFixed(1)} mm`);
+      return parts.length ? `💧 ${parts.join(' · ')}` : '';
+    };
     const cellEmoji = <span style={{ fontSize: '2.4em', lineHeight: 1 }}>{info.emoji}</span>;
     const cellEmojiTomorrow = tomorrowInfo ? <span style={{ fontSize: '2.4em', lineHeight: 1 }}>{tomorrowInfo.emoji}</span> : null;
     const cellWidgetIcon = <WidgetIcon size={Math.max(16, iconSize * scale)} style={{ color: 'var(--text-secondary)' }} />;
@@ -599,6 +608,7 @@ export function WeatherWidget({ config }: WidgetProps) {
       perDayFields[`tempRange${i}`]  = `${tMin}° / ${tMax}°`;
       perDayFields[`rainProb${i}`]   = rp !== undefined && rp !== null ? `${rp}%` : '';
       perDayFields[`rainSum${i}`]    = rs !== undefined && rs !== null && rs > 0 ? `${rs.toFixed(1)} mm` : '';
+      perDayFields[`rainLine${i}`]   = fmtRainLine(rp, rs);
       perDayComponents[`weather-icon-day-${i}`] = (
         <span style={{ fontSize: '2.4em', lineHeight: 1 }}>{di.emoji}</span>
       );
@@ -616,20 +626,20 @@ export function WeatherWidget({ config }: WidgetProps) {
           : 'linear-gradient(to right, #06b6d4, #3b82f6)';
       perDayComponents[`tempBar${i}`] = (
         <div className="flex items-center gap-1.5 w-full">
-          <span className="shrink-0 text-right tabular-nums" style={{ color: 'var(--text-secondary)', minWidth: '1.75rem', fontSize: '0.75rem' }}>
+          <span className="shrink-0 text-right tabular-nums" style={{ color: 'var(--text-secondary)', minWidth: `${barFontSize * 2.3}rem`, fontSize: `${barFontSize}rem` }}>
             {tMin}°
           </span>
-          <div className="flex-1 relative min-w-0" style={{ height: '0.9rem' }}>
+          <div className="flex-1 relative min-w-0" style={{ height: `${barHeight}rem` }}>
             <div className="absolute inset-y-0 left-0 right-0 rounded-full opacity-15" style={{ background: 'var(--text-secondary)' }} />
             <div className="absolute inset-y-0 rounded-full" style={{ left: `${leftPct}%`, width: `${Math.max(widthPct, 4)}%`, background: barBg }} />
           </div>
-          <span className="font-semibold shrink-0 tabular-nums" style={{ color: i === 0 ? 'var(--accent)' : 'var(--text-primary)', minWidth: '1.75rem', fontSize: '0.75rem' }}>
+          <span className="font-semibold shrink-0 tabular-nums" style={{ color: i === 0 ? 'var(--accent)' : 'var(--text-primary)', minWidth: `${barFontSize * 2.3}rem`, fontSize: `${barFontSize}rem` }}>
             {tMax}°
           </span>
         </div>
       );
       perDayComponents[`tempBarOnly${i}`] = (
-        <div className="relative w-full" style={{ height: '0.9rem' }}>
+        <div className="relative w-full" style={{ height: `${barHeight}rem` }}>
           <div className="absolute inset-y-0 left-0 right-0 rounded-full opacity-15" style={{ background: 'var(--text-secondary)' }} />
           <div className="absolute inset-y-0 rounded-full" style={{ left: `${leftPct}%`, width: `${Math.max(widthPct, 4)}%`, background: barBg }} />
         </div>
@@ -655,6 +665,8 @@ export function WeatherWidget({ config }: WidgetProps) {
           cloudCoverValue:    cur.cloud_cover !== undefined ? `${Math.round(cur.cloud_cover)}` : '',
           rainNow:            cur.precipitation !== undefined ? `${cur.precipitation.toFixed(1)} mm` : '',
           rainNowValue:       cur.precipitation !== undefined ? cur.precipitation.toFixed(1) : '',
+          // Combined "current" rain line — uses today's daily prob + current precipitation amount.
+          rainLine:           fmtRainLine(data!.daily.precipitation_probability_max?.[0] ?? null, cur.precipitation ?? null),
           location:           locationName,
           // Combined lines that mirror the standard layout
           title:              config.title,
@@ -680,6 +692,7 @@ export function WeatherWidget({ config }: WidgetProps) {
           tempRangeTomorrow:  (tomorrowMin !== null && tomorrowMax !== null) ? `${tomorrowMin}° / ${tomorrowMax}°` : '',
           rainProbTomorrow:   tomorrowRainP !== undefined && tomorrowRainP !== null ? `${tomorrowRainP}%` : '',
           rainSumTomorrow:    tomorrowRainS !== undefined && tomorrowRainS !== null ? `${tomorrowRainS.toFixed(1)} mm` : '',
+          rainLineTomorrow:   fmtRainLine(tomorrowRainP, tomorrowRainS),
           ...perDayFields,
         }}
         extraComponents={{

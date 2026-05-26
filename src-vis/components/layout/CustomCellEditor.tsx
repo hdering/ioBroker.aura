@@ -233,6 +233,7 @@ const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
       { key: 'cloudCoverValue',label: 'Bewölkung (nur Zahl)' },
       { key: 'rainNow',        label: 'Regen aktuell (mit mm)' },
       { key: 'rainNowValue',   label: 'Regen aktuell (nur Zahl)' },
+      { key: 'rainLine',       label: 'Regen-Zeile (💧 % · mm)' },
       { key: 'location',       label: 'Standort' },
       { key: 'warningsLine',   label: 'DWD-Warnungen (Text-Zeile)' },
     ];
@@ -249,6 +250,7 @@ const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: `tempRange${i}`,  label: `${dl} — Min / Max` },
         { key: `rainProb${i}`,   label: `${dl} — Regenwahrsch. (%)` },
         { key: `rainSum${i}`,    label: `${dl} — Regenmenge (mm)` },
+        { key: `rainLine${i}`,   label: `${dl} — Regen-Zeile (💧 % · mm)` },
       );
     }
     base.push(
@@ -260,6 +262,7 @@ const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
       { key: 'tempRangeTomorrow', label: '⏳ Morgen (alt) — Min / Max' },
       { key: 'rainProbTomorrow',  label: '⏳ Morgen (alt) — Regenwahrsch.' },
       { key: 'rainSumTomorrow',   label: '⏳ Morgen (alt) — Regenmenge' },
+      { key: 'rainLineTomorrow',  label: '⏳ Morgen (alt) — Regen-Zeile (💧 % · mm)' },
     );
     return base;
   })(),
