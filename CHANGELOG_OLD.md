@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.129 (2026-05-25)
+- fix(timer): rename channel/states when title changes in AdminWidgets
+- feat(timer): mirror widget title into ioBroker channel + state names
+
 ## 0.9.128 (2026-05-25)
 - fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated)
 - debug(timer): log unpublish path + surface delObject errors
