@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.127 (2026-05-25)
+- perf(chart): cache getObject + drop duplicate fetch in history path
+
 ## 0.9.126 (2026-05-25)
 - fix(useDatapointList): skip rows with missing value.common
 - fix(lists): declare list-count state writable to silence ioBroker read-only warning
