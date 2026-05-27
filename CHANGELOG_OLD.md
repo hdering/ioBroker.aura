@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.126 (2026-05-25)
+- fix(useDatapointList): skip rows with missing value.common
+- fix(lists): declare list-count state writable to silence ioBroker read-only warning
+
 ## 0.9.125 (2026-05-24)
 - fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe
 

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.145",
+    "version": "0.9.146",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.146": {
+        "en": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
+        "de": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
+        "ru": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
+        "pt": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
+        "nl": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
+        "fr": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
+        "it": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
+        "es": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
+        "pl": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
+        "uk": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
+        "zh-cn": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter"
+      },
       "0.9.145": {
         "en": "fix(input-widget): submit button no longer fills full row in default layout",
         "de": "fix(input-widget): submit button no longer fills full row in default layout",
@@ -183,19 +196,6 @@
         "pl": "chore: rebuild www bundle; feat(widgets): add aura-widget-* CSS hook classes across all widgets; fix(echart): make history instance optional in comparison mode",
         "uk": "chore: rebuild www bundle; feat(widgets): add aura-widget-* CSS hook classes across all widgets; fix(echart): make history instance optional in comparison mode",
         "zh-cn": "chore: rebuild www bundle; feat(widgets): add aura-widget-* CSS hook classes across all widgets; fix(echart): make history instance optional in comparison mode"
-      },
-      "0.9.137": {
-        "en": "feat(camera): allow stream URL to come from a datapoint",
-        "de": "feat(camera): allow stream URL to come from a datapoint",
-        "ru": "feat(camera): allow stream URL to come from a datapoint",
-        "pt": "feat(camera): allow stream URL to come from a datapoint",
-        "nl": "feat(camera): allow stream URL to come from a datapoint",
-        "fr": "feat(camera): allow stream URL to come from a datapoint",
-        "it": "feat(camera): allow stream URL to come from a datapoint",
-        "es": "feat(camera): allow stream URL to come from a datapoint",
-        "pl": "feat(camera): allow stream URL to come from a datapoint",
-        "uk": "feat(camera): allow stream URL to come from a datapoint",
-        "zh-cn": "feat(camera): allow stream URL to come from a datapoint"
       }
     }
   },
