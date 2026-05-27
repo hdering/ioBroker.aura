@@ -115,7 +115,7 @@ export function InputWidget({ config }: WidgetProps) {
     />
   );
 
-  const renderSubmitButton = (alwaysActive = false) => {
+  const renderSubmitButton = (alwaysActive = false, fillContainer = alwaysActive) => {
     if (readOnly) return null;
     if (!alwaysActive && !(submitMode === 'submit' && showSubmit)) return null;
     return (
@@ -124,7 +124,7 @@ export function InputWidget({ config }: WidgetProps) {
         onClick={commit}
         disabled={!dirty}
         title="Senden"
-        className="nodrag shrink-0 w-full h-full min-h-[28px] px-2 py-1.5 rounded-lg transition-opacity disabled:opacity-40 hover:opacity-80 flex items-center justify-center"
+        className={`nodrag shrink-0 ${fillContainer ? 'w-full h-full' : ''} min-h-[28px] px-2.5 py-1.5 rounded-lg transition-opacity disabled:opacity-40 hover:opacity-80 flex items-center justify-center`}
         style={{
           background: dirty ? 'var(--accent)' : 'var(--app-bg)',
           color:      dirty ? '#fff'          : 'var(--text-secondary)',
