@@ -854,6 +854,12 @@ class Aura extends utils.Adapter {
     await this.setObjectNotExistsAsync('config', { type: 'channel', common: { name: 'Configuration' }, native: {} });
     await this.setObjectNotExistsAsync('navigate', { type: 'channel', common: { name: 'Navigation' }, native: {} });
     await this.setObjectNotExistsAsync('calendar', { type: 'channel', common: { name: 'Calendar fetch relay' }, native: {} });
+    await this.setObjectNotExistsAsync('logs',     { type: 'channel', common: { name: 'Adapter log stream (for AdapterLogsWidget)' }, native: {} });
+    await this.setObjectNotExistsAsync('logs.latest', {
+      type: 'state',
+      common: { name: 'Latest log entry (JSON)', type: 'string', role: 'json', read: true, write: false, def: '' },
+      native: {},
+    });
     await this.setObjectNotExistsAsync('admin', { type: 'channel', common: { name: 'Admin access' }, native: {} });
     await this.setObjectNotExistsAsync('clients', { type: 'channel', common: { name: 'Connected clients' }, native: {} });
     await this.setObjectNotExistsAsync('lists',   { type: 'channel', common: { name: 'List widget exports' }, native: {} });
@@ -974,6 +980,36 @@ class Aura extends utils.Adapter {
     this._timerTickMs = tickSec * 1000;
     this._timerInterval = setInterval(() => this._timerTick().catch((e) => this.log.warn(`[timers] tick error: ${e.message}`)), this._timerTickMs);
     this.log.info(`[timers] scheduler tick = ${tickSec}s`);
+
+    // ── Live log relay for AdapterLogsWidget ───────────────────────────────────
+    // The iobroker.web socket exposed to the frontend cannot deliver `requireLog`
+    // events to anonymous users, so we collect logs here and republish each
+    // entry as a state change the widget can subscribe to.
+    this._logBuffer = [];
+    this._logSeq = 0;
+    this._logBufferLimit = 500;
+    try {
+      this.requireLog(true);
+      this.on('log', (entry) => {
+        if (!entry) return;
+        this._logSeq = (this._logSeq + 1) | 0;
+        const enriched = {
+          seq:      this._logSeq,
+          severity: entry.severity || 'info',
+          ts:       typeof entry.ts === 'number' ? entry.ts : Date.now(),
+          message:  String(entry.message ?? ''),
+          from:     String(entry.from ?? ''),
+        };
+        this._logBuffer.push(enriched);
+        if (this._logBuffer.length > this._logBufferLimit) {
+          this._logBuffer.splice(0, this._logBuffer.length - this._logBufferLimit);
+        }
+        // Fire-and-forget — anonymous web users get notified via stateChange.
+        this.setState('logs.latest', { val: JSON.stringify(enriched), ack: true });
+      });
+    } catch (e) {
+      this.log.warn(`[adapter-logs] requireLog failed: ${e?.message ?? e}`);
+    }
 
     // Update localLinks to point to the aura HTTP server port
     {
@@ -1359,6 +1395,15 @@ class Aura extends utils.Adapter {
         return;
       }
 
+      if (msg.command === 'getRecentLogs') {
+        const sinceSeq = Number(msg.message?.sinceSeq) || 0;
+        const entries = sinceSeq > 0
+          ? this._logBuffer.filter(e => e.seq > sinceSeq)
+          : this._logBuffer.slice();
+        reply({ ok: true, entries, latestSeq: this._logSeq });
+        return;
+      }
+
       if (msg.command === 'setScriptEnabled') {
         const id = String(msg.message?.id || '').trim();
         const enabled = !!msg.message?.enabled;
@@ -1430,6 +1475,7 @@ class Aura extends utils.Adapter {
 
   onUnload(callback) {
     try {
+      try { this.requireLog(false); } catch { /* ignore */ }
       if (this._timerInterval) {
         clearInterval(this._timerInterval);
         this._timerInterval = null;

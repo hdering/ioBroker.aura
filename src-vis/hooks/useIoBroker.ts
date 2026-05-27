@@ -9,55 +9,19 @@ import io from 'socket.io-client';
 interface IoBrokerSocket {
   connected: boolean;
   on(event: string, callback: (...args: unknown[]) => void): void;
-  off(event: string, callback: (...args: unknown[]) => void): void;
   emit(event: string, ...args: unknown[]): void;
   disconnect(): void;
 }
 
-// ── Live log subscription (used by AdapterLogsWidget) ─────────────────────────
+/** A single line emitted by the iobroker log stream. The frontend never
+ *  receives the raw `log` socket event (anonymous web users have no
+ *  permission for `requireLog`); entries arrive via the aura backend relay
+ *  state `aura.<inst>.logs.latest`. */
 export interface LogEntry {
   severity: 'silly' | 'debug' | 'info' | 'warn' | 'error';
   ts: number;       // unix ms
   message: string;
   from: string;     // e.g. 'host.iobroker', 'shelly.0', 'admin.0'
-}
-
-const logListeners = new Set<(entry: LogEntry) => void>();
-let socketLogHandler: ((...args: unknown[]) => void) | null = null;
-
-function attachLogHandler(): void {
-  if (socketLogHandler) return;
-  socketLogHandler = (...args: unknown[]) => {
-    const raw = args[0] as Partial<LogEntry> | undefined;
-    if (!raw || typeof raw !== 'object') return;
-    const entry: LogEntry = {
-      severity: (raw.severity as LogEntry['severity']) ?? 'info',
-      ts:       typeof raw.ts === 'number' ? raw.ts : Date.now(),
-      message:  String(raw.message ?? ''),
-      from:     String(raw.from ?? ''),
-    };
-    logListeners.forEach(fn => fn(entry));
-  };
-  getSocket().on('log', socketLogHandler);
-  getSocket().emit('requireLog', true);
-}
-
-function detachLogHandler(): void {
-  if (!socketLogHandler) return;
-  getSocket().off('log', socketLogHandler);
-  getSocket().emit('requireLog', false);
-  socketLogHandler = null;
-}
-
-/** Subscribe to the live log stream. Ref-counted: only the first subscriber
- *  triggers `requireLog(true)`; the last unsubscribe sends `requireLog(false)`. */
-export function subscribeLogsDirect(cb: (entry: LogEntry) => void): () => void {
-  if (logListeners.size === 0) attachLogHandler();
-  logListeners.add(cb);
-  return () => {
-    logListeners.delete(cb);
-    if (logListeners.size === 0) detachLogHandler();
-  };
 }
 
 // Module-level singleton

@@ -345,6 +345,27 @@
         "def": ""
       },
       "native": {}
+    },
+    {
+      "_id": "logs",
+      "type": "channel",
+      "common": {
+        "name": "Adapter log stream (for AdapterLogsWidget)"
+      },
+      "native": {}
+    },
+    {
+      "_id": "logs.latest",
+      "type": "state",
+      "common": {
+        "name": "Latest log entry (JSON, updated on every system log)",
+        "type": "string",
+        "role": "json",
+        "read": true,
+        "write": false,
+        "def": ""
+      },
+      "native": {}
     }
   ]
 }

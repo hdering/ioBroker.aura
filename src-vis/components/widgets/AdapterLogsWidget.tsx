@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollText, Pause, Play, Trash2, ArrowDownToLine, Search } from 'lucide-react';
-import { subscribeLogsDirect, useIoBroker, type LogEntry } from '../../hooks/useIoBroker';
+import {
+  getObjectViewDirect,
+  subscribeStateDirect,
+  sendToDirect,
+  useIoBroker,
+  type LogEntry,
+} from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 
@@ -83,22 +89,55 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
   // Live ring buffer of recent entries. Kept outside React state so paused mode
   // can still collect without forcing re-renders.
   const bufferRef = useRef<LogEntry[]>([]);
+  const seenSeqRef = useRef(0);
   const [tick, setTick] = useState(0);
   const pausedRef = useRef(paused);
   useEffect(() => { pausedRef.current = paused; }, [paused]);
 
   const Icon = getWidgetIcon((o.icon as string) ?? 'ScrollText', ScrollText);
 
-  // Subscribe to live logs
+  // Detect aura instance + seed initial buffer + subscribe to live updates
   useEffect(() => {
-    const unsub = subscribeLogsDirect(entry => {
-      const buf = bufferRef.current;
-      buf.push(entry);
-      if (buf.length > bufferSize) buf.splice(0, buf.length - bufferSize);
-      if (!pausedRef.current) setTick(t => t + 1);
-    });
-    return unsub;
-  }, [bufferSize]);
+    if (!connected) return;
+    let cancelled = false;
+    let unsub: (() => void) | null = null;
+    (async () => {
+      const result = await getObjectViewDirect('instance', 'system.adapter.aura.', 'system.adapter.aura.香');
+      if (cancelled) return;
+      const row = result.rows[0];
+      if (!row) return;
+      const auraInstance = row.id.slice('system.adapter.'.length);
+
+      // Seed buffer from backend snapshot
+      const seed = await sendToDirect<{
+        ok?: boolean; entries?: Array<LogEntry & { seq: number }>; latestSeq?: number;
+      }>(auraInstance, 'getRecentLogs', {});
+      if (cancelled) return;
+      if (seed && typeof seed === 'object' && 'entries' in seed && Array.isArray(seed.entries)) {
+        const buf = bufferRef.current;
+        for (const e of seed.entries) buf.push(e);
+        if (buf.length > bufferSize) buf.splice(0, buf.length - bufferSize);
+        seenSeqRef.current = seed.latestSeq ?? 0;
+        if (!pausedRef.current) setTick(t => t + 1);
+      }
+
+      // Live updates via the state aura.<inst>.logs.latest (JSON-encoded entry)
+      const stateId = `${auraInstance}.logs.latest`;
+      unsub = subscribeStateDirect(stateId, (st) => {
+        const raw = st?.val;
+        if (typeof raw !== 'string' || !raw) return;
+        let parsed: LogEntry & { seq?: number };
+        try { parsed = JSON.parse(raw); } catch { return; }
+        if (parsed.seq && parsed.seq <= seenSeqRef.current) return; // dedupe
+        if (parsed.seq) seenSeqRef.current = parsed.seq;
+        const buf = bufferRef.current;
+        buf.push(parsed);
+        if (buf.length > bufferSize) buf.splice(0, buf.length - bufferSize);
+        if (!pausedRef.current) setTick(t => t + 1);
+      });
+    })();
+    return () => { cancelled = true; if (unsub) unsub(); };
+  }, [connected, bufferSize]);
 
   // Auto-scroll handling
   const listRef = useRef<HTMLDivElement | null>(null);
