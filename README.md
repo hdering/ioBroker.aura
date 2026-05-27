@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.145 (2026-05-27)
+- fix(input-widget): submit button no longer fills full row in default layout
+
+
 ### 0.9.144 (2026-05-26)
 - feat(weather/custom): bar sizing options + rainLine combined field
 - feat(weather): add adapter data source for offline use
@@ -279,10 +283,6 @@ Release v0.9.136
 - fix(lists): declare list-count state writable to silence ioBroker read-only warning
 
 
-### 0.9.125 (2026-05-24)
-- fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe
-
-
 ## License
 
 MIT License
@@ -294,6 +294,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

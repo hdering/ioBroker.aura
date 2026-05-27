@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.125 (2026-05-24)
+- fix(useIoBroker): allow '#' in state IDs so Shelly DPs subscribe
+
 ## 0.9.124 (2026-05-23)
 - feat(admin): add Custom JS feature and 'CSS & JS' menu page
 
