@@ -45,6 +45,7 @@
     "icon": "aura.png",
     "extIcon": "https://raw.githubusercontent.com/hdering/ioBroker.aura/master/admin/aura.png",
     "messagebox": true,
+    "logTransporter": true,
     "type": "visualization",
     "licenseInformation": {
       "license": "MIT",

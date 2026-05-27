@@ -988,26 +988,35 @@ class Aura extends utils.Adapter {
     this._logBuffer = [];
     this._logSeq = 0;
     this._logBufferLimit = 500;
+    const pushLog = (entry) => {
+      if (!entry) return;
+      this._logSeq = (this._logSeq + 1) | 0;
+      const enriched = {
+        seq:      this._logSeq,
+        severity: entry.severity || 'info',
+        ts:       typeof entry.ts === 'number' ? entry.ts : Date.now(),
+        message:  String(entry.message ?? ''),
+        from:     String(entry.from ?? ''),
+      };
+      this._logBuffer.push(enriched);
+      if (this._logBuffer.length > this._logBufferLimit) {
+        this._logBuffer.splice(0, this._logBuffer.length - this._logBufferLimit);
+      }
+    };
     try {
-      this.requireLog(true);
-      this.on('log', (entry) => {
-        if (!entry) return;
-        // Skip aura's own logs to prevent any chance of a feedback loop
-        // when debug logging is enabled on this instance.
-        if (entry.from && String(entry.from).startsWith(this.namespace)) return;
-        this._logSeq = (this._logSeq + 1) | 0;
-        const enriched = {
-          seq:      this._logSeq,
-          severity: entry.severity || 'info',
-          ts:       typeof entry.ts === 'number' ? entry.ts : Date.now(),
-          message:  String(entry.message ?? ''),
-          from:     String(entry.from ?? ''),
-        };
-        this._logBuffer.push(enriched);
-        if (this._logBuffer.length > this._logBufferLimit) {
-          this._logBuffer.splice(0, this._logBuffer.length - this._logBufferLimit);
-        }
-      });
+      // js-controller forwards every system log via the 'log' event on the
+      // adapter event emitter as long as requireLog(true) is active.
+      // Register listener first so we never miss an entry between
+      // requireLog() returning and the first incoming forward.
+      this.on('log', pushLog);
+      if (typeof this.requireLog === 'function') {
+        this.requireLog(true);
+      } else {
+        this.log.warn('[adapter-logs] requireLog method not available on this js-controller version');
+      }
+      // Seed entry so the widget shows immediate confirmation that the relay
+      // is active even on a quiet system.
+      pushLog({ severity: 'info', ts: Date.now(), message: 'Aura log relay activated (requireLog=true).', from: this.namespace });
       this.log.info('[adapter-logs] requireLog active — relay ready');
     } catch (e) {
       this.log.warn(`[adapter-logs] requireLog failed: ${e?.message ?? e}`);
