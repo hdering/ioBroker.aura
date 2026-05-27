@@ -1359,6 +1359,24 @@ class Aura extends utils.Adapter {
         return;
       }
 
+      if (msg.command === 'setScriptEnabled') {
+        const id = String(msg.message?.id || '').trim();
+        const enabled = !!msg.message?.enabled;
+        if (!id || !id.startsWith('script.js.')) {
+          reply({ ok: false, error: `Invalid script id: ${id}` });
+          return;
+        }
+        const obj = await this.getForeignObjectAsync(id);
+        if (!obj || obj.type !== 'script') {
+          reply({ ok: false, error: `Script not found: ${id}` });
+          return;
+        }
+        await this.extendForeignObjectAsync(id, { common: { enabled } });
+        this.log.info(`[script-status] ${enabled ? 'start' : 'stop'} ${id}`);
+        reply({ ok: true });
+        return;
+      }
+
       if (msg.command === 'upgradeAdapter') {
         const name = String(msg.message?.name || '').trim();
         if (!name || !/^[a-z0-9_\-]+$/i.test(name)) {

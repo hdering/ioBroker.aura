@@ -57,6 +57,7 @@ export type WidgetType =
   | 'knob'
   | 'timer'
   | 'adapterstatus'
+  | 'scriptstatus'
   | 'input';
 
 export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda' | 'flow' | 'battery' | 'production' | 'consumption' | 'loadpoints' | 'custom' | 'count'
@@ -245,7 +246,7 @@ export interface WidgetProps {
 
 export interface ioBrokerObject {
   _id: string;
-  type: 'state' | 'channel' | 'device' | 'folder' | 'adapter' | 'instance' | 'enum';
+  type: 'state' | 'channel' | 'device' | 'folder' | 'adapter' | 'instance' | 'enum' | 'script';
   common: {
     name: string | Record<string, string>;
     type?: 'boolean' | 'number' | 'string' | 'mixed';

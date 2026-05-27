@@ -14,7 +14,7 @@ import {
   Zap, TrendingUp, SlidersHorizontal, Thermometer, BarChart2, List,
   Clock, CalendarDays, Heading2, Layers2, Cloud, Gauge, Camera, ImageIcon, MonitorDot, Droplets, Truck, AlignJustify, Table2,
   DoorOpen, ShieldAlert, ToggleRight, LineChart, Code2, CalendarClock, Music, CalendarCheck2, Tag, Globe, MousePointerClick, Wind,
-  LayoutGrid, ListChecks, Lightbulb, CircleDot, Timer, ServerCog, TextCursorInput, /* GalleryHorizontal — re-import when carousel is re-enabled */
+  LayoutGrid, ListChecks, Lightbulb, CircleDot, Timer, ServerCog, ScrollText, TextCursorInput, /* GalleryHorizontal — re-import when carousel is re-enabled */
   type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -433,6 +433,15 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     addMode: 'free',               widgetGroup: 'special',
     mock: { t: 'Adapter-Status', v: '' },
     hint: 'Liste aller ioBroker-Instanzen mit Status, Update-Hinweisen und optionalen Neustart-/Update-Aktionen',
+  },
+  {
+    type: 'scriptstatus',
+    label: 'Skript-Status',        shortLabel: 'Skripte',
+    Icon: ScrollText,              iconName: 'ScrollText', color: '#22c55e',
+    defaultW: 10,                  defaultH: 8,
+    addMode: 'free',               widgetGroup: 'special',
+    mock: { t: 'Skript-Status', v: '' },
+    hint: 'Liste aller JavaScript-Skripte mit Status, Filter (laufend/gestoppt) und optionalen Start-/Stopp-Aktionen',
   },
   {
     type: 'input',

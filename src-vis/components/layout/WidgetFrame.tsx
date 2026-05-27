@@ -89,6 +89,7 @@ import { CarouselWidget } from '../widgets/CarouselWidget';
 import { KnobWidget } from '../widgets/KnobWidget';
 import { TimerWidget } from '../widgets/TimerWidget';
 import { AdapterStatusWidget } from '../widgets/AdapterStatusWidget';
+import { ScriptStatusWidget } from '../widgets/ScriptStatusWidget';
 import { InputWidget } from '../widgets/InputWidget';
 import { TimerConfig } from '../config/TimerConfig';
 import { IconPickerModal } from '../config/IconPickerModal';
@@ -137,7 +138,7 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
 
 // Widget types that don't get a "Custom" entry in the Layout picker.
 // Mirror of NO_CUSTOM in src-vis/utils/widgetLayouts.ts.
-const NO_CUSTOM_LAYOUT_TYPES: WidgetType[] = ['iframe', 'jsontable', 'html', 'trash', 'trashSchedule', 'header', 'fill', 'list', 'autolist', 'datepicker', 'adapterstatus'];
+const NO_CUSTOM_LAYOUT_TYPES: WidgetType[] = ['iframe', 'jsontable', 'html', 'trash', 'trashSchedule', 'header', 'fill', 'list', 'autolist', 'datepicker', 'adapterstatus', 'scriptstatus'];
 
 // ── Global custom-cell clipboard (shared across all WidgetFrames) ───────────
 let cellClipboardData: CustomCell | null = null;
@@ -200,6 +201,7 @@ function getWidgetMap() {
     knob:          KnobWidget,
     timer:         TimerWidget,
     adapterstatus: AdapterStatusWidget,
+    scriptstatus:  ScriptStatusWidget,
     input:         InputWidget,
   } as const;
 }
@@ -3528,7 +3530,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             </div>
 
             {/* ── Layout & Sichtbare Felder (kombiniert, eingeklappt) ── */}
-            {config.type !== 'header' && config.type !== 'iframe' && config.type !== 'jsontable' && config.type !== 'html' && config.type !== 'adapterstatus' && (() => {
+            {config.type !== 'header' && config.type !== 'iframe' && config.type !== 'jsontable' && config.type !== 'html' && config.type !== 'adapterstatus' && config.type !== 'scriptstatus' && (() => {
               const activeLayout = config.layout ?? 'default';
               const layouts: { value: string; label: string }[] = config.type === 'camera' ? [
                 { value: 'minimal', label: 'Minimal' },
@@ -4116,7 +4118,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 <CalendarEditPanel config={config} onConfigChange={onConfigChange} />
               )}
 
-              {config.type !== 'list' && config.type !== 'clock' && config.type !== 'calendar' && config.type !== 'header' && config.type !== 'group' && config.type !== 'button' && config.type !== 'evcc' && config.type !== 'echart' && config.type !== 'weather' && config.type !== 'camera' && config.type !== 'autolist' && config.type !== 'image' && config.type !== 'iframe' && config.type !== 'trash' && config.type !== 'trashSchedule' && config.type !== 'echartsPreset' && config.type !== 'html' && config.type !== 'mediaplayer' && config.type !== 'chips' && config.type !== 'httpRequest' && config.type !== 'universal' && config.type !== 'timer' && config.type !== 'adapterstatus' && (
+              {config.type !== 'list' && config.type !== 'clock' && config.type !== 'calendar' && config.type !== 'header' && config.type !== 'group' && config.type !== 'button' && config.type !== 'evcc' && config.type !== 'echart' && config.type !== 'weather' && config.type !== 'camera' && config.type !== 'autolist' && config.type !== 'image' && config.type !== 'iframe' && config.type !== 'trash' && config.type !== 'trashSchedule' && config.type !== 'echartsPreset' && config.type !== 'html' && config.type !== 'mediaplayer' && config.type !== 'chips' && config.type !== 'httpRequest' && config.type !== 'universal' && config.type !== 'timer' && config.type !== 'adapterstatus' && config.type !== 'scriptstatus' && (
                 <div>
                   <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                     {config.type === 'thermostat'     ? 'Soll-Temperatur Datenpunkt' :
@@ -5611,6 +5613,75 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
                     <Toggle label="Neustart erlauben"        k="allowRestart" def={false} hint="Button zum Neustarten der Instanz" />
                     <Toggle label="Update-Installation erlauben" k="allowUpdate"  def={false} hint="Button zum Installieren verfügbarer Updates (Host-Befehl)" />
+                  </>
+                );
+              })()}
+
+              {/* ── Skript-Status config ── */}
+              {config.type === 'scriptstatus' && (() => {
+                const o = config.options ?? {};
+                const set = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const sCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
+                const sSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                const filterMode = (o.filterMode  as string) ?? 'all';
+                const sortBy     = (o.sortBy      as string) ?? 'name';
+                const groupF     = (o.groupFilter as string) ?? '';
+                const Toggle = ({ label, k, def, hint }: { label: string; k: string; def?: boolean; hint?: string }) => {
+                  const val = (o[k] as boolean | undefined) ?? def ?? false;
+                  return (
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{label}</label>
+                        {hint && <span className="text-[10px] opacity-60" style={{ color: 'var(--text-secondary)' }}>{hint}</span>}
+                      </div>
+                      <button
+                        onClick={() => set({ [k]: !val })}
+                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                        style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}>
+                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                          style={{ left: val ? '18px' : '2px' }} />
+                      </button>
+                    </div>
+                  );
+                };
+                return (
+                  <>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Standard-Filter</label>
+                      <select value={filterMode} onChange={(e) => set({ filterMode: e.target.value })} className={sCls} style={sSty}>
+                        <option value="all">Alle anzeigen</option>
+                        <option value="running">Nur laufende</option>
+                        <option value="stopped">Nur gestoppte</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Sortierung</label>
+                      <select value={sortBy} onChange={(e) => set({ sortBy: e.target.value })} className={sCls} style={sSty}>
+                        <option value="name">Nach Pfad</option>
+                        <option value="status">Nach Status (laufend zuerst)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        Standard-Ordner <span className="opacity-60">(leer = alle)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={groupF}
+                        onChange={(e) => set({ groupFilter: e.target.value })}
+                        placeholder="z.B. common"
+                        className={sCls + ' font-mono'}
+                        style={sSty}
+                      />
+                    </div>
+                    <Toggle label="Filter-Buttons im Frontend" k="showFilter" def={true} hint="Nutzer kann den Filter umschalten" />
+                    <Toggle label="Suchfeld anzeigen"          k="showSearch" def={true} hint="Erscheint ab > 5 Skripten" />
+                    <Toggle label="Engine-Typ anzeigen"         k="showEngine" def={true} hint="Badge: JS / TS / Blockly / Rules" />
+                    <Toggle label="Kompakte Darstellung"        k="compact"    def={false} hint="Pfad-Zeile ausblenden" />
+                    <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
+                    <Toggle label="Start erlauben" k="allowStart" def={false} hint="Button zum Starten gestoppter Skripte anzeigen" />
+                    <Toggle label="Stopp erlauben" k="allowStop"  def={false} hint="Button zum Stoppen laufender Skripte anzeigen" />
                   </>
                 );
               })()}

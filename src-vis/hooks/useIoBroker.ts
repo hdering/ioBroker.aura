@@ -474,7 +474,7 @@ export function getObjectListDirect(
 }
 
 export function getObjectViewDirect(
-  type: 'state' | 'channel' | 'device' | 'enum' | 'instance' | 'chart' | 'folder',
+  type: 'state' | 'channel' | 'device' | 'enum' | 'instance' | 'chart' | 'folder' | 'script',
   startkey = '',
   endkey = '\u9999',
 ): Promise<ObjectViewResult> {

@@ -1,7 +1,7 @@
 import type { WidgetLayout } from '../types';
 
 const NO_CUSTOM = new Set([
-  'iframe', 'jsontable', 'html', 'trash', 'trashSchedule', 'header', 'fill', 'list', 'autolist', 'datepicker', 'adapterstatus',
+  'iframe', 'jsontable', 'html', 'trash', 'trashSchedule', 'header', 'fill', 'list', 'autolist', 'datepicker', 'adapterstatus', 'scriptstatus',
 ]);
 
 export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
@@ -25,6 +25,7 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
     case 'trash':
     case 'trashSchedule':
     case 'adapterstatus':
+    case 'scriptstatus':
       return ['default'];
     case 'chart':
       return ['default', 'card'];
