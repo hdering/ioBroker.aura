@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.147",
+    "version": "0.9.148",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.148": {
+        "en": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
+        "de": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
+        "ru": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
+        "pt": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
+        "nl": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
+        "fr": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
+        "it": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
+        "es": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
+        "pl": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
+        "uk": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
+        "zh-cn": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them"
+      },
       "0.9.147": {
         "en": "feat(adapterlogs): new widget streaming iobroker logs with filters",
         "de": "feat(adapterlogs): new widget streaming iobroker logs with filters",
@@ -183,19 +196,6 @@
         "pl": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets",
         "uk": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets",
         "zh-cn": "feat(iframe): sandbox preset dropdown for html/iframe/popup widgets"
-      },
-      "0.9.140": {
-        "en": "feat(timer): re-add custom layout + placeable elements",
-        "de": "feat(timer): re-add custom layout + placeable elements",
-        "ru": "feat(timer): re-add custom layout + placeable elements",
-        "pt": "feat(timer): re-add custom layout + placeable elements",
-        "nl": "feat(timer): re-add custom layout + placeable elements",
-        "fr": "feat(timer): re-add custom layout + placeable elements",
-        "it": "feat(timer): re-add custom layout + placeable elements",
-        "es": "feat(timer): re-add custom layout + placeable elements",
-        "pl": "feat(timer): re-add custom layout + placeable elements",
-        "uk": "feat(timer): re-add custom layout + placeable elements",
-        "zh-cn": "feat(timer): re-add custom layout + placeable elements"
       }
     }
   },

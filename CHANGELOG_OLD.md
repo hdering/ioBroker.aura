@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.128 (2026-05-25)
+- fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated)
+- debug(timer): log unpublish path + surface delObject errors
+- fix(timer): unpublish ioBroker DPs when widget is deleted
+
 ## 0.9.127 (2026-05-25)
 - perf(chart): cache getObject + drop duplicate fetch in history path
 

@@ -186,6 +186,11 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.148 (2026-05-27)
+- fix(adapterlogs): switch to polling + show backend-not-answering hint
+- fix(adapterlogs): relay logs through aura backend so anonymous web users receive them
+
+
 ### 0.9.147 (2026-05-27)
 - feat(adapterlogs): new widget streaming iobroker logs with filters
 
@@ -276,12 +281,6 @@ Release v0.9.136
 - feat(timer): mirror widget title into ioBroker channel + state names
 
 
-### 0.9.128 (2026-05-25)
-- fix(timer): route DP deletion through adapter sendTo (delObject is web-socket-gated)
-- debug(timer): log unpublish path + surface delObject errors
-- fix(timer): unpublish ioBroker DPs when widget is deleted
-
-
 ## License
 
 MIT License
@@ -293,6 +292,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
