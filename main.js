@@ -983,8 +983,8 @@ class Aura extends utils.Adapter {
 
     // ── Live log relay for AdapterLogsWidget ───────────────────────────────────
     // The iobroker.web socket exposed to the frontend cannot deliver `requireLog`
-    // events to anonymous users, so we collect logs here and republish each
-    // entry as a state change the widget can subscribe to.
+    // events to anonymous users, so we collect logs here. The widget polls
+    // `getRecentLogs(sinceSeq)` through sendTo and receives only the delta.
     this._logBuffer = [];
     this._logSeq = 0;
     this._logBufferLimit = 500;
@@ -992,6 +992,9 @@ class Aura extends utils.Adapter {
       this.requireLog(true);
       this.on('log', (entry) => {
         if (!entry) return;
+        // Skip aura's own logs to prevent any chance of a feedback loop
+        // when debug logging is enabled on this instance.
+        if (entry.from && String(entry.from).startsWith(this.namespace)) return;
         this._logSeq = (this._logSeq + 1) | 0;
         const enriched = {
           seq:      this._logSeq,
@@ -1004,9 +1007,8 @@ class Aura extends utils.Adapter {
         if (this._logBuffer.length > this._logBufferLimit) {
           this._logBuffer.splice(0, this._logBuffer.length - this._logBufferLimit);
         }
-        // Fire-and-forget — anonymous web users get notified via stateChange.
-        this.setState('logs.latest', { val: JSON.stringify(enriched), ack: true });
       });
+      this.log.info('[adapter-logs] requireLog active — relay ready');
     } catch (e) {
       this.log.warn(`[adapter-logs] requireLog failed: ${e?.message ?? e}`);
     }
@@ -1397,10 +1399,11 @@ class Aura extends utils.Adapter {
 
       if (msg.command === 'getRecentLogs') {
         const sinceSeq = Number(msg.message?.sinceSeq) || 0;
+        const buf = this._logBuffer || [];
         const entries = sinceSeq > 0
-          ? this._logBuffer.filter(e => e.seq > sinceSeq)
-          : this._logBuffer.slice();
-        reply({ ok: true, entries, latestSeq: this._logSeq });
+          ? buf.filter(e => e.seq > sinceSeq)
+          : buf.slice();
+        reply({ ok: true, entries, latestSeq: this._logSeq || 0 });
         return;
       }
 

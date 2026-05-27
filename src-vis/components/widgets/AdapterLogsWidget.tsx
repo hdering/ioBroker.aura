@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollText, Pause, Play, Trash2, ArrowDownToLine, Search } from 'lucide-react';
 import {
   getObjectViewDirect,
-  subscribeStateDirect,
   sendToDirect,
   useIoBroker,
   type LogEntry,
@@ -96,47 +95,58 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
 
   const Icon = getWidgetIcon((o.icon as string) ?? 'ScrollText', ScrollText);
 
-  // Detect aura instance + seed initial buffer + subscribe to live updates
+  // Backend health: null = unknown, true = answered, false = timed out
+  const [backendOk, setBackendOk] = useState<boolean | null>(null);
+
+  // Poll the aura backend for new log entries. The frontend would need admin
+  // permissions to receive `requireLog` events directly from iobroker.web —
+  // anonymous web users do not, so we route through aura's sendTo handler.
   useEffect(() => {
     if (!connected) return;
     let cancelled = false;
-    let unsub: (() => void) | null = null;
-    (async () => {
-      const result = await getObjectViewDirect('instance', 'system.adapter.aura.', 'system.adapter.aura.香');
-      if (cancelled) return;
-      const row = result.rows[0];
-      if (!row) return;
-      const auraInstance = row.id.slice('system.adapter.'.length);
+    let auraInstance: string | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
 
-      // Seed buffer from backend snapshot
-      const seed = await sendToDirect<{
+    const pollOnce = async () => {
+      if (cancelled || !auraInstance) return;
+      const result = await sendToDirect<{
         ok?: boolean; entries?: Array<LogEntry & { seq: number }>; latestSeq?: number;
-      }>(auraInstance, 'getRecentLogs', {});
+      }>(auraInstance, 'getRecentLogs', { sinceSeq: seenSeqRef.current }, 10000);
       if (cancelled) return;
-      if (seed && typeof seed === 'object' && 'entries' in seed && Array.isArray(seed.entries)) {
-        const buf = bufferRef.current;
-        for (const e of seed.entries) buf.push(e);
-        if (buf.length > bufferSize) buf.splice(0, buf.length - bufferSize);
-        seenSeqRef.current = seed.latestSeq ?? 0;
-        if (!pausedRef.current) setTick(t => t + 1);
+      if (result && typeof result === 'object' && '__timeout' in (result as object)) {
+        setBackendOk(false);
+      } else if (result && typeof result === 'object' && 'entries' in result && Array.isArray(result.entries)) {
+        setBackendOk(true);
+        if (result.entries.length > 0) {
+          const buf = bufferRef.current;
+          for (const e of result.entries) {
+            if (e.seq && e.seq <= seenSeqRef.current) continue;
+            buf.push(e);
+            if (e.seq && e.seq > seenSeqRef.current) seenSeqRef.current = e.seq;
+          }
+          if (buf.length > bufferSize) buf.splice(0, buf.length - bufferSize);
+          if (!pausedRef.current) setTick(t => t + 1);
+        }
+        if (typeof result.latestSeq === 'number' && result.latestSeq > seenSeqRef.current) {
+          seenSeqRef.current = result.latestSeq;
+        }
       }
+      timer = setTimeout(pollOnce, 1500);
+    };
 
-      // Live updates via the state aura.<inst>.logs.latest (JSON-encoded entry)
-      const stateId = `${auraInstance}.logs.latest`;
-      unsub = subscribeStateDirect(stateId, (st) => {
-        const raw = st?.val;
-        if (typeof raw !== 'string' || !raw) return;
-        let parsed: LogEntry & { seq?: number };
-        try { parsed = JSON.parse(raw); } catch { return; }
-        if (parsed.seq && parsed.seq <= seenSeqRef.current) return; // dedupe
-        if (parsed.seq) seenSeqRef.current = parsed.seq;
-        const buf = bufferRef.current;
-        buf.push(parsed);
-        if (buf.length > bufferSize) buf.splice(0, buf.length - bufferSize);
-        if (!pausedRef.current) setTick(t => t + 1);
-      });
+    (async () => {
+      const view = await getObjectViewDirect('instance', 'system.adapter.aura.', 'system.adapter.aura.香');
+      if (cancelled) return;
+      const row = view.rows[0];
+      if (!row) return;
+      auraInstance = row.id.slice('system.adapter.'.length);
+      pollOnce();
     })();
-    return () => { cancelled = true; if (unsub) unsub(); };
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
   }, [connected, bufferSize]);
 
   // Auto-scroll handling
@@ -299,13 +309,27 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
         <span>{visible.length}/{bufferRef.current.length} Zeilen</span>
         {paused && <span style={{ color: '#f59e0b' }}>• pausiert</span>}
         {!connected && <span style={{ color: '#ef4444' }}>• getrennt</span>}
+        {connected && backendOk === false && (
+          <span style={{ color: '#ef4444' }} title="Der Aura-Adapter antwortet nicht auf getRecentLogs — bitte Adapter aktualisieren und neu starten.">
+            • Backend antwortet nicht
+          </span>
+        )}
+        {connected && backendOk === null && (
+          <span style={{ color: '#94a3b8' }}>• Backend wird kontaktiert…</span>
+        )}
       </div>
 
       {/* Log list */}
       <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto font-mono text-[10px] leading-snug pr-1">
         {visible.length === 0 ? (
           <div className="flex items-center justify-center h-full text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-            {connected ? 'Warte auf Log-Einträge…' : 'Nicht verbunden'}
+            {!connected
+              ? 'Nicht verbunden'
+              : backendOk === false
+                ? 'Aura-Adapter antwortet nicht — bitte Adapter neu starten/aktualisieren.'
+                : backendOk === null
+                  ? 'Backend wird kontaktiert…'
+                  : 'Warte auf Log-Einträge…'}
           </div>
         ) : visible.map((e, i) => {
           const sev = normalizeSeverity(e.severity);
