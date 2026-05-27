@@ -5797,6 +5797,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     <Toggle label="Suchfeld anzeigen"          k="showSearch"   def={true} hint="Freitext-Filter" />
                     <Toggle label="Steuerleiste"                k="showControls" def={true} hint="Pause / Auto-Scroll / Puffer leeren" />
                     <Toggle label="Kompakte Darstellung"        k="compact"      def={false} hint="Lange Nachrichten kürzen" />
+                    <Toggle label="Neueste Meldung oben"        k="newestFirst"  def={true}  hint="Aus: neueste Meldung unten" />
                   </>
                 );
               })()}

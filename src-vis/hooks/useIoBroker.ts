@@ -15,13 +15,14 @@ interface IoBrokerSocket {
 
 /** A single line emitted by the iobroker log stream. The frontend never
  *  receives the raw `log` socket event (anonymous web users have no
- *  permission for `requireLog`); entries arrive via the aura backend relay
- *  state `aura.<inst>.logs.latest`. */
+ *  permission for `requireLog`); entries arrive via the aura backend
+ *  `getRecentLogs` RPC, which adds the monotonically increasing `seq`. */
 export interface LogEntry {
   severity: 'silly' | 'debug' | 'info' | 'warn' | 'error';
   ts: number;       // unix ms
   message: string;
   from: string;     // e.g. 'host.iobroker', 'shelly.0', 'admin.0'
+  seq?: number;
 }
 
 // Module-level singleton

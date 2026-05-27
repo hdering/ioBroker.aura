@@ -69,6 +69,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
   const compact       = !!o.compact;
   const bufferSize    = Math.max(50, Math.min(5000, (o.bufferSize as number) || DEFAULT_BUFFER));
   const visibleLimit  = Math.max(20, Math.min(bufferSize, (o.visibleLimit as number) || DEFAULT_VISIBLE));
+  const newestFirst   = o.newestFirst !== false;
   const defaultLevels = (() => {
     const raw = o.levels as Severity[] | undefined;
     if (Array.isArray(raw) && raw.length > 0) return new Set(raw.filter((s): s is Severity => SEVERITY_ORDER.includes(s)));
@@ -149,13 +150,14 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
     };
   }, [connected, bufferSize]);
 
-  // Auto-scroll handling
+  // Auto-scroll handling — follow whichever end shows the newest entry.
   const listRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!autoScroll || paused) return;
     const el = listRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [tick, autoScroll, paused]);
+    if (!el) return;
+    el.scrollTop = newestFirst ? 0 : el.scrollHeight;
+  }, [tick, autoScroll, paused, newestFirst]);
 
   // Adapter list — names seen in the current buffer (sorted).
   const adapters = useMemo(() => {
@@ -167,7 +169,8 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
     return Array.from(set).sort();
   }, [tick]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Filter + slice
+  // Filter + slice. `out` is built newest→oldest; we flip back to chronological
+  // order only when the user wants oldest-first display.
   const visible = useMemo(() => {
     const lc = query.trim().toLowerCase();
     const out: LogEntry[] = [];
@@ -180,8 +183,8 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
       if (lc && !e.message.toLowerCase().includes(lc) && !e.from.toLowerCase().includes(lc)) continue;
       out.push(e);
     }
-    return out.reverse();
-  }, [tick, levels, adapter, query, visibleLimit]); // eslint-disable-line react-hooks/exhaustive-deps
+    return newestFirst ? out : out.reverse();
+  }, [tick, levels, adapter, query, visibleLimit, newestFirst]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Counts (over whole buffer)
   const counts = useMemo(() => {
@@ -319,8 +322,8 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
         )}
       </div>
 
-      {/* Log list */}
-      <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto font-mono text-[10px] leading-snug pr-1">
+      {/* Log table */}
+      <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto pr-1">
         {visible.length === 0 ? (
           <div className="flex items-center justify-center h-full text-[11px]" style={{ color: 'var(--text-secondary)' }}>
             {!connected
@@ -331,37 +334,65 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                   ? 'Backend wird kontaktiert…'
                   : 'Warte auf Log-Einträge…'}
           </div>
-        ) : visible.map((e, i) => {
-          const sev = normalizeSeverity(e.severity);
-          const color = SEVERITY_COLOR[sev];
-          return (
-            <div
-              key={`${e.ts}-${i}`}
-              className="px-1.5 py-0.5 rounded"
+        ) : (
+          <table className="w-full text-[10px] font-mono border-collapse">
+            <thead
+              className="sticky top-0 z-10"
               style={{
-                background: i % 2 === 0 ? 'transparent' : 'var(--app-bg)',
-                borderLeft: `2px solid ${color}`,
+                background: 'var(--app-surface)',
+                color: 'var(--text-secondary)',
+                borderBottom: '1px solid var(--app-border)',
               }}
             >
-              <span className="opacity-60" style={{ color: 'var(--text-secondary)' }}>{formatTime(e.ts)}</span>
-              {' '}
-              <span style={{ color, fontWeight: 600 }}>{SEVERITY_LABEL[sev].toLowerCase()}</span>
-              {' '}
-              <span style={{ color: 'var(--text-primary)' }}>{e.from}</span>
-              {!compact && (
-                <>
-                  <span style={{ color: 'var(--text-secondary)' }}>: </span>
-                  <span style={{ color: 'var(--text-primary)' }}>{e.message}</span>
-                </>
-              )}
-              {compact && (
-                <span style={{ color: 'var(--text-primary)' }}>
-                  {': '}{e.message.length > 120 ? e.message.slice(0, 120) + '…' : e.message}
-                </span>
-              )}
-            </div>
-          );
-        })}
+              <tr>
+                <th className="text-left px-1.5 py-1 font-semibold whitespace-nowrap">Quelle</th>
+                <th className="text-left px-1.5 py-1 font-semibold whitespace-nowrap">Zeitstempel</th>
+                <th className="text-left px-1.5 py-1 font-semibold whitespace-nowrap">Typ</th>
+                <th className="text-left px-1.5 py-1 font-semibold w-full">Nachricht</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((e, i) => {
+                const sev = normalizeSeverity(e.severity);
+                const color = SEVERITY_COLOR[sev];
+                const message = compact && e.message.length > 120 ? e.message.slice(0, 120) + '…' : e.message;
+                return (
+                  <tr
+                    key={`${e.seq ?? e.ts}-${i}`}
+                    style={{ background: i % 2 === 0 ? 'transparent' : 'var(--app-bg)' }}
+                  >
+                    <td
+                      className="px-1.5 py-0.5 align-top whitespace-nowrap"
+                      style={{ color: 'var(--text-primary)', borderLeft: `2px solid ${color}` }}
+                    >
+                      {e.from || '—'}
+                    </td>
+                    <td
+                      className="px-1.5 py-0.5 align-top whitespace-nowrap"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
+                      {formatTime(e.ts)}
+                    </td>
+                    <td className="px-1.5 py-0.5 align-top whitespace-nowrap">
+                      <span
+                        className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase"
+                        style={{ background: `${color}22`, color, border: `1px solid ${color}55` }}
+                      >
+                        {SEVERITY_LABEL[sev]}
+                      </span>
+                    </td>
+                    <td
+                      className="px-1.5 py-0.5 align-top break-words"
+                      style={{ color: 'var(--text-primary)', wordBreak: 'break-word' }}
+                    >
+                      {message}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
