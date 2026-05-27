@@ -58,6 +58,7 @@ export type WidgetType =
   | 'timer'
   | 'adapterstatus'
   | 'scriptstatus'
+  | 'adapterlogs'
   | 'input';
 
 export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda' | 'flow' | 'battery' | 'production' | 'consumption' | 'loadpoints' | 'custom' | 'count'

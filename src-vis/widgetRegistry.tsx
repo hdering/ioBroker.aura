@@ -14,7 +14,7 @@ import {
   Zap, TrendingUp, SlidersHorizontal, Thermometer, BarChart2, List,
   Clock, CalendarDays, Heading2, Layers2, Cloud, Gauge, Camera, ImageIcon, MonitorDot, Droplets, Truck, AlignJustify, Table2,
   DoorOpen, ShieldAlert, ToggleRight, LineChart, Code2, CalendarClock, Music, CalendarCheck2, Tag, Globe, MousePointerClick, Wind,
-  LayoutGrid, ListChecks, Lightbulb, CircleDot, Timer, ServerCog, ScrollText, TextCursorInput, /* GalleryHorizontal — re-import when carousel is re-enabled */
+  LayoutGrid, ListChecks, Lightbulb, CircleDot, Timer, ServerCog, ScrollText, FileText, TextCursorInput, /* GalleryHorizontal — re-import when carousel is re-enabled */
   type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -442,6 +442,15 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     addMode: 'free',               widgetGroup: 'special',
     mock: { t: 'Skript-Status', v: '' },
     hint: 'Liste aller JavaScript-Skripte mit Status, Filter (laufend/gestoppt) und optionalen Start-/Stopp-Aktionen',
+  },
+  {
+    type: 'adapterlogs',
+    label: 'Adapter-Logs',         shortLabel: 'Logs',
+    Icon: FileText,                iconName: 'FileText',   color: '#a855f7',
+    defaultW: 12,                  defaultH: 8,
+    addMode: 'free',               widgetGroup: 'special',
+    mock: { t: 'Adapter-Logs', v: '' },
+    hint: 'Live-Log-Stream aller Adapter — Filter nach Schweregrad (debug/info/warn/error), Adapter und Freitext',
   },
   {
     type: 'input',

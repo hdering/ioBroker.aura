@@ -90,6 +90,7 @@ import { KnobWidget } from '../widgets/KnobWidget';
 import { TimerWidget } from '../widgets/TimerWidget';
 import { AdapterStatusWidget } from '../widgets/AdapterStatusWidget';
 import { ScriptStatusWidget } from '../widgets/ScriptStatusWidget';
+import { AdapterLogsWidget } from '../widgets/AdapterLogsWidget';
 import { InputWidget } from '../widgets/InputWidget';
 import { TimerConfig } from '../config/TimerConfig';
 import { IconPickerModal } from '../config/IconPickerModal';
@@ -138,7 +139,7 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
 
 // Widget types that don't get a "Custom" entry in the Layout picker.
 // Mirror of NO_CUSTOM in src-vis/utils/widgetLayouts.ts.
-const NO_CUSTOM_LAYOUT_TYPES: WidgetType[] = ['iframe', 'jsontable', 'html', 'trash', 'trashSchedule', 'header', 'fill', 'list', 'autolist', 'datepicker', 'adapterstatus', 'scriptstatus'];
+const NO_CUSTOM_LAYOUT_TYPES: WidgetType[] = ['iframe', 'jsontable', 'html', 'trash', 'trashSchedule', 'header', 'fill', 'list', 'autolist', 'datepicker', 'adapterstatus', 'scriptstatus', 'adapterlogs'];
 
 // ── Global custom-cell clipboard (shared across all WidgetFrames) ───────────
 let cellClipboardData: CustomCell | null = null;
@@ -202,6 +203,7 @@ function getWidgetMap() {
     timer:         TimerWidget,
     adapterstatus: AdapterStatusWidget,
     scriptstatus:  ScriptStatusWidget,
+    adapterlogs:   AdapterLogsWidget,
     input:         InputWidget,
   } as const;
 }
@@ -3530,7 +3532,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             </div>
 
             {/* ── Layout & Sichtbare Felder (kombiniert, eingeklappt) ── */}
-            {config.type !== 'header' && config.type !== 'iframe' && config.type !== 'jsontable' && config.type !== 'html' && config.type !== 'adapterstatus' && config.type !== 'scriptstatus' && (() => {
+            {config.type !== 'header' && config.type !== 'iframe' && config.type !== 'jsontable' && config.type !== 'html' && config.type !== 'adapterstatus' && config.type !== 'scriptstatus' && config.type !== 'adapterlogs' && (() => {
               const activeLayout = config.layout ?? 'default';
               const layouts: { value: string; label: string }[] = config.type === 'camera' ? [
                 { value: 'minimal', label: 'Minimal' },
@@ -4118,7 +4120,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 <CalendarEditPanel config={config} onConfigChange={onConfigChange} />
               )}
 
-              {config.type !== 'list' && config.type !== 'clock' && config.type !== 'calendar' && config.type !== 'header' && config.type !== 'group' && config.type !== 'button' && config.type !== 'evcc' && config.type !== 'echart' && config.type !== 'weather' && config.type !== 'camera' && config.type !== 'autolist' && config.type !== 'image' && config.type !== 'iframe' && config.type !== 'trash' && config.type !== 'trashSchedule' && config.type !== 'echartsPreset' && config.type !== 'html' && config.type !== 'mediaplayer' && config.type !== 'chips' && config.type !== 'httpRequest' && config.type !== 'universal' && config.type !== 'timer' && config.type !== 'adapterstatus' && config.type !== 'scriptstatus' && (
+              {config.type !== 'list' && config.type !== 'clock' && config.type !== 'calendar' && config.type !== 'header' && config.type !== 'group' && config.type !== 'button' && config.type !== 'evcc' && config.type !== 'echart' && config.type !== 'weather' && config.type !== 'camera' && config.type !== 'autolist' && config.type !== 'image' && config.type !== 'iframe' && config.type !== 'trash' && config.type !== 'trashSchedule' && config.type !== 'echartsPreset' && config.type !== 'html' && config.type !== 'mediaplayer' && config.type !== 'chips' && config.type !== 'httpRequest' && config.type !== 'universal' && config.type !== 'timer' && config.type !== 'adapterstatus' && config.type !== 'scriptstatus' && config.type !== 'adapterlogs' && (
                 <div>
                   <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                     {config.type === 'thermostat'     ? 'Soll-Temperatur Datenpunkt' :
@@ -5682,6 +5684,119 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
                     <Toggle label="Start erlauben" k="allowStart" def={false} hint="Button zum Starten gestoppter Skripte anzeigen" />
                     <Toggle label="Stopp erlauben" k="allowStop"  def={false} hint="Button zum Stoppen laufender Skripte anzeigen" />
+                  </>
+                );
+              })()}
+
+              {/* ── Adapter-Logs config ── */}
+              {config.type === 'adapterlogs' && (() => {
+                const o = config.options ?? {};
+                const set = (patch: Record<string, unknown>) =>
+                  onConfigChange({ ...config, options: { ...o, ...patch } });
+                const lCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
+                const lSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+                const levels = Array.isArray(o.levels) ? (o.levels as string[]) : ['info', 'warn', 'error'];
+                const adapterFilter = (o.adapterFilter as string) ?? '';
+                const bufferSize    = (o.bufferSize    as number) ?? 500;
+                const visibleLimit  = (o.visibleLimit  as number) ?? 200;
+                const toggleLevel = (lvl: string) => {
+                  const next = levels.includes(lvl) ? levels.filter(l => l !== lvl) : [...levels, lvl];
+                  set({ levels: next });
+                };
+                const LEVEL_OPTS: { key: string; label: string; color: string }[] = [
+                  { key: 'debug', label: 'Debug', color: '#94a3b8' },
+                  { key: 'info',  label: 'Info',  color: '#3b82f6' },
+                  { key: 'warn',  label: 'Warn',  color: '#f59e0b' },
+                  { key: 'error', label: 'Error', color: '#ef4444' },
+                ];
+                const Toggle = ({ label, k, def, hint }: { label: string; k: string; def?: boolean; hint?: string }) => {
+                  const val = (o[k] as boolean | undefined) ?? def ?? false;
+                  return (
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{label}</label>
+                        {hint && <span className="text-[10px] opacity-60" style={{ color: 'var(--text-secondary)' }}>{hint}</span>}
+                      </div>
+                      <button
+                        onClick={() => set({ [k]: !val })}
+                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                        style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}>
+                        <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                          style={{ left: val ? '18px' : '2px' }} />
+                      </button>
+                    </div>
+                  );
+                };
+                return (
+                  <>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        Standard-Schweregrade <span className="opacity-60">(zur Anzeige aktiviert)</span>
+                      </label>
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {LEVEL_OPTS.map(({ key, label, color }) => {
+                          const active = levels.includes(key);
+                          return (
+                            <button
+                              key={key}
+                              onClick={() => toggleLevel(key)}
+                              className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                              style={{
+                                background: active ? color : 'var(--app-bg)',
+                                color:      active ? '#fff' : 'var(--text-secondary)',
+                                border:     `1px solid ${active ? color : 'var(--app-border)'}`,
+                              }}>
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        Standard-Adapter-Filter <span className="opacity-60">(leer = alle)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={adapterFilter}
+                        onChange={(e) => set({ adapterFilter: e.target.value })}
+                        placeholder="z.B. shelly"
+                        className={lCls + ' font-mono'}
+                        style={lSty}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Puffer-Größe</label>
+                        <input
+                          type="number"
+                          min={50}
+                          max={5000}
+                          step={50}
+                          value={bufferSize}
+                          onChange={(e) => set({ bufferSize: Math.max(50, Math.min(5000, Number(e.target.value) || 500)) })}
+                          className={lCls + ' font-mono'}
+                          style={lSty}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Sichtbare Zeilen</label>
+                        <input
+                          type="number"
+                          min={20}
+                          max={5000}
+                          step={20}
+                          value={visibleLimit}
+                          onChange={(e) => set({ visibleLimit: Math.max(20, Math.min(5000, Number(e.target.value) || 200)) })}
+                          className={lCls + ' font-mono'}
+                          style={lSty}
+                        />
+                      </div>
+                    </div>
+                    <Toggle label="Filter-Buttons im Frontend" k="showFilter"   def={true} hint="Severity- + Adapter-Filter" />
+                    <Toggle label="Suchfeld anzeigen"          k="showSearch"   def={true} hint="Freitext-Filter" />
+                    <Toggle label="Steuerleiste"                k="showControls" def={true} hint="Pause / Auto-Scroll / Puffer leeren" />
+                    <Toggle label="Kompakte Darstellung"        k="compact"      def={false} hint="Lange Nachrichten kürzen" />
                   </>
                 );
               })()}

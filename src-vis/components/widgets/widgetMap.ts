@@ -36,6 +36,7 @@ import { KnobWidget } from './KnobWidget';
 import { TimerWidget } from './TimerWidget';
 import { AdapterStatusWidget } from './AdapterStatusWidget';
 import { ScriptStatusWidget } from './ScriptStatusWidget';
+import { AdapterLogsWidget } from './AdapterLogsWidget';
 import { InputWidget } from './InputWidget';
 
 // Chart widgets are heavy (recharts ~380 KB, echarts ~1.1 MB) — lazy-loaded so
@@ -88,6 +89,7 @@ export function getWidgetMap() {
     timer:         TimerWidget,
     adapterstatus: AdapterStatusWidget,
     scriptstatus:  ScriptStatusWidget,
+    adapterlogs:   AdapterLogsWidget,
     input:         InputWidget,
   } as const;
 }
