@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.156",
+    "version": "0.9.157",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.157": {
+        "en": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key",
+        "de": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key",
+        "ru": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key",
+        "pt": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key",
+        "nl": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key",
+        "fr": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key",
+        "it": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key",
+        "es": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key",
+        "pl": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key",
+        "uk": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key",
+        "zh-cn": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key"
+      },
       "0.9.156": {
         "en": "feat(iconpicker): live Iconify online search beyond curated categories",
         "de": "feat(iconpicker): live Iconify online search beyond curated categories",
@@ -184,19 +197,6 @@
         "pl": "feat(input-widget): add compact layout (title + field + submit in one row)",
         "uk": "feat(input-widget): add compact layout (title + field + submit in one row)",
         "zh-cn": "feat(input-widget): add compact layout (title + field + submit in one row)"
-      },
-      "0.9.150": {
-        "en": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
-        "de": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
-        "ru": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
-        "pt": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
-        "nl": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
-        "fr": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
-        "it": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
-        "es": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
-        "pl": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
-        "uk": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
-        "zh-cn": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option"
       }
     }
   },

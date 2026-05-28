@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.137 (2026-05-26)
+- feat(camera): allow stream URL to come from a datapoint
+
 ## 0.9.136 (2026-05-26)
 Release v0.9.136
 
