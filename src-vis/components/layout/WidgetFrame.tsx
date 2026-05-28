@@ -7625,6 +7625,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 const showSubmit = o.showSubmit !== false;
                 const placeholder = (o.placeholder as string) ?? '';
                 const maxLength   = o.maxLength as number | undefined;
+                const textAlign   = ((o.textAlign as 'left' | 'right' | 'center') ?? 'left');
                 const inputCls3 = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
                 const inputSty3 = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
                 const Toggle = ({ on, onClick }: { on: boolean; onClick: () => void }) => (
@@ -7687,6 +7688,30 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         onChange={(e) => set({ maxLength: e.target.value ? Number(e.target.value) : undefined })}
                         placeholder="unbegrenzt"
                         className={inputCls3} style={inputSty3} />
+                    </div>
+                    {/* Textausrichtung */}
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Textausrichtung</label>
+                      <div className="flex gap-1">
+                        {([
+                          { v: 'left',   label: 'Links' },
+                          { v: 'center', label: 'Zentriert' },
+                          { v: 'right',  label: 'Rechts' },
+                        ] as const).map(({ v, label }) => {
+                          const active = textAlign === v;
+                          return (
+                            <button key={v} onClick={() => set({ textAlign: v === 'left' ? undefined : v })}
+                              className="flex-1 text-[10px] py-1.5 px-2 rounded-lg transition-colors"
+                              style={{
+                                background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                color:      active ? '#fff' : 'var(--text-secondary)',
+                                border:     `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                              }}>
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                     {/* Schreibschutz */}
                     <div className="flex items-center justify-between">

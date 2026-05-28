@@ -22,6 +22,7 @@ export function InputWidget({ config }: WidgetProps) {
   const showIcon     = o.showIcon   !== false;
   const showSubmit   = o.showSubmit !== false;
   const titleAlign   = (o.titleAlign as string) ?? 'left';
+  const textAlign    = ((o.textAlign as 'left' | 'right' | 'center') ?? 'left');
   const iconSize     = (o.iconSize as number) || 20;
   const WidgetIcon   = getWidgetIcon(o.icon as string | undefined, TextCursorInput);
 
@@ -82,11 +83,18 @@ export function InputWidget({ config }: WidgetProps) {
   };
 
   const inputClass = 'nodrag w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none';
+  // When maxLength is set, cap the visible width to roughly that many characters
+  // (plus padding + border) so the field is no wider than its content can ever be.
+  const inputMaxWidth = maxLength && !multiline ? `calc(${maxLength}ch + 2rem)` : undefined;
   const inputStyle: React.CSSProperties = {
     background: 'var(--app-bg)',
     color:      'var(--text-primary)',
     border:     '1px solid var(--app-border)',
+    textAlign,
+    maxWidth:   inputMaxWidth,
   };
+  const justifyForAlign: React.CSSProperties['justifyContent'] =
+    textAlign === 'right' ? 'flex-end' : textAlign === 'center' ? 'center' : 'flex-start';
 
   const inputEl = multiline ? (
     <textarea
@@ -179,7 +187,7 @@ export function InputWidget({ config }: WidgetProps) {
             )}
           </div>
         )}
-        <div className="flex-1 min-w-0">{inputEl}</div>
+        <div className="flex-1 min-w-0 flex" style={{ justifyContent: justifyForAlign }}>{inputEl}</div>
         {submitButton}
       </div>
     );
@@ -207,7 +215,9 @@ export function InputWidget({ config }: WidgetProps) {
         </div>
       )}
       <div className={`flex ${multiline ? 'flex-1 min-h-0' : 'items-center'} gap-2`}>
-        {multiline ? inputEl : <div className="flex-1 min-w-0">{inputEl}</div>}
+        {multiline
+          ? inputEl
+          : <div className="flex-1 min-w-0 flex" style={{ justifyContent: justifyForAlign }}>{inputEl}</div>}
         {!multiline && submitButton}
       </div>
       {multiline && submitButton && (
