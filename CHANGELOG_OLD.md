@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.145 (2026-05-27)
+- fix(input-widget): submit button no longer fills full row in default layout
+
 ## 0.9.144 (2026-05-26)
 - feat(weather/custom): bar sizing options + rainLine combined field
 - feat(weather): add adapter data source for offline use

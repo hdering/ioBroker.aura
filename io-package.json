@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.164",
+    "version": "0.9.165",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.165": {
+        "en": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
+        "de": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
+        "ru": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
+        "pt": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
+        "nl": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
+        "fr": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
+        "it": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
+        "es": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
+        "pl": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
+        "uk": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
+        "zh-cn": "fix(theme): always create themeMode admin/frontend DPs even when migration throws"
+      },
       "0.9.164": {
         "en": "fix(theme): make themeMode.frontend DP override sticky",
         "de": "fix(theme): make themeMode.frontend DP override sticky",
@@ -184,19 +197,6 @@
         "pl": "feat(input-widget): add text alignment option and cap width to maxLength",
         "uk": "feat(input-widget): add text alignment option and cap width to maxLength",
         "zh-cn": "feat(input-widget): add text alignment option and cap width to maxLength"
-      },
-      "0.9.158": {
-        "en": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
-        "de": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
-        "ru": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
-        "pt": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
-        "nl": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
-        "fr": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
-        "it": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
-        "es": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
-        "pl": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
-        "uk": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
-        "zh-cn": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked"
       }
     }
   },
