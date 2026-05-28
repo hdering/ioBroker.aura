@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.154",
+    "version": "0.9.155",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.155": {
+        "en": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
+        "de": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
+        "ru": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
+        "pt": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
+        "nl": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
+        "fr": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
+        "it": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
+        "es": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
+        "pl": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
+        "uk": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
+        "zh-cn": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens"
+      },
       "0.9.154": {
         "en": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix",
         "de": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix",
@@ -184,19 +197,6 @@
         "pl": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs",
         "uk": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs",
         "zh-cn": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs"
-      },
-      "0.9.148": {
-        "en": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
-        "de": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
-        "ru": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
-        "pt": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
-        "nl": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
-        "fr": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
-        "it": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
-        "es": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
-        "pl": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
-        "uk": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
-        "zh-cn": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them"
       }
     }
   },

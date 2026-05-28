@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.135 (2026-05-26)
+- feat(brokenDps): pulse-highlight the focused widget in the editor preview
+- feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list
+
 ## 0.9.134 (2026-05-26)
 - feat(brokenDps): deep-link group children to their host group widget
 - feat(orphans): show channel common.name next to orphan DP IDs
