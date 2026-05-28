@@ -871,23 +871,22 @@ class Aura extends utils.Adapter {
       native: {},
     });
 
-    await this.setObjectNotExistsAsync('config.darkMode', {
+    await this.setObjectNotExistsAsync('config.themeMode', {
       type: 'state',
-      common: { name: "Dark/Light mode override ('dark'|'light'|''); bidirectional sync with frontend & admin", type: 'string', role: 'level.mode.color', read: true, write: true, def: '', states: { dark: 'dark', light: 'light' } },
+      common: { name: "Theme mode override ('dark'|'light'|''); bidirectional sync with frontend & admin", type: 'string', role: 'level.mode.color', read: true, write: true, def: '', states: { dark: 'dark', light: 'light' } },
       native: {},
     });
-    // Migrate legacy boolean config.darkMode (v0.9.160) → string variant
+    // Migrate legacy config.darkMode (v0.9.160-0.9.161) → config.themeMode
     try {
-      const dmObj = await this.getObjectAsync('config.darkMode');
-      if (dmObj && dmObj.common && dmObj.common.type !== 'string') {
-        await this.setObjectAsync('config.darkMode', {
-          type: 'state',
-          common: { name: "Dark/Light mode override ('dark'|'light'|''); bidirectional sync with frontend & admin", type: 'string', role: 'level.mode.color', read: true, write: true, def: '', states: { dark: 'dark', light: 'light' } },
-          native: {},
-        });
+      const legacy = await this.getObjectAsync('config.darkMode');
+      if (legacy) {
         const cur = await this.getStateAsync('config.darkMode');
-        const migrated = cur && cur.val === true ? 'dark' : cur && cur.val === false ? 'light' : '';
-        await this.setStateAsync('config.darkMode', migrated, true);
+        const migrated = cur && cur.val === true ? 'dark'
+          : cur && cur.val === false ? 'light'
+          : cur && (cur.val === 'dark' || cur.val === 'light') ? cur.val
+          : '';
+        if (migrated) await this.setStateAsync('config.themeMode', migrated, true);
+        await this.delObjectAsync('config.darkMode');
       }
     } catch (e) { this.log.warn(`config.darkMode migration: ${e && e.message ? e.message : e}`); }
 
