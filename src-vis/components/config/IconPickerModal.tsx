@@ -69,6 +69,8 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
   const [query, setQuery] = useState('');
   const [categoryId, setCategoryId] = useState('all');
   const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
+  const [onlineIds, setOnlineIds] = useState<string[]>([]);
+  const [onlineLoading, setOnlineLoading] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const currentId = toIconifyId(current);
@@ -119,6 +121,34 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     [allIds, missingIds],
   );
 
+  // Live Iconify search — fetches any icon from any set (mdi, material-symbols,
+  // tabler, …) so users aren't limited to the curated category list. Debounced
+  // 300 ms; aborts on query change or unmount.
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setOnlineIds([]);
+      setOnlineLoading(false);
+      return;
+    }
+    const ctrl = new AbortController();
+    setOnlineLoading(true);
+    const timer = setTimeout(() => {
+      fetch(`https://api.iconify.design/search?query=${encodeURIComponent(q)}&limit=200`, { signal: ctrl.signal })
+        .then((r) => r.json())
+        .then((data) => {
+          const ids = Array.isArray(data?.icons) ? (data.icons as string[]) : [];
+          setOnlineIds(ids);
+        })
+        .catch(() => { /* abort or network error → ignore */ })
+        .finally(() => setOnlineLoading(false));
+    }, 300);
+    return () => {
+      clearTimeout(timer);
+      ctrl.abort();
+    };
+  }, [query]);
+
   // Category counts based on validated icons
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { all: validIds.length };
@@ -133,7 +163,17 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     const q = query.toLowerCase().trim();
 
     if (q) {
-      return validIds.filter((id) => id.toLowerCase().includes(q)).sort();
+      const local = validIds.filter((id) => id.toLowerCase().includes(q)).sort();
+      if (onlineIds.length === 0) return local;
+      const seen = new Set(local);
+      const remote: string[] = [];
+      for (const id of onlineIds) {
+        if (!seen.has(id)) {
+          seen.add(id);
+          remote.push(id);
+        }
+      }
+      return [...local, ...remote];
     }
 
     if (categoryId === 'all') {
@@ -143,7 +183,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     const cat = ICON_CATEGORIES.find((c) => c.id === categoryId);
     if (!cat) return [];
     return cat.icons.map(toIconifyId).filter((id) => !missingIds.has(id));
-  }, [validIds, missingIds, query, categoryId]);
+  }, [validIds, missingIds, query, categoryId, onlineIds]);
 
   const modal = (
     <div
@@ -226,7 +266,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
             {entries.length === 0 ? (
               <div className="h-full flex items-center justify-center">
                 <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  Keine Icons gefunden
+                  {onlineLoading ? 'Suche…' : 'Keine Icons gefunden'}
                 </p>
               </div>
             ) : (
@@ -248,7 +288,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
         <div className="h-px shrink-0" style={{ background: 'var(--app-border)' }} />
         <div className="flex items-center gap-2 px-3 py-2 shrink-0">
           <span className="text-[11px] flex-1" style={{ color: 'var(--text-secondary)' }}>
-            {entries.length} Icons
+            {entries.length} Icons{onlineLoading ? ' · sucht online…' : ''}
             {currentId && (
               <span className="ml-2 font-medium" style={{ color: 'var(--text-primary)' }}>
                 • {currentId}
