@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.152",
+    "version": "0.9.153",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.153": {
+        "en": "fix(enum): apply per-entry color to value cell in custom layout",
+        "de": "fix(enum): apply per-entry color to value cell in custom layout",
+        "ru": "fix(enum): apply per-entry color to value cell in custom layout",
+        "pt": "fix(enum): apply per-entry color to value cell in custom layout",
+        "nl": "fix(enum): apply per-entry color to value cell in custom layout",
+        "fr": "fix(enum): apply per-entry color to value cell in custom layout",
+        "it": "fix(enum): apply per-entry color to value cell in custom layout",
+        "es": "fix(enum): apply per-entry color to value cell in custom layout",
+        "pl": "fix(enum): apply per-entry color to value cell in custom layout",
+        "uk": "fix(enum): apply per-entry color to value cell in custom layout",
+        "zh-cn": "fix(enum): apply per-entry color to value cell in custom layout"
+      },
       "0.9.152": {
         "en": "feat(scriptstatus): configurable search scope (name/path/both)",
         "de": "feat(scriptstatus): configurable search scope (name/path/both)",
@@ -184,19 +197,6 @@
         "pl": "feat(adapterlogs): new widget streaming iobroker logs with filters",
         "uk": "feat(adapterlogs): new widget streaming iobroker logs with filters",
         "zh-cn": "feat(adapterlogs): new widget streaming iobroker logs with filters"
-      },
-      "0.9.146": {
-        "en": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
-        "de": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
-        "ru": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
-        "pt": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
-        "nl": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
-        "fr": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
-        "it": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
-        "es": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
-        "pl": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
-        "uk": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter",
-        "zh-cn": "feat(scriptstatus): new widget listing javascript scripts with run/stop filter"
       }
     }
   },

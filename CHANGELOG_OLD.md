@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.133 (2026-05-25)
+- feat(customJs): show import-order hint above editor
+- feat(customJs): support @import url() at top of custom JS
+
 ## 0.9.132 (2026-05-25)
 - feat(brokenDps): deep-link to the broken widget from the overview panel
 - fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets
