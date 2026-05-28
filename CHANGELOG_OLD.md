@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.9.144 (2026-05-26)
+- feat(weather/custom): bar sizing options + rainLine combined field
+- feat(weather): add adapter data source for offline use
+- chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229)
+- feat(clock): add city, sunrise, sunset, calendar week
+
 ## 0.9.143 (2026-05-26)
 - feat(clock): add city, sunrise, sunset, calendar week
 
