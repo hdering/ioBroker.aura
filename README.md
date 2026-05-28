@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.162 (2026-05-28)
+- refactor(theme): rename config.darkMode to config.themeMode
+
+
 ### 0.9.161 (2026-05-28)
 - fix(io-package): drop empty-key state from config.darkMode states map
 - fix(theme): frontend now reacts to config.darkMode DP
@@ -268,10 +272,6 @@ npm run build:adapter
 - feat(clock): add city, sunrise, sunset, calendar week
 
 
-### 0.9.142 (2026-05-26)
-- feat(custom-js): expose getObject, getObjectView, sendTo on window.aura
-
-
 ## License
 
 MIT License
@@ -283,6 +283,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

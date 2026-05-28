@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.161",
+    "version": "0.9.162",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.162": {
+        "en": "refactor(theme): rename config.darkMode to config.themeMode",
+        "de": "refactor(theme): rename config.darkMode to config.themeMode",
+        "ru": "refactor(theme): rename config.darkMode to config.themeMode",
+        "pt": "refactor(theme): rename config.darkMode to config.themeMode",
+        "nl": "refactor(theme): rename config.darkMode to config.themeMode",
+        "fr": "refactor(theme): rename config.darkMode to config.themeMode",
+        "it": "refactor(theme): rename config.darkMode to config.themeMode",
+        "es": "refactor(theme): rename config.darkMode to config.themeMode",
+        "pl": "refactor(theme): rename config.darkMode to config.themeMode",
+        "uk": "refactor(theme): rename config.darkMode to config.themeMode",
+        "zh-cn": "refactor(theme): rename config.darkMode to config.themeMode"
+      },
       "0.9.161": {
         "en": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP",
         "de": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP",
@@ -184,19 +197,6 @@
         "pl": "feat(iconpicker): live Iconify online search beyond curated categories",
         "uk": "feat(iconpicker): live Iconify online search beyond curated categories",
         "zh-cn": "feat(iconpicker): live Iconify online search beyond curated categories"
-      },
-      "0.9.155": {
-        "en": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
-        "de": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
-        "ru": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
-        "pt": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
-        "nl": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
-        "fr": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
-        "it": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
-        "es": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
-        "pl": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
-        "uk": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
-        "zh-cn": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens"
       }
     }
   },
