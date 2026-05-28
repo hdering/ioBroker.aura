@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.136 (2026-05-26)
+Release v0.9.136
+
 ## 0.9.135 (2026-05-26)
 - feat(brokenDps): pulse-highlight the focused widget in the editor preview
 - feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list

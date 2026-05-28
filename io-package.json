@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.155",
+    "version": "0.9.156",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.156": {
+        "en": "feat(iconpicker): live Iconify online search beyond curated categories",
+        "de": "feat(iconpicker): live Iconify online search beyond curated categories",
+        "ru": "feat(iconpicker): live Iconify online search beyond curated categories",
+        "pt": "feat(iconpicker): live Iconify online search beyond curated categories",
+        "nl": "feat(iconpicker): live Iconify online search beyond curated categories",
+        "fr": "feat(iconpicker): live Iconify online search beyond curated categories",
+        "it": "feat(iconpicker): live Iconify online search beyond curated categories",
+        "es": "feat(iconpicker): live Iconify online search beyond curated categories",
+        "pl": "feat(iconpicker): live Iconify online search beyond curated categories",
+        "uk": "feat(iconpicker): live Iconify online search beyond curated categories",
+        "zh-cn": "feat(iconpicker): live Iconify online search beyond curated categories"
+      },
       "0.9.155": {
         "en": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
         "de": "feat(jsontable): per-column Iconify toggle for inline mdi: tokens",
@@ -184,19 +197,6 @@
         "pl": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
         "uk": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
         "zh-cn": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option"
-      },
-      "0.9.149": {
-        "en": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs",
-        "de": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs",
-        "ru": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs",
-        "pt": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs",
-        "nl": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs",
-        "fr": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs",
-        "it": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs",
-        "es": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs",
-        "pl": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs",
-        "uk": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs",
-        "zh-cn": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs"
       }
     }
   },
