@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.141 (2026-05-26)
+- feat(iframe): sandbox preset dropdown for html/iframe/popup widgets
+
 ## 0.9.140 (2026-05-26)
 - feat(timer): re-add custom layout + placeable elements
 
