@@ -273,7 +273,7 @@
         "read": true,
         "write": true,
         "def": "",
-        "states": { "": "auto", "dark": "dark", "light": "light" }
+        "states": { "dark": "dark", "light": "light" }
       },
       "native": {}
     },
