@@ -28,6 +28,11 @@ import { discardPending } from './store/persistManager';
 import { markGroupDefsHydrated } from './store/groupDefsStore';
 import { usePopupConfigStore } from './store/popupConfigStore';
 
+// Module-level cache of the active themeMode.frontend DP override. Lets the
+// DP listener win over delayed config rehydrations and the followBrowser
+// effect, which would otherwise overwrite the DP-driven setTheme call.
+const themeModeOverride: { value: 'dark' | 'light' | null } = { value: null };
+
 const STORE_REHYDRATORS: Record<string, () => void> = {
   'aura-dashboard':    () => useDashboardStore.persist.rehydrate(),
   'aura-theme':        () => useThemeStore.persist.rehydrate(),
@@ -385,6 +390,7 @@ export default function App() {
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const applyIfFollowing = () => {
+      if (themeModeOverride.value) return; // explicit DP override beats browser
       const { followBrowser: fb, browserDarkThemeId: dark, browserLightThemeId: light, themeId } = useThemeStore.getState();
       if (!fb) return;
       const desired = mq.matches ? dark : light;
@@ -397,22 +403,35 @@ export default function App() {
   }, [setTheme]);
 
   // ── Datapoint-driven dark/light mode ──────────────────────────────────────
-  // Subscribes to aura.0.config.themeMode.frontend ('dark'|'light'|''). Mirrors the
-  // Sun/Moon button: switches global theme and clears the active layout's
+  // Subscribes to aura.0.config.themeMode.frontend ('dark'|'light'|''). Mirrors
+  // the Sun/Moon button: switches global theme and clears the active layout's
   // themeId override (otherwise the per-layout scoped CSS would mask the
-  // global change). Empty string = no override; do nothing.
+  // global change).
+  //
+  // Stickiness: also subscribes to the theme store. When loadConfigFromIoBroker
+  // (or any other source) rehydrates themeId to a different value while a DP
+  // override is active, we snap back so the DP truly wins. Without this guard
+  // the frontend briefly flashes to the DP value, then reverts to the saved
+  // theme once the config arrives.
   useEffect(() => {
-    return subscribeStateDirect('aura.0.config.themeMode.frontend', (state) => {
+    const applyOverride = () => {
+      const v = themeModeOverride.value;
+      if (!v) return;
+      if (useThemeStore.getState().themeId !== v) setTheme(v);
+      if (layout?.settings?.themeId) clearLayoutSettings(layout.id, 'themeId');
+    };
+    const unsubDP = subscribeStateDirect('aura.0.config.themeMode.frontend', (state) => {
       if (state?.val == null) return;
       const raw = state.val;
-      let desired: 'dark' | 'light' | null = null;
-      if (raw === 'dark' || raw === 'light') desired = raw;
-      else if (raw === true || raw === 1)    desired = 'dark';   // legacy boolean
-      else if (raw === false || raw === 0)   desired = 'light';  // legacy boolean
-      if (!desired) return; // '' (auto) or unknown — do nothing
-      if (useThemeStore.getState().themeId !== desired) setTheme(desired);
-      if (layout?.settings?.themeId) clearLayoutSettings(layout.id, 'themeId');
+      if (raw === '') { themeModeOverride.value = null; return; }
+      if (raw === 'dark' || raw === 'light') themeModeOverride.value = raw;
+      else if (raw === true  || raw === 1)   themeModeOverride.value = 'dark';   // legacy boolean
+      else if (raw === false || raw === 0)   themeModeOverride.value = 'light';  // legacy boolean
+      else return;
+      applyOverride();
     });
+    const unsubStore = useThemeStore.subscribe(applyOverride);
+    return () => { unsubDP(); unsubStore(); };
   }, [setTheme, layout?.id, layout?.settings?.themeId, clearLayoutSettings]);
 
   // Activate tab when URL slug changes
@@ -513,6 +532,7 @@ export default function App() {
             <button
               onClick={() => {
                 const nextId = currentTheme.dark ? 'light' : 'dark';
+                themeModeOverride.value = nextId; // seed before setTheme so snap-back doesn't revert
                 setTheme(nextId);
                 if (layout?.settings?.themeId) clearLayoutSettings(layout.id, 'themeId');
                 setStateDirect('aura.0.config.themeMode.frontend', nextId);
