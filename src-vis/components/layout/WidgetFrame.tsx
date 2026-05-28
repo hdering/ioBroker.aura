@@ -5627,9 +5627,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   onConfigChange({ ...config, options: { ...o, ...patch } });
                 const sCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
                 const sSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
-                const filterMode = (o.filterMode  as string) ?? 'all';
-                const sortBy     = (o.sortBy      as string) ?? 'name';
-                const groupF     = (o.groupFilter as string) ?? '';
+                const filterMode  = (o.filterMode  as string) ?? 'all';
+                const sortBy      = (o.sortBy      as string) ?? 'name';
+                const groupF      = (o.groupFilter as string) ?? '';
+                const searchScope = (o.searchScope as string) ?? 'both';
                 const Toggle = ({ label, k, def, hint }: { label: string; k: string; def?: boolean; hint?: string }) => {
                   const val = (o[k] as boolean | undefined) ?? def ?? false;
                   return (
@@ -5680,6 +5681,14 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     </div>
                     <Toggle label="Filter-Buttons im Frontend" k="showFilter" def={true} hint="Nutzer kann den Filter umschalten" />
                     <Toggle label="Suchfeld anzeigen"          k="showSearch" def={true} hint="Erscheint ab > 5 Skripten" />
+                    <div>
+                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Suche durchsucht</label>
+                      <select value={searchScope} onChange={(e) => set({ searchScope: e.target.value })} className={sCls} style={sSty}>
+                        <option value="both">Name und Pfad</option>
+                        <option value="name">Nur Name</option>
+                        <option value="path">Nur Pfad</option>
+                      </select>
+                    </div>
                     <Toggle label="Engine-Typ anzeigen"         k="showEngine" def={true} hint="Badge: JS / TS / Blockly / Rules" />
                     <Toggle label="Kompakte Darstellung"        k="compact"    def={false} hint="Pfad-Zeile ausblenden" />
                     <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />

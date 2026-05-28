@@ -173,6 +173,7 @@ export function ScriptStatusWidget({ config }: WidgetProps) {
   const compact        = !!o.compact;
   const sortBy         = (o.sortBy as 'name' | 'status') ?? 'name';
   const defaultGroup   = ((o.groupFilter as string) ?? '').trim();
+  const searchScope    = (o.searchScope as 'name' | 'path' | 'both') ?? 'both';
   const allowStart     = !!o.allowStart;
   const allowStop      = !!o.allowStop;
 
@@ -299,7 +300,15 @@ export function ScriptStatusWidget({ config }: WidgetProps) {
       if (filter === 'running' && !running) return false;
       if (filter === 'stopped' &&  running) return false;
       if (groupFilter && s.group !== groupFilter && !s.group.startsWith(`${groupFilter}.`)) return false;
-      if (lc && !s.shortId.toLowerCase().includes(lc) && !s.name.toLowerCase().includes(lc)) return false;
+      if (lc) {
+        const inName = s.name.toLowerCase().includes(lc);
+        const inPath = s.shortId.toLowerCase().includes(lc);
+        const hit =
+          searchScope === 'name' ? inName :
+          searchScope === 'path' ? inPath :
+          inName || inPath;
+        if (!hit) return false;
+      }
       return true;
     });
     if (sortBy === 'status') {
@@ -311,7 +320,7 @@ export function ScriptStatusWidget({ config }: WidgetProps) {
       });
     }
     return arr;
-  }, [scripts, states, query, filter, groupFilter, sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [scripts, states, query, filter, groupFilter, sortBy, searchScope]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const counts = useMemo(() => {
     let running = 0, stopped = 0;
