@@ -397,12 +397,12 @@ export default function App() {
   }, [setTheme]);
 
   // ── Datapoint-driven dark/light mode ──────────────────────────────────────
-  // Subscribes to aura.0.config.themeMode ('dark'|'light'|''). Mirrors the
+  // Subscribes to aura.0.config.themeMode.frontend ('dark'|'light'|''). Mirrors the
   // Sun/Moon button: switches global theme and clears the active layout's
   // themeId override (otherwise the per-layout scoped CSS would mask the
   // global change). Empty string = no override; do nothing.
   useEffect(() => {
-    return subscribeStateDirect('aura.0.config.themeMode', (state) => {
+    return subscribeStateDirect('aura.0.config.themeMode.frontend', (state) => {
       if (state?.val == null) return;
       const raw = state.val;
       let desired: 'dark' | 'light' | null = null;
@@ -515,7 +515,7 @@ export default function App() {
                 const nextId = currentTheme.dark ? 'light' : 'dark';
                 setTheme(nextId);
                 if (layout?.settings?.themeId) clearLayoutSettings(layout.id, 'themeId');
-                setStateDirect('aura.0.config.themeMode', nextId);
+                setStateDirect('aura.0.config.themeMode.frontend', nextId);
               }}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
               style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
