@@ -266,13 +266,18 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
               <div className="flex items-center gap-3 flex-wrap">
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <Toggle value={col.image ?? false}
-                    onToggle={() => updateCol(idx, { image: !(col.image ?? false), html: (col.image ?? false) ? col.html : false })} />
+                    onToggle={() => updateCol(idx, { image: !(col.image ?? false), html: (col.image ?? false) ? col.html : false, iconify: (col.image ?? false) ? col.iconify : false })} />
                   <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Bild</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <Toggle value={col.html ?? false}
-                    onToggle={() => updateCol(idx, { html: !(col.html ?? false), image: (col.html ?? false) ? col.image : false })} />
+                    onToggle={() => updateCol(idx, { html: !(col.html ?? false), image: (col.html ?? false) ? col.image : false, iconify: (col.html ?? false) ? col.iconify : false })} />
                   <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>HTML</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer" title="mdi:..., material-symbols:..., lucide:... inline rendern">
+                  <Toggle value={col.iconify ?? false}
+                    onToggle={() => updateCol(idx, { iconify: !(col.iconify ?? false), image: (col.iconify ?? false) ? col.image : false, html: (col.iconify ?? false) ? col.html : false })} />
+                  <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Icons</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <Toggle value={col.hidden ?? false} onToggle={() => updateCol(idx, { hidden: !(col.hidden ?? false) })} />

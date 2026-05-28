@@ -1,5 +1,6 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { Table2, Search, X } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
@@ -18,7 +19,32 @@ export interface JsonColumnDef {
   /** Optional prefix prepended to relative image paths in this column.
    * If set, overrides global adminBaseUrl auto-rewrite for /<adapter>.admin/ paths. */
   imagePathPrefix?: string;
+  /** Render Iconify tokens (e.g. "mdi:window-open-variant") inline as SVG icons. */
+  iconify?: boolean;
   order?: number;    // lower = further left
+}
+
+// Iconify token pattern: <set>:<name>, e.g. "mdi:home", "material-symbols:lock".
+// Restricted to lowercase letters/digits/dashes to avoid matching arbitrary "x:y" text.
+const ICONIFY_TOKEN = /([a-z][a-z0-9-]+:[a-z0-9-]+)/g;
+
+function renderTextWithIcons(text: string, fontSize: number): React.ReactNode {
+  if (!ICONIFY_TOKEN.test(text)) return text;
+  ICONIFY_TOKEN.lastIndex = 0;
+  const parts: React.ReactNode[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+  const size = Math.round(fontSize * 1.25);
+  while ((m = ICONIFY_TOKEN.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index));
+    parts.push(
+      <Icon key={`${m.index}-${m[1]}`} icon={m[1]} width={size} height={size}
+        style={{ display: 'inline-block', verticalAlign: '-0.18em' }} />
+    );
+    last = m.index + m[1].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
 }
 
 /** Derive admin base URL: explicit setting wins, else same host on port 8081. */
@@ -324,6 +350,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                   const raw = row[col.key];
                   const isImage = col.image ?? false;
                   const isHtml = !isImage && (col.html ?? false);
+                  const useIconify = !isImage && !isHtml && (col.iconify ?? false);
                   const imgSize = col.imageSize && col.imageSize > 0 ? col.imageSize : Math.round(fs * 2.4);
                   return (
                     <td key={col.key}
@@ -346,7 +373,9 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                             : <span style={{ opacity: 0.5 }}>–</span>)
                         : isHtml
                           ? <span dangerouslySetInnerHTML={{ __html: cellText(raw) }} />
-                          : cellText(raw)}
+                          : useIconify
+                            ? renderTextWithIcons(cellText(raw), fs)
+                            : cellText(raw)}
                     </td>
                   );
                 })}
