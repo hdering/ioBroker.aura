@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.162",
+    "version": "0.9.163",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.163": {
+        "en": "refactor(theme): split themeMode into separate frontend & admin DPs",
+        "de": "refactor(theme): split themeMode into separate frontend & admin DPs",
+        "ru": "refactor(theme): split themeMode into separate frontend & admin DPs",
+        "pt": "refactor(theme): split themeMode into separate frontend & admin DPs",
+        "nl": "refactor(theme): split themeMode into separate frontend & admin DPs",
+        "fr": "refactor(theme): split themeMode into separate frontend & admin DPs",
+        "it": "refactor(theme): split themeMode into separate frontend & admin DPs",
+        "es": "refactor(theme): split themeMode into separate frontend & admin DPs",
+        "pl": "refactor(theme): split themeMode into separate frontend & admin DPs",
+        "uk": "refactor(theme): split themeMode into separate frontend & admin DPs",
+        "zh-cn": "refactor(theme): split themeMode into separate frontend & admin DPs"
+      },
       "0.9.162": {
         "en": "refactor(theme): rename config.darkMode to config.themeMode",
         "de": "refactor(theme): rename config.darkMode to config.themeMode",
@@ -184,19 +197,6 @@
         "pl": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key",
         "uk": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key",
         "zh-cn": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key"
-      },
-      "0.9.156": {
-        "en": "feat(iconpicker): live Iconify online search beyond curated categories",
-        "de": "feat(iconpicker): live Iconify online search beyond curated categories",
-        "ru": "feat(iconpicker): live Iconify online search beyond curated categories",
-        "pt": "feat(iconpicker): live Iconify online search beyond curated categories",
-        "nl": "feat(iconpicker): live Iconify online search beyond curated categories",
-        "fr": "feat(iconpicker): live Iconify online search beyond curated categories",
-        "it": "feat(iconpicker): live Iconify online search beyond curated categories",
-        "es": "feat(iconpicker): live Iconify online search beyond curated categories",
-        "pl": "feat(iconpicker): live Iconify online search beyond curated categories",
-        "uk": "feat(iconpicker): live Iconify online search beyond curated categories",
-        "zh-cn": "feat(iconpicker): live Iconify online search beyond curated categories"
       }
     }
   },

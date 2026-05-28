@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.143 (2026-05-26)
+- feat(clock): add city, sunrise, sunset, calendar week
+
 ## 0.9.142 (2026-05-26)
 - feat(custom-js): expose getObject, getObjectView, sendTo on window.aura
 
