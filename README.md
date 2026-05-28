@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.151 (2026-05-28)
+- feat(input-widget): add compact layout (title + field + submit in one row)
+
+
 ### 0.9.150 (2026-05-28)
 - feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option
 
@@ -272,14 +276,6 @@ Release v0.9.136
 - fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets
 
 
-### 0.9.131 (2026-05-25)
-- fix(lint): auto-fix mixed typographic quotes
-- fix(StaticListConfig): wrap German typographic quotes in JS expression
-- feat(orphans): widget->DP reference check across all widgets
-- feat(orphans): always-visible panel with timer + list DP detection
-- feat(timer): orphan detector in overview with refresh + confirm-cleanup
-
-
 ## License
 
 MIT License
@@ -291,6 +287,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

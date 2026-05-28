@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.150",
+    "version": "0.9.151",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.151": {
+        "en": "feat(input-widget): add compact layout (title + field + submit in one row)",
+        "de": "feat(input-widget): add compact layout (title + field + submit in one row)",
+        "ru": "feat(input-widget): add compact layout (title + field + submit in one row)",
+        "pt": "feat(input-widget): add compact layout (title + field + submit in one row)",
+        "nl": "feat(input-widget): add compact layout (title + field + submit in one row)",
+        "fr": "feat(input-widget): add compact layout (title + field + submit in one row)",
+        "it": "feat(input-widget): add compact layout (title + field + submit in one row)",
+        "es": "feat(input-widget): add compact layout (title + field + submit in one row)",
+        "pl": "feat(input-widget): add compact layout (title + field + submit in one row)",
+        "uk": "feat(input-widget): add compact layout (title + field + submit in one row)",
+        "zh-cn": "feat(input-widget): add compact layout (title + field + submit in one row)"
+      },
       "0.9.150": {
         "en": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
         "de": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
@@ -184,19 +197,6 @@
         "pl": "fix(input-widget): submit button no longer fills full row in default layout",
         "uk": "fix(input-widget): submit button no longer fills full row in default layout",
         "zh-cn": "fix(input-widget): submit button no longer fills full row in default layout"
-      },
-      "0.9.144": {
-        "en": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
-        "de": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
-        "ru": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
-        "pt": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
-        "nl": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
-        "fr": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
-        "it": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
-        "es": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
-        "pl": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
-        "uk": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
-        "zh-cn": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week"
       }
     }
   },

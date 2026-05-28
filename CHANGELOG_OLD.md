@@ -1,5 +1,12 @@
 # Changelog (older entries)
 
+## 0.9.131 (2026-05-25)
+- fix(lint): auto-fix mixed typographic quotes
+- fix(StaticListConfig): wrap German typographic quotes in JS expression
+- feat(orphans): widget->DP reference check across all widgets
+- feat(orphans): always-visible panel with timer + list DP detection
+- feat(timer): orphan detector in overview with refresh + confirm-cleanup
+
 ## 0.9.130 (2026-05-25)
 - fix(timer): only rename channel on explicit save, not per keystroke
 
