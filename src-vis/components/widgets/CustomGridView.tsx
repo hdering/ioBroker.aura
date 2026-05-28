@@ -637,8 +637,8 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
   const iconSize = cell.fontSize ?? 16;
   const Icon = current?.icon ? getWidgetIcon(current.icon, HelpCircle) : null;
 
-  const selectedView = () => (
-    <div className="flex items-center gap-1 min-w-0" style={{ flex: '1 1 auto', minWidth: 0 }}>
+  const selectedView = (grow: boolean) => (
+    <div className="flex items-center gap-1 min-w-0" style={{ flex: grow ? '1 1 auto' : '0 1 auto', minWidth: 0 }}>
       {showIcon && Icon && <Icon size={iconSize} style={{ color: finalColor, flexShrink: 0 }} />}
       {showText && (
         <span
@@ -653,7 +653,7 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
   if (hideSelect) {
     return (
       <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' }}>
-        {showLabel && selectedView()}
+        {showLabel && selectedView(false)}
       </div>
     );
   }
@@ -661,7 +661,7 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
   return (
     <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' }}>
       <div className="flex items-center gap-1 w-full min-w-0">
-        {showLabel && selectedView()}
+        {showLabel && selectedView(true)}
         <div className="relative inline-flex items-center" style={{ minWidth: 0, flex: showLabel ? '0 1 auto' : '1 1 auto' }}>
           <select
             value={current?.value ?? ''}
