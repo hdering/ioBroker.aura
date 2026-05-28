@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.166 (2026-05-28)
+- chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP
+
+
 ### 0.9.165 (2026-05-28)
 - fix(theme): always create themeMode admin/frontend DPs even when migration throws
 
@@ -265,10 +269,6 @@ npm run build:adapter
 - feat(adapterlogs): new widget streaming iobroker logs with filters
 
 
-### 0.9.146 (2026-05-27)
-- feat(scriptstatus): new widget listing javascript scripts with run/stop filter
-
-
 ## License
 
 MIT License
@@ -280,6 +280,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

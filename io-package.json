@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.165",
+    "version": "0.9.166",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.166": {
+        "en": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
+        "de": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
+        "ru": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
+        "pt": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
+        "nl": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
+        "fr": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
+        "it": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
+        "es": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
+        "pl": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
+        "uk": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
+        "zh-cn": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP"
+      },
       "0.9.165": {
         "en": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
         "de": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
@@ -184,19 +197,6 @@
         "pl": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
         "uk": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
         "zh-cn": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync"
-      },
-      "0.9.159": {
-        "en": "feat(input-widget): add text alignment option and cap width to maxLength",
-        "de": "feat(input-widget): add text alignment option and cap width to maxLength",
-        "ru": "feat(input-widget): add text alignment option and cap width to maxLength",
-        "pt": "feat(input-widget): add text alignment option and cap width to maxLength",
-        "nl": "feat(input-widget): add text alignment option and cap width to maxLength",
-        "fr": "feat(input-widget): add text alignment option and cap width to maxLength",
-        "it": "feat(input-widget): add text alignment option and cap width to maxLength",
-        "es": "feat(input-widget): add text alignment option and cap width to maxLength",
-        "pl": "feat(input-widget): add text alignment option and cap width to maxLength",
-        "uk": "feat(input-widget): add text alignment option and cap width to maxLength",
-        "zh-cn": "feat(input-widget): add text alignment option and cap width to maxLength"
       }
     }
   },
