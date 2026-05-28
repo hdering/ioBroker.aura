@@ -871,6 +871,12 @@ class Aura extends utils.Adapter {
       native: {},
     });
 
+    await this.setObjectNotExistsAsync('config.darkMode', {
+      type: 'state',
+      common: { name: 'Dark/Light mode (true=dark, false=light); bidirectional sync with frontend & admin', type: 'boolean', role: 'level.mode.color', read: true, write: true, def: false },
+      native: {},
+    });
+
     const configStates = [
       { id: 'config.theme',           name: 'Theme configuration' },
       { id: 'config.groups',          name: 'Group configuration' },

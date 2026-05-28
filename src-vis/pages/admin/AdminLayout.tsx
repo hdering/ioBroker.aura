@@ -15,7 +15,7 @@ import { usePopupConfigStore } from '../../store/popupConfigStore';
 import { loadConfigFromIoBroker, applyRaw } from '../../utils/configLoader';
 import { markGroupDefsHydrated } from '../../store/groupDefsStore';
 import { useAdminPrefsStore } from '../../store/adminPrefsStore';
-import { useIoBroker, getObjectDirect } from '../../hooks/useIoBroker';
+import { useIoBroker, getObjectDirect, subscribeStateDirect, setStateDirect } from '../../hooks/useIoBroker';
 import { renameAllTimers } from '../../utils/publishTimerConfig';
 import { useVersionGuard } from '../../hooks/useVersionGuard';
 import { useT } from '../../i18n';
@@ -93,6 +93,19 @@ export function AdminLayout() {
   useEffect(() => { configureBackup({ maxBackups: backupCount }); }, [backupCount]);
 
   useVersionGuard();
+
+  // ── Datapoint-driven dark/light mode ──────────────────────────────────────
+  // Mirrors the boolean DP aura.0.config.darkMode → admin theme. The toggle
+  // button below also writes to this DP, so frontend and admin stay in sync.
+  useEffect(() => {
+    if (!connected) return;
+    return subscribeStateDirect('aura.0.config.darkMode', (state) => {
+      if (state?.val == null) return;
+      const wantDark = state.val === true || state.val === 'true' || state.val === 1;
+      const desired = wantDark ? 'dark' : 'light';
+      if (useThemeStore.getState().adminThemeId !== desired) setAdminTheme(desired);
+    });
+  }, [connected, setAdminTheme]);
 
   // Auto-sync on first connect: three cases
   //   1. Remote has data, local is empty  → apply remote immediately (avoids 10 s poll wait)
@@ -271,7 +284,11 @@ export function AdminLayout() {
               </button>
             )}
             <button
-              onClick={() => setAdminTheme(adminTheme.dark ? 'light' : 'dark')}
+              onClick={() => {
+                const nextDark = !adminTheme.dark;
+                setAdminTheme(nextDark ? 'dark' : 'light');
+                setStateDirect('aura.0.config.darkMode', nextDark);
+              }}
               className="w-8 h-8 flex items-center justify-center rounded-lg hover:opacity-80 transition-opacity"
               style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
               title={adminTheme.dark ? t('admin.nav.lightMode') : t('admin.nav.darkMode')}

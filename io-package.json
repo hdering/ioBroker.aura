@@ -264,6 +264,19 @@
       "native": {}
     },
     {
+      "_id": "config.darkMode",
+      "type": "state",
+      "common": {
+        "name": "Dark/Light mode (true=dark, false=light); bidirectional sync with frontend & admin",
+        "type": "boolean",
+        "role": "level.mode.color",
+        "read": true,
+        "write": true,
+        "def": false
+      },
+      "native": {}
+    },
+    {
       "_id": "navigate",
       "type": "channel",
       "common": {
