@@ -3573,6 +3573,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 { value: 'custom',  label: 'Custom' },
               ] : config.type === 'input' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },
+                { value: 'compact', label: t('wf.edit.layout.compact') },
                 { value: 'custom',  label: 'Custom' },
               ] : config.type === 'button' ? [
                 { value: 'default', label: t('wf.edit.layout.standard') },

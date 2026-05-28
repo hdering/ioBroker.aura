@@ -157,6 +157,34 @@ export function InputWidget({ config }: WidgetProps) {
     );
   }
 
+  if (layout === 'compact') {
+    return (
+      <div className="aura-widget-row flex items-center h-full gap-2">
+        {(showTitle || showIcon) && (
+          <div className="flex items-center gap-2 shrink-0 min-w-0 max-w-[50%]">
+            {showIcon && (
+              <WidgetIcon
+                className="aura-widget-icon"
+                size={iconSize}
+                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+              />
+            )}
+            {showTitle && (
+              <span
+                className="aura-widget-title text-sm truncate"
+                style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}
+              >
+                {config.title}
+              </span>
+            )}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">{inputEl}</div>
+        {submitButton}
+      </div>
+    );
+  }
+
   return (
     <div className="aura-widget-row flex flex-col h-full gap-1.5">
       {(showTitle || showIcon) && (
