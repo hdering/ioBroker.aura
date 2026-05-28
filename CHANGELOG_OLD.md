@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.132 (2026-05-25)
+- feat(brokenDps): deep-link to the broken widget from the overview panel
+- fix(brokenDps): skip handlebars placeholders ({{dp}}) in popup widgets
+
 ## 0.9.131 (2026-05-25)
 - fix(lint): auto-fix mixed typographic quotes
 - fix(StaticListConfig): wrap German typographic quotes in JS expression
