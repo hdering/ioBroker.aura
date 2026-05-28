@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.153",
+    "version": "0.9.154",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.154": {
+        "en": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix",
+        "de": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix",
+        "ru": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix",
+        "pt": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix",
+        "nl": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix",
+        "fr": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix",
+        "it": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix",
+        "es": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix",
+        "pl": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix",
+        "uk": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix",
+        "zh-cn": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix"
+      },
       "0.9.153": {
         "en": "fix(enum): apply per-entry color to value cell in custom layout",
         "de": "fix(enum): apply per-entry color to value cell in custom layout",
@@ -184,19 +197,6 @@
         "pl": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
         "uk": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them",
         "zh-cn": "fix(adapterlogs): switch to polling + show backend-not-answering hint; fix(adapterlogs): relay logs through aura backend so anonymous web users receive them"
-      },
-      "0.9.147": {
-        "en": "feat(adapterlogs): new widget streaming iobroker logs with filters",
-        "de": "feat(adapterlogs): new widget streaming iobroker logs with filters",
-        "ru": "feat(adapterlogs): new widget streaming iobroker logs with filters",
-        "pt": "feat(adapterlogs): new widget streaming iobroker logs with filters",
-        "nl": "feat(adapterlogs): new widget streaming iobroker logs with filters",
-        "fr": "feat(adapterlogs): new widget streaming iobroker logs with filters",
-        "it": "feat(adapterlogs): new widget streaming iobroker logs with filters",
-        "es": "feat(adapterlogs): new widget streaming iobroker logs with filters",
-        "pl": "feat(adapterlogs): new widget streaming iobroker logs with filters",
-        "uk": "feat(adapterlogs): new widget streaming iobroker logs with filters",
-        "zh-cn": "feat(adapterlogs): new widget streaming iobroker logs with filters"
       }
     }
   },

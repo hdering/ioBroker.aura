@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.154 (2026-05-28)
+- feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix
+
+
 ### 0.9.153 (2026-05-28)
 - fix(enum): apply per-entry color to value cell in custom layout
 
@@ -269,11 +273,6 @@ Release v0.9.136
 - feat(brokenDps): route deep links to the dashboard editor's tab instead of the widgets list
 
 
-### 0.9.134 (2026-05-26)
-- feat(brokenDps): deep-link group children to their host group widget
-- feat(orphans): show channel common.name next to orphan DP IDs
-
-
 ## License
 
 MIT License
@@ -285,6 +284,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

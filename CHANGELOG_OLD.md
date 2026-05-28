@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.134 (2026-05-26)
+- feat(brokenDps): deep-link group children to their host group widget
+- feat(orphans): show channel common.name next to orphan DP IDs
+
 ## 0.9.133 (2026-05-25)
 - feat(customJs): show import-order hint above editor
 - feat(customJs): support @import url() at top of custom JS
