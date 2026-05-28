@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.158",
+    "version": "0.9.159",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.159": {
+        "en": "feat(input-widget): add text alignment option and cap width to maxLength",
+        "de": "feat(input-widget): add text alignment option and cap width to maxLength",
+        "ru": "feat(input-widget): add text alignment option and cap width to maxLength",
+        "pt": "feat(input-widget): add text alignment option and cap width to maxLength",
+        "nl": "feat(input-widget): add text alignment option and cap width to maxLength",
+        "fr": "feat(input-widget): add text alignment option and cap width to maxLength",
+        "it": "feat(input-widget): add text alignment option and cap width to maxLength",
+        "es": "feat(input-widget): add text alignment option and cap width to maxLength",
+        "pl": "feat(input-widget): add text alignment option and cap width to maxLength",
+        "uk": "feat(input-widget): add text alignment option and cap width to maxLength",
+        "zh-cn": "feat(input-widget): add text alignment option and cap width to maxLength"
+      },
       "0.9.158": {
         "en": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
         "de": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
@@ -184,19 +197,6 @@
         "pl": "fix(enum): apply per-entry color to value cell in custom layout",
         "uk": "fix(enum): apply per-entry color to value cell in custom layout",
         "zh-cn": "fix(enum): apply per-entry color to value cell in custom layout"
-      },
-      "0.9.152": {
-        "en": "feat(scriptstatus): configurable search scope (name/path/both)",
-        "de": "feat(scriptstatus): configurable search scope (name/path/both)",
-        "ru": "feat(scriptstatus): configurable search scope (name/path/both)",
-        "pt": "feat(scriptstatus): configurable search scope (name/path/both)",
-        "nl": "feat(scriptstatus): configurable search scope (name/path/both)",
-        "fr": "feat(scriptstatus): configurable search scope (name/path/both)",
-        "it": "feat(scriptstatus): configurable search scope (name/path/both)",
-        "es": "feat(scriptstatus): configurable search scope (name/path/both)",
-        "pl": "feat(scriptstatus): configurable search scope (name/path/both)",
-        "uk": "feat(scriptstatus): configurable search scope (name/path/both)",
-        "zh-cn": "feat(scriptstatus): configurable search scope (name/path/both)"
       }
     }
   },

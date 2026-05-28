@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.139 (2026-05-26)
+- feat(widgets): add input widget + refactor edit dialog to template
+
 ## 0.9.138 (2026-05-26)
 - chore: rebuild www bundle
 - feat(widgets): add aura-widget-* CSS hook classes across all widgets
