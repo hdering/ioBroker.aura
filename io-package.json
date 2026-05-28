@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.149",
+    "version": "0.9.150",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.150": {
+        "en": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
+        "de": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
+        "ru": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
+        "pt": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
+        "nl": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
+        "fr": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
+        "it": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
+        "es": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
+        "pl": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
+        "uk": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option",
+        "zh-cn": "feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option"
+      },
       "0.9.149": {
         "en": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs",
         "de": "fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs",
@@ -184,19 +197,6 @@
         "pl": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
         "uk": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week",
         "zh-cn": "feat(weather/custom): bar sizing options + rainLine combined field; feat(weather): add adapter data source for offline use; chore(deps-dev): bump @typescript-eslint/parser from 8.58.2 to 8.60.0 (#229); feat(clock): add city, sunrise, sunset, calendar week"
-      },
-      "0.9.143": {
-        "en": "feat(clock): add city, sunrise, sunset, calendar week",
-        "de": "feat(clock): add city, sunrise, sunset, calendar week",
-        "ru": "feat(clock): add city, sunrise, sunset, calendar week",
-        "pt": "feat(clock): add city, sunrise, sunset, calendar week",
-        "nl": "feat(clock): add city, sunrise, sunset, calendar week",
-        "fr": "feat(clock): add city, sunrise, sunset, calendar week",
-        "it": "feat(clock): add city, sunrise, sunset, calendar week",
-        "es": "feat(clock): add city, sunrise, sunset, calendar week",
-        "pl": "feat(clock): add city, sunrise, sunset, calendar week",
-        "uk": "feat(clock): add city, sunrise, sunset, calendar week",
-        "zh-cn": "feat(clock): add city, sunrise, sunset, calendar week"
       }
     }
   },

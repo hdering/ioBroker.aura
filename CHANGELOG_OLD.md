@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.130 (2026-05-25)
+- fix(timer): only rename channel on explicit save, not per keystroke
+
 ## 0.9.129 (2026-05-25)
 - fix(timer): rename channel/states when title changes in AdminWidgets
 - feat(timer): mirror widget title into ioBroker channel + state names
