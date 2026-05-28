@@ -875,16 +875,20 @@ class Aura extends utils.Adapter {
     // Independent control: frontend (tablets/users) and admin (editor) each
     // have their own DP so scheduling one doesn't affect the other.
     //
-    // Migration first: legacy DPs (v0.9.160 boolean config.darkMode, then
-    // v0.9.161/0.9.162 single string config.themeMode state) are read, deleted,
-    // and their value is seeded into BOTH new sub-states. Must run BEFORE the
-    // channel is created, because setObjectNotExistsAsync would otherwise no-op
-    // on an existing state object of the same id.
+    // Migration runs BEFORE the channel is created because
+    // setObjectNotExistsAsync would no-op on an existing state object of the
+    // same id (legacy v0.9.161/0.9.162 left config.themeMode as a state). The
+    // migration is best-effort and may throw on edge cases; object creation
+    // must NOT be inside that try block, otherwise a migration failure leaves
+    // one of the sub-states uncreated (observed: frontend exists, admin
+    // missing because setStateAsync('frontend', seed) threw and aborted the
+    // remaining awaits).
+    let themeModeSeed = null;
     try {
       const seedFrom = async (legacyId) => {
         const legacy = await this.getObjectAsync(legacyId);
         if (!legacy) return null;
-        if (legacy.type !== 'state') return null; // already a channel/non-state — leave alone
+        if (legacy.type !== 'state') return null;
         const cur = await this.getStateAsync(legacyId);
         await this.delObjectAsync(legacyId);
         const v = cur && cur.val;
@@ -893,27 +897,30 @@ class Aura extends utils.Adapter {
         if (v === false) return 'light';
         return null;
       };
-      const seed = (await seedFrom('config.darkMode')) ?? (await seedFrom('config.themeMode'));
-      await this.setObjectNotExistsAsync('config.themeMode', {
-        type: 'channel',
-        common: { name: 'Theme mode overrides (frontend & admin independently)' },
-        native: {},
-      });
-      await this.setObjectNotExistsAsync('config.themeMode.frontend', {
-        type: 'state',
-        common: { name: "Frontend theme mode ('dark'|'light'|''); empty = no override", type: 'string', role: 'level.mode.color', read: true, write: true, def: '', states: { dark: 'dark', light: 'light' } },
-        native: {},
-      });
-      await this.setObjectNotExistsAsync('config.themeMode.admin', {
-        type: 'state',
-        common: { name: "Admin theme mode ('dark'|'light'|''); empty = no override", type: 'string', role: 'level.mode.color', read: true, write: true, def: '', states: { dark: 'dark', light: 'light' } },
-        native: {},
-      });
-      if (seed) {
-        await this.setStateAsync('config.themeMode.frontend', seed, true);
-        await this.setStateAsync('config.themeMode.admin',    seed, true);
-      }
-    } catch (e) { this.log.warn(`themeMode migration: ${e && e.message ? e.message : e}`); }
+      themeModeSeed = (await seedFrom('config.darkMode')) ?? (await seedFrom('config.themeMode'));
+    } catch (e) { this.log.warn(`themeMode legacy cleanup: ${e && e.message ? e.message : e}`); }
+
+    await this.setObjectNotExistsAsync('config.themeMode', {
+      type: 'channel',
+      common: { name: 'Theme mode overrides (frontend & admin independently)' },
+      native: {},
+    });
+    await this.setObjectNotExistsAsync('config.themeMode.frontend', {
+      type: 'state',
+      common: { name: "Frontend theme mode ('dark'|'light'|''); empty = no override", type: 'string', role: 'level.mode.color', read: true, write: true, def: '', states: { dark: 'dark', light: 'light' } },
+      native: {},
+    });
+    await this.setObjectNotExistsAsync('config.themeMode.admin', {
+      type: 'state',
+      common: { name: "Admin theme mode ('dark'|'light'|''); empty = no override", type: 'string', role: 'level.mode.color', read: true, write: true, def: '', states: { dark: 'dark', light: 'light' } },
+      native: {},
+    });
+    if (themeModeSeed) {
+      try { await this.setStateAsync('config.themeMode.frontend', themeModeSeed, true); }
+      catch (e) { this.log.warn(`themeMode.frontend seed: ${e && e.message ? e.message : e}`); }
+      try { await this.setStateAsync('config.themeMode.admin', themeModeSeed, true); }
+      catch (e) { this.log.warn(`themeMode.admin seed: ${e && e.message ? e.message : e}`); }
+    }
 
     const configStates = [
       { id: 'config.theme',           name: 'Theme configuration' },
