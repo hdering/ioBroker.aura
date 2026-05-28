@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.138 (2026-05-26)
+- chore: rebuild www bundle
+- feat(widgets): add aura-widget-* CSS hook classes across all widgets
+- fix(echart): make history instance optional in comparison mode
+
 ## 0.9.137 (2026-05-26)
 - feat(camera): allow stream URL to come from a datapoint
 

@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.158 (2026-05-28)
+- feat(custom-grid): flash the matching preview cell when an editor cell is clicked
+
+
 ### 0.9.157 (2026-05-28)
 - fix(custom-grid): respect alignment for select cells in display-only mode
 - feat(custom-grid): clear selected cell with Delete/Backspace key
@@ -267,12 +271,6 @@ npm run build:adapter
 - feat(widgets): add input widget + refactor edit dialog to template
 
 
-### 0.9.138 (2026-05-26)
-- chore: rebuild www bundle
-- feat(widgets): add aura-widget-* CSS hook classes across all widgets
-- fix(echart): make history instance optional in comparison mode
-
-
 ## License
 
 MIT License
@@ -284,6 +282,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

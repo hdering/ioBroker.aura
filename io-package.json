@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.157",
+    "version": "0.9.158",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.158": {
+        "en": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
+        "de": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
+        "ru": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
+        "pt": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
+        "nl": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
+        "fr": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
+        "it": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
+        "es": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
+        "pl": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
+        "uk": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked",
+        "zh-cn": "feat(custom-grid): flash the matching preview cell when an editor cell is clicked"
+      },
       "0.9.157": {
         "en": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key",
         "de": "fix(custom-grid): respect alignment for select cells in display-only mode; feat(custom-grid): clear selected cell with Delete/Backspace key",
@@ -184,19 +197,6 @@
         "pl": "feat(scriptstatus): configurable search scope (name/path/both)",
         "uk": "feat(scriptstatus): configurable search scope (name/path/both)",
         "zh-cn": "feat(scriptstatus): configurable search scope (name/path/both)"
-      },
-      "0.9.151": {
-        "en": "feat(input-widget): add compact layout (title + field + submit in one row)",
-        "de": "feat(input-widget): add compact layout (title + field + submit in one row)",
-        "ru": "feat(input-widget): add compact layout (title + field + submit in one row)",
-        "pt": "feat(input-widget): add compact layout (title + field + submit in one row)",
-        "nl": "feat(input-widget): add compact layout (title + field + submit in one row)",
-        "fr": "feat(input-widget): add compact layout (title + field + submit in one row)",
-        "it": "feat(input-widget): add compact layout (title + field + submit in one row)",
-        "es": "feat(input-widget): add compact layout (title + field + submit in one row)",
-        "pl": "feat(input-widget): add compact layout (title + field + submit in one row)",
-        "uk": "feat(input-widget): add compact layout (title + field + submit in one row)",
-        "zh-cn": "feat(input-widget): add compact layout (title + field + submit in one row)"
       }
     }
   },
