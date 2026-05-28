@@ -169,7 +169,7 @@ function ComponentCellView({ cell, index, cols, rows, extraComponents }: {
 
 /** Renders static / widget-derived content (title, value, unit, free text, extra field). */
 function StaticCellView({
-  cell, index, cols, rows, title, value, rawValue, unit, extraFields,
+  cell, index, cols, rows, title, value, rawValue, unit, extraFields, valueColor,
 }: {
   cell: CustomCell;
   index: number;
@@ -180,6 +180,8 @@ function StaticCellView({
   rawValue?: number | null;
   unit?: string;
   extraFields?: Record<string, string>;
+  /** Optional override for the default color of 'value' cells (used by widgets whose current value carries a per-entry color, e.g. EnumWidget). */
+  valueColor?: string;
 }) {
   const content = (() => {
     switch (cell.type) {
@@ -199,9 +201,10 @@ function StaticCellView({
 
   if (cell.type === 'empty' || !content) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
 
+  const fallbackColor = cell.type === 'value' && valueColor ? valueColor : 'var(--text-primary)';
   return (
     <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
-      <span style={cellTextStyle(cell, 'var(--text-primary)')}>{content}</span>
+      <span style={cellTextStyle(cell, fallbackColor)}>{content}</span>
     </div>
   );
 }
@@ -796,9 +799,11 @@ interface CustomGridViewProps {
   extraComponents?: Record<string, React.ReactNode>;
   /** Fallback grid when config has none. Defaults to DEFAULT_CUSTOM_GRID (3×3 title/value/unit). */
   fallback?: CustomGrid | CustomGridDef;
+  /** Override fallback color for 'value' static cells (e.g. EnumWidget passes the current entry's color). */
+  valueColor?: string;
 }
 
-export function CustomGridView({ config, value, rawValue, unit, extraFields, extraComponents, fallback }: CustomGridViewProps) {
+export function CustomGridView({ config, value, rawValue, unit, extraFields, extraComponents, fallback, valueColor }: CustomGridViewProps) {
   const grid = normalizeGrid(config.options?.customGrid, fallback);
   const { cols, rows, cells, colSizes, rowSizes } = grid;
   const { defaultDecimals } = useGlobalSettingsStore();
@@ -837,7 +842,7 @@ export function CustomGridView({ config, value, rawValue, unit, extraFields, ext
           case 'progress':   return <ProgressCellView   key={i} cell={cell} index={i} cols={cols} rows={rows} defaultDecimals={defaultDecimals} />;
           case 'state-text': return <StateTextCellView  key={i} cell={cell} index={i} cols={cols} rows={rows} />;
           case 'select':     return <SelectCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-          default:           return <StaticCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} title={config.title} value={value} rawValue={rawValue} unit={unit} extraFields={extraFields} />;
+          default:           return <StaticCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} title={config.title} value={value} rawValue={rawValue} unit={unit} extraFields={extraFields} valueColor={valueColor} />;
         }
       })}
     </div>

@@ -78,6 +78,7 @@ export function EnumWidget({ config }: WidgetProps) {
       <CustomGridView
         config={config}
         value={currentLabel}
+        valueColor={currentColor}
         extraComponents={{
           icon:   showIcon  ? <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: currentColor ?? 'var(--accent)', flexShrink: 0 }} /> : null,
           select: selectEl,
