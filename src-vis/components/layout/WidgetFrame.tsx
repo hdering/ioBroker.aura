@@ -2833,6 +2833,18 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   const [wcImagePickerState, setWcImagePickerState] = useState<'closed' | 'tilted' | 'open' | null>(null);
   const [siImagePickerState, setSiImagePickerState] = useState<'true' | 'false' | null>(null);
   const [selectedCustomCell,   setSelectedCustomCell]   = useState<number | null>(null);
+  const [flashCell,            setFlashCell]            = useState<{ idx: number; key: number } | null>(null);
+  const flashCellTimerRef = useRef<number | null>(null);
+  const flashCellKeyRef   = useRef(0);
+  const flashCellInPreview = (idx: number) => {
+    flashCellKeyRef.current += 1;
+    setFlashCell({ idx, key: flashCellKeyRef.current });
+    if (flashCellTimerRef.current) window.clearTimeout(flashCellTimerRef.current);
+    flashCellTimerRef.current = window.setTimeout(() => setFlashCell(null), 800);
+  };
+  useEffect(() => () => {
+    if (flashCellTimerRef.current) window.clearTimeout(flashCellTimerRef.current);
+  }, []);
   const [customCellDragIdx,    setCustomCellDragIdx]    = useState<number | null>(null);
   const [customCellDragOver,   setCustomCellDragOver]   = useState<number | null>(null);
   const [customCellOverwrite,  setCustomCellOverwrite]  = useState<
@@ -3120,6 +3132,19 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
           ? { visibility: 'hidden', pointerEvents: 'none' } : {}),
       }}
     >
+      {flashCell !== null && (
+        <style key={flashCell.key}>{`
+          .aura-widget-${config.id} .aura-custom-cell-${flashCell.idx} {
+            animation: auraCellFlash 800ms ease-out;
+            border-radius: 4px;
+          }
+          @keyframes auraCellFlash {
+            0%   { box-shadow: inset 0 0 0 2px var(--accent); }
+            70%  { box-shadow: inset 0 0 0 2px var(--accent); }
+            100% { box-shadow: inset 0 0 0 0   rgba(0,0,0,0); }
+          }
+        `}</style>
+      )}
       {editMode && conditionResult.hidden && (
         <div className="nodrag absolute inset-0 z-20 rounded-[inherit] flex items-start justify-end pointer-events-none p-1.5">
           <div className="flex items-center gap-1 px-1.5 py-1 rounded-md text-[11px] font-medium opacity-70"
@@ -7481,7 +7506,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               setSelectedCustomCell(i);
                               setCustomCellContextMenu({ idx: i, x: e.clientX, y: e.clientY });
                             }}
-                            onClick={() => setSelectedCustomCell(active ? null : i)}
+                            onClick={() => { setSelectedCustomCell(active ? null : i); flashCellInPreview(i); }}
                             className="rounded text-[10px] transition-colors"
                             style={{
                               background: active ? 'var(--accent)' : 'var(--widget-bg)',
