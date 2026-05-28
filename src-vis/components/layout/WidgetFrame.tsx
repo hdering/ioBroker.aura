@@ -2886,13 +2886,18 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
     writeCustomGrid({ ...g, cells: g.cells.map((c, i) => i === idx ? { type: 'empty' as const } : c) });
   };
 
-  // Ctrl+C / Ctrl+X / Ctrl+V on the selected custom cell
+  // Ctrl+C / Ctrl+X / Ctrl+V / Delete on the selected custom cell
   useEffect(() => {
     if (selectedCustomCell === null) return;
     const handler = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey)) return;
       const tgt = e.target as HTMLElement | null;
       if (tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.tagName === 'SELECT' || tgt.isContentEditable)) return;
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        cellClear(selectedCustomCell);
+        return;
+      }
+      if (!(e.ctrlKey || e.metaKey)) return;
       const k = e.key.toLowerCase();
       if (k === 'c') { e.preventDefault(); cellCopy(selectedCustomCell); }
       else if (k === 'x') { e.preventDefault(); cellCut(selectedCustomCell); }
@@ -8097,7 +8102,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 onMouseEnter={(e) => { if (hasContent) e.currentTarget.style.background = 'var(--app-bg)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
               >
-                <span>Leeren</span>
+                <span>Leeren</span><span style={{ opacity: 0.55, fontSize: 10 }}>Entf</span>
               </button>
           </div>,
           widgetFramePortalTarget,
