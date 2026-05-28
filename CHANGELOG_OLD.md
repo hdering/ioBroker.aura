@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.140 (2026-05-26)
+- feat(timer): re-add custom layout + placeable elements
+
 ## 0.9.139 (2026-05-26)
 - feat(widgets): add input widget + refactor edit dialog to template
 

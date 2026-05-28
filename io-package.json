@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.159",
+    "version": "0.9.160",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.160": {
+        "en": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
+        "de": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
+        "ru": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
+        "pt": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
+        "nl": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
+        "fr": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
+        "it": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
+        "es": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
+        "pl": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
+        "uk": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
+        "zh-cn": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync"
+      },
       "0.9.159": {
         "en": "feat(input-widget): add text alignment option and cap width to maxLength",
         "de": "feat(input-widget): add text alignment option and cap width to maxLength",
@@ -184,19 +197,6 @@
         "pl": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix",
         "uk": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix",
         "zh-cn": "feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix"
-      },
-      "0.9.153": {
-        "en": "fix(enum): apply per-entry color to value cell in custom layout",
-        "de": "fix(enum): apply per-entry color to value cell in custom layout",
-        "ru": "fix(enum): apply per-entry color to value cell in custom layout",
-        "pt": "fix(enum): apply per-entry color to value cell in custom layout",
-        "nl": "fix(enum): apply per-entry color to value cell in custom layout",
-        "fr": "fix(enum): apply per-entry color to value cell in custom layout",
-        "it": "fix(enum): apply per-entry color to value cell in custom layout",
-        "es": "fix(enum): apply per-entry color to value cell in custom layout",
-        "pl": "fix(enum): apply per-entry color to value cell in custom layout",
-        "uk": "fix(enum): apply per-entry color to value cell in custom layout",
-        "zh-cn": "fix(enum): apply per-entry color to value cell in custom layout"
       }
     }
   },
