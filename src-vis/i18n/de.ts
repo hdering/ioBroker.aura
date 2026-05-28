@@ -77,6 +77,10 @@ export const de = {
   'settings.clients.hoursAgo':   'vor {n} Std',
   'settings.clients.daysAgo':    'vor {n} d',
 
+  'settings.adminBaseUrl.title':       'Admin-Basis-URL',
+  'settings.adminBaseUrl.description': 'Wird relativen Bildpfaden in JSON-Tabellen-Widgets vorangestellt (z.B. /meteoalarm.admin/icons/...). Greift bei Pfaden im Format /<adapter>.admin/...',
+  'settings.adminBaseUrl.hint':        'Leer = automatisch (gleicher Host, Port 8081). Per Spalte überschreibbar im JSON-Tabellen-Widget.',
+
   'settings.frontend.title':          'Frontend',
   'settings.frontend.layoutDrawer':         'Layout-Menü (Hamburger)',
   'settings.frontend.layoutDrawerSize':     'Größe des Hamburger-Buttons',

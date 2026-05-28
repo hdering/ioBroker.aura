@@ -527,6 +527,31 @@ function DpNameFilterCard() {
   );
 }
 
+// ── Admin Base URL ─────────────────────────────────────────────────────────────
+
+function AdminBaseUrlCard() {
+  const t = useT();
+  const { frontend, updateFrontend } = useConfigStore();
+  return (
+    <Card title={t('settings.adminBaseUrl.title')}>
+      <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>
+        {t('settings.adminBaseUrl.description')}
+      </p>
+      <input
+        type="text"
+        value={frontend.adminBaseUrl ?? ''}
+        onChange={(e) => updateFrontend({ adminBaseUrl: e.target.value })}
+        placeholder={`http://${typeof window !== 'undefined' ? window.location.hostname : 'iobroker'}:8081`}
+        className="w-full rounded-lg px-3 py-2 text-xs font-mono focus:outline-none"
+        style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+      />
+      <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+        {t('settings.adminBaseUrl.hint')}
+      </p>
+    </Card>
+  );
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────────
 
 export function AdminSettings() {
@@ -671,6 +696,11 @@ export function AdminSettings() {
         <ClientsCard />
         <DpNameFilterCard />
         <DefaultDecimalsCard />
+      </div>
+
+      {/* Row 2b: Admin Base URL */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <AdminBaseUrlCard />
       </div>
 
       {/* Row 3: Backup */}

@@ -281,12 +281,23 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
               </div>
               {/* Row 4: image size (only if image enabled) */}
               {col.image && (
-                <div className="flex items-center gap-2">
-                  <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Bildgröße (px)</label>
-                  <input type="number" min={8} max={512} value={col.imageSize ?? 32}
-                    onChange={(e) => updateCol(idx, { imageSize: Number(e.target.value) || undefined })}
-                    className={jCls + ' flex-1'} style={jSty} />
-                </div>
+                <>
+                  <div className="flex items-center gap-2">
+                    <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Bildgröße (px)</label>
+                    <input type="number" min={8} max={512} value={col.imageSize ?? 32}
+                      onChange={(e) => updateCol(idx, { imageSize: Number(e.target.value) || undefined })}
+                      className={jCls + ' flex-1'} style={jSty} />
+                  </div>
+                  <div>
+                    <label className="text-[10px] block mb-1" style={{ color: 'var(--text-secondary)' }}>
+                      Pfad-Präfix (überschreibt globale Admin-URL)
+                    </label>
+                    <input type="text" value={col.imagePathPrefix ?? ''}
+                      onChange={(e) => updateCol(idx, { imagePathPrefix: e.target.value || undefined })}
+                      placeholder="z.B. http://192.168.1.10:8081"
+                      className={jCls} style={jSty} />
+                  </div>
+                </>
               )}
             </div>
           ))}

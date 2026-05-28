@@ -15,13 +15,40 @@ export interface JsonColumnDef {
   html?: boolean;    // render as HTML
   image?: boolean;   // render as <img> (value = url, data: URI, or ioBroker path)
   imageSize?: number;
+  /** Optional prefix prepended to relative image paths in this column.
+   * If set, overrides global adminBaseUrl auto-rewrite for /<adapter>.admin/ paths. */
+  imagePathPrefix?: string;
   order?: number;    // lower = further left
 }
 
-function resolveImageSrc(v: unknown): string {
+/** Derive admin base URL: explicit setting wins, else same host on port 8081. */
+function effectiveAdminBaseUrl(adminBaseUrl: string | undefined): string {
+  const explicit = (adminBaseUrl ?? '').trim();
+  if (explicit) return explicit.replace(/\/+$/, '');
+  if (typeof window === 'undefined') return '';
+  const { protocol, hostname } = window.location;
+  return `${protocol}//${hostname}:8081`;
+}
+
+/** Resolve image URL for a cell.
+ *  - http(s)://, //, data: → as-is
+ *  - aura-file:… → fs/read endpoint
+ *  - /<adapter>.admin/… → prepend adminBaseUrl (global) or columnPrefix (override)
+ *  - everything else → fall back to aura-file: (legacy behaviour) */
+function resolveImageSrc(v: unknown, adminBaseUrl: string, columnPrefix?: string): string {
   if (typeof v !== 'string' || !v) return '';
   if (/^(https?:)?\/\//i.test(v) || v.startsWith('data:')) return v;
   if (v.startsWith('aura-file:')) return resolveAssetUrl(v);
+  // Per-column prefix overrides global handling
+  if (columnPrefix && columnPrefix.trim()) {
+    const prefix = columnPrefix.trim().replace(/\/+$/, '');
+    const path = v.startsWith('/') ? v : '/' + v;
+    return prefix + path;
+  }
+  // ioBroker admin asset path: /<adapter>.admin/...
+  if (/^\/[^/]+\.admin\//.test(v) && adminBaseUrl) {
+    return adminBaseUrl + v;
+  }
   return resolveAssetUrl('aura-file:' + v.replace(/^\/+/, ''));
 }
 
@@ -98,6 +125,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
   const iconSize       = (opts.iconSize  as number) || 20;
   const titleAlign     = (opts.titleAlign     as string)  ?? 'left';
   const WidgetIcon     = getWidgetIcon(opts.icon as string | undefined, Table2);
+  const adminBaseUrl   = useConfigStore((s) => effectiveAdminBaseUrl(s.frontend.adminBaseUrl));
   const [query, setQuery] = useState('');
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -312,8 +340,8 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                         whiteSpace: (isHtml || isImage) ? undefined : 'nowrap',
                       }}>
                       {isImage
-                        ? (resolveImageSrc(raw)
-                            ? <img src={resolveImageSrc(raw)} alt=""
+                        ? (resolveImageSrc(raw, adminBaseUrl, col.imagePathPrefix)
+                            ? <img src={resolveImageSrc(raw, adminBaseUrl, col.imagePathPrefix)} alt=""
                                 style={{ width: imgSize, height: imgSize, objectFit: 'contain', display: 'block' }} />
                             : <span style={{ opacity: 0.5 }}>–</span>)
                         : isHtml

@@ -47,6 +47,12 @@ export interface FrontendSettings {
   layoutDrawerEntryStyle: 'iconAndName' | 'iconOnly' | 'nameOnly';
   // Super-admin access (empty = feature disabled)
   superAdminKey: string;
+  /**
+   * Base URL prepended to relative ioBroker admin paths (e.g. "/meteoalarm.admin/icons/...")
+   * encountered in JSON-rendered images. Empty → auto-derive from current host on port 8081.
+   * Example: "http://192.168.188.168:8081"
+   */
+  adminBaseUrl: string;
 }
 
 interface ConfigState {
@@ -94,6 +100,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
   layoutDrawerTitle: '',
   layoutDrawerEntryStyle: 'iconAndName',
   superAdminKey: '',
+  adminBaseUrl: '',
 };
 
 export const useConfigStore = create<ConfigState>()(

@@ -79,6 +79,10 @@ export const en: Record<TranslationKey, string> = {
   'settings.clients.hoursAgo':   '{n} h ago',
   'settings.clients.daysAgo':    '{n} d ago',
 
+  'settings.adminBaseUrl.title':       'Admin Base URL',
+  'settings.adminBaseUrl.description': 'Prepended to relative image paths in JSON Table widgets (e.g. /meteoalarm.admin/icons/...). Triggers on paths matching /<adapter>.admin/...',
+  'settings.adminBaseUrl.hint':        'Empty = auto (same host, port 8081). Can be overridden per column in the JSON Table widget.',
+
   'settings.frontend.title':          'Frontend',
   'settings.frontend.layoutDrawer':         'Layout Menu (Hamburger)',
   'settings.frontend.layoutDrawerSize':     'Hamburger button size',
