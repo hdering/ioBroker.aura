@@ -267,12 +267,13 @@
       "_id": "config.darkMode",
       "type": "state",
       "common": {
-        "name": "Dark/Light mode (true=dark, false=light); bidirectional sync with frontend & admin",
-        "type": "boolean",
+        "name": "Dark/Light mode override ('dark'|'light'|''); bidirectional sync with frontend & admin",
+        "type": "string",
         "role": "level.mode.color",
         "read": true,
         "write": true,
-        "def": false
+        "def": "",
+        "states": { "": "auto", "dark": "dark", "light": "light" }
       },
       "native": {}
     },

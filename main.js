@@ -873,9 +873,23 @@ class Aura extends utils.Adapter {
 
     await this.setObjectNotExistsAsync('config.darkMode', {
       type: 'state',
-      common: { name: 'Dark/Light mode (true=dark, false=light); bidirectional sync with frontend & admin', type: 'boolean', role: 'level.mode.color', read: true, write: true, def: false },
+      common: { name: "Dark/Light mode override ('dark'|'light'|''); bidirectional sync with frontend & admin", type: 'string', role: 'level.mode.color', read: true, write: true, def: '', states: { '': 'auto', dark: 'dark', light: 'light' } },
       native: {},
     });
+    // Migrate legacy boolean config.darkMode (v0.9.160) → string variant
+    try {
+      const dmObj = await this.getObjectAsync('config.darkMode');
+      if (dmObj && dmObj.common && dmObj.common.type !== 'string') {
+        await this.setObjectAsync('config.darkMode', {
+          type: 'state',
+          common: { name: "Dark/Light mode override ('dark'|'light'|''); bidirectional sync with frontend & admin", type: 'string', role: 'level.mode.color', read: true, write: true, def: '', states: { '': 'auto', dark: 'dark', light: 'light' } },
+          native: {},
+        });
+        const cur = await this.getStateAsync('config.darkMode');
+        const migrated = cur && cur.val === true ? 'dark' : cur && cur.val === false ? 'light' : '';
+        await this.setStateAsync('config.darkMode', migrated, true);
+      }
+    } catch (e) { this.log.warn(`config.darkMode migration: ${e && e.message ? e.message : e}`); }
 
     const configStates = [
       { id: 'config.theme',           name: 'Theme configuration' },

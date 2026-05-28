@@ -397,18 +397,23 @@ export default function App() {
   }, [setTheme]);
 
   // ── Datapoint-driven dark/light mode ──────────────────────────────────────
-  // Subscribes to aura.0.config.darkMode (boolean). When the value changes,
-  // switches the active theme to browserDarkThemeId / browserLightThemeId.
-  // The Sun/Moon button below also writes to this DP, so other clients sync.
+  // Subscribes to aura.0.config.darkMode ('dark'|'light'|''). Mirrors the
+  // Sun/Moon button: switches global theme and clears the active layout's
+  // themeId override (otherwise the per-layout scoped CSS would mask the
+  // global change). Empty string = no override; do nothing.
   useEffect(() => {
     return subscribeStateDirect('aura.0.config.darkMode', (state) => {
       if (state?.val == null) return;
-      const wantDark = state.val === true || state.val === 'true' || state.val === 1;
-      const { browserDarkThemeId: dark, browserLightThemeId: light, themeId } = useThemeStore.getState();
-      const desired = wantDark ? dark : light;
-      if (themeId !== desired) setTheme(desired);
+      const raw = state.val;
+      let desired: 'dark' | 'light' | null = null;
+      if (raw === 'dark' || raw === 'light') desired = raw;
+      else if (raw === true || raw === 1)    desired = 'dark';   // legacy boolean
+      else if (raw === false || raw === 0)   desired = 'light';  // legacy boolean
+      if (!desired) return; // '' (auto) or unknown — do nothing
+      if (useThemeStore.getState().themeId !== desired) setTheme(desired);
+      if (layout?.settings?.themeId) clearLayoutSettings(layout.id, 'themeId');
     });
-  }, [setTheme]);
+  }, [setTheme, layout?.id, layout?.settings?.themeId, clearLayoutSettings]);
 
   // Activate tab when URL slug changes
   useEffect(() => {
@@ -510,7 +515,7 @@ export default function App() {
                 const nextId = currentTheme.dark ? 'light' : 'dark';
                 setTheme(nextId);
                 if (layout?.settings?.themeId) clearLayoutSettings(layout.id, 'themeId');
-                setStateDirect('aura.0.config.darkMode', !currentTheme.dark);
+                setStateDirect('aura.0.config.darkMode', nextId);
               }}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
               style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}

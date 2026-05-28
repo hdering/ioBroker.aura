@@ -95,14 +95,19 @@ export function AdminLayout() {
   useVersionGuard();
 
   // ── Datapoint-driven dark/light mode ──────────────────────────────────────
-  // Mirrors the boolean DP aura.0.config.darkMode → admin theme. The toggle
-  // button below also writes to this DP, so frontend and admin stay in sync.
+  // Mirrors the DP aura.0.config.darkMode ('dark'|'light'|'') → admin theme.
+  // The toggle button below also writes to this DP, so frontend and admin
+  // stay in sync. Empty string = no override; do nothing.
   useEffect(() => {
     if (!connected) return;
     return subscribeStateDirect('aura.0.config.darkMode', (state) => {
       if (state?.val == null) return;
-      const wantDark = state.val === true || state.val === 'true' || state.val === 1;
-      const desired = wantDark ? 'dark' : 'light';
+      const raw = state.val;
+      let desired: 'dark' | 'light' | null = null;
+      if (raw === 'dark' || raw === 'light') desired = raw;
+      else if (raw === true || raw === 1)    desired = 'dark';   // legacy boolean
+      else if (raw === false || raw === 0)   desired = 'light';  // legacy boolean
+      if (!desired) return;
       if (useThemeStore.getState().adminThemeId !== desired) setAdminTheme(desired);
     });
   }, [connected, setAdminTheme]);
@@ -285,9 +290,9 @@ export function AdminLayout() {
             )}
             <button
               onClick={() => {
-                const nextDark = !adminTheme.dark;
-                setAdminTheme(nextDark ? 'dark' : 'light');
-                setStateDirect('aura.0.config.darkMode', nextDark);
+                const next = adminTheme.dark ? 'light' : 'dark';
+                setAdminTheme(next);
+                setStateDirect('aura.0.config.darkMode', next);
               }}
               className="w-8 h-8 flex items-center justify-center rounded-lg hover:opacity-80 transition-opacity"
               style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
