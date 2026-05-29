@@ -2526,7 +2526,7 @@ function ChipsEditPanel({
             </label>
             <input
               type="range"
-              min={16} max={96} step={1}
+              min={16} max={240} step={1}
               value={(() => {
                 const raw = o.chipSize as string | number | undefined;
                 return typeof raw === 'number' ? raw : raw === 'sm' ? 28 : raw === 'lg' ? 42 : 34;
