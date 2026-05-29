@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.166",
+    "version": "0.9.167",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.167": {
+        "en": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
+        "de": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
+        "ru": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
+        "pt": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
+        "nl": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
+        "fr": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
+        "it": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
+        "es": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
+        "pl": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
+        "uk": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
+        "zh-cn": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)"
+      },
       "0.9.166": {
         "en": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
         "de": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
@@ -184,19 +197,6 @@
         "pl": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP",
         "uk": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP",
         "zh-cn": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP"
-      },
-      "0.9.160": {
-        "en": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
-        "de": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
-        "ru": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
-        "pt": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
-        "nl": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
-        "fr": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
-        "it": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
-        "es": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
-        "pl": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
-        "uk": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync",
-        "zh-cn": "feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync"
       }
     }
   },

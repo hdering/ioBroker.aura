@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.147 (2026-05-27)
+- feat(adapterlogs): new widget streaming iobroker logs with filters
+
 ## 0.9.146 (2026-05-27)
 - feat(scriptstatus): new widget listing javascript scripts with run/stop filter
 
