@@ -31,7 +31,7 @@ export function ChipsWidget({ config }: WidgetProps) {
   const layout     = (o.layout     as string)        ?? 'row';
   const align      = (o.align      as string)        ?? 'start';
   const valign     = (o.valign     as string)        ?? 'middle';
-  const chipSize   = (o.chipSize   as string)        ?? 'md';
+  const chipSizeRaw = o.chipSize as string | number | undefined;
   const chipStyle  = (o.chipStyle  as string)        ?? 'outlined';
   const wrapCols   = (o.wrapCols   as number | undefined);
   const gap        = (o.gap        as number)        ?? 6;
@@ -58,10 +58,14 @@ export function ChipsWidget({ config }: WidgetProps) {
     return checkValue == compareTo;
   };
 
-  const h    = chipSize === 'sm' ? 28 : chipSize === 'lg' ? 42 : 34;
-  const fs   = chipSize === 'sm' ? '10px' : chipSize === 'lg' ? '14px' : '12px';
-  const px   = chipSize === 'sm' ? '8px'  : chipSize === 'lg' ? '16px' : '12px';
-  const iconSz = chipSize === 'sm' ? 10 : chipSize === 'lg' ? 16 : 13;
+  const h =
+    typeof chipSizeRaw === 'number' ? Math.max(16, Math.min(96, chipSizeRaw))
+    : chipSizeRaw === 'sm' ? 28
+    : chipSizeRaw === 'lg' ? 42
+    : 34;
+  const fs     = `${Math.round(h * 0.35)}px`;
+  const px     = `${Math.round(h * 0.35)}px`;
+  const iconSz = Math.round(h * 0.38);
 
   const alignFlex =
     align === 'end' ? 'flex-end' : align === 'center' ? 'center' : 'flex-start';

@@ -2516,12 +2516,24 @@ function ChipsEditPanel({
             </select>
           </div>
           <div>
-            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{tHook('cw.layout.chipSize' as never)}</label>
-            <select value={(o.chipSize as string) ?? 'md'} onChange={(e) => setO({ chipSize: e.target.value })} className={selCls} style={sInputStyle}>
-              <option value="sm">{tHook('cw.size.sm' as never)}</option>
-              <option value="md">{tHook('cw.size.md' as never)}</option>
-              <option value="lg">{tHook('cw.size.lg' as never)}</option>
-            </select>
+            <label className="text-[11px] mb-1 block flex items-center justify-between" style={{ color: 'var(--text-secondary)' }}>
+              <span>{tHook('cw.layout.chipSize' as never)}</span>
+              <span style={{ color: 'var(--text-primary)' }}>{(() => {
+                const raw = o.chipSize as string | number | undefined;
+                const n = typeof raw === 'number' ? raw : raw === 'sm' ? 28 : raw === 'lg' ? 42 : 34;
+                return `${n}px`;
+              })()}</span>
+            </label>
+            <input
+              type="range"
+              min={16} max={96} step={1}
+              value={(() => {
+                const raw = o.chipSize as string | number | undefined;
+                return typeof raw === 'number' ? raw : raw === 'sm' ? 28 : raw === 'lg' ? 42 : 34;
+              })()}
+              onChange={(e) => setO({ chipSize: Number(e.target.value) })}
+              className="w-full"
+            />
           </div>
           <div>
             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{tHook('cw.layout.chipStyle' as never)}</label>
