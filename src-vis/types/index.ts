@@ -59,7 +59,8 @@ export type WidgetType =
   | 'adapterstatus'
   | 'scriptstatus'
   | 'adapterlogs'
-  | 'input';
+  | 'input'
+  | 'alarm';
 
 export type WidgetLayout = 'default' | 'card' | 'compact' | 'minimal' | 'agenda' | 'flow' | 'battery' | 'production' | 'consumption' | 'loadpoints' | 'custom' | 'count'
   | 'light-all' | 'light-brightness' | 'light-color' | 'light-temperature' | 'light-custom'

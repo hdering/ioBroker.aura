@@ -92,6 +92,7 @@ import { AdapterStatusWidget } from '../widgets/AdapterStatusWidget';
 import { ScriptStatusWidget } from '../widgets/ScriptStatusWidget';
 import { AdapterLogsWidget } from '../widgets/AdapterLogsWidget';
 import { InputWidget } from '../widgets/InputWidget';
+import { AlarmWidget, AlarmConfig } from '../widgets/AlarmWidget';
 import { TimerConfig } from '../config/TimerConfig';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
@@ -139,7 +140,7 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
 
 // Widget types that don't get a "Custom" entry in the Layout picker.
 // Mirror of NO_CUSTOM in src-vis/utils/widgetLayouts.ts.
-const NO_CUSTOM_LAYOUT_TYPES: WidgetType[] = ['iframe', 'jsontable', 'html', 'trash', 'trashSchedule', 'header', 'fill', 'list', 'autolist', 'datepicker', 'adapterstatus', 'scriptstatus', 'adapterlogs'];
+const NO_CUSTOM_LAYOUT_TYPES: WidgetType[] = ['iframe', 'jsontable', 'html', 'trash', 'trashSchedule', 'header', 'fill', 'list', 'autolist', 'datepicker', 'adapterstatus', 'scriptstatus', 'adapterlogs', 'alarm'];
 
 // ── Global custom-cell clipboard (shared across all WidgetFrames) ───────────
 let cellClipboardData: CustomCell | null = null;
@@ -205,6 +206,7 @@ function getWidgetMap() {
     scriptstatus:  ScriptStatusWidget,
     adapterlogs:   AdapterLogsWidget,
     input:         InputWidget,
+    alarm:         AlarmWidget,
   } as const;
 }
 
@@ -3574,7 +3576,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             </div>
 
             {/* ── Layout & Sichtbare Felder (kombiniert, eingeklappt) ── */}
-            {config.type !== 'header' && config.type !== 'iframe' && config.type !== 'jsontable' && config.type !== 'html' && config.type !== 'adapterstatus' && config.type !== 'scriptstatus' && config.type !== 'adapterlogs' && (() => {
+            {config.type !== 'header' && config.type !== 'iframe' && config.type !== 'jsontable' && config.type !== 'html' && config.type !== 'adapterstatus' && config.type !== 'scriptstatus' && config.type !== 'adapterlogs' && config.type !== 'alarm' && (() => {
               const activeLayout = config.layout ?? 'default';
               const layouts: { value: string; label: string }[] = config.type === 'camera' ? [
                 { value: 'minimal', label: 'Minimal' },
@@ -4451,6 +4453,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               )}
               {config.type === 'evcc' && (
                 <EvccConfig config={config} onConfigChange={onConfigChange} />
+              )}
+
+              {config.type === 'alarm' && (
+                <AlarmConfig config={config} onConfigChange={onConfigChange} />
               )}
 
               {/* ── Gauge config ── */}

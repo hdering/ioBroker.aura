@@ -38,6 +38,7 @@ import { AdapterStatusWidget } from './AdapterStatusWidget';
 import { ScriptStatusWidget } from './ScriptStatusWidget';
 import { AdapterLogsWidget } from './AdapterLogsWidget';
 import { InputWidget } from './InputWidget';
+import { AlarmWidget } from './AlarmWidget';
 
 // Chart widgets are heavy (recharts ~380 KB, echarts ~1.1 MB) — lazy-loaded so
 // dashboards without charts skip the cost. Consumers must render these inside
@@ -91,6 +92,7 @@ export function getWidgetMap() {
     scriptstatus:  ScriptStatusWidget,
     adapterlogs:   AdapterLogsWidget,
     input:         InputWidget,
+    alarm:         AlarmWidget,
   } as const;
 }
 

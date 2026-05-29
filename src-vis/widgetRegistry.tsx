@@ -461,6 +461,15 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     mock: { t: 'Eingabe', v: 'Text…' },
     hint: 'Text per Tastatur eingeben und in einen Datenpunkt schreiben (live oder nach Bestätigung)',
   },
+  {
+    type: 'alarm',
+    label: 'Alarmanlage',          shortLabel: 'Alarm',
+    Icon: ShieldAlert,             iconName: 'ShieldAlert', color: '#ef4444',
+    defaultW: 12,                  defaultH: 9,
+    addMode: 'free',               widgetGroup: 'special',
+    mock: { t: 'Alarmanlage', v: 'Deaktiviert' },
+    hint: 'ioBroker.alarm-Adapter steuern — Scharf/Inside/Nacht, Zonen, PIN-Entwaffnung, Tages-Log',
+  },
   // Carousel widget disabled — not yet ready for production use.
   // Re-enable by uncommenting; all supporting code (widgetMap, types, i18n,
   // option editor, persistence) is still in place.
