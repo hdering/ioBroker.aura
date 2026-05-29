@@ -1153,7 +1153,7 @@ export const de = {
   'alarm.cfg.behavior':           'Verhalten',
   'alarm.cfg.showHeader':         'Status-Kopfzeile',
   'alarm.cfg.showModes':          'Modus-Buttons',
-  'alarm.cfg.showDelay':          '„Mit Verzögerung"-Button',
+  'alarm.cfg.showDelay':          '„Mit Verzögerung“-Button',
   'alarm.cfg.showCountdown':      'Countdown-Anzeige',
   'alarm.cfg.showCircuits':       'Offene Kreise / Warnungen',
   'alarm.cfg.showZones':          'Zonen-Toggles',
