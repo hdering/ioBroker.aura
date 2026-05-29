@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.167",
+    "version": "0.9.168",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.168": {
+        "en": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
+        "de": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
+        "ru": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
+        "pt": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
+        "nl": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
+        "fr": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
+        "it": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
+        "es": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
+        "pl": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
+        "uk": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
+        "zh-cn": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter"
+      },
       "0.9.167": {
         "en": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
         "de": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
@@ -184,19 +197,6 @@
         "pl": "refactor(theme): rename config.darkMode to config.themeMode",
         "uk": "refactor(theme): rename config.darkMode to config.themeMode",
         "zh-cn": "refactor(theme): rename config.darkMode to config.themeMode"
-      },
-      "0.9.161": {
-        "en": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP",
-        "de": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP",
-        "ru": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP",
-        "pt": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP",
-        "nl": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP",
-        "fr": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP",
-        "it": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP",
-        "es": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP",
-        "pl": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP",
-        "uk": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP",
-        "zh-cn": "fix(io-package): drop empty-key state from config.darkMode states map; fix(theme): frontend now reacts to config.darkMode DP"
       }
     }
   },

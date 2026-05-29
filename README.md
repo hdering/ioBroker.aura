@@ -186,6 +186,11 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.168 (2026-05-29)
+- fix(lint): auto-fix mixed typographic quotes
+- feat(alarm): new widget for ioBroker.alarm adapter
+
+
 ### 0.9.167 (2026-05-29)
 - feat(evcc): responsive auto-scale + per-section size sliders
 - feat(chips): raise chipSize slider max from 96 to 240 px
@@ -266,11 +271,6 @@ npm run build:adapter
 - fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs
 
 
-### 0.9.148 (2026-05-27)
-- fix(adapterlogs): switch to polling + show backend-not-answering hint
-- fix(adapterlogs): relay logs through aura backend so anonymous web users receive them
-
-
 ## License
 
 MIT License
@@ -282,6 +282,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
