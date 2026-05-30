@@ -300,17 +300,25 @@ export function ShutterWidget({ config }: WidgetProps) {
         <ShutterViz closedFrac={closedFrac} accentColor={accentColor} isMoving={isMoving} className="flex-1" />
         {showControls && <BtnRow onUp={openFully} onStop={stop} onDown={closeFully} iconSz={buttonSize} vertical />}
       </div>
-      {(showValue || showSlider) && (
-        <div>
-          {showValue && (
-            <div className="aura-widget-value flex justify-between items-baseline mb-1">
-              <span className="text-[11px]" style={{ color: isMoving ? 'var(--accent-yellow)' : 'var(--text-secondary)' }}>{statusText}</span>
-              <span className="font-bold" style={{ color: valueColor, fontSize: valueSize, lineHeight: 1 }}>{displayPct}%</span>
-            </div>
-          )}
-          {showSlider && slider}
-        </div>
-      )}
+      {(showValue || showSlider) && (() => {
+        // Reserve right space on the slider row so the bottom-right StatusBadges don't overlap the slider thumb at 100%.
+        const showBadges = opts.showStatusBadges !== false;
+        const badgeCount = showBadges
+          ? [opts.batteryDp, opts.unreachDp, opts.lockDp].filter(v => typeof v === 'string' && v).length
+          : 0;
+        const badgesWidth = badgeCount > 0 ? badgeCount * 18 + (badgeCount - 1) * 2 + 4 : 0;
+        return (
+          <div style={showSlider && badgesWidth > 0 ? { paddingRight: badgesWidth } : undefined}>
+            {showValue && (
+              <div className="aura-widget-value flex justify-between items-baseline mb-1">
+                <span className="text-[11px]" style={{ color: isMoving ? 'var(--accent-yellow)' : 'var(--text-secondary)' }}>{statusText}</span>
+                <span className="font-bold" style={{ color: valueColor, fontSize: valueSize, lineHeight: 1 }}>{displayPct}%</span>
+              </div>
+            )}
+            {showSlider && slider}
+          </div>
+        );
+      })()}
       <StatusBadges config={config} />
     </div>
   );
