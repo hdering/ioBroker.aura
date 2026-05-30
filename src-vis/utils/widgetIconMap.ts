@@ -39,24 +39,25 @@ function makeIconComponent(iconId: string, Fallback: LucideIcon | null): LucideI
     style?: React.CSSProperties;
     className?: string;
   }) {
-    const initiallyFailed = _failedIcons.has(iconId);
-    const initiallyLoaded = iconLoaded(iconId);
-    const [status, setStatus] = useState<'pending' | 'ok' | 'fail'>(
-      initiallyFailed ? 'fail' : initiallyLoaded ? 'ok' : 'pending',
-    );
+    // Only track the failure path with state. The previous 3-state machine
+    // ('pending' | 'ok' | 'fail') fired setStatus('ok') on every successful
+    // load, which compounded badly with Iconify's internal IconComponent
+    // re-rendering on its own load callback — under rapid remounts (e.g.
+    // when a widget with hide-on-condition first paints) the combined churn
+    // tripped React's max-update-depth guard. Successful loads now leave
+    // <Icon> to render itself; we only re-render to swap in the Fallback
+    // when the icon truly cannot be loaded.
+    const [failed, setFailed] = useState<boolean>(() => _failedIcons.has(iconId));
     useEffect(() => {
-      if (status !== 'pending') return;
+      if (failed || iconLoaded(iconId)) return;
       let cancelled = false;
-      loadIcon(iconId).then(
-        () => { if (!cancelled) setStatus('ok'); },
-        () => {
-          _failedIcons.add(iconId);
-          if (!cancelled) setStatus('fail');
-        },
-      );
+      loadIcon(iconId).catch(() => {
+        _failedIcons.add(iconId);
+        if (!cancelled) setFailed(true);
+      });
       return () => { cancelled = true; };
-    }, [status]);
-    if (status === 'fail') {
+    }, [failed]);
+    if (failed) {
       // No fallback provided (preview / picker contexts) → render nothing.
       if (!Fallback) return null;
       return React.createElement(Fallback, { size, style, className });

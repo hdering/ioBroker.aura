@@ -196,10 +196,18 @@ export function useConditionStyle(conditions: WidgetCondition[], widgetId?: stri
       return r;
     }
     const mayHide = conditions.some((c) => c.hideWidget);
-    const initial = mayHide
-      ? { cssVars: {}, effect: null, hidden: true, reflow: conditions.some((c) => c.hideWidget && c.reflow) }
+    // Pessimistic in-place hide: keep widget mounted in the grid with
+    // visibility:hidden until real DP values arrive. We deliberately do NOT
+    // set reflow=true here — doing so would push the widget into the
+    // off-screen reflow container before values are known, causing a
+    // mount→unmount→remount cycle on initial paint. That bouncing was the
+    // root cause of slow first-load on tabs with hide-on-condition widgets
+    // (and incidentally triggered a Max-Update-Depth warning in Iconify's
+    // Icon component for widgets that render icons).
+    const initial: ConditionResult = mayHide
+      ? { cssVars: {}, effect: null, hidden: true, reflow: false }
       : EMPTY_RESULT;
-    condLog('init (cache miss — PESSIMISTIC)', {
+    condLog('init (cache miss — pessimistic in-place hide)', {
       widgetId,
       dps: uniqueIds,
       missing: uniqueIds.filter((id) => getStateFromCache(id) === null),
@@ -207,7 +215,7 @@ export function useConditionStyle(conditions: WidgetCondition[], widgetId?: stri
       mayHide,
       initialHidden: initial.hidden,
       initialReflow: initial.reflow,
-      note: 'Pessimistic hide forces mount cycle when values arrive — main cause of slow first-load on hidden widgets',
+      note: 'reflow forced false here to skip the off-screen bounce; real reflow takes effect once DP values arrive',
     });
     return initial;
   });
