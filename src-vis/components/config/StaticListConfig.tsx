@@ -62,6 +62,7 @@ function EntryRow({
   entry,
   resolvedName,
   onUpdate,
+  onChangeId,
   onRemove,
   defaultDecimals,
   index,
@@ -75,6 +76,7 @@ function EntryRow({
   entry: StaticListEntry;
   resolvedName?: string;
   onUpdate: (patch: Partial<StaticListEntry>) => void;
+  onChangeId: (newId: string, unit?: string, role?: string, writable?: boolean) => void;
   onRemove: () => void;
   defaultDecimals: number;
   index: number;
@@ -87,6 +89,7 @@ function EntryRow({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
+  const [dpPickerOpen, setDpPickerOpen] = useState(false);
   const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' } as React.CSSProperties;
   const iCls = 'w-full text-[10px] rounded px-2 py-1 focus:outline-none font-mono';
 
@@ -142,7 +145,15 @@ function EntryRow({
       {expanded && (
         <div className="px-2.5 pb-2.5 pt-1 space-y-1.5"
           style={{ borderTop: '1px solid var(--app-border)', background: 'var(--app-surface)' }}>
-          <div className="text-[9px] font-mono truncate mb-1" style={{ color: 'var(--text-secondary)' }}>{entry.id}</div>
+          <button
+            onClick={() => setDpPickerOpen(true)}
+            title="Datenpunkt ändern"
+            className="w-full flex items-center gap-1 text-[9px] font-mono mb-1 rounded px-1.5 py-0.5 hover:opacity-80 text-left"
+            style={{ color: 'var(--text-secondary)', background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
+            <Database size={9} className="shrink-0" />
+            <span className="truncate flex-1">{entry.id}</span>
+            <span className="shrink-0 opacity-70">Ändern</span>
+          </button>
           <div className="grid grid-cols-2 gap-1.5">
             <div>
               <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>Bezeichnung</label>
@@ -373,6 +384,20 @@ function EntryRow({
           onClose={() => setIconPickerOpen(false)}
         />
       )}
+      {dpPickerOpen && (
+        <DatapointPicker
+          currentValue={entry.id}
+          onSelect={(id, unit, _name, role) => {
+            if (id && id !== entry.id) {
+              const dp = lookupDatapointEntry(id);
+              const writable = dp?.write !== false ? undefined : false;
+              onChangeId(id, unit, role ?? dp?.role, writable);
+            }
+            setDpPickerOpen(false);
+          }}
+          onClose={() => setDpPickerOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -412,6 +437,19 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
 
   const updateEntry = (id: string, patch: Partial<StaticListEntry>) =>
     setOpts({ entries: entries.map(e => e.id === id ? { ...e, ...patch } : e) });
+
+  const changeEntryId = (oldId: string, newId: string, unit?: string, role?: string, writable?: boolean) => {
+    if (!newId || oldId === newId) return;
+    if (entries.some(e => e.id === newId)) {
+      window.alert(`Datenpunkt "${newId}" ist bereits in der Liste.`);
+      return;
+    }
+    setOpts({
+      entries: entries.map(e => e.id === oldId
+        ? { ...e, id: newId, unit: unit ?? e.unit, role: role ?? e.role, writable }
+        : e),
+    });
+  };
 
   const reorderEntries = (fromIdx: number, toIdx: number) => {
     if (fromIdx === toIdx) return;
@@ -460,6 +498,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                   entry={e}
                   resolvedName={resolvedNames[e.id]}
                   onUpdate={patch => updateEntry(e.id, patch)}
+                  onChangeId={(newId, unit, role, writable) => changeEntryId(e.id, newId, unit, role, writable)}
                   onRemove={() => removeEntry(e.id)}
                   defaultDecimals={defaultDecimals}
                   index={idx}
