@@ -1022,6 +1022,7 @@ export const de = {
   'evcc.prefix':       'evcc Präfix',
   'evcc.loadpoints':   'Ladepunkte',
   'evcc.showBattery':  'Batterie anzeigen',
+  'evcc.showLoadpoints': 'Ladepunkte anzeigen',
 
   // ── Mediaplayer Widget ────────────────────────────────────────────────────────
   'mp.dp.title':       'Titel DP',

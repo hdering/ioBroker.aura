@@ -747,6 +747,7 @@ export function EvccWidget({ config }: WidgetProps) {
   const prefix        = (o.evccPrefix      as string)  ?? 'evcc.0';
   const loadpointCount = Math.max(1, Math.min(8, (o.loadpointCount as number) ?? 1));
   const showBattery   = (o.showBattery     as boolean) ?? true;
+  const showLoadpoints = (o.showLoadpoints as boolean) ?? true;
   const layout        = config.layout ?? 'default';
   const showTitle     = o.showTitle !== false;
   const showIcon      = o.showIcon  !== false;
@@ -833,7 +834,10 @@ export function EvccWidget({ config }: WidgetProps) {
     );
   }
 
-  const visLps = visibleLpIndices.map((i) => ({ lp: loadpoints[i], idx: i })).filter(({ lp }) => !!lp);
+  const visLps = showLoadpoints
+    ? visibleLpIndices.map((i) => ({ lp: loadpoints[i], idx: i })).filter(({ lp }) => !!lp)
+    : [];
+  const flowLpIndices = showLoadpoints ? visibleLpIndices : [];
 
   if (layout === 'custom') return (
     <div ref={boxRef} className="w-full h-full">
@@ -903,7 +907,7 @@ export function EvccWidget({ config }: WidgetProps) {
       <div ref={boxRef} className="aura-widget-row aura-scroll flex flex-col h-full overflow-auto" style={{ gap: 8 * lpScale }}>
         {headerEl}
         <div className="shrink-0" style={{ height: flowH }}>
-          <EnergyFlowSVG site={site} loadpoints={loadpoints} showBattery={showBattery} visibleLpIndices={visibleLpIndices} />
+          <EnergyFlowSVG site={site} loadpoints={loadpoints} showBattery={showBattery} visibleLpIndices={flowLpIndices} />
         </div>
         {visLps.map(({ lp, idx }) => (
           <LoadpointCard key={idx} lp={lp} idx={idx} prefix={prefix} compact={false} scale={lpScale} />
@@ -950,6 +954,7 @@ export function EvccConfig({
   const prefix        = (o.evccPrefix      as string)  ?? 'evcc.0';
   const lpCount       = (o.loadpointCount  as number)  ?? 1;
   const showBattery   = (o.showBattery     as boolean) ?? true;
+  const showLoadpoints = (o.showLoadpoints as boolean) ?? true;
   const visibleLps    = (o.visibleLoadpoints as number[]) ?? [];
 
   const autoScale       = o.autoScale !== false;
@@ -1014,7 +1019,17 @@ export function EvccConfig({
         </div>
       </div>
 
-      {lpCount > 1 && (
+      <div className="flex items-center justify-between">
+        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('evcc.showLoadpoints')}</label>
+        <button onClick={() => set({ showLoadpoints: !showLoadpoints })}
+          className="relative w-9 h-5 rounded-full transition-colors"
+          style={{ background: showLoadpoints ? 'var(--accent)' : 'var(--app-border)' }}>
+          <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+            style={{ left: showLoadpoints ? '18px' : '2px' }} />
+        </button>
+      </div>
+
+      {showLoadpoints && lpCount > 1 && (
         <div>
           <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Angezeigte Ladepunkte</label>
           <div className="flex flex-wrap gap-1">

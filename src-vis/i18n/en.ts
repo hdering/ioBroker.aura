@@ -1024,6 +1024,7 @@ export const en: Record<TranslationKey, string> = {
   'evcc.prefix':       'evcc Prefix',
   'evcc.loadpoints':   'Loadpoints',
   'evcc.showBattery':  'Show Battery',
+  'evcc.showLoadpoints': 'Show Loadpoints',
 
   // ── Mediaplayer Widget ────────────────────────────────────────────────────────
   'mp.dp.title':       'Title DP',
