@@ -120,8 +120,8 @@ function fmtSeconds(s: number): string {
 
 // ── InfoCell ──────────────────────────────────────────────────────────────────
 
-function InfoCell({ slot, value }: { slot: CameraSlot; value: unknown }) {
-  if (slot.type === 'empty') return <div style={{ background: 'var(--app-bg)', borderRadius: '4px' }} />;
+function InfoCell({ slot, value, transparent }: { slot: CameraSlot; value: unknown; transparent?: boolean }) {
+  if (slot.type === 'empty') return <div style={{ background: transparent ? 'transparent' : 'var(--app-bg)', borderRadius: '4px' }} />;
 
   const label = slot.label ?? DEFAULT_LABELS[slot.type];
   const num   = slotNum(value);
@@ -129,7 +129,7 @@ function InfoCell({ slot, value }: { slot: CameraSlot; value: unknown }) {
   const sec: React.CSSProperties = { color: 'var(--text-secondary)' };
   const pri: React.CSSProperties = { color: 'var(--text-primary)' };
   const base  = 'flex flex-col items-center justify-center h-full w-full p-1.5 gap-0.5 overflow-hidden';
-  const bg    = { background: 'var(--widget-bg)', borderRadius: '4px' };
+  const bg    = { background: transparent ? 'transparent' : 'var(--widget-bg)', borderRadius: '4px' };
   const Lbl   = label ? <span className="text-[9px] truncate max-w-full text-center" style={sec}>{label}</span> : null;
 
   switch (slot.type) {
@@ -198,7 +198,7 @@ function InfoCell({ slot, value }: { slot: CameraSlot; value: unknown }) {
 
 // ── InfoRow ───────────────────────────────────────────────────────────────────
 
-function InfoRow({ slot, value }: { slot: CameraSlot; value: unknown }) {
+function InfoRow({ slot, value, transparent }: { slot: CameraSlot; value: unknown; transparent?: boolean }) {
   if (slot.type === 'empty') return null;
 
   const label = slot.label ?? DEFAULT_LABELS[slot.type];
@@ -241,7 +241,7 @@ function InfoRow({ slot, value }: { slot: CameraSlot; value: unknown }) {
 
   return (
     <div className="flex items-center gap-1.5 px-2 rounded text-[11px]"
-      style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', minHeight: '26px', flexShrink: 0 }}>
+      style={{ background: transparent ? 'transparent' : 'var(--app-bg)', color: 'var(--text-primary)', minHeight: '26px', flexShrink: 0 }}>
       {icon && <span className="shrink-0">{icon}</span>}
       {label && <span className="shrink-0 text-[10px]" style={sec}>{label}</span>}
       <span className="flex-1" />
@@ -267,13 +267,15 @@ interface StreamViewProps {
   title?:          string;
   streamSecondsLeft: number | null;
   onFullscreen?:   () => void;
+  transparent?:    boolean;
 }
 
 function StreamView(p: StreamViewProps) {
+  const placeholderBg = p.transparent ? 'transparent' : 'var(--app-bg)';
   if (!p.streamUrl) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-1.5"
-        style={{ background: 'var(--app-bg)' }}>
+        style={{ background: placeholderBg }}>
         <Camera size={26} style={{ color: 'var(--text-secondary)' }} />
         <span className="text-[10px] opacity-50" style={{ color: 'var(--text-secondary)' }}>Keine URL konfiguriert</span>
       </div>
@@ -282,7 +284,7 @@ function StreamView(p: StreamViewProps) {
   if (p.mode === 'rtsp-hint') {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-1 p-2"
-        style={{ background: 'var(--app-bg)' }}>
+        style={{ background: placeholderBg }}>
         <Camera size={22} style={{ color: 'var(--text-secondary)' }} />
         <p className="text-[10px] text-center" style={{ color: 'var(--text-secondary)' }}>
           RTSP nicht unterstützt.<br />
@@ -397,6 +399,7 @@ interface StreamCellProps extends StreamViewProps {
 }
 
 function StreamCell({ wakeUpDp, wakeUpMode, waking, streamReady, stopReason, doWake, sectionRef, editMode, ...svProps }: StreamCellProps) {
+  const wakeBg = svProps.transparent ? 'transparent' : 'var(--app-bg)';
   const needsWake = !!wakeUpDp && !!svProps.streamUrl;
 
   // ── onClick: not yet active or stream ended ──────────────────────────────────
@@ -409,7 +412,7 @@ function StreamCell({ wakeUpDp, wakeUpMode, waking, streamReady, stopReason, doW
       <div ref={sectionRef}
         onClick={editMode ? undefined : doWake}
         className="flex flex-col items-center justify-center h-full gap-1.5 select-none"
-        style={{ background: 'var(--app-bg)', cursor: editMode ? 'default' : 'pointer' }}>
+        style={{ background: wakeBg, cursor: editMode ? 'default' : 'pointer' }}>
         <div className="flex items-center justify-center rounded-full w-9 h-9"
           style={{ background: isReactivate ? 'rgba(239,68,68,0.15)' : 'var(--accent)', opacity: isReactivate ? 1 : 0.85, border: isReactivate ? '1.5px solid #ef4444' : 'none' }}>
           {isReactivate
@@ -430,7 +433,7 @@ function StreamCell({ wakeUpDp, wakeUpMode, waking, streamReady, stopReason, doW
   if (needsWake && wakeUpMode === 'onView' && !waking && !streamReady) {
     return (
       <div ref={sectionRef} className="flex items-center justify-center h-full"
-        style={{ background: 'var(--app-bg)' }}>
+        style={{ background: wakeBg }}>
         <Camera size={24} style={{ color: 'var(--text-secondary)', opacity: 0.4 }} />
       </div>
     );
@@ -440,7 +443,7 @@ function StreamCell({ wakeUpDp, wakeUpMode, waking, streamReady, stopReason, doW
   if (waking) {
     return (
       <div ref={sectionRef} className="flex flex-col items-center justify-center h-full gap-1.5"
-        style={{ background: 'var(--app-bg)' }}>
+        style={{ background: wakeBg }}>
         <Camera size={24} style={{ color: 'var(--accent)' }} />
         <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Kamera wird aktiviert…</span>
       </div>
@@ -490,6 +493,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
   const titleAlign   = (opts.titleAlign as string) ?? 'left';
   const WidgetIcon   = getWidgetIcon(opts.icon as string | undefined, Camera);
   const layout       = config.layout ?? 'minimal';
+  const transparent  = !!opts.transparent;
 
   const mode = detectMode(streamUrl);
 
@@ -680,6 +684,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
     title: config.title,
     streamSecondsLeft,
     onFullscreen: editMode ? undefined : () => setFullscreen(true),
+    transparent,
   };
 
   const scProps: StreamCellProps = {
@@ -696,7 +701,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
         <>
           <div ref={containerRef} onClick={editMode ? undefined : doWake}
             className="aura-widget-row flex flex-col items-center justify-center h-full gap-2 select-none rounded-[inherit]"
-            style={{ background: 'var(--app-bg)', cursor: editMode ? 'default' : 'pointer' }}>
+            style={{ background: transparent ? 'transparent' : 'var(--app-bg)', cursor: editMode ? 'default' : 'pointer' }}>
             <div className="flex items-center justify-center rounded-full w-10 h-10"
               style={{ background: isReactivate ? 'rgba(239,68,68,0.15)' : 'var(--accent)', opacity: isReactivate ? 1 : 0.85, border: isReactivate ? '1.5px solid #ef4444' : 'none' }}>
               {isReactivate ? <RefreshCw size={18} color="#ef4444" /> : <Camera size={20} color="#fff" />}
@@ -719,7 +724,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
       return (
         <>
           <div ref={containerRef} className="aura-widget-row flex flex-col items-center justify-center h-full gap-2 rounded-[inherit]"
-            style={{ background: 'var(--app-bg)' }}>
+            style={{ background: transparent ? 'transparent' : 'var(--app-bg)' }}>
             {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)' }} />}
             {showTitle && <p className="aura-widget-title text-xs truncate max-w-[80%]" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
           </div>
@@ -731,7 +736,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
       return (
         <>
           <div ref={containerRef} className="aura-widget-row flex flex-col items-center justify-center h-full gap-2 rounded-[inherit]"
-            style={{ background: 'var(--app-bg)' }}>
+            style={{ background: transparent ? 'transparent' : 'var(--app-bg)' }}>
             {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--accent)' }} />}
             {showTitle && <p className="aura-widget-title text-xs truncate max-w-[80%]" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
             <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Kamera wird aktiviert…</p>
@@ -756,7 +761,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
     return (
       <>
         <div ref={containerRef} className="aura-widget-row h-full w-full overflow-hidden rounded-[inherit] flex flex-col"
-          style={{ background: 'var(--widget-bg)' }}>
+          style={{ background: transparent ? 'transparent' : 'var(--widget-bg)' }}>
           <div style={{ height: `${vidH}%`, flexShrink: 0, overflow: 'hidden' }}>
             <StreamCell {...scProps} />
           </div>
@@ -770,7 +775,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
             {infoItems.length === 0
               ? <p className="text-[10px] text-center opacity-40 m-auto" style={{ color: 'var(--text-secondary)' }}>Keine Info-Zeilen konfiguriert</p>
               : infoItems.map((item, i) => (
-                  <InfoRow key={i} slot={item} value={item.datapoint ? dpValues[item.datapoint] : undefined} />
+                  <InfoRow key={i} slot={item} value={item.datapoint ? dpValues[item.datapoint] : undefined} transparent={transparent} />
                 ))
             }
           </div>
@@ -837,19 +842,19 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
           gridTemplateColumns: tmpl.gridCols,
           gridTemplateRows: tmpl.gridRows,
           gridTemplateAreas: tmpl.gridAreas!,
-          background: 'var(--app-bg)',
+          background: transparent ? 'transparent' : 'var(--app-bg)',
         }}>
         <div style={{ gridArea: 'stream', overflow: 'hidden', borderRadius: '4px' }}>
           <StreamCell {...scProps} />
         </div>
         {filledSlots.map((slot, i) => (
           <div key={i} style={{ gridArea: `slot${i}`, overflow: 'hidden', borderRadius: '4px' }}>
-            <InfoCell slot={slot} value={slot.datapoint ? dpValues[slot.datapoint] : undefined} />
+            <InfoCell slot={slot} value={slot.datapoint ? dpValues[slot.datapoint] : undefined} transparent={transparent} />
           </div>
         ))}
         {Array.from({ length: emptyCount }, (_, i) => (
           <div key={`pad-${i}`}
-            style={{ gridArea: `slot${filledSlots.length + i}`, background: 'var(--app-bg)', borderRadius: '4px' }} />
+            style={{ gridArea: `slot${filledSlots.length + i}`, background: transparent ? 'transparent' : 'var(--app-bg)', borderRadius: '4px' }} />
         ))}
       </div>
       {portal}
