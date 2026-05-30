@@ -2873,6 +2873,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   const [customCellImagePickerOpen, setCustomCellImagePickerOpen] = useState(false);
   const [customCellIconPicker, setCustomCellIconPicker] = useState<'iconName' | 'trueIcon' | 'falseIcon' | null>(null);
   const [draftIconSize, setDraftIconSize] = useState<number | null>(null);
+  const [draftTransparency, setDraftTransparency] = useState<number | null>(null);
 
   // ── Custom-cell copy/cut/paste helpers (used by context menu + keyboard shortcuts) ──
   const resolveCustomGrid = (): CustomGridDef => {
@@ -3068,6 +3069,12 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   const isGroup     = config.type === 'group';
   const isCarousel  = config.type === 'carousel';
   const isTransparent = !!(config.options?.transparent);
+  const transparencyStrength = isTransparent
+    ? Math.max(0, Math.min(100, Number(config.options?.transparency ?? 100)))
+    : 100;
+  const transparentBg = transparencyStrength >= 100
+    ? 'transparent'
+    : `color-mix(in srgb, var(--widget-bg) ${100 - transparencyStrength}%, transparent)`;
 
   // ── Group-specific hooks (always called, conditionally used) ───────────────
   const groupDefId = isGroup ? (config.options?.defId as string | undefined) : undefined;
@@ -3120,7 +3127,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${isFocused ? 'aura-widget-focused' : ''}`}
       onClick={handleWidgetClick}
       style={isHeader || isTransparent ? {
-        background: 'transparent',
+        background: isHeader ? 'transparent' : transparentBg,
         borderRadius: isTransparent && editMode ? 'var(--widget-radius)' : 0,
         boxShadow: 'none',
         backdropFilter: 'none',
@@ -3922,6 +3929,25 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         style={{ left: o.transparent ? '18px' : '2px' }} />
                     </button>
                   </div>
+                  {!!o.transparent && (() => {
+                    const displayTransparency = draftTransparency ?? Math.max(0, Math.min(100, Number(o.transparency ?? 100)));
+                    return (
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Transparenz-Stärke</label>
+                          <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{displayTransparency} %</span>
+                        </div>
+                        <input type="range" min={0} max={100} step={5} value={displayTransparency}
+                          onChange={(e) => setDraftTransparency(Number(e.target.value))}
+                          onPointerUp={(e) => {
+                            onConfigChange({ ...config, options: { ...o, transparency: Number((e.target as HTMLInputElement).value) } });
+                            setDraftTransparency(null);
+                          }}
+                          className="w-full h-1"
+                          style={{ accentColor: 'var(--accent)' }} />
+                      </div>
+                    );
+                  })()}
                   <div className="h-px" style={{ background: 'var(--app-border)' }} />
                   <div className="flex items-center justify-between">
                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.showLastChange')}</label>
