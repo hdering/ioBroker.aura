@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getHistoryDirect, getStateFromCache, type HistoryEntry } from './useIoBroker';
 import type { ioBrokerState } from '../types';
 
-export type EChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d';
+export type EChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d' | 'custom';
 
 export interface EChartSeriesConfig {
   id: string;
@@ -12,6 +12,8 @@ export interface EChartSeriesConfig {
   color?: string;
   historyInstance?: string;
   historyRange?: EChartTimeRange;
+  historyRangeCustomValue?: number;
+  historyRangeCustomUnit?: 'h' | 'd';
   smooth?: boolean;
   yAxisIndex?: 0 | 1;
   lineWidth?: number;
@@ -23,7 +25,7 @@ export interface SeriesDataResult {
   loading: boolean;
 }
 
-const RANGE_MS: Record<EChartTimeRange, number> = {
+const RANGE_MS: Record<Exclude<EChartTimeRange, 'custom'>, number> = {
   '1h':  3_600_000,
   '6h':  21_600_000,
   '24h': 86_400_000,
@@ -31,13 +33,32 @@ const RANGE_MS: Record<EChartTimeRange, number> = {
   '30d': 2_592_000_000,
 };
 
-const RANGE_STEP: Record<EChartTimeRange, number | undefined> = {
+const RANGE_STEP: Record<Exclude<EChartTimeRange, 'custom'>, number | undefined> = {
   '1h':  undefined,
   '6h':  300_000,
   '24h': 900_000,
   '7d':  3_600_000,
   '30d': 21_600_000,
 };
+
+function getCustomMs(s: EChartSeriesConfig): number {
+  const val  = s.historyRangeCustomValue ?? 24;
+  const unit = s.historyRangeCustomUnit ?? 'h';
+  return Math.max(1, val) * (unit === 'd' ? 86_400_000 : 3_600_000);
+}
+
+function getRangeMs(s: EChartSeriesConfig): number {
+  const r = s.historyRange ?? '24h';
+  return r === 'custom' ? getCustomMs(s) : RANGE_MS[r];
+}
+
+function getStepForMs(rangeMs: number): number | undefined {
+  if (rangeMs <=  3 * 3_600_000) return undefined;
+  if (rangeMs <= 12 * 3_600_000) return 300_000;
+  if (rangeMs <= 48 * 3_600_000) return 900_000;
+  if (rangeMs <= 14 * 86_400_000) return 3_600_000;
+  return 21_600_000;
+}
 
 export function useMultiSeriesData(
   series: EChartSeriesConfig[],
@@ -54,7 +75,14 @@ export function useMultiSeriesData(
   }, []);
 
   const depKey = JSON.stringify(
-    series.map((s) => [s.id, s.datapointId, s.historyInstance, s.historyRange]),
+    series.map((s) => [
+      s.id,
+      s.datapointId,
+      s.historyInstance,
+      s.historyRange,
+      s.historyRange === 'custom' ? s.historyRangeCustomValue : undefined,
+      s.historyRange === 'custom' ? s.historyRangeCustomUnit  : undefined,
+    ]),
   );
 
   // Fetch history for all series
@@ -106,11 +134,12 @@ export function useMultiSeriesData(
         return;
       }
 
-      const range = s.historyRange ?? '24h';
+      const range   = s.historyRange ?? '24h';
+      const rangeMs = getRangeMs(s);
       const now   = Date.now();
       const end   = now;
-      const start = end - RANGE_MS[range];
-      const step  = RANGE_STEP[range];
+      const start = end - rangeMs;
+      const step  = range === 'custom' ? getStepForMs(rangeMs) : RANGE_STEP[range];
 
       getHistoryDirect(s.datapointId, {
         instance: s.historyInstance,
@@ -150,8 +179,7 @@ export function useMultiSeriesData(
     const unsubs = series
       .filter((s) => !!s.datapointId)
       .map((s) => {
-        const range = s.historyRange ?? '24h';
-        const cutoffMs = RANGE_MS[range];
+        const cutoffMs = getRangeMs(s);
         return subscribe(s.datapointId, (state: ioBrokerState) => {
           if (typeof state.val !== 'number') return;
           const val = state.val as number;

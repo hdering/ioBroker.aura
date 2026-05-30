@@ -13,7 +13,7 @@ interface EChartConfigProps {
   onConfigChange: (c: WidgetConfig) => void;
 }
 
-const CHART_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
+const CHART_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', 'custom'];
 
 const CHART_TYPES: { id: EChartSeriesConfig['chartType']; label: () => string }[] = [
   { id: 'line',    label: () => t('echart.line') },
@@ -450,6 +450,36 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                 </button>
                               ))}
                             </div>
+                            {s.historyRange === 'custom' && (
+                              <div className="flex items-center gap-1.5 mt-1.5">
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={365}
+                                  value={s.historyRangeCustomValue ?? 24}
+                                  onChange={(e) => updateSeries(s.id, { historyRangeCustomValue: Math.max(1, Number(e.target.value) || 1) })}
+                                  className="w-16 text-xs rounded-md px-2 py-1 text-center focus:outline-none"
+                                  style={inputStyle}
+                                />
+                                {(['h', 'd'] as const).map((u) => {
+                                  const active = (s.historyRangeCustomUnit ?? 'h') === u;
+                                  return (
+                                    <button
+                                      key={u}
+                                      onClick={() => updateSeries(s.id, { historyRangeCustomUnit: u })}
+                                      className="text-[11px] px-2 py-1 rounded-md transition-opacity hover:opacity-80"
+                                      style={{
+                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                        color:      active ? '#fff' : 'var(--text-secondary)',
+                                        border:     `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                      }}
+                                    >
+                                      {u === 'h' ? 'Std' : 'Tage'}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
