@@ -59,7 +59,7 @@ export function ChipsWidget({ config }: WidgetProps) {
   };
 
   const h =
-    typeof chipSizeRaw === 'number' ? Math.max(16, Math.min(240, chipSizeRaw))
+    typeof chipSizeRaw === 'number' ? Math.max(16, Math.min(500, chipSizeRaw))
     : chipSizeRaw === 'sm' ? 28
     : chipSizeRaw === 'lg' ? 42
     : 34;
