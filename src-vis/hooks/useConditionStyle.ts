@@ -2,6 +2,60 @@ import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useIoBroker, getStateFromCache } from './useIoBroker';
 import type { WidgetCondition, ConditionClause, ConditionStyle } from '../types';
 
+// ── Debug logging ─────────────────────────────────────────────────────────────
+// End-user opt-in. Enable from DevTools console:
+//   window.auraEnableConditionDebug()   // persists in localStorage + reload required
+//   window.auraEnableConditionDebug(true) // hot-enable without reload
+// Disable: window.auraDisableConditionDebug()
+// Or append ?auraDebug=conditions to the URL for a one-shot session.
+//
+// Logs cover: per-widget init, datapoint subscribe/value arrival, hidden/reflow
+// transitions and reflow-set membership changes. Designed to surface why a
+// hidden-by-condition widget takes long to settle on initial load (multi-mount
+// bouncing between visible grid and off-screen reflow container).
+
+let _condDebug = false;
+function refreshCondDebug(): void {
+  try {
+    if (typeof window === 'undefined') { _condDebug = false; return; }
+    _condDebug =
+      window.location.search.includes('auraDebug=conditions') ||
+      window.localStorage.getItem('aura.debug.conditions') === '1';
+  } catch { _condDebug = false; }
+}
+refreshCondDebug();
+
+function condLog(tag: string, ...args: unknown[]): void {
+  if (!_condDebug) return;
+  // eslint-disable-next-line no-console
+  console.log(
+    `%c[cond]%c ${tag}`,
+    'background:#6366f1;color:#fff;padding:1px 4px;border-radius:3px;font-weight:bold',
+    'color:#6366f1;font-weight:bold',
+    ...args,
+  );
+}
+
+if (typeof window !== 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const w = window as any;
+  w.auraEnableConditionDebug = (hot?: boolean) => {
+    try { window.localStorage.setItem('aura.debug.conditions', '1'); } catch { /* ignore */ }
+    if (hot) { _condDebug = true; console.log('[cond] debug enabled (live, no reload needed)'); }
+    else { console.log('[cond] debug flag stored — reload the page to start logging'); }
+  };
+  w.auraDisableConditionDebug = () => {
+    try { window.localStorage.removeItem('aura.debug.conditions'); } catch { /* ignore */ }
+    _condDebug = false;
+    console.log('[cond] debug disabled');
+  };
+  w.auraConditionStats = () => {
+    const ids = Array.from(reflowHiddenIds);
+    console.log('[cond] reflow-hidden widgets:', ids.length, ids);
+    return { count: ids.length, ids };
+  };
+}
+
 // ── Evaluation ────────────────────────────────────────────────────────────────
 
 function evaluateClause(clause: ConditionClause, raw: unknown, values: Map<string, unknown>): boolean {
@@ -55,9 +109,15 @@ const reflowListeners = new Set<() => void>();
 export function notifyHiddenState(widgetId: string, hidden: boolean, reflow: boolean) {
   const wasReflow = reflowHiddenIds.has(widgetId);
   const isReflow = hidden && reflow;
-  if (isReflow === wasReflow) return;
+  if (isReflow === wasReflow) {
+    condLog('notify (no-op)', { widgetId, hidden, reflow, inReflowSet: wasReflow });
+    return;
+  }
   if (isReflow) reflowHiddenIds.add(widgetId);
   else reflowHiddenIds.delete(widgetId);
+  condLog(isReflow ? 'reflow-set ADD' : 'reflow-set REMOVE', {
+    widgetId, hidden, reflow, reflowSetSize: reflowHiddenIds.size,
+  });
   reflowListeners.forEach((fn) => fn());
 }
 
@@ -116,9 +176,11 @@ function computeResult(conditions: WidgetCondition[], values: Map<string, unknow
   return { cssVars: merged, effect, hidden, reflow };
 }
 
-export function useConditionStyle(conditions: WidgetCondition[]): ConditionResult {
+export function useConditionStyle(conditions: WidgetCondition[], widgetId?: string): ConditionResult {
   const { subscribe, getState } = useIoBroker();
   const valuesRef = useRef<Map<string, unknown>>(new Map());
+  const mountedAtRef = useRef<number>(typeof performance !== 'undefined' ? performance.now() : 0);
+  const mountCountRef = useRef<number>(0);
   // Cache-aware initial state: on remount (e.g. when a widget moves between the
   // visible grid and the off-screen reflow container) the global stateCache
   // already has the DP values — compute the correct result synchronously so the
@@ -129,10 +191,25 @@ export function useConditionStyle(conditions: WidgetCondition[]): ConditionResul
     const uniqueIds = collectUniqueIds(conditions);
     if (uniqueIds.length > 0 && uniqueIds.every((id) => getStateFromCache(id) !== null)) {
       uniqueIds.forEach((id) => valuesRef.current.set(id, getStateFromCache(id)?.val ?? null));
-      return computeResult(conditions, valuesRef.current);
+      const r = computeResult(conditions, valuesRef.current);
+      condLog('init (cache hit)', { widgetId, dps: uniqueIds, hidden: r.hidden, reflow: r.reflow, values: Object.fromEntries(valuesRef.current) });
+      return r;
     }
     const mayHide = conditions.some((c) => c.hideWidget);
-    return mayHide ? { cssVars: {}, effect: null, hidden: true, reflow: conditions.some((c) => c.hideWidget && c.reflow) } : EMPTY_RESULT;
+    const initial = mayHide
+      ? { cssVars: {}, effect: null, hidden: true, reflow: conditions.some((c) => c.hideWidget && c.reflow) }
+      : EMPTY_RESULT;
+    condLog('init (cache miss — PESSIMISTIC)', {
+      widgetId,
+      dps: uniqueIds,
+      missing: uniqueIds.filter((id) => getStateFromCache(id) === null),
+      conditionsCount: conditions.length,
+      mayHide,
+      initialHidden: initial.hidden,
+      initialReflow: initial.reflow,
+      note: 'Pessimistic hide forces mount cycle when values arrive — main cause of slow first-load on hidden widgets',
+    });
+    return initial;
   });
 
   // Stable recompute — defined inside useEffect via ref to avoid stale closure
@@ -151,39 +228,73 @@ export function useConditionStyle(conditions: WidgetCondition[]): ConditionResul
       return;
     }
 
-    const recompute = () => {
+    mountCountRef.current += 1;
+    const mountStart = typeof performance !== 'undefined' ? performance.now() : 0;
+    condLog('effect mount', {
+      widgetId,
+      mountCount: mountCountRef.current,
+      dps: uniqueIds,
+      sinceHookCreated: `${(mountStart - mountedAtRef.current).toFixed(1)}ms`,
+    });
+
+    const recompute = (trigger: string, dp?: string) => {
       const next = computeResult(conditions, valuesRef.current);
       setResult((prev) => {
         if (
           prev.effect === next.effect && prev.hidden === next.hidden && prev.reflow === next.reflow &&
           JSON.stringify(prev.cssVars) === JSON.stringify(next.cssVars)
-        ) return prev;
+        ) {
+          condLog('recompute (no change)', { widgetId, trigger, dp });
+          return prev;
+        }
+        condLog('recompute CHANGED', {
+          widgetId,
+          trigger,
+          dp,
+          hidden: `${prev.hidden} → ${next.hidden}`,
+          reflow: `${prev.reflow} → ${next.reflow}`,
+          effect: `${prev.effect} → ${next.effect}`,
+          values: Object.fromEntries(valuesRef.current),
+        });
         return next;
       });
     };
 
-    recomputeRef.current = recompute;
+    recomputeRef.current = () => recompute('manual');
 
     // Subscribe + fetch initial values
     const unsubscribers = uniqueIds.map((id) => {
+      const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
       // Fetch current value immediately
       getState(id).then((state) => {
+        const dt = typeof performance !== 'undefined' ? performance.now() - t0 : 0;
         if (state !== null) {
           valuesRef.current.set(id, state.val ?? null);
-          recompute();
+          condLog('getState resolved', { widgetId, dp: id, val: state.val, took: `${dt.toFixed(1)}ms` });
+          recompute('getState', id);
+        } else {
+          condLog('getState resolved (null)', { widgetId, dp: id, took: `${dt.toFixed(1)}ms` });
         }
       });
       // Subscribe to future changes
       return subscribe(id, (state) => {
         valuesRef.current.set(id, state?.val ?? null);
-        recompute();
+        condLog('subscribe event', { widgetId, dp: id, val: state?.val });
+        recompute('subscribe', id);
       });
     });
 
-    recompute(); // initial pass with whatever values are already known
+    recompute('initial', undefined); // initial pass with whatever values are already known
 
-    return () => unsubscribers.forEach((fn) => fn());
-  }, [conditions, subscribe, getState]);
+    return () => {
+      condLog('effect cleanup (unmount/deps change)', {
+        widgetId,
+        mountCount: mountCountRef.current,
+        livedFor: `${(performance.now() - mountStart).toFixed(1)}ms`,
+      });
+      unsubscribers.forEach((fn) => fn());
+    };
+  }, [conditions, subscribe, getState, widgetId]);
 
   return result;
 }

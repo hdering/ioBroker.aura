@@ -2795,7 +2795,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   }
 
   // Evaluate conditions against live ioBroker values
-  const conditionResult = useConditionStyle(conditions);
+  const conditionResult = useConditionStyle(conditions, config.id);
 
   // Register/release this widget in the panel coordinator.
   // NOTE: do NOT clean the reflow-hidden registry here — when a widget moves
