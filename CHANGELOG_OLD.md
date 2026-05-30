@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.155 (2026-05-28)
+- feat(jsontable): per-column Iconify toggle for inline mdi: tokens
+
 ## 0.9.154 (2026-05-28)
 - feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix
 

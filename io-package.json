@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.174",
+    "version": "0.9.175",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.175": {
+        "en": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
+        "de": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
+        "ru": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
+        "pt": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
+        "nl": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
+        "fr": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
+        "it": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
+        "es": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
+        "pl": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
+        "uk": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
+        "zh-cn": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider"
+      },
       "0.9.174": {
         "en": "fix(camera): honor transparent option in all layouts",
         "de": "fix(camera): honor transparent option in all layouts",
@@ -184,19 +197,6 @@
         "pl": "fix(alarm): hide datapoint-id field in widget edit panel",
         "uk": "fix(alarm): hide datapoint-id field in widget edit panel",
         "zh-cn": "fix(alarm): hide datapoint-id field in widget edit panel"
-      },
-      "0.9.168": {
-        "en": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
-        "de": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
-        "ru": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
-        "pt": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
-        "nl": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
-        "fr": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
-        "it": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
-        "es": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
-        "pl": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
-        "uk": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
-        "zh-cn": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter"
       }
     }
   },
