@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.168",
+    "version": "0.9.169",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.169": {
+        "en": "fix(alarm): hide datapoint-id field in widget edit panel",
+        "de": "fix(alarm): hide datapoint-id field in widget edit panel",
+        "ru": "fix(alarm): hide datapoint-id field in widget edit panel",
+        "pt": "fix(alarm): hide datapoint-id field in widget edit panel",
+        "nl": "fix(alarm): hide datapoint-id field in widget edit panel",
+        "fr": "fix(alarm): hide datapoint-id field in widget edit panel",
+        "it": "fix(alarm): hide datapoint-id field in widget edit panel",
+        "es": "fix(alarm): hide datapoint-id field in widget edit panel",
+        "pl": "fix(alarm): hide datapoint-id field in widget edit panel",
+        "uk": "fix(alarm): hide datapoint-id field in widget edit panel",
+        "zh-cn": "fix(alarm): hide datapoint-id field in widget edit panel"
+      },
       "0.9.168": {
         "en": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
         "de": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
@@ -184,19 +197,6 @@
         "pl": "refactor(theme): split themeMode into separate frontend & admin DPs",
         "uk": "refactor(theme): split themeMode into separate frontend & admin DPs",
         "zh-cn": "refactor(theme): split themeMode into separate frontend & admin DPs"
-      },
-      "0.9.162": {
-        "en": "refactor(theme): rename config.darkMode to config.themeMode",
-        "de": "refactor(theme): rename config.darkMode to config.themeMode",
-        "ru": "refactor(theme): rename config.darkMode to config.themeMode",
-        "pt": "refactor(theme): rename config.darkMode to config.themeMode",
-        "nl": "refactor(theme): rename config.darkMode to config.themeMode",
-        "fr": "refactor(theme): rename config.darkMode to config.themeMode",
-        "it": "refactor(theme): rename config.darkMode to config.themeMode",
-        "es": "refactor(theme): rename config.darkMode to config.themeMode",
-        "pl": "refactor(theme): rename config.darkMode to config.themeMode",
-        "uk": "refactor(theme): rename config.darkMode to config.themeMode",
-        "zh-cn": "refactor(theme): rename config.darkMode to config.themeMode"
       }
     }
   },

@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.149 (2026-05-27)
+- fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs
+
 ## 0.9.148 (2026-05-27)
 - fix(adapterlogs): switch to polling + show backend-not-answering hint
 - fix(adapterlogs): relay logs through aura backend so anonymous web users receive them
