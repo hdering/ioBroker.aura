@@ -324,7 +324,14 @@ export function WeatherWidget({ config }: WidgetProps) {
   useEffect(() => {
     if (!showWeather || useAdapter) { setOnlineLoading(false); return; }
     let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let hasData = false;
+    // Retry quickly while we have no data yet (or last fetch failed), so a
+    // transient network blip doesn't leave the widget stuck on "no data" until
+    // the next full refresh window.
+    const RETRY_MS = 30_000;
     const fetchWeather = async () => {
+      let ok = false;
       try {
         const apiForecastDays = Math.min(forecastDays + 1, 8);
         const url =
@@ -336,15 +343,24 @@ export function WeatherWidget({ config }: WidgetProps) {
         const res = await fetch(url);
         if (!res.ok) throw new Error('HTTP error');
         const json = await res.json() as WeatherData;
-        if (!cancelled) { setOnlineData(json); setOnlineError(false); setOnlineLoading(false); }
+        if (!cancelled) {
+          setOnlineData(json);
+          setOnlineError(false);
+          setOnlineLoading(false);
+          hasData = true;
+          ok = true;
+        }
       } catch {
         if (!cancelled) { setOnlineError(true); setOnlineLoading(false); }
+      }
+      if (!cancelled) {
+        const nextMs = ok && hasData ? refreshMin * 60_000 : RETRY_MS;
+        timer = setTimeout(fetchWeather, nextMs);
       }
     };
     setOnlineLoading(true);
     fetchWeather();
-    const id = setInterval(fetchWeather, refreshMin * 60_000);
-    return () => { cancelled = true; clearInterval(id); };
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
   }, [lat, lon, refreshMin, forecastDays, showWeather, useAdapter]);
 
   // ── Adapter weather (ioBroker open-meteo-weather.*) ──────────────────────
