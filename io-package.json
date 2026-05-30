@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.175",
+    "version": "0.9.176",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.176": {
+        "en": "feat(widgets): add transparency strength slider for transparent mode",
+        "de": "feat(widgets): add transparency strength slider for transparent mode",
+        "ru": "feat(widgets): add transparency strength slider for transparent mode",
+        "pt": "feat(widgets): add transparency strength slider for transparent mode",
+        "nl": "feat(widgets): add transparency strength slider for transparent mode",
+        "fr": "feat(widgets): add transparency strength slider for transparent mode",
+        "it": "feat(widgets): add transparency strength slider for transparent mode",
+        "es": "feat(widgets): add transparency strength slider for transparent mode",
+        "pl": "feat(widgets): add transparency strength slider for transparent mode",
+        "uk": "feat(widgets): add transparency strength slider for transparent mode",
+        "zh-cn": "feat(widgets): add transparency strength slider for transparent mode"
+      },
       "0.9.175": {
         "en": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
         "de": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
@@ -184,19 +197,6 @@
         "pl": "fix(weather): retry online fetch every 30s while no data",
         "uk": "fix(weather): retry online fetch every 30s while no data",
         "zh-cn": "fix(weather): retry online fetch every 30s while no data"
-      },
-      "0.9.169": {
-        "en": "fix(alarm): hide datapoint-id field in widget edit panel",
-        "de": "fix(alarm): hide datapoint-id field in widget edit panel",
-        "ru": "fix(alarm): hide datapoint-id field in widget edit panel",
-        "pt": "fix(alarm): hide datapoint-id field in widget edit panel",
-        "nl": "fix(alarm): hide datapoint-id field in widget edit panel",
-        "fr": "fix(alarm): hide datapoint-id field in widget edit panel",
-        "it": "fix(alarm): hide datapoint-id field in widget edit panel",
-        "es": "fix(alarm): hide datapoint-id field in widget edit panel",
-        "pl": "fix(alarm): hide datapoint-id field in widget edit panel",
-        "uk": "fix(alarm): hide datapoint-id field in widget edit panel",
-        "zh-cn": "fix(alarm): hide datapoint-id field in widget edit panel"
       }
     }
   },

@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.156 (2026-05-28)
+- feat(iconpicker): live Iconify online search beyond curated categories
+
 ## 0.9.155 (2026-05-28)
 - feat(jsontable): per-column Iconify toggle for inline mdi: tokens
 
