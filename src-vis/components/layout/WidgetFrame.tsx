@@ -6469,6 +6469,44 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                           style={{ left: o.sendOnRelease !== false ? '18px' : '2px' }} />
                       </button>
                     </div>
+
+                    {/* Größen */}
+                    {(() => {
+                      const valueSize    = (o.valueSize    as number) || 20;
+                      const buttonSize   = (o.buttonSize   as number) || 14;
+                      const sliderHeight = (o.sliderHeight as number) || 6;
+                      return (
+                        <>
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="text-[11px]" style={hint}>Wertgröße (Position %)</label>
+                              <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{valueSize} px</span>
+                            </div>
+                            <input type="range" min={10} max={72} step={1} value={valueSize}
+                              onChange={(e) => setO({ valueSize: Number(e.target.value) })}
+                              className="w-full h-1" style={{ accentColor: 'var(--accent)' }} />
+                          </div>
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="text-[11px]" style={hint}>Knopfgröße</label>
+                              <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{buttonSize} px</span>
+                            </div>
+                            <input type="range" min={10} max={48} step={1} value={buttonSize}
+                              onChange={(e) => setO({ buttonSize: Number(e.target.value) })}
+                              className="w-full h-1" style={{ accentColor: 'var(--accent)' }} />
+                          </div>
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="text-[11px]" style={hint}>Schieberegler-Höhe</label>
+                              <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{sliderHeight} px</span>
+                            </div>
+                            <input type="range" min={3} max={32} step={1} value={sliderHeight}
+                              onChange={(e) => setO({ sliderHeight: Number(e.target.value) })}
+                              className="w-full h-1" style={{ accentColor: 'var(--accent)' }} />
+                          </div>
+                        </>
+                      );
+                    })()}
                   </>
                 );
               })()}

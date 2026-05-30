@@ -55,18 +55,22 @@ function ShutterViz({
   );
 }
 
-function BtnRow({ onUp, onStop, onDown, size = 'md', vertical = false }: {
+function BtnRow({ onUp, onStop, onDown, iconSz = 16, vertical = false }: {
   onUp: () => void; onStop: () => void; onDown: () => void;
-  size?: 'sm' | 'md' | 'lg'; vertical?: boolean;
+  iconSz?: number; vertical?: boolean;
 }) {
-  const iconSz = size === 'sm' ? 13 : size === 'lg' ? 20 : 16;
-  const padCls = size === 'sm' ? 'p-1 rounded' : size === 'lg' ? 'p-3 rounded-xl' : 'p-2 rounded-lg';
-  const btnStyle = { background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' };
+  const pad = Math.max(2, Math.round(iconSz / 4));
+  const radius = Math.max(4, Math.round(iconSz / 2));
+  const btnStyle: React.CSSProperties = {
+    background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)',
+    padding: pad, borderRadius: radius,
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  };
   return (
     <div className={`aura-widget-action flex ${vertical ? 'flex-col' : ''} gap-1`}>
-      <button onClick={onUp}   className={`${padCls} hover:opacity-80 transition-opacity`} style={btnStyle}><ChevronUp   size={iconSz} /></button>
-      <button onClick={onStop} className={`${padCls} hover:opacity-80 transition-opacity`} style={btnStyle}><Square      size={iconSz} /></button>
-      <button onClick={onDown} className={`${padCls} hover:opacity-80 transition-opacity`} style={btnStyle}><ChevronDown size={iconSz} /></button>
+      <button onClick={onUp}   className="hover:opacity-80 transition-opacity" style={btnStyle}><ChevronUp   size={iconSz} /></button>
+      <button onClick={onStop} className="hover:opacity-80 transition-opacity" style={btnStyle}><Square      size={iconSz} /></button>
+      <button onClick={onDown} className="hover:opacity-80 transition-opacity" style={btnStyle}><ChevronDown size={iconSz} /></button>
     </div>
   );
 }
@@ -147,6 +151,9 @@ export function ShutterWidget({ config }: WidgetProps) {
   const showIcon      = opts.showIcon      !== false;
   const sendOnRelease = opts.sendOnRelease !== false;
   const iconSize      = (opts.iconSize as number) || 20;
+  const valueSize     = (opts.valueSize as number) || 20;
+  const buttonSize    = (opts.buttonSize as number) || 14;
+  const sliderHeight  = (opts.sliderHeight as number) || 6;
 
   const [dragPos, setDragPos] = useState<number | null>(null);
   const displayPos = dragPos ?? pos;
@@ -176,8 +183,8 @@ export function ShutterWidget({ config }: WidgetProps) {
     <input type="range" min={0} max={100} step={1} value={sliderPos}
       onChange={(e) => handleSliderChange(Number(e.target.value))}
       onMouseUp={handleSliderRelease} onTouchEnd={handleSliderRelease}
-      style={{ accentColor: 'var(--accent)' }}
-      className="aura-widget-action w-full h-1.5 rounded-full appearance-none cursor-pointer" />
+      style={{ accentColor: 'var(--accent)', height: sliderHeight }}
+      className="aura-widget-action w-full rounded-full appearance-none cursor-pointer" />
   );
 
   const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
@@ -202,9 +209,9 @@ export function ShutterWidget({ config }: WidgetProps) {
               ? <CustomIcon className="aura-widget-icon" size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />
               : <ShutterViz closedFrac={closedFrac} accentColor={accentColor} isMoving={isMoving} className="aura-widget-icon" style={{ width: iconSize, height: iconSize, flexShrink: 0 }} />)
             : null,
-          'btn-up':        <button className="aura-widget-action nodrag" style={btnStyle} onClick={openFully}><ChevronUp   size={14} /></button>,
-          'btn-stop':      <button className="aura-widget-action nodrag" style={btnStyle} onClick={stop}><Square      size={14} /></button>,
-          'btn-down':      <button className="aura-widget-action nodrag" style={btnStyle} onClick={closeFully}><ChevronDown size={14} /></button>,
+          'btn-up':        <button className="aura-widget-action nodrag" style={btnStyle} onClick={openFully}><ChevronUp   size={buttonSize} /></button>,
+          'btn-stop':      <button className="aura-widget-action nodrag" style={btnStyle} onClick={stop}><Square      size={buttonSize} /></button>,
+          'btn-down':      <button className="aura-widget-action nodrag" style={btnStyle} onClick={closeFully}><ChevronDown size={buttonSize} /></button>,
           'battery-icon':  batteryIcon,
           'reach-icon':    reachIcon,
           'status-badges': statusBadges,
@@ -224,8 +231,8 @@ export function ShutterWidget({ config }: WidgetProps) {
         )}
         {showTitle && <span className="aura-widget-title flex-1 text-sm truncate min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
         {!showTitle && <span className="flex-1" />}
-        {showValue && <span className="aura-widget-value text-xl font-bold shrink-0" style={{ color: thresholdColor ?? (isMoving ? 'var(--accent-yellow)' : 'var(--text-primary)') }}>{displayPct}%</span>}
-        {showControls && <BtnRow onUp={openFully} onStop={stop} onDown={closeFully} size="sm" />}
+        {showValue && <span className="aura-widget-value font-bold shrink-0" style={{ color: thresholdColor ?? (isMoving ? 'var(--accent-yellow)' : 'var(--text-primary)'), fontSize: valueSize, lineHeight: 1 }}>{displayPct}%</span>}
+        {showControls && <BtnRow onUp={openFully} onStop={stop} onDown={closeFully} iconSz={buttonSize} />}
         <StatusBadges config={config} />
       </div>
     );
@@ -233,17 +240,28 @@ export function ShutterWidget({ config }: WidgetProps) {
 
   // ── MINIMAL ───────────────────────────────────────────────────────────────
   if (layout === 'minimal') {
+    const minBtnPad = Math.max(4, Math.round(buttonSize / 2));
+    const minBtnRadius = Math.max(6, Math.round(buttonSize / 1.3));
+    const minBtnStyle: React.CSSProperties = {
+      background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)',
+      padding: minBtnPad, borderRadius: minBtnRadius,
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    };
+    const stopBtnStyle: React.CSSProperties = {
+      ...minBtnStyle,
+      padding: `${Math.max(2, Math.round(buttonSize / 3))}px ${Math.max(6, Math.round(buttonSize))}px`,
+    };
+    const stopSz = Math.max(8, Math.round(buttonSize * 0.7));
     return (
       <div className="aura-widget-row flex flex-col items-center justify-center h-full gap-1.5" style={{ position: 'relative' }}>
         {showControls && (
-          <button onClick={openFully} className="aura-widget-action p-2 rounded-xl hover:opacity-80 transition-opacity"
-            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-            <ChevronUp size={18} />
+          <button onClick={openFully} className="aura-widget-action hover:opacity-80 transition-opacity" style={minBtnStyle}>
+            <ChevronUp size={buttonSize} />
           </button>
         )}
         {showValue && (
           <div className="aura-widget-value text-center">
-            <p className="text-xl font-bold leading-none" style={{ color: valueColor }}>{displayPct}%</p>
+            <p className="font-bold leading-none" style={{ color: valueColor, fontSize: valueSize }}>{displayPct}%</p>
             {isMoving && <p className="text-[10px] animate-pulse mt-0.5" style={{ color: 'var(--accent-yellow)' }}>
               {movingDir === 'up' ? '▲' : '▼'}
             </p>}
@@ -251,13 +269,11 @@ export function ShutterWidget({ config }: WidgetProps) {
         )}
         {showControls && (
           <>
-            <button onClick={stop} className="aura-widget-action px-3 py-1 rounded-lg hover:opacity-80 transition-opacity"
-              style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-              <Square size={12} />
+            <button onClick={stop} className="aura-widget-action hover:opacity-80 transition-opacity" style={stopBtnStyle}>
+              <Square size={stopSz} />
             </button>
-            <button onClick={closeFully} className="aura-widget-action p-2 rounded-xl hover:opacity-80 transition-opacity"
-              style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-              <ChevronDown size={18} />
+            <button onClick={closeFully} className="aura-widget-action hover:opacity-80 transition-opacity" style={minBtnStyle}>
+              <ChevronDown size={buttonSize} />
             </button>
           </>
         )}
@@ -282,14 +298,14 @@ export function ShutterWidget({ config }: WidgetProps) {
       )}
       <div className="flex gap-2 flex-1 min-h-0">
         <ShutterViz closedFrac={closedFrac} accentColor={accentColor} isMoving={isMoving} className="flex-1" />
-        {showControls && <BtnRow onUp={openFully} onStop={stop} onDown={closeFully} size="sm" vertical />}
+        {showControls && <BtnRow onUp={openFully} onStop={stop} onDown={closeFully} iconSz={buttonSize} vertical />}
       </div>
       {(showValue || showSlider) && (
         <div>
           {showValue && (
             <div className="aura-widget-value flex justify-between items-baseline mb-1">
               <span className="text-[11px]" style={{ color: isMoving ? 'var(--accent-yellow)' : 'var(--text-secondary)' }}>{statusText}</span>
-              <span className="text-xl font-bold" style={{ color: valueColor }}>{displayPct}%</span>
+              <span className="font-bold" style={{ color: valueColor, fontSize: valueSize, lineHeight: 1 }}>{displayPct}%</span>
             </div>
           )}
           {showSlider && slider}
