@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.173",
+    "version": "0.9.174",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.174": {
+        "en": "fix(camera): honor transparent option in all layouts",
+        "de": "fix(camera): honor transparent option in all layouts",
+        "ru": "fix(camera): honor transparent option in all layouts",
+        "pt": "fix(camera): honor transparent option in all layouts",
+        "nl": "fix(camera): honor transparent option in all layouts",
+        "fr": "fix(camera): honor transparent option in all layouts",
+        "it": "fix(camera): honor transparent option in all layouts",
+        "es": "fix(camera): honor transparent option in all layouts",
+        "pl": "fix(camera): honor transparent option in all layouts",
+        "uk": "fix(camera): honor transparent option in all layouts",
+        "zh-cn": "fix(camera): honor transparent option in all layouts"
+      },
       "0.9.173": {
         "en": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
         "de": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
@@ -184,19 +197,6 @@
         "pl": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
         "uk": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter",
         "zh-cn": "fix(lint): auto-fix mixed typographic quotes; feat(alarm): new widget for ioBroker.alarm adapter"
-      },
-      "0.9.167": {
-        "en": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
-        "de": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
-        "ru": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
-        "pt": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
-        "nl": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
-        "fr": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
-        "it": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
-        "es": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
-        "pl": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
-        "uk": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
-        "zh-cn": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)"
       }
     }
   },

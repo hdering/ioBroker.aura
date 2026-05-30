@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.154 (2026-05-28)
+- feat(jsontable): rewrite admin image paths via adminBaseUrl + per-column prefix
+
 ## 0.9.153 (2026-05-28)
 - fix(enum): apply per-entry color to value cell in custom layout
 
