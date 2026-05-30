@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.157 (2026-05-28)
+- fix(custom-grid): respect alignment for select cells in display-only mode
+- feat(custom-grid): clear selected cell with Delete/Backspace key
+
 ## 0.9.156 (2026-05-28)
 - feat(iconpicker): live Iconify online search beyond curated categories
 

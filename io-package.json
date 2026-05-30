@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.176",
+    "version": "0.9.177",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.177": {
+        "en": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
+        "de": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
+        "ru": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
+        "pt": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
+        "nl": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
+        "fr": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
+        "it": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
+        "es": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
+        "pl": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
+        "uk": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
+        "zh-cn": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics"
+      },
       "0.9.176": {
         "en": "feat(widgets): add transparency strength slider for transparent mode",
         "de": "feat(widgets): add transparency strength slider for transparent mode",
@@ -184,19 +197,6 @@
         "pl": "feat(static-list): allow changing datapoint of an existing entry",
         "uk": "feat(static-list): allow changing datapoint of an existing entry",
         "zh-cn": "feat(static-list): allow changing datapoint of an existing entry"
-      },
-      "0.9.170": {
-        "en": "fix(weather): retry online fetch every 30s while no data",
-        "de": "fix(weather): retry online fetch every 30s while no data",
-        "ru": "fix(weather): retry online fetch every 30s while no data",
-        "pt": "fix(weather): retry online fetch every 30s while no data",
-        "nl": "fix(weather): retry online fetch every 30s while no data",
-        "fr": "fix(weather): retry online fetch every 30s while no data",
-        "it": "fix(weather): retry online fetch every 30s while no data",
-        "es": "fix(weather): retry online fetch every 30s while no data",
-        "pl": "fix(weather): retry online fetch every 30s while no data",
-        "uk": "fix(weather): retry online fetch every 30s while no data",
-        "zh-cn": "fix(weather): retry online fetch every 30s while no data"
       }
     }
   },
