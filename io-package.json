@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.171",
+    "version": "0.9.172",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.172": {
+        "en": "feat(echart): per-series custom history range",
+        "de": "feat(echart): per-series custom history range",
+        "ru": "feat(echart): per-series custom history range",
+        "pt": "feat(echart): per-series custom history range",
+        "nl": "feat(echart): per-series custom history range",
+        "fr": "feat(echart): per-series custom history range",
+        "it": "feat(echart): per-series custom history range",
+        "es": "feat(echart): per-series custom history range",
+        "pl": "feat(echart): per-series custom history range",
+        "uk": "feat(echart): per-series custom history range",
+        "zh-cn": "feat(echart): per-series custom history range"
+      },
       "0.9.171": {
         "en": "feat(static-list): allow changing datapoint of an existing entry",
         "de": "feat(static-list): allow changing datapoint of an existing entry",
@@ -184,19 +197,6 @@
         "pl": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
         "uk": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
         "zh-cn": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP"
-      },
-      "0.9.165": {
-        "en": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
-        "de": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
-        "ru": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
-        "pt": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
-        "nl": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
-        "fr": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
-        "it": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
-        "es": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
-        "pl": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
-        "uk": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
-        "zh-cn": "fix(theme): always create themeMode admin/frontend DPs even when migration throws"
       }
     }
   },

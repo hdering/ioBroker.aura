@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.152 (2026-05-28)
+- feat(scriptstatus): configurable search scope (name/path/both)
+
 ## 0.9.151 (2026-05-28)
 - feat(input-widget): add compact layout (title + field + submit in one row)
 
