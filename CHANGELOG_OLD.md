@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.153 (2026-05-28)
+- fix(enum): apply per-entry color to value cell in custom layout
+
 ## 0.9.152 (2026-05-28)
 - feat(scriptstatus): configurable search scope (name/path/both)
 

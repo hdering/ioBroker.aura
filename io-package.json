@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.172",
+    "version": "0.9.173",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.173": {
+        "en": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
+        "de": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
+        "ru": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
+        "pt": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
+        "nl": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
+        "fr": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
+        "it": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
+        "es": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
+        "pl": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
+        "uk": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
+        "zh-cn": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards"
+      },
       "0.9.172": {
         "en": "feat(echart): per-series custom history range",
         "de": "feat(echart): per-series custom history range",
@@ -184,19 +197,6 @@
         "pl": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
         "uk": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)",
         "zh-cn": "feat(evcc): responsive auto-scale + per-section size sliders; feat(chips): raise chipSize slider max from 96 to 240 px; feat(chips): replace sm/md/lg dropdown with px slider (16-96)"
-      },
-      "0.9.166": {
-        "en": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
-        "de": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
-        "ru": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
-        "pt": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
-        "nl": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
-        "fr": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
-        "it": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
-        "es": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
-        "pl": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
-        "uk": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP",
-        "zh-cn": "chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP"
       }
     }
   },
