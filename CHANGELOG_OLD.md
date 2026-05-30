@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.151 (2026-05-28)
+- feat(input-widget): add compact layout (title + field + submit in one row)
+
 ## 0.9.150 (2026-05-28)
 - feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option
 

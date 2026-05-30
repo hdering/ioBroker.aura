@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.170",
+    "version": "0.9.171",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.171": {
+        "en": "feat(static-list): allow changing datapoint of an existing entry",
+        "de": "feat(static-list): allow changing datapoint of an existing entry",
+        "ru": "feat(static-list): allow changing datapoint of an existing entry",
+        "pt": "feat(static-list): allow changing datapoint of an existing entry",
+        "nl": "feat(static-list): allow changing datapoint of an existing entry",
+        "fr": "feat(static-list): allow changing datapoint of an existing entry",
+        "it": "feat(static-list): allow changing datapoint of an existing entry",
+        "es": "feat(static-list): allow changing datapoint of an existing entry",
+        "pl": "feat(static-list): allow changing datapoint of an existing entry",
+        "uk": "feat(static-list): allow changing datapoint of an existing entry",
+        "zh-cn": "feat(static-list): allow changing datapoint of an existing entry"
+      },
       "0.9.170": {
         "en": "fix(weather): retry online fetch every 30s while no data",
         "de": "fix(weather): retry online fetch every 30s while no data",
@@ -184,19 +197,6 @@
         "pl": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
         "uk": "fix(theme): always create themeMode admin/frontend DPs even when migration throws",
         "zh-cn": "fix(theme): always create themeMode admin/frontend DPs even when migration throws"
-      },
-      "0.9.164": {
-        "en": "fix(theme): make themeMode.frontend DP override sticky",
-        "de": "fix(theme): make themeMode.frontend DP override sticky",
-        "ru": "fix(theme): make themeMode.frontend DP override sticky",
-        "pt": "fix(theme): make themeMode.frontend DP override sticky",
-        "nl": "fix(theme): make themeMode.frontend DP override sticky",
-        "fr": "fix(theme): make themeMode.frontend DP override sticky",
-        "it": "fix(theme): make themeMode.frontend DP override sticky",
-        "es": "fix(theme): make themeMode.frontend DP override sticky",
-        "pl": "fix(theme): make themeMode.frontend DP override sticky",
-        "uk": "fix(theme): make themeMode.frontend DP override sticky",
-        "zh-cn": "fix(theme): make themeMode.frontend DP override sticky"
       }
     }
   },
