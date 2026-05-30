@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.169",
+    "version": "0.9.170",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.170": {
+        "en": "fix(weather): retry online fetch every 30s while no data",
+        "de": "fix(weather): retry online fetch every 30s while no data",
+        "ru": "fix(weather): retry online fetch every 30s while no data",
+        "pt": "fix(weather): retry online fetch every 30s while no data",
+        "nl": "fix(weather): retry online fetch every 30s while no data",
+        "fr": "fix(weather): retry online fetch every 30s while no data",
+        "it": "fix(weather): retry online fetch every 30s while no data",
+        "es": "fix(weather): retry online fetch every 30s while no data",
+        "pl": "fix(weather): retry online fetch every 30s while no data",
+        "uk": "fix(weather): retry online fetch every 30s while no data",
+        "zh-cn": "fix(weather): retry online fetch every 30s while no data"
+      },
       "0.9.169": {
         "en": "fix(alarm): hide datapoint-id field in widget edit panel",
         "de": "fix(alarm): hide datapoint-id field in widget edit panel",
@@ -184,19 +197,6 @@
         "pl": "fix(theme): make themeMode.frontend DP override sticky",
         "uk": "fix(theme): make themeMode.frontend DP override sticky",
         "zh-cn": "fix(theme): make themeMode.frontend DP override sticky"
-      },
-      "0.9.163": {
-        "en": "refactor(theme): split themeMode into separate frontend & admin DPs",
-        "de": "refactor(theme): split themeMode into separate frontend & admin DPs",
-        "ru": "refactor(theme): split themeMode into separate frontend & admin DPs",
-        "pt": "refactor(theme): split themeMode into separate frontend & admin DPs",
-        "nl": "refactor(theme): split themeMode into separate frontend & admin DPs",
-        "fr": "refactor(theme): split themeMode into separate frontend & admin DPs",
-        "it": "refactor(theme): split themeMode into separate frontend & admin DPs",
-        "es": "refactor(theme): split themeMode into separate frontend & admin DPs",
-        "pl": "refactor(theme): split themeMode into separate frontend & admin DPs",
-        "uk": "refactor(theme): split themeMode into separate frontend & admin DPs",
-        "zh-cn": "refactor(theme): split themeMode into separate frontend & admin DPs"
       }
     }
   },

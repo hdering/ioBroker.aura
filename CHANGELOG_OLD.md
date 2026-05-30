@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.150 (2026-05-28)
+- feat(adapterlogs): table layout (Quelle/Zeitstempel/Typ/Nachricht) + newestFirst option
+
 ## 0.9.149 (2026-05-27)
 - fix(adapterlogs): add logTransporter flag so requireLog actually forwards logs
 
