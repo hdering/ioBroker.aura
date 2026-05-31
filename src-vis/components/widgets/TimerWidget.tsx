@@ -135,6 +135,10 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const titleAlign   = (o.titleAlign as string) ?? 'left';
   const iconSize     = (o.iconSize as number) || 20;
   const WidgetIcon   = getWidgetIcon(o.icon as string | undefined, Timer);
+  const addIconName  = o.addIcon as string | undefined;
+  const AddIcon      = getWidgetIcon(addIconName, Plus);
+  const addIconSize  = (o.addIconSize as number) || 16;
+  const useAddIcon   = !!addIconName;
   const posClass     = contentPositionClass(o.contentPosition as string | undefined);
 
   const hasTarget = !!targetDp;
@@ -310,7 +314,9 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
       className="nodrag w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] rounded-lg hover:opacity-80 transition-opacity"
       style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px dashed var(--app-border)', cursor: interactive ? 'pointer' : 'default', opacity: interactive ? 1 : 0.6 }}
       title={interactive ? 'Neues Ereignis' : 'Im Bearbeitungsmodus deaktiviert'}>
-      <Plus size={12} /> Ereignis hinzufügen
+      {useAddIcon
+        ? <AddIcon size={addIconSize} />
+        : <><Plus size={12} /> Ereignis hinzufügen</>}
     </button>
   );
 
@@ -399,9 +405,9 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
             {showAdd && (
               <button onClick={interactive ? () => setEditing('new') : undefined}
                 disabled={!interactive}
-                className="nodrag mt-auto py-1 text-[10px] rounded-md hover:opacity-80"
+                className="nodrag mt-auto py-1 text-[10px] rounded-md hover:opacity-80 flex items-center justify-center gap-1"
                 style={{ background: 'transparent', color: 'var(--text-secondary)', border: '1px dashed var(--app-border)', cursor: interactive ? 'pointer' : 'default', opacity: interactive ? 1 : 0.6 }}>
-                + Ereignis
+                {useAddIcon ? <AddIcon size={addIconSize} /> : '+ Ereignis'}
               </button>
             )}
           </div>

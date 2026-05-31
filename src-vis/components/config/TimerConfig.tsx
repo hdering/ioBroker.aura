@@ -6,9 +6,17 @@
  * Also exposes the global holiday/vacation DPs used by the per-event filters.
  */
 import { useState } from 'react';
-import { Database } from 'lucide-react';
+import { Database, X } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../types';
 import { DatapointPicker } from './DatapointPicker';
+import { IconPickerModal } from './IconPickerModal';
+import { lucidePascalToIconify } from '../../utils/iconifyLoader';
+
+function toIconifyId(name: string): string {
+  if (!name) return '';
+  return name.includes(':') ? name : lucidePascalToIconify(name);
+}
 
 interface Props {
   config: WidgetConfig;
@@ -38,8 +46,11 @@ export function TimerConfig({ config, onConfigChange }: Props) {
   const showMaster      = o.showMasterSwitch !== false;
   const showEvents      = o.showEvents !== false;
   const showAdd         = o.showAddButton !== false;
+  const addIcon         = (o.addIcon as string | undefined) ?? '';
+  const addIconSize     = (o.addIconSize as number | undefined) ?? 16;
 
   const [pickerTarget, setPickerTarget] = useState<PickerTarget | null>(null);
+  const [iconPickerOpen, setIconPickerOpen] = useState(false);
 
   const setOpts = (patch: Record<string, unknown>) =>
     onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -67,6 +78,14 @@ export function TimerConfig({ config, onConfigChange }: Props) {
         />
       )}
 
+      {iconPickerOpen && (
+        <IconPickerModal
+          current={addIcon}
+          onSelect={(name) => { setOpts({ addIcon: name || undefined }); setIconPickerOpen(false); }}
+          onClose={() => setIconPickerOpen(false)}
+        />
+      )}
+
       <div className="space-y-3">
         {/* ── Anzeige-Elemente ────────────────────────────────────────── */}
         <div className="rounded-xl p-2 space-y-1.5"
@@ -87,6 +106,41 @@ export function TimerConfig({ config, onConfigChange }: Props) {
               </button>
             </div>
           ))}
+
+          {showAdd && (
+            <div className="pt-1.5 mt-1.5 space-y-1.5" style={{ borderTop: '1px dashed var(--app-border)' }}>
+              <div>
+                <label className={labelCls} style={labelStyle}>Icon statt Text (Hinzufügen-Button)</label>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setIconPickerOpen(true)}
+                    className="flex-1 flex items-center gap-1.5 text-[10px] rounded px-2 py-1 text-left hover:opacity-80"
+                    style={inputStyle}>
+                    {addIcon
+                      ? <><Icon icon={toIconifyId(addIcon)} width={12} height={12} /><span className="truncate font-mono">{addIcon}</span></>
+                      : <span style={{ color: 'var(--text-secondary)' }}>Kein Icon — Text „+ Ereignis hinzufügen“</span>
+                    }
+                  </button>
+                  {addIcon && (
+                    <button onClick={() => setOpts({ addIcon: undefined })}
+                      className="shrink-0 hover:opacity-70 p-1"
+                      style={{ color: 'var(--text-secondary)' }}
+                      title="Icon entfernen">
+                      <X size={11} />
+                    </button>
+                  )}
+                </div>
+              </div>
+              {addIcon && (
+                <div className="flex items-center gap-2">
+                  <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>Größe</label>
+                  <input type="range" min={10} max={32} step={1} value={addIconSize}
+                    onChange={(e) => setOpts({ addIconSize: Number(e.target.value) })}
+                    className="flex-1" />
+                  <span className="text-[10px] font-mono w-7 text-right" style={{ color: 'var(--text-secondary)' }}>{addIconSize}px</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ── Ziel-Aktion (admin-only) ─────────────────────────────────── */}
