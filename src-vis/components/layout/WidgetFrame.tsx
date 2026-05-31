@@ -7588,7 +7588,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               setSelectedCustomCell(i);
                               setCustomCellContextMenu({ idx: i, x: e.clientX, y: e.clientY });
                             }}
-                            onClick={() => { setSelectedCustomCell(active ? null : i); flashCellInPreview(i); }}
+                            onClick={() => { setSelectedCustomCell(i); flashCellInPreview(i); }}
                             className="rounded text-[10px] transition-colors"
                             style={{
                               background: active ? 'var(--accent)' : 'var(--widget-bg)',
