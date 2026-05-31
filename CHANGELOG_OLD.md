@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.160 (2026-05-28)
+- feat(theme): add aura.0.config.darkMode DP for bidirectional dark/light sync
+
 ## 0.9.159 (2026-05-28)
 - feat(input-widget): add text alignment option and cap width to maxLength
 

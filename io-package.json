@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.179",
+    "version": "0.9.180",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.180": {
+        "en": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
+        "de": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
+        "ru": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
+        "pt": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
+        "nl": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
+        "fr": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
+        "it": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
+        "es": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
+        "pl": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
+        "uk": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
+        "zh-cn": "fix(ioBroker): getState writes to stateCache (#281 follow-up)"
+      },
       "0.9.179": {
         "en": "fix(echart): object override on series array merges as per-item defaults",
         "de": "fix(echart): object override on series array merges as per-item defaults",
@@ -184,19 +197,6 @@
         "pl": "fix(camera): honor transparent option in all layouts",
         "uk": "fix(camera): honor transparent option in all layouts",
         "zh-cn": "fix(camera): honor transparent option in all layouts"
-      },
-      "0.9.173": {
-        "en": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
-        "de": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
-        "ru": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
-        "pt": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
-        "nl": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
-        "fr": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
-        "it": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
-        "es": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
-        "pl": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
-        "uk": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards",
-        "zh-cn": "fix(popup): register ChipsWidget in widgetMap; feat(chips): raise chipSize max from 240 to 500 px; feat(evcc): add showLoadpoints toggle to hide loadpoint cards"
       }
     }
   },
