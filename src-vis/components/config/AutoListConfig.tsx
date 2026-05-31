@@ -626,14 +626,28 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
             style={{ left: (opts.showDividers ?? true) ? '18px' : '2px' }} />
         </button>
       </div>
-      <div className="flex items-center justify-between">
-        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Lange Texte umbrechen</label>
-        <button onClick={() => setOpts({ wrapText: !(opts.wrapText ?? false) })}
-          className="relative w-9 h-5 rounded-full transition-colors"
-          style={{ background: (opts.wrapText ?? false) ? 'var(--accent)' : 'var(--app-border)' }}>
-          <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-            style={{ left: (opts.wrapText ?? false) ? '18px' : '2px' }} />
-        </button>
+      <div>
+        <div className="flex items-center justify-between">
+          <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Lange Texte umbrechen</label>
+          <button onClick={() => setOpts({ wrapText: !(opts.wrapText ?? false) })}
+            className="relative w-9 h-5 rounded-full transition-colors"
+            style={{ background: (opts.wrapText ?? false) ? 'var(--accent)' : 'var(--app-border)' }}>
+            <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
+              style={{ left: (opts.wrapText ?? false) ? '18px' : '2px' }} />
+          </button>
+        </div>
+        {opts.wrapText && (
+          <div className="mt-1.5 flex items-center gap-2">
+            <label className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>Label-Mindestbreite</label>
+            <input type="range" min={10} max={90} step={5}
+              value={Math.max(10, Math.min(90, opts.labelMinPercent ?? 50))}
+              onChange={e => setOpts({ labelMinPercent: Number(e.target.value) })}
+              className="flex-1 h-1" style={{ accentColor: 'var(--accent)' }} />
+            <span className="text-[10px] tabular-nums w-9 text-right" style={{ color: 'var(--text-secondary)' }}>
+              {Math.max(10, Math.min(90, opts.labelMinPercent ?? 50))}%
+            </span>
+          </div>
+        )}
       </div>
       <div className="flex items-center justify-between">
         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Letzte Änderung pro Eintrag</label>

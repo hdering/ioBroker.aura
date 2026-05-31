@@ -91,6 +91,8 @@ export interface StaticListOptions {
   hideFilterButton?: boolean;
   /** Wrap long entry labels AND text values onto multiple lines instead of truncating / overflowing. Default false. */
   wrapText?: boolean;
+  /** When wrapText is on: minimum % of the row reserved for the label (10..90). Value gets the rest. Default 50. */
+  labelMinPercent?: number;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -125,7 +127,7 @@ const DEFAULT_filterLabels: Record<FilterMode, string> = {
 
 // ── Value cell ─────────────────────────────────────────────────────────────────
 
-function EntryValue({ entry, val, writable, setState, globalThresholds, decimals, activeColor, inactiveColor, trueText, falseText, wrap }: {
+function EntryValue({ entry, val, writable, setState, globalThresholds, decimals, activeColor, inactiveColor, trueText, falseText, wrap, valueMaxPct }: {
   entry: StaticListEntry;
   val: ioBrokerState['val'];
   writable: boolean;
@@ -137,11 +139,16 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
   trueText?: string;
   falseText?: string;
   wrap?: boolean;
+  valueMaxPct?: number;
 }) {
   // For text-style value spans: drop shrink-0 + allow wrapping when wrap=true.
+  // maxWidth caps the value (default 50%) so the label always keeps a guaranteed
+  // share of the row — otherwise flex-basis-0 on the label causes it to collapse
+  // when the value's natural width exceeds the container.
   const textValueCls = wrap
-    ? 'text-xs font-medium tabular-nums whitespace-normal break-words [overflow-wrap:anywhere] min-w-0'
+    ? 'text-xs font-medium tabular-nums whitespace-normal break-words [overflow-wrap:anywhere] min-w-0 text-right'
     : 'shrink-0 text-xs font-medium tabular-nums';
+  const valueMaxStyle: React.CSSProperties | undefined = wrap ? { maxWidth: `${valueMaxPct ?? 50}%` } : undefined;
   const trueLabel  = entry.trueLabel ?? trueText;
   const falseLabel = entry.falseLabel ?? falseText;
   const hasLabels = !!(trueLabel || falseLabel);
@@ -168,7 +175,7 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
     const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
     return (
       <span className={textValueCls}
-        style={{ color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)') }}>
+        style={{ ...valueMaxStyle, color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)') }}>
         {val != null ? `${displayVal}${entry.unit ? ' ' + entry.unit : ''}` : '–'}
       </span>
     );
@@ -180,7 +187,7 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
     if (!writable) {
       return (
         <span className={textValueCls}
-          style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
+          style={{ ...valueMaxStyle, color: thresholdColor ?? 'var(--text-primary)' }}>
           {Math.round(num)}{entry.unit ?? '%'}
         </span>
       );
@@ -294,7 +301,7 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
     if (!writable) {
       return (
         <span className={textValueCls}
-          style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
+          style={{ ...valueMaxStyle, color: thresholdColor ?? 'var(--text-primary)' }}>
           {Math.round(val)}{entry.unit ?? '%'}
         </span>
       );
@@ -316,7 +323,7 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
   const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
   return (
     <span className={textValueCls}
-      style={{ color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)') }}>
+      style={{ ...valueMaxStyle, color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)') }}>
       {val != null ? `${displayVal}${entry.unit ? ' ' + entry.unit : ''}` : '–'}
     </span>
   );
@@ -508,6 +515,9 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
   const wrap = !!opts.wrapText;
   const labelWrapCls = wrap ? 'break-words [overflow-wrap:anywhere]' : 'truncate';
+  const labelMinPct = Math.max(10, Math.min(90, opts.labelMinPercent ?? 50));
+  const valueMaxPct = 100 - labelMinPct;
+  const labelContainerStyle: React.CSSProperties | undefined = wrap ? { minWidth: `${labelMinPct}%` } : undefined;
 
   const globalThresholds = o.colorThresholds as [number, string][] | undefined;
   const globalActiveColor   = opts.activeColor   || 'var(--accent-green)';
@@ -626,7 +636,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     {label}
                   </span>
                   <div className="flex items-center justify-center">
-                    <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} />
+                    <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} valueMaxPct={valueMaxPct} />
                   </div>
                   {lcTs > 0 && (
                     <div className="text-[9px] truncate text-center" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
@@ -673,7 +683,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     borderLeft: showDividers && isRight ? '1px solid var(--widget-border)' : undefined,
                   }}>
                   {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0" style={labelContainerStyle}>
                     <span className={`block ${labelWrapCls}${entryFontSize ? '' : ' text-[11px]'}`}
                       style={{ color: 'var(--text-primary)', fontSize: entryFontSize ?? undefined }}>{label}</span>
                     {lcTs > 0 && (
@@ -682,7 +692,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                       </span>
                     )}
                   </div>
-                  <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} />
+                  <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} valueMaxPct={valueMaxPct} />
                 </div>
               );
             })}
@@ -795,7 +805,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 className={`flex gap-2 px-3 py-2 ${wrap ? 'items-start' : 'items-center'}`}
                 style={{ background: stateBg, borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined }}>
                 {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0 mt-0.5" style={{ color: 'var(--text-secondary)' }} />}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0" style={labelContainerStyle}>
                   <div className={`${labelWrapCls}${entryFontSize ? '' : ' text-xs'}`}
                     style={{ color: 'var(--text-primary)', fontSize: entryFontSize ?? undefined }}>
                     {label}
@@ -816,7 +826,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     </div>
                   )}
                 </div>
-                <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} />
+                <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} valueMaxPct={valueMaxPct} />
               </div>
             );
           })}

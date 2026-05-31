@@ -92,6 +92,8 @@ export interface AutoListOptions {
   showEntryLastChange?: boolean;
   /** Wrap long entry labels AND text values onto multiple lines instead of truncating / overflowing. Default false. */
   wrapText?: boolean;
+  /** When wrapText is on: minimum % of the row reserved for the label (10..90). Value gets the rest. Default 50. */
+  labelMinPercent?: number;
 }
 
 export interface DiscoveredDp {
@@ -295,7 +297,7 @@ export async function discoverDatapoints(
 
 // ── Value display: row variant ────────────────────────────────────────────────
 
-function EntryValue({ entry, val, writable, setState, thresholds, decimals, activeColor, inactiveColor, trueText, falseText, wrap }: {
+function EntryValue({ entry, val, writable, setState, thresholds, decimals, activeColor, inactiveColor, trueText, falseText, wrap, valueMaxPct }: {
   entry: AutoListEntry;
   val: ioBrokerState['val'];
   writable: boolean;
@@ -307,11 +309,14 @@ function EntryValue({ entry, val, writable, setState, thresholds, decimals, acti
   trueText?: string;
   falseText?: string;
   wrap?: boolean;
+  valueMaxPct?: number;
 }) {
   // For text-style value spans: drop shrink-0 + allow wrapping when wrap=true.
+  // maxWidth caps the value (default 50%) so the label always keeps a guaranteed share.
   const textValueCls = wrap
-    ? 'text-xs font-medium tabular-nums whitespace-normal break-words [overflow-wrap:anywhere] min-w-0'
+    ? 'text-xs font-medium tabular-nums whitespace-normal break-words [overflow-wrap:anywhere] min-w-0 text-right'
     : 'shrink-0 text-xs font-medium tabular-nums';
+  const valueMaxStyle: React.CSSProperties | undefined = wrap ? { maxWidth: `${valueMaxPct ?? 50}%` } : undefined;
   const trueLabel  = entry.trueLabel ?? trueText;
   const falseLabel = entry.falseLabel ?? falseText;
   const hasLabels = !!(trueLabel || falseLabel);
@@ -372,7 +377,7 @@ function EntryValue({ entry, val, writable, setState, thresholds, decimals, acti
     if (!writable) {
       return (
         <span className={textValueCls}
-          style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
+          style={{ ...valueMaxStyle, color: thresholdColor ?? 'var(--text-primary)' }}>
           {Math.round(val)}{entry.unit ?? '%'}
         </span>
       );
@@ -393,7 +398,7 @@ function EntryValue({ entry, val, writable, setState, thresholds, decimals, acti
   const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
   return (
     <span className={textValueCls}
-      style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
+      style={{ ...valueMaxStyle, color: thresholdColor ?? 'var(--text-primary)' }}>
       {val != null ? `${displayVal}${entry.unit ? ' ' + entry.unit : ''}` : '–'}
     </span>
   );
@@ -401,7 +406,7 @@ function EntryValue({ entry, val, writable, setState, thresholds, decimals, acti
 
 // ── Value display: card variant (larger) ──────────────────────────────────────
 
-function CardEntryValue({ entry, val, writable, setState, thresholds, decimals, activeColor, inactiveColor, trueText, falseText, wrap }: {
+function CardEntryValue({ entry, val, writable, setState, thresholds, decimals, activeColor, inactiveColor, trueText, falseText, wrap, valueMaxPct: _valueMaxPct }: {
   entry: AutoListEntry;
   val: ioBrokerState['val'];
   writable: boolean;
@@ -413,6 +418,8 @@ function CardEntryValue({ entry, val, writable, setState, thresholds, decimals, 
   trueText?: string;
   falseText?: string;
   wrap?: boolean;
+  /** Accepted for API parity with EntryValue; card layout is vertical so the cap doesn't apply. */
+  valueMaxPct?: number;
 }) {
   // Card text values: add break-words when wrap=true so long single tokens still break.
   const cardTextWrap = wrap ? 'break-words [overflow-wrap:anywhere]' : '';
@@ -785,6 +792,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
   const wrap = !!opts.wrapText;
   const labelWrapCls = wrap ? 'break-words [overflow-wrap:anywhere]' : 'truncate';
+  const labelMinPct = Math.max(10, Math.min(90, opts.labelMinPercent ?? 50));
+  const valueMaxPct = 100 - labelMinPct;
+  const labelContainerStyle: React.CSSProperties | undefined = wrap ? { minWidth: `${labelMinPct}%` } : undefined;
 
   // ── ANZAHL (count) — zeigt nur die Anzahl der Einträge ────────────────────
   if (layout === 'count') {
@@ -829,7 +839,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                   style={{ background: stateBg, border: '1px solid var(--widget-border)' }}>
                   <span className={`text-[10px] leading-tight ${labelWrapCls}`} style={{ color: 'var(--text-secondary)' }}>{label}</span>
                   <div className="flex items-center justify-center">
-                    <CardEntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} />
+                    <CardEntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} valueMaxPct={valueMaxPct} />
                   </div>
                   {opts.showRoom && entry.rooms?.length ? (
                     <span className="text-[9px] truncate opacity-50" style={{ color: 'var(--text-secondary)' }}>
@@ -878,7 +888,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
                     borderLeft: showDividers && isRight ? '1px solid var(--widget-border)' : undefined,
                   }}>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0" style={labelContainerStyle}>
                     <span className={`block text-[11px] ${labelWrapCls}`} style={{ color: 'var(--text-primary)' }}>{label}</span>
                     {lcTs > 0 && (
                       <span className="block text-[8px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
@@ -886,7 +896,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                       </span>
                     )}
                   </div>
-                  <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} />
+                  <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} valueMaxPct={valueMaxPct} />
                 </div>
               );
             })}
@@ -979,7 +989,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
             return (
               <div key={entry.id} className={`flex gap-2 px-3 py-2 ${wrap ? 'items-start' : 'items-center'}`}
                 style={{ background: stateBg, borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined }}>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0" style={labelContainerStyle}>
                   <div className={`text-xs ${labelWrapCls}`} style={{ color: 'var(--text-primary)' }}>{label}</div>
                   {opts.showRoom && (roomLabel || entry.id) && (
                     <div className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
@@ -997,7 +1007,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     </div>
                   )}
                 </div>
-                <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} />
+                <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} valueMaxPct={valueMaxPct} />
               </div>
             );
           })}
