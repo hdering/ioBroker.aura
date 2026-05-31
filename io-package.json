@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.181",
+    "version": "0.9.182",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.182": {
+        "en": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
+        "de": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
+        "ru": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
+        "pt": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
+        "nl": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
+        "fr": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
+        "it": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
+        "es": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
+        "pl": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
+        "uk": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
+        "zh-cn": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click"
+      },
       "0.9.181": {
         "en": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
         "de": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
@@ -184,19 +197,6 @@
         "pl": "feat(widgets): add transparency strength slider for transparent mode",
         "uk": "feat(widgets): add transparency strength slider for transparent mode",
         "zh-cn": "feat(widgets): add transparency strength slider for transparent mode"
-      },
-      "0.9.175": {
-        "en": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
-        "de": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
-        "ru": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
-        "pt": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
-        "nl": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
-        "fr": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
-        "it": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
-        "es": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
-        "pl": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
-        "uk": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
-        "zh-cn": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider"
       }
     }
   },

@@ -186,6 +186,12 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.182 (2026-05-31)
+- feat: add aura-last-change CSS class to all last-change render sites for global styling
+- feat(TimerWidget): allow icon instead of '+ Add Event' text
+- fix(CustomGrid): keep cell selected on re-click
+
+
 ### 0.9.181 (2026-05-31)
 - fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option
 - feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText
@@ -272,10 +278,6 @@ npm run build:adapter
 - refactor(theme): split themeMode into separate frontend & admin DPs
 
 
-### 0.9.162 (2026-05-28)
-- refactor(theme): rename config.darkMode to config.themeMode
-
-
 ## License
 
 MIT License
@@ -287,6 +289,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

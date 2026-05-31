@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.162 (2026-05-28)
+- refactor(theme): rename config.darkMode to config.themeMode
+
 ## 0.9.161 (2026-05-28)
 - fix(io-package): drop empty-key state from config.darkMode states map
 - fix(theme): frontend now reacts to config.darkMode DP
