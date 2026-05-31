@@ -17,20 +17,24 @@ function deepMerge(
 ): Record<string, unknown> {
   const result = { ...target };
   for (const key of Object.keys(source)) {
-    if (
-      source[key] &&
-      typeof source[key] === 'object' &&
-      !Array.isArray(source[key]) &&
-      result[key] &&
-      typeof result[key] === 'object' &&
-      !Array.isArray(result[key])
-    ) {
+    const s = source[key];
+    const t = result[key];
+    const sIsPlainObj = !!s && typeof s === 'object' && !Array.isArray(s);
+    if (sIsPlainObj && Array.isArray(t)) {
+      // Object override on array target: apply object as defaults to each item
+      // (e.g. `series: { type: 'line', step: 'end' }` applied to all series entries)
+      result[key] = (t as unknown[]).map((item) =>
+        item && typeof item === 'object' && !Array.isArray(item)
+          ? deepMerge(item as Record<string, unknown>, s as Record<string, unknown>)
+          : item,
+      );
+    } else if (sIsPlainObj && t && typeof t === 'object' && !Array.isArray(t)) {
       result[key] = deepMerge(
-        result[key] as Record<string, unknown>,
-        source[key] as Record<string, unknown>,
+        t as Record<string, unknown>,
+        s as Record<string, unknown>,
       );
     } else {
-      result[key] = source[key];
+      result[key] = s;
     }
   }
   return result;
