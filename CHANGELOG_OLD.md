@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.159 (2026-05-28)
+- feat(input-widget): add text alignment option and cap width to maxLength
+
 ## 0.9.158 (2026-05-28)
 - feat(custom-grid): flash the matching preview cell when an editor cell is clicked
 
