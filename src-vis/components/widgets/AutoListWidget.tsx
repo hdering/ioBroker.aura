@@ -689,7 +689,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         ? { position: 'absolute', bottom: 6, right: 8 }
         : { position: 'absolute', bottom: 6, left: 8 };
     return (
-      <div className="pointer-events-none text-[8px] opacity-50 whitespace-nowrap"
+      <div className="aura-last-change pointer-events-none text-[8px] opacity-50 whitespace-nowrap"
         style={{ ...posStyle, color: 'var(--text-secondary)' }}>
         {text}
       </div>
@@ -847,7 +847,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     </span>
                   ) : null}
                   {lcTs > 0 && (
-                    <div className="text-[9px] truncate text-center" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                    <div className="aura-last-change text-[9px] truncate text-center" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                       {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
                     </div>
                   )}
@@ -891,7 +891,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                   <div className="flex-1 min-w-0" style={labelContainerStyle}>
                     <span className={`block text-[11px] ${labelWrapCls}`} style={{ color: 'var(--text-primary)' }}>{label}</span>
                     {lcTs > 0 && (
-                      <span className="block text-[8px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                      <span className="aura-last-change block text-[8px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                         {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
                       </span>
                     )}
@@ -1002,7 +1002,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     </div>
                   )}
                   {lcTs > 0 && (
-                    <div className="text-[9px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                    <div className="aura-last-change text-[9px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                       {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
                     </div>
                   )}

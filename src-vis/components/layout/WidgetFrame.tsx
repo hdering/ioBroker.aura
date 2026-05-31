@@ -3260,7 +3260,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               : { position: 'absolute', bottom: 6, left: 8 };
         return (
           <div
-            className="nodrag pointer-events-none text-[8px] opacity-50 whitespace-nowrap"
+            className="aura-last-change nodrag pointer-events-none text-[8px] opacity-50 whitespace-nowrap"
             style={{ ...posStyle, color: 'var(--text-secondary)', zIndex: 2 }}
           >
             {text}

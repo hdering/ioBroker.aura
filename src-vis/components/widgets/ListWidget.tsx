@@ -503,7 +503,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
         ? { position: 'absolute', bottom: 6, right: 8 }
         : { position: 'absolute', bottom: 6, left: 8 };
     return (
-      <div className="pointer-events-none text-[8px] opacity-50 whitespace-nowrap"
+      <div className="aura-last-change pointer-events-none text-[8px] opacity-50 whitespace-nowrap"
         style={{ ...posStyle, color: 'var(--text-secondary)' }}>
         {text}
       </div>
@@ -639,7 +639,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} valueMaxPct={valueMaxPct} />
                   </div>
                   {lcTs > 0 && (
-                    <div className="text-[9px] truncate text-center" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                    <div className="aura-last-change text-[9px] truncate text-center" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                       {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
                     </div>
                   )}
@@ -687,7 +687,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     <span className={`block ${labelWrapCls}${entryFontSize ? '' : ' text-[11px]'}`}
                       style={{ color: 'var(--text-primary)', fontSize: entryFontSize ?? undefined }}>{label}</span>
                     {lcTs > 0 && (
-                      <span className="block text-[8px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                      <span className="aura-last-change block text-[8px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                         {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
                       </span>
                     )}
@@ -821,7 +821,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     </div>
                   )}
                   {lcTs > 0 && (
-                    <div className="text-[9px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                    <div className="aura-last-change text-[9px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                       {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
                     </div>
                   )}
