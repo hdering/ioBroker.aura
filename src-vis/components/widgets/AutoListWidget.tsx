@@ -90,8 +90,8 @@ export interface AutoListOptions {
   showDividers?: boolean;
   /** Show last-change timestamp under every entry (global toggle — dynamic list has no per-DP config). */
   showEntryLastChange?: boolean;
-  /** Wrap long entry labels onto multiple lines instead of truncating with ellipsis. Default false. */
-  wrapLabels?: boolean;
+  /** Wrap long entry labels AND text values onto multiple lines instead of truncating / overflowing. Default false. */
+  wrapText?: boolean;
 }
 
 export interface DiscoveredDp {
@@ -295,7 +295,7 @@ export async function discoverDatapoints(
 
 // ── Value display: row variant ────────────────────────────────────────────────
 
-function EntryValue({ entry, val, writable, setState, thresholds, decimals, activeColor, inactiveColor, trueText, falseText }: {
+function EntryValue({ entry, val, writable, setState, thresholds, decimals, activeColor, inactiveColor, trueText, falseText, wrap }: {
   entry: AutoListEntry;
   val: ioBrokerState['val'];
   writable: boolean;
@@ -306,7 +306,12 @@ function EntryValue({ entry, val, writable, setState, thresholds, decimals, acti
   inactiveColor: string;
   trueText?: string;
   falseText?: string;
+  wrap?: boolean;
 }) {
+  // For text-style value spans: drop shrink-0 + allow wrapping when wrap=true.
+  const textValueCls = wrap
+    ? 'text-xs font-medium tabular-nums whitespace-normal break-words [overflow-wrap:anywhere] min-w-0'
+    : 'shrink-0 text-xs font-medium tabular-nums';
   const trueLabel  = entry.trueLabel ?? trueText;
   const falseLabel = entry.falseLabel ?? falseText;
   const hasLabels = !!(trueLabel || falseLabel);
@@ -366,7 +371,7 @@ function EntryValue({ entry, val, writable, setState, thresholds, decimals, acti
   if (typeof val === 'number' && isDimmerRole(entry.id)) {
     if (!writable) {
       return (
-        <span className="shrink-0 text-xs font-medium tabular-nums"
+        <span className={textValueCls}
           style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
           {Math.round(val)}{entry.unit ?? '%'}
         </span>
@@ -387,7 +392,7 @@ function EntryValue({ entry, val, writable, setState, thresholds, decimals, acti
 
   const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
   return (
-    <span className="shrink-0 text-xs font-medium tabular-nums"
+    <span className={textValueCls}
       style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
       {val != null ? `${displayVal}${entry.unit ? ' ' + entry.unit : ''}` : '–'}
     </span>
@@ -396,7 +401,7 @@ function EntryValue({ entry, val, writable, setState, thresholds, decimals, acti
 
 // ── Value display: card variant (larger) ──────────────────────────────────────
 
-function CardEntryValue({ entry, val, writable, setState, thresholds, decimals, activeColor, inactiveColor, trueText, falseText }: {
+function CardEntryValue({ entry, val, writable, setState, thresholds, decimals, activeColor, inactiveColor, trueText, falseText, wrap }: {
   entry: AutoListEntry;
   val: ioBrokerState['val'];
   writable: boolean;
@@ -407,7 +412,10 @@ function CardEntryValue({ entry, val, writable, setState, thresholds, decimals, 
   inactiveColor: string;
   trueText?: string;
   falseText?: string;
+  wrap?: boolean;
 }) {
+  // Card text values: add break-words when wrap=true so long single tokens still break.
+  const cardTextWrap = wrap ? 'break-words [overflow-wrap:anywhere]' : '';
   const trueLabel  = entry.trueLabel ?? trueText;
   const falseLabel = entry.falseLabel ?? falseText;
   const hasLabels = !!(trueLabel || falseLabel);
@@ -484,7 +492,7 @@ function CardEntryValue({ entry, val, writable, setState, thresholds, decimals, 
 
   const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
   return (
-    <span className="text-xl font-bold tabular-nums text-center leading-none"
+    <span className={`text-xl font-bold tabular-nums text-center leading-none ${cardTextWrap}`}
       style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
       {val != null ? displayVal : '–'}
       {entry.unit && <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>{entry.unit}</span>}
@@ -775,7 +783,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
   if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
-  const labelWrapCls = opts.wrapLabels ? 'break-words [overflow-wrap:anywhere]' : 'truncate';
+  const wrap = !!opts.wrapText;
+  const labelWrapCls = wrap ? 'break-words [overflow-wrap:anywhere]' : 'truncate';
 
   // ── ANZAHL (count) — zeigt nur die Anzahl der Einträge ────────────────────
   if (layout === 'count') {
@@ -820,7 +829,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                   style={{ background: stateBg, border: '1px solid var(--widget-border)' }}>
                   <span className={`text-[10px] leading-tight ${labelWrapCls}`} style={{ color: 'var(--text-secondary)' }}>{label}</span>
                   <div className="flex items-center justify-center">
-                    <CardEntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} />
+                    <CardEntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} />
                   </div>
                   {opts.showRoom && entry.rooms?.length ? (
                     <span className="text-[9px] truncate opacity-50" style={{ color: 'var(--text-secondary)' }}>
@@ -863,7 +872,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
               const lcTs = showEntryLastChange ? (state?.lc || state?.ts || 0) : 0;
               return (
                 <div key={entry.id}
-                  className="flex items-center gap-1.5 px-2 py-1.5"
+                  className={`flex gap-1.5 px-2 py-1.5 ${wrap ? 'items-start' : 'items-center'}`}
                   style={{
                     background: stateBg,
                     borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
@@ -877,7 +886,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                       </span>
                     )}
                   </div>
-                  <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} />
+                  <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} />
                 </div>
               );
             })}
@@ -968,7 +977,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
             const stateBg = eOn ? (entry.activeBg || globalActiveBg) : (entry.inactiveBg || globalInactiveBg);
             const lcTs = showEntryLastChange ? (state?.lc || state?.ts || 0) : 0;
             return (
-              <div key={entry.id} className="flex items-center gap-2 px-3 py-2"
+              <div key={entry.id} className={`flex gap-2 px-3 py-2 ${wrap ? 'items-start' : 'items-center'}`}
                 style={{ background: stateBg, borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined }}>
                 <div className="flex-1 min-w-0">
                   <div className={`text-xs ${labelWrapCls}`} style={{ color: 'var(--text-primary)' }}>{label}</div>
@@ -988,7 +997,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     </div>
                   )}
                 </div>
-                <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} />
+                <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} />
               </div>
             );
           })}

@@ -89,8 +89,8 @@ export interface StaticListOptions {
   showDividers?: boolean;
   /** Hide the frontend filter chip in the widget header. Default false. */
   hideFilterButton?: boolean;
-  /** Wrap long entry labels onto multiple lines instead of truncating with ellipsis. Default false. */
-  wrapLabels?: boolean;
+  /** Wrap long entry labels AND text values onto multiple lines instead of truncating / overflowing. Default false. */
+  wrapText?: boolean;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -125,7 +125,7 @@ const DEFAULT_filterLabels: Record<FilterMode, string> = {
 
 // ── Value cell ─────────────────────────────────────────────────────────────────
 
-function EntryValue({ entry, val, writable, setState, globalThresholds, decimals, activeColor, inactiveColor, trueText, falseText }: {
+function EntryValue({ entry, val, writable, setState, globalThresholds, decimals, activeColor, inactiveColor, trueText, falseText, wrap }: {
   entry: StaticListEntry;
   val: ioBrokerState['val'];
   writable: boolean;
@@ -136,7 +136,12 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
   inactiveColor: string;
   trueText?: string;
   falseText?: string;
+  wrap?: boolean;
 }) {
+  // For text-style value spans: drop shrink-0 + allow wrapping when wrap=true.
+  const textValueCls = wrap
+    ? 'text-xs font-medium tabular-nums whitespace-normal break-words [overflow-wrap:anywhere] min-w-0'
+    : 'shrink-0 text-xs font-medium tabular-nums';
   const trueLabel  = entry.trueLabel ?? trueText;
   const falseLabel = entry.falseLabel ?? falseText;
   const hasLabels = !!(trueLabel || falseLabel);
@@ -162,7 +167,7 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
     const active = isActive(val);
     const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
     return (
-      <span className="shrink-0 text-xs font-medium tabular-nums"
+      <span className={textValueCls}
         style={{ color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)') }}>
         {val != null ? `${displayVal}${entry.unit ? ' ' + entry.unit : ''}` : '–'}
       </span>
@@ -174,7 +179,7 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
     const num = typeof val === 'number' ? val : (val === true ? 100 : 0);
     if (!writable) {
       return (
-        <span className="shrink-0 text-xs font-medium tabular-nums"
+        <span className={textValueCls}
           style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
           {Math.round(num)}{entry.unit ?? '%'}
         </span>
@@ -288,7 +293,7 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
   if (typeof val === 'number' && isDimmerRole(entry.id)) {
     if (!writable) {
       return (
-        <span className="shrink-0 text-xs font-medium tabular-nums"
+        <span className={textValueCls}
           style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
           {Math.round(val)}{entry.unit ?? '%'}
         </span>
@@ -310,7 +315,7 @@ function EntryValue({ entry, val, writable, setState, globalThresholds, decimals
   const active = isActive(val);
   const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
   return (
-    <span className="shrink-0 text-xs font-medium tabular-nums"
+    <span className={textValueCls}
       style={{ color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)') }}>
       {val != null ? `${displayVal}${entry.unit ? ' ' + entry.unit : ''}` : '–'}
     </span>
@@ -501,7 +506,8 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const layout = config.layout ?? 'default';
   if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
-  const labelWrapCls = opts.wrapLabels ? 'break-words [overflow-wrap:anywhere]' : 'truncate';
+  const wrap = !!opts.wrapText;
+  const labelWrapCls = wrap ? 'break-words [overflow-wrap:anywhere]' : 'truncate';
 
   const globalThresholds = o.colorThresholds as [number, string][] | undefined;
   const globalActiveColor   = opts.activeColor   || 'var(--accent-green)';
@@ -620,7 +626,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     {label}
                   </span>
                   <div className="flex items-center justify-center">
-                    <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} />
+                    <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} />
                   </div>
                   {lcTs > 0 && (
                     <div className="text-[9px] truncate text-center" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
@@ -676,7 +682,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                       </span>
                     )}
                   </div>
-                  <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} />
+                  <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} />
                 </div>
               );
             })}
@@ -786,9 +792,9 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
             const lcTs = entry.showLastChange ? (states[entry.id]?.lc || states[entry.id]?.ts || 0) : 0;
             return (
               <div key={entry.id}
-                className="flex items-center gap-2 px-3 py-2"
+                className={`flex gap-2 px-3 py-2 ${wrap ? 'items-start' : 'items-center'}`}
                 style={{ background: stateBg, borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined }}>
-                {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
+                {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0 mt-0.5" style={{ color: 'var(--text-secondary)' }} />}
                 <div className="flex-1 min-w-0">
                   <div className={`${labelWrapCls}${entryFontSize ? '' : ' text-xs'}`}
                     style={{ color: 'var(--text-primary)', fontSize: entryFontSize ?? undefined }}>
@@ -810,7 +816,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     </div>
                   )}
                 </div>
-                <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} />
+                <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} />
               </div>
             );
           })}
