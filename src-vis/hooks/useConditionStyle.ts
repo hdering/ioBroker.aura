@@ -189,8 +189,17 @@ export function useConditionStyle(conditions: WidgetCondition[], widgetId?: stri
   // pessimistic "hidden=true" state to avoid a flash.
   const [result, setResult] = useState<ConditionResult>(() => {
     const uniqueIds = collectUniqueIds(conditions);
-    if (uniqueIds.length > 0 && uniqueIds.every((id) => getStateFromCache(id) !== null)) {
-      uniqueIds.forEach((id) => valuesRef.current.set(id, getStateFromCache(id)?.val ?? null));
+    // Populate valuesRef from whatever the cache already has (even partial).
+    // The cache check below decides whether we can compute synchronously.
+    let cacheHits = 0;
+    uniqueIds.forEach((id) => {
+      const cached = getStateFromCache(id);
+      if (cached !== null) {
+        valuesRef.current.set(id, cached.val ?? null);
+        cacheHits++;
+      }
+    });
+    if (uniqueIds.length > 0 && cacheHits === uniqueIds.length) {
       const r = computeResult(conditions, valuesRef.current);
       condLog('init (cache hit)', { widgetId, dps: uniqueIds, hidden: r.hidden, reflow: r.reflow, values: Object.fromEntries(valuesRef.current) });
       return r;
@@ -198,24 +207,22 @@ export function useConditionStyle(conditions: WidgetCondition[], widgetId?: stri
     const mayHide = conditions.some((c) => c.hideWidget);
     // Pessimistic in-place hide: keep widget mounted in the grid with
     // visibility:hidden until real DP values arrive. We deliberately do NOT
-    // set reflow=true here — doing so would push the widget into the
-    // off-screen reflow container before values are known, causing a
-    // mount→unmount→remount cycle on initial paint. That bouncing was the
-    // root cause of slow first-load on tabs with hide-on-condition widgets
-    // (and incidentally triggered a Max-Update-Depth warning in Iconify's
-    // Icon component for widgets that render icons).
+    // set reflow=true here — that would push the widget into the off-screen
+    // reflow container before values are known, causing a mount→unmount→
+    // remount cycle on initial paint (and inside group widgets, an actual
+    // flicker loop: see issue #281).
     const initial: ConditionResult = mayHide
       ? { cssVars: {}, effect: null, hidden: true, reflow: false }
       : EMPTY_RESULT;
-    condLog('init (cache miss — pessimistic in-place hide)', {
+    condLog('init (cache miss/partial — pessimistic in-place hide)', {
       widgetId,
       dps: uniqueIds,
+      cacheHits,
       missing: uniqueIds.filter((id) => getStateFromCache(id) === null),
       conditionsCount: conditions.length,
       mayHide,
       initialHidden: initial.hidden,
       initialReflow: initial.reflow,
-      note: 'reflow forced false here to skip the off-screen bounce; real reflow takes effect once DP values arrive',
     });
     return initial;
   });
@@ -245,23 +252,45 @@ export function useConditionStyle(conditions: WidgetCondition[], widgetId?: stri
       sinceHookCreated: `${(mountStart - mountedAtRef.current).toFixed(1)}ms`,
     });
 
+    // Per-effect "DP value known" tracking. We must NOT compute conditions
+    // with empty values — evaluateClause treats null as the empty string,
+    // so operators like '!=' return true spuriously and flip the widget into
+    // reflow=true before any real value has arrived. That triggered the
+    // mount/unmount loop reported in issue #281. Until every condition DP
+    // has either resolved via getState/subscribe or been served from the
+    // module-level cache, we stay in the pessimistic in-place hide state.
+    let cancelled = false;
+    const loadedIds = new Set<string>();
+    uniqueIds.forEach((id) => {
+      if (getStateFromCache(id) !== null) loadedIds.add(id);
+    });
+
+    const pessimistic = (): ConditionResult => {
+      const mayHide = conditions.some((c) => c.hideWidget);
+      return mayHide ? { cssVars: {}, effect: null, hidden: true, reflow: false } : EMPTY_RESULT;
+    };
+
     const recompute = (trigger: string, dp?: string) => {
-      const next = computeResult(conditions, valuesRef.current);
+      const allKnown = uniqueIds.every((id) => loadedIds.has(id));
+      const next = allKnown ? computeResult(conditions, valuesRef.current) : pessimistic();
       setResult((prev) => {
         if (
           prev.effect === next.effect && prev.hidden === next.hidden && prev.reflow === next.reflow &&
           JSON.stringify(prev.cssVars) === JSON.stringify(next.cssVars)
         ) {
-          condLog('recompute (no change)', { widgetId, trigger, dp });
+          condLog('recompute (no change)', { widgetId, trigger, dp, allKnown });
           return prev;
         }
         condLog('recompute CHANGED', {
           widgetId,
           trigger,
           dp,
+          allKnown,
           hidden: `${prev.hidden} → ${next.hidden}`,
           reflow: `${prev.reflow} → ${next.reflow}`,
           effect: `${prev.effect} → ${next.effect}`,
+          loadedIds: Array.from(loadedIds),
+          pendingIds: uniqueIds.filter((id) => !loadedIds.has(id)),
           values: Object.fromEntries(valuesRef.current),
         });
         return next;
@@ -270,31 +299,38 @@ export function useConditionStyle(conditions: WidgetCondition[], widgetId?: stri
 
     recomputeRef.current = () => recompute('manual');
 
-    // Subscribe + fetch initial values
+    // Subscribe + fetch initial values. The cancelled flag prevents late
+    // getState resolvers from a stale effect run from writing into the
+    // shared valuesRef after a remount.
     const unsubscribers = uniqueIds.map((id) => {
       const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
-      // Fetch current value immediately
       getState(id).then((state) => {
+        if (cancelled) return;
         const dt = typeof performance !== 'undefined' ? performance.now() - t0 : 0;
+        // Mark loaded regardless of state existing — a non-existent DP is
+        // "known to be null", not "still loading".
+        loadedIds.add(id);
         if (state !== null) {
           valuesRef.current.set(id, state.val ?? null);
           condLog('getState resolved', { widgetId, dp: id, val: state.val, took: `${dt.toFixed(1)}ms` });
-          recompute('getState', id);
         } else {
-          condLog('getState resolved (null)', { widgetId, dp: id, took: `${dt.toFixed(1)}ms` });
+          condLog('getState resolved (null — DP missing)', { widgetId, dp: id, took: `${dt.toFixed(1)}ms` });
         }
+        recompute('getState', id);
       });
-      // Subscribe to future changes
       return subscribe(id, (state) => {
+        if (cancelled) return;
+        loadedIds.add(id);
         valuesRef.current.set(id, state?.val ?? null);
         condLog('subscribe event', { widgetId, dp: id, val: state?.val });
         recompute('subscribe', id);
       });
     });
 
-    recompute('initial', undefined); // initial pass with whatever values are already known
+    recompute('initial', undefined); // stays pessimistic unless all DPs already cached
 
     return () => {
+      cancelled = true;
       condLog('effect cleanup (unmount/deps change)', {
         widgetId,
         mountCount: mountCountRef.current,
