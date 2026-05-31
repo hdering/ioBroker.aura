@@ -23,18 +23,23 @@ export function ImportWidgetDialog({
   onAddTab,
   onClose,
   tabs,
+  activeTabId,
 }: {
   onAdd: (widget: WidgetConfig, tabId?: string) => void;
   onAddTab?: (tabData: Omit<Tab, 'id'>) => void;
   onClose: () => void;
   /** Optional: if provided, shows a tab selector for widget imports */
   tabs?: { id: string; name: string }[];
+  /** Optional: pre-selects this tab in the target selector (defaults to first tab) */
+  activeTabId?: string;
 }) {
   const t = useT();
   const [jsonText, setJsonText] = useState('');
   const [parsed, setParsed] = useState<Parsed | null>(null);
   const [parseError, setParseError] = useState('');
-  const [targetTabId, setTargetTabId] = useState(tabs?.[0]?.id ?? '');
+  const [targetTabId, setTargetTabId] = useState(
+    (activeTabId && tabs?.some((tab) => tab.id === activeTabId) ? activeTabId : tabs?.[0]?.id) ?? '',
+  );
   const [datapoint, setDatapoint] = useState('');
   const [showPicker, setShowPicker] = useState(false);
 

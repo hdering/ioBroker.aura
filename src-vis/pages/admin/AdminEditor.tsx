@@ -1131,6 +1131,7 @@ export function AdminEditor() {
   // tabs reference is stable on tab switch (patchLayout spreads { ...l, activeTabId }
   // which preserves the l.tabs array reference) — needed only for ImportWidgetDialog
   const tabs = useDashboardStore((s) => (s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0]).tabs);
+  const importActiveTabId = useDashboardStore((s) => (s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0]).activeTabId);
   // Stable action references — never cause re-renders
   const setActiveLayout = useDashboardStore((s) => s.setActiveLayout);
   const setActiveLayoutAndTab = useDashboardStore((s) => s.setActiveLayoutAndTab);
@@ -1260,6 +1261,7 @@ export function AdminEditor() {
       {showImport && (
         <ImportWidgetDialog
           tabs={tabs}
+          activeTabId={importActiveTabId}
           onAdd={(widget, tabId) => {
             const state = useDashboardStore.getState();
             const activeLayout = state.layouts.find((l) => l.id === state.activeLayoutId) ?? state.layouts[0];
