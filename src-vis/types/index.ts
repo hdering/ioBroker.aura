@@ -167,6 +167,7 @@ export interface CustomCell {
   align?:         CustomCellAlign;   // default: 'left'
   valign?:        CustomCellValign;  // default: 'middle'
   allowOverflow?: boolean;           // allow text to overflow into adjacent cells
+  wrap?:          boolean;           // wrap long text onto multiple lines instead of ellipsis (default false)
   colSpan?:       number;            // 'component' type: how many grid columns to span (1..cols)
   rowSpan?:       number;            // analog colSpan, vertical
   imageUrl?:      string;            // 'image' type: URL or base64 data URI

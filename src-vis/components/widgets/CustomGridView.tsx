@@ -67,14 +67,17 @@ export function normalizeGrid(raw: unknown, fallback?: CustomGrid | CustomGridDe
 // ── Style helpers ─────────────────────────────────────────────────────────────
 
 function cellTextStyle(cell: CustomCell, defaultColor: string): React.CSSProperties {
+  const wrap = cell.wrap === true;
   return {
     fontSize:     cell.fontSize ? `${cell.fontSize}px` : undefined,
     fontWeight:   cell.bold   ? 'bold'   : undefined,
     fontStyle:    cell.italic ? 'italic' : undefined,
     color:        cell.color || defaultColor,
-    overflow:     cell.allowOverflow ? 'visible' : 'hidden',
-    textOverflow: cell.allowOverflow ? undefined  : 'ellipsis',
-    whiteSpace:   'nowrap',
+    overflow:     (wrap || cell.allowOverflow) ? 'visible' : 'hidden',
+    textOverflow: (wrap || cell.allowOverflow) ? undefined  : 'ellipsis',
+    whiteSpace:   wrap ? 'normal' : 'nowrap',
+    wordBreak:    wrap ? 'break-word' : undefined,
+    overflowWrap: wrap ? 'anywhere' : undefined,
     // 1.3 (not 1.15) so descenders (g, j, p, q, y) aren't clipped by overflow:hidden.
     lineHeight:   1.3,
     paddingBottom: '0.1em',
@@ -88,10 +91,15 @@ function cellWrapStyle(cell: CustomCell, index: number, cols: number, rows: numb
   const row = Math.floor(index / cols) + 1;
   const colSpan = Math.max(1, Math.min(cell.colSpan ?? 1, cols + 1 - col));
   const rowSpan = Math.max(1, Math.min(cell.rowSpan ?? 1, rows + 1 - row));
+  const wrap = cell.wrap === true;
+  // When wrap is on we must keep overflow visible (otherwise the wrapped
+  // lines get clipped) and top-align so the cell grows downward predictably.
   return {
     display:        'flex',
-    overflow:       cell.allowOverflow ? 'visible' : 'hidden',
-    alignItems:     cell.valign === 'top' ? 'flex-start' : cell.valign === 'bottom' ? 'flex-end' : 'center',
+    overflow:       (wrap || cell.allowOverflow) ? 'visible' : 'hidden',
+    alignItems:     wrap
+                      ? (cell.valign === 'bottom' ? 'flex-end' : cell.valign === 'middle' ? 'center' : 'flex-start')
+                      : cell.valign === 'top' ? 'flex-start' : cell.valign === 'bottom' ? 'flex-end' : 'center',
     justifyContent: cell.align === 'center' ? 'center' : cell.align === 'right' ? 'flex-end' : 'flex-start',
     padding:        '2px',
     gridRow:        rowSpan > 1 ? `${row} / span ${rowSpan}` : row,

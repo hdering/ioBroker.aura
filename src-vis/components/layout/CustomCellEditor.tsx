@@ -1462,6 +1462,23 @@ export function CustomCellEditor({
               })}
             </div>
           </div>
+
+          {/* Textumbruch */}
+          <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Textumbruch</label>
+            <div className="flex gap-1">
+              {([false, true] as const).map((v) => {
+                const active = (cell.wrap ?? false) === v;
+                return (
+                  <button key={String(v)} onClick={() => onChange({ wrap: v || undefined })}
+                    className="flex-1 text-[10px] py-1 rounded"
+                    style={{ background: active ? 'var(--accent)' : 'var(--app-bg)', color: active ? '#fff' : 'var(--text-secondary)', border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}` }}>
+                    {v ? 'Umbrechen' : 'Eine Zeile'}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </>
       )}
     </>
