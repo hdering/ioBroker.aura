@@ -620,6 +620,16 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
         </button>
       </div>
 
+      <div className="flex items-center justify-between">
+        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Lange Labels umbrechen</label>
+        <button onClick={() => setOpts({ wrapLabels: !(opts.wrapLabels ?? false) })}
+          className="relative w-9 h-5 rounded-full transition-colors"
+          style={{ background: (opts.wrapLabels ?? false) ? 'var(--accent)' : 'var(--app-border)' }}>
+          <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
+            style={{ left: (opts.wrapLabels ?? false) ? '18px' : '2px' }} />
+        </button>
+      </div>
+
       <div>
         <div className="flex items-center justify-between">
           <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Anzahl im Backend veröffentlichen</label>

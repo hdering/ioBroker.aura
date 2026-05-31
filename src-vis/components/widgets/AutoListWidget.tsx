@@ -90,6 +90,8 @@ export interface AutoListOptions {
   showDividers?: boolean;
   /** Show last-change timestamp under every entry (global toggle — dynamic list has no per-DP config). */
   showEntryLastChange?: boolean;
+  /** Wrap long entry labels onto multiple lines instead of truncating with ellipsis. Default false. */
+  wrapLabels?: boolean;
 }
 
 export interface DiscoveredDp {
@@ -773,6 +775,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
   if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
+  const labelWrapCls = opts.wrapLabels ? 'break-words [overflow-wrap:anywhere]' : 'truncate';
+
   // ── ANZAHL (count) — zeigt nur die Anzahl der Einträge ────────────────────
   if (layout === 'count') {
     const count = effectiveFilter === 'all' ? entries.length : visibleEntries.length;
@@ -814,7 +818,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                 <div key={entry.id}
                   className="rounded-xl p-2.5 flex flex-col gap-2 relative"
                   style={{ background: stateBg, border: '1px solid var(--widget-border)' }}>
-                  <span className="text-[10px] truncate leading-tight" style={{ color: 'var(--text-secondary)' }}>{label}</span>
+                  <span className={`text-[10px] leading-tight ${labelWrapCls}`} style={{ color: 'var(--text-secondary)' }}>{label}</span>
                   <div className="flex items-center justify-center">
                     <CardEntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} thresholds={globalThresholds} decimals={decimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} />
                   </div>
@@ -866,7 +870,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     borderLeft: showDividers && isRight ? '1px solid var(--widget-border)' : undefined,
                   }}>
                   <div className="flex-1 min-w-0">
-                    <span className="block text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>{label}</span>
+                    <span className={`block text-[11px] ${labelWrapCls}`} style={{ color: 'var(--text-primary)' }}>{label}</span>
                     {lcTs > 0 && (
                       <span className="block text-[8px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                         {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
@@ -967,7 +971,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
               <div key={entry.id} className="flex items-center gap-2 px-3 py-2"
                 style={{ background: stateBg, borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined }}>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>{label}</div>
+                  <div className={`text-xs ${labelWrapCls}`} style={{ color: 'var(--text-primary)' }}>{label}</div>
                   {opts.showRoom && (roomLabel || entry.id) && (
                     <div className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
                       {roomLabel || entry.id}

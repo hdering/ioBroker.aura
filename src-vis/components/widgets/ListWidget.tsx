@@ -89,6 +89,8 @@ export interface StaticListOptions {
   showDividers?: boolean;
   /** Hide the frontend filter chip in the widget header. Default false. */
   hideFilterButton?: boolean;
+  /** Wrap long entry labels onto multiple lines instead of truncating with ellipsis. Default false. */
+  wrapLabels?: boolean;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -499,6 +501,8 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
   const layout = config.layout ?? 'default';
   if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
+  const labelWrapCls = opts.wrapLabels ? 'break-words [overflow-wrap:anywhere]' : 'truncate';
+
   const globalThresholds = o.colorThresholds as [number, string][] | undefined;
   const globalActiveColor   = opts.activeColor   || 'var(--accent-green)';
   const globalInactiveColor = opts.inactiveColor || 'var(--text-secondary)';
@@ -610,7 +614,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 <div key={entry.id}
                   className="rounded-xl p-2.5 flex flex-col gap-2 relative"
                   style={{ background: stateBg, border: '1px solid var(--widget-border)' }}>
-                  <span className={entryFontSize ? 'flex items-center gap-1 truncate leading-tight' : 'flex items-center gap-1 text-[10px] truncate leading-tight'}
+                  <span className={`flex items-center gap-1 leading-tight ${labelWrapCls}${entryFontSize ? '' : ' text-[10px]'}`}
                     style={{ color: 'var(--text-secondary)', fontSize: entryFontSize ?? undefined }}>
                     {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0" />}
                     {label}
@@ -664,7 +668,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                   }}>
                   {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
                   <div className="flex-1 min-w-0">
-                    <span className={entryFontSize ? 'block truncate' : 'block text-[11px] truncate'}
+                    <span className={`block ${labelWrapCls}${entryFontSize ? '' : ' text-[11px]'}`}
                       style={{ color: 'var(--text-primary)', fontSize: entryFontSize ?? undefined }}>{label}</span>
                     {lcTs > 0 && (
                       <span className="block text-[8px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
@@ -786,7 +790,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 style={{ background: stateBg, borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined }}>
                 {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
                 <div className="flex-1 min-w-0">
-                  <div className={entryFontSize ? 'truncate' : 'text-xs truncate'}
+                  <div className={`${labelWrapCls}${entryFontSize ? '' : ' text-xs'}`}
                     style={{ color: 'var(--text-primary)', fontSize: entryFontSize ?? undefined }}>
                     {label}
                   </div>
