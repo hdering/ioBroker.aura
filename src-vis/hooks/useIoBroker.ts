@@ -221,7 +221,16 @@ export function useIoBroker() {
 
   const getState = useCallback((id: string): Promise<ioBrokerState | null> => {
     return new Promise((resolve) => {
-      getSocket().emit('getState', id, (_err: unknown, state: ioBrokerState | null) => resolve(state));
+      getSocket().emit('getState', id, (_err: unknown, state: ioBrokerState | null) => {
+        // Mirror getStateDirect — cache the result so remounts (e.g. when a
+        // widget moves between the grid and the off-screen reflow container)
+        // can see the value synchronously instead of starting cold and
+        // flipping back out of the reflow set. Without this the
+        // useConditionStyle remount loop in issue #281 keeps the widget
+        // bouncing in-place and other widgets never reflow up.
+        if (state) stateCache.set(id, state);
+        resolve(state);
+      });
     });
   }, []);
 
