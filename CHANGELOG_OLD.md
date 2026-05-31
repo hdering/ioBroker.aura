@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.163 (2026-05-28)
+- refactor(theme): split themeMode into separate frontend & admin DPs
+
 ## 0.9.162 (2026-05-28)
 - refactor(theme): rename config.darkMode to config.themeMode
 

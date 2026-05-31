@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.182",
+    "version": "0.9.183",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.183": {
+        "en": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
+        "de": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
+        "ru": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
+        "pt": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
+        "nl": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
+        "fr": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
+        "it": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
+        "es": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
+        "pl": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
+        "uk": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
+        "zh-cn": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab"
+      },
       "0.9.182": {
         "en": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
         "de": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
@@ -184,19 +197,6 @@
         "pl": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
         "uk": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
         "zh-cn": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics"
-      },
-      "0.9.176": {
-        "en": "feat(widgets): add transparency strength slider for transparent mode",
-        "de": "feat(widgets): add transparency strength slider for transparent mode",
-        "ru": "feat(widgets): add transparency strength slider for transparent mode",
-        "pt": "feat(widgets): add transparency strength slider for transparent mode",
-        "nl": "feat(widgets): add transparency strength slider for transparent mode",
-        "fr": "feat(widgets): add transparency strength slider for transparent mode",
-        "it": "feat(widgets): add transparency strength slider for transparent mode",
-        "es": "feat(widgets): add transparency strength slider for transparent mode",
-        "pl": "feat(widgets): add transparency strength slider for transparent mode",
-        "uk": "feat(widgets): add transparency strength slider for transparent mode",
-        "zh-cn": "feat(widgets): add transparency strength slider for transparent mode"
       }
     }
   },
