@@ -186,6 +186,13 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.181 (2026-05-31)
+- fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option
+- feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText
+- feat(ListWidget,AutoListWidget): add wrapLabels option
+- feat(CustomGridView): add per-cell wrap option for long text
+
+
 ### 0.9.180 (2026-05-31)
 - fix(ioBroker): getState writes to stateCache (#281 follow-up)
 
@@ -269,11 +276,6 @@ npm run build:adapter
 - refactor(theme): rename config.darkMode to config.themeMode
 
 
-### 0.9.161 (2026-05-28)
-- fix(io-package): drop empty-key state from config.darkMode states map
-- fix(theme): frontend now reacts to config.darkMode DP
-
-
 ## License
 
 MIT License
@@ -285,6 +287,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

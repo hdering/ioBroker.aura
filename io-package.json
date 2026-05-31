@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.180",
+    "version": "0.9.181",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.181": {
+        "en": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
+        "de": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
+        "ru": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
+        "pt": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
+        "nl": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
+        "fr": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
+        "it": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
+        "es": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
+        "pl": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
+        "uk": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
+        "zh-cn": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text"
+      },
       "0.9.180": {
         "en": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
         "de": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
@@ -184,19 +197,6 @@
         "pl": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
         "uk": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider",
         "zh-cn": "fix(shutter): reserve slider space so status badges do not overlap thumb; feat(shutter): add resize options for value, buttons and slider"
-      },
-      "0.9.174": {
-        "en": "fix(camera): honor transparent option in all layouts",
-        "de": "fix(camera): honor transparent option in all layouts",
-        "ru": "fix(camera): honor transparent option in all layouts",
-        "pt": "fix(camera): honor transparent option in all layouts",
-        "nl": "fix(camera): honor transparent option in all layouts",
-        "fr": "fix(camera): honor transparent option in all layouts",
-        "it": "fix(camera): honor transparent option in all layouts",
-        "es": "fix(camera): honor transparent option in all layouts",
-        "pl": "fix(camera): honor transparent option in all layouts",
-        "uk": "fix(camera): honor transparent option in all layouts",
-        "zh-cn": "fix(camera): honor transparent option in all layouts"
       }
     }
   },
