@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.186",
+    "version": "0.9.187",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.187": {
+        "en": "feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle",
+        "de": "feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle",
+        "ru": "feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle",
+        "pt": "feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle",
+        "nl": "feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle",
+        "fr": "feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle",
+        "it": "feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle",
+        "es": "feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle",
+        "pl": "feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle",
+        "uk": "feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle",
+        "zh-cn": "feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle"
+      },
       "0.9.186": {
         "en": "Release v0.9.186",
         "de": "Release v0.9.186",
@@ -184,19 +197,6 @@
         "pl": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
         "uk": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
         "zh-cn": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text"
-      },
-      "0.9.180": {
-        "en": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
-        "de": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
-        "ru": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
-        "pt": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
-        "nl": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
-        "fr": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
-        "it": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
-        "es": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
-        "pl": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
-        "uk": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
-        "zh-cn": "fix(ioBroker): getState writes to stateCache (#281 follow-up)"
       }
     }
   },

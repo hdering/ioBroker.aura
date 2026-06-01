@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.167 (2026-05-29)
+- feat(evcc): responsive auto-scale + per-section size sliders
+- feat(chips): raise chipSize slider max from 96 to 240 px
+- feat(chips): replace sm/md/lg dropdown with px slider (16-96)
+
 ## 0.9.166 (2026-05-28)
 - chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP
 
