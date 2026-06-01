@@ -50,7 +50,7 @@ export function ChartWidget({ config }: WidgetProps) {
   const showAverageAsValue = o.showAverageAsValue === true;
   const layout          = config.layout ?? 'default';
   const lineColor       = (o.lineColor  as string | undefined) ?? 'var(--accent)';
-  const unitColor       = (o.unitColor  as string | undefined) ?? '#000000';
+  const unitColor       = (o.unitColor  as string | undefined) ?? 'var(--text-primary)';
   const avgColor        = (o.avgColor   as string | undefined) ?? lineColor;
   const showYAxis       = o.showYAxis === true;
   const yAxisCompact    = o.yAxisCompact !== false;
