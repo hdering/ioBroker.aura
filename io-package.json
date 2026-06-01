@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.185",
+    "version": "0.9.186",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.186": {
+        "en": "Release v0.9.186",
+        "de": "Release v0.9.186",
+        "ru": "Release v0.9.186",
+        "pt": "Release v0.9.186",
+        "nl": "Release v0.9.186",
+        "fr": "Release v0.9.186",
+        "it": "Release v0.9.186",
+        "es": "Release v0.9.186",
+        "pl": "Release v0.9.186",
+        "uk": "Release v0.9.186",
+        "zh-cn": "Release v0.9.186"
+      },
       "0.9.185": {
         "en": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
         "de": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
@@ -184,19 +197,6 @@
         "pl": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
         "uk": "fix(ioBroker): getState writes to stateCache (#281 follow-up)",
         "zh-cn": "fix(ioBroker): getState writes to stateCache (#281 follow-up)"
-      },
-      "0.9.179": {
-        "en": "fix(echart): object override on series array merges as per-item defaults",
-        "de": "fix(echart): object override on series array merges as per-item defaults",
-        "ru": "fix(echart): object override on series array merges as per-item defaults",
-        "pt": "fix(echart): object override on series array merges as per-item defaults",
-        "nl": "fix(echart): object override on series array merges as per-item defaults",
-        "fr": "fix(echart): object override on series array merges as per-item defaults",
-        "it": "fix(echart): object override on series array merges as per-item defaults",
-        "es": "fix(echart): object override on series array merges as per-item defaults",
-        "pl": "fix(echart): object override on series array merges as per-item defaults",
-        "uk": "fix(echart): object override on series array merges as per-item defaults",
-        "zh-cn": "fix(echart): object override on series array merges as per-item defaults"
       }
     }
   },

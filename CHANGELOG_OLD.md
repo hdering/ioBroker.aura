@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.166 (2026-05-28)
+- chore(theme): add verbose [themeMode] init logging to diagnose missing admin DP
+
 ## 0.9.165 (2026-05-28)
 - fix(theme): always create themeMode admin/frontend DPs even when migration throws
 
