@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.189",
+    "version": "0.9.190",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.190": {
+        "en": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
+        "de": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
+        "ru": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
+        "pt": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
+        "nl": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
+        "fr": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
+        "it": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
+        "es": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
+        "pl": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
+        "uk": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
+        "zh-cn": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more"
+      },
       "0.9.189": {
         "en": "Release v0.9.189",
         "de": "Release v0.9.189",
@@ -184,19 +197,6 @@
         "pl": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
         "uk": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
         "zh-cn": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab"
-      },
-      "0.9.182": {
-        "en": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
-        "de": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
-        "ru": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
-        "pt": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
-        "nl": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
-        "fr": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
-        "it": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
-        "es": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
-        "pl": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
-        "uk": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
-        "zh-cn": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click"
       }
     }
   },

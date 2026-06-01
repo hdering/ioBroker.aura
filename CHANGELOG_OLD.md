@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.170 (2026-05-30)
+- fix(weather): retry online fetch every 30s while no data
+
 ## 0.9.169 (2026-05-30)
 - fix(alarm): hide datapoint-id field in widget edit panel
 
