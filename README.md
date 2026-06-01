@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.184 (2026-06-01)
+- fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly
+
+
 ### 0.9.183 (2026-05-31)
 - fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab
 
@@ -274,10 +278,6 @@ npm run build:adapter
 - fix(theme): always create themeMode admin/frontend DPs even when migration throws
 
 
-### 0.9.164 (2026-05-28)
-- fix(theme): make themeMode.frontend DP override sticky
-
-
 ## License
 
 MIT License
@@ -289,6 +289,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

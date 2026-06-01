@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.183",
+    "version": "0.9.184",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.184": {
+        "en": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
+        "de": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
+        "ru": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
+        "pt": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
+        "nl": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
+        "fr": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
+        "it": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
+        "es": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
+        "pl": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
+        "uk": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
+        "zh-cn": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly"
+      },
       "0.9.183": {
         "en": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
         "de": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
@@ -184,19 +197,6 @@
         "pl": "fix(conditions): suppress reflow until all condition DPs are known (#281)",
         "uk": "fix(conditions): suppress reflow until all condition DPs are known (#281)",
         "zh-cn": "fix(conditions): suppress reflow until all condition DPs are known (#281)"
-      },
-      "0.9.177": {
-        "en": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
-        "de": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
-        "ru": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
-        "pt": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
-        "nl": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
-        "fr": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
-        "it": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
-        "es": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
-        "pl": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
-        "uk": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics",
-        "zh-cn": "fix(conditions): stop grid<->offscreen bounce on first paint; feat(conditions): add opt-in debug logging for hidden-widget diagnostics"
       }
     }
   },

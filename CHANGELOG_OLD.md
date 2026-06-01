@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.164 (2026-05-28)
+- fix(theme): make themeMode.frontend DP override sticky
+
 ## 0.9.163 (2026-05-28)
 - refactor(theme): split themeMode into separate frontend & admin DPs
 
