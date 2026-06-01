@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.188",
+    "version": "0.9.189",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,18 +107,18 @@
       }
     ],
     "news": {
-      "0.9.188": {
-        "en": "Release v0.9.188",
-        "de": "Release v0.9.188",
-        "ru": "Release v0.9.188",
-        "pt": "Release v0.9.188",
-        "nl": "Release v0.9.188",
-        "fr": "Release v0.9.188",
-        "it": "Release v0.9.188",
-        "es": "Release v0.9.188",
-        "pl": "Release v0.9.188",
-        "uk": "Release v0.9.188",
-        "zh-cn": "Release v0.9.188"
+      "0.9.189": {
+        "en": "Release v0.9.189",
+        "de": "Release v0.9.189",
+        "ru": "Release v0.9.189",
+        "pt": "Release v0.9.189",
+        "nl": "Release v0.9.189",
+        "fr": "Release v0.9.189",
+        "it": "Release v0.9.189",
+        "es": "Release v0.9.189",
+        "pl": "Release v0.9.189",
+        "uk": "Release v0.9.189",
+        "zh-cn": "Release v0.9.189"
       },
       "0.9.187": {
         "en": "feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle",

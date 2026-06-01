@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.169 (2026-05-30)
+- fix(alarm): hide datapoint-id field in widget edit panel
+
 ## 0.9.168 (2026-05-29)
 - fix(lint): auto-fix mixed typographic quotes
 - feat(alarm): new widget for ioBroker.alarm adapter
