@@ -2725,6 +2725,468 @@ function ChipsEditPanel({
   );
 }
 
+// ── CarouselEditPanel ─────────────────────────────────────────────────────────
+
+type CarouselItemEdit = {
+  id: string;
+  label: string;
+  icon?: string;
+  dp: string;
+  value?: string;
+  activeValue?: string;
+  clickAction?: ClickAction;
+  bgColor?: string;
+  textColor?: string;
+  showConfirm?: boolean;
+  confirmText?: string;
+};
+
+function CarouselEditPanel({
+  config, onConfigChange, onOpenItemDpPicker, onOpenCheckDpPicker,
+}: {
+  config: WidgetConfig;
+  onConfigChange: (c: WidgetConfig) => void;
+  onOpenItemDpPicker: (idx: number) => void;
+  onOpenCheckDpPicker: () => void;
+}) {
+  const o = config.options ?? {};
+  const setO = (patch: Record<string, unknown>) =>
+    onConfigChange({ ...config, options: { ...o, ...patch } });
+  const tHook = useT();
+  const layouts = useDashboardStore((s) => s.layouts);
+  const popupViews = usePopupConfigStore((s) => s.views);
+
+  const sInputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono';
+  const sInputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+  const selCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
+
+  const items = (o.items as CarouselItemEdit[] | undefined) ?? [];
+  const [addingItem, setAddingItem] = useState(false);
+  const [newItemLabel, setNewItemLabel] = useState('');
+  const [itemIconPickerIdx, setItemIconPickerIdx] = useState<number | null>(null);
+  const allWidgets = layouts.flatMap((l) => l.tabs.flatMap((t) => t.widgets));
+
+  const confirmAddItem = () => {
+    if (!newItemLabel.trim()) return;
+    const next: CarouselItemEdit = { id: Date.now().toString(), label: newItemLabel.trim(), dp: '' };
+    setO({ items: [...items, next] });
+    setNewItemLabel('');
+    setAddingItem(false);
+  };
+
+  const updateItem = (id: string, patch: Partial<CarouselItemEdit>) =>
+    setO({ items: items.map((it) => it.id === id ? { ...it, ...patch } : it) });
+
+  const removeItem = (id: string) =>
+    setO({ items: items.filter((it) => it.id !== id) });
+
+  const moveItem = (id: string, dir: -1 | 1) => {
+    const idx = items.findIndex((it) => it.id === id);
+    if (idx < 0) return;
+    const next = idx + dir;
+    if (next < 0 || next >= items.length) return;
+    const arr = [...items];
+    [arr[idx], arr[next]] = [arr[next], arr[idx]];
+    setO({ items: arr });
+  };
+
+  const setItemAction = (id: string, action: ClickAction | undefined) =>
+    updateItem(id, { clickAction: action });
+
+  return (
+    <>
+      {/* Layout */}
+      <details className="group" open>
+        <summary className="flex items-center justify-between cursor-pointer list-none select-none mb-1">
+          <span className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>{tHook('cw.layout.title' as never)}</span>
+          <ChevronDown size={12} className="transition-transform group-open:rotate-180" style={{ color: 'var(--text-secondary)' }} />
+        </summary>
+        <div className="space-y-2">
+          <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{tHook('cw.layout.align' as never)}</label>
+            <select value={(o.align as string) ?? 'start'} onChange={(e) => setO({ align: e.target.value })} className={selCls} style={sInputStyle}>
+              <option value="start">Start</option>
+              <option value="center">Mitte</option>
+              <option value="end">Ende</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{tHook('cw.layout.valign' as never)}</label>
+            <select value={(o.valign as string) ?? 'middle'} onChange={(e) => setO({ valign: e.target.value })} className={selCls} style={sInputStyle}>
+              <option value="top">Oben</option>
+              <option value="middle">Mitte</option>
+              <option value="bottom">Unten</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-[11px] mb-1 block flex items-center justify-between" style={{ color: 'var(--text-secondary)' }}>
+              <span>{tHook('cw.layout.chipSize' as never)}</span>
+              <span style={{ color: 'var(--text-primary)' }}>{(() => {
+                const raw = o.chipSize as string | number | undefined;
+                const n = typeof raw === 'number' ? raw : raw === 'sm' ? 28 : raw === 'lg' ? 42 : 36;
+                return `${n}px`;
+              })()}</span>
+            </label>
+            <input
+              type="range"
+              min={16} max={500} step={1}
+              value={(() => {
+                const raw = o.chipSize as string | number | undefined;
+                return typeof raw === 'number' ? raw : raw === 'sm' ? 28 : raw === 'lg' ? 42 : 36;
+              })()}
+              onChange={(e) => setO({ chipSize: Number(e.target.value) })}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{tHook('cw.layout.chipStyle' as never)}</label>
+            <select value={(o.chipStyle as string) ?? 'outlined'} onChange={(e) => setO({ chipStyle: e.target.value })} className={selCls} style={sInputStyle}>
+              <option value="outlined">{tHook('cw.style.outlined' as never)}</option>
+              <option value="filled">{tHook('cw.style.filled' as never)}</option>
+              <option value="ghost">{tHook('cw.style.ghost' as never)}</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-[11px] mb-1 block flex items-center justify-between" style={{ color: 'var(--text-secondary)' }}>
+              <span>{tHook('carousel.opt.gap' as never)}</span>
+              <span style={{ color: 'var(--text-primary)' }}>{((o.gap as number) ?? 8)}px</span>
+            </label>
+            <input
+              type="range" min={0} max={64} step={1}
+              value={(o.gap as number) ?? 8}
+              onChange={(e) => setO({ gap: Number(e.target.value) })}
+              className="w-full"
+            />
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox"
+              checked={o.snap === true}
+              onChange={(e) => setO({ snap: e.target.checked || undefined })}
+            />
+            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{tHook('carousel.opt.snap' as never)}</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox"
+              checked={o.hideScrollbar === true}
+              onChange={(e) => setO({ hideScrollbar: e.target.checked || undefined })}
+            />
+            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{tHook('carousel.opt.hideScrollbar' as never)}</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox"
+              checked={o.shakeOnOpen === true}
+              onChange={(e) => setO({ shakeOnOpen: e.target.checked || undefined })}
+            />
+            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{tHook('carousel.opt.shakeOnOpen' as never)}</span>
+          </label>
+        </div>
+      </details>
+
+      {/* Aktiv-DP */}
+      <div>
+        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{tHook('cw.checkDp' as never)}</label>
+        <div className="flex gap-1">
+          <input
+            type="text"
+            value={(o.checkDp as string) ?? ''}
+            onChange={(e) => setO({ checkDp: e.target.value || undefined })}
+            placeholder="optional"
+            className={`flex-1 ${sInputCls} min-w-0`}
+            style={sInputStyle}
+          />
+          <button
+            onClick={onOpenCheckDpPicker}
+            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+            <Database size={13} />
+          </button>
+        </div>
+      </div>
+
+      {/* Items */}
+      <details className="group" open>
+        <summary className="flex items-center justify-between cursor-pointer list-none select-none mb-1">
+          <span className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>{tHook('carousel.items.title' as never)}</span>
+          <ChevronDown size={12} className="transition-transform group-open:rotate-180" style={{ color: 'var(--text-secondary)' }} />
+        </summary>
+        <div className="space-y-1.5">
+          {items.map((item, idx) => {
+            const actKind = item.clickAction?.kind ?? 'none';
+            return (
+              <div key={item.id} className="rounded-lg p-2 space-y-1.5" style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
+                <div className="flex items-center gap-1">
+                  <div className="flex flex-col shrink-0">
+                    <button onClick={() => moveItem(item.id, -1)} disabled={idx === 0}
+                      className="text-[9px] px-1 py-0.5 rounded hover:opacity-80 disabled:opacity-30 leading-none"
+                      style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+                      title="Nach oben">▲</button>
+                    <button onClick={() => moveItem(item.id, 1)} disabled={idx === items.length - 1}
+                      className="text-[9px] px-1 py-0.5 rounded hover:opacity-80 disabled:opacity-30 leading-none mt-0.5"
+                      style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+                      title="Nach unten">▼</button>
+                  </div>
+                  <button
+                    onClick={() => setItemIconPickerIdx(idx)}
+                    className="text-[10px] w-7 h-7 flex items-center justify-center rounded hover:opacity-80 shrink-0"
+                    style={{ background: 'var(--app-surface,var(--app-bg))', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+                    title={item.icon || 'Icon wählen'}>
+                    {item.icon ? (() => {
+                      const Ico = getWidgetIcon(item.icon, (() => null) as unknown as import('lucide-react').LucideIcon);
+                      return <Ico size={14} />;
+                    })() : <span>🏷</span>}
+                  </button>
+                  <input type="text" value={item.label}
+                    onChange={(e) => updateItem(item.id, { label: e.target.value })}
+                    placeholder={tHook('carousel.items.label' as never)}
+                    className="flex-1 text-xs rounded px-2 py-1 focus:outline-none min-w-0"
+                    style={sInputStyle} />
+                  <button onClick={() => removeItem(item.id)} className="hover:opacity-70 shrink-0" style={{ color: 'var(--accent-red, #ef4444)' }}>
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+
+                {/* Colors — bg + text override per item */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>{tHook('carousel.items.colors' as never)}</span>
+                  <label className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--text-secondary)' }} title={tHook('carousel.items.bgColor' as never)}>
+                    <input
+                      type="color"
+                      value={item.bgColor ?? '#000000'}
+                      onChange={(e) => updateItem(item.id, { bgColor: e.target.value })}
+                      className="w-6 h-6 rounded cursor-pointer p-0 border-0"
+                      style={{ background: 'var(--app-bg)' }}
+                    />
+                    <span style={{ opacity: 0.7 }}>BG</span>
+                  </label>
+                  <label className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--text-secondary)' }} title={tHook('carousel.items.textColor' as never)}>
+                    <input
+                      type="color"
+                      value={item.textColor ?? '#ffffff'}
+                      onChange={(e) => updateItem(item.id, { textColor: e.target.value })}
+                      className="w-6 h-6 rounded cursor-pointer p-0 border-0"
+                      style={{ background: 'var(--app-bg)' }}
+                    />
+                    <span style={{ opacity: 0.7 }}>Text</span>
+                  </label>
+                  {(item.bgColor || item.textColor) && (
+                    <button
+                      onClick={() => updateItem(item.id, { bgColor: undefined, textColor: undefined })}
+                      className="text-[10px] hover:opacity-70"
+                      style={{ color: 'var(--text-secondary)' }}
+                      title={tHook('carousel.items.resetColor' as never)}
+                    >
+                      ↩
+                    </button>
+                  )}
+                </div>
+
+                {/* Click-Action selector */}
+                <div>
+                  <label className="text-[10px] mb-0.5 block" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>{tHook('carousel.items.action' as never)}</label>
+                  <select
+                    value={actKind}
+                    onChange={(e) => {
+                      const k = e.target.value as 'none' | 'popup-widget' | 'popup-view' | 'link-tab';
+                      if (k === 'none') {
+                        setItemAction(item.id, undefined);
+                      } else if (k === 'popup-widget') {
+                        setItemAction(item.id, { kind: 'popup-widget', widgetId: '' });
+                      } else if (k === 'popup-view') {
+                        setItemAction(item.id, { kind: 'popup-view', viewId: '' });
+                      } else {
+                        const firstLayout = layouts[0];
+                        const firstTab = firstLayout?.tabs[0];
+                        setItemAction(item.id, { kind: 'link-tab', layoutId: firstLayout?.id ?? '', tabId: firstTab?.id ?? '' });
+                      }
+                    }}
+                    className={selCls}
+                    style={sInputStyle}
+                  >
+                    <option value="none">{tHook('carousel.action.none' as never)}</option>
+                    <option value="popup-widget">{tHook('carousel.action.popupWidget' as never)}</option>
+                    <option value="popup-view">{tHook('carousel.action.popupView' as never)}</option>
+                    <option value="link-tab">{tHook('carousel.action.linkTab' as never)}</option>
+                  </select>
+                </div>
+
+                {/* DP write – only when action is none (default DP-toggle behavior) */}
+                {(!item.clickAction || item.clickAction.kind === 'none') && (
+                  <>
+                    <div>
+                      <label className="text-[10px] mb-0.5 block" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>{tHook('carousel.items.dp' as never)}</label>
+                      <div className="flex gap-1 items-center">
+                        <input type="text" value={item.dp}
+                          onChange={(e) => updateItem(item.id, { dp: e.target.value })}
+                          placeholder="z.B. 0_userdata.0.scenes.relaxing"
+                          className={`flex-1 ${sInputCls} min-w-0`} style={sInputStyle} />
+                        <button onClick={() => onOpenItemDpPicker(idx)}
+                          className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                          style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                          <Database size={13} />
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] mb-0.5 block" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>{tHook('carousel.items.value' as never)}</label>
+                      <input type="text" value={item.value ?? ''}
+                        onChange={(e) => updateItem(item.id, { value: e.target.value || undefined })}
+                        placeholder="z.B. true, 1, on, relaxing"
+                        className={`w-full ${sInputCls}`} style={sInputStyle} />
+                    </div>
+                  </>
+                )}
+
+                {/* popup-widget: target widget selector */}
+                {item.clickAction?.kind === 'popup-widget' && (() => {
+                  const cur = item.clickAction;
+                  return (
+                    <div>
+                      <label className="text-[10px] mb-0.5 block" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Ziel-Widget (leer = dieses)</label>
+                      <select
+                        value={cur.widgetId ?? ''}
+                        onChange={(e) => setItemAction(item.id, { kind: 'popup-widget', widgetId: e.target.value || undefined })}
+                        className={selCls}
+                        style={sInputStyle}
+                      >
+                        <option value="">— Dieses Widget —</option>
+                        {allWidgets.filter((w) => w.id !== config.id).map((w) => (
+                          <option key={w.id} value={w.id}>{(w.title || w.type)} — {w.type}</option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })()}
+
+                {/* popup-view: view selector */}
+                {item.clickAction?.kind === 'popup-view' && (() => {
+                  const cur = item.clickAction;
+                  return (
+                    <div>
+                      <label className="text-[10px] mb-0.5 block" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Popup-View</label>
+                      <select
+                        value={cur.viewId}
+                        onChange={(e) => setItemAction(item.id, { kind: 'popup-view', viewId: e.target.value })}
+                        className={selCls}
+                        style={sInputStyle}
+                      >
+                        <option value="">— View wählen —</option>
+                        {popupViews.map((v) => (
+                          <option key={v.id} value={v.id}>{v.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })()}
+
+                {/* link-tab: layout + tab */}
+                {item.clickAction?.kind === 'link-tab' && (() => {
+                  const cur = item.clickAction;
+                  const tabsForLayout = layouts.find((l) => l.id === cur.layoutId)?.tabs ?? [];
+                  return (
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <div>
+                        <label className="text-[10px] mb-0.5 block" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Layout</label>
+                        <select
+                          value={cur.layoutId}
+                          onChange={(e) => {
+                            const lay = layouts.find((l) => l.id === e.target.value);
+                            setItemAction(item.id, { kind: 'link-tab', layoutId: e.target.value, tabId: lay?.tabs[0]?.id ?? '' });
+                          }}
+                          className={selCls} style={sInputStyle}
+                        >
+                          {layouts.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] mb-0.5 block" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Tab</label>
+                        <select
+                          value={cur.tabId}
+                          onChange={(e) => setItemAction(item.id, { kind: 'link-tab', layoutId: cur.layoutId, tabId: e.target.value })}
+                          className={selCls} style={sInputStyle}
+                        >
+                          {tabsForLayout.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Active value — shown when checkDp is set, regardless of action */}
+                {(o.checkDp as string) && (!item.clickAction || item.clickAction.kind === 'none') && (
+                  <div>
+                    <label className="text-[10px] mb-0.5 block" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>{tHook('carousel.items.activeValue' as never)}</label>
+                    <input type="text" value={item.activeValue ?? ''}
+                      onChange={(e) => updateItem(item.id, { activeValue: e.target.value || undefined })}
+                      placeholder="z.B. relaxing"
+                      className={`w-full ${sInputCls}`} style={sInputStyle} />
+                  </div>
+                )}
+
+                {/* Per-item confirmation */}
+                <div className="space-y-1 pt-1" style={{ borderTop: '1px dashed var(--app-border)' }}>
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox"
+                      checked={item.showConfirm === true}
+                      onChange={(e) => updateItem(item.id, { showConfirm: e.target.checked || undefined, confirmText: e.target.checked ? item.confirmText : undefined })}
+                    />
+                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{tHook('cw.confirm.enable' as never)}</span>
+                  </label>
+                  {item.showConfirm === true && (
+                    <input type="text"
+                      value={item.confirmText ?? ''}
+                      onChange={(e) => updateItem(item.id, { confirmText: e.target.value || undefined })}
+                      placeholder={tHook('cw.confirm.text' as never)}
+                      className={`w-full ${sInputCls}`} style={sInputStyle} />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          {addingItem ? (
+            <div className="rounded-lg p-2 space-y-1.5" style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
+              <input type="text" value={newItemLabel}
+                onChange={(e) => setNewItemLabel(e.target.value)}
+                placeholder={tHook('carousel.items.label' as never)}
+                className={`w-full ${sInputCls}`} style={sInputStyle} autoFocus />
+              <div className="flex gap-1">
+                <button onClick={confirmAddItem}
+                  className="flex-1 text-xs py-1 rounded-lg hover:opacity-80"
+                  style={{ background: 'var(--accent)', color: '#fff' }}>
+                  {tHook('common.add')}
+                </button>
+                <button onClick={() => { setAddingItem(false); setNewItemLabel(''); }}
+                  className="flex-1 text-xs py-1 rounded-lg hover:opacity-80"
+                  style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                  {tHook('common.cancel')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setAddingItem(true)}
+              className="w-full text-[11px] py-1.5 rounded-lg hover:opacity-80 text-center"
+              style={{ background: 'var(--app-bg)', color: 'var(--accent)', border: '1px dashed var(--accent)44' }}>
+              {tHook('carousel.items.add' as never)}
+            </button>
+          )}
+        </div>
+      </details>
+
+      {/* Item icon picker */}
+      {itemIconPickerIdx !== null && (
+        <IconPickerModal
+          current={items[itemIconPickerIdx]?.icon ?? ''}
+          onSelect={(name) => {
+            updateItem(items[itemIconPickerIdx].id, { icon: name || undefined });
+            setItemIconPickerIdx(null);
+          }}
+          onClose={() => setItemIconPickerIdx(null)}
+        />
+      )}
+    </>
+  );
+}
+
 export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDuplicate }: WidgetFrameProps) {
   const t = useT();
   const { defaultDecimals } = useGlobalSettingsStore();
@@ -2771,9 +3233,9 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   // Stable reference: never create a new [] on every render (would cause infinite effect loop)
   const conditions = (config.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
 
-  // GROUP / CAROUSEL widgets: create a fresh defId + clone children so copies are independent
+  // GROUP widgets: create a fresh defId + clone children so copies are independent
   function copyConfig(src: WidgetConfig): WidgetConfig {
-    if ((src.type === 'group' || src.type === 'carousel') && src.options?.defId) {
+    if (src.type === 'group' && src.options?.defId) {
       return { ...src, options: { ...src.options, defId: cloneGroupDef(src.options.defId as string) } };
     }
     // TIMER widgets: deep-clone options + regenerate event IDs so the copy is independent
@@ -2827,7 +3289,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
       setOpenPanel(panel);
     }
   };
-  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'shutter_openDp' | 'shutter_closeDp' | 'dimmer_switchDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_urlDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | 'iframe_urlDp' | 'light_switchDp' | 'light_brightnessDp' | 'light_hueDp' | 'light_saturationDp' | 'light_rDp' | 'light_gDp' | 'light_bDp' | 'light_colorDp' | 'light_temperatureDp' | 'light_effectDp' | 'weather_adapterPath' | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<'datapoint' | 'actualDatapoint' | 'localTempDatapoint' | 'shutter_activityDp' | 'shutter_directionDp' | 'shutter_stopDp' | 'shutter_openDp' | 'shutter_closeDp' | 'dimmer_switchDp' | 'gauge_pointer2Dp' | 'gauge_pointer3Dp' | 'windowcontact_batteryDp' | 'wc_lockDp' | 'status_batteryDp' | 'status_unreachDp' | 'camera_wakeUpDp' | 'camera_urlDp' | 'camera_slot' | 'html_dp' | 'mp_dp' | 'mp_chip' | 'sl_action' | 'chips_chip' | 'chips_checkDp' | 'carousel_item' | 'carousel_checkDp' | 'http_response_dp' | 'climate_humidityDp' | 'climate_targetDp' | 'iframe_urlDp' | 'light_switchDp' | 'light_brightnessDp' | 'light_hueDp' | 'light_saturationDp' | 'light_rDp' | 'light_gDp' | 'light_bDp' | 'light_colorDp' | 'light_temperatureDp' | 'light_effectDp' | 'weather_adapterPath' | null>(null);
   const [imageFilePicker, setImageFilePicker] = useState(false);
   const [pendingTypeChange, setPendingTypeChange] = useState<{
     suggestedType: WidgetType;
@@ -2839,6 +3301,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   const [mpPickerKey, setMpPickerKey] = useState('');
   const [mpChipIdx, setMpChipIdx] = useState(0);
   const [chipsChipIdx, setChipsChipIdx] = useState(0);
+  const [carouselItemIdx, setCarouselItemIdx] = useState(0);
   const [slActionIdx, setSlActionIdx] = useState(0);
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [iconPickerTrueOpen,  setIconPickerTrueOpen]  = useState(false);
@@ -3067,7 +3530,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
   const isHeader    = config.type === 'header';
   const isGroup     = config.type === 'group';
-  const isCarousel  = config.type === 'carousel';
   const isTransparent = !!(config.options?.transparent);
   const transparencyStrength = isTransparent
     ? Math.max(0, Math.min(100, Number(config.options?.transparency ?? 100)))
@@ -3119,7 +3581,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
   const activeLayoutIdCtx = useActiveLayoutId();
   const effectiveSettings = useEffectiveSettings(activeLayoutIdCtx);
   const widgetPadding = effectiveSettings.widgetPadding ?? 16;
-  const isNoPad = isHeader || isGroup || isCarousel || isTransparent || config.type === 'iframe' || config.type === 'echartsPreset';
+  const isNoPad = isHeader || isGroup || isTransparent || config.type === 'iframe' || config.type === 'echartsPreset';
 
   return (
     <div
@@ -4191,7 +4653,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 <CalendarEditPanel config={config} onConfigChange={onConfigChange} />
               )}
 
-              {config.type !== 'list' && config.type !== 'clock' && config.type !== 'calendar' && config.type !== 'header' && config.type !== 'group' && config.type !== 'button' && config.type !== 'evcc' && config.type !== 'echart' && config.type !== 'weather' && config.type !== 'camera' && config.type !== 'autolist' && config.type !== 'image' && config.type !== 'iframe' && config.type !== 'trash' && config.type !== 'trashSchedule' && config.type !== 'echartsPreset' && config.type !== 'html' && config.type !== 'mediaplayer' && config.type !== 'chips' && config.type !== 'httpRequest' && config.type !== 'universal' && config.type !== 'timer' && config.type !== 'adapterstatus' && config.type !== 'scriptstatus' && config.type !== 'adapterlogs' && config.type !== 'alarm' && (
+              {config.type !== 'list' && config.type !== 'clock' && config.type !== 'calendar' && config.type !== 'header' && config.type !== 'group' && config.type !== 'button' && config.type !== 'evcc' && config.type !== 'echart' && config.type !== 'weather' && config.type !== 'camera' && config.type !== 'autolist' && config.type !== 'image' && config.type !== 'iframe' && config.type !== 'trash' && config.type !== 'trashSchedule' && config.type !== 'echartsPreset' && config.type !== 'html' && config.type !== 'mediaplayer' && config.type !== 'chips' && config.type !== 'carousel' && config.type !== 'httpRequest' && config.type !== 'universal' && config.type !== 'timer' && config.type !== 'adapterstatus' && config.type !== 'scriptstatus' && config.type !== 'adapterlogs' && config.type !== 'alarm' && (
                 <div>
                   <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                     {config.type === 'thermostat'     ? 'Soll-Temperatur Datenpunkt' :
@@ -5233,47 +5695,15 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 <EnumConfig config={config} onConfigChange={onConfigChange} />
               )}
 
-              {/* ── Carousel config ── */}
-              {config.type === 'carousel' && (() => {
-                const o   = config.options ?? {};
-                const set = (patch: Record<string, unknown>) =>
-                  onConfigChange({ ...config, options: { ...o, ...patch } });
-                const loop      = !!o.loop;
-                const showDots  = o.showDots   !== false;
-                const showArrows = o.showArrows !== false;
-                const autoplay  = !!o.autoplay;
-                const interval  = (o.autoplayInterval as number) ?? 5;
-                const Toggle = ({ label, value, onToggle }: { label: string; value: boolean; onToggle: () => void }) => (
-                  <div className="flex items-center justify-between">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{label}</label>
-                    <button onClick={onToggle}
-                      className="relative w-9 h-5 rounded-full transition-colors"
-                      style={{ background: value ? 'var(--accent)' : 'var(--app-border)' }}>
-                      <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                        style={{ left: value ? '18px' : '2px' }} />
-                    </button>
-                  </div>
-                );
-                return (
-                  <>
-                    <Toggle label={t('carousel.opt.loop')}       value={loop}       onToggle={() => set({ loop: !loop })} />
-                    <Toggle label={t('carousel.opt.showDots')}   value={showDots}   onToggle={() => set({ showDots: !showDots })} />
-                    <Toggle label={t('carousel.opt.showArrows')} value={showArrows} onToggle={() => set({ showArrows: !showArrows })} />
-                    <Toggle label={t('carousel.opt.autoplay')}   value={autoplay}   onToggle={() => set({ autoplay: !autoplay })} />
-                    {autoplay && (
-                      <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                          {t('carousel.opt.interval')} <span style={{ opacity: 0.6 }}>(s)</span>
-                        </label>
-                        <input type="number" min={1} max={60} step={1} value={interval}
-                          onChange={(e) => set({ autoplayInterval: Math.max(1, Number(e.target.value) || 5) })}
-                          className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                          style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }} />
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
+              {/* ── Carousel config (chip-strip) ── */}
+              {config.type === 'carousel' && (
+                <CarouselEditPanel
+                  config={config}
+                  onConfigChange={onConfigChange}
+                  onOpenItemDpPicker={(idx) => { setCarouselItemIdx(idx); setPickerTarget('carousel_item'); }}
+                  onOpenCheckDpPicker={() => setPickerTarget('carousel_checkDp')}
+                />
+              )}
 
               {/* ── iFrame config ── */}
               {config.type === 'iframe' && (() => {
@@ -7902,6 +8332,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             pickerTarget === 'mp_chip' ? (() => { const chips = (config.options?.chips as Array<{ dp: string }>) ?? []; return chips[mpChipIdx]?.dp ?? ''; })() :
             pickerTarget === 'chips_chip' ? (() => { const chips = (config.options?.chips as Array<{ dp: string }>) ?? []; return chips[chipsChipIdx]?.dp ?? ''; })() :
             pickerTarget === 'chips_checkDp' ? ((config.options?.checkDp as string) ?? '') :
+            pickerTarget === 'carousel_item' ? (() => { const items = (config.options?.items as Array<{ dp: string }>) ?? []; return items[carouselItemIdx]?.dp ?? ''; })() :
+            pickerTarget === 'carousel_checkDp' ? ((config.options?.checkDp as string) ?? '') :
             pickerTarget === 'http_response_dp' ? ((config.options?.responseDatapoint as string) ?? '') :
             pickerTarget === 'iframe_urlDp'     ? ((config.options?.iframeUrlDp as string) ?? '') :
             pickerTarget === 'sl_action' ? (() => { const acts = (config.options?.actions as Array<{ dp: string }>) ?? []; return acts[slActionIdx]?.dp ?? ''; })() :
@@ -8090,6 +8522,12 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
               chips[chipsChipIdx] = { ...chips[chipsChipIdx], dp: id };
               onConfigChange({ ...config, options: { ...config.options, chips } });
             } else if (pickerTarget === 'chips_checkDp') {
+              onConfigChange({ ...config, options: { ...config.options, checkDp: id } });
+            } else if (pickerTarget === 'carousel_item') {
+              const items = [...((config.options?.items as Array<Record<string, unknown>>) ?? [])];
+              items[carouselItemIdx] = { ...items[carouselItemIdx], dp: id };
+              onConfigChange({ ...config, options: { ...config.options, items } });
+            } else if (pickerTarget === 'carousel_checkDp') {
               onConfigChange({ ...config, options: { ...config.options, checkDp: id } });
             } else if (pickerTarget === 'sl_action') {
               const acts = [...((config.options?.actions as Array<Record<string, unknown>>) ?? [])];

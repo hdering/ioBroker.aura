@@ -7,7 +7,7 @@ export interface GroupDefsState {
   /** True once the store has been populated from ioBroker (or explicitly marked
    *  empty after a load attempt). Until then, serialise() refuses to emit a
    *  payload — otherwise a fresh-boot save would clobber ioBroker with a
-   *  half-empty store and erase every group / carousel child. */
+   *  half-empty store and erase every group child. */
   hydrated: boolean;
   setDef: (defId: string, children: WidgetConfig[]) => void;
   removeDef: (defId: string) => void;
@@ -33,8 +33,8 @@ export const useGroupDefsStore = create<GroupDefsState>()((set) => ({
 // Serialise current state so saveToIoBroker can include it in the ioBroker payload.
 // Mimics the Zustand persist format: { state: { defs: ... }, version: 0 }.
 // Returns null before hydration so save skips this key — protects against the
-// race where boot writes (e.g. a freshly mounted carousel/group widget seeding
-// a defId) get persisted before ioBroker's real defs have been loaded.
+// race where boot writes (e.g. a freshly mounted group widget seeding a defId)
+// get persisted before ioBroker's real defs have been loaded.
 function serialise(): string | null {
   const state = useGroupDefsStore.getState();
   if (!state.hydrated) {
@@ -87,7 +87,7 @@ export function cloneGroupDef(sourceDefId: string): string {
 
 function cloneChildren(children: WidgetConfig[]): WidgetConfig[] {
   return children.map((child) => {
-    if ((child.type === 'group' || child.type === 'carousel') && child.options?.defId) {
+    if (child.type === 'group' && child.options?.defId) {
       return { ...child, options: { ...child.options, defId: cloneGroupDef(child.options.defId as string) } };
     }
     // Timer children: regenerate event ids and drop stateBaseId so the clone
@@ -108,10 +108,10 @@ function cloneChildren(children: WidgetConfig[]): WidgetConfig[] {
   });
 }
 
-/** Collect all defIds reachable from a widget list (recursively follows nested groups/carousels). */
+/** Collect all defIds reachable from a widget list (recursively follows nested groups). */
 function collectDefIds(widgets: WidgetConfig[], defs: Record<string, WidgetConfig[]>, out: Set<string>): void {
   for (const w of widgets) {
-    if ((w.type === 'group' || w.type === 'carousel') && w.options?.defId) {
+    if (w.type === 'group' && w.options?.defId) {
       const defId = w.options.defId as string;
       if (!out.has(defId)) {
         out.add(defId);

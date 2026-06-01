@@ -69,13 +69,13 @@ function collectAllRefs(): BrokenRef[] {
   const layouts = useDashboardStore.getState().layouts;
 
   // Build a defId -> parent location map first so group children can deep-link
-  // to whichever group/carousel widget on the dashboard hosts their def.
+  // to whichever group widget on the dashboard hosts their def.
   type ParentLoc = { parent: WidgetConfig; layoutId: string; layoutName: string; tabId: string; tabName: string };
   const defIdToParent = new Map<string, ParentLoc>();
   for (const l of layouts) {
     for (const tab of l.tabs) {
       for (const w of tab.widgets) {
-        if ((w.type === 'group' || w.type === 'carousel') && typeof w.options?.defId === 'string') {
+        if (w.type === 'group' && typeof w.options?.defId === 'string') {
           // First-wins: a defId can in principle be referenced from multiple
           // hosts, but in practice it points to one. Pick the first to keep
           // the deep-link stable.

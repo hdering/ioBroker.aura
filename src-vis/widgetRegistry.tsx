@@ -14,7 +14,7 @@ import {
   Zap, TrendingUp, SlidersHorizontal, Thermometer, BarChart2, List,
   Clock, CalendarDays, Heading2, Layers2, Cloud, Gauge, Camera, ImageIcon, MonitorDot, Droplets, Truck, AlignJustify, Table2,
   DoorOpen, ShieldAlert, ToggleRight, LineChart, Code2, CalendarClock, Music, CalendarCheck2, Tag, Globe, MousePointerClick, Wind,
-  LayoutGrid, ListChecks, Lightbulb, CircleDot, Timer, ServerCog, ScrollText, FileText, TextCursorInput, /* GalleryHorizontal — re-import when carousel is re-enabled */
+  LayoutGrid, ListChecks, Lightbulb, CircleDot, Timer, ServerCog, ScrollText, FileText, TextCursorInput, GalleryHorizontal,
   type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -470,18 +470,15 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     mock: { t: 'Alarmanlage', v: 'Deaktiviert' },
     hint: 'ioBroker.alarm-Adapter steuern — Scharf/Inside/Nacht, Zonen, PIN-Entwaffnung, Tages-Log',
   },
-  // Carousel widget disabled — not yet ready for production use.
-  // Re-enable by uncommenting; all supporting code (widgetMap, types, i18n,
-  // option editor, persistence) is still in place.
-  // {
-  //   type: 'carousel',
-  //   label: 'Karussell',            shortLabel: 'Karussell',
-  //   Icon: GalleryHorizontal,       iconName: 'GalleryHorizontal', color: '#ec4899',
-  //   defaultW: 12,                  defaultH: 6,
-  //   addMode: 'free',               widgetGroup: 'layout',
-  //   mock: { t: 'Karussell', v: '' },
-  //   hint: 'Mehrere Widgets als swipebare Slides – Wischen, Pagination-Dots und Pfeil-Buttons',
-  // },
+  {
+    type: 'carousel',
+    label: 'Karussell',            shortLabel: 'Karussell',
+    Icon: GalleryHorizontal,       iconName: 'GalleryHorizontal', color: '#ec4899',
+    defaultW: 6,                   defaultH: 2,
+    addMode: 'free',               widgetGroup: 'special',
+    mock: { t: 'Karussell', v: '••• •••' },
+    hint: 'Horizontal scrollbare Chip-Liste – pro Item Datenpunkt + eigene Klick-Aktion (DP schalten, Popup-Widget, Popup-View, Tab-Sprung)',
+  },
 ];
 
 /** Fast lookup by type */

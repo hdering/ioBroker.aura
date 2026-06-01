@@ -76,6 +76,21 @@ html, body, #root {
 }
 .aura-scroll::-webkit-scrollbar-corner { background: transparent; }
 
+/* Hide-scrollbar utility — used by the carousel widget when options.hideScrollbar is set */
+.aura-no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.aura-no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Carousel shake-on-open: brief rightward nudge + return, triggers when the
+   widget mounts (tab opened) and content overflows. Uses scrollLeft, not
+   transform, so it doesn't disturb sibling layout. JS sets/removes the class. */
+@keyframes aura-carousel-shake {
+  0%   { transform: translateX(0); }
+  35%  { transform: translateX(14px); }
+  70%  { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+.aura-carousel-shake { animation: aura-carousel-shake 600ms ease-out; }
+
 /* ── React-Grid-Layout drag placeholder ──────────────────────────────────────
    The placeholder always mounts on mousedown (even without actual drag movement).
    Adding an animation-delay of 120 ms means clicks that resolve faster than that
