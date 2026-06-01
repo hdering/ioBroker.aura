@@ -14,10 +14,11 @@ export function CustomCssSection({ contextId, onContextChange }: CustomCssSectio
   const clearLayoutSettings = useDashboardStore((s) => s.clearLayoutSettings);
   const { frontend } = useLayoutSetting(contextId);
 
-  const cssEnabled = (ls?.customCSSEnabled ?? frontend.customCSSEnabled) ?? true;
-  const cssValue   = ls?.customCSS ?? frontend.customCSS ?? '';
+  const cssEnabled  = (ls?.customCSSEnabled  ?? frontend.customCSSEnabled)  ?? true;
+  const cssInEditor = (ls?.customCSSInEditor ?? frontend.customCSSInEditor) ?? false;
+  const cssValue    = ls?.customCSS ?? frontend.customCSS ?? '';
 
-  function setCss(patch: Partial<{ customCSS: string; customCSSEnabled: boolean }>) {
+  function setCss(patch: Partial<{ customCSS: string; customCSSEnabled: boolean; customCSSInEditor: boolean }>) {
     if (!contextId) updateFrontend(patch as never);
     else updateLayoutSettings(contextId, patch);
   }
@@ -46,13 +47,17 @@ export function CustomCssSection({ contextId, onContextChange }: CustomCssSectio
           </label>
         </div>
       </div>
-      {contextId && (ls?.customCSS !== undefined || ls?.customCSSEnabled !== undefined) && (
+      {contextId && (ls?.customCSS !== undefined || ls?.customCSSEnabled !== undefined || ls?.customCSSInEditor !== undefined) && (
         <div className="flex items-center justify-between mb-2">
           <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)' }}>
             Layout-CSS aktiv
           </span>
           <button
-            onClick={() => { clearLayoutSettings(contextId, 'customCSS'); clearLayoutSettings(contextId, 'customCSSEnabled'); }}
+            onClick={() => {
+              clearLayoutSettings(contextId, 'customCSS');
+              clearLayoutSettings(contextId, 'customCSSEnabled');
+              clearLayoutSettings(contextId, 'customCSSInEditor');
+            }}
             className="text-[10px] hover:opacity-70"
             style={{ color: 'var(--text-secondary)' }}
           >
@@ -60,6 +65,23 @@ export function CustomCssSection({ contextId, onContextChange }: CustomCssSectio
           </button>
         </div>
       )}
+      <label className="flex items-center gap-2 cursor-pointer select-none mb-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={cssInEditor}
+          onClick={() => setCss({ customCSSInEditor: !cssInEditor })}
+          disabled={!cssEnabled}
+          className="relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors disabled:opacity-40"
+          style={{ background: cssInEditor ? 'var(--accent)' : 'var(--app-border)' }}
+        >
+          <span
+            className="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform m-0.5"
+            style={{ transform: cssInEditor ? 'translateX(16px)' : 'translateX(0)' }}
+          />
+        </button>
+        {t('theme.css.inEditor')}
+      </label>
       <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>{t('theme.css.subtitle')}</p>
       <textarea
         value={cssValue}

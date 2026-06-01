@@ -9,6 +9,7 @@ import type { ThemeVars } from '../themes';
 const LAYOUT_FRONTEND_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = [
   'customCSS',
   'customCSSEnabled',
+  'customCSSInEditor',
   'customJS',
   'customJSEnabled',
   'customJSInEditor',

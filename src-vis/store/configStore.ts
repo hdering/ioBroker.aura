@@ -5,6 +5,7 @@ import { managedStorage } from './persistManager';
 export interface FrontendSettings {
   customCSS: string;
   customCSSEnabled: boolean;
+  customCSSInEditor: boolean;
   customJS: string;
   customJSEnabled: boolean;
   customJSInEditor: boolean;
@@ -67,6 +68,7 @@ interface ConfigState {
 export const DEFAULT_FRONTEND: FrontendSettings = {
   customCSS: '',
   customCSSEnabled: true,
+  customCSSInEditor: false,
   customJS: '',
   customJSEnabled: false,
   customJSInEditor: false,

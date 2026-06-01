@@ -44,6 +44,7 @@ export interface LayoutSettings {
   // CSS
   customCSS?: string;
   customCSSEnabled?: boolean;
+  customCSSInEditor?: boolean;
   // JS
   customJS?: string;
   customJSEnabled?: boolean;

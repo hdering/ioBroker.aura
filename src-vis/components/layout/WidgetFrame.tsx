@@ -2731,14 +2731,22 @@ type CarouselItemEdit = {
   id: string;
   label: string;
   icon?: string;
+  iconSize?: number;
   dp: string;
+  /** Value written on click — also the "active" value (DP matching this lights the chip). */
   value?: string;
+  /** Optional explicit "off" value for boolean-style items. */
+  inactiveValue?: string;
+  /** Kept for backwards-compat with older configs; new UI no longer surfaces it. */
   activeValue?: string;
   clickAction?: ClickAction;
   bgColor?: string;
   textColor?: string;
+  bgColorInactive?: string;
+  textColorInactive?: string;
   showConfirm?: boolean;
   confirmText?: string;
+  showLastChange?: boolean;
 };
 
 function CarouselEditPanel({
@@ -2879,6 +2887,27 @@ function CarouselEditPanel({
             />
             <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{tHook('carousel.opt.shakeOnOpen' as never)}</span>
           </label>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox"
+              checked={o.autoRotate === true}
+              onChange={(e) => setO({ autoRotate: e.target.checked || undefined })}
+            />
+            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{tHook('carousel.opt.autoRotate' as never)}</span>
+          </label>
+          {o.autoRotate === true && (
+            <div>
+              <label className="text-[11px] mb-1 block flex items-center justify-between" style={{ color: 'var(--text-secondary)' }}>
+                <span>{tHook('carousel.opt.autoRotateSpeed' as never)}</span>
+                <span style={{ color: 'var(--text-primary)' }}>{((o.autoRotateSpeed as number) ?? 30)} px/s</span>
+              </label>
+              <input
+                type="range" min={5} max={200} step={1}
+                value={(o.autoRotateSpeed as number) ?? 30}
+                onChange={(e) => setO({ autoRotateSpeed: Number(e.target.value) })}
+                className="w-full"
+              />
+            </div>
+          )}
         </div>
       </details>
 
@@ -2945,40 +2974,32 @@ function CarouselEditPanel({
                   </button>
                 </div>
 
-                {/* Colors — bg + text override per item */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>{tHook('carousel.items.colors' as never)}</span>
-                  <label className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--text-secondary)' }} title={tHook('carousel.items.bgColor' as never)}>
+                {/* Per-item icon size — only shown when an icon is selected */}
+                {item.icon && (
+                  <div className="flex items-center gap-2">
+                    <label className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>{tHook('carousel.items.iconSize' as never)}</label>
                     <input
-                      type="color"
-                      value={item.bgColor ?? '#000000'}
-                      onChange={(e) => updateItem(item.id, { bgColor: e.target.value })}
-                      className="w-6 h-6 rounded cursor-pointer p-0 border-0"
-                      style={{ background: 'var(--app-bg)' }}
+                      type="range" min={8} max={96} step={1}
+                      value={item.iconSize ?? 0}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        updateItem(item.id, { iconSize: v === 0 ? undefined : v });
+                      }}
+                      className="flex-1"
                     />
-                    <span style={{ opacity: 0.7 }}>BG</span>
-                  </label>
-                  <label className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--text-secondary)' }} title={tHook('carousel.items.textColor' as never)}>
-                    <input
-                      type="color"
-                      value={item.textColor ?? '#ffffff'}
-                      onChange={(e) => updateItem(item.id, { textColor: e.target.value })}
-                      className="w-6 h-6 rounded cursor-pointer p-0 border-0"
-                      style={{ background: 'var(--app-bg)' }}
-                    />
-                    <span style={{ opacity: 0.7 }}>Text</span>
-                  </label>
-                  {(item.bgColor || item.textColor) && (
-                    <button
-                      onClick={() => updateItem(item.id, { bgColor: undefined, textColor: undefined })}
-                      className="text-[10px] hover:opacity-70"
-                      style={{ color: 'var(--text-secondary)' }}
-                      title={tHook('carousel.items.resetColor' as never)}
-                    >
-                      ↩
-                    </button>
-                  )}
-                </div>
+                    <span className="text-[10px] w-12 text-right tabular-nums" style={{ color: 'var(--text-secondary)' }}>
+                      {item.iconSize ? `${item.iconSize}px` : tHook('common.auto' as never)}
+                    </span>
+                    {item.iconSize !== undefined && (
+                      <button
+                        onClick={() => updateItem(item.id, { iconSize: undefined })}
+                        className="text-[10px] px-1 hover:opacity-70 shrink-0"
+                        style={{ color: 'var(--text-secondary)' }}
+                        title={tHook('carousel.items.resetIconSize' as never)}
+                      >↩</button>
+                    )}
+                  </div>
+                )}
 
                 {/* Click-Action selector */}
                 <div>
@@ -3026,12 +3047,73 @@ function CarouselEditPanel({
                         </button>
                       </div>
                     </div>
+                    {/* Aktiv-Wert + Aktiv-Farben (BG/Text) in einer Zeile */}
                     <div>
                       <label className="text-[10px] mb-0.5 block" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>{tHook('carousel.items.value' as never)}</label>
-                      <input type="text" value={item.value ?? ''}
-                        onChange={(e) => updateItem(item.id, { value: e.target.value || undefined })}
-                        placeholder="z.B. true, 1, on, relaxing"
-                        className={`w-full ${sInputCls}`} style={sInputStyle} />
+                      <div className="flex gap-1 items-center">
+                        <input type="text" value={item.value ?? ''}
+                          onChange={(e) => updateItem(item.id, { value: e.target.value || undefined })}
+                          placeholder="z.B. true"
+                          className={`flex-1 ${sInputCls} min-w-0`} style={sInputStyle} />
+                        <input
+                          type="color"
+                          value={item.bgColor ?? '#000000'}
+                          onChange={(e) => updateItem(item.id, { bgColor: e.target.value })}
+                          title={tHook('carousel.items.bgColor' as never)}
+                          className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
+                          style={{ background: 'var(--app-bg)' }}
+                        />
+                        <input
+                          type="color"
+                          value={item.textColor ?? '#ffffff'}
+                          onChange={(e) => updateItem(item.id, { textColor: e.target.value })}
+                          title={tHook('carousel.items.textColor' as never)}
+                          className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
+                          style={{ background: 'var(--app-bg)' }}
+                        />
+                        {(item.bgColor || item.textColor) && (
+                          <button
+                            onClick={() => updateItem(item.id, { bgColor: undefined, textColor: undefined })}
+                            className="text-[10px] px-1 shrink-0 hover:opacity-70"
+                            style={{ color: 'var(--text-secondary)' }}
+                            title={tHook('carousel.items.resetColor' as never)}
+                          >↩</button>
+                        )}
+                      </div>
+                    </div>
+                    {/* Inaktiv-Wert + Inaktiv-Farben (BG/Text) in einer Zeile */}
+                    <div>
+                      <label className="text-[10px] mb-0.5 block" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>{tHook('carousel.items.inactiveValue' as never)}</label>
+                      <div className="flex gap-1 items-center">
+                        <input type="text" value={item.inactiveValue ?? ''}
+                          onChange={(e) => updateItem(item.id, { inactiveValue: e.target.value || undefined })}
+                          placeholder="z.B. false"
+                          className={`flex-1 ${sInputCls} min-w-0`} style={sInputStyle} />
+                        <input
+                          type="color"
+                          value={item.bgColorInactive ?? '#000000'}
+                          onChange={(e) => updateItem(item.id, { bgColorInactive: e.target.value })}
+                          title={tHook('carousel.items.bgColor' as never)}
+                          className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
+                          style={{ background: 'var(--app-bg)' }}
+                        />
+                        <input
+                          type="color"
+                          value={item.textColorInactive ?? '#ffffff'}
+                          onChange={(e) => updateItem(item.id, { textColorInactive: e.target.value })}
+                          title={tHook('carousel.items.textColor' as never)}
+                          className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
+                          style={{ background: 'var(--app-bg)' }}
+                        />
+                        {(item.bgColorInactive || item.textColorInactive) && (
+                          <button
+                            onClick={() => updateItem(item.id, { bgColorInactive: undefined, textColorInactive: undefined })}
+                            className="text-[10px] px-1 shrink-0 hover:opacity-70"
+                            style={{ color: 'var(--text-secondary)' }}
+                            title={tHook('carousel.items.resetColor' as never)}
+                          >↩</button>
+                        )}
+                      </div>
                     </div>
                   </>
                 )}
@@ -3111,16 +3193,14 @@ function CarouselEditPanel({
                   );
                 })()}
 
-                {/* Active value — shown when checkDp is set, regardless of action */}
-                {(o.checkDp as string) && (!item.clickAction || item.clickAction.kind === 'none') && (
-                  <div>
-                    <label className="text-[10px] mb-0.5 block" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>{tHook('carousel.items.activeValue' as never)}</label>
-                    <input type="text" value={item.activeValue ?? ''}
-                      onChange={(e) => updateItem(item.id, { activeValue: e.target.value || undefined })}
-                      placeholder="z.B. relaxing"
-                      className={`w-full ${sInputCls}`} style={sInputStyle} />
-                  </div>
-                )}
+                {/* Show last change */}
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input type="checkbox"
+                    checked={item.showLastChange === true}
+                    onChange={(e) => updateItem(item.id, { showLastChange: e.target.checked || undefined })}
+                  />
+                  <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{tHook('carousel.items.showLastChange' as never)}</span>
+                </label>
 
                 {/* Per-item confirmation */}
                 <div className="space-y-1 pt-1" style={{ borderTop: '1px dashed var(--app-border)' }}>

@@ -6,7 +6,8 @@
  *   • Or: open a popup (popup-widget / popup-view) or jump to a tab (link-tab)
  *
  * Swipe-scroll with mouse (drag) or touch (native). Optional shake-on-open hint
- * when content overflows. Optional per-item override colors (bg, text).
+ * when content overflows. Optional auto-rotate, per-item colors, per-item
+ * active/inactive values, per-item last-change timestamp.
  */
 import { useEffect, useRef, useState } from 'react';
 import { Zap, GalleryHorizontal } from 'lucide-react';
@@ -15,6 +16,8 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { useNavigationStore } from '../../store/navigationStore';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { useT } from '../../i18n';
+import { formatLastChange } from '../../utils/formatLastChange';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { WidgetClickPopup } from './popup/WidgetClickPopup';
 import type { WidgetProps, ClickAction } from '../../types';
@@ -23,22 +26,35 @@ export type CarouselItem = {
   id: string;
   label: string;
   icon?: string;
+  /** Per-item icon size in px; when undefined the size is auto-derived from the
+   *  chip height (and grows when last-change is shown so the icon visually
+   *  matches the two-line text block). */
+  iconSize?: number;
   dp: string;
   value?: string | number | boolean;
   activeValue?: string | number | boolean;
+  inactiveValue?: string | number | boolean;
   clickAction?: ClickAction;
+  /** Background color while the item is active (DP matches activeValue / value). */
   bgColor?: string;
+  /** Text color while the item is active. */
   textColor?: string;
+  /** Background color while the item is inactive. */
+  bgColorInactive?: string;
+  /** Text color while the item is inactive. */
+  textColorInactive?: string;
   showConfirm?: boolean;
   confirmText?: string;
+  showLastChange?: boolean;
 };
 
 // A real drag must exceed this distance before we suppress the chip onClick.
 // Below the threshold, the click still fires (tap-to-toggle still works).
 const DRAG_CLICK_THRESHOLD = 6;
 
-export function CarouselWidget({ config }: WidgetProps) {
+export function CarouselWidget({ config, editMode }: WidgetProps) {
   const o = config.options ?? {};
+  const t = useT();
   const { setState } = useIoBroker();
   const [pendingItem, setPendingItem] = useState<CarouselItem | null>(null);
   const [popupAction, setPopupAction] = useState<ClickAction | null>(null);
@@ -62,6 +78,9 @@ export function CarouselWidget({ config }: WidgetProps) {
   const snap      = o.snap === true;
   const hideScrollbar = o.hideScrollbar === true;
   const shakeOnOpen   = o.shakeOnOpen === true;
+  const autoRotate    = o.autoRotate === true;
+  // px/s — 30 ≈ slow ticker. Clamped to [5, 400] to keep behavior sane.
+  const autoRotateSpeed = Math.max(5, Math.min(400, (o.autoRotateSpeed as number) || 30));
 
   const { value: checkValue } = useDatapoint(checkDp);
 
@@ -77,12 +96,18 @@ export function CarouselWidget({ config }: WidgetProps) {
   const justDraggedRef = useRef(false);
   // Running inertia rAF; cancelled when a new drag starts or on unmount.
   const inertiaRafRef = useRef<number | null>(null);
+  // Auto-rotate rAF; cancelled when paused or unmounted.
+  const rotateRafRef = useRef<number | null>(null);
+  // True while the pointer is over the strip or being dragged — auto-rotate
+  // pauses so the user can interact without fighting the scroll.
+  const [paused, setPaused] = useState(false);
   // Shake animation — applied once on mount via class toggle.
   const [shaking, setShaking] = useState(false);
 
-  // Cancel inertia on unmount so no stale rAF runs against an unmounted node.
+  // Cancel inertia + rotate on unmount so no stale rAF runs against an unmounted node.
   useEffect(() => () => {
     if (inertiaRafRef.current !== null) window.cancelAnimationFrame(inertiaRafRef.current);
+    if (rotateRafRef.current  !== null) window.cancelAnimationFrame(rotateRafRef.current);
   }, []);
 
   // ── Shake on tab open ───────────────────────────────────────────────────────
@@ -101,6 +126,38 @@ export function CarouselWidget({ config }: WidgetProps) {
     });
     return () => window.cancelAnimationFrame(id);
   }, [shakeOnOpen]);
+
+  // ── Auto-rotate ─────────────────────────────────────────────────────────────
+  // Slow continuous scroll. Loops back to start when reaching the right edge.
+  // Pauses while the user hovers / drags so it doesn't fight pointer input.
+  // Disabled in editMode to avoid scroll surprises while configuring.
+  useEffect(() => {
+    if (!autoRotate || paused || editMode) return;
+    let last = performance.now();
+    const tick = (now: number) => {
+      const el = stripRef.current;
+      if (!el) { rotateRafRef.current = null; return; }
+      // With auto-rotate ON we render items twice (see render below). The strip
+      // contains 2 copies → scrollWidth = 2 × originalWidth. When scrollLeft
+      // crosses one copy's width, snap back by exactly that width: the visible
+      // viewport content is identical at both positions, so the rollover is
+      // invisible and rotation looks endless.
+      const halfWidth = el.scrollWidth / 2;
+      const max = el.scrollWidth - el.clientWidth;
+      if (max <= 0) { rotateRafRef.current = null; return; }
+      const dt = Math.min(48, now - last);
+      last = now;
+      let next = el.scrollLeft + (autoRotateSpeed * dt) / 1000;
+      if (next >= halfWidth) next -= halfWidth;
+      el.scrollLeft = next;
+      rotateRafRef.current = window.requestAnimationFrame(tick);
+    };
+    rotateRafRef.current = window.requestAnimationFrame(tick);
+    return () => {
+      if (rotateRafRef.current !== null) window.cancelAnimationFrame(rotateRafRef.current);
+      rotateRafRef.current = null;
+    };
+  }, [autoRotate, autoRotateSpeed, paused, editMode, items.length]);
 
   // ── Action dispatch ─────────────────────────────────────────────────────────
   const dispatchAction = (item: CarouselItem) => {
@@ -123,14 +180,6 @@ export function CarouselWidget({ config }: WidgetProps) {
     if (justDraggedRef.current) return; // pointer-drag swipe — not a click
     if (item.showConfirm) { setPendingItem(item); return; }
     dispatchAction(item);
-  };
-
-  const isActive = (item: CarouselItem): boolean => {
-    if (!checkDp) return false;
-    const compareTo = item.activeValue !== undefined ? item.activeValue : item.value;
-    if (compareTo === undefined) return false;
-    // eslint-disable-next-line eqeqeq
-    return checkValue == compareTo;
   };
 
   // ── Pointer drag handlers (mouse swipe) ─────────────────────────────────────
@@ -266,6 +315,8 @@ export function CarouselWidget({ config }: WidgetProps) {
           onPointerUp={endDrag}
           onPointerCancel={endDrag}
           onPointerLeave={endDrag}
+          onMouseEnter={autoRotate ? () => setPaused(true) : undefined}
+          onMouseLeave={autoRotate ? () => setPaused(false) : undefined}
           style={{
             display: 'flex',
             gap: `${gap}px`,
@@ -280,30 +331,31 @@ export function CarouselWidget({ config }: WidgetProps) {
             userSelect: 'none',
           }}
         >
-          {items.map((item) => {
-            const active = isActive(item);
+          {/* When auto-rotate is on we render items twice. The auto-rotate tick
+              wraps scrollLeft by exactly halfWidth = scrollWidth/2 so the
+              rollover lands on the duplicate copy, which shows the same content
+              at the same viewport position — visually seamless. */}
+          {(autoRotate && items.length > 0 ? [...items, ...items] : items).map((item, idx) => {
             const ItemIcon = item.icon ? getWidgetIcon(item.icon, Zap) : null;
-            const bg = item.bgColor ?? defaultBg(active);
-            const color = item.textColor ?? defaultColor(active);
+            const isDup = autoRotate && idx >= items.length;
             return (
-              <button
-                key={item.id}
+              <CarouselItemButton
+                key={isDup ? `${item.id}__dup` : item.id}
+                item={item}
+                ItemIcon={ItemIcon}
+                checkDp={checkDp}
+                checkValue={checkValue}
+                t={t}
+                h={h}
+                fs={fs}
+                px={px}
+                iconSz={iconSz}
+                snap={snap}
+                defaultBg={defaultBg}
+                defaultColor={defaultColor}
+                chipBorder={chipBorder}
                 onClick={() => handleClick(item)}
-                className="flex items-center gap-1.5 rounded-full whitespace-nowrap hover:opacity-80 transition-opacity shrink-0"
-                style={{
-                  background: bg,
-                  color,
-                  border: chipBorder(active, item.bgColor),
-                  fontSize: fs,
-                  height: `${h}px`,
-                  paddingLeft: px,
-                  paddingRight: px,
-                  scrollSnapAlign: snap ? 'start' : undefined,
-                }}
-              >
-                {ItemIcon && <ItemIcon size={iconSz} />}
-                {item.label}
-              </button>
+              />
             );
           })}
         </div>
@@ -326,5 +378,135 @@ export function CarouselWidget({ config }: WidgetProps) {
         />
       )}
     </div>
+  );
+}
+
+// ── Per-item button component ────────────────────────────────────────────────
+// Lives in its own component so we can call useDatapoint(item.dp) per item.
+// Computes active state by reading the item's own DP against activeValue /
+// inactiveValue. Falls back to the shared checkDp comparison when the item
+// hasn't been given explicit active values.
+
+interface CarouselItemButtonProps {
+  item: CarouselItem;
+  ItemIcon: import('lucide-react').LucideIcon | null;
+  checkDp: string;
+  checkValue: unknown;
+  t: ReturnType<typeof useT>;
+  h: number;
+  fs: string;
+  px: string;
+  iconSz: number;
+  snap: boolean;
+  defaultBg: (active: boolean) => string;
+  defaultColor: (active: boolean) => string;
+  chipBorder: (active: boolean, customBg: string | undefined) => string;
+  onClick: () => void;
+}
+
+function CarouselItemButton({
+  item, ItemIcon, checkDp, checkValue, t, h, fs, px, iconSz, snap,
+  defaultBg, defaultColor, chipBorder, onClick,
+}: CarouselItemButtonProps) {
+  // Subscribe to item's own DP only when the item actually needs its own state
+  // (active/inactive value comparison or last-change display). Empty id is
+  // harmless — useDatapoint short-circuits when id is empty.
+  const needsOwnDp = !!(item.dp && (
+    item.activeValue !== undefined || item.inactiveValue !== undefined || item.showLastChange
+  ));
+  const { state: itemState } = useDatapoint(needsOwnDp ? item.dp : '');
+
+  // Periodic redraw for the relative-time string. Only ticks when at least one
+  // item is showing last-change to avoid a global interval.
+  const [, forceRedraw] = useState(0);
+  useEffect(() => {
+    if (!item.showLastChange) return;
+    const iv = window.setInterval(() => forceRedraw((n) => n + 1), 10_000);
+    return () => window.clearInterval(iv);
+  }, [item.showLastChange]);
+
+  // Active-state resolution:
+  //   • If activeValue/inactiveValue defined → compare against item's own DP
+  //   • Else if shared checkDp set → compare against checkValue (scene mode)
+  //   • Else → never active
+  let active = false;
+  if (needsOwnDp && (item.activeValue !== undefined || item.inactiveValue !== undefined)) {
+    const v = itemState?.val ?? null;
+    if (item.activeValue !== undefined) {
+      // eslint-disable-next-line eqeqeq
+      active = v == item.activeValue;
+    } else if (item.inactiveValue !== undefined) {
+      // Only inactiveValue defined: item is active when DP is NOT the inactive
+      // value (and DP has actually delivered a value).
+      // eslint-disable-next-line eqeqeq
+      active = v !== null && v != item.inactiveValue;
+    }
+  } else if (checkDp) {
+    const compareTo = item.activeValue !== undefined ? item.activeValue : item.value;
+    if (compareTo !== undefined) {
+      // eslint-disable-next-line eqeqeq
+      active = checkValue == compareTo;
+    }
+  }
+
+  // Pick the color override matching the current state. Each side falls back
+  // to the chip-style default (defaultBg/defaultColor) when no override is set,
+  // so users can colour only the active state, only the inactive state, or both.
+  const customBg = active ? item.bgColor : item.bgColorInactive;
+  const customText = active ? item.textColor : item.textColorInactive;
+  const bg = customBg ?? defaultBg(active);
+  const color = customText ?? defaultColor(active);
+
+  const ts = itemState ? (itemState.lc > 0 ? itemState.lc : itemState.ts) : 0;
+  const lastChangeText = item.showLastChange && ts > 0
+    ? formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, ts)
+    : '';
+
+  const lcFontSize = Math.max(8, Math.round(h * 0.22));
+
+  // Icon sizing:
+  //   • Explicit per-item override wins.
+  //   • Otherwise, when last-change is shown the icon spans both lines (label
+  //     line-height ≈ chipHeight × 0.5 + lc line-height ≈ chipHeight × 0.3 + gap).
+  //     We approximate that as h × 0.7.
+  //   • Single-line: keep the existing h × 0.4 sizing.
+  const effectiveIconSz = item.iconSize
+    ? Math.max(8, Math.min(200, item.iconSize))
+    : item.showLastChange
+      ? Math.round(h * 0.7)
+      : iconSz;
+
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-1.5 rounded-full whitespace-nowrap hover:opacity-80 transition-opacity shrink-0"
+      style={{
+        background: bg,
+        color,
+        border: chipBorder(active, customBg),
+        fontSize: fs,
+        height: item.showLastChange ? 'auto' : `${h}px`,
+        minHeight: `${h}px`,
+        paddingLeft: px,
+        paddingRight: px,
+        paddingTop: item.showLastChange ? `${Math.round(h * 0.15)}px` : undefined,
+        paddingBottom: item.showLastChange ? `${Math.round(h * 0.15)}px` : undefined,
+        scrollSnapAlign: snap ? 'start' : undefined,
+        lineHeight: 1.1,
+      }}
+    >
+      {ItemIcon && <ItemIcon size={effectiveIconSz} />}
+      <span className="flex flex-col items-start" style={{ lineHeight: 1.1 }}>
+        <span>{item.label}</span>
+        {item.showLastChange && lastChangeText && (
+          <span
+            className="aura-last-change opacity-60"
+            style={{ fontSize: `${lcFontSize}px`, marginTop: 1 }}
+          >
+            {lastChangeText}
+          </span>
+        )}
+      </span>
+    </button>
   );
 }

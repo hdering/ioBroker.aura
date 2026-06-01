@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Sun, Moon, Settings } from 'lucide-react';
 import { useIoBroker, setStateDirect, subscribeStateDirect, prefetchStates } from './hooks/useIoBroker';
 import { useCustomJs } from './hooks/useCustomJs';
+import { useCustomCss } from './hooks/useCustomCss';
 import { useConfigSync } from './hooks/useConfigSync';
 import { useVersionGuard } from './hooks/useVersionGuard';
 import { useConnectionStore } from './store/connectionStore';
@@ -17,7 +18,7 @@ import { Dashboard } from './components/layout/Dashboard';
 import { TabBar } from './components/layout/TabBar';
 import { LayoutDrawer } from './components/layout/LayoutDrawer';
 import { useIframeStore } from './store/iframeStore';
-import { useEffectiveSettings, useEffectiveThemeId, useEffectiveCustomVars } from './hooks/useEffectiveSettings';
+import { useEffectiveThemeId, useEffectiveCustomVars } from './hooks/useEffectiveSettings';
 import { useT } from './i18n';
 import { applyCustomFormat, fmtTime, fmtDate } from './utils/clockUtils';
 import type { Tab } from './store/dashboardStore';
@@ -192,14 +193,11 @@ export default function App() {
   const { connected, subscribe } = useIoBroker();
   const { clientId, clientName } = useConnectionStore();
 
-  const styleRef = useRef<HTMLStyleElement | null>(null);
-
   // Determine which layout to display based on URL slug
   const layout = useLayoutBySlug(layoutSlug);
   const tabs = useMemo<Tab[]>(() => layout?.tabs ?? [], [layout?.tabs]);
 
   // Effective settings for the active layout (per-layout overrides + global fallback)
-  const effectiveSettings = useEffectiveSettings(layout?.id);
   const effectiveThemeId = useEffectiveThemeId(layout?.id);
   const effectiveCustomVars = useEffectiveCustomVars(layout?.id);
   const currentTheme = getTheme(effectiveThemeId);
@@ -319,16 +317,7 @@ export default function App() {
   }, []);
 
   // Apply effective custom CSS (per-layout overrides global when set)
-  useEffect(() => {
-    if (!styleRef.current) {
-      styleRef.current = document.createElement('style');
-      styleRef.current.id = 'aura-custom-css';
-      document.head.appendChild(styleRef.current);
-    }
-    const css = effectiveSettings.customCSS ?? frontend.customCSS;
-    const enabled = effectiveSettings.customCSSEnabled ?? true;
-    styleRef.current.textContent = enabled ? css : '';
-  }, [effectiveSettings.customCSS, effectiveSettings.customCSSEnabled, frontend.customCSS, frontend.customCSSEnabled]);
+  useCustomCss(layout?.id, false);
 
   // Custom JS — runs always in frontend; installs window.aura helper API.
   useCustomJs(layout?.id, false);
