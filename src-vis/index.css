@@ -91,6 +91,22 @@ html, body, #root {
 }
 .aura-carousel-shake { animation: aura-carousel-shake 600ms ease-out; }
 
+/* Carousel chip text marquee — used when an item's label is wider than the
+   item's max-width. The container clips overflow; the inner element renders
+   the text twice (with a nbsp-spacer baked in) and translates -50%, which
+   shifts the second copy exactly into the first copy's start position so
+   the loop is seamless. Duration is set per-instance via --marquee-duration. */
+@keyframes aura-marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.aura-marquee-track {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  animation: aura-marquee var(--marquee-duration, 10s) linear infinite;
+  will-change: transform;
+}
+
 /* ── React-Grid-Layout drag placeholder ──────────────────────────────────────
    The placeholder always mounts on mousedown (even without actual drag movement).
    Adding an animation-delay of 120 ms means clicks that resolve faster than that

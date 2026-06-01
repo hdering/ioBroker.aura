@@ -2811,6 +2811,13 @@ function CarouselEditPanel({
         </summary>
         <div className="space-y-2">
           <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{tHook('carousel.opt.mode' as never)}</label>
+            <select value={(o.mode as string) ?? 'carousel'} onChange={(e) => setO({ mode: e.target.value === 'carousel' ? undefined : e.target.value })} className={selCls} style={sInputStyle}>
+              <option value="carousel">{tHook('carousel.opt.mode.carousel' as never)}</option>
+              <option value="single">{tHook('carousel.opt.mode.single' as never)}</option>
+            </select>
+          </div>
+          <div>
             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{tHook('cw.layout.align' as never)}</label>
             <select value={(o.align as string) ?? 'start'} onChange={(e) => setO({ align: e.target.value })} className={selCls} style={sInputStyle}>
               <option value="start">Start</option>
@@ -2824,6 +2831,19 @@ function CarouselEditPanel({
               <option value="top">Oben</option>
               <option value="middle">Mitte</option>
               <option value="bottom">Unten</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{tHook('carousel.opt.labelAlign' as never)}</label>
+            <select
+              value={(o.labelAlign as string) ?? ((o.mode as string) === 'single' ? 'center' : 'left')}
+              onChange={(e) => setO({ labelAlign: e.target.value })}
+              className={selCls}
+              style={sInputStyle}
+            >
+              <option value="left">Links</option>
+              <option value="center">Mitte</option>
+              <option value="right">Rechts</option>
             </select>
           </div>
           <div>
@@ -2866,6 +2886,23 @@ function CarouselEditPanel({
               className="w-full"
             />
           </div>
+          <div>
+            <label className="text-[11px] mb-1 block flex items-center justify-between" style={{ color: 'var(--text-secondary)' }}>
+              <span>{tHook('carousel.opt.maxItemWidth' as never)}</span>
+              <span style={{ color: 'var(--text-primary)' }}>
+                {(o.maxItemWidth as number | undefined) ? `${o.maxItemWidth}px` : tHook('common.auto' as never)}
+              </span>
+            </label>
+            <input
+              type="range" min={0} max={400} step={5}
+              value={(o.maxItemWidth as number | undefined) ?? 0}
+              onChange={(e) => {
+                const v = Number(e.target.value);
+                setO({ maxItemWidth: v === 0 ? undefined : v });
+              }}
+              className="w-full"
+            />
+          </div>
           <label className="flex items-center gap-2 cursor-pointer select-none">
             <input type="checkbox"
               checked={o.snap === true}
@@ -2894,20 +2931,33 @@ function CarouselEditPanel({
             />
             <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{tHook('carousel.opt.autoRotate' as never)}</span>
           </label>
-          {o.autoRotate === true && (
+          {o.autoRotate === true && (o.mode === 'single' ? (
+            <div>
+              <label className="text-[11px] mb-1 block flex items-center justify-between" style={{ color: 'var(--text-secondary)' }}>
+                <span>{tHook('carousel.opt.autoRotateInterval' as never)}</span>
+                <span style={{ color: 'var(--text-primary)' }}>{((o.autoRotateInterval as number) ?? 4)} s</span>
+              </label>
+              <input
+                type="range" min={1} max={30} step={1}
+                value={(o.autoRotateInterval as number) ?? 4}
+                onChange={(e) => setO({ autoRotateInterval: Number(e.target.value) })}
+                className="w-full"
+              />
+            </div>
+          ) : (
             <div>
               <label className="text-[11px] mb-1 block flex items-center justify-between" style={{ color: 'var(--text-secondary)' }}>
                 <span>{tHook('carousel.opt.autoRotateSpeed' as never)}</span>
                 <span style={{ color: 'var(--text-primary)' }}>{((o.autoRotateSpeed as number) ?? 30)} px/s</span>
               </label>
               <input
-                type="range" min={5} max={200} step={1}
+                type="range" min={2} max={200} step={1}
                 value={(o.autoRotateSpeed as number) ?? 30}
                 onChange={(e) => setO({ autoRotateSpeed: Number(e.target.value) })}
                 className="w-full"
               />
             </div>
-          )}
+          ))}
         </div>
       </details>
 

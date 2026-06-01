@@ -9,7 +9,7 @@
  * when content overflows. Optional auto-rotate, per-item colors, per-item
  * active/inactive values, per-item last-change timestamp.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Zap, GalleryHorizontal } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
@@ -52,11 +52,22 @@ export type CarouselItem = {
 // Below the threshold, the click still fires (tap-to-toggle still works).
 const DRAG_CLICK_THRESHOLD = 6;
 
+// Loose equality that also matches across types. The Aktiv-/Inaktiv-Wert
+// inputs are <input type="text"> → always strings, while DP values can be
+// boolean / number / string. Native `==` fails on e.g. `true == "true"`, so
+// we fall back to a case-insensitive string compare when needed.
+function eqLoose(a: unknown, b: unknown): boolean {
+  // eslint-disable-next-line eqeqeq
+  if (a == b) return true;
+  if (a == null || b == null) return false;
+  return String(a).toLowerCase() === String(b).toLowerCase();
+}
+
 export function CarouselWidget({ config, editMode }: WidgetProps) {
   const o = config.options ?? {};
   const t = useT();
   const { setState } = useIoBroker();
-  const [pendingItem, setPendingItem] = useState<CarouselItem | null>(null);
+  const [pendingItem, setPendingItem] = useState<{ item: CarouselItem; isActive: boolean } | null>(null);
   const [popupAction, setPopupAction] = useState<ClickAction | null>(null);
 
   const WidgetIcon = getWidgetIcon(o.icon as string | undefined, GalleryHorizontal);
@@ -72,15 +83,29 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
   const gap       = (o.gap       as number) ?? 8;
   const align     = (o.align     as string) ?? 'start';
   const valign    = (o.valign    as string) ?? 'middle';
-  // Snap is opt-in: with snap on, the scroll position must always land on a
-  // snap point, which prevents small nudges (3–4 px) and makes the inertia feel
-  // jumpy. Off = free pixel-precise scrolling.
+  // Two layout modes:
+  //   'carousel' (default) — multiple items visible at once, free scroll
+  //   'single'             — one item fills the viewport width, swipe paginates
+  const mode      = (o.mode as 'carousel' | 'single') ?? 'carousel';
+  const isSingle  = mode === 'single';
+  // Snap is opt-in for carousel mode. For single mode it's forced on (mandatory)
+  // so each scroll/swipe always lands on a clean item boundary.
   const snap      = o.snap === true;
   const hideScrollbar = o.hideScrollbar === true;
   const shakeOnOpen   = o.shakeOnOpen === true;
   const autoRotate    = o.autoRotate === true;
-  // px/s — 30 ≈ slow ticker. Clamped to [5, 400] to keep behavior sane.
+  // Carousel mode: px/s of continuous scroll. Clamped to [5, 400].
   const autoRotateSpeed = Math.max(5, Math.min(400, (o.autoRotateSpeed as number) || 30));
+  // Single mode: seconds between discrete steps. Clamped to [1, 60].
+  const autoRotateInterval = Math.max(1, Math.min(60, (o.autoRotateInterval as number) || 4));
+  // Optional cap on a chip's width. Labels wider than the available text area
+  // marquee-scroll horizontally instead of overflowing the chip. 0 / undefined
+  // = no cap, chip grows to fit the label naturally.
+  const maxItemWidth = (o.maxItemWidth as number | undefined) || 0;
+  // Where the label (and last-change line) sits within the chip. Defaults
+  // preserve previous behaviour: centred in single mode, left in carousel mode.
+  const labelAlign = (o.labelAlign as 'left' | 'center' | 'right' | undefined)
+    ?? (mode === 'single' ? 'center' : 'left');
 
   const { value: checkValue } = useDatapoint(checkDp);
 
@@ -101,6 +126,12 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
   // True while the pointer is over the strip or being dragged — auto-rotate
   // pauses so the user can interact without fighting the scroll.
   const [paused, setPaused] = useState(false);
+  // True when the single (un-duplicated) item set is wider than the viewport.
+  // Gates the duplicate render: without overflow, showing items twice makes
+  // both copies visible side-by-side, which reads as ghosted/doubled chips.
+  const [hasOverflow, setHasOverflow] = useState(false);
+  const hasOverflowRef = useRef(false);
+  hasOverflowRef.current = hasOverflow;
   // Shake animation — applied once on mount via class toggle.
   const [shaking, setShaking] = useState(false);
 
@@ -109,6 +140,41 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
     if (inertiaRafRef.current !== null) window.cancelAnimationFrame(inertiaRafRef.current);
     if (rotateRafRef.current  !== null) window.cancelAnimationFrame(rotateRafRef.current);
   }, []);
+
+  // Decide whether to duplicate items for the seamless auto-rotate wrap. We
+  // only want duplicates when the original set is wider than the viewport;
+  // otherwise both copies would be visible at once and look ghosted. Read
+  // hasOverflow via a ref so the effect itself isn't a dep (avoiding bounce).
+  //
+  // useLayoutEffect runs synchronously after each DOM commit but BEFORE paint,
+  // so the duplicate-render settles invisibly to the user — no transient
+  // first-paint with the wrong period. Without this the rotation was running
+  // for several cycles against the wrong wrap distance before things settled.
+  useLayoutEffect(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    const measure = () => {
+      const cw = el.clientWidth;
+      // Skip measurements while layout isn't settled — would produce a wrong
+      // signal (e.g. "everything overflows" because cw=0) that we'd then flip
+      // back, visible as flicker.
+      if (cw === 0) return;
+      if (items.length === 0) return;
+      const total = el.scrollWidth;
+      // When duplicated, scrollWidth is exactly 2 × original.
+      const origW = hasOverflowRef.current ? total / 2 : total;
+      // Hysteresis: require a 20 px margin to flip OFF, so a 1-px wobble at
+      // the border doesn't oscillate the duplicate render in and out.
+      const wantOn  = origW > cw + 1;
+      const wantOff = origW < cw - 20;
+      const next = hasOverflowRef.current ? !wantOff : wantOn;
+      if (next !== hasOverflowRef.current) setHasOverflow(next);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [items.length, autoRotate, gap, chipSizeRaw, maxItemWidth, isSingle]);
 
   // ── Shake on tab open ───────────────────────────────────────────────────────
   // Runs on mount: when the tab containing this widget becomes active, the
@@ -127,29 +193,60 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
     return () => window.cancelAnimationFrame(id);
   }, [shakeOnOpen]);
 
-  // ── Auto-rotate ─────────────────────────────────────────────────────────────
+  // ── Auto-rotate — continuous scroll (carousel mode) ─────────────────────────
   // Slow continuous scroll. Loops back to start when reaching the right edge.
   // Pauses while the user hovers / drags so it doesn't fight pointer input.
   // Disabled in editMode to avoid scroll surprises while configuring.
   useEffect(() => {
+    if (isSingle) return; // single mode uses the discrete stepper below
     if (!autoRotate || paused || editMode) return;
+    // Wait for the measurement pass to confirm overflow (and thus that the
+    // duplicate copy is in the DOM). Starting before that, the wrap-distance
+    // probe `el.children[items.length]` is undefined and we fall back to
+    // scrollWidth/2 — which, with no duplicates rendered, equals only half
+    // the original set's width. The strip would cycle at the wrong period for
+    // the first few seconds until the re-render lands. Gating on hasOverflow
+    // makes the very first frame use the correct period.
+    if (!hasOverflow) return;
     let last = performance.now();
+    // Sub-pixel accumulator. At 30 px/s ≈ 0.5 px/frame; without this, the
+    // round-trip through el.scrollLeft (which browsers round to integer px)
+    // would drop the fractional increment every frame and the strip would
+    // barely move at low speeds.
+    const startEl = stripRef.current;
+    let scrollPos = startEl ? startEl.scrollLeft : 0;
     const tick = (now: number) => {
       const el = stripRef.current;
       if (!el) { rotateRafRef.current = null; return; }
-      // With auto-rotate ON we render items twice (see render below). The strip
-      // contains 2 copies → scrollWidth = 2 × originalWidth. When scrollLeft
-      // crosses one copy's width, snap back by exactly that width: the visible
-      // viewport content is identical at both positions, so the rollover is
-      // invisible and rotation looks endless.
-      const halfWidth = el.scrollWidth / 2;
+      // DOM-consistency guard: if for any reason the duplicate isn't in the DOM
+      // yet (one render behind), DON'T compute a wrong period — skip this frame
+      // and stay scheduled. Without this the tick would briefly wrap at
+      // scrollWidth/2 (half of single-set width), producing a hard visible jump.
+      const expected = items.length * 2;
+      if (el.children.length < expected) {
+        last = now;
+        rotateRafRef.current = window.requestAnimationFrame(tick);
+        return;
+      }
+      // Re-sync with the real scrollLeft when an external change (drag,
+      // inertia, single-mode snap) moves it. Tolerance > 1 px to ignore the
+      // browser's integer rounding of our writes.
+      if (Math.abs(el.scrollLeft - scrollPos) > 1) {
+        scrollPos = el.scrollLeft;
+      }
+      // Precise wrap distance: position of the first duplicate child. That
+      // offsetLeft includes the gap between original and duplicate sets, so
+      // wrapping by it lands on identical content — pixel-perfect seamless.
+      const firstDup = el.children[items.length] as HTMLElement | undefined;
+      const period = firstDup ? firstDup.offsetLeft : 0;
       const max = el.scrollWidth - el.clientWidth;
-      if (max <= 0) { rotateRafRef.current = null; return; }
       const dt = Math.min(48, now - last);
       last = now;
-      let next = el.scrollLeft + (autoRotateSpeed * dt) / 1000;
-      if (next >= halfWidth) next -= halfWidth;
-      el.scrollLeft = next;
+      if (max > 0 && period > 0) {
+        scrollPos += (autoRotateSpeed * dt) / 1000;
+        if (scrollPos >= period) scrollPos -= period;
+        el.scrollLeft = scrollPos;
+      }
       rotateRafRef.current = window.requestAnimationFrame(tick);
     };
     rotateRafRef.current = window.requestAnimationFrame(tick);
@@ -157,13 +254,53 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
       if (rotateRafRef.current !== null) window.cancelAnimationFrame(rotateRafRef.current);
       rotateRafRef.current = null;
     };
-  }, [autoRotate, autoRotateSpeed, paused, editMode, items.length]);
+  }, [isSingle, autoRotate, autoRotateSpeed, paused, editMode, items.length, hasOverflow]);
+
+  // ── Auto-rotate — discrete stepper (single mode) ────────────────────────────
+  // Every `autoRotateInterval` seconds advance by one viewport width with a
+  // smooth scroll. When the next position crosses into the duplicate copy,
+  // wait for the smooth animation to finish and silently reset by halfWidth.
+  useEffect(() => {
+    if (!isSingle) return;
+    if (!autoRotate || paused || editMode) return;
+    if (items.length < 2) return;
+    const stepMs = autoRotateInterval * 1000;
+    const iv = window.setInterval(() => {
+      const el = stripRef.current;
+      if (!el) return;
+      const viewportW = el.clientWidth;
+      if (viewportW === 0) return;
+      el.scrollTo({ left: el.scrollLeft + viewportW, behavior: 'smooth' });
+      // After the smooth-scroll completes, if we crossed into the duplicate
+      // half, jump back invisibly so the next step starts within the original.
+      window.setTimeout(() => {
+        const node = stripRef.current;
+        if (!node) return;
+        const halfWidth = node.scrollWidth / 2;
+        if (halfWidth > 0 && node.scrollLeft >= halfWidth - 1) {
+          node.scrollLeft = node.scrollLeft - halfWidth;
+        }
+      }, 550);
+    }, stepMs);
+    return () => window.clearInterval(iv);
+  }, [isSingle, autoRotate, autoRotateInterval, paused, editMode, items.length]);
 
   // ── Action dispatch ─────────────────────────────────────────────────────────
-  const dispatchAction = (item: CarouselItem) => {
+  const dispatchAction = (item: CarouselItem, isActive: boolean) => {
     const a = item.clickAction;
     if (!a || a.kind === 'none') {
-      if (item.dp) setState(item.dp, item.value !== undefined ? item.value : true);
+      if (!item.dp) return;
+      // Switch-style toggle: when both active and inactive values are defined,
+      // a click writes the opposite of the current state. With only activeValue,
+      // we write that (idempotent — same as before). Falling back to `true`
+      // matches the original default for items without explicit values.
+      const activeT = item.activeValue !== undefined ? item.activeValue : item.value;
+      if (item.inactiveValue !== undefined && activeT !== undefined) {
+        const next = isActive ? item.inactiveValue : activeT;
+        setState(item.dp, next);
+      } else {
+        setState(item.dp, activeT !== undefined ? activeT : true);
+      }
       return;
     }
     if (a.kind === 'link-tab') {
@@ -176,10 +313,10 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
     setPopupAction(a);
   };
 
-  const handleClick = (item: CarouselItem) => {
+  const handleClick = (item: CarouselItem, isActive: boolean) => {
     if (justDraggedRef.current) return; // pointer-drag swipe — not a click
-    if (item.showConfirm) { setPendingItem(item); return; }
-    dispatchAction(item);
+    if (item.showConfirm) { setPendingItem({ item, isActive }); return; }
+    dispatchAction(item, isActive);
   };
 
   // ── Pointer drag handlers (mouse swipe) ─────────────────────────────────────
@@ -259,8 +396,27 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
       // Suppress the click that fires after pointerup at the end of a drag.
       justDraggedRef.current = true;
       window.setTimeout(() => { justDraggedRef.current = false; }, 50);
-      // Hand off any remaining velocity to the inertia loop. Threshold is in
-      // px/ms — below it the gesture was effectively a slow drop, no glide.
+      // In single mode, snap to the nearest (or velocity-implied next) item
+      // instead of free-gliding — each release lands on one full item.
+      if (isSingle) {
+        const el = stripRef.current;
+        if (!el) return;
+        const viewportW = el.clientWidth;
+        if (viewportW === 0) return;
+        const currentIdx = Math.round(el.scrollLeft / viewportW);
+        // Right-drag (vx > 0) = previous item; left-drag = next item.
+        let targetIdx = currentIdx;
+        if (Math.abs(drag.vx) > 0.3) {
+          targetIdx = drag.vx > 0 ? currentIdx - 1 : currentIdx + 1;
+        }
+        // Clamp to the rendered range (twice items.length when autoRotate dup is on).
+        const maxIdx = Math.max(0, Math.floor((el.scrollWidth - 1) / viewportW));
+        targetIdx = Math.max(0, Math.min(maxIdx, targetIdx));
+        el.scrollTo({ left: targetIdx * viewportW, behavior: 'smooth' });
+        return;
+      }
+      // Carousel mode: hand off any remaining velocity to the inertia loop.
+      // Threshold in px/ms — below it the gesture was effectively a slow drop.
       if (Math.abs(drag.vx) > 0.15) startInertia(drag.vx);
     }
   };
@@ -319,25 +475,30 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
           onMouseLeave={autoRotate ? () => setPaused(false) : undefined}
           style={{
             display: 'flex',
-            gap: `${gap}px`,
+            gap: isSingle ? 0 : `${gap}px`,
             overflowX: 'auto',
             overflowY: 'hidden',
             scrollbarWidth: hideScrollbar ? 'none' : 'thin',
-            scrollSnapType: snap ? 'x proximity' : undefined,
+            // Single mode forces mandatory snap so each release lands on an
+            // item boundary. Carousel mode keeps snap opt-in via the toggle.
+            scrollSnapType: isSingle ? 'x mandatory' : (snap ? 'x proximity' : undefined),
             paddingBottom: hideScrollbar ? undefined : '2px',
-            justifyContent: justify,
+            // In single mode each item fills the viewport — justify has no effect.
+            justifyContent: isSingle ? undefined : justify,
             WebkitOverflowScrolling: 'touch',
             cursor: 'grab',
             userSelect: 'none',
           }}
         >
-          {/* When auto-rotate is on we render items twice. The auto-rotate tick
-              wraps scrollLeft by exactly halfWidth = scrollWidth/2 so the
-              rollover lands on the duplicate copy, which shows the same content
-              at the same viewport position — visually seamless. */}
-          {(autoRotate && items.length > 0 ? [...items, ...items] : items).map((item, idx) => {
+          {/* When auto-rotate is on AND the original set overflows the viewport,
+              we render items twice. The auto-rotate tick wraps scrollLeft by
+              exactly halfWidth = scrollWidth/2 so the rollover lands on the
+              duplicate copy, which shows the same content at the same viewport
+              position — visually seamless. Without overflow we skip duplication
+              so both copies wouldn't be visible at once. */}
+          {(autoRotate && hasOverflow && items.length > 0 ? [...items, ...items] : items).map((item, idx) => {
             const ItemIcon = item.icon ? getWidgetIcon(item.icon, Zap) : null;
-            const isDup = autoRotate && idx >= items.length;
+            const isDup = autoRotate && hasOverflow && idx >= items.length;
             return (
               <CarouselItemButton
                 key={isDup ? `${item.id}__dup` : item.id}
@@ -350,11 +511,14 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
                 fs={fs}
                 px={px}
                 iconSz={iconSz}
-                snap={snap}
+                snap={snap || isSingle}
+                fullWidth={isSingle}
+                maxWidth={maxItemWidth}
+                labelAlign={labelAlign}
                 defaultBg={defaultBg}
                 defaultColor={defaultColor}
                 chipBorder={chipBorder}
-                onClick={() => handleClick(item)}
+                onClick={(isActive) => handleClick(item, isActive)}
               />
             );
           })}
@@ -363,8 +527,8 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
 
       {pendingItem && (
         <ConfirmOverlay
-          text={pendingItem.confirmText || undefined}
-          onConfirm={() => { dispatchAction(pendingItem); setPendingItem(null); }}
+          text={pendingItem.item.confirmText || undefined}
+          onConfirm={() => { dispatchAction(pendingItem.item, pendingItem.isActive); setPendingItem(null); }}
           onCancel={() => setPendingItem(null)}
         />
       )}
@@ -398,21 +562,29 @@ interface CarouselItemButtonProps {
   px: string;
   iconSz: number;
   snap: boolean;
+  /** When true the chip fills the strip viewport (single-item mode). */
+  fullWidth: boolean;
+  /** Max chip width in px; 0 = uncapped. Triggers marquee on overflowing labels. */
+  maxWidth: number;
+  /** Horizontal alignment of the label / last-change text inside the chip. */
+  labelAlign: 'left' | 'center' | 'right';
   defaultBg: (active: boolean) => string;
   defaultColor: (active: boolean) => string;
   chipBorder: (active: boolean, customBg: string | undefined) => string;
-  onClick: () => void;
+  onClick: (isActive: boolean) => void;
 }
 
 function CarouselItemButton({
-  item, ItemIcon, checkDp, checkValue, t, h, fs, px, iconSz, snap,
+  item, ItemIcon, checkDp, checkValue, t, h, fs, px, iconSz, snap, fullWidth, maxWidth, labelAlign,
   defaultBg, defaultColor, chipBorder, onClick,
 }: CarouselItemButtonProps) {
-  // Subscribe to item's own DP only when the item actually needs its own state
-  // (active/inactive value comparison or last-change display). Empty id is
-  // harmless — useDatapoint short-circuits when id is empty.
+  // Subscribe to the item's own DP whenever any state-dependent feature needs
+  // the live value: an active comparison target (value / activeValue), an
+  // inactive comparison target, or the last-change timestamp. Without this,
+  // the chip wouldn't repaint when the DP flips and the colours would stick.
+  const activeTarget = item.activeValue !== undefined ? item.activeValue : item.value;
   const needsOwnDp = !!(item.dp && (
-    item.activeValue !== undefined || item.inactiveValue !== undefined || item.showLastChange
+    activeTarget !== undefined || item.inactiveValue !== undefined || item.showLastChange
   ));
   const { state: itemState } = useDatapoint(needsOwnDp ? item.dp : '');
 
@@ -426,26 +598,24 @@ function CarouselItemButton({
   }, [item.showLastChange]);
 
   // Active-state resolution:
-  //   • If activeValue/inactiveValue defined → compare against item's own DP
-  //   • Else if shared checkDp set → compare against checkValue (scene mode)
-  //   • Else → never active
+  //   • If a target value (value / activeValue) or inactiveValue is set →
+  //     compare against the item's own DP.
+  //   • Else if a shared checkDp is configured → compare against checkValue
+  //     (scene-style highlighting).
+  //   • Else → never active.
   let active = false;
-  if (needsOwnDp && (item.activeValue !== undefined || item.inactiveValue !== undefined)) {
+  if (needsOwnDp && (activeTarget !== undefined || item.inactiveValue !== undefined)) {
     const v = itemState?.val ?? null;
-    if (item.activeValue !== undefined) {
-      // eslint-disable-next-line eqeqeq
-      active = v == item.activeValue;
+    if (activeTarget !== undefined) {
+      active = eqLoose(v, activeTarget);
     } else if (item.inactiveValue !== undefined) {
-      // Only inactiveValue defined: item is active when DP is NOT the inactive
-      // value (and DP has actually delivered a value).
-      // eslint-disable-next-line eqeqeq
-      active = v !== null && v != item.inactiveValue;
+      // Only inactiveValue defined: item is active whenever DP is NOT the
+      // inactive value (and the DP has actually delivered a value).
+      active = v !== null && !eqLoose(v, item.inactiveValue);
     }
   } else if (checkDp) {
-    const compareTo = item.activeValue !== undefined ? item.activeValue : item.value;
-    if (compareTo !== undefined) {
-      // eslint-disable-next-line eqeqeq
-      active = checkValue == compareTo;
+    if (activeTarget !== undefined) {
+      active = eqLoose(checkValue, activeTarget);
     }
   }
 
@@ -476,10 +646,31 @@ function CarouselItemButton({
       ? Math.round(h * 0.7)
       : iconSz;
 
+  // In single mode the button is full-width and we drop the pill-shape so a
+  // wide-stretched chip doesn't read awkwardly; carousel mode keeps the pill.
   return (
     <button
-      onClick={onClick}
-      className="flex items-center gap-1.5 rounded-full whitespace-nowrap hover:opacity-80 transition-opacity shrink-0"
+      onClick={() => onClick(active)}
+      // Suppress the browser's "scroll focused element into view" reflex on
+      // mouse click. Buttons get focus on mousedown by default; if the clicked
+      // chip is partially scrolled off, the browser nudges the strip a few
+      // pixels to fully reveal it — that's the 3-6 px right-jump the user saw
+      // on first interaction. Re-applying focus with preventScroll on
+      // mousedown blocks the auto-scroll while keeping focus for keyboard
+      // accessibility.
+      onMouseDown={(e) => {
+        // Prevent the default mousedown → focus path so the browser doesn't
+        // auto-scroll the partially-visible chip into view (3-6 px shift seen
+        // on the very first click after a tab is opened). preventDefault still
+        // lets onClick fire normally; only the implicit focus is suppressed.
+        // Keyboard tab-to-focus is unaffected.
+        e.preventDefault();
+      }}
+      // No `transition-opacity` here: during auto-rotate, chips slide under the
+      // cursor and each `:hover` flip pulses the chip in/out → reads as flicker
+      // synchronised to the rotation. Instant opacity feedback is fine for
+      // chip-style buttons.
+      className={`flex items-center gap-1.5 ${fullWidth ? 'rounded-xl justify-center' : 'rounded-full'} whitespace-nowrap hover:opacity-80 shrink-0`}
       style={{
         background: bg,
         color,
@@ -492,21 +683,148 @@ function CarouselItemButton({
         paddingTop: item.showLastChange ? `${Math.round(h * 0.15)}px` : undefined,
         paddingBottom: item.showLastChange ? `${Math.round(h * 0.15)}px` : undefined,
         scrollSnapAlign: snap ? 'start' : undefined,
-        lineHeight: 1.1,
+        scrollSnapStop: fullWidth ? 'always' : undefined,
+        // Single mode: lock each item to one viewport-width
+        flex: fullWidth ? '0 0 100%' : undefined,
+        width: fullWidth ? '100%' : undefined,
+        // Per-item max width — only applied in carousel mode; in single mode
+        // the chip already spans the viewport width.
+        maxWidth: !fullWidth && maxWidth > 0 ? `${maxWidth}px` : undefined,
+        lineHeight: 1.3,
+        overflow: maxWidth > 0 || fullWidth ? 'hidden' : undefined,
       }}
     >
-      {ItemIcon && <ItemIcon size={effectiveIconSz} />}
-      <span className="flex flex-col items-start" style={{ lineHeight: 1.1 }}>
-        <span>{item.label}</span>
-        {item.showLastChange && lastChangeText && (
-          <span
-            className="aura-last-change opacity-60"
-            style={{ fontSize: `${lcFontSize}px`, marginTop: 1 }}
-          >
-            {lastChangeText}
+      {ItemIcon && (
+        // Lock the icon to a fixed flex slot so the row's flex algorithm can't
+        // shrink it when the chip width is constrained (narrow widget / long
+        // label). Without this, the icon's box can be squeezed below its SVG
+        // size, oscillating visibly as labels marquee or the strip rotates.
+        <span
+          aria-hidden
+          style={{
+            flex: '0 0 auto',
+            width: `${effectiveIconSz}px`,
+            height: `${effectiveIconSz}px`,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <ItemIcon size={effectiveIconSz} />
+        </span>
+      )}
+      {/* The text block only switches to constrained / marquee-capable layout
+          when the chip itself has a definite width (maxWidth or fullWidth).
+          Otherwise it stays inline-natural — without this guard, an unconstrained
+          MarqueeText with width:100% collapses the chip and auto-rotate sees no
+          overflow to scroll through. */}
+      {(() => {
+        const itemsClass = labelAlign === 'right' ? 'items-end'
+          : labelAlign === 'center' ? 'items-center'
+          : 'items-start';
+        const textAlign: React.CSSProperties['textAlign'] = labelAlign;
+        if (maxWidth > 0 || fullWidth) {
+          return (
+            <span className={`flex flex-col min-w-0 ${itemsClass}`} style={{ lineHeight: 1.3, flex: '1 1 auto', textAlign }}>
+              <MarqueeText text={item.label} style={{ textAlign }} />
+              {item.showLastChange && lastChangeText && (
+                <MarqueeText
+                  text={lastChangeText}
+                  className="aura-last-change opacity-60"
+                  style={{ fontSize: `${lcFontSize}px`, marginTop: 1, textAlign }}
+                />
+              )}
+            </span>
+          );
+        }
+        return (
+          <span className={`flex flex-col ${itemsClass}`} style={{ lineHeight: 1.3, textAlign }}>
+            <span>{item.label}</span>
+            {item.showLastChange && lastChangeText && (
+              <span
+                className="aura-last-change opacity-60"
+                style={{ fontSize: `${lcFontSize}px`, marginTop: 1 }}
+              >
+                {lastChangeText}
+              </span>
+            )}
           </span>
-        )}
-      </span>
+        );
+      })()}
     </button>
+  );
+}
+
+// ── MarqueeText ──────────────────────────────────────────────────────────────
+// Renders `text` in an overflow-hidden container. Measures (via ResizeObserver)
+// whether the natural text width exceeds the container; when it does, switches
+// to a two-copy track that linearly translates -50% on loop — landing the
+// second copy exactly where the first started, so the cycle is seamless. The
+// animation duration is sized to a constant pixel-per-second speed so longer
+// labels just take proportionally longer to traverse.
+
+const MARQUEE_SPEED_PXPS = 35;
+const MARQUEE_GAP_CHARS = '      ';
+
+function MarqueeText({
+  text, className, style,
+}: {
+  text: string;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const wrapRef = useRef<HTMLSpanElement>(null);
+  const measureRef = useRef<HTMLSpanElement>(null);
+  const [overflow, setOverflow] = useState(false);
+  const [duration, setDuration] = useState(10);
+
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    const measure = measureRef.current;
+    if (!wrap || !measure) return;
+    const check = () => {
+      const textW = measure.scrollWidth;
+      const slot  = wrap.clientWidth;
+      const isOverflowing = textW > slot + 1;
+      setOverflow(isOverflowing);
+      if (isOverflowing) {
+        setDuration(Math.max(4, Math.round(textW / MARQUEE_SPEED_PXPS)));
+      }
+    };
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(wrap);
+    ro.observe(measure);
+    return () => ro.disconnect();
+  }, [text]);
+
+  return (
+    <span
+      ref={wrapRef}
+      className={`block overflow-hidden whitespace-nowrap relative ${className ?? ''}`}
+      style={{ width: '100%', maxWidth: '100%', ...style }}
+    >
+      {/* Hidden width probe — always rendered with the raw text, never animated.
+          Positioned absolutely so it doesn't contribute to layout flow. */}
+      <span
+        ref={measureRef}
+        aria-hidden
+        className="invisible pointer-events-none"
+        style={{ position: 'absolute', whiteSpace: 'nowrap', left: 0, top: 0 }}
+      >
+        {text}
+      </span>
+      {overflow ? (
+        <span
+          className="aura-marquee-track"
+          style={{ ['--marquee-duration' as never]: `${duration}s` }}
+        >
+          <span>{text}{MARQUEE_GAP_CHARS}</span>
+          <span aria-hidden>{text}{MARQUEE_GAP_CHARS}</span>
+        </span>
+      ) : (
+        <span>{text}</span>
+      )}
+    </span>
   );
 }
