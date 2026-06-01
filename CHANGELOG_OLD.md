@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.165 (2026-05-28)
+- fix(theme): always create themeMode admin/frontend DPs even when migration throws
+
 ## 0.9.164 (2026-05-28)
 - fix(theme): make themeMode.frontend DP override sticky
 

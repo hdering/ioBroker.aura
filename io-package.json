@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.184",
+    "version": "0.9.185",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.185": {
+        "en": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
+        "de": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
+        "ru": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
+        "pt": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
+        "nl": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
+        "fr": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
+        "it": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
+        "es": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
+        "pl": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
+        "uk": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
+        "zh-cn": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel"
+      },
       "0.9.184": {
         "en": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
         "de": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
@@ -184,19 +197,6 @@
         "pl": "fix(echart): object override on series array merges as per-item defaults",
         "uk": "fix(echart): object override on series array merges as per-item defaults",
         "zh-cn": "fix(echart): object override on series array merges as per-item defaults"
-      },
-      "0.9.178": {
-        "en": "fix(conditions): suppress reflow until all condition DPs are known (#281)",
-        "de": "fix(conditions): suppress reflow until all condition DPs are known (#281)",
-        "ru": "fix(conditions): suppress reflow until all condition DPs are known (#281)",
-        "pt": "fix(conditions): suppress reflow until all condition DPs are known (#281)",
-        "nl": "fix(conditions): suppress reflow until all condition DPs are known (#281)",
-        "fr": "fix(conditions): suppress reflow until all condition DPs are known (#281)",
-        "it": "fix(conditions): suppress reflow until all condition DPs are known (#281)",
-        "es": "fix(conditions): suppress reflow until all condition DPs are known (#281)",
-        "pl": "fix(conditions): suppress reflow until all condition DPs are known (#281)",
-        "uk": "fix(conditions): suppress reflow until all condition DPs are known (#281)",
-        "zh-cn": "fix(conditions): suppress reflow until all condition DPs are known (#281)"
       }
     }
   },
