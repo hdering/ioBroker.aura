@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.168 (2026-05-29)
+- fix(lint): auto-fix mixed typographic quotes
+- feat(alarm): new widget for ioBroker.alarm adapter
+
 ## 0.9.167 (2026-05-29)
 - feat(evcc): responsive auto-scale + per-section size sliders
 - feat(chips): raise chipSize slider max from 96 to 240 px

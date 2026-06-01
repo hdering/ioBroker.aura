@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.187",
+    "version": "0.9.188",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.188": {
+        "en": "Release v0.9.188",
+        "de": "Release v0.9.188",
+        "ru": "Release v0.9.188",
+        "pt": "Release v0.9.188",
+        "nl": "Release v0.9.188",
+        "fr": "Release v0.9.188",
+        "it": "Release v0.9.188",
+        "es": "Release v0.9.188",
+        "pl": "Release v0.9.188",
+        "uk": "Release v0.9.188",
+        "zh-cn": "Release v0.9.188"
+      },
       "0.9.187": {
         "en": "feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle",
         "de": "feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle",
@@ -184,19 +197,6 @@
         "pl": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
         "uk": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click",
         "zh-cn": "feat: add aura-last-change CSS class to all last-change render sites for global styling; feat(TimerWidget): allow icon instead of '+ Add Event' text; fix(CustomGrid): keep cell selected on re-click"
-      },
-      "0.9.181": {
-        "en": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
-        "de": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
-        "ru": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
-        "pt": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
-        "nl": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
-        "fr": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
-        "it": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
-        "es": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
-        "pl": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
-        "uk": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text",
-        "zh-cn": "fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option; feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText; feat(ListWidget,AutoListWidget): add wrapLabels option; feat(CustomGridView): add per-cell wrap option for long text"
       }
     }
   },
