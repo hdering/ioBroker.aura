@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.190",
+    "version": "0.9.191",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.9.191": {
+        "en": "fix(backup): include group children and popup views in backups",
+        "de": "fix(backup): include group children and popup views in backups",
+        "ru": "fix(backup): include group children and popup views in backups",
+        "pt": "fix(backup): include group children and popup views in backups",
+        "nl": "fix(backup): include group children and popup views in backups",
+        "fr": "fix(backup): include group children and popup views in backups",
+        "it": "fix(backup): include group children and popup views in backups",
+        "es": "fix(backup): include group children and popup views in backups",
+        "pl": "fix(backup): include group children and popup views in backups",
+        "uk": "fix(backup): include group children and popup views in backups",
+        "zh-cn": "fix(backup): include group children and popup views in backups"
+      },
       "0.9.190": {
         "en": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
         "de": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
@@ -184,19 +197,6 @@
         "pl": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
         "uk": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
         "zh-cn": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly"
-      },
-      "0.9.183": {
-        "en": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
-        "de": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
-        "ru": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
-        "pt": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
-        "nl": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
-        "fr": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
-        "it": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
-        "es": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
-        "pl": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
-        "uk": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab",
-        "zh-cn": "fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab"
       }
     }
   },

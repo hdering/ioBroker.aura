@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.171 (2026-05-30)
+- feat(static-list): allow changing datapoint of an existing entry
+
 ## 0.9.170 (2026-05-30)
 - fix(weather): retry online fetch every 30s while no data
 
