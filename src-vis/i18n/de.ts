@@ -173,6 +173,7 @@ export const de = {
   'settings.autobackup.description':    'Wird bei jedem Speichern als Datei unter aura.0.backups/ abgelegt.',
   'settings.autobackup.lastBackup':     'Letztes Backup',
   'settings.autobackup.noBackup':       'Noch kein Backup vorhanden',
+  'settings.autobackup.download':       'Backup herunterladen',
   'settings.autobackup.restore':        'Aus Backup wiederherstellen',
   'settings.autobackup.restoreConfirm': 'Jetzt wiederherstellen?',
   'settings.autobackup.restoring':      'Wird wiederhergestellt …',

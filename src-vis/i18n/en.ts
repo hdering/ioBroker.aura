@@ -175,6 +175,7 @@ export const en: Record<TranslationKey, string> = {
   'settings.autobackup.description':    'Written as a file under aura.0.backups/ on every save.',
   'settings.autobackup.lastBackup':     'Last backup',
   'settings.autobackup.noBackup':       'No backup yet',
+  'settings.autobackup.download':       'Download backup',
   'settings.autobackup.restore':        'Restore from backup',
   'settings.autobackup.restoreConfirm': 'Restore now?',
   'settings.autobackup.restoring':      'Restoring …',

@@ -11,9 +11,9 @@ import { applyRaw, rehydrateAll } from '../../utils/configLoader';
 import { getObjectViewDirect, getStateDirect, setStateDirect } from '../../hooks/useIoBroker';
 import {
   saveAll, saveToIoBroker,
-  listBackupFiles, loadBackupPayload, type BackupFileEntry,
+  listBackupFiles, loadBackupPayload, buildBackupPayload, type BackupFileEntry,
 } from '../../store/persistManager';
-import { Eye, EyeOff, AlertTriangle, RefreshCw, Tablet, Edit3, Check, X, Trash2, History } from 'lucide-react';
+import { Eye, EyeOff, AlertTriangle, RefreshCw, Tablet, Edit3, Check, X, Trash2, History, Download } from 'lucide-react';
 import { useT } from '../../i18n';
 import { BrowserThemeSyncSection } from './layouts/sections/BrowserThemeSyncSection';
 import { FrontendSection } from './layouts/sections/FrontendSection';
@@ -51,7 +51,7 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 
 // ── Backup card (manual + auto combined) ──────────────────────────────────────
 
-const BACKUP_SYNC_KEYS = ['aura-dashboard', 'aura-theme', 'aura-groups', 'aura-config', 'aura-global-settings', 'aura-group-defs'] as const;
+const BACKUP_SYNC_KEYS = ['aura-dashboard', 'aura-theme', 'aura-groups', 'aura-config', 'aura-global-settings', 'aura-group-defs', 'aura-popup-config'] as const;
 
 interface BackupEntry { ts: string; filename: string; size: number; }
 
@@ -72,7 +72,11 @@ function applyBackupPayload(payload: Record<string, unknown>): boolean {
   });
   if (!changed) return false;
   rehydrateAll(true);
-  try { saveAll(); saveToIoBroker(); } catch { /* quota – non-fatal */ }
+  // Force ALL sync keys to ioBroker — otherwise keys whose post-rehydrate value
+  // byte-matches the restored value aren't marked dirty and stay un-synced,
+  // letting the next page load pull stale ioBroker data and silently undo the
+  // restore.
+  try { saveAll(); saveToIoBroker({ all: true }); } catch { /* quota – non-fatal */ }
   return true;
 }
 
@@ -84,6 +88,7 @@ function BackupCard() {
   const [loading, setLoading] = useState(true);
   const [confirmIdx, setConfirmIdx] = useState<number | null>(null);
   const [restoringIdx, setRestoringIdx] = useState<number | null>(null);
+  const [downloadingIdx, setDownloadingIdx] = useState<number | null>(null);
   const [status, setStatus] = useState<'idle' | 'success' | 'error' | 'nodata'>('idle');
 
   const loadBackups = useCallback(async () => {
@@ -112,14 +117,28 @@ function BackupCard() {
     finally { setRestoringIdx(null); }
   };
 
+  const doDownload = async (idx: number) => {
+    setDownloadingIdx(idx);
+    setStatus('idle');
+    try {
+      const entry = backups[idx];
+      if (!entry) { setStatus('nodata'); return; }
+      const payload = await loadBackupPayload(entry.filename);
+      if (!payload) { setStatus('nodata'); return; }
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = entry.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch { setStatus('error'); }
+    finally { setDownloadingIdx(null); }
+  };
+
   const exportConfig = () => {
-    const data = {
-      dashboard: JSON.parse(localStorage.getItem('aura-dashboard') ?? '{}'),
-      theme: JSON.parse(localStorage.getItem('aura-theme') ?? '{}'),
-      config: JSON.parse(localStorage.getItem('aura-config') ?? '{}'),
-      exported: new Date().toISOString(),
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const payload = buildBackupPayload();
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `aura-backup-${Date.now()}.json`; a.click();
     URL.revokeObjectURL(url);
@@ -130,10 +149,17 @@ function BackupCard() {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const data = JSON.parse(ev.target?.result as string);
-        if (data.dashboard) localStorage.setItem('aura-dashboard', JSON.stringify(data.dashboard));
-        if (data.theme) localStorage.setItem('aura-theme', JSON.stringify(data.theme));
-        if (data.config) localStorage.setItem('aura-config', JSON.stringify(data.config));
+        const data = JSON.parse(ev.target?.result as string) as Record<string, unknown>;
+        // New format: { _ts, "aura-dashboard": ..., "aura-group-defs": ..., ... }
+        // Legacy format: { dashboard, theme, config, exported } — map to new keys.
+        const looksNew = 'aura-dashboard' in data || 'aura-theme' in data;
+        const payload: Record<string, unknown> = looksNew ? data : {
+          'aura-dashboard': data.dashboard !== undefined ? JSON.stringify(data.dashboard) : undefined,
+          'aura-theme':     data.theme     !== undefined ? JSON.stringify(data.theme)     : undefined,
+          'aura-config':    data.config    !== undefined ? JSON.stringify(data.config)    : undefined,
+        };
+        const ok = applyBackupPayload(payload);
+        if (!ok) { alert(t('settings.backup.invalidFile')); return; }
         window.location.reload();
       } catch { alert(t('settings.backup.invalidFile')); }
     };
@@ -220,13 +246,25 @@ function BackupCard() {
                     </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => { setConfirmIdx(i); setStatus('idle'); }}
-                    disabled={restoringIdx !== null}
-                    className="px-2 py-1 rounded text-[11px] font-medium hover:opacity-80 disabled:opacity-40 shrink-0"
-                    style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
-                    {restoringIdx === i ? t('settings.autobackup.restoring') : t('settings.autobackup.restore')}
-                  </button>
+                  <div className="flex gap-1.5 shrink-0">
+                    <button
+                      onClick={() => void doDownload(i)}
+                      disabled={downloadingIdx !== null || restoringIdx !== null}
+                      title={t('settings.autobackup.download')}
+                      className="w-6 h-6 rounded flex items-center justify-center hover:opacity-80 disabled:opacity-40"
+                      style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                      {downloadingIdx === i
+                        ? <RefreshCw size={11} className="animate-spin" />
+                        : <Download size={11} />}
+                    </button>
+                    <button
+                      onClick={() => { setConfirmIdx(i); setStatus('idle'); }}
+                      disabled={restoringIdx !== null}
+                      className="px-2 py-1 rounded text-[11px] font-medium hover:opacity-80 disabled:opacity-40"
+                      style={{ background: 'var(--app-surface)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}>
+                      {restoringIdx === i ? t('settings.autobackup.restoring') : t('settings.autobackup.restore')}
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

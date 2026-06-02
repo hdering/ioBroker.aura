@@ -195,9 +195,17 @@ function getRaw(key: SyncStoreKey): string | null {
 function buildBackupEntry(): Record<string, unknown> {
   const entry: Record<string, unknown> = { [BACKUP_TS_KEY]: new Date().toISOString() };
   SYNC_STORE_KEYS.forEach((key) => {
-    if (key !== 'aura-group-defs') entry[key] = getRaw(key);
+    const val = getRaw(key);
+    if (val !== null) entry[key] = val;
   });
   return entry;
+}
+
+/** Public snapshot of all sync stores in the auto-backup payload shape.
+ *  Used by the manual "download backup" button so its files match the auto-backup
+ *  format and can be restored through applyBackupPayload. */
+export function buildBackupPayload(): Record<string, unknown> {
+  return buildBackupEntry();
 }
 
 // One-time migration from the legacy single-state backup blob to per-file
