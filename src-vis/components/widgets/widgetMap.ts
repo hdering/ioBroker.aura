@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { lazyWithReload } from '../../utils/lazyWithReload';
 import { SwitchWidget } from './SwitchWidget';
 import { ValueWidget } from './ValueWidget';
 import { DimmerWidget } from './DimmerWidget';
@@ -44,10 +44,10 @@ import { ChipsWidget } from './ChipsWidget';
 // Chart widgets are heavy (recharts ~380 KB, echarts ~1.1 MB) — lazy-loaded so
 // dashboards without charts skip the cost. Consumers must render these inside
 // a <Suspense> boundary.
-const ChartWidget         = lazy(() => import('./ChartWidget').then((m)         => ({ default: m.ChartWidget })));
-const ClimateWidget       = lazy(() => import('./ClimateWidget').then((m)       => ({ default: m.ClimateWidget })));
-const EChartWidget        = lazy(() => import('./EChartWidget').then((m)        => ({ default: m.EChartWidget })));
-const EChartsPresetWidget = lazy(() => import('./EChartsPresetWidget').then((m) => ({ default: m.EChartsPresetWidget })));
+const ChartWidget         = lazyWithReload(() => import('./ChartWidget').then((m)         => ({ default: m.ChartWidget })));
+const ClimateWidget       = lazyWithReload(() => import('./ClimateWidget').then((m)       => ({ default: m.ClimateWidget })));
+const EChartWidget        = lazyWithReload(() => import('./EChartWidget').then((m)        => ({ default: m.EChartWidget })));
+const EChartsPresetWidget = lazyWithReload(() => import('./EChartsPresetWidget').then((m) => ({ default: m.EChartsPresetWidget })));
 
 export function getWidgetMap() {
   return {

@@ -1,4 +1,4 @@
-import { StrictMode, Suspense, lazy, type ComponentType } from 'react';
+import { StrictMode, Suspense, type ComponentType } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createHashRouter, RouterProvider, Navigate } from 'react-router-dom';
 import 'react-grid-layout/css/styles.css';
@@ -7,21 +7,24 @@ import './index.css';
 
 import App from './App';
 import { ThemeProvider } from './ThemeProvider';
+import { lazyWithReload, installChunkErrorRecovery } from './utils/lazyWithReload';
+
+installChunkErrorRecovery();
 
 // Admin pages are large (editors, pickers, echart configurators) and are not
 // needed by the public dashboard route. Lazy-loaded so the frontend bundle
 // stays small for slow mobile/VPN clients.
-const AdminLayout     = lazy(() => import('./pages/admin/AdminLayout').then((m) => ({ default: m.AdminLayout })));
-const AdminLogin      = lazy(() => import('./pages/admin/AdminLogin').then((m) => ({ default: m.AdminLogin })));
-const AdminDashboard  = lazy(() => import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })));
-const AdminSettings   = lazy(() => import('./pages/admin/AdminSettings').then((m) => ({ default: m.AdminSettings })));
-const AdminEditor     = lazy(() => import('./pages/admin/AdminEditor').then((m) => ({ default: m.AdminEditor })));
-const AdminWidgets    = lazy(() => import('./pages/admin/AdminWidgets').then((m) => ({ default: m.AdminWidgets })));
-const AdminLayouts    = lazy(() => import('./pages/admin/AdminLayouts').then((m) => ({ default: m.AdminLayouts })));
-const AdminFrontend   = lazy(() => import('./pages/admin/AdminFrontend').then((m) => ({ default: m.AdminFrontend })));
-const AdminCssJs      = lazy(() => import('./pages/admin/AdminCssJs').then((m) => ({ default: m.AdminCssJs })));
-const AdminPopups     = lazy(() => import('./pages/admin/AdminPopups').then((m) => ({ default: m.AdminPopups })));
-const PopupViewEditor = lazy(() => import('./pages/admin/PopupViewEditor').then((m) => ({ default: m.PopupViewEditor })));
+const AdminLayout     = lazyWithReload(() => import('./pages/admin/AdminLayout').then((m) => ({ default: m.AdminLayout })));
+const AdminLogin      = lazyWithReload(() => import('./pages/admin/AdminLogin').then((m) => ({ default: m.AdminLogin })));
+const AdminDashboard  = lazyWithReload(() => import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })));
+const AdminSettings   = lazyWithReload(() => import('./pages/admin/AdminSettings').then((m) => ({ default: m.AdminSettings })));
+const AdminEditor     = lazyWithReload(() => import('./pages/admin/AdminEditor').then((m) => ({ default: m.AdminEditor })));
+const AdminWidgets    = lazyWithReload(() => import('./pages/admin/AdminWidgets').then((m) => ({ default: m.AdminWidgets })));
+const AdminLayouts    = lazyWithReload(() => import('./pages/admin/AdminLayouts').then((m) => ({ default: m.AdminLayouts })));
+const AdminFrontend   = lazyWithReload(() => import('./pages/admin/AdminFrontend').then((m) => ({ default: m.AdminFrontend })));
+const AdminCssJs      = lazyWithReload(() => import('./pages/admin/AdminCssJs').then((m) => ({ default: m.AdminCssJs })));
+const AdminPopups     = lazyWithReload(() => import('./pages/admin/AdminPopups').then((m) => ({ default: m.AdminPopups })));
+const PopupViewEditor = lazyWithReload(() => import('./pages/admin/PopupViewEditor').then((m) => ({ default: m.PopupViewEditor })));
 
 function lazyRoute(Comp: ComponentType): JSX.Element {
   return (

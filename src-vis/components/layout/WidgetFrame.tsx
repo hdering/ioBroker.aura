@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, useLayoutEffect, useSyncExternalStore, lazy, Suspense } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useSyncExternalStore, Suspense } from 'react';
+import { lazyWithReload } from '../../utils/lazyWithReload';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useT, t, type TranslationKey } from '../../i18n';
@@ -43,10 +44,10 @@ import { ThermostatWidget } from '../widgets/ThermostatWidget';
 // Chart widgets are heavy (recharts ~380 KB, echarts ~1.1 MB) and only used on
 // dashboards that actually have chart widgets — lazy-loaded so they don't
 // block first paint of the rest of the dashboard.
-const ChartWidget        = lazy(() => import('../widgets/ChartWidget').then((m)        => ({ default: m.ChartWidget })));
-const ClimateWidget      = lazy(() => import('../widgets/ClimateWidget').then((m)      => ({ default: m.ClimateWidget })));
-const EChartWidget       = lazy(() => import('../widgets/EChartWidget').then((m)       => ({ default: m.EChartWidget })));
-const EChartsPresetWidget = lazy(() => import('../widgets/EChartsPresetWidget').then((m) => ({ default: m.EChartsPresetWidget })));
+const ChartWidget        = lazyWithReload(() => import('../widgets/ChartWidget').then((m)        => ({ default: m.ChartWidget })));
+const ClimateWidget      = lazyWithReload(() => import('../widgets/ClimateWidget').then((m)      => ({ default: m.ClimateWidget })));
+const EChartWidget       = lazyWithReload(() => import('../widgets/EChartWidget').then((m)       => ({ default: m.EChartWidget })));
+const EChartsPresetWidget = lazyWithReload(() => import('../widgets/EChartsPresetWidget').then((m) => ({ default: m.EChartsPresetWidget })));
 import { ListWidget } from '../widgets/ListWidget';
 import { ClockWidget } from '../widgets/ClockWidget';
 import { CalendarWidget, getSources, DEFAULT_CAL_COLORS, type CalendarSource } from '../widgets/CalendarWidget';
