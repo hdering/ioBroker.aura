@@ -34,6 +34,7 @@ export const en: Record<TranslationKey, string> = {
   'admin.nav.overview':     'Overview',
   'admin.nav.editor':       'Dashboard Editor',
   'admin.nav.layouts':      'Layouts',
+  'admin.nav.frontend':     'Frontend',
   'admin.nav.cssjs':        'CSS & JS',
   'admin.nav.widgets':      'Widgets',
   'admin.nav.popups':       'Popups',
@@ -268,6 +269,12 @@ export const en: Record<TranslationKey, string> = {
   'layouts.subtab.css':         'Custom CSS',
   'layouts.subtab.tabbar':      'Tab bar',
   'layouts.subtab.tabbarHiddenHint': 'Tab bar is configured per layout. Pick a layout in the context picker above.',
+
+  'layouts.scope.title':      'Scope',
+  'layouts.scope.global':     'Global',
+  'layouts.scope.globalHint': 'Defaults for all layouts',
+  'layouts.scope.layoutHint': 'Overrides global values',
+  'layouts.scope.resetToGlobal': 'Reset to global',
 
   'layouts.context.label':      'Context',
   'layouts.context.global':     'Global',

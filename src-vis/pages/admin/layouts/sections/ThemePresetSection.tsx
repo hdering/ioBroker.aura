@@ -1,15 +1,13 @@
 import { useThemeStore } from '../../../../store/themeStore';
 import { useDashboardStore } from '../../../../store/dashboardStore';
 import { THEMES } from '../../../../themes';
-import { LayoutContextSwitcher } from '../shared/LayoutContextSwitcher';
 import { useT } from '../../../../i18n';
 
 interface ThemePresetSectionProps {
   contextId: string | null;
-  onContextChange: (id: string | null) => void;
 }
 
-export function ThemePresetSection({ contextId, onContextChange }: ThemePresetSectionProps) {
+export function ThemePresetSection({ contextId }: ThemePresetSectionProps) {
   const t = useT();
   const { themeId, setTheme, resetCustom } = useThemeStore();
   const layouts = useDashboardStore((s) => s.layouts);
@@ -23,13 +21,7 @@ export function ThemePresetSection({ contextId, onContextChange }: ThemePresetSe
     <div className="rounded-xl p-6" style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{t('theme.preset.title')}</h2>
-        <LayoutContextSwitcher selectedId={contextId} onChange={onContextChange} />
       </div>
-      {contextId && (
-        <p className="text-xs mb-3 px-2 py-1 rounded" style={{ color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 10%, transparent)' }}>
-          Theme-Auswahl und CSS-Variablen für dieses Layout überschreiben — das globale Theme bleibt unberührt.
-        </p>
-      )}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {THEMES.map((theme) => (
           <button

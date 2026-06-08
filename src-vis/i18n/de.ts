@@ -32,6 +32,7 @@ export const de = {
   'admin.nav.overview':     'Übersicht',
   'admin.nav.editor':       'Dashboard-Editor',
   'admin.nav.layouts':      'Layouts',
+  'admin.nav.frontend':     'Frontend',
   'admin.nav.cssjs':        'CSS & JS',
   'admin.nav.widgets':      'Widgets',
   'admin.nav.popups':       'Popups',
@@ -266,6 +267,12 @@ export const de = {
   'layouts.subtab.css':         'Custom CSS',
   'layouts.subtab.tabbar':      'Tab-Leiste',
   'layouts.subtab.tabbarHiddenHint': 'Tab-Leiste wird pro Layout konfiguriert. Wähle ein Layout im Picker oben.',
+
+  'layouts.scope.title':      'Geltungsbereich',
+  'layouts.scope.global':     'Global',
+  'layouts.scope.globalHint': 'Voreinstellungen für alle Layouts',
+  'layouts.scope.layoutHint': 'Überschreibt globale Werte',
+  'layouts.scope.resetToGlobal': 'Auf Global zurücksetzen',
 
   'layouts.context.label':      'Kontext',
   'layouts.context.global':     'Global',

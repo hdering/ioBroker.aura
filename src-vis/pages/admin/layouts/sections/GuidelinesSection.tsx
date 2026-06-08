@@ -1,10 +1,8 @@
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { SliderSetting } from '../shared/SliderSetting';
-import { LayoutContextSwitcher } from '../shared/LayoutContextSwitcher';
 
 interface GuidelinesSectionProps {
   contextId: string | null;
-  onContextChange: (id: string | null) => void;
 }
 
 function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
@@ -17,7 +15,7 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
   );
 }
 
-export function GuidelinesSection({ contextId, onContextChange }: GuidelinesSectionProps) {
+export function GuidelinesSection({ contextId }: GuidelinesSectionProps) {
   const { eff, set, clear } = useLayoutSetting(contextId);
 
   const [w, wOv]             = eff('guidelinesWidth');
@@ -39,7 +37,6 @@ export function GuidelinesSection({ contextId, onContextChange }: GuidelinesSect
             Rote gestrichelte Linien im Editor zur Orientierung bei der Layout-Planung für ein Zielgerät.
           </p>
         </div>
-        <LayoutContextSwitcher selectedId={contextId} onChange={onContextChange} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">

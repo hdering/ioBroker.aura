@@ -1,15 +1,13 @@
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { SliderSetting } from '../shared/SliderSetting';
-import { LayoutContextSwitcher } from '../shared/LayoutContextSwitcher';
 import { useDashboardStore } from '../../../../store/dashboardStore';
 import { useT } from '../../../../i18n';
 
 interface GridSectionProps {
   contextId: string | null;
-  onContextChange: (id: string | null) => void;
 }
 
-export function GridSection({ contextId, onContextChange }: GridSectionProps) {
+export function GridSection({ contextId }: GridSectionProps) {
   const t = useT();
   const rescaleAllWidgetsX = useDashboardStore((s) => s.rescaleAllWidgetsX);
   const { eff, set, clear, frontend } = useLayoutSetting(contextId);
@@ -30,7 +28,6 @@ export function GridSection({ contextId, onContextChange }: GridSectionProps) {
         <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
           {t('settings.grid.title')}
         </h2>
-        <LayoutContextSwitcher selectedId={contextId} onChange={onContextChange} />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <SliderSetting

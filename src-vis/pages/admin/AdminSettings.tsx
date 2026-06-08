@@ -15,8 +15,6 @@ import {
 } from '../../store/persistManager';
 import { Eye, EyeOff, AlertTriangle, RefreshCw, Tablet, Edit3, Check, X, Trash2, History, Download } from 'lucide-react';
 import { useT } from '../../i18n';
-import { BrowserThemeSyncSection } from './layouts/sections/BrowserThemeSyncSection';
-import { FrontendSection } from './layouts/sections/FrontendSection';
 import { NS } from '../../utils/namespace';
 
 // ── Shared primitives ──────────────────────────────────────────────────────────
@@ -722,12 +720,6 @@ export function AdminSettings() {
           />
         </Card>
 
-      </div>
-
-      {/* Row 1: Browser-Theme + Frontend */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <BrowserThemeSyncSection />
-        <FrontendSection />
       </div>
 
       {/* Row 2: Clients + Expert + DP-Namen */}

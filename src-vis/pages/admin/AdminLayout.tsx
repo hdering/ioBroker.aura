@@ -3,7 +3,7 @@ import { useConfigSync } from '../../hooks/useConfigSync';
 import { version as appVersion } from '../../../package.json';
 import { PortalTargetContext, PortalThemeContext } from '../../contexts/PortalTargetContext';
 import { Navigate, Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Settings, LogOut, PenSquare, Save, Undo2, Layers, Layers2, Sun, Moon, ExternalLink, Menu, X, AppWindow, BookOpen, Code2 } from 'lucide-react';
+import { LayoutDashboard, Settings, LogOut, PenSquare, Save, Undo2, Layers, Layers2, Sun, Moon, ExternalLink, Menu, X, AppWindow, BookOpen, Code2, MonitorSmartphone } from 'lucide-react';
 import { useAuthStore, logout } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
 import { getTheme, ADMIN_DARK_THEME } from '../../themes';
@@ -220,6 +220,7 @@ export function AdminLayout() {
     { to: '/admin', label: t('admin.nav.overview'), icon: LayoutDashboard, end: true },
     { to: '/admin/editor', label: t('admin.nav.editor'), icon: PenSquare },
     { to: '/admin/layouts', label: t('admin.nav.layouts'), icon: Layers2 },
+    { to: '/admin/frontend', label: t('admin.nav.frontend'), icon: MonitorSmartphone },
     { to: '/admin/css-js', label: t('admin.nav.cssjs'), icon: Code2 },
     { to: '/admin/widgets', label: t('admin.nav.widgets'), icon: Layers },
     { to: '/admin/popups', label: t('admin.nav.popups'), icon: AppWindow },

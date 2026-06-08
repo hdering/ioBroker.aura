@@ -1,6 +1,5 @@
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { SliderSetting } from '../shared/SliderSetting';
-import { LayoutContextSwitcher } from '../shared/LayoutContextSwitcher';
 import { useT } from '../../../../i18n';
 
 const FONT_SCALE_PRESETS = [
@@ -22,10 +21,9 @@ const FONT_LEVELS = [
 
 interface TypographySpacingSectionProps {
   contextId: string | null;
-  onContextChange: (id: string | null) => void;
 }
 
-export function TypographySpacingSection({ contextId, onContextChange }: TypographySpacingSectionProps) {
+export function TypographySpacingSection({ contextId }: TypographySpacingSectionProps) {
   const t = useT();
   const { eff, set, clear, ls } = useLayoutSetting(contextId);
 
@@ -44,7 +42,6 @@ export function TypographySpacingSection({ contextId, onContextChange }: Typogra
           <h2 className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>{t('theme.typography.title')}</h2>
           <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>{t('theme.typography.subtitle')}</p>
         </div>
-        <LayoutContextSwitcher selectedId={contextId} onChange={onContextChange} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

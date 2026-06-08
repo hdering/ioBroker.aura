@@ -1,7 +1,6 @@
 import { useThemeStore } from '../../../../store/themeStore';
 import { useDashboardStore } from '../../../../store/dashboardStore';
 import { getTheme, type ThemeVars } from '../../../../themes';
-import { LayoutContextSwitcher } from '../shared/LayoutContextSwitcher';
 import { useT } from '../../../../i18n';
 
 const VAR_GROUPS: { labelKey: string; keys: (keyof ThemeVars)[] }[] = [
@@ -23,10 +22,9 @@ function isColor(v: string) { return v.startsWith('#') || v.startsWith('rgb') ||
 
 interface ThemeVarsSectionProps {
   contextId: string | null;
-  onContextChange: (id: string | null) => void;
 }
 
-export function ThemeVarsSection({ contextId, onContextChange }: ThemeVarsSectionProps) {
+export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
   const t = useT();
   const { themeId, customVars, setCustomVar, resetCustom } = useThemeStore();
   const layouts = useDashboardStore((s) => s.layouts);
@@ -73,7 +71,6 @@ export function ThemeVarsSection({ contextId, onContextChange }: ThemeVarsSectio
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{t('theme.vars.title')}</h2>
         <div className="flex items-center gap-3 flex-wrap">
-          <LayoutContextSwitcher selectedId={contextId} onChange={onContextChange} />
           <button
             onClick={resetAllVars}
             disabled={!hasCustomVars}
