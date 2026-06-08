@@ -219,18 +219,32 @@ function StaticCellView({
 
 // ── Interactive cell sub-components (Universal Widget) ────────────────────────
 
+/** Parse a user-supplied payload string (e.g. "true", "100", "an") into bool/number/string. */
+function parseCellValue(raw: string | undefined, fallback: boolean | number | string): boolean | number | string {
+  if (raw === undefined || raw === '') return fallback;
+  if (raw === 'true')  return true;
+  if (raw === 'false') return false;
+  const num = Number(raw);
+  if (Number.isFinite(num)) return num;
+  return raw;
+}
+
 /** Boolean toggle bound to a DP. */
 function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
   const { value, setValue } = useDatapoint(cell.dpId ?? '');
   const btnRef = useRef<HTMLButtonElement | null>(null);
-  const on = value === true || value === 1 || value === 'true' || value === '1';
+  const trueWrite  = parseCellValue(cell.trueValue,  true);
+  const falseWrite = parseCellValue(cell.falseValue, false);
+  const on = cell.trueValue !== undefined && cell.trueValue !== ''
+    ? String(value) === String(trueWrite)
+    : (value === true || value === 1 || value === 'true' || value === '1');
   const doToggle = () => {
     if (cell.momentary) {
       const delay = cell.momentaryDelay ?? 500;
-      setValue(true);
-      setTimeout(() => setValue(false), delay);
+      setValue(trueWrite);
+      setTimeout(() => setValue(falseWrite), delay);
     } else {
-      setValue(!on);
+      setValue(on ? falseWrite : trueWrite);
     }
   };
   const { run: handleClick, pending, confirm, cancel } = useConfirmAction(doToggle, !!cell.confirmAction);
@@ -414,14 +428,7 @@ function SliderCellView({ cell, index, cols, rows, defaultDecimals }: { cell: Cu
 function ButtonCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
   const { setValue } = useDatapoint(cell.dpId ?? '');
   if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
-  const onClick = () => {
-    const raw = cell.sendValue ?? '';
-    if (raw === 'true')  return setValue(true);
-    if (raw === 'false') return setValue(false);
-    const num = Number(raw);
-    if (raw !== '' && Number.isFinite(num)) return setValue(num);
-    setValue(raw);
-  };
+  const onClick = () => setValue(parseCellValue(cell.sendValue, ''));
   return (
     <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
       <button

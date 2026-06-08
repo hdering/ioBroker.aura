@@ -190,10 +190,12 @@ export interface CustomCell {
   falseColor?: string;          // 'state-icon' / 'switch' (icon mode): color for falsy value
   // 'switch' type
   controlMode?: 'toggle' | 'icon';  // 'switch' cell: visual control style (default 'toggle')
-  momentary?: boolean;              // 'switch' cell: Taster-Modus — write true on press, false after delay
-  momentaryDelay?: number;          // 'switch' cell: ms before writing false (default 500)
+  momentary?: boolean;              // 'switch' cell: Taster-Modus — write trueValue on press, falseValue after delay
+  momentaryDelay?: number;          // 'switch' cell: ms before writing falseValue (default 500)
   confirmAction?: boolean;          // 'switch' cell: require confirmation overlay before toggling
   confirmText?: string;             // 'switch' cell: optional prompt text in confirmation overlay
+  trueValue?:  string;              // 'switch' cell: payload written when switching ON  (parsed as bool/number/string; default true)
+  falseValue?: string;              // 'switch' cell: payload written when switching OFF (parsed as bool/number/string; default false)
   // 'datepicker' type
   dateFormat?: string;           // DateOutputFormat string: how to encode the picked date when writing to dpId
   showTime?:   boolean;          // show time-of-day picker alongside date input

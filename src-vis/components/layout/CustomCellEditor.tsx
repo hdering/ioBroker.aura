@@ -540,6 +540,28 @@ export function CustomCellEditor({
               </div>
             </div>
             <div>
+              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>An/Aus-Werte (optional)</label>
+              <div className="flex gap-1">
+                <input
+                  type="text"
+                  value={cell.trueValue ?? ''}
+                  onChange={(e) => onChange({ trueValue: e.target.value || undefined })}
+                  placeholder="AN: true"
+                  className={inputCls} style={inputSty}
+                />
+                <input
+                  type="text"
+                  value={cell.falseValue ?? ''}
+                  onChange={(e) => onChange({ falseValue: e.target.value || undefined })}
+                  placeholder="AUS: false"
+                  className={inputCls} style={inputSty}
+                />
+              </div>
+              <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                Schreibwerte (z.B. 0/100, 0/255, true/false, an/aus). Leer = true/false.
+              </p>
+            </div>
+            <div>
               <div className="flex items-center justify-between">
                 <div>
                   <label className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>Taster-Modus</label>
