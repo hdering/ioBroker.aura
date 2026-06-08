@@ -722,15 +722,15 @@ export function AdminSettings() {
 
       </div>
 
-      {/* Row 2: Admin Base URL + Backup */}
+      {/* Row 2: Clients + Backup (both list-heavy) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-        <AdminBaseUrlCard />
+        <ClientsCard />
         <BackupCard />
       </div>
 
-      {/* Row 3: Clients + DP-Namen + Decimals */}
+      {/* Row 3: Admin Base URL + DP-Namen + Decimals */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-        <ClientsCard />
+        <AdminBaseUrlCard />
         <DpNameFilterCard />
         <DefaultDecimalsCard />
       </div>
