@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.174 (2026-05-30)
+- fix(camera): honor transparent option in all layouts
+
 ## 0.9.173 (2026-05-30)
 - fix(popup): register ChipsWidget in widgetMap
 - feat(chips): raise chipSize max from 240 to 500 px
