@@ -108,7 +108,7 @@ export async function unpublishTimer(widgetId: string): Promise<void> {
   // non-admin users. Route the cleanup through the adapter via sendTo so it
   // runs as the adapter instance (full permissions).
   const result = await sendToDirect<{ ok: boolean; error?: string; results?: Record<string, string> }>(
-    'aura.0', 'deleteTimer', { widgetId },
+    NS, 'deleteTimer', { widgetId },
   );
   console.info('[aura-timer] deleteTimer result', widgetId, result);
 }
@@ -140,7 +140,7 @@ export function renameTimerForWidget(widget: { type?: string; title?: string; op
   const title = widget.title || 'Zeitschaltuhr';
   if (lastRenameSent.get(backendKey) === title) return;
   lastRenameSent.set(backendKey, title);
-  void sendToDirect('aura.0', 'renameTimer', { widgetId: backendKey, title });
+  void sendToDirect(NS, 'renameTimer', { widgetId: backendKey, title });
 }
 
 /** Walk a list of widgets and push rename for every timer. Cheap thanks to the
@@ -152,7 +152,7 @@ export function renameAllTimers(widgets: Array<{ type?: string; title?: string; 
 /** Ask the adapter which widgetIds currently have an aura.0.timers.<id>
  *  channel in ioBroker. Used by the orphan detector on the Übersicht page. */
 export async function listTimerIds(): Promise<string[]> {
-  const r = await sendToDirect<{ ok: boolean; widgetIds?: string[] }>('aura.0', 'listTimers', {});
+  const r = await sendToDirect<{ ok: boolean; widgetIds?: string[] }>(NS, 'listTimers', {});
   if (r && typeof r === 'object' && 'widgetIds' in r && Array.isArray((r as { widgetIds?: string[] }).widgetIds)) {
     return (r as { widgetIds: string[] }).widgetIds;
   }

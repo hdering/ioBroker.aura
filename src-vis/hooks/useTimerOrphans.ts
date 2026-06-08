@@ -5,6 +5,7 @@ import { usePopupConfigStore } from '../store/popupConfigStore';
 import { isDirty, subscribeDirty } from '../store/persistManager';
 import { sendToDirect } from './useIoBroker';
 import { timerBackendKey } from '../utils/publishTimerConfig';
+import { NS } from '../utils/namespace';
 import type { WidgetConfig } from '../types';
 
 /** Walk all widgets we know about (dashboard layouts, group definitions, popup
@@ -22,7 +23,7 @@ function visitAllWidgets(visit: (w: WidgetConfig) => void): void {
 export interface OrphanItem { id: string; name: string }
 
 async function fetchRemoteItems(command: 'listTimers' | 'listLists'): Promise<OrphanItem[]> {
-  const r = await sendToDirect<{ ok: boolean; items?: OrphanItem[]; widgetIds?: string[] }>('aura.0', command, {});
+  const r = await sendToDirect<{ ok: boolean; items?: OrphanItem[]; widgetIds?: string[] }>(NS, command, {});
   if (r && typeof r === 'object') {
     const items = (r as { items?: OrphanItem[] }).items;
     if (Array.isArray(items)) return items.map((it) => ({ id: String(it.id || ''), name: String(it.name || '') })).filter((it) => it.id);
@@ -71,7 +72,7 @@ export function useTimerOrphans(): OrphansState {
     let ok = 0;
     let fail = 0;
     const send = async (command: 'deleteTimer' | 'deleteList', widgetId: string) => {
-      const r = await sendToDirect<{ ok: boolean }>('aura.0', command, { widgetId });
+      const r = await sendToDirect<{ ok: boolean }>(NS, command, { widgetId });
       if (r && typeof r === 'object' && 'ok' in r && (r as { ok: boolean }).ok) ok++;
       else fail++;
     };

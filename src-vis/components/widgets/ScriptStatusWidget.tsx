@@ -10,6 +10,7 @@ import {
 } from '../../hooks/useIoBroker';
 import type { WidgetProps, ioBrokerState, ioBrokerObject } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { NS } from '../../utils/namespace';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -186,23 +187,12 @@ export function ScriptStatusWidget({ config }: WidgetProps) {
   const [groupFilter, setGroupFilter] = useState<string>(defaultGroup);
   useEffect(() => { setFilter(defaultFilter); }, [defaultFilter]);
   useEffect(() => { setGroupFilter(defaultGroup); }, [defaultGroup]);
-  const [auraInstance, setAuraInstance] = useState<string>('aura.0');
+  // Always target the aura instance that serves this page (NS), not the first
+  // aura.* instance found in ioBroker — relevant for multi-instance setups.
+  const auraInstance = NS;
   const [actionError,  setActionError]  = useState<string | null>(null);
 
   const Icon = getWidgetIcon((o.icon as string) ?? 'Code2', Code2);
-
-  // Detect aura instance (for sendTo target).
-  useEffect(() => {
-    if (!connected) return;
-    let cancelled = false;
-    (async () => {
-      const result = await getObjectViewDirect('instance', 'system.adapter.aura.', 'system.adapter.aura.香');
-      if (cancelled) return;
-      const row = result.rows[0];
-      if (row) setAuraInstance(row.id.slice('system.adapter.'.length));
-    })();
-    return () => { cancelled = true; };
-  }, [connected]);
 
   // Load script list
   useEffect(() => {

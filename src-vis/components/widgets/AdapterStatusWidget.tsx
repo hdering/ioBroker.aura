@@ -11,6 +11,7 @@ import {
 } from '../../hooks/useIoBroker';
 import type { WidgetProps, ioBrokerState, ioBrokerObject } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { NS } from '../../utils/namespace';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -230,7 +231,9 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
   // Reset to admin-configured default when the option changes (live edit mode).
   useEffect(() => { setFilter(defaultFilter); }, [defaultFilter]);
   const [adminInstance, setAdminInstance] = useState<string>('admin.0');
-  const [auraInstance,  setAuraInstance]  = useState<string>('aura.0');
+  // sendTo target is always the aura instance that serves this page (NS) so a
+  // second aura.* instance does not silently steal the messages.
+  const auraInstance = NS;
   const [actionError,   setActionError]   = useState<string | null>(null);
 
   const Icon = getWidgetIcon((o.icon as string) ?? 'ServerCog', ServerCog);
@@ -244,7 +247,6 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
       if (cancelled) return;
       const list: AdapterInstance[] = [];
       let firstAdmin: string | null = null;
-      let firstAura:  string | null = null;
       for (const row of result.rows) {
         const id = row.id; // "system.adapter.<adapter>.<n>"
         if (!id.startsWith('system.adapter.')) continue;
@@ -267,15 +269,10 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
           icon:     (c as { extIcon?: string; icon?: string }).extIcon ?? (c as { icon?: string }).icon,
         });
         if (!firstAdmin && adapter === 'admin') firstAdmin = rest;
-        // Take first aura found regardless of enabled flag — if there's only one
-        // (disabled) aura instance, we still want to surface "not running" rather
-        // than silently falling back to the hardcoded 'aura.0' default.
-        if (!firstAura && adapter === 'aura') firstAura = rest;
       }
       list.sort((a, b) => a.id.localeCompare(b.id));
       setInstances(list);
       if (firstAdmin) setAdminInstance(firstAdmin);
-      if (firstAura)  setAuraInstance(firstAura);
     })();
     return () => { cancelled = true; };
   }, [connected]);

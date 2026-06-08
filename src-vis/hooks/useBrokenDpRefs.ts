@@ -4,6 +4,7 @@ import { useGroupDefsStore } from '../store/groupDefsStore';
 import { usePopupConfigStore } from '../store/popupConfigStore';
 import { isDirty, subscribeDirty } from '../store/persistManager';
 import { sendToDirect } from './useIoBroker';
+import { NS } from '../utils/namespace';
 import type { WidgetConfig } from '../types';
 
 export interface BrokenRef {
@@ -130,7 +131,7 @@ export function useBrokenDpRefs(): BrokenDpRefsState {
       const refs = collectAllRefs();
       const unique = Array.from(new Set(refs.map((r) => r.dp)));
       if (unique.length === 0) { setBroken([]); return; }
-      const r = await sendToDirect<{ ok: boolean; missing?: string[] }>('aura.0', 'checkDps', { ids: unique });
+      const r = await sendToDirect<{ ok: boolean; missing?: string[] }>(NS, 'checkDps', { ids: unique });
       const missing = new Set<string>(
         r && typeof r === 'object' && 'missing' in r && Array.isArray((r as { missing?: string[] }).missing)
           ? (r as { missing: string[] }).missing
