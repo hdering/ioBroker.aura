@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.175 (2026-05-30)
+- fix(shutter): reserve slider space so status badges do not overlap thumb
+- feat(shutter): add resize options for value, buttons and slider
+
 ## 0.9.174 (2026-05-30)
 - fix(camera): honor transparent option in all layouts
 
