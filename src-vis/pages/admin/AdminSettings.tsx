@@ -722,8 +722,8 @@ export function AdminSettings() {
 
       </div>
 
-      {/* Row 2: Admin Base URL + DP-Namen + Decimals */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+      {/* Row 2: Admin Base URL + DP-Namen + Decimals (equal height) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <AdminBaseUrlCard />
         <DpNameFilterCard />
         <DefaultDecimalsCard />
