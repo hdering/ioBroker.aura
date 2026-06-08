@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.191",
+    "version": "0.9.192",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.192": {
+        "en": "feat(adapter): allow multiple instances and surface port collisions",
+        "de": "feat(adapter): allow multiple instances and surface port collisions",
+        "ru": "feat(adapter): allow multiple instances and surface port collisions",
+        "pt": "feat(adapter): allow multiple instances and surface port collisions",
+        "nl": "feat(adapter): allow multiple instances and surface port collisions",
+        "fr": "feat(adapter): allow multiple instances and surface port collisions",
+        "it": "feat(adapter): allow multiple instances and surface port collisions",
+        "es": "feat(adapter): allow multiple instances and surface port collisions",
+        "pl": "feat(adapter): allow multiple instances and surface port collisions",
+        "uk": "feat(adapter): allow multiple instances and surface port collisions",
+        "zh-cn": "feat(adapter): allow multiple instances and surface port collisions"
+      },
       "0.9.191": {
         "en": "fix(backup): include group children and popup views in backups",
         "de": "fix(backup): include group children and popup views in backups",
@@ -183,19 +196,6 @@
         "pl": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
         "uk": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
         "zh-cn": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel"
-      },
-      "0.9.184": {
-        "en": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
-        "de": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
-        "ru": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
-        "pt": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
-        "nl": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
-        "fr": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
-        "it": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
-        "es": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
-        "pl": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
-        "uk": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly",
-        "zh-cn": "fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly"
       }
     }
   },

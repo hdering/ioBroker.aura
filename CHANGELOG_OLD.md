@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.172 (2026-05-30)
+- feat(echart): per-series custom history range
+
 ## 0.9.171 (2026-05-30)
 - feat(static-list): allow changing datapoint of an existing entry
 
