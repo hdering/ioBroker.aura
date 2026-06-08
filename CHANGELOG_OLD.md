@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.173 (2026-05-30)
+- fix(popup): register ChipsWidget in widgetMap
+- feat(chips): raise chipSize max from 240 to 500 px
+- feat(evcc): add showLoadpoints toggle to hide loadpoint cards
+
 ## 0.9.172 (2026-05-30)
 - feat(echart): per-series custom history range
 

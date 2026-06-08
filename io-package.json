@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.192",
+    "version": "0.9.193",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.193": {
+        "en": "fix(guidelines): make vertical-line label background hug content; fix(guidelines): offset lines by header/tab-bar height",
+        "de": "fix(guidelines): make vertical-line label background hug content; fix(guidelines): offset lines by header/tab-bar height",
+        "ru": "fix(guidelines): make vertical-line label background hug content; fix(guidelines): offset lines by header/tab-bar height",
+        "pt": "fix(guidelines): make vertical-line label background hug content; fix(guidelines): offset lines by header/tab-bar height",
+        "nl": "fix(guidelines): make vertical-line label background hug content; fix(guidelines): offset lines by header/tab-bar height",
+        "fr": "fix(guidelines): make vertical-line label background hug content; fix(guidelines): offset lines by header/tab-bar height",
+        "it": "fix(guidelines): make vertical-line label background hug content; fix(guidelines): offset lines by header/tab-bar height",
+        "es": "fix(guidelines): make vertical-line label background hug content; fix(guidelines): offset lines by header/tab-bar height",
+        "pl": "fix(guidelines): make vertical-line label background hug content; fix(guidelines): offset lines by header/tab-bar height",
+        "uk": "fix(guidelines): make vertical-line label background hug content; fix(guidelines): offset lines by header/tab-bar height",
+        "zh-cn": "fix(guidelines): make vertical-line label background hug content; fix(guidelines): offset lines by header/tab-bar height"
+      },
       "0.9.192": {
         "en": "feat(adapter): allow multiple instances and surface port collisions",
         "de": "feat(adapter): allow multiple instances and surface port collisions",
@@ -183,19 +196,6 @@
         "pl": "Release v0.9.186",
         "uk": "Release v0.9.186",
         "zh-cn": "Release v0.9.186"
-      },
-      "0.9.185": {
-        "en": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
-        "de": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
-        "ru": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
-        "pt": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
-        "nl": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
-        "fr": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
-        "it": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
-        "es": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
-        "pl": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
-        "uk": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel",
-        "zh-cn": "feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel"
       }
     }
   },
