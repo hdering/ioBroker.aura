@@ -1,5 +1,5 @@
 import React, { useMemo, useState, type CSSProperties } from 'react';
-import { SunDim } from 'lucide-react';
+import { Power, SunDim } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
@@ -27,6 +27,13 @@ export function DimmerWidget({ config }: WidgetProps) {
   const iconSize       = (o.iconSize as number) || 20;
   const barStyle       = !!o.barStyle;
   const barSize        = (o.barSize as number) ?? 100;
+  const controlMode      = (o.controlMode as string) ?? 'toggle';
+  const isIconMode       = controlMode === 'icon';
+  const onColor          = (o.onColor  as string) || 'var(--accent-green)';
+  const offColor         = (o.offColor as string) || 'var(--text-secondary)';
+  const OnIconComp       = useMemo(() => getWidgetIcon(o.onIcon  as string | undefined, Power), [o.onIcon]);
+  const OffIconComp      = useMemo(() => getWidgetIcon(o.offIcon as string | undefined, Power), [o.offIcon]);
+  const controlIconSize  = (o.controlIconSize as number) || 28;
 
   const [dragValue, setDragValue] = useState<number | null>(null);
   const displayLevel = dragValue ?? level;
@@ -77,7 +84,19 @@ export function DimmerWidget({ config }: WidgetProps) {
     }
   };
 
-  const toggleBtn = showToggle && (
+  const StateIcon  = isOn ? OnIconComp : OffIconComp;
+  const stateColor = isOn ? onColor : offColor;
+  const iconToggleBtn = (
+    <button
+      onClick={handleToggle}
+      className="aura-widget-action nodrag flex items-center justify-center shrink-0 transition-transform hover:scale-110 focus:outline-none"
+      style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+      aria-label={isOn ? 'AN' : 'AUS'}
+    >
+      <StateIcon size={controlIconSize} style={{ color: stateColor }} />
+    </button>
+  );
+  const sliderToggleBtn = (
     <button
       onClick={handleToggle}
       className="aura-widget-action nodrag relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"
@@ -86,6 +105,7 @@ export function DimmerWidget({ config }: WidgetProps) {
       <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
     </button>
   );
+  const toggleBtn = showToggle && (isIconMode ? iconToggleBtn : sliderToggleBtn);
 
   const slider = (
     <input type="range" min={0} max={100} value={displayLevel}
@@ -151,15 +171,7 @@ export function DimmerWidget({ config }: WidgetProps) {
             className="aura-widget-action nodrag h-1.5 rounded-full appearance-none cursor-pointer"
           />
         ),
-        toggle: (
-          <button
-            onClick={handleToggle}
-            className="aura-widget-action nodrag relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"
-            style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}
-          >
-            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
-          </button>
-        ),
+        toggle: isIconMode ? iconToggleBtn : sliderToggleBtn,
       }}
     />
   );
