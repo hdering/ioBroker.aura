@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.196",
+    "version": "0.9.197",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.197": {
+        "en": "fix(multi-instance): route sendTo messages to running namespace",
+        "de": "fix(multi-instance): route sendTo messages to running namespace",
+        "ru": "fix(multi-instance): route sendTo messages to running namespace",
+        "pt": "fix(multi-instance): route sendTo messages to running namespace",
+        "nl": "fix(multi-instance): route sendTo messages to running namespace",
+        "fr": "fix(multi-instance): route sendTo messages to running namespace",
+        "it": "fix(multi-instance): route sendTo messages to running namespace",
+        "es": "fix(multi-instance): route sendTo messages to running namespace",
+        "pl": "fix(multi-instance): route sendTo messages to running namespace",
+        "uk": "fix(multi-instance): route sendTo messages to running namespace",
+        "zh-cn": "fix(multi-instance): route sendTo messages to running namespace"
+      },
       "0.9.196": {
         "en": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail",
         "de": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail",
@@ -183,19 +196,6 @@
         "pl": "fix(backup): include group children and popup views in backups",
         "uk": "fix(backup): include group children and popup views in backups",
         "zh-cn": "fix(backup): include group children and popup views in backups"
-      },
-      "0.9.190": {
-        "en": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
-        "de": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
-        "ru": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
-        "pt": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
-        "nl": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
-        "fr": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
-        "it": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
-        "es": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
-        "pl": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
-        "uk": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more",
-        "zh-cn": "fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more"
       }
     }
   },

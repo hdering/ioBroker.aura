@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.177 (2026-05-31)
+- fix(conditions): stop grid<->offscreen bounce on first paint
+- feat(conditions): add opt-in debug logging for hidden-widget diagnostics
+
 ## 0.9.176 (2026-05-30)
 - feat(widgets): add transparency strength slider for transparent mode
 
