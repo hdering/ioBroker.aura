@@ -354,18 +354,44 @@ export function Dashboard({ readonly = false, editMode = false, onLayoutChange, 
 
 // ── Guidelines overlay ────────────────────────────────────────────────────
 // Renders a vertical line at x=guidelinesWidth and a horizontal line at
-// y=guidelinesHeight. Positioned absolutely inside the scroll container so
-// the lines scroll with the grid content and stay aligned to grid coordinates.
+// y=guidelinesHeight. Lines are positioned absolutely inside the scroll
+// container; positions are offset by the scroll container's viewport
+// top/left so the lines indicate the *device's* screen edges (the target
+// width/height covers the entire app including header + tab bar), not
+// the dashboard area alone.
 function GuidelinesOverlay({ width, height }: { width: number; height: number }) {
+  const markerRef = useRef<HTMLDivElement | null>(null);
+  const [offset, setOffset] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    const marker = markerRef.current;
+    const parent = marker?.parentElement;
+    if (!parent) return;
+    const measure = () => {
+      const r = parent.getBoundingClientRect();
+      setOffset({ top: Math.round(r.top), left: Math.round(r.left) });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(parent);
+    ro.observe(document.documentElement);
+    window.addEventListener('resize', measure);
+    return () => { ro.disconnect(); window.removeEventListener('resize', measure); };
+  }, []);
+
+  const lineLeft = width - offset.left;
+  const lineTop = height - offset.top;
+
   return (
     <>
+      <div ref={markerRef} aria-hidden style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0, pointerEvents: 'none' }} />
       {/* Vertical line: right edge of the target width */}
       <div
         aria-hidden
         style={{
           position: 'absolute',
           top: 0,
-          left: width,
+          left: lineLeft,
           width: 0,
           bottom: 0,
           borderLeft: '2px dashed rgba(239,68,68,0.85)',
@@ -394,7 +420,7 @@ function GuidelinesOverlay({ width, height }: { width: number; height: number })
         style={{
           position: 'absolute',
           left: 0,
-          top: height,
+          top: lineTop,
           right: 0,
           height: 0,
           borderTop: '2px dashed rgba(239,68,68,0.85)',
