@@ -5,8 +5,9 @@
  * per-widget channel + state objects on-demand and updates the value.
  */
 import { setObjectDirect, setStateDirect, deleteObjectDirect } from '../hooks/useIoBroker';
+import { NS } from './namespace';
 
-const NAMESPACE = 'aura.0.lists';
+const NAMESPACE = `${NS}.lists`;
 
 export function listChannelId(widgetId: string): string {
   return `${NAMESPACE}.${widgetId}`;

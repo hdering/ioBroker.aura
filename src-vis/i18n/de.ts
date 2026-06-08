@@ -64,7 +64,7 @@ export const de = {
   'settings.language.en':      'Englisch',
 
   'settings.client.title':  'Dieses Gerät',
-  'settings.client.hint':   'Jeder Client bekommt eine eindeutige ID. Über aura.0.clients.{id}.navigate.url lässt sich dieses Gerät individuell steuern.',
+  'settings.client.hint':   'Jeder Client bekommt eine eindeutige ID. Über {ns}.clients.{id}.navigate.url lässt sich dieses Gerät individuell steuern.',
   'settings.client.name':   'Gerätename',
   'settings.client.namePh': 'z.B. Küche Tablet, Wohnzimmer TV…',
   'settings.client.id':     'ioBroker-Datenpunkt',
@@ -170,7 +170,7 @@ export const de = {
   'settings.backup.invalidFile': 'Ungültige Backup-Datei',
 
   'settings.autobackup.title':          'Automatisches Backup',
-  'settings.autobackup.description':    'Wird bei jedem Speichern als Datei unter aura.0.backups/ abgelegt.',
+  'settings.autobackup.description':    'Wird bei jedem Speichern als Datei unter {ns}.backups/ abgelegt.',
   'settings.autobackup.lastBackup':     'Letztes Backup',
   'settings.autobackup.noBackup':       'Noch kein Backup vorhanden',
   'settings.autobackup.download':       'Backup herunterladen',
@@ -223,7 +223,7 @@ export const de = {
   'dashboard.orphans.title':      '{count} verwaiste DPs in ioBroker',
   'dashboard.orphans.titleClean': 'Keine verwaisten DPs in ioBroker',
   'dashboard.orphans.hint':       'Diese Datenpunkte existieren in ioBroker, gehören aber zu keinem Widget mehr. Bereinigen entfernt sie aus dem Objektbaum.',
-  'dashboard.orphans.hintClean':  'Jeder aura.0.timers.* und aura.0.lists.* Datenpunkt gehört zu einem existierenden Widget.',
+  'dashboard.orphans.hintClean':  'Jeder {ns}.timers.* und {ns}.lists.* Datenpunkt gehört zu einem existierenden Widget.',
   'dashboard.orphans.timerLabel': 'Zeitschaltuhr-DPs ohne Widget',
   'dashboard.orphans.listLabel':  'Listen-DPs ohne Widget',
   'dashboard.orphans.refresh':    'Aktualisieren',

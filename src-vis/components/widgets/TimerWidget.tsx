@@ -24,6 +24,7 @@ import {
 import { TimerEventModal } from './TimerEventModal';
 import { CustomGridView } from './CustomGridView';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
+import { NS } from '../../utils/namespace';
 
 /**
  * Flush the dashboard config to ioBroker immediately after a user edit.
@@ -154,7 +155,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
       const seg = (typeof crypto !== 'undefined' && crypto.randomUUID)
         ? crypto.randomUUID()
         : `t-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-      onConfigChange({ ...config, options: { ...o, stateBaseId: `aura.0.timers.${seg}` } });
+      onConfigChange({ ...config, options: { ...o, stateBaseId: `${NS}.timers.${seg}` } });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

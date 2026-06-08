@@ -14,6 +14,7 @@ import { IconPickerModal } from './IconPickerModal';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { NS } from '../../utils/namespace';
 
 function toIconifyId(name: string): string {
   return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -656,7 +657,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
         </div>
         {opts.publishCount && (
           <p className="text-[9px] mt-1 font-mono truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-            aura.0.lists.{config.id}.count
+            {NS}.lists.{config.id}.count
           </p>
         )}
       </div>

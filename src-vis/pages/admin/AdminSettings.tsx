@@ -17,6 +17,7 @@ import { Eye, EyeOff, AlertTriangle, RefreshCw, Tablet, Edit3, Check, X, Trash2,
 import { useT } from '../../i18n';
 import { BrowserThemeSyncSection } from './layouts/sections/BrowserThemeSyncSection';
 import { FrontendSection } from './layouts/sections/FrontendSection';
+import { NS } from '../../utils/namespace';
 
 // ── Shared primitives ──────────────────────────────────────────────────────────
 
@@ -296,7 +297,7 @@ function ClientsCard() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await getObjectViewDirect('channel', 'aura.0.clients.', 'aura.0.clients.\u9999');
+      const result = await getObjectViewDirect('channel', `${NS}.clients.`, `${NS}.clients.\u9999`);
       // Only direct client channels: aura.0.clients.{clientId} → exactly 4 dot-segments
       const channelRows = result.rows.filter((r) => r.id.split('.').length === 4);
       const data = await Promise.all(
@@ -351,7 +352,7 @@ function ClientsCard() {
     setConfirmDeleteId(null);
     // Relay deletion via adapter: write clientId to deleteRequest state.
     // main.js listens, calls delForeignObjectAsync recursively, then clears the state.
-    setStateDirect('aura.0.clients.deleteRequest', c.clientId);
+    setStateDirect(`${NS}.clients.deleteRequest`, c.clientId);
     setClients((prev) => prev.filter((x) => x.clientId !== c.clientId));
   };
 

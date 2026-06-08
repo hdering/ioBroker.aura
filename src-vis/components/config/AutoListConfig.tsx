@@ -8,6 +8,7 @@ import type { AutoListOptions, AutoListEntry, DiscoveredDp } from '../widgets/Au
 import { useT } from '../../i18n';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { NS } from '../../utils/namespace';
 
 const PRESETS_ID: { label: string; value: string }[] = [
   { label: 'endet auf .POWER',  value: '/\\.POWER$/i'  },
@@ -737,7 +738,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
         </div>
         {opts.publishCount && (
           <p className="text-[9px] mt-1 font-mono truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-            aura.0.lists.{config.id}.count
+            {NS}.lists.{config.id}.count
           </p>
         )}
       </div>

@@ -362,7 +362,7 @@ const MIME_TYPES = {
 
 const WWW_DIR = path.join(__dirname, 'www');
 
-function serveStatic(pathname, res, host, isSecure, socketUrlOverride) {
+function serveStatic(pathname, res, host, isSecure, socketUrlOverride, namespace) {
   const rel = pathname === '/' ? 'index.html' : pathname.slice(1);
   const abs = path.join(WWW_DIR, rel);
   if (!abs.startsWith(WWW_DIR)) { res.writeHead(403); res.end(); return; }
@@ -375,7 +375,8 @@ function serveStatic(pathname, res, host, isSecure, socketUrlOverride) {
       const proto = isSecure ? 'https' : 'http';
       socketUrl = `${proto}://${host || 'localhost'}`;
     }
-    const injection = `<script>window.__AURA_SOCKET_URL__=${JSON.stringify(socketUrl)}</script>`;
+    const ns = namespace || 'aura.0';
+    const injection = `<script>window.__AURA_SOCKET_URL__=${JSON.stringify(socketUrl)};window.__AURA_NAMESPACE__=${JSON.stringify(ns)}</script>`;
     const html = data.toString('utf8').replace('</head>', `${injection}</head>`);
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(html, 'utf8');
@@ -778,7 +779,7 @@ class Aura extends utils.Adapter {
       }
 
       const isSecure = req.socket.encrypted === true || req.headers['x-forwarded-proto'] === 'https';
-      serveStatic(pathname, res, req.headers.host, isSecure, this.config.socketUrl || '');
+      serveStatic(pathname, res, req.headers.host, isSecure, this.config.socketUrl || '', this.namespace);
     };
 
     let server;

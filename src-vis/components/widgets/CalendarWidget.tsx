@@ -5,6 +5,7 @@ import { getSocket, subscribeStateDirect, setStateDirect } from '../../hooks/use
 import { useT } from '../../i18n';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CustomGridView } from './CustomGridView';
+import { NS } from '../../utils/namespace';
 
 // ── CalendarSource ─────────────────────────────────────────────────────────
 
@@ -143,7 +144,7 @@ function fetchIcalTextOnce(url: string, ttlSeconds: number): Promise<string> {
         reject(new Error('Timeout'));
       }
     }, 20000);
-    const unsubscribe = subscribeStateDirect('aura.0.calendar.response', (state) => {
+    const unsubscribe = subscribeStateDirect(`${NS}.calendar.response`, (state) => {
       if (!state?.val) return;
       try {
         const resp = JSON.parse(String(state.val)) as { id?: string; content?: string; error?: string };
@@ -157,7 +158,7 @@ function fetchIcalTextOnce(url: string, ttlSeconds: number): Promise<string> {
       } catch { /* ignore parse errors from unrelated state changes */ }
     });
     // ttl tells the adapter how long its cache entry is considered fresh
-    getSocket().emit('setState', 'aura.0.calendar.request', { val: JSON.stringify({ id, url, ttl: ttlSeconds }), ack: false });
+    getSocket().emit('setState', `${NS}.calendar.request`, { val: JSON.stringify({ id, url, ttl: ttlSeconds }), ack: false });
   });
 }
 
@@ -183,7 +184,7 @@ async function fetchIcalText(url: string, ttlSeconds: number): Promise<string> {
   }
   // Notify the adapter so it can write to the ioBroker log
   if (!import.meta.env.DEV) {
-    setStateDirect('aura.0.calendar.clientError',
+    setStateDirect(`${NS}.calendar.clientError`,
       `[${new Date().toISOString()}] ${lastError.message} – url: ${url}`);
   }
   // Re-surface a user-friendly message

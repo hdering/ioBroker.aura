@@ -1,18 +1,24 @@
 import { useConfigStore } from '../store/configStore';
 import { de, type TranslationKey } from './de';
 import { en } from './en';
+import { NS } from '../utils/namespace';
 
 export type Language = 'de' | 'en';
 
 const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = { de, en };
+
+// Variables auto-injected into every translation. `{ns}` resolves to the
+// current ioBroker instance namespace (aura.0, aura.1, …) so hint strings
+// reference the actual running instance.
+const DEFAULT_VARS: Record<string, string> = { ns: NS };
 
 /**
  * Interpolate variables in a translation string.
  * Replaces `{key}` placeholders with values from `vars`.
  */
 function interpolate(str: string, vars?: Record<string, string | number>): string {
-  if (!vars) return str;
-  return str.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? `{${k}}`));
+  const merged = vars ? { ...DEFAULT_VARS, ...vars } : DEFAULT_VARS;
+  return str.replace(/\{(\w+)\}/g, (_, k) => String(merged[k] ?? `{${k}}`));
 }
 
 /**

@@ -15,6 +15,7 @@ import { useGroupStore } from '../store/groupStore';
 import { useConfigStore } from '../store/configStore';
 import { useGlobalSettingsStore } from '../store/globalSettingsStore';
 import { usePopupConfigStore } from '../store/popupConfigStore';
+import { NS } from './namespace';
 
 type StoreKey = SyncStoreKey | 'aura-global-settings';
 
@@ -53,7 +54,7 @@ export async function loadConfigFromIoBroker(includeGlobalSettings = false, { ig
   // Load all states in parallel
   const stateIds = extraKeys.map((key) =>
     key === 'aura-global-settings'
-      ? 'aura.0.config.global-settings'
+      ? `${NS}.config.global-settings`
       : IOBROKER_STATE_MAP[key as SyncStoreKey]
   );
   const results = await Promise.all(stateIds.map((id) => getStateDirect(id)));
@@ -61,7 +62,7 @@ export async function loadConfigFromIoBroker(includeGlobalSettings = false, { ig
   let changed = false;
 
   // Check if the dashboard state contains the old blob format
-  const dashboardResult = results[stateIds.indexOf('aura.0.config.dashboard')];
+  const dashboardResult = results[stateIds.indexOf(`${NS}.config.dashboard`)];
   const dashboardRaw = dashboardResult?.val ? String(dashboardResult.val) : '';
   const isOldBlob = dashboardRaw.includes('"aura-dashboard"') || dashboardRaw.includes('"aura-theme"');
 
@@ -78,7 +79,7 @@ export async function loadConfigFromIoBroker(includeGlobalSettings = false, { ig
         applyRaw(key, raw);
         // Write to new separate state so next load uses new format
         const stateId = key === 'aura-global-settings'
-          ? 'aura.0.config.global-settings'
+          ? `${NS}.config.global-settings`
           : IOBROKER_STATE_MAP[key as SyncStoreKey];
         setStateDirect(stateId, raw);
         changed = true;

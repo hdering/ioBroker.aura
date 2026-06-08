@@ -3,29 +3,37 @@ import {
   setStateDirect, getStateDirect,
   writeFileDirect, readFileDirect, readDirDirect, deleteFileDirect,
 } from '../hooks/useIoBroker';
+import { NS } from '../utils/namespace';
 
 // Each localStorage key maps to its own ioBroker state (no more single blob).
-// aura.0 prefix is consistent with the rest of the codebase.
-export const IOBROKER_STATE_MAP = {
-  'aura-dashboard':       'aura.0.config.dashboard',
-  'aura-theme':           'aura.0.config.theme',
-  'aura-groups':          'aura.0.config.groups',
-  'aura-config':          'aura.0.config.app-config',
-  'aura-global-settings': 'aura.0.config.global-settings',
-  'aura-group-defs':      'aura.0.config.group-defs',
-  'aura-popup-config':    'aura.0.config.popup-config',
-} as const;
+// The {NS} prefix resolves to the running instance namespace (aura.0, aura.1…).
+export const IOBROKER_STATE_MAP: Record<string, string> = {
+  'aura-dashboard':       `${NS}.config.dashboard`,
+  'aura-theme':           `${NS}.config.theme`,
+  'aura-groups':          `${NS}.config.groups`,
+  'aura-config':          `${NS}.config.app-config`,
+  'aura-global-settings': `${NS}.config.global-settings`,
+  'aura-group-defs':      `${NS}.config.group-defs`,
+  'aura-popup-config':    `${NS}.config.popup-config`,
+};
 
-export type SyncStoreKey = keyof typeof IOBROKER_STATE_MAP;
+export type SyncStoreKey =
+  | 'aura-dashboard'
+  | 'aura-theme'
+  | 'aura-groups'
+  | 'aura-config'
+  | 'aura-global-settings'
+  | 'aura-group-defs'
+  | 'aura-popup-config';
 const SYNC_STORE_KEYS = Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[];
 
 // Legacy single-state DP. Kept for one-time migration; new backups go to files.
-const IOBROKER_BACKUP_KEY = 'aura.0.config.dashboard_backup';
+const IOBROKER_BACKUP_KEY = `${NS}.config.dashboard_backup`;
 
 // File-based backup storage. Each backup is its own JSON file under the
-// aura.0.backups meta namespace. Filename = ISO-Timestamp → sortable + readable.
+// <ns>.backups meta namespace. Filename = ISO-Timestamp → sortable + readable.
 // The meta object is created by the adapter in onReady (main.js).
-const BACKUP_NAMESPACE = 'aura.0.backups';
+const BACKUP_NAMESPACE = `${NS}.backups`;
 const BACKUP_FILE_PREFIX = 'backup-';
 const BACKUP_FILE_SUFFIX = '.json';
 

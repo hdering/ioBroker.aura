@@ -13,6 +13,7 @@
  */
 import { setStateDirect, getSocket, sendToDirect } from '../hooks/useIoBroker';
 import type { TimerEvent } from '../types';
+import { NS } from './namespace';
 
 /** Promise wrapper around setObject so callers can await object creation
  *  before writing the corresponding state — otherwise iobroker logs
@@ -23,7 +24,7 @@ function setObjectAsync(id: string, obj: object): Promise<void> {
   });
 }
 
-const NAMESPACE = 'aura.0.timers';
+const NAMESPACE = `${NS}.timers`;
 
 export function timerChannelId(widgetId: string): string {
   return `${NAMESPACE}.${widgetId}`;

@@ -7,6 +7,7 @@ import { copyToClipboard } from '../../utils/clipboard';
 import { useTimerOrphans, type OrphanItem } from '../../hooks/useTimerOrphans';
 import { useBrokenDpRefs } from '../../hooks/useBrokenDpRefs';
 import { Link } from 'react-router-dom';
+import { NS } from '../../utils/namespace';
 
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) {
   return (
@@ -58,7 +59,7 @@ function OrphanRow({ label, ns, items }: { label: string; ns: 'timers' | 'lists'
             style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}>
           {items.map((it) => (
             <li key={it.id} className="font-mono flex items-baseline gap-2">
-              <span>aura.0.{ns}.{it.id}</span>
+              <span>{NS}.{ns}.{it.id}</span>
               {it.name && (
                 <span className="font-sans" style={{ color: 'var(--text-primary)' }}>— {it.name}</span>
               )}
@@ -254,11 +255,11 @@ export function AdminDashboard() {
         <h2 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{t('dashboard.nav.title')}</h2>
 
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}>
-          <code className="text-sm font-mono flex-1" style={{ color: 'var(--accent)' }}>aura.0.clients.{'<clientId>'}.navigate.url</code>
-          <CopyButton text="aura.0.clients.<clientId>.navigate.url" />
+          <code className="text-sm font-mono flex-1" style={{ color: 'var(--accent)' }}>{NS}.clients.{'<clientId>'}.navigate.url</code>
+          <CopyButton text={`${NS}.clients.<clientId>.navigate.url`} />
         </div>
 
-        <pre className="aura-scroll text-xs font-mono overflow-x-auto px-3 py-2 rounded-lg" style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}>{`setState('aura.0.clients.<clientId>.navigate.url', 'tab-slug');`}</pre>
+        <pre className="aura-scroll text-xs font-mono overflow-x-auto px-3 py-2 rounded-lg" style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}>{`setState('${NS}.clients.<clientId>.navigate.url', 'tab-slug');`}</pre>
       </div>
 
       {/* AURA acronym — small footer */}

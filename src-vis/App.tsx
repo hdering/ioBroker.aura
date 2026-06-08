@@ -28,6 +28,7 @@ import { applyRaw } from './utils/configLoader';
 import { discardPending } from './store/persistManager';
 import { markGroupDefsHydrated } from './store/groupDefsStore';
 import { usePopupConfigStore } from './store/popupConfigStore';
+import { NS } from './utils/namespace';
 
 // Module-level cache of the active themeMode.frontend DP override. Lets the
 // DP listener win over delayed config rehydrations and the followBrowser
@@ -409,7 +410,7 @@ export default function App() {
       if (useThemeStore.getState().themeId !== v) setTheme(v);
       if (layout?.settings?.themeId) clearLayoutSettings(layout.id, 'themeId');
     };
-    const unsubDP = subscribeStateDirect('aura.0.config.themeMode.frontend', (state) => {
+    const unsubDP = subscribeStateDirect(`${NS}.config.themeMode.frontend`, (state) => {
       if (state?.val == null) return;
       const raw = state.val;
       if (raw === '') { themeModeOverride.value = null; return; }
@@ -446,8 +447,9 @@ export default function App() {
 
   // Subscribe to global navigate datapoint (affects all clients)
   useEffect(() => {
-    return subscribe('aura.0.navigate.url', (state) => {
-      handleNavigate(String(state.val ?? '').trim(), 'aura.0.navigate.url');
+    const dp = `${NS}.navigate.url`;
+    return subscribe(dp, (state) => {
+      handleNavigate(String(state.val ?? '').trim(), dp);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subscribe, layout?.id, handleNavigate]);
@@ -459,13 +461,13 @@ export default function App() {
 
     // Register via relay state: adapter creates the full object tree and writes initial states.
     // Direct setObject calls are blocked by the web adapter socket (admin-only).
-    setStateDirect('aura.0.clients.register', JSON.stringify({ clientId, name: displayName }));
+    setStateDirect(`${NS}.clients.register`, JSON.stringify({ clientId, name: displayName }));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected, clientId, clientName]);
 
   // Subscribe to per-client navigate datapoint
   useEffect(() => {
-    const dpId = `aura.0.clients.${clientId}.navigate.url`;
+    const dpId = `${NS}.clients.${clientId}.navigate.url`;
     return subscribe(dpId, (state) => {
       handleNavigate(String(state.val ?? '').trim(), dpId);
     });
@@ -524,7 +526,7 @@ export default function App() {
                 themeModeOverride.value = nextId; // seed before setTheme so snap-back doesn't revert
                 setTheme(nextId);
                 if (layout?.settings?.themeId) clearLayoutSettings(layout.id, 'themeId');
-                setStateDirect('aura.0.config.themeMode.frontend', nextId);
+                setStateDirect(`${NS}.config.themeMode.frontend`, nextId);
               }}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
               style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}

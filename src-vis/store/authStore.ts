@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { getStateDirect, setStateDirect } from '../hooks/useIoBroker';
+import { NS } from '../utils/namespace';
 
-const ADMIN_PIN_DP = 'aura.0.admin.pinHash';
+const ADMIN_PIN_DP = `${NS}.admin.pinHash`;
 
 // Simple FNV-1a hash – works over plain HTTP (no crypto.subtle needed).
 // Sufficient for local PIN protection; not intended for cryptographic security.

@@ -66,7 +66,7 @@ export const en: Record<TranslationKey, string> = {
   'settings.language.en':      'English',
 
   'settings.client.title':  'This Device',
-  'settings.client.hint':   'Each client gets a unique ID. Use aura.0.clients.{id}.navigate.url to control this device individually.',
+  'settings.client.hint':   'Each client gets a unique ID. Use {ns}.clients.{id}.navigate.url to control this device individually.',
   'settings.client.name':   'Device Name',
   'settings.client.namePh': 'e.g. Kitchen Tablet, Living Room TV…',
   'settings.client.id':     'ioBroker Datapoint',
@@ -172,7 +172,7 @@ export const en: Record<TranslationKey, string> = {
   'settings.backup.invalidFile': 'Invalid backup file',
 
   'settings.autobackup.title':          'Automatic Backup',
-  'settings.autobackup.description':    'Written as a file under aura.0.backups/ on every save.',
+  'settings.autobackup.description':    'Written as a file under {ns}.backups/ on every save.',
   'settings.autobackup.lastBackup':     'Last backup',
   'settings.autobackup.noBackup':       'No backup yet',
   'settings.autobackup.download':       'Download backup',
@@ -225,7 +225,7 @@ export const en: Record<TranslationKey, string> = {
   'dashboard.orphans.title':      '{count} orphaned DP(s) in ioBroker',
   'dashboard.orphans.titleClean': 'No orphaned DPs in ioBroker',
   'dashboard.orphans.hint':       'These objects exist in ioBroker but no longer belong to any widget. Cleaning up removes them from the object tree.',
-  'dashboard.orphans.hintClean':  'Every aura.0.timers.* and aura.0.lists.* datapoint belongs to an existing widget.',
+  'dashboard.orphans.hintClean':  'Every {ns}.timers.* and {ns}.lists.* datapoint belongs to an existing widget.',
   'dashboard.orphans.timerLabel': 'Timer DPs without a widget',
   'dashboard.orphans.listLabel':  'List DPs without a widget',
   'dashboard.orphans.refresh':    'Refresh',
