@@ -842,7 +842,14 @@ class Aura extends utils.Adapter {
       proxyWebSocket(req, socket, targetWsUrl, this.log);
     });
 
-    server.on('error', e => this.log.error(`aura: server error: ${e.message}`));
+    server.on('error', e => {
+      if (e.code === 'EADDRINUSE') {
+        this.log.error(`aura: port ${port} is already in use — another aura instance or service is listening on this port. Change "Port" in the instance configuration to a free value (default 8095) and restart.`);
+        this.setState('info.connection', false, true);
+      } else {
+        this.log.error(`aura: server error: ${e.message}`);
+      }
+    });
 
     server.listen(port, () => this.log.info(`aura: ${httpsActive ? 'HTTPS' : 'HTTP'} server listening on port ${port}`));
     this._httpServer = server;

@@ -57,7 +57,6 @@
     "connectionType": "local",
     "dataSource": "push",
     "noIntro": true,
-    "singleton": true,
     "platform": "Javascript/Node.js",
     "adminUI": {
       "config": "json"
