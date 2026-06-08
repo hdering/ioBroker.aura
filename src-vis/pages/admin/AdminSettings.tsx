@@ -222,7 +222,7 @@ function BackupCard() {
       ) : backups.length === 0 ? (
         <p className="text-xs text-center py-3" style={{ color: 'var(--text-secondary)' }}>{t('settings.autobackup.noBackup')}</p>
       ) : (
-        <div className="rounded-lg overflow-hidden mt-1" style={{ border: '1px solid var(--app-border)' }}>
+        <div className="aura-scroll rounded-lg mt-1 overflow-y-auto" style={{ border: '1px solid var(--app-border)', maxHeight: 260 }}>
           {backups.map((b, i) => (
             <div key={b.ts} className="border-b last:border-b-0" style={{ borderColor: 'var(--app-border)' }}>
               <div className="flex items-center gap-2 px-3 py-2" style={{ background: 'var(--app-bg)' }}>
@@ -384,7 +384,7 @@ function ClientsCard() {
           {loading ? '…' : t('settings.clients.none')}
         </p>
       ) : (
-        <div className="space-y-2 mt-1">
+        <div className="aura-scroll space-y-2 mt-1 overflow-y-auto" style={{ maxHeight: 260 }}>
           {clients.map((c) => {
             const isMine = c.clientId === myClientId;
             const isEditing = editingId === c.clientId;
@@ -723,13 +723,13 @@ export function AdminSettings() {
       </div>
 
       {/* Row 2: Admin Base URL + Backup */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
         <AdminBaseUrlCard />
         <BackupCard />
       </div>
 
       {/* Row 3: Clients + DP-Namen + Decimals */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
         <ClientsCard />
         <DpNameFilterCard />
         <DefaultDecimalsCard />
