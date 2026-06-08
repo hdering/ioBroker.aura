@@ -21,7 +21,7 @@ export function DimmerWidget({ config }: WidgetProps) {
   const titleAlign     = (o.titleAlign    as string) ?? 'left';
   const showValue      = o.showValue      !== false;
   const showSlider     = o.showSlider     !== false;
-  const showToggle     = o.showToggle     === true;
+  const showToggle     = o.showToggle     !== false;
   const showIcon       = o.showIcon       !== false;
   const sendOnRelease  = o.sendOnRelease  !== false;
   const iconSize       = (o.iconSize as number) || 20;
