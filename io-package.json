@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.197",
+    "version": "0.9.198",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.198": {
+        "en": "fix(lazy): auto-reload on stale chunk hashes after deploy",
+        "de": "fix(lazy): auto-reload on stale chunk hashes after deploy",
+        "ru": "fix(lazy): auto-reload on stale chunk hashes after deploy",
+        "pt": "fix(lazy): auto-reload on stale chunk hashes after deploy",
+        "nl": "fix(lazy): auto-reload on stale chunk hashes after deploy",
+        "fr": "fix(lazy): auto-reload on stale chunk hashes after deploy",
+        "it": "fix(lazy): auto-reload on stale chunk hashes after deploy",
+        "es": "fix(lazy): auto-reload on stale chunk hashes after deploy",
+        "pl": "fix(lazy): auto-reload on stale chunk hashes after deploy",
+        "uk": "fix(lazy): auto-reload on stale chunk hashes after deploy",
+        "zh-cn": "fix(lazy): auto-reload on stale chunk hashes after deploy"
+      },
       "0.9.197": {
         "en": "fix(multi-instance): route sendTo messages to running namespace",
         "de": "fix(multi-instance): route sendTo messages to running namespace",
@@ -183,19 +196,6 @@
         "pl": "feat(adapter): allow multiple instances and surface port collisions",
         "uk": "feat(adapter): allow multiple instances and surface port collisions",
         "zh-cn": "feat(adapter): allow multiple instances and surface port collisions"
-      },
-      "0.9.191": {
-        "en": "fix(backup): include group children and popup views in backups",
-        "de": "fix(backup): include group children and popup views in backups",
-        "ru": "fix(backup): include group children and popup views in backups",
-        "pt": "fix(backup): include group children and popup views in backups",
-        "nl": "fix(backup): include group children and popup views in backups",
-        "fr": "fix(backup): include group children and popup views in backups",
-        "it": "fix(backup): include group children and popup views in backups",
-        "es": "fix(backup): include group children and popup views in backups",
-        "pl": "fix(backup): include group children and popup views in backups",
-        "uk": "fix(backup): include group children and popup views in backups",
-        "zh-cn": "fix(backup): include group children and popup views in backups"
       }
     }
   },

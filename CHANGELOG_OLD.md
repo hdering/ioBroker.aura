@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.178 (2026-05-31)
+- fix(conditions): suppress reflow until all condition DPs are known (#281)
+
 ## 0.9.177 (2026-05-31)
 - fix(conditions): stop grid<->offscreen bounce on first paint
 - feat(conditions): add opt-in debug logging for hidden-widget diagnostics
