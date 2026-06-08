@@ -186,6 +186,16 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.196 (2026-06-08)
+- chore(settings): equal-height row for Admin URL + DP + Decimals
+- chore(settings): move Clients+Backup below config row; let them stretch to equal height
+- chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals
+- fix(settings): cap Clients + Backup list height with internal scroll
+- chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals
+- chore(admin): reorder sidebar nav
+- refactor(admin): split Frontend page from Layouts, switch to master-detail
+
+
 ### 0.9.195 (2026-06-08)
 - feat(adapter): per-instance state namespace (multi-instance support)
 
@@ -271,10 +281,6 @@ Release v0.9.186
 - feat(conditions): add opt-in debug logging for hidden-widget diagnostics
 
 
-### 0.9.176 (2026-05-30)
-- feat(widgets): add transparency strength slider for transparent mode
-
-
 ## License
 
 MIT License
@@ -286,6 +292,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

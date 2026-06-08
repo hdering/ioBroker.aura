@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.176 (2026-05-30)
+- feat(widgets): add transparency strength slider for transparent mode
+
 ## 0.9.175 (2026-05-30)
 - fix(shutter): reserve slider space so status badges do not overlap thumb
 - feat(shutter): add resize options for value, buttons and slider
