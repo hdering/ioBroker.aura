@@ -402,7 +402,7 @@ function GuidelinesOverlay({ width, height }: { width: number; height: number })
         <span style={{
           position: 'sticky',
           top: 4,
-          display: 'block',
+          display: 'inline-block',
           background: 'rgba(239,68,68,0.85)',
           color: '#fff',
           fontSize: 10,
