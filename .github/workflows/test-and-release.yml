@@ -10,8 +10,6 @@ on:
   pull_request:
     branches:
       - main
-  release:
-    types: [published]
 
 # Cancel previous PR/branch runs when a new commit is pushed
 concurrency:
@@ -46,7 +44,7 @@ jobs:
   deploy:
     needs: [check-and-lint, adapter-tests]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
+    if: startsWith(github.ref, 'refs/tags/')
     permissions:
       id-token: write
       contents: write
@@ -54,15 +52,16 @@ jobs:
     steps:
       # For prereleases: snapshot the current "latest" npm tag BEFORE the deploy
       # action overwrites it. We restore it afterwards.
+      # Pre-release tags contain a hyphen, e.g. v1.2.3-beta.0
       - name: Setup node (snapshot latest)
-        if: github.event.release.prerelease == true
+        if: contains(github.ref, '-')
         uses: actions/setup-node@v4
         with:
           node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Snapshot current latest
-        if: github.event.release.prerelease == true
+        if: contains(github.ref, '-')
         id: snapshot
         run: echo "latest=$(npm view iobroker.aura dist-tags.latest 2>/dev/null || echo '')" >> $GITHUB_OUTPUT
         env:
@@ -76,20 +75,18 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           build: 'true'
           build-command: 'npm run build:adapter'
-          install-command: 'npm ci --legacy-peer-deps'
 
       - name: Setup node (fix tags)
-        if: github.event.release.prerelease == true
+        if: contains(github.ref, '-')
         uses: actions/setup-node@v4
         with:
           node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Fix npm tags — move to beta, restore latest
-        if: github.event.release.prerelease == true
+        if: contains(github.ref, '-')
         run: |
-          VERSION="${{ github.event.release.tag_name }}"
-          VERSION="${VERSION#v}"
+          VERSION="${GITHUB_REF#refs/tags/v}"
           PREV_LATEST="${{ steps.snapshot.outputs.latest }}"
 
           npm dist-tag add iobroker.aura@${VERSION} beta
