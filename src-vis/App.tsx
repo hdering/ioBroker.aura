@@ -287,7 +287,7 @@ export default function App() {
 
   // Idle-return: switch to default tab after configured inactivity period
   const idleReturnEnabled = frontend.idleReturnEnabled;
-  const idleReturnDelay = frontend.idleReturnDelay;
+  const idleReturnDelay = frontend.idleReturnDelay ?? 30;
   useEffect(() => {
     if (!idleReturnEnabled || !tabs.length) return;
     const defaultId = layout?.defaultTabId ?? tabs[0]?.id;
