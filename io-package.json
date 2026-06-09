@@ -106,19 +106,6 @@
       }
     ],
     "news": {
-      "0.9.212": {
-        "en": "fix(ci): remove release trigger to prevent E3032 run cancellation",
-        "de": "fix(ci): remove release trigger to prevent E3032 run cancellation",
-        "ru": "fix(ci): remove release trigger to prevent E3032 run cancellation",
-        "pt": "fix(ci): remove release trigger to prevent E3032 run cancellation",
-        "nl": "fix(ci): remove release trigger to prevent E3032 run cancellation",
-        "fr": "fix(ci): remove release trigger to prevent E3032 run cancellation",
-        "it": "fix(ci): remove release trigger to prevent E3032 run cancellation",
-        "es": "fix(ci): remove release trigger to prevent E3032 run cancellation",
-        "pl": "fix(ci): remove release trigger to prevent E3032 run cancellation",
-        "uk": "fix(ci): remove release trigger to prevent E3032 run cancellation",
-        "zh-cn": "fix(ci): remove release trigger to prevent E3032 run cancellation"
-      },
       "0.9.211": {
         "en": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
         "de": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
