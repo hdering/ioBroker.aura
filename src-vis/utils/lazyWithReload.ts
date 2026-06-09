@@ -32,6 +32,7 @@ function triggerReloadOnce(): boolean {
     return true;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- ComponentType<any> is the canonical React bound for "any component"
 export function lazyWithReload<T extends ComponentType<any>>(
     factory: () => Promise<{ default: T }>,
 ): LazyExoticComponent<T> {
