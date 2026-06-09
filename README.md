@@ -186,6 +186,11 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.205 (2026-06-09)
+- fix(adapter): migrate stale themeMode role on adapter start
+- fix(adapter): fix ioBroker adapter checker role violations
+
+
 ### 0.9.204 (2026-06-09)
 - feat(custom-layout): extend last-change to all data-bearing cell types
 - feat(custom-layout): add last-change timestamp to data cells
@@ -280,10 +285,6 @@ Release v0.9.188
 Release v0.9.186
 
 
-### 0.9.185 (2026-06-01)
-- feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel
-
-
 ## License
 
 MIT License
@@ -295,6 +296,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

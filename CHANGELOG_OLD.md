@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.185 (2026-06-01)
+- feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel
+
 ## 0.9.184 (2026-06-01)
 - fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly
 
