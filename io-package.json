@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.206",
+    "version": "0.9.207",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,18 +106,18 @@
       }
     ],
     "news": {
-      "0.9.206": {
-        "en": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
-        "de": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
-        "ru": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
-        "pt": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
-        "nl": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
-        "fr": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
-        "it": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
-        "es": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
-        "pl": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
-        "uk": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
-        "zh-cn": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations"
+      "0.9.207": {
+        "en": "fix(lint): remove unused eslint-disable directives",
+        "de": "fix(lint): remove unused eslint-disable directives",
+        "ru": "fix(lint): remove unused eslint-disable directives",
+        "pt": "fix(lint): remove unused eslint-disable directives",
+        "nl": "fix(lint): remove unused eslint-disable directives",
+        "fr": "fix(lint): remove unused eslint-disable directives",
+        "it": "fix(lint): remove unused eslint-disable directives",
+        "es": "fix(lint): remove unused eslint-disable directives",
+        "pl": "fix(lint): remove unused eslint-disable directives",
+        "uk": "fix(lint): remove unused eslint-disable directives",
+        "zh-cn": "fix(lint): remove unused eslint-disable directives"
       },
       "0.9.205": {
         "en": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
