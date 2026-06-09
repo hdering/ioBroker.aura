@@ -8,20 +8,36 @@ interface Props {
   widget: WidgetConfig;
 }
 
+function parseVal(raw: string | undefined, fallback: boolean): boolean | number | string {
+  if (raw === undefined || raw === '') return fallback;
+  if (raw === 'true')  return true;
+  if (raw === 'false') return false;
+  const num = Number(raw);
+  if (Number.isFinite(num)) return num;
+  return raw;
+}
+
 export function SwitchPopupBody({ widget }: Props) {
   const { value } = useDatapoint(widget.datapoint);
   const { setState } = useIoBroker();
   const o = widget.options ?? {};
-  const isOn = Boolean(value);
   const momentary      = (o.momentary      as boolean) ?? false;
   const momentaryDelay = (o.momentaryDelay as number)  ?? 500;
 
+  const onValue  = o.onValue  as string | undefined;
+  const offValue = o.offValue as string | undefined;
+  const trueWrite  = parseVal(onValue,  true);
+  const falseWrite = parseVal(offValue, false);
+  const isOn = onValue !== undefined && onValue !== ''
+    ? String(value) === String(trueWrite)
+    : Boolean(value);
+
   const toggle = () => {
     if (momentary) {
-      setState(widget.datapoint, true);
-      setTimeout(() => setState(widget.datapoint, false), momentaryDelay);
+      setState(widget.datapoint, trueWrite);
+      setTimeout(() => setState(widget.datapoint, falseWrite), momentaryDelay);
     } else {
-      setState(widget.datapoint, !isOn);
+      setState(widget.datapoint, isOn ? falseWrite : trueWrite);
     }
   };
 

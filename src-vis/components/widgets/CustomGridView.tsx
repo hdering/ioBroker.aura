@@ -100,7 +100,7 @@ function cellWrapStyle(cell: CustomCell, index: number, cols: number, rows: numb
     alignItems:     wrap
                       ? (cell.valign === 'bottom' ? 'flex-end' : cell.valign === 'middle' ? 'center' : 'flex-start')
                       : cell.valign === 'top' ? 'flex-start' : cell.valign === 'bottom' ? 'flex-end' : 'center',
-    justifyContent: cell.align === 'center' ? 'center' : cell.align === 'right' ? 'flex-end' : 'flex-start',
+    justifyContent: cell.align === 'left' ? 'flex-start' : cell.align === 'right' ? 'flex-end' : 'center',
     padding:        '2px',
     gridRow:        rowSpan > 1 ? `${row} / span ${rowSpan}` : row,
     gridColumn:     colSpan > 1 ? `${col} / span ${colSpan}` : col,

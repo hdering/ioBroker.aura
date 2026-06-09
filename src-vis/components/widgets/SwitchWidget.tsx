@@ -10,10 +10,18 @@ import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { ConfirmOverlay } from './ConfirmOverlay';
 
+function parseVal(raw: string | undefined, fallback: boolean): boolean | number | string {
+  if (raw === undefined || raw === '') return fallback;
+  if (raw === 'true')  return true;
+  if (raw === 'false') return false;
+  const num = Number(raw);
+  if (Number.isFinite(num)) return num;
+  return raw;
+}
+
 export function SwitchWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
   const { setState } = useIoBroker();
-  const isOn = Boolean(value);
   const layout = config.layout ?? 'default';
   const o = config.options ?? {};
   const titleAlign = (o.titleAlign as string) ?? 'left';
@@ -22,12 +30,20 @@ export function SwitchWidget({ config }: WidgetProps) {
   const confirmAction  = (o.confirmAction  as boolean) ?? false;
   const confirmText    = (o.confirmText    as string)  ?? '';
 
+  const onValue  = o.onValue  as string | undefined;
+  const offValue = o.offValue as string | undefined;
+  const trueWrite  = parseVal(onValue,  true);
+  const falseWrite = parseVal(offValue, false);
+  const isOn = onValue !== undefined && onValue !== ''
+    ? String(value) === String(trueWrite)
+    : Boolean(value);
+
   const toggle = () => {
     if (momentary) {
-      setState(config.datapoint, true);
-      setTimeout(() => setState(config.datapoint, false), momentaryDelay);
+      setState(config.datapoint, trueWrite);
+      setTimeout(() => setState(config.datapoint, falseWrite), momentaryDelay);
     } else {
-      setState(config.datapoint, !isOn);
+      setState(config.datapoint, isOn ? falseWrite : trueWrite);
     }
   };
 
