@@ -22,3 +22,5 @@ Thumbs.db
 # Release script
 .commitinfo
 .dual-graph/
+
+.eslintcache
