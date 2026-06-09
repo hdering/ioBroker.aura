@@ -186,6 +186,11 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.204 (2026-06-09)
+- feat(custom-layout): extend last-change to all data-bearing cell types
+- feat(custom-layout): add last-change timestamp to data cells
+
+
 ### 0.9.203 (2026-06-09)
 - fix(frontend): stabilize idle-return timer via ref — prevent spurious resets
 - fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout)
@@ -279,10 +284,6 @@ Release v0.9.186
 - feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel
 
 
-### 0.9.184 (2026-06-01)
-- fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly
-
-
 ## License
 
 MIT License
@@ -294,6 +295,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

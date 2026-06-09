@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.184 (2026-06-01)
+- fix(ChartWidget): use var(--text-primary) instead of hardcoded #000000 for unit color default in card layout so dark mode reads correctly
+
 ## 0.9.183 (2026-05-31)
 - fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab
 
