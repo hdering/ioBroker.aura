@@ -546,6 +546,23 @@ export function CustomCellEditor({
         const mode = cell.controlMode ?? 'toggle';
         const ctrlIconSize = cell.fontSize ?? 28;
         const momentary = !!cell.momentary;
+        const TruePrev  = cell.trueIcon  ? getWidgetIcon(cell.trueIcon,  (() => null) as unknown as LucideIcon) : null;
+        const FalsePrev = cell.falseIcon ? getWidgetIcon(cell.falseIcon, (() => null) as unknown as LucideIcon) : null;
+        const trueCol   = (cell.trueColor  && cell.trueColor.startsWith('#'))  ? cell.trueColor  : '#22c55e';
+        const falseCol  = (cell.falseColor && cell.falseColor.startsWith('#')) ? cell.falseColor : '#6b7280';
+        const pickBtn = (slot: 'trueIcon' | 'falseIcon', Preview: LucideIcon | null, name: string | undefined, color: string) => (
+          <button onClick={() => onOpenIconPicker(slot)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}>
+            {Preview
+              ? <Preview size={14} style={{ flexShrink: 0, color }} />
+              : <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />}
+            <span className="flex-1 truncate text-[11px]"
+              style={{ color: name ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+              {name ?? 'Icon wählen…'}
+            </span>
+          </button>
+        );
         return (
           <>
             <div>
@@ -564,6 +581,46 @@ export function CustomCellEditor({
                 ))}
               </div>
             </div>
+            {mode === 'icon' && (
+              <>
+                <div className="flex gap-2">
+                  <div className="flex-1 min-w-0">
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Icon AN</label>
+                    {pickBtn('trueIcon', TruePrev, cell.trueIcon, trueCol)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Icon AUS</label>
+                    {pickBtn('falseIcon', FalsePrev, cell.falseIcon, falseCol)}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Farbe AN</label>
+                    <input type="color"
+                      value={cell.trueColor && cell.trueColor.startsWith('#') ? cell.trueColor : '#22c55e'}
+                      onChange={(e) => onChange({ trueColor: e.target.value })}
+                      className="w-full h-7 rounded cursor-pointer border-0 p-0" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Farbe AUS</label>
+                    <input type="color"
+                      value={cell.falseColor && cell.falseColor.startsWith('#') ? cell.falseColor : '#6b7280'}
+                      onChange={(e) => onChange({ falseColor: e.target.value })}
+                      className="w-full h-7 rounded cursor-pointer border-0 p-0" />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon-Größe</label>
+                    <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{ctrlIconSize} px</span>
+                  </div>
+                  <input type="range" min={16} max={192} step={2} value={ctrlIconSize}
+                    onChange={(e) => onChange({ fontSize: Number(e.target.value) })}
+                    className="w-full h-1"
+                    style={{ accentColor: 'var(--accent)' }} />
+                </div>
+              </>
+            )}
             <div>
               <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>An/Aus-Werte (optional)</label>
               <div className="flex gap-1">
@@ -642,65 +699,6 @@ export function CustomCellEditor({
                 </div>
               )}
             </div>
-            {mode === 'icon' && (() => {
-              const TruePrev  = cell.trueIcon  ? getWidgetIcon(cell.trueIcon,  (() => null) as unknown as LucideIcon) : null;
-              const FalsePrev = cell.falseIcon ? getWidgetIcon(cell.falseIcon, (() => null) as unknown as LucideIcon) : null;
-              const trueCol   = (cell.trueColor  && cell.trueColor.startsWith('#'))  ? cell.trueColor  : '#22c55e';
-              const falseCol  = (cell.falseColor && cell.falseColor.startsWith('#')) ? cell.falseColor : '#6b7280';
-              const pickBtn = (slot: 'trueIcon' | 'falseIcon', Preview: LucideIcon | null, name: string | undefined, color: string) => (
-                <button onClick={() => onOpenIconPicker(slot)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
-                  style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}>
-                  {Preview
-                    ? <Preview size={14} style={{ flexShrink: 0, color }} />
-                    : <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />}
-                  <span className="flex-1 truncate text-[11px]"
-                    style={{ color: name ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-                    {name ?? 'Icon wählen…'}
-                  </span>
-                </button>
-              );
-              return (
-              <>
-                <div className="flex gap-2">
-                  <div className="flex-1 min-w-0">
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Icon AN</label>
-                    {pickBtn('trueIcon', TruePrev, cell.trueIcon, trueCol)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Icon AUS</label>
-                    {pickBtn('falseIcon', FalsePrev, cell.falseIcon, falseCol)}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Farbe AN</label>
-                    <input type="color"
-                      value={cell.trueColor && cell.trueColor.startsWith('#') ? cell.trueColor : '#22c55e'}
-                      onChange={(e) => onChange({ trueColor: e.target.value })}
-                      className="w-full h-7 rounded cursor-pointer border-0 p-0" />
-                  </div>
-                  <div className="flex-1">
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Farbe AUS</label>
-                    <input type="color"
-                      value={cell.falseColor && cell.falseColor.startsWith('#') ? cell.falseColor : '#6b7280'}
-                      onChange={(e) => onChange({ falseColor: e.target.value })}
-                      className="w-full h-7 rounded cursor-pointer border-0 p-0" />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Icon-Größe</label>
-                    <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{ctrlIconSize} px</span>
-                  </div>
-                  <input type="range" min={16} max={192} step={2} value={ctrlIconSize}
-                    onChange={(e) => onChange({ fontSize: Number(e.target.value) })}
-                    className="w-full h-1"
-                    style={{ accentColor: 'var(--accent)' }} />
-                </div>
-              </>
-              );
-            })()}
           </>
         );
       })()}
