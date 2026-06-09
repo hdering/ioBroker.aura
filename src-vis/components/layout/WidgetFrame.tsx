@@ -6491,14 +6491,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                 const lInputStyle = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
                 const hint: React.CSSProperties = { color: 'var(--text-secondary)' };
                 const colorMode = (o.colorMode as string) ?? 'none';
-                const lControlMode  = (o.controlMode as string) ?? 'toggle';
-                const lOnIconName   = o.onIcon  as string | undefined;
-                const lOffIconName  = o.offIcon as string | undefined;
-                const lOnColor      = (o.onColor  as string) || '#22c55e';
-                const lOffColor     = (o.offColor as string) || '#6b7280';
-                const lCtrlIconSize = (o.controlIconSize as number) || 28;
-                const LOnPreview  = lOnIconName  ? getWidgetIcon(lOnIconName,  (() => null) as unknown as import('lucide-react').LucideIcon) : null;
-                const LOffPreview = lOffIconName ? getWidgetIcon(lOffIconName, (() => null) as unknown as import('lucide-react').LucideIcon) : null;
                 const wheelStyle = (o.colorWheelStyle as string) ?? 'disc';
                 const presets = (o.colorPresets as string[] | undefined) ?? ['#ff3b30', '#ff9500', '#ffd60a', '#e5e5ea', '#5ac8fa', '#bf5af2', '#ff79c6', '#ff453a'];
                 const effects = (o.effects as Array<{ label: string; value: string; color?: string }> | undefined) ?? [];
@@ -6551,99 +6543,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         );
                       })()}
                     </div>
-
-                    {!!(o.switchDp as string) && (
-                      <div>
-                        <label className="text-[11px] mb-1 block" style={hint}>An/Aus-Werte (optional)</label>
-                        <div className="flex gap-1">
-                          <input type="text" value={(o.onValue as string) ?? ''}
-                            onChange={(e) => setO({ onValue: e.target.value || undefined })}
-                            placeholder="AN: true" className={`flex-1 ${lInputCls}`} style={lInputStyle} />
-                          <input type="text" value={(o.offValue as string) ?? ''}
-                            onChange={(e) => setO({ offValue: e.target.value || undefined })}
-                            placeholder="AUS: false" className={`flex-1 ${lInputCls}`} style={lInputStyle} />
-                        </div>
-                        <p className="text-[10px] mt-1" style={{ ...hint, opacity: 0.7 }}>
-                          Schreibwerte (z.B. 0/100, 0/255, true/false, an/aus). Leer = true/false.
-                        </p>
-                      </div>
-                    )}
-                    <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
-                    <div>
-                      <label className="text-[11px] font-medium mb-1 block" style={hint}>An/Aus-Bedienelement</label>
-                      <div className="flex gap-1">
-                        {([['toggle', 'Schiebeschalter'], ['icon', 'Icon']] as const).map(([val, lbl]) => (
-                          <button key={val} onClick={() => setO({ controlMode: val })}
-                            className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
-                            style={{
-                              background: lControlMode === val ? 'var(--accent)' : 'var(--app-bg)',
-                              color:      lControlMode === val ? '#fff'          : 'var(--text-secondary)',
-                              border: `1px solid ${lControlMode === val ? 'var(--accent)' : 'var(--app-border)'}`,
-                            }}>
-                            {lbl}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    {lControlMode === 'icon' && (
-                      <>
-                        {(['on', 'off'] as const).map(state => {
-                          const isOnState  = state === 'on';
-                          const stateLabel = isOnState ? 'AN' : 'AUS';
-                          const iconName   = isOnState ? lOnIconName  : lOffIconName;
-                          const color      = isOnState ? lOnColor     : lOffColor;
-                          const Preview    = isOnState ? LOnPreview   : LOffPreview;
-                          const pickerOpen = isOnState ? iconPickerTrueOpen  : iconPickerFalseOpen;
-                          const setOpen    = isOnState ? setIconPickerTrueOpen : setIconPickerFalseOpen;
-                          const optIconKey  = isOnState ? 'onIcon'  : 'offIcon';
-                          const optColorKey = isOnState ? 'onColor' : 'offColor';
-                          return (
-                            <div key={state} className="space-y-1.5">
-                              <p className="text-[11px] font-semibold" style={hint}>Icon {stateLabel}</p>
-                              <div className="flex gap-1 items-start">
-                                <div className="flex-1 min-w-0">
-                                  <button
-                                    onClick={() => setOpen(true)}
-                                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
-                                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}>
-                                    {Preview
-                                      ? <Preview size={14} style={{ flexShrink: 0, color }} />
-                                      : <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />}
-                                    <span className="flex-1 truncate text-[11px]"
-                                      style={{ color: iconName ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-                                      {iconName ?? 'Icon wählen…'}
-                                    </span>
-                                  </button>
-                                  {pickerOpen && (
-                                    <IconPickerModal
-                                      current={iconName ?? ''}
-                                      onSelect={(name) => { setO({ [optIconKey]: name || undefined }); setOpen(false); }}
-                                      onClose={() => setOpen(false)}
-                                    />
-                                  )}
-                                </div>
-                                <input type="color" value={color}
-                                  onChange={(e) => setO({ [optColorKey]: e.target.value })}
-                                  title={`Farbe ${stateLabel}`}
-                                  className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
-                                  style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }} />
-                              </div>
-                            </div>
-                          );
-                        })}
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <label className="text-[11px]" style={hint}>Icon-Größe</label>
-                            <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>{lCtrlIconSize} px</span>
-                          </div>
-                          <input type="range" min={16} max={192} step={2} value={lCtrlIconSize}
-                            onChange={(e) => setO({ controlIconSize: Number(e.target.value) })}
-                            className="w-full h-1"
-                            style={{ accentColor: 'var(--accent)' }} />
-                        </div>
-                      </>
-                    )}
-                    <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
 
                     {/* Brightness DP */}
                     <div>
