@@ -285,6 +285,29 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTabId, connected]);
 
+  // Idle-return: switch to default tab after configured inactivity period
+  const idleReturnEnabled = frontend.idleReturnEnabled;
+  const idleReturnDelay = frontend.idleReturnDelay;
+  useEffect(() => {
+    if (!idleReturnEnabled || !tabs.length) return;
+    const defaultId = layout?.defaultTabId ?? tabs[0]?.id;
+    if (!defaultId) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const reset = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        setActiveTabId((current) => current !== defaultId ? defaultId : current);
+      }, idleReturnDelay * 1000);
+    };
+    const events = ['pointermove', 'keydown', 'touchstart', 'click'] as const;
+    events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
+    reset();
+    return () => {
+      clearTimeout(timer);
+      events.forEach((e) => window.removeEventListener(e, reset));
+    };
+  }, [idleReturnEnabled, idleReturnDelay, layout?.defaultTabId, tabs]);
+
   // Handle widget click-action tab/layout navigation
   const consumeNav = useNavigationStore((s) => s.consume);
   const pendingNav = useNavigationStore((s) => s.pending);

@@ -46,6 +46,10 @@ export interface FrontendSettings {
   layoutDrawerTitle: string;
   /** How entries are shown in the drawer list. */
   layoutDrawerEntryStyle: 'iconAndName' | 'iconOnly' | 'nameOnly';
+  // Idle return — auto-switch back to default tab after inactivity
+  idleReturnEnabled: boolean;
+  /** Seconds of inactivity before returning to the default tab. */
+  idleReturnDelay: number;
   // Super-admin access (empty = feature disabled)
   superAdminKey: string;
   /**
@@ -101,6 +105,8 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
   layoutDrawerPlacement: 'floating',
   layoutDrawerTitle: '',
   layoutDrawerEntryStyle: 'iconAndName',
+  idleReturnEnabled: false,
+  idleReturnDelay: 30,
   superAdminKey: '',
   adminBaseUrl: '',
 };

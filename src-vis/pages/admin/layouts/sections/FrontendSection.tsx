@@ -122,6 +122,25 @@ export function FrontendSection() {
           </div>
         </div>
       )}
+      <ToggleRow label={t('settings.frontend.idleReturn')} value={frontend.idleReturnEnabled ?? false} onChange={(v) => updateFrontend({ idleReturnEnabled: v })} />
+      {(frontend.idleReturnEnabled) && (
+        <div className="space-y-1 pl-1 pb-1">
+          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('settings.frontend.idleReturnDelay')}</p>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={5}
+              max={3600}
+              value={frontend.idleReturnDelay ?? 30}
+              onChange={(e) => { const v = Math.max(5, parseInt(e.target.value) || 30); updateFrontend({ idleReturnDelay: v }); }}
+              className="w-20 text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
+              style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+            />
+            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('common.seconds')}</span>
+          </div>
+          <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>{t('settings.frontend.idleReturnHint')}</p>
+        </div>
+      )}
       <ToggleRow label={t('settings.frontend.showHeader')} value={frontend.showHeader} onChange={(v) => updateFrontend({ showHeader: v })} />
       {frontend.showHeader && (
         <>

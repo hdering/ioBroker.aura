@@ -29,6 +29,7 @@ export const en: Record<TranslationKey, string> = {
   'common.sizeSmall':  'Small',
   'common.sizeMedium': 'Medium',
   'common.sizeLarge':  'Large',
+  'common.seconds':    'sec',
 
   // ── Admin Navigation ─────────────────────────────────────────────────────────
   'admin.nav.overview':     'Overview',
@@ -101,6 +102,9 @@ export const en: Record<TranslationKey, string> = {
   'settings.frontend.layoutDrawerEntryStyleIconAndName': 'Icon + name',
   'settings.frontend.layoutDrawerEntryStyleIconOnly':    'Icon only',
   'settings.frontend.layoutDrawerEntryStyleNameOnly':    'Name only',
+  'settings.frontend.idleReturn':      'Auto-return to default tab',
+  'settings.frontend.idleReturnDelay': 'Delay',
+  'settings.frontend.idleReturnHint':  'Switches to the first tab (or the layout default tab) after the specified idle time.',
   'settings.frontend.showHeader':     'Show Header',
   'settings.frontend.dashboardTitle': 'Dashboard Title',
   'settings.frontend.connectionBadge':'Connection Status',

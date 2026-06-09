@@ -27,6 +27,7 @@ export const de = {
   'common.sizeSmall':     'Klein',
   'common.sizeMedium':    'Mittel',
   'common.sizeLarge':     'Groß',
+  'common.seconds':       'Sek.',
 
   // ── Admin Navigation ─────────────────────────────────────────────────────────
   'admin.nav.overview':     'Übersicht',
@@ -99,6 +100,9 @@ export const de = {
   'settings.frontend.layoutDrawerEntryStyleIconAndName': 'Icon + Name',
   'settings.frontend.layoutDrawerEntryStyleIconOnly':    'Nur Icon',
   'settings.frontend.layoutDrawerEntryStyleNameOnly':    'Nur Name',
+  'settings.frontend.idleReturn':      'Automatisch zum Standard-Tab zurückkehren',
+  'settings.frontend.idleReturnDelay': 'Verzögerung',
+  'settings.frontend.idleReturnHint':  'Wechselt nach der angegebenen Inaktivitätszeit zum ersten Tab (oder dem im Layout definierten Standard-Tab).',
   'settings.frontend.showHeader':     'Header anzeigen',
   'settings.frontend.dashboardTitle': 'Dashboard-Titel',
   'settings.frontend.connectionBadge':'Verbindungsstatus',
