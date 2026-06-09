@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { MultiSelect } from './MultiSelect';
 import { DatapointPicker } from './DatapointPicker';
+import { GroupActionConfig } from './GroupActionConfig';
 import type { WidgetConfig } from '../../types';
 import { discoverDatapoints, loadFilterOptions } from '../widgets/AutoListWidget';
 import type { AutoListOptions, AutoListEntry, DiscoveredDp } from '../widgets/AutoListWidget';
@@ -776,6 +777,8 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                     </button>
                 </div>
             </div>
+            <GroupActionConfig opts={opts} setOpts={setOpts} />
+
             <div className="flex items-center justify-between">
                 <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                     Anzahl anzeigen

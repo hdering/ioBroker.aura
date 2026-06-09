@@ -1,8 +1,17 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { Layers } from 'lucide-react';
 import ReactGridLayout from 'react-grid-layout';
-import type { WidgetProps, WidgetConfig, WidgetType } from '../../types';
+import type { WidgetProps, WidgetConfig, WidgetType, ioBrokerState } from '../../types';
 import { useConfigStore } from '../../store/configStore';
+import { useIoBroker } from '../../hooks/useIoBroker';
+import {
+    groupChildDpIds,
+    groupChildTarget,
+    type GroupActionConfigOpts,
+    type GroupTarget,
+} from '../../utils/groupTargets';
+import { useGroupControl } from '../../hooks/useGroupControl';
+import { GroupMasterSwitch } from './GroupMasterSwitch';
 import { WIDGET_BY_TYPE } from '../../widgetRegistry';
 // WidgetFrame is imported here — circular dep is safe because GroupWidget only
 // uses WidgetFrame inside its render function, never at module-init time.
@@ -73,6 +82,45 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         ro.observe(el);
         return () => ro.disconnect();
     }, []);
+
+    // ── Master switch (group action) ────────────────────────────────────────────
+    const groupSwitchEnabled = !!config.options?.groupSwitch;
+    const gaCfg = (config.options ?? {}) as GroupActionConfigOpts;
+    const { groupDimmerOnValue, groupIncludeNumbers, groupNumberOnValue, groupNumberOffValue } = gaCfg;
+    const { subscribe, getState } = useIoBroker();
+    const [childStates, setChildStates] = useState<Record<string, ioBrokerState['val']>>({});
+    const childDpIds = groupSwitchEnabled ? groupChildDpIds(children, gaCfg) : [];
+    const childDpKey = childDpIds.join(',');
+    useEffect(() => {
+        if (childDpIds.length === 0) return;
+        childDpIds.forEach((id) => getState(id).then((s) => setChildStates((p) => ({ ...p, [id]: s?.val ?? null }))));
+        const unsubs = childDpIds.map((id) =>
+            subscribe(id, (s) => setChildStates((p) => ({ ...p, [id]: s?.val ?? null }))),
+        );
+        return () => unsubs.forEach((u) => u());
+    }, [childDpKey]); // eslint-disable-line react-hooks/exhaustive-deps
+    const groupTargets = useMemo<GroupTarget[]>(() => {
+        if (!groupSwitchEnabled) return [];
+        const cfg: GroupActionConfigOpts = {
+            groupDimmerOnValue,
+            groupIncludeNumbers,
+            groupNumberOnValue,
+            groupNumberOffValue,
+        };
+        return children
+            .map((c) => groupChildTarget(c, (id) => childStates[id] ?? null, cfg))
+            .filter((x): x is GroupTarget => x !== null);
+    }, [
+        groupSwitchEnabled,
+        children,
+        childStates,
+        groupDimmerOnValue,
+        groupIncludeNumbers,
+        groupNumberOnValue,
+        groupNumberOffValue,
+    ]);
+    const { aggregate: groupAgg, toggleAll: groupToggle, activeCount, total } = useGroupControl(groupTargets);
+    const showMaster = groupSwitchEnabled && !editMode && groupAgg !== 'none';
 
     if (configLayout === 'custom') return <CustomGridView config={config} value="" />;
 
@@ -189,7 +237,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // ── Title bar (always shown in editMode as outer-grid drag handle) ─────────
     const titleAlign = (config.options?.titleAlign as string | undefined) ?? 'left';
     const titleBar =
-        (showTitle && config.title) || editMode ? (
+        (showTitle && config.title) || editMode || showMaster ? (
             <div
                 className="shrink-0 flex items-center gap-1.5 px-3 py-2.5 min-w-0"
                 style={{
@@ -206,6 +254,14 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     >
                         {config.title}
                     </span>
+                )}
+                {showMaster && (
+                    <GroupMasterSwitch
+                        aggregate={groupAgg}
+                        onToggle={groupToggle}
+                        title={`${activeCount}/${total}`}
+                        className="ml-auto"
+                    />
                 )}
             </div>
         ) : null;

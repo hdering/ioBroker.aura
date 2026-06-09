@@ -60,6 +60,8 @@ import { detectType } from '../../utils/widgetDetection';
 import { DP_TEMPLATES, findMainDpForSecondary, autoDetectStatusDps, autoDetectLightDps } from '../../utils/dpTemplates';
 import { AutoListConfig } from '../config/AutoListConfig';
 import { StaticListConfig } from '../config/StaticListConfig';
+import { GroupActionConfig } from '../config/GroupActionConfig';
+import type { GroupActionConfigOpts } from '../../utils/groupTargets';
 import { EnumConfig } from '../config/EnumConfig';
 import {
     type CameraSlot,
@@ -9476,6 +9478,16 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
                         {/* ── Static List config ── */}
                         {config.type === 'list' && <StaticListConfig config={config} onConfigChange={onConfigChange} />}
+
+                        {/* ── Group master switch config ── */}
+                        {config.type === 'group' && (
+                            <GroupActionConfig
+                                opts={(config.options ?? {}) as GroupActionConfigOpts}
+                                setOpts={(patch) =>
+                                    onConfigChange({ ...config, options: { ...config.options, ...patch } })
+                                }
+                            />
+                        )}
 
                         {/* ── Enum / Auswahlfeld config ── */}
                         {config.type === 'enum' && <EnumConfig config={config} onConfigChange={onConfigChange} />}

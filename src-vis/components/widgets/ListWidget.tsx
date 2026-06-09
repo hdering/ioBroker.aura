@@ -13,6 +13,9 @@ import { formatLastChange } from '../../utils/formatLastChange';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { publishListCount, unpublishList } from '../../utils/publishWidgetState';
+import { listEntryTarget, type GroupTarget } from '../../utils/groupTargets';
+import { useGroupControl } from '../../hooks/useGroupControl';
+import { GroupMasterSwitch } from './GroupMasterSwitch';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -93,6 +96,16 @@ export interface StaticListOptions {
     wrapText?: boolean;
     /** When wrapText is on: minimum % of the row reserved for the label (10..90). Value gets the rest. Default 50. */
     labelMinPercent?: number;
+    /** Show a master switch in the header that toggles all controllable entries. */
+    groupSwitch?: boolean;
+    /** Value written to dimmer/level DPs on "all on" (off writes 0). Default 100. */
+    groupDimmerOnValue?: number;
+    /** Include plain numeric DPs in group actions. Default false. */
+    groupIncludeNumbers?: boolean;
+    /** Value written to numeric DPs on "all on" when included. Default 1. */
+    groupNumberOnValue?: number;
+    /** Value written to numeric DPs on "all off" when included. Default 0. */
+    groupNumberOffValue?: number;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -567,6 +580,19 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
         });
     }, [opts.publishCount, config.id]);
 
+    // ── Master switch (group action) ────────────────────────────────────────────
+    const groupSwitchEnabled = !!opts.groupSwitch;
+    const groupTargets = useMemo<GroupTarget[]>(() => {
+        if (!groupSwitchEnabled) return [];
+        return entries
+            .map((e) => listEntryTarget(e, states[e.id]?.val ?? null, opts))
+            .filter((x): x is GroupTarget => x !== null);
+    }, [groupSwitchEnabled, entries, states, opts]);
+    const { aggregate: groupAgg, toggleAll: groupToggle, activeCount, total } = useGroupControl(groupTargets);
+    const masterSwitch = groupSwitchEnabled ? (
+        <GroupMasterSwitch aggregate={groupAgg} onToggle={groupToggle} title={`${activeCount}/${total}`} />
+    ) : null;
+
     const o = config.options ?? {};
     const showTitle = opts.showTitle !== false;
     const showIcon = o.showIcon !== false;
@@ -625,7 +651,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
     // ── Shared header ──────────────────────────────────────────────────────────
     const header =
-        showTitle || showIcon || (opts.showSum && sumInfo) ? (
+        showTitle || showIcon || (opts.showSum && sumInfo) || masterSwitch ? (
             <div
                 className="shrink-0 flex items-center justify-between py-1.5"
                 style={{ borderBottom: '1px solid var(--widget-border)' }}
@@ -672,55 +698,62 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                         )}
                     </div>
                 </div>
-                {!opts.hideFilterButton && (
-                    <div className="relative shrink-0">
-                        <button
-                            onClick={() => setShowFilter((v) => !v)}
-                            className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] hover:opacity-80"
-                            style={{
-                                background:
-                                    valueFilter !== 'all'
-                                        ? 'color-mix(in srgb, var(--accent) 15%, transparent)'
-                                        : 'transparent',
-                                color: valueFilter !== 'all' ? 'var(--accent)' : 'var(--text-secondary)',
-                                border: `1px solid ${valueFilter !== 'all' ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'transparent'}`,
-                            }}
-                            title="Filter"
-                        >
-                            <Filter size={10} />
-                            {valueFilter !== 'all' && <span>{filterLabels[valueFilter]}</span>}
-                        </button>
-                        {showFilter && (
-                            <>
-                                <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
-                                <div
-                                    className="absolute right-0 top-6 rounded-lg shadow-xl z-20 overflow-hidden min-w-[110px]"
-                                    style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
-                                >
-                                    {(Object.keys(filterLabels) as FilterMode[]).map((mode) => (
-                                        <button
-                                            key={mode}
-                                            onClick={() => {
-                                                saveOpts({ valueFilter: mode });
-                                                setShowFilter(false);
-                                            }}
-                                            className="w-full px-3 py-2 text-xs text-left hover:opacity-80"
-                                            style={{
-                                                background:
-                                                    valueFilter === mode
-                                                        ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
-                                                        : 'transparent',
-                                                color: valueFilter === mode ? 'var(--accent)' : 'var(--text-primary)',
-                                            }}
-                                        >
-                                            {filterLabels[mode]}
-                                        </button>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-                    </div>
-                )}
+                <div className="flex items-center gap-1.5 shrink-0">
+                    {masterSwitch}
+                    {!opts.hideFilterButton && (
+                        <div className="relative shrink-0">
+                            <button
+                                onClick={() => setShowFilter((v) => !v)}
+                                className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] hover:opacity-80"
+                                style={{
+                                    background:
+                                        valueFilter !== 'all'
+                                            ? 'color-mix(in srgb, var(--accent) 15%, transparent)'
+                                            : 'transparent',
+                                    color: valueFilter !== 'all' ? 'var(--accent)' : 'var(--text-secondary)',
+                                    border: `1px solid ${valueFilter !== 'all' ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'transparent'}`,
+                                }}
+                                title="Filter"
+                            >
+                                <Filter size={10} />
+                                {valueFilter !== 'all' && <span>{filterLabels[valueFilter]}</span>}
+                            </button>
+                            {showFilter && (
+                                <>
+                                    <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
+                                    <div
+                                        className="absolute right-0 top-6 rounded-lg shadow-xl z-20 overflow-hidden min-w-[110px]"
+                                        style={{
+                                            background: 'var(--app-surface)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                    >
+                                        {(Object.keys(filterLabels) as FilterMode[]).map((mode) => (
+                                            <button
+                                                key={mode}
+                                                onClick={() => {
+                                                    saveOpts({ valueFilter: mode });
+                                                    setShowFilter(false);
+                                                }}
+                                                className="w-full px-3 py-2 text-xs text-left hover:opacity-80"
+                                                style={{
+                                                    background:
+                                                        valueFilter === mode
+                                                            ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
+                                                            : 'transparent',
+                                                    color:
+                                                        valueFilter === mode ? 'var(--accent)' : 'var(--text-primary)',
+                                                }}
+                                            >
+                                                {filterLabels[mode]}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         ) : null;
 

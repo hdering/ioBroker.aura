@@ -14,6 +14,9 @@ import { formatLastChange } from '../../utils/formatLastChange';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { publishListCount, unpublishList } from '../../utils/publishWidgetState';
+import { listEntryTarget, type GroupTarget } from '../../utils/groupTargets';
+import { useGroupControl } from '../../hooks/useGroupControl';
+import { GroupMasterSwitch } from './GroupMasterSwitch';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -94,6 +97,16 @@ export interface AutoListOptions {
     wrapText?: boolean;
     /** When wrapText is on: minimum % of the row reserved for the label (10..90). Value gets the rest. Default 50. */
     labelMinPercent?: number;
+    /** Show a master switch in the header that toggles all controllable entries. */
+    groupSwitch?: boolean;
+    /** Value written to dimmer/level DPs on "all on" (off writes 0). Default 100. */
+    groupDimmerOnValue?: number;
+    /** Include plain numeric DPs in group actions. Default false. */
+    groupIncludeNumbers?: boolean;
+    /** Value written to numeric DPs on "all on" when included. Default 1. */
+    groupNumberOnValue?: number;
+    /** Value written to numeric DPs on "all off" when included. Default 0. */
+    groupNumberOffValue?: number;
 }
 
 export interface DiscoveredDp {
@@ -820,6 +833,19 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         });
     }, [opts.publishCount, config.id]);
 
+    // ── Master switch (group action) ────────────────────────────────────────────
+    const groupSwitchEnabled = !!opts.groupSwitch;
+    const groupTargets = useMemo<GroupTarget[]>(() => {
+        if (!groupSwitchEnabled) return [];
+        return entries
+            .map((e) => listEntryTarget(e, states[e.id]?.val ?? null, opts))
+            .filter((x): x is GroupTarget => x !== null);
+    }, [groupSwitchEnabled, entries, states, opts]);
+    const { aggregate: groupAgg, toggleAll: groupToggle, activeCount, total } = useGroupControl(groupTargets);
+    const masterSwitch = groupSwitchEnabled ? (
+        <GroupMasterSwitch aggregate={groupAgg} onToggle={groupToggle} title={`${activeCount}/${total}`} />
+    ) : null;
+
     const o = config.options ?? {};
     const showTitle = opts.showTitle !== false;
     const showIcon = o.showIcon !== false;
@@ -870,7 +896,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
     // ── Shared header ──────────────────────────────────────────────────────────
     const header =
-        showTitle || showIcon || (opts.showSum && sumInfo) ? (
+        showTitle || showIcon || (opts.showSum && sumInfo) || masterSwitch ? (
             <div
                 className="shrink-0 py-1.5 flex items-center justify-between"
                 style={{ borderBottom: '1px solid var(--widget-border)' }}
@@ -918,6 +944,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                    {masterSwitch}
                     <div className="relative">
                         <button
                             onClick={() => setShowFilter((v) => !v)}
