@@ -187,7 +187,7 @@ function fetchIcalTextOnce(url: string, ttlSeconds: number): Promise<string> {
                 if (settled) return;
                 settled = true;
                 clearTimeout(timer);
-                unsubscribe();
+                unsubscribe?.();
                 if (resp.content) resolve(resp.content);
                 else reject(new Error(resp.error ?? 'Adapter-Fetch fehlgeschlagen'));
             } catch {
