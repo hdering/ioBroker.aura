@@ -340,27 +340,34 @@ export function CustomCellEditor({
           className={inputCls} style={inputSty}
         >
           <option value="empty">– leer –</option>
-          <option value="title">Titel</option>
-          {!isUniversal && <option value="value">Hauptwert (DP1)</option>}
-          {!isUniversal && <option value="unit">Einheit (DP1)</option>}
-          <option value="text">Freitext</option>
-          <option value="dp">Datenpunkt-Wert</option>
-          {!isUniversal && <option value="field">Widget-Feld</option>}
-          <option value="image">Bild (URL / Base64)</option>
-          {!isUniversal && COMPONENT_OPTIONS[widgetType] && (
-            <option value="component">Aktion / Icon</option>
+          {!isUniversal && (
+            <optgroup label="Vom Widget (Haupt-DP)">
+              <option value="title">Titel</option>
+              <option value="value">Hauptwert (DP1)</option>
+              <option value="unit">Einheit (DP1)</option>
+              <option value="field">Widget-Feld</option>
+              {COMPONENT_OPTIONS[widgetType] && <option value="component">Aktion / Icon</option>}
+            </optgroup>
           )}
-          <option value="switch">Schalter (DP)</option>
-          <option value="slider">Schieberegler (DP)</option>
-          <option value="button">Button (DP schreiben)</option>
-          <option value="icon">Statisches Icon</option>
-          <option value="state-icon">Status-Icon (DP)</option>
-          <option value="state-text">Status-Text (DP)</option>
-          <option value="datepicker">Datumswähler (DP)</option>
-          <option value="stepper">Stepper +/− (DP)</option>
-          <option value="input">Eingabe (DP schreiben)</option>
-          <option value="progress">Fortschrittsbalken (DP)</option>
-          <option value="select">Auswahlfeld (DP)</option>
+          {isUniversal && <option value="title">Titel</option>}
+          <optgroup label="Eigener Datenpunkt">
+            <option value="dp">Datenpunkt-Wert</option>
+            <option value="switch">Schalter (DP)</option>
+            <option value="slider">Schieberegler (DP)</option>
+            <option value="button">Button (DP schreiben)</option>
+            <option value="state-icon">Status-Icon (DP)</option>
+            <option value="state-text">Status-Text (DP)</option>
+            <option value="datepicker">Datumswähler (DP)</option>
+            <option value="stepper">Stepper +/− (DP)</option>
+            <option value="input">Eingabe (DP schreiben)</option>
+            <option value="progress">Fortschrittsbalken (DP)</option>
+            <option value="select">Auswahlfeld (DP)</option>
+          </optgroup>
+          <optgroup label="Statisch">
+            <option value="text">Freitext</option>
+            <option value="icon">Statisches Icon</option>
+            <option value="image">Bild (URL / Base64)</option>
+          </optgroup>
         </select>
       </div>
 
