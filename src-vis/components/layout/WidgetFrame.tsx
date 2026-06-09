@@ -6851,6 +6851,32 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         </p>
                       )}
                     </div>
+                    {!!(o.switchDp as string) && (
+                      <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>An/Aus-Werte (optional)</label>
+                        <div className="flex gap-1">
+                          <input
+                            type="text"
+                            value={(o.onValue as string) ?? ''}
+                            onChange={(e) => setO({ onValue: e.target.value || undefined })}
+                            placeholder="AN: true"
+                            className={`flex-1 ${dInputCls}`}
+                            style={dInputStyle}
+                          />
+                          <input
+                            type="text"
+                            value={(o.offValue as string) ?? ''}
+                            onChange={(e) => setO({ offValue: e.target.value || undefined })}
+                            placeholder="AUS: false"
+                            className={`flex-1 ${dInputCls}`}
+                            style={dInputStyle}
+                          />
+                        </div>
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                          Schreibwerte (z.B. 0/100, 0/255, true/false, an/aus). Leer = true/false.
+                        </p>
+                      </div>
+                    )}
                     <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
                     <div>
                       <label className="text-[11px] font-medium mb-1 block" style={{ color: 'var(--text-secondary)' }}>An/Aus-Bedienelement</label>

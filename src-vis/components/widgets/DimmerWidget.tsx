@@ -8,6 +8,15 @@ import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 
+function parseVal(raw: string | undefined, fallback: boolean): boolean | number | string {
+  if (raw === undefined || raw === '') return fallback;
+  if (raw === 'true')  return true;
+  if (raw === 'false') return false;
+  const num = Number(raw);
+  if (Number.isFinite(num)) return num;
+  return raw;
+}
+
 export function DimmerWidget({ config }: WidgetProps) {
   const { value } = useDatapoint(config.datapoint);
   const o = config.options ?? {};
@@ -73,12 +82,18 @@ export function DimmerWidget({ config }: WidgetProps) {
   }, [thresholds, displayLevel]);
   const valueColor = thresholdColor ?? 'var(--text-primary)';
 
+  const onValue    = o.onValue  as string | undefined;
+  const offValue   = o.offValue as string | undefined;
+  const trueWrite  = parseVal(onValue,  true);
+  const falseWrite = parseVal(offValue, false);
   const isOn = switchDp
-    ? (typeof switchValue === 'boolean' ? switchValue : switchValue === 1 || switchValue === '1' || switchValue === 'true')
+    ? (onValue !== undefined && onValue !== ''
+        ? String(switchValue) === String(trueWrite)
+        : (typeof switchValue === 'boolean' ? switchValue : switchValue === 1 || switchValue === '1' || switchValue === 'true'))
     : displayLevel > 0;
   const handleToggle = () => {
     if (switchDp) {
-      setState(switchDp, !isOn);
+      setState(switchDp, isOn ? falseWrite : trueWrite);
     } else {
       setState(config.datapoint, isOn ? 0 : 100);
     }
