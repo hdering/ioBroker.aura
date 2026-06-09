@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.9.181 (2026-05-31)
+- fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option
+- feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText
+- feat(ListWidget,AutoListWidget): add wrapLabels option
+- feat(CustomGridView): add per-cell wrap option for long text
+
 ## 0.9.180 (2026-05-31)
 - fix(ioBroker): getState writes to stateCache (#281 follow-up)
 

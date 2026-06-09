@@ -186,6 +186,15 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.201 (2026-06-09)
+- revert(light): remove onValue/offValue + controlMode from LightWidget
+- feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp
+- fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell
+- fix(switch): move An/Aus-Werte directly below DP field in widget options
+- feat(dimmer): add custom on/off write values for switchDp
+- fix(custom-grid): reorder switch cell settings to match widget panel order
+
+
 ### 0.9.200 (2026-06-09)
 - feat(switch): add custom on/off write values (onValue/offValue)
 
@@ -274,13 +283,6 @@ Release v0.9.186
 - fix(CustomGrid): keep cell selected on re-click
 
 
-### 0.9.181 (2026-05-31)
-- fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option
-- feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText
-- feat(ListWidget,AutoListWidget): add wrapLabels option
-- feat(CustomGridView): add per-cell wrap option for long text
-
-
 ## License
 
 MIT License
@@ -292,6 +294,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

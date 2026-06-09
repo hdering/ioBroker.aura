@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.200",
+    "version": "0.9.201",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.201": {
+        "en": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
+        "de": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
+        "ru": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
+        "pt": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
+        "nl": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
+        "fr": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
+        "it": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
+        "es": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
+        "pl": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
+        "uk": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
+        "zh-cn": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order"
+      },
       "0.9.200": {
         "en": "feat(switch): add custom on/off write values (onValue/offValue)",
         "de": "feat(switch): add custom on/off write values (onValue/offValue)",
@@ -183,19 +196,6 @@
         "pl": "feat(adapter): per-instance state namespace (multi-instance support)",
         "uk": "feat(adapter): per-instance state namespace (multi-instance support)",
         "zh-cn": "feat(adapter): per-instance state namespace (multi-instance support)"
-      },
-      "0.9.194": {
-        "en": "feat(custom-grid): configurable on/off values for switch cell; feat(dimmer): icon control mode for on/off button; fix(dimmer): align showToggle default with editor convention",
-        "de": "feat(custom-grid): configurable on/off values for switch cell; feat(dimmer): icon control mode for on/off button; fix(dimmer): align showToggle default with editor convention",
-        "ru": "feat(custom-grid): configurable on/off values for switch cell; feat(dimmer): icon control mode for on/off button; fix(dimmer): align showToggle default with editor convention",
-        "pt": "feat(custom-grid): configurable on/off values for switch cell; feat(dimmer): icon control mode for on/off button; fix(dimmer): align showToggle default with editor convention",
-        "nl": "feat(custom-grid): configurable on/off values for switch cell; feat(dimmer): icon control mode for on/off button; fix(dimmer): align showToggle default with editor convention",
-        "fr": "feat(custom-grid): configurable on/off values for switch cell; feat(dimmer): icon control mode for on/off button; fix(dimmer): align showToggle default with editor convention",
-        "it": "feat(custom-grid): configurable on/off values for switch cell; feat(dimmer): icon control mode for on/off button; fix(dimmer): align showToggle default with editor convention",
-        "es": "feat(custom-grid): configurable on/off values for switch cell; feat(dimmer): icon control mode for on/off button; fix(dimmer): align showToggle default with editor convention",
-        "pl": "feat(custom-grid): configurable on/off values for switch cell; feat(dimmer): icon control mode for on/off button; fix(dimmer): align showToggle default with editor convention",
-        "uk": "feat(custom-grid): configurable on/off values for switch cell; feat(dimmer): icon control mode for on/off button; fix(dimmer): align showToggle default with editor convention",
-        "zh-cn": "feat(custom-grid): configurable on/off values for switch cell; feat(dimmer): icon control mode for on/off button; fix(dimmer): align showToggle default with editor convention"
       }
     }
   },
