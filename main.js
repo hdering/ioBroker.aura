@@ -927,23 +927,24 @@ class Aura extends utils.Adapter {
       });
     } catch (e) { this.log.error(`[themeMode] create channel threw: ${e && e.stack ? e.stack : e}`); }
 
-    try {
-      this.log.info('[themeMode] creating state config.themeMode.frontend');
-      await this.setObjectNotExistsAsync('config.themeMode.frontend', {
-        type: 'state',
-        common: { name: "Frontend theme mode ('dark'|'light'|''); empty = no override", type: 'string', role: 'text', read: true, write: true, def: '', states: { dark: 'dark', light: 'light' } },
-        native: {},
-      });
-    } catch (e) { this.log.error(`[themeMode] create frontend threw: ${e && e.stack ? e.stack : e}`); }
-
-    try {
-      this.log.info('[themeMode] creating state config.themeMode.admin');
-      await this.setObjectNotExistsAsync('config.themeMode.admin', {
-        type: 'state',
-        common: { name: "Admin theme mode ('dark'|'light'|''); empty = no override", type: 'string', role: 'text', read: true, write: true, def: '', states: { dark: 'dark', light: 'light' } },
-        native: {},
-      });
-    } catch (e) { this.log.error(`[themeMode] create admin threw: ${e && e.stack ? e.stack : e}`); }
+    for (const [subId, label] of [['config.themeMode.frontend', 'Frontend'], ['config.themeMode.admin', 'Admin']]) {
+      const isAdmin = subId.endsWith('.admin');
+      const common = {
+        name: `${label} theme mode ('dark'|'light'|''); empty = no override`,
+        type: 'string', role: 'text', read: true, write: true, def: '',
+        states: { dark: 'dark', light: 'light' },
+      };
+      try {
+        this.log.info(`[themeMode] creating/migrating state ${subId}`);
+        await this.setObjectNotExistsAsync(subId, { type: 'state', common, native: {} });
+        // Migrate existing object: fix stale role 'level.mode.color' left by earlier versions.
+        const existing = await this.getObjectAsync(subId);
+        if (existing && existing.common && existing.common.role !== 'text') {
+          this.log.info(`[themeMode] migrating role of ${subId}: '${existing.common.role}' → 'text'`);
+          await this.extendObjectAsync(subId, { common: { role: 'text' } });
+        }
+      } catch (e) { this.log.error(`[themeMode] create/migrate ${subId} threw: ${e && e.stack ? e.stack : e}`); }
+    }
 
     // Post-creation snapshot — did each id end up existing?
     for (const id of ['config.themeMode', 'config.themeMode.frontend', 'config.themeMode.admin']) {
