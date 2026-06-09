@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.209",
+    "version": "0.9.210",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,18 +106,18 @@
       }
     ],
     "news": {
-      "0.9.209": {
-        "en": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
-        "de": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
-        "ru": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
-        "pt": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
-        "nl": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
-        "fr": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
-        "it": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
-        "es": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
-        "pl": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
-        "uk": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
-        "zh-cn": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound"
+      "0.9.210": {
+        "en": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
+        "de": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
+        "ru": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
+        "pt": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
+        "nl": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
+        "fr": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
+        "it": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
+        "es": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
+        "pl": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
+        "uk": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
+        "zh-cn": "fix(ts): use optional chain for unsubscribe call in CalendarWidget"
       },
       "0.9.205": {
         "en": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",

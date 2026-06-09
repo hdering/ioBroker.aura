@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.190 (2026-06-01)
+- fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more
+
 ## 0.9.189 (2026-06-01)
 Release v0.9.189
 

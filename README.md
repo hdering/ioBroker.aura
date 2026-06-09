@@ -190,6 +190,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.210 (2026-06-09)
+- fix(ts): use optional chain for unsubscribe call in CalendarWidget
+
+
 ### 0.9.209 (2026-06-09)
 - fix(lint): suppress no-explicit-any in lazyWithReload generic bound
 
@@ -289,10 +293,6 @@ npm run build:adapter
 - fix(backup): include group children and popup views in backups
 
 
-### 0.9.190 (2026-06-01)
-- fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more
-
-
 ## License
 
 MIT License
@@ -304,6 +304,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
