@@ -118,6 +118,39 @@ export function hasComponentOptions(widgetType: WidgetType): boolean {
   return !!COMPONENT_OPTIONS[widgetType];
 }
 
+type CellOpt = { key: string; label: string };
+const sortDe = (a: CellOpt, b: CellOpt) => a.label.localeCompare(b.label, 'de');
+
+// "Vom Widget (Haupt-DP)" — base items; 'component' added conditionally at render time
+const WIDGET_CELL_OPTS: CellOpt[] = ([
+  { key: 'field', label: 'Widget-Feld' },
+  { key: 'title', label: 'Titel' },
+  { key: 'unit',  label: 'Einheit (DP1)' },
+  { key: 'value', label: 'Hauptwert (DP1)' },
+] satisfies CellOpt[]).sort(sortDe);
+
+// "Eigener Datenpunkt" — add new entries anywhere; list self-sorts
+const OWN_DP_CELL_OPTS: CellOpt[] = ([
+  { key: 'button',     label: 'Button (DP schreiben)' },
+  { key: 'datepicker', label: 'Datumswähler (DP)' },
+  { key: 'dp',         label: 'Datenpunkt-Wert' },
+  { key: 'input',      label: 'Eingabe (DP schreiben)' },
+  { key: 'progress',   label: 'Fortschrittsbalken (DP)' },
+  { key: 'select',     label: 'Auswahlfeld (DP)' },
+  { key: 'slider',     label: 'Schieberegler (DP)' },
+  { key: 'state-icon', label: 'Status-Icon (DP)' },
+  { key: 'state-text', label: 'Status-Text (DP)' },
+  { key: 'stepper',    label: 'Stepper +/− (DP)' },
+  { key: 'switch',     label: 'Schalter (DP)' },
+] satisfies CellOpt[]).sort(sortDe);
+
+// "Statisch" — add new entries anywhere; list self-sorts
+const STATIC_CELL_OPTS: CellOpt[] = ([
+  { key: 'icon',  label: 'Statisches Icon' },
+  { key: 'image', label: 'Bild (URL / Base64)' },
+  { key: 'text',  label: 'Freitext' },
+] satisfies CellOpt[]).sort(sortDe);
+
 const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
   calendar: [
     { key: 'summary',  label: 'Terminname' },
@@ -342,31 +375,16 @@ export function CustomCellEditor({
           <option value="empty">– leer –</option>
           {!isUniversal && (
             <optgroup label="Vom Widget (Haupt-DP)">
-              <option value="title">Titel</option>
-              <option value="value">Hauptwert (DP1)</option>
-              <option value="unit">Einheit (DP1)</option>
-              <option value="field">Widget-Feld</option>
-              {COMPONENT_OPTIONS[widgetType] && <option value="component">Aktion / Icon</option>}
+              {[...WIDGET_CELL_OPTS, ...(COMPONENT_OPTIONS[widgetType] ? [{ key: 'component', label: 'Aktion / Icon' }] : [])].sort(sortDe)
+                .map(({ key, label }) => <option key={key} value={key}>{label}</option>)}
             </optgroup>
           )}
           {isUniversal && <option value="title">Titel</option>}
           <optgroup label="Eigener Datenpunkt">
-            <option value="dp">Datenpunkt-Wert</option>
-            <option value="switch">Schalter (DP)</option>
-            <option value="slider">Schieberegler (DP)</option>
-            <option value="button">Button (DP schreiben)</option>
-            <option value="state-icon">Status-Icon (DP)</option>
-            <option value="state-text">Status-Text (DP)</option>
-            <option value="datepicker">Datumswähler (DP)</option>
-            <option value="stepper">Stepper +/− (DP)</option>
-            <option value="input">Eingabe (DP schreiben)</option>
-            <option value="progress">Fortschrittsbalken (DP)</option>
-            <option value="select">Auswahlfeld (DP)</option>
+            {OWN_DP_CELL_OPTS.map(({ key, label }) => <option key={key} value={key}>{label}</option>)}
           </optgroup>
           <optgroup label="Statisch">
-            <option value="text">Freitext</option>
-            <option value="icon">Statisches Icon</option>
-            <option value="image">Bild (URL / Base64)</option>
+            {STATIC_CELL_OPTS.map(({ key, label }) => <option key={key} value={key}>{label}</option>)}
           </optgroup>
         </select>
       </div>
