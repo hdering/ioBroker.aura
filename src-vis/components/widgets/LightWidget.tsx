@@ -323,6 +323,15 @@ function PowerButton({ isOn, accent, maxSize, onToggle }: PowerButtonProps) {
   );
 }
 
+function parseVal(raw: string | undefined, fallback: boolean): boolean | number | string {
+  if (raw === undefined || raw === '') return fallback;
+  if (raw === 'true')  return true;
+  if (raw === 'false') return false;
+  const num = Number(raw);
+  if (Number.isFinite(num)) return num;
+  return raw;
+}
+
 // ── Main widget ───────────────────────────────────────────────────────────────
 
 const TAB_META: Record<LightTab, { icon: LucideIcon; key: LightTab }> = {
@@ -379,6 +388,21 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     return 220;
   })();
 
+  // On/off write values for switchDp
+  const onValue    = o.onValue  as string | undefined;
+  const offValue   = o.offValue as string | undefined;
+  const trueWrite  = parseVal(onValue,  true);
+  const falseWrite = parseVal(offValue, false);
+
+  // Control mode for the toggle element (slider or icon)
+  const controlMode     = (o.controlMode    as string) ?? 'toggle';
+  const isIconMode      = controlMode === 'icon';
+  const toggleOnColor   = (o.onColor  as string) || 'var(--accent-green)';
+  const toggleOffColor  = (o.offColor as string) || 'var(--text-secondary)';
+  const OnIconComp      = useMemo(() => getWidgetIcon(o.onIcon  as string | undefined, Power), [o.onIcon]);
+  const OffIconComp     = useMemo(() => getWidgetIcon(o.offIcon as string | undefined, Power), [o.offIcon]);
+  const controlIconSize = (o.controlIconSize as number) || 28;
+
   // DP IDs
   const switchDp      = (o.switchDp      as string | undefined) || '';
   const brightnessDp  = (o.brightnessDp  as string | undefined) || config.datapoint || '';
@@ -401,6 +425,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
 
   // Current values
   const switchVal      = useBool(switchDp);
+  const { value: switchRawVal } = useDatapoint(switchDp || '');
   const brightnessVal  = useNum(brightnessDp);
   const hueVal         = useNum(hueDp);
   const satVal         = useNum(saturationDp);
@@ -446,7 +471,9 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
 
   // ── Power / on detection ───────────────────────────────────────────────────
   const isOn = switchDp
-    ? !!switchVal
+    ? (onValue !== undefined && onValue !== ''
+        ? String(switchRawVal) === String(trueWrite)
+        : !!switchVal)
     : (brightnessVal != null ? brightnessVal > briMin : false);
 
   const accentOn  = useMemo(() => {
@@ -458,11 +485,11 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
   // ── Writers ────────────────────────────────────────────────────────────────
   const togglePower = useCallback(() => {
     if (switchDp) {
-      setState(switchDp, !isOn);
+      setState(switchDp, isOn ? falseWrite : trueWrite);
     } else if (brightnessDp) {
       setState(brightnessDp, isOn ? briMin : briMax);
     }
-  }, [switchDp, brightnessDp, isOn, briMin, briMax, setState]);
+  }, [switchDp, brightnessDp, isOn, briMin, briMax, trueWrite, falseWrite, setState]);
 
   const writeBri = useCallback((v: number) => {
     if (!brightnessDp) return;
@@ -566,6 +593,29 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
   const CompactIcon = useMemo(() => getWidgetIcon(o.icon as string | undefined, Lightbulb), [o.icon]);
 
   // ── Control elements (used by both tabbed view and custom grid) ────────────
+  const StateIcon  = isOn ? OnIconComp : OffIconComp;
+  const stateColor = isOn ? toggleOnColor : toggleOffColor;
+  const iconToggleBtn = (
+    <button
+      onClick={togglePower}
+      className="aura-widget-action nodrag flex items-center justify-center shrink-0 transition-transform hover:scale-110 focus:outline-none"
+      style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+      aria-label={isOn ? 'AN' : 'AUS'}
+    >
+      <StateIcon size={controlIconSize} style={{ color: stateColor }} />
+    </button>
+  );
+  const sliderToggleBtn = (
+    <button
+      onClick={togglePower}
+      className="aura-widget-action nodrag relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"
+      style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}
+    >
+      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
+    </button>
+  );
+  const toggleBtn = isIconMode ? iconToggleBtn : sliderToggleBtn;
+
   const powerEl = <PowerButton isOn={isOn} accent={accent} maxSize={powerButtonMaxPx} onToggle={togglePower} />;
 
   const brightnessEl = brightnessDp ? (
@@ -674,6 +724,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
           title:       titleEl,
           status:      statusEl,
           icon:        iconEl,
+          toggle:      toggleBtn,
         }}
       />
     );
