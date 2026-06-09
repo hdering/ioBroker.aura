@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.180 (2026-05-31)
+- fix(ioBroker): getState writes to stateCache (#281 follow-up)
+
 ## 0.9.179 (2026-05-31)
 - fix(echart): object override on series array merges as per-item defaults
 
