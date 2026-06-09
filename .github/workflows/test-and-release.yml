@@ -15,8 +15,8 @@ on:
 
 # Cancel previous PR/branch runs when a new commit is pushed
 concurrency:
-  group: ${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
   check-and-lint:

@@ -171,14 +171,18 @@ Please report directly as a GitHub issue:
 
 ## Development
 
+Install dependencies:
 ```bash
-# Install dependencies
 npm install
+```
 
-# Start dev server (connects to ioBroker via proxy)
+Start dev server (connects to ioBroker via proxy):
+```bash
 npm run dev
+```
 
-# Production build
+Production build:
+```bash
 npm run build:adapter
 ```
 
