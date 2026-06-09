@@ -1369,7 +1369,7 @@ export function CustomCellEditor({
       )}
 
       {/* Last-change timestamp */}
-      {(cell.type === 'dp' || cell.type === 'value' || cell.type === 'state-text' || cell.type === 'state-icon') && (
+      {cell.type !== 'empty' && cell.type !== 'text' && cell.type !== 'image' && cell.type !== 'icon' && cell.type !== 'component' && (
         <>
           <div className="flex items-center justify-between">
             <div>
