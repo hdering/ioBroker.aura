@@ -190,6 +190,13 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.206 (2026-06-09)
+- fix(lint): apply prettier formatting + fix ESLint config for ESLint 10
+- fix(lint): make ESLint work with @iobroker/eslint-config
+- fix(ci): fix E3032/E6025/E8917 adapter checker violations
+- chore: fix adapter checker E0077/E0078/E302x violations
+
+
 ### 0.9.205 (2026-06-09)
 - fix(adapter): migrate stale themeMode role on adapter start
 - fix(adapter): fix ioBroker adapter checker role violations
@@ -285,10 +292,6 @@ Release v0.9.188
 - feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle
 
 
-### 0.9.186 (2026-06-01)
-Release v0.9.186
-
-
 ## License
 
 MIT License
@@ -300,6 +303,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

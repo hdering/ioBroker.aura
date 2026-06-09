@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.186 (2026-06-01)
+Release v0.9.186
+
 ## 0.9.185 (2026-06-01)
 - feat(CarouselWidget): replace slide-of-widgets carousel with chip-strip carousel
 

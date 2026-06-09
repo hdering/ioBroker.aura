@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.205",
+    "version": "0.9.206",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.206": {
+        "en": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
+        "de": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
+        "ru": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
+        "pt": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
+        "nl": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
+        "fr": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
+        "it": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
+        "es": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
+        "pl": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
+        "uk": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations",
+        "zh-cn": "fix(lint): apply prettier formatting + fix ESLint config for ESLint 10; fix(lint): make ESLint work with @iobroker/eslint-config; fix(ci): fix E3032/E6025/E8917 adapter checker violations; chore: fix adapter checker E0077/E0078/E302x violations"
+      },
       "0.9.205": {
         "en": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
         "de": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
@@ -183,19 +196,6 @@
         "pl": "feat(switch): add custom on/off write values (onValue/offValue)",
         "uk": "feat(switch): add custom on/off write values (onValue/offValue)",
         "zh-cn": "feat(switch): add custom on/off write values (onValue/offValue)"
-      },
-      "0.9.199": {
-        "en": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
-        "de": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
-        "ru": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
-        "pt": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
-        "nl": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
-        "fr": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
-        "it": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
-        "es": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
-        "pl": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
-        "uk": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
-        "zh-cn": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)"
       }
     }
   },
