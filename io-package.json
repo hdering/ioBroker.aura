@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.198",
+    "version": "0.9.199",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.199": {
+        "en": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
+        "de": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
+        "ru": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
+        "pt": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
+        "nl": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
+        "fr": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
+        "it": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
+        "es": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
+        "pl": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
+        "uk": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)",
+        "zh-cn": "feat(custom-grid): auto-sort cell type options alphabetically per optgroup; feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)"
+      },
       "0.9.198": {
         "en": "fix(lazy): auto-reload on stale chunk hashes after deploy",
         "de": "fix(lazy): auto-reload on stale chunk hashes after deploy",
@@ -183,19 +196,6 @@
         "pl": "fix(guidelines): make vertical-line label background hug content; fix(guidelines): offset lines by header/tab-bar height",
         "uk": "fix(guidelines): make vertical-line label background hug content; fix(guidelines): offset lines by header/tab-bar height",
         "zh-cn": "fix(guidelines): make vertical-line label background hug content; fix(guidelines): offset lines by header/tab-bar height"
-      },
-      "0.9.192": {
-        "en": "feat(adapter): allow multiple instances and surface port collisions",
-        "de": "feat(adapter): allow multiple instances and surface port collisions",
-        "ru": "feat(adapter): allow multiple instances and surface port collisions",
-        "pt": "feat(adapter): allow multiple instances and surface port collisions",
-        "nl": "feat(adapter): allow multiple instances and surface port collisions",
-        "fr": "feat(adapter): allow multiple instances and surface port collisions",
-        "it": "feat(adapter): allow multiple instances and surface port collisions",
-        "es": "feat(adapter): allow multiple instances and surface port collisions",
-        "pl": "feat(adapter): allow multiple instances and surface port collisions",
-        "uk": "feat(adapter): allow multiple instances and surface port collisions",
-        "zh-cn": "feat(adapter): allow multiple instances and surface port collisions"
       }
     }
   },

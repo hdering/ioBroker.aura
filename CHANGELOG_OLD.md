@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.179 (2026-05-31)
+- fix(echart): object override on series array merges as per-item defaults
+
 ## 0.9.178 (2026-05-31)
 - fix(conditions): suppress reflow until all condition DPs are known (#281)
 
