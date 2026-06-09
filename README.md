@@ -186,6 +186,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.202 (2026-06-09)
+- fix(carousel): disable scroll-snap CSS when autoRotate is active
+
+
 ### 0.9.201 (2026-06-09)
 - revert(light): remove onValue/offValue + controlMode from LightWidget
 - feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp
@@ -277,12 +281,6 @@ Release v0.9.186
 - fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab
 
 
-### 0.9.182 (2026-05-31)
-- feat: add aura-last-change CSS class to all last-change render sites for global styling
-- feat(TimerWidget): allow icon instead of '+ Add Event' text
-- fix(CustomGrid): keep cell selected on re-click
-
-
 ## License
 
 MIT License
@@ -294,6 +292,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

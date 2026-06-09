@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.201",
+    "version": "0.9.202",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.202": {
+        "en": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
+        "de": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
+        "ru": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
+        "pt": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
+        "nl": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
+        "fr": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
+        "it": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
+        "es": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
+        "pl": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
+        "uk": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
+        "zh-cn": "fix(carousel): disable scroll-snap CSS when autoRotate is active"
+      },
       "0.9.201": {
         "en": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
         "de": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
@@ -183,19 +196,6 @@
         "pl": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail",
         "uk": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail",
         "zh-cn": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail"
-      },
-      "0.9.195": {
-        "en": "feat(adapter): per-instance state namespace (multi-instance support)",
-        "de": "feat(adapter): per-instance state namespace (multi-instance support)",
-        "ru": "feat(adapter): per-instance state namespace (multi-instance support)",
-        "pt": "feat(adapter): per-instance state namespace (multi-instance support)",
-        "nl": "feat(adapter): per-instance state namespace (multi-instance support)",
-        "fr": "feat(adapter): per-instance state namespace (multi-instance support)",
-        "it": "feat(adapter): per-instance state namespace (multi-instance support)",
-        "es": "feat(adapter): per-instance state namespace (multi-instance support)",
-        "pl": "feat(adapter): per-instance state namespace (multi-instance support)",
-        "uk": "feat(adapter): per-instance state namespace (multi-instance support)",
-        "zh-cn": "feat(adapter): per-instance state namespace (multi-instance support)"
       }
     }
   },

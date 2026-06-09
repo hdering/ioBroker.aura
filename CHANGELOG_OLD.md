@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.182 (2026-05-31)
+- feat: add aura-last-change CSS class to all last-change render sites for global styling
+- feat(TimerWidget): allow icon instead of '+ Add Event' text
+- fix(CustomGrid): keep cell selected on re-click
+
 ## 0.9.181 (2026-05-31)
 - fix(ListWidget,AutoListWidget): keep label visible with wrapText + add labelMinPercent option
 - feat(ListWidget,AutoListWidget): wrap text values too, rename wrapLabels → wrapText
