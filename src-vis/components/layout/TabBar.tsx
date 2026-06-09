@@ -91,7 +91,6 @@ function TabBarDatapointItem({ item }: { item: TabBarItem }) {
             <span
                 className="text-sm font-medium shrink-0"
                 style={{ color: 'var(--text-primary)' }}
-                // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: item.datapointTemplate.replace(/\{dp\}/g, val) }}
             />
         );

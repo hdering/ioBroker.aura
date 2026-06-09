@@ -52,10 +52,7 @@ export function ValueWidget({ config }: WidgetProps) {
     const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
     const htmlValueNode = htmlTemplate ? (
-        <div
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{ __html: htmlTemplate.replace(/\{dp\}/g, displayValue) }}
-        />
+        <div dangerouslySetInnerHTML={{ __html: htmlTemplate.replace(/\{dp\}/g, displayValue) }} />
     ) : null;
 
     // --- CUSTOM ---

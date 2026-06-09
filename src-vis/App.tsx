@@ -105,7 +105,6 @@ function HeaderDatapoint({ id, template }: { id: string; template?: string }) {
             <span
                 className="text-sm font-medium"
                 style={{ color: 'var(--text-primary)' }}
-                // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: template.replace(/\{dp\}/g, val) }}
             />
         );
@@ -506,7 +505,6 @@ export default function App() {
                 if (tab) setActiveTabId(tab.id);
             }
             setStateDirect(clearId, '');
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
         [tabs],
     );
@@ -517,7 +515,6 @@ export default function App() {
         return subscribe(dp, (state) => {
             handleNavigate(String(state.val ?? '').trim(), dp);
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [subscribe, layout?.id, handleNavigate]);
 
     // Register this client in ioBroker on connect and subscribe to per-client navigate
@@ -528,7 +525,6 @@ export default function App() {
         // Register via relay state: adapter creates the full object tree and writes initial states.
         // Direct setObject calls are blocked by the web adapter socket (admin-only).
         setStateDirect(`${NS}.clients.register`, JSON.stringify({ clientId, name: displayName }));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [connected, clientId, clientName]);
 
     // Subscribe to per-client navigate datapoint
@@ -537,7 +533,6 @@ export default function App() {
         return subscribe(dpId, (state) => {
             handleNavigate(String(state.val ?? '').trim(), dpId);
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [subscribe, clientId, layout?.id, handleNavigate]);
 
     const layoutUrlBase = layoutSlug ? `/view/${layoutSlug}` : '';

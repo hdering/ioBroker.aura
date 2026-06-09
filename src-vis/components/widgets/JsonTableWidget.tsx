@@ -243,7 +243,6 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
         const ro = new ResizeObserver(update);
         ro.observe(el);
         return () => ro.disconnect();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         autoHeight,
         filteredRows.length,

@@ -185,7 +185,7 @@ export function AdminLayout() {
                 saveToIoBroker({ backup: false });
             }
         });
-    }, [connected]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [connected]);
 
     // React to external changes on aura.0.config.dashboard (subscription + polling)
     useConfigSync(connected, adminConfigLoadedRef);

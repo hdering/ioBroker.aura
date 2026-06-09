@@ -45,7 +45,7 @@ export function EChartsPresetConfig({ config, onConfigChange }: Props) {
 
     useEffect(() => {
         loadPresets();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <>
