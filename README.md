@@ -190,6 +190,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.212 (2026-06-09)
+- fix(ci): remove release trigger to prevent E3032 run cancellation
+
+
 ### 0.9.211 (2026-06-09)
 - chore(lint): remove obsolete eslint devDeps, fix workflow concurrency
 
@@ -289,10 +293,6 @@ npm run build:adapter
 - fix(guidelines): offset lines by header/tab-bar height
 
 
-### 0.9.192 (2026-06-08)
-- feat(adapter): allow multiple instances and surface port collisions
-
-
 ## License
 
 MIT License
@@ -304,6 +304,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

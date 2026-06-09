@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.192 (2026-06-08)
+- feat(adapter): allow multiple instances and surface port collisions
+
 ## 0.9.191 (2026-06-02)
 - fix(backup): include group children and popup views in backups
 

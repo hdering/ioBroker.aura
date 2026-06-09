@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.211",
+    "version": "0.9.212",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.212": {
+        "en": "fix(ci): remove release trigger to prevent E3032 run cancellation",
+        "de": "fix(ci): remove release trigger to prevent E3032 run cancellation",
+        "ru": "fix(ci): remove release trigger to prevent E3032 run cancellation",
+        "pt": "fix(ci): remove release trigger to prevent E3032 run cancellation",
+        "nl": "fix(ci): remove release trigger to prevent E3032 run cancellation",
+        "fr": "fix(ci): remove release trigger to prevent E3032 run cancellation",
+        "it": "fix(ci): remove release trigger to prevent E3032 run cancellation",
+        "es": "fix(ci): remove release trigger to prevent E3032 run cancellation",
+        "pl": "fix(ci): remove release trigger to prevent E3032 run cancellation",
+        "uk": "fix(ci): remove release trigger to prevent E3032 run cancellation",
+        "zh-cn": "fix(ci): remove release trigger to prevent E3032 run cancellation"
+      },
       "0.9.211": {
         "en": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
         "de": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
@@ -183,19 +196,6 @@
         "pl": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
         "uk": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
         "zh-cn": "fix(carousel): disable scroll-snap CSS when autoRotate is active"
-      },
-      "0.9.201": {
-        "en": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
-        "de": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
-        "ru": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
-        "pt": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
-        "nl": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
-        "fr": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
-        "it": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
-        "es": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
-        "pl": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
-        "uk": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
-        "zh-cn": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order"
       }
     }
   },
