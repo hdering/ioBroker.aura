@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.188 (2026-06-01)
+Release v0.9.188
+
 ## 0.9.187 (2026-06-01)
 - feat(CarouselWidget): per-item state, colors, icon sizing + customCSSInEditor toggle
 

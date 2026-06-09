@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.207",
+    "version": "0.9.208",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,18 +106,18 @@
       }
     ],
     "news": {
-      "0.9.207": {
-        "en": "fix(lint): remove unused eslint-disable directives",
-        "de": "fix(lint): remove unused eslint-disable directives",
-        "ru": "fix(lint): remove unused eslint-disable directives",
-        "pt": "fix(lint): remove unused eslint-disable directives",
-        "nl": "fix(lint): remove unused eslint-disable directives",
-        "fr": "fix(lint): remove unused eslint-disable directives",
-        "it": "fix(lint): remove unused eslint-disable directives",
-        "es": "fix(lint): remove unused eslint-disable directives",
-        "pl": "fix(lint): remove unused eslint-disable directives",
-        "uk": "fix(lint): remove unused eslint-disable directives",
-        "zh-cn": "fix(lint): remove unused eslint-disable directives"
+      "0.9.208": {
+        "en": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
+        "de": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
+        "ru": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
+        "pt": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
+        "nl": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
+        "fr": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
+        "it": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
+        "es": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
+        "pl": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
+        "uk": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
+        "zh-cn": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix"
       },
       "0.9.205": {
         "en": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
