@@ -26,7 +26,7 @@ function fetchUrl(url, _depth = 0) {
       timeout: FETCH_TIMEOUT_MS,
       headers: {
         'User-Agent': 'Mozilla/5.0 (ioBroker-Aura)',
-        'Accept': 'text/calendar, */*',
+        Accept: 'text/calendar, */*',
       },
     };
     const req = lib.request(options, (res) => {
@@ -66,7 +66,7 @@ function rewriteHtml(html, baseUrl) {
     if (/^(data:|javascript:|blob:|mailto:|tel:|#)/.test(trimmed)) return url;
     try {
       const abs = new URL(trimmed, baseUrl).toString();
-      return '/proxy?url=' + encodeURIComponent(abs);
+      return `/proxy?url=${  encodeURIComponent(abs)}`;
     } catch { return url; }
   }
 
@@ -205,7 +205,7 @@ function rewriteCss(css, baseUrl) {
     const trimmed = url.replace(/^['"]|['"]$/g, '').trim();
     if (!trimmed || /^(data:|#)/.test(trimmed)) return url;
     try {
-      return `'${'/proxy?url=' + encodeURIComponent(new URL(trimmed, baseUrl).toString())}'`;
+      return `'${`/proxy?url=${  encodeURIComponent(new URL(trimmed, baseUrl).toString())}`}'`;
     } catch { return url; }
   }
   return css.replace(/url\(([^)]*)\)/gi, (_, inner) => `url(${toProxy(inner)})`);
@@ -222,7 +222,7 @@ function bufferResponse(proxyRes) {
 
 function buildFwdHeaders(req) {
   const h = {
-    'Accept':          req.headers['accept']          || 'text/html,*/*',
+    Accept:          req.headers['accept']          || 'text/html,*/*',
     'Accept-Language': req.headers['accept-language'] || 'en',
     'User-Agent':      'Mozilla/5.0 (ioBroker-Aura)',
   };
@@ -279,7 +279,7 @@ function proxyWebSocket(req, socket, targetWsUrl, log) {
       `Sec-WebSocket-Accept: ${proxyRes.headers['sec-websocket-accept']}`,
     ];
     if (proxyRes.headers['sec-websocket-protocol']) lines.push(`Sec-WebSocket-Protocol: ${proxyRes.headers['sec-websocket-protocol']}`);
-    socket.write(lines.join('\r\n') + '\r\n\r\n');
+    socket.write(`${lines.join('\r\n')  }\r\n\r\n`);
     if (proxyHead && proxyHead.length) proxySocket.unshift(proxyHead);
     proxySocket.pipe(socket);
     socket.pipe(proxySocket);
@@ -637,7 +637,7 @@ class Aura extends utils.Adapter {
 
         const lib = targetUrl.protocol === 'https:' ? https : http;
         const fwdHeaders = buildFwdHeaders(req);
-        fwdHeaders['Referer'] = targetUrl.origin + '/';
+        fwdHeaders['Referer'] = `${targetUrl.origin  }/`;
 
         const reqOptions = {
           hostname: targetUrl.hostname,
@@ -758,7 +758,7 @@ class Aura extends utils.Adapter {
       }
 
       const webAdapterPrefixes = ['/socket.io', '/echarts', '/lib'];
-      if (webAdapterPrefixes.some(p => pathname === p || pathname.startsWith(p + '/'))) {
+      if (webAdapterPrefixes.some(p => pathname === p || pathname.startsWith(`${p  }/`))) {
         const socketLib    = socketSecure ? https : http;
         const proxyReq = socketLib.request({
           hostname: socketHost,
@@ -928,7 +928,6 @@ class Aura extends utils.Adapter {
     } catch (e) { this.log.error(`[themeMode] create channel threw: ${e && e.stack ? e.stack : e}`); }
 
     for (const [subId, label] of [['config.themeMode.frontend', 'Frontend'], ['config.themeMode.admin', 'Admin']]) {
-      const isAdmin = subId.endsWith('.admin');
       const common = {
         name: `${label} theme mode ('dark'|'light'|''); empty = no override`,
         type: 'string', role: 'text', read: true, write: true, def: '',
@@ -1399,7 +1398,7 @@ class Aura extends utils.Adapter {
 
       if (msg.command === 'restartAdapter') {
         const id = String(msg.message?.id || '').trim();
-        if (!id || !/^[a-z0-9_\-]+\.\d+$/i.test(id)) {
+        if (!id || !/^[a-z0-9_-]+\.\d+$/i.test(id)) {
           reply({ ok: false, error: `Invalid instance id: ${id}` });
           return;
         }
@@ -1531,7 +1530,7 @@ class Aura extends utils.Adapter {
 
       if (msg.command === 'upgradeAdapter') {
         const name = String(msg.message?.name || '').trim();
-        if (!name || !/^[a-z0-9_\-]+$/i.test(name)) {
+        if (!name || !/^[a-z0-9_-]+$/i.test(name)) {
           reply({ ok: false, error: `Invalid adapter name: ${name}` });
           return;
         }
