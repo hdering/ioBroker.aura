@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.208",
+    "version": "0.9.209",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,18 +106,18 @@
       }
     ],
     "news": {
-      "0.9.208": {
-        "en": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
-        "de": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
-        "ru": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
-        "pt": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
-        "nl": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
-        "fr": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
-        "it": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
-        "es": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
-        "pl": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
-        "uk": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix",
-        "zh-cn": "chore: add .eslintcache to .gitignore; chore(ci): drop Node 20 from test matrix"
+      "0.9.209": {
+        "en": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
+        "de": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
+        "ru": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
+        "pt": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
+        "nl": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
+        "fr": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
+        "it": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
+        "es": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
+        "pl": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
+        "uk": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound",
+        "zh-cn": "fix(lint): suppress no-explicit-any in lazyWithReload generic bound"
       },
       "0.9.205": {
         "en": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",

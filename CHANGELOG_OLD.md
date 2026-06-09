@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.189 (2026-06-01)
+Release v0.9.189
+
 ## 0.9.188 (2026-06-01)
 Release v0.9.188
 
