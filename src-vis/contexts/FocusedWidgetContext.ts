@@ -9,5 +9,5 @@ import { createContext, useContext } from 'react';
 export const FocusedWidgetContext = createContext<string | null>(null);
 
 export function useFocusedWidgetId(): string | null {
-  return useContext(FocusedWidgetContext);
+    return useContext(FocusedWidgetContext);
 }

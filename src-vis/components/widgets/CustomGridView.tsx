@@ -18,22 +18,22 @@ import { ConfirmOverlay } from './ConfirmOverlay';
 // ── Default grid (title top-left, large value + unit in middle row) ──────────
 
 export const DEFAULT_CUSTOM_GRID: CustomGrid = [
-  { type: 'title', align: 'left', valign: 'top' },
-  { type: 'empty' },
-  { type: 'empty' },
-  { type: 'value', fontSize: 32, bold: true, align: 'left', valign: 'middle' },
-  { type: 'unit',  fontSize: 14,             align: 'left', valign: 'middle' },
-  { type: 'empty' },
-  { type: 'empty' },
-  { type: 'empty' },
-  { type: 'empty' },
+    { type: 'title', align: 'left', valign: 'top' },
+    { type: 'empty' },
+    { type: 'empty' },
+    { type: 'value', fontSize: 32, bold: true, align: 'left', valign: 'middle' },
+    { type: 'unit', fontSize: 14, align: 'left', valign: 'middle' },
+    { type: 'empty' },
+    { type: 'empty' },
+    { type: 'empty' },
+    { type: 'empty' },
 ];
 
 /** Default for the Universal Widget — empty 3×3. */
 export const DEFAULT_UNIVERSAL_GRID: CustomGridDef = {
-  cols: 3,
-  rows: 3,
-  cells: Array.from({ length: 9 }, () => ({ type: 'empty' as const })),
+    cols: 3,
+    rows: 3,
+    cells: Array.from({ length: 9 }, () => ({ type: 'empty' as const })),
 };
 
 /**
@@ -41,934 +41,1310 @@ export const DEFAULT_UNIVERSAL_GRID: CustomGridDef = {
  * Accepts legacy array (assumes 3×3) or the new object form.
  */
 export function normalizeGrid(raw: unknown, fallback?: CustomGrid | CustomGridDef): CustomGridDef {
-  if (raw && typeof raw === 'object' && !Array.isArray(raw) && 'cells' in raw) {
-    const def = raw as CustomGridDef;
-    const cols = Math.max(1, Math.min(20, def.cols || 3));
-    const rows = Math.max(1, Math.min(20, def.rows || 3));
-    const need = cols * rows;
-    const cells = (def.cells ?? []).slice(0, need);
-    while (cells.length < need) cells.push({ type: 'empty' });
-    const colSizes = Array.isArray(def.colSizes) && def.colSizes.length === cols ? def.colSizes : undefined;
-    const rowSizes = Array.isArray(def.rowSizes) && def.rowSizes.length === rows ? def.rowSizes : undefined;
-    return { cols, rows, cells, colSizes, rowSizes };
-  }
-  if (Array.isArray(raw)) {
-    const cells = raw.slice(0, 9);
-    while (cells.length < 9) cells.push({ type: 'empty' });
-    return { cols: 3, rows: 3, cells };
-  }
-  if (fallback) {
-    if (Array.isArray(fallback)) return { cols: 3, rows: 3, cells: [...fallback] };
-    return fallback;
-  }
-  return { cols: 3, rows: 3, cells: [...DEFAULT_CUSTOM_GRID] };
+    if (raw && typeof raw === 'object' && !Array.isArray(raw) && 'cells' in raw) {
+        const def = raw as CustomGridDef;
+        const cols = Math.max(1, Math.min(20, def.cols || 3));
+        const rows = Math.max(1, Math.min(20, def.rows || 3));
+        const need = cols * rows;
+        const cells = (def.cells ?? []).slice(0, need);
+        while (cells.length < need) cells.push({ type: 'empty' });
+        const colSizes = Array.isArray(def.colSizes) && def.colSizes.length === cols ? def.colSizes : undefined;
+        const rowSizes = Array.isArray(def.rowSizes) && def.rowSizes.length === rows ? def.rowSizes : undefined;
+        return { cols, rows, cells, colSizes, rowSizes };
+    }
+    if (Array.isArray(raw)) {
+        const cells = raw.slice(0, 9);
+        while (cells.length < 9) cells.push({ type: 'empty' });
+        return { cols: 3, rows: 3, cells };
+    }
+    if (fallback) {
+        if (Array.isArray(fallback)) return { cols: 3, rows: 3, cells: [...fallback] };
+        return fallback;
+    }
+    return { cols: 3, rows: 3, cells: [...DEFAULT_CUSTOM_GRID] };
 }
 
 // ── Style helpers ─────────────────────────────────────────────────────────────
 
 function cellTextStyle(cell: CustomCell, defaultColor: string): React.CSSProperties {
-  const wrap = cell.wrap === true;
-  return {
-    fontSize:     cell.fontSize ? `${cell.fontSize}px` : undefined,
-    fontWeight:   cell.bold   ? 'bold'   : undefined,
-    fontStyle:    cell.italic ? 'italic' : undefined,
-    color:        cell.color || defaultColor,
-    overflow:     (wrap || cell.allowOverflow) ? 'visible' : 'hidden',
-    textOverflow: (wrap || cell.allowOverflow) ? undefined  : 'ellipsis',
-    whiteSpace:   wrap ? 'normal' : 'nowrap',
-    wordBreak:    wrap ? 'break-word' : undefined,
-    overflowWrap: wrap ? 'anywhere' : undefined,
-    // 1.3 (not 1.15) so descenders (g, j, p, q, y) aren't clipped by overflow:hidden.
-    lineHeight:   1.3,
-    paddingBottom: '0.1em',
-    position:     cell.allowOverflow ? 'relative' : undefined,
-    zIndex:       cell.allowOverflow ? 1           : undefined,
-  };
+    const wrap = cell.wrap === true;
+    return {
+        fontSize: cell.fontSize ? `${cell.fontSize}px` : undefined,
+        fontWeight: cell.bold ? 'bold' : undefined,
+        fontStyle: cell.italic ? 'italic' : undefined,
+        color: cell.color || defaultColor,
+        overflow: wrap || cell.allowOverflow ? 'visible' : 'hidden',
+        textOverflow: wrap || cell.allowOverflow ? undefined : 'ellipsis',
+        whiteSpace: wrap ? 'normal' : 'nowrap',
+        wordBreak: wrap ? 'break-word' : undefined,
+        overflowWrap: wrap ? 'anywhere' : undefined,
+        // 1.3 (not 1.15) so descenders (g, j, p, q, y) aren't clipped by overflow:hidden.
+        lineHeight: 1.3,
+        paddingBottom: '0.1em',
+        position: cell.allowOverflow ? 'relative' : undefined,
+        zIndex: cell.allowOverflow ? 1 : undefined,
+    };
 }
 
 function cellWrapStyle(cell: CustomCell, index: number, cols: number, rows: number): React.CSSProperties {
-  const col = (index % cols) + 1;
-  const row = Math.floor(index / cols) + 1;
-  const colSpan = Math.max(1, Math.min(cell.colSpan ?? 1, cols + 1 - col));
-  const rowSpan = Math.max(1, Math.min(cell.rowSpan ?? 1, rows + 1 - row));
-  const wrap = cell.wrap === true;
-  // When wrap is on we must keep overflow visible (otherwise the wrapped
-  // lines get clipped) and top-align so the cell grows downward predictably.
-  return {
-    display:        'flex',
-    overflow:       (wrap || cell.allowOverflow) ? 'visible' : 'hidden',
-    alignItems:     wrap
-                      ? (cell.valign === 'bottom' ? 'flex-end' : cell.valign === 'middle' ? 'center' : 'flex-start')
-                      : cell.valign === 'top' ? 'flex-start' : cell.valign === 'bottom' ? 'flex-end' : 'center',
-    justifyContent: cell.align === 'left' ? 'flex-start' : cell.align === 'right' ? 'flex-end' : 'center',
-    padding:        '2px',
-    gridRow:        rowSpan > 1 ? `${row} / span ${rowSpan}` : row,
-    gridColumn:     colSpan > 1 ? `${col} / span ${colSpan}` : col,
-    position:       (colSpan > 1 || rowSpan > 1) ? 'relative' : undefined,
-    zIndex:         (colSpan > 1 || rowSpan > 1) ? 1 : undefined,
-  };
+    const col = (index % cols) + 1;
+    const row = Math.floor(index / cols) + 1;
+    const colSpan = Math.max(1, Math.min(cell.colSpan ?? 1, cols + 1 - col));
+    const rowSpan = Math.max(1, Math.min(cell.rowSpan ?? 1, rows + 1 - row));
+    const wrap = cell.wrap === true;
+    // When wrap is on we must keep overflow visible (otherwise the wrapped
+    // lines get clipped) and top-align so the cell grows downward predictably.
+    return {
+        display: 'flex',
+        overflow: wrap || cell.allowOverflow ? 'visible' : 'hidden',
+        alignItems: wrap
+            ? cell.valign === 'bottom'
+                ? 'flex-end'
+                : cell.valign === 'middle'
+                  ? 'center'
+                  : 'flex-start'
+            : cell.valign === 'top'
+              ? 'flex-start'
+              : cell.valign === 'bottom'
+                ? 'flex-end'
+                : 'center',
+        justifyContent: cell.align === 'left' ? 'flex-start' : cell.align === 'right' ? 'flex-end' : 'center',
+        padding: '2px',
+        gridRow: rowSpan > 1 ? `${row} / span ${rowSpan}` : row,
+        gridColumn: colSpan > 1 ? `${col} / span ${colSpan}` : col,
+        position: colSpan > 1 || rowSpan > 1 ? 'relative' : undefined,
+        zIndex: colSpan > 1 || rowSpan > 1 ? 1 : undefined,
+    };
 }
 
 function emptyCellStyle(index: number, cols: number): React.CSSProperties {
-  return { gridRow: Math.floor(index / cols) + 1, gridColumn: (index % cols) + 1 };
+    return { gridRow: Math.floor(index / cols) + 1, gridColumn: (index % cols) + 1 };
 }
 
 function alignItemsFromCell(cell: CustomCell): React.CSSProperties['alignItems'] {
-  return cell.align === 'center' ? 'center' : cell.align === 'right' ? 'flex-end' : 'flex-start';
+    return cell.align === 'center' ? 'center' : cell.align === 'right' ? 'flex-end' : 'flex-start';
 }
 
 function formatLastChange(lc: number, fmt: 'relative' | 'time' | 'datetime'): string {
-  const d = new Date(lc);
-  if (fmt === 'time') {
-    return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-  }
-  if (fmt === 'datetime') {
-    const date = d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
-    const time = d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-    return `${date} ${time}`;
-  }
-  const diffMs = Date.now() - lc;
-  const diffSec = Math.floor(diffMs / 1000);
-  if (diffSec < 60) return 'gerade eben';
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `vor ${diffMin} Min`;
-  const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) return `vor ${diffH} Std`;
-  const diffD = Math.floor(diffH / 24);
-  if (diffD === 1) return 'gestern';
-  return `vor ${diffD} Tagen`;
+    const d = new Date(lc);
+    if (fmt === 'time') {
+        return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    }
+    if (fmt === 'datetime') {
+        const date = d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        const time = d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+        return `${date} ${time}`;
+    }
+    const diffMs = Date.now() - lc;
+    const diffSec = Math.floor(diffMs / 1000);
+    if (diffSec < 60) return 'gerade eben';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `vor ${diffMin} Min`;
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return `vor ${diffH} Std`;
+    const diffD = Math.floor(diffH / 24);
+    if (diffD === 1) return 'gestern';
+    return `vor ${diffD} Tagen`;
 }
 
 const lcStyle: React.CSSProperties = {
-  fontSize: '9px', color: 'var(--text-secondary)', opacity: 0.65, lineHeight: 1, display: 'block',
+    fontSize: '9px',
+    color: 'var(--text-secondary)',
+    opacity: 0.65,
+    lineHeight: 1,
+    display: 'block',
 };
 
 function LastChangeLine({ lc, fmt }: { lc: number | undefined; fmt: string }) {
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    if (fmt !== 'relative' || !lc) return;
-    const id = setInterval(() => setTick((t) => t + 1), 30_000);
-    return () => clearInterval(id);
-  }, [fmt, lc]);
-  if (!lc) return null;
-  return <span style={lcStyle}>{formatLastChange(lc, (fmt as 'relative' | 'time' | 'datetime') ?? 'relative')}</span>;
+    const [, setTick] = useState(0);
+    useEffect(() => {
+        if (fmt !== 'relative' || !lc) return;
+        const id = setInterval(() => setTick((t) => t + 1), 30_000);
+        return () => clearInterval(id);
+    }, [fmt, lc]);
+    if (!lc) return null;
+    return <span style={lcStyle}>{formatLastChange(lc, (fmt as 'relative' | 'time' | 'datetime') ?? 'relative')}</span>;
 }
 
 // ── Read-only cell sub-components ─────────────────────────────────────────────
 
 /** Subscribes to an arbitrary ioBroker DP and renders its value. */
-function DpCellView({ cell, index, cols, rows, defaultDecimals }: { cell: CustomCell; index: number; cols: number; rows: number; defaultDecimals: number }) {
-  const { state, value } = useDatapoint(cell.dpId ?? '');
-  const decimals = cell.decimals ?? defaultDecimals;
-  const formatted = value === null ? '–'
-    : typeof value === 'number' ? formatNum(value, decimals)
-    : String(value);
-  const content = `${cell.prefix ?? ''}${formatted}${cell.suffix ?? ''}`;
-  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
-  const textSty = cellTextStyle(cell, 'var(--text-primary)');
-  return (
-    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
-      {cell.showLastChange ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: alignItemsFromCell(cell) }}>
-          <span style={textSty}>{content}</span>
-          <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
+function DpCellView({
+    cell,
+    index,
+    cols,
+    rows,
+    defaultDecimals,
+}: {
+    cell: CustomCell;
+    index: number;
+    cols: number;
+    rows: number;
+    defaultDecimals: number;
+}) {
+    const { state, value } = useDatapoint(cell.dpId ?? '');
+    const decimals = cell.decimals ?? defaultDecimals;
+    const formatted = value === null ? '–' : typeof value === 'number' ? formatNum(value, decimals) : String(value);
+    const content = `${cell.prefix ?? ''}${formatted}${cell.suffix ?? ''}`;
+    if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    const textSty = cellTextStyle(cell, 'var(--text-primary)');
+    return (
+        <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+            {cell.showLastChange ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: alignItemsFromCell(cell) }}>
+                    <span style={textSty}>{content}</span>
+                    <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
+                </div>
+            ) : (
+                <span style={textSty}>{content}</span>
+            )}
         </div>
-      ) : (
-        <span style={textSty}>{content}</span>
-      )}
-    </div>
-  );
+    );
 }
 
 /** Renders an image from a URL or base64 data URI. */
 function ImageCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
-  if (!cell.imageUrl) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
-  return (
-    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: 0 }}>
-      <img
-        src={resolveAssetUrl(cell.imageUrl)}
-        alt=""
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: cell.objectFit ?? 'contain',
-          display: 'block',
-        }}
-      />
-    </div>
-  );
+    if (!cell.imageUrl) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    return (
+        <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: 0 }}>
+            <img
+                src={resolveAssetUrl(cell.imageUrl)}
+                alt=""
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: cell.objectFit ?? 'contain',
+                    display: 'block',
+                }}
+            />
+        </div>
+    );
 }
 
 /** Renders a widget-supplied React node (interactive element or icon). */
-function ComponentCellView({ cell, index, cols, rows, extraComponents }: {
-  cell: CustomCell;
-  index: number;
-  cols: number;
-  rows: number;
-  extraComponents?: Record<string, React.ReactNode>;
+function ComponentCellView({
+    cell,
+    index,
+    cols,
+    rows,
+    extraComponents,
+}: {
+    cell: CustomCell;
+    index: number;
+    cols: number;
+    rows: number;
+    extraComponents?: Record<string, React.ReactNode>;
 }) {
-  const node = extraComponents?.[cell.componentKey ?? ''];
-  if (!node) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
-  // When fontSize is set, treat it as an explicit pixel size for the component
-  // (useful for SVG components like the knob dial). Without it, the component
-  // fills the cell as before.
-  const size = cell.fontSize;
-  return (
-    <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '2px' }}>
-      {size ? (
-        <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {node}
+    const node = extraComponents?.[cell.componentKey ?? ''];
+    if (!node) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    // When fontSize is set, treat it as an explicit pixel size for the component
+    // (useful for SVG components like the knob dial). Without it, the component
+    // fills the cell as before.
+    const size = cell.fontSize;
+    return (
+        <div
+            className={`aura-custom-cell-${index}`}
+            style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '2px' }}
+        >
+            {size ? (
+                <div
+                    style={{
+                        width: size,
+                        height: size,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+                    {node}
+                </div>
+            ) : (
+                node
+            )}
         </div>
-      ) : node}
-    </div>
-  );
+    );
 }
 
 /** Renders static / widget-derived content (title, value, unit, free text, extra field). */
 function StaticCellView({
-  cell, index, cols, rows, title, value, rawValue, unit, extraFields, valueColor, mainDpId,
+    cell,
+    index,
+    cols,
+    rows,
+    title,
+    value,
+    rawValue,
+    unit,
+    extraFields,
+    valueColor,
+    mainDpId,
 }: {
-  cell: CustomCell;
-  index: number;
-  cols: number;
-  rows: number;
-  title: string;
-  value: string;
-  rawValue?: number | null;
-  unit?: string;
-  extraFields?: Record<string, string>;
-  /** Optional override for the default color of 'value' cells (used by widgets whose current value carries a per-entry color, e.g. EnumWidget). */
-  valueColor?: string;
-  /** Main DP id for 'value' cells wanting to show last-change timestamp. */
-  mainDpId?: string;
+    cell: CustomCell;
+    index: number;
+    cols: number;
+    rows: number;
+    title: string;
+    value: string;
+    rawValue?: number | null;
+    unit?: string;
+    extraFields?: Record<string, string>;
+    /** Optional override for the default color of 'value' cells (used by widgets whose current value carries a per-entry color, e.g. EnumWidget). */
+    valueColor?: string;
+    /** Main DP id for 'value' cells wanting to show last-change timestamp. */
+    mainDpId?: string;
 }) {
-  const { state: mainState } = useDatapoint(mainDpId ?? '');
-  const content = (() => {
-    switch (cell.type) {
-      case 'title': return title;
-      case 'value': {
-        const displayVal = cell.decimals !== undefined && rawValue != null
-          ? formatNum(rawValue, cell.decimals)
-          : value;
-        return `${cell.prefix ?? ''}${displayVal}${cell.suffix ?? ''}`;
-      }
-      case 'unit':  return unit ?? '';
-      case 'text':  return cell.text ?? '';
-      case 'field': return extraFields?.[cell.fieldKey ?? ''] ?? '';
-      default:      return '';
-    }
-  })();
+    const { state: mainState } = useDatapoint(mainDpId ?? '');
+    const content = (() => {
+        switch (cell.type) {
+            case 'title':
+                return title;
+            case 'value': {
+                const displayVal =
+                    cell.decimals !== undefined && rawValue != null ? formatNum(rawValue, cell.decimals) : value;
+                return `${cell.prefix ?? ''}${displayVal}${cell.suffix ?? ''}`;
+            }
+            case 'unit':
+                return unit ?? '';
+            case 'text':
+                return cell.text ?? '';
+            case 'field':
+                return extraFields?.[cell.fieldKey ?? ''] ?? '';
+            default:
+                return '';
+        }
+    })();
 
-  if (cell.type === 'empty' || !content) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    if (cell.type === 'empty' || !content)
+        return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
 
-  const fallbackColor = cell.type === 'value' && valueColor ? valueColor : 'var(--text-primary)';
-  const textSty = cellTextStyle(cell, fallbackColor);
-  const lc = mainState?.lc;
-  return (
-    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
-      {cell.showLastChange && lc ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: alignItemsFromCell(cell) }}>
-          <span style={textSty}>{content}</span>
-          <LastChangeLine lc={lc} fmt={cell.lastChangeFormat ?? 'relative'} />
+    const fallbackColor = cell.type === 'value' && valueColor ? valueColor : 'var(--text-primary)';
+    const textSty = cellTextStyle(cell, fallbackColor);
+    const lc = mainState?.lc;
+    return (
+        <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+            {cell.showLastChange && lc ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: alignItemsFromCell(cell) }}>
+                    <span style={textSty}>{content}</span>
+                    <LastChangeLine lc={lc} fmt={cell.lastChangeFormat ?? 'relative'} />
+                </div>
+            ) : (
+                <span style={textSty}>{content}</span>
+            )}
         </div>
-      ) : (
-        <span style={textSty}>{content}</span>
-      )}
-    </div>
-  );
+    );
 }
 
 // ── Interactive cell sub-components (Universal Widget) ────────────────────────
 
 /** Parse a user-supplied payload string (e.g. "true", "100", "an") into bool/number/string. */
 function parseCellValue(raw: string | undefined, fallback: boolean | number | string): boolean | number | string {
-  if (raw === undefined || raw === '') return fallback;
-  if (raw === 'true')  return true;
-  if (raw === 'false') return false;
-  const num = Number(raw);
-  if (Number.isFinite(num)) return num;
-  return raw;
+    if (raw === undefined || raw === '') return fallback;
+    if (raw === 'true') return true;
+    if (raw === 'false') return false;
+    const num = Number(raw);
+    if (Number.isFinite(num)) return num;
+    return raw;
 }
 
 /** Boolean toggle bound to a DP. */
 function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
-  const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
-  const btnRef = useRef<HTMLButtonElement | null>(null);
-  const trueWrite  = parseCellValue(cell.trueValue,  true);
-  const falseWrite = parseCellValue(cell.falseValue, false);
-  const on = cell.trueValue !== undefined && cell.trueValue !== ''
-    ? String(value) === String(trueWrite)
-    : (value === true || value === 1 || value === 'true' || value === '1');
-  const doToggle = () => {
-    if (cell.momentary) {
-      const delay = cell.momentaryDelay ?? 500;
-      setValue(trueWrite);
-      setTimeout(() => setValue(falseWrite), delay);
-    } else {
-      setValue(on ? falseWrite : trueWrite);
+    const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
+    const btnRef = useRef<HTMLButtonElement | null>(null);
+    const trueWrite = parseCellValue(cell.trueValue, true);
+    const falseWrite = parseCellValue(cell.falseValue, false);
+    const on =
+        cell.trueValue !== undefined && cell.trueValue !== ''
+            ? String(value) === String(trueWrite)
+            : value === true || value === 1 || value === 'true' || value === '1';
+    const doToggle = () => {
+        if (cell.momentary) {
+            const delay = cell.momentaryDelay ?? 500;
+            setValue(trueWrite);
+            setTimeout(() => setValue(falseWrite), delay);
+        } else {
+            setValue(on ? falseWrite : trueWrite);
+        }
+    };
+    const { run: handleClick, pending, confirm, cancel } = useConfirmAction(doToggle, !!cell.confirmAction);
+    if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    const wrap = {
+        ...cellWrapStyle(cell, index, cols, rows),
+        position: 'relative' as const,
+        ...(cell.showLastChange ? { flexDirection: 'column' as const, gap: 2 } : {}),
+    };
+    const lcLine = cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />;
+    if (cell.controlMode === 'icon') {
+        const iconName = on ? cell.trueIcon || cell.iconName : cell.falseIcon || cell.iconName;
+        const color = on
+            ? cell.trueColor || cell.color || 'var(--accent-green)'
+            : cell.falseColor || 'var(--text-secondary)';
+        const Icon = getWidgetIcon(iconName, HelpCircle);
+        const size = cell.fontSize ?? 28;
+        return (
+            <div className={`aura-custom-cell-${index}`} style={wrap}>
+                <button
+                    ref={btnRef}
+                    onClick={handleClick}
+                    className="nodrag flex items-center justify-center transition-transform hover:scale-110"
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+                    aria-label={cell.text || (on ? 'AN' : 'AUS')}
+                >
+                    <Icon size={size} style={{ color }} />
+                </button>
+                {pending && (
+                    <ConfirmOverlay
+                        popup
+                        anchorRef={btnRef}
+                        text={cell.confirmText}
+                        onConfirm={confirm}
+                        onCancel={cancel}
+                    />
+                )}
+                {lcLine}
+            </div>
+        );
     }
-  };
-  const { run: handleClick, pending, confirm, cancel } = useConfirmAction(doToggle, !!cell.confirmAction);
-  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
-  const wrap = {
-    ...cellWrapStyle(cell, index, cols, rows),
-    position: 'relative' as const,
-    ...(cell.showLastChange ? { flexDirection: 'column' as const, gap: 2 } : {}),
-  };
-  const lcLine = cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />;
-  if (cell.controlMode === 'icon') {
-    const iconName = on ? (cell.trueIcon || cell.iconName) : (cell.falseIcon || cell.iconName);
-    const color    = on ? (cell.trueColor || cell.color || 'var(--accent-green)')
-                        : (cell.falseColor || 'var(--text-secondary)');
-    const Icon = getWidgetIcon(iconName, HelpCircle);
-    const size = cell.fontSize ?? 28;
     return (
-      <div className={`aura-custom-cell-${index}`} style={wrap}>
-        <button
-          ref={btnRef}
-          onClick={handleClick}
-          className="nodrag flex items-center justify-center transition-transform hover:scale-110"
-          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
-          aria-label={cell.text || (on ? 'AN' : 'AUS')}
-        >
-          <Icon size={size} style={{ color }} />
-        </button>
-        {pending && <ConfirmOverlay popup anchorRef={btnRef} text={cell.confirmText} onConfirm={confirm} onCancel={cancel} />}
-        {lcLine}
-      </div>
+        <div className={`aura-custom-cell-${index}`} style={wrap}>
+            <button
+                ref={btnRef}
+                onClick={handleClick}
+                className="nodrag relative rounded-full transition-colors"
+                style={{
+                    width: 44,
+                    height: 24,
+                    background: on ? cell.color || 'var(--accent)' : 'var(--app-border)',
+                    border: 'none',
+                    cursor: 'pointer',
+                }}
+                aria-label={cell.text || 'toggle'}
+            >
+                <span
+                    className="absolute top-0.5 bg-white rounded-full shadow transition-transform"
+                    style={{ width: 20, height: 20, left: on ? '22px' : '2px' }}
+                />
+            </button>
+            {pending && (
+                <ConfirmOverlay
+                    popup
+                    anchorRef={btnRef}
+                    text={cell.confirmText}
+                    onConfirm={confirm}
+                    onCancel={cancel}
+                />
+            )}
+            {lcLine}
+        </div>
     );
-  }
-  return (
-    <div className={`aura-custom-cell-${index}`} style={wrap}>
-      <button
-        ref={btnRef}
-        onClick={handleClick}
-        className="nodrag relative rounded-full transition-colors"
-        style={{
-          width: 44, height: 24,
-          background: on ? (cell.color || 'var(--accent)') : 'var(--app-border)',
-          border: 'none',
-          cursor: 'pointer',
-        }}
-        aria-label={cell.text || 'toggle'}
-      >
-        <span
-          className="absolute top-0.5 bg-white rounded-full shadow transition-transform"
-          style={{ width: 20, height: 20, left: on ? '22px' : '2px' }}
-        />
-      </button>
-      {pending && <ConfirmOverlay popup anchorRef={btnRef} text={cell.confirmText} onConfirm={confirm} onCancel={cancel} />}
-      {lcLine}
-    </div>
-  );
 }
 
 /** Range slider bound to a numeric DP. Supports bar-style rendering. */
-function SliderCellView({ cell, index, cols, rows, defaultDecimals }: { cell: CustomCell; index: number; cols: number; rows: number; defaultDecimals: number }) {
-  const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
-  const [pending, setPending] = useState<number | null>(null);
-  const min        = cell.min  ?? 0;
-  const max        = cell.max  ?? 100;
-  const step       = cell.step ?? 1;
-  const isVertical = cell.orientation === 'vertical';
-  const barStyle   = !!cell.barStyle;
-  const barSize    = cell.barSize ?? 100;
-  const color      = cell.color || 'var(--accent)';
-  const num        = typeof value === 'number' ? value : Number(value ?? min);
-  const displayVal = pending ?? (Number.isFinite(num) ? num : min);
-  const fillRatio  = Math.max(0, Math.min(1, (displayVal - min) / (max - min)));
-  const valuePos   = cell.valuePosition ?? 'none';
-  const decimals   = cell.decimals ?? defaultDecimals;
-  const valueLabel = `${cell.prefix ?? ''}${Number.isFinite(num) ? formatNum(displayVal, decimals) : '–'}${cell.suffix ?? ''}`;
+function SliderCellView({
+    cell,
+    index,
+    cols,
+    rows,
+    defaultDecimals,
+}: {
+    cell: CustomCell;
+    index: number;
+    cols: number;
+    rows: number;
+    defaultDecimals: number;
+}) {
+    const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
+    const [pending, setPending] = useState<number | null>(null);
+    const min = cell.min ?? 0;
+    const max = cell.max ?? 100;
+    const step = cell.step ?? 1;
+    const isVertical = cell.orientation === 'vertical';
+    const barStyle = !!cell.barStyle;
+    const barSize = cell.barSize ?? 100;
+    const color = cell.color || 'var(--accent)';
+    const num = typeof value === 'number' ? value : Number(value ?? min);
+    const displayVal = pending ?? (Number.isFinite(num) ? num : min);
+    const fillRatio = Math.max(0, Math.min(1, (displayVal - min) / (max - min)));
+    const valuePos = cell.valuePosition ?? 'none';
+    const decimals = cell.decimals ?? defaultDecimals;
+    const valueLabel = `${cell.prefix ?? ''}${Number.isFinite(num) ? formatNum(displayVal, decimals) : '–'}${cell.suffix ?? ''}`;
 
-  const writeStepped = (v: number) => {
-    const stepped = Math.round(v / step) * step;
-    setValue(Math.max(min, Math.min(max, stepped)));
-  };
+    const writeStepped = (v: number) => {
+        const stepped = Math.round(v / step) * step;
+        setValue(Math.max(min, Math.min(max, stepped)));
+    };
 
-  const getBarValue = (e: React.PointerEvent<HTMLDivElement>) => {
-    const rect  = e.currentTarget.getBoundingClientRect();
-    const ratio = isVertical
-      ? 1 - (e.clientY - rect.top)  / rect.height
-      :     (e.clientX - rect.left) / rect.width;
-    return min + Math.max(0, Math.min(1, ratio)) * (max - min);
-  };
+    const getBarValue = (e: React.PointerEvent<HTMLDivElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const ratio = isVertical ? 1 - (e.clientY - rect.top) / rect.height : (e.clientX - rect.left) / rect.width;
+        return min + Math.max(0, Math.min(1, ratio)) * (max - min);
+    };
 
-  const onBarPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId);
-    writeStepped(getBarValue(e));
-  };
+    const onBarPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        writeStepped(getBarValue(e));
+    };
 
-  const onBarPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!(e.buttons & 1)) return;
-    writeStepped(getBarValue(e));
-  };
+    const onBarPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (!(e.buttons & 1)) return;
+        writeStepped(getBarValue(e));
+    };
 
-  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
 
-  const barEl = (
-    <div
-      className="nodrag relative rounded-2xl overflow-hidden select-none cursor-pointer"
-      style={{
-        width:      isVertical ? `${barSize}%` : '100%',
-        height:     isVertical ? '100%'        : `${barSize}%`,
-        background: `color-mix(in srgb, ${color} 20%, var(--app-bg))`,
-      }}
-      onPointerDown={onBarPointerDown}
-      onPointerMove={onBarPointerMove}
-      onPointerUp={() => setPending(null)}
-    >
-      {isVertical ? (
-        <div className="absolute bottom-0 left-0 right-0 rounded-t-2xl"
-          style={{ height: `${fillRatio * 100}%`, background: color }} />
-      ) : (
-        <div className="absolute top-0 left-0 bottom-0 rounded-r-2xl"
-          style={{ width: `${fillRatio * 100}%`, background: color }} />
-      )}
-      {isVertical ? (
-        <div className="absolute pointer-events-none rounded-full"
-          style={{ top: `${(1 - fillRatio) * 100}%`, transform: 'translateY(6px)', left: '20%', right: '20%', height: '3px', background: 'rgba(255,255,255,0.85)' }} />
-      ) : (
-        <div className="absolute pointer-events-none rounded-full"
-          style={{ left: `${fillRatio * 100}%`, transform: 'translateX(-9px)', top: '20%', bottom: '20%', width: '3px', background: 'rgba(255,255,255,0.85)' }} />
-      )}
-    </div>
-  );
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const vertAttrs: any = isVertical ? { orient: 'vertical' } : {};
-  const nativeEl = (
-    <input
-      {...vertAttrs}
-      type="range"
-      min={min} max={max} step={step}
-      value={displayVal}
-      onChange={(e) => setValue(Number(e.target.value))}
-      className="nodrag w-full h-1.5 rounded-full appearance-none cursor-pointer"
-      style={{
-        accentColor: color,
-        ...(isVertical ? { writingMode: 'vertical-lr' as React.CSSProperties['writingMode'], direction: 'rtl', height: '100%', width: 'auto' } : {}),
-      }}
-    />
-  );
-
-  const controlEl = barStyle ? barEl : nativeEl;
-  const wrapBase = barStyle
-    ? { ...cellWrapStyle(cell, index, cols, rows), padding: '4px' }
-    : { ...cellWrapStyle(cell, index, cols, rows), padding: '4px 8px' };
-  const wrapStyle = cell.showLastChange
-    ? { ...wrapBase, flexDirection: 'column' as const, gap: 2 }
-    : wrapBase;
-  const lcLine = cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />;
-
-  if (valuePos === 'none') {
-    return (
-      <div className={`aura-custom-cell-${index}`} style={wrapStyle}>
-        <div style={{ flex: cell.showLastChange ? 1 : undefined, width: '100%', height: cell.showLastChange ? undefined : '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {controlEl}
+    const barEl = (
+        <div
+            className="nodrag relative rounded-2xl overflow-hidden select-none cursor-pointer"
+            style={{
+                width: isVertical ? `${barSize}%` : '100%',
+                height: isVertical ? '100%' : `${barSize}%`,
+                background: `color-mix(in srgb, ${color} 20%, var(--app-bg))`,
+            }}
+            onPointerDown={onBarPointerDown}
+            onPointerMove={onBarPointerMove}
+            onPointerUp={() => setPending(null)}
+        >
+            {isVertical ? (
+                <div
+                    className="absolute bottom-0 left-0 right-0 rounded-t-2xl"
+                    style={{ height: `${fillRatio * 100}%`, background: color }}
+                />
+            ) : (
+                <div
+                    className="absolute top-0 left-0 bottom-0 rounded-r-2xl"
+                    style={{ width: `${fillRatio * 100}%`, background: color }}
+                />
+            )}
+            {isVertical ? (
+                <div
+                    className="absolute pointer-events-none rounded-full"
+                    style={{
+                        top: `${(1 - fillRatio) * 100}%`,
+                        transform: 'translateY(6px)',
+                        left: '20%',
+                        right: '20%',
+                        height: '3px',
+                        background: 'rgba(255,255,255,0.85)',
+                    }}
+                />
+            ) : (
+                <div
+                    className="absolute pointer-events-none rounded-full"
+                    style={{
+                        left: `${fillRatio * 100}%`,
+                        transform: 'translateX(-9px)',
+                        top: '20%',
+                        bottom: '20%',
+                        width: '3px',
+                        background: 'rgba(255,255,255,0.85)',
+                    }}
+                />
+            )}
         </div>
-        {lcLine}
-      </div>
     );
-  }
 
-  const flexDir =
-    valuePos === 'left'  ? 'row' :
-    valuePos === 'right' ? 'row-reverse' :
-    valuePos === 'top'   ? 'column' :
-                           'column-reverse';
-  const valueEl = (
-    <span
-      style={{ ...cellTextStyle(cell, 'var(--text-primary)'), flexShrink: 0, textAlign: 'center', minWidth: (valuePos === 'left' || valuePos === 'right') ? '2.5em' : undefined }}
-    >
-      {valueLabel}
-    </span>
-  );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const vertAttrs: any = isVertical ? { orient: 'vertical' } : {};
+    const nativeEl = (
+        <input
+            {...vertAttrs}
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={displayVal}
+            onChange={(e) => setValue(Number(e.target.value))}
+            className="nodrag w-full h-1.5 rounded-full appearance-none cursor-pointer"
+            style={{
+                accentColor: color,
+                ...(isVertical
+                    ? {
+                          writingMode: 'vertical-lr' as React.CSSProperties['writingMode'],
+                          direction: 'rtl',
+                          height: '100%',
+                          width: 'auto',
+                      }
+                    : {}),
+            }}
+        />
+    );
 
-  return (
-    <div className={`aura-custom-cell-${index}`} style={wrapStyle}>
-      <div style={{ flex: cell.showLastChange ? 1 : undefined, width: '100%', height: cell.showLastChange ? undefined : '100%', display: 'flex', flexDirection: flexDir, alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-        {valueEl}
-        <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-          {controlEl}
+    const controlEl = barStyle ? barEl : nativeEl;
+    const wrapBase = barStyle
+        ? { ...cellWrapStyle(cell, index, cols, rows), padding: '4px' }
+        : { ...cellWrapStyle(cell, index, cols, rows), padding: '4px 8px' };
+    const wrapStyle = cell.showLastChange ? { ...wrapBase, flexDirection: 'column' as const, gap: 2 } : wrapBase;
+    const lcLine = cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />;
+
+    if (valuePos === 'none') {
+        return (
+            <div className={`aura-custom-cell-${index}`} style={wrapStyle}>
+                <div
+                    style={{
+                        flex: cell.showLastChange ? 1 : undefined,
+                        width: '100%',
+                        height: cell.showLastChange ? undefined : '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+                    {controlEl}
+                </div>
+                {lcLine}
+            </div>
+        );
+    }
+
+    const flexDir =
+        valuePos === 'left'
+            ? 'row'
+            : valuePos === 'right'
+              ? 'row-reverse'
+              : valuePos === 'top'
+                ? 'column'
+                : 'column-reverse';
+    const valueEl = (
+        <span
+            style={{
+                ...cellTextStyle(cell, 'var(--text-primary)'),
+                flexShrink: 0,
+                textAlign: 'center',
+                minWidth: valuePos === 'left' || valuePos === 'right' ? '2.5em' : undefined,
+            }}
+        >
+            {valueLabel}
+        </span>
+    );
+
+    return (
+        <div className={`aura-custom-cell-${index}`} style={wrapStyle}>
+            <div
+                style={{
+                    flex: cell.showLastChange ? 1 : undefined,
+                    width: '100%',
+                    height: cell.showLastChange ? undefined : '100%',
+                    display: 'flex',
+                    flexDirection: flexDir,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                }}
+            >
+                {valueEl}
+                <div
+                    style={{
+                        flex: 1,
+                        minWidth: 0,
+                        minHeight: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '100%',
+                        height: '100%',
+                    }}
+                >
+                    {controlEl}
+                </div>
+            </div>
+            {lcLine}
         </div>
-      </div>
-      {lcLine}
-    </div>
-  );
+    );
 }
 
 /** Button that writes a fixed payload to a DP on click. */
 function ButtonCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
-  const { state, setValue } = useDatapoint(cell.dpId ?? '');
-  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
-  const onClick = () => setValue(parseCellValue(cell.sendValue, ''));
-  const wrap = cell.showLastChange
-    ? { ...cellWrapStyle(cell, index, cols, rows), flexDirection: 'column' as const, gap: 2 }
-    : cellWrapStyle(cell, index, cols, rows);
-  return (
-    <div className={`aura-custom-cell-${index}`} style={wrap}>
-      <button
-        onClick={onClick}
-        className="nodrag px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-85 transition-opacity"
-        style={{
-          background: cell.color || 'var(--accent)',
-          color: '#fff',
-          border: 'none',
-          cursor: 'pointer',
-          fontSize: cell.fontSize ? `${cell.fontSize}px` : undefined,
-          fontWeight: cell.bold ? 'bold' : undefined,
-        }}
-      >
-        {cell.text || '⏵'}
-      </button>
-      {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
-    </div>
-  );
+    const { state, setValue } = useDatapoint(cell.dpId ?? '');
+    if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    const onClick = () => setValue(parseCellValue(cell.sendValue, ''));
+    const wrap = cell.showLastChange
+        ? { ...cellWrapStyle(cell, index, cols, rows), flexDirection: 'column' as const, gap: 2 }
+        : cellWrapStyle(cell, index, cols, rows);
+    return (
+        <div className={`aura-custom-cell-${index}`} style={wrap}>
+            <button
+                onClick={onClick}
+                className="nodrag px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-85 transition-opacity"
+                style={{
+                    background: cell.color || 'var(--accent)',
+                    color: '#fff',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: cell.fontSize ? `${cell.fontSize}px` : undefined,
+                    fontWeight: cell.bold ? 'bold' : undefined,
+                }}
+            >
+                {cell.text || '⏵'}
+            </button>
+            {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
+        </div>
+    );
 }
 
 /** Static Lucide / Iconify icon. */
 function IconCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
-  const Icon = getWidgetIcon(cell.iconName, HelpCircle);
-  const size = cell.fontSize ?? 28;
-  return (
-    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
-      <Icon size={size} style={{ color: cell.color || 'var(--text-primary)' }} />
-    </div>
-  );
+    const Icon = getWidgetIcon(cell.iconName, HelpCircle);
+    const size = cell.fontSize ?? 28;
+    return (
+        <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+            <Icon size={size} style={{ color: cell.color || 'var(--text-primary)' }} />
+        </div>
+    );
 }
 
 /** Icon whose symbol+color depend on the DP value (binary). */
-function StateIconCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
-  const { state, value } = useDatapoint(cell.dpId ?? '');
-  const truthy = value === true || value === 1 || value === 'true' || value === '1';
-  const iconName = truthy ? (cell.trueIcon || cell.iconName) : (cell.falseIcon || cell.iconName);
-  const color    = truthy ? (cell.trueColor || cell.color || 'var(--accent)') : (cell.falseColor || cell.color || 'var(--text-secondary)');
-  const Icon = getWidgetIcon(iconName, HelpCircle);
-  const size = cell.fontSize ?? 28;
-  return (
-    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
-      {cell.showLastChange ? (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-          <Icon size={size} style={{ color }} />
-          <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
+function StateIconCellView({
+    cell,
+    index,
+    cols,
+    rows,
+}: {
+    cell: CustomCell;
+    index: number;
+    cols: number;
+    rows: number;
+}) {
+    const { state, value } = useDatapoint(cell.dpId ?? '');
+    const truthy = value === true || value === 1 || value === 'true' || value === '1';
+    const iconName = truthy ? cell.trueIcon || cell.iconName : cell.falseIcon || cell.iconName;
+    const color = truthy
+        ? cell.trueColor || cell.color || 'var(--accent)'
+        : cell.falseColor || cell.color || 'var(--text-secondary)';
+    const Icon = getWidgetIcon(iconName, HelpCircle);
+    const size = cell.fontSize ?? 28;
+    return (
+        <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+            {cell.showLastChange ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                    <Icon size={size} style={{ color }} />
+                    <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
+                </div>
+            ) : (
+                <Icon size={size} style={{ color }} />
+            )}
         </div>
-      ) : (
-        <Icon size={size} style={{ color }} />
-      )}
-    </div>
-  );
+    );
 }
 
 /** +/− stepper that increments / decrements a numeric DP by `step`, clamped to [min, max]. */
-function StepperCellView({ cell, index, cols, rows, defaultDecimals }: { cell: CustomCell; index: number; cols: number; rows: number; defaultDecimals: number }) {
-  const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
-  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
-  const min  = cell.min  ?? -Infinity;
-  const max  = cell.max  ??  Infinity;
-  const step = cell.step ?? 1;
-  const num  = typeof value === 'number' ? value : Number(value ?? 0);
-  const cur  = Number.isFinite(num) ? num : 0;
-  const decimals = cell.decimals ?? defaultDecimals;
-  const display = Number.isFinite(num) ? formatNum(num, decimals) : '–';
-  const color = cell.color || 'var(--accent)';
-  const btnSize = cell.fontSize ?? 14;
-  const change = (delta: number) => {
-    const next = Math.max(min, Math.min(max, cur + delta));
-    setValue(next);
-  };
-  return (
-    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
-      <div className="nodrag flex flex-col items-center gap-0.5 w-full">
-        <div className="flex items-center gap-1 w-full">
-          <button onClick={() => change(-step)}
-            className="rounded-lg flex items-center justify-center hover:opacity-85"
-            style={{ background: color, color: '#fff', border: 'none', minWidth: 22, height: 22, fontSize: btnSize, cursor: 'pointer' }}>−</button>
-          <span className="flex-1 text-center tabular-nums"
-            style={{ ...cellTextStyle(cell, 'var(--text-primary)'), whiteSpace: 'nowrap' }}>
-            {`${cell.prefix ?? ''}${display}${cell.suffix ?? ''}`}
-          </span>
-          <button onClick={() => change(step)}
-            className="rounded-lg flex items-center justify-center hover:opacity-85"
-            style={{ background: color, color: '#fff', border: 'none', minWidth: 22, height: 22, fontSize: btnSize, cursor: 'pointer' }}>+</button>
+function StepperCellView({
+    cell,
+    index,
+    cols,
+    rows,
+    defaultDecimals,
+}: {
+    cell: CustomCell;
+    index: number;
+    cols: number;
+    rows: number;
+    defaultDecimals: number;
+}) {
+    const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
+    if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    const min = cell.min ?? -Infinity;
+    const max = cell.max ?? Infinity;
+    const step = cell.step ?? 1;
+    const num = typeof value === 'number' ? value : Number(value ?? 0);
+    const cur = Number.isFinite(num) ? num : 0;
+    const decimals = cell.decimals ?? defaultDecimals;
+    const display = Number.isFinite(num) ? formatNum(num, decimals) : '–';
+    const color = cell.color || 'var(--accent)';
+    const btnSize = cell.fontSize ?? 14;
+    const change = (delta: number) => {
+        const next = Math.max(min, Math.min(max, cur + delta));
+        setValue(next);
+    };
+    return (
+        <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+            <div className="nodrag flex flex-col items-center gap-0.5 w-full">
+                <div className="flex items-center gap-1 w-full">
+                    <button
+                        onClick={() => change(-step)}
+                        className="rounded-lg flex items-center justify-center hover:opacity-85"
+                        style={{
+                            background: color,
+                            color: '#fff',
+                            border: 'none',
+                            minWidth: 22,
+                            height: 22,
+                            fontSize: btnSize,
+                            cursor: 'pointer',
+                        }}
+                    >
+                        −
+                    </button>
+                    <span
+                        className="flex-1 text-center tabular-nums"
+                        style={{ ...cellTextStyle(cell, 'var(--text-primary)'), whiteSpace: 'nowrap' }}
+                    >
+                        {`${cell.prefix ?? ''}${display}${cell.suffix ?? ''}`}
+                    </span>
+                    <button
+                        onClick={() => change(step)}
+                        className="rounded-lg flex items-center justify-center hover:opacity-85"
+                        style={{
+                            background: color,
+                            color: '#fff',
+                            border: 'none',
+                            minWidth: 22,
+                            height: 22,
+                            fontSize: btnSize,
+                            cursor: 'pointer',
+                        }}
+                    >
+                        +
+                    </button>
+                </div>
+                {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
+            </div>
         </div>
-        {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
-      </div>
-    </div>
-  );
+    );
 }
 
 /** Free text / number input bound to a DP. Writes on Enter / blur. */
 function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
-  const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
-  const isNumber = cell.inputMode === 'number';
-  const externalStr = value == null ? '' : String(value);
-  const [draft, setDraft] = useState(externalStr);
-  const [focused, setFocused] = useState(false);
-  useEffect(() => { if (!focused) setDraft(externalStr); }, [externalStr, focused]);
+    const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
+    const isNumber = cell.inputMode === 'number';
+    const externalStr = value == null ? '' : String(value);
+    const [draft, setDraft] = useState(externalStr);
+    const [focused, setFocused] = useState(false);
+    useEffect(() => {
+        if (!focused) setDraft(externalStr);
+    }, [externalStr, focused]);
 
-  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
 
-  const commit = () => {
-    if (isNumber) {
-      if (draft === '') return;
-      const n = Number(draft);
-      if (!Number.isFinite(n)) return;
-      const min = cell.min ?? -Infinity;
-      const max = cell.max ??  Infinity;
-      setValue(Math.max(min, Math.min(max, n)));
-    } else {
-      setValue(draft);
-    }
-  };
+    const commit = () => {
+        if (isNumber) {
+            if (draft === '') return;
+            const n = Number(draft);
+            if (!Number.isFinite(n)) return;
+            const min = cell.min ?? -Infinity;
+            const max = cell.max ?? Infinity;
+            setValue(Math.max(min, Math.min(max, n)));
+        } else {
+            setValue(draft);
+        }
+    };
 
-  const inputSty: React.CSSProperties = {
-    background: 'var(--app-bg)',
-    color:      cell.color || 'var(--text-primary)',
-    border:     '1px solid var(--app-border)',
-    borderRadius: 8,
-    padding:    '4px 6px',
-    fontSize:   cell.fontSize ? `${cell.fontSize}px` : 12,
-    fontWeight: cell.bold ? 'bold' : undefined,
-    fontStyle:  cell.italic ? 'italic' : undefined,
-    width:      '100%',
-    minWidth:   0,
-    textAlign:  cell.align === 'center' ? 'center' : cell.align === 'right' ? 'right' : 'left',
-  };
+    const inputSty: React.CSSProperties = {
+        background: 'var(--app-bg)',
+        color: cell.color || 'var(--text-primary)',
+        border: '1px solid var(--app-border)',
+        borderRadius: 8,
+        padding: '4px 6px',
+        fontSize: cell.fontSize ? `${cell.fontSize}px` : 12,
+        fontWeight: cell.bold ? 'bold' : undefined,
+        fontStyle: cell.italic ? 'italic' : undefined,
+        width: '100%',
+        minWidth: 0,
+        textAlign: cell.align === 'center' ? 'center' : cell.align === 'right' ? 'right' : 'left',
+    };
 
-  const wrapSty = { ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' };
-  return (
-    <div className={`aura-custom-cell-${index}`} style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}>
-      <input
-        type={isNumber ? 'number' : 'text'}
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => { setFocused(false); commit(); }}
-        onKeyDown={(e) => { if (e.key === 'Enter') { e.currentTarget.blur(); } }}
-        min={isNumber ? cell.min : undefined}
-        max={isNumber ? cell.max : undefined}
-        step={isNumber ? cell.step : undefined}
-        placeholder={cell.text || ''}
-        className="nodrag focus:outline-none"
-        style={inputSty}
-      />
-      {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
-    </div>
-  );
+    const wrapSty = { ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' };
+    return (
+        <div
+            className={`aura-custom-cell-${index}`}
+            style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}
+        >
+            <input
+                type={isNumber ? 'number' : 'text'}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onFocus={() => setFocused(true)}
+                onBlur={() => {
+                    setFocused(false);
+                    commit();
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                        e.currentTarget.blur();
+                    }
+                }}
+                min={isNumber ? cell.min : undefined}
+                max={isNumber ? cell.max : undefined}
+                step={isNumber ? cell.step : undefined}
+                placeholder={cell.text || ''}
+                className="nodrag focus:outline-none"
+                style={inputSty}
+            />
+            {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
+        </div>
+    );
 }
 
 /** Read-only progress bar visualising a numeric DP in [min, max]. */
-function ProgressCellView({ cell, index, cols, rows, defaultDecimals }: { cell: CustomCell; index: number; cols: number; rows: number; defaultDecimals: number }) {
-  const { state, value } = useDatapoint(cell.dpId ?? '');
-  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
-  const min = cell.min ?? 0;
-  const max = cell.max ?? 100;
-  const isVertical = cell.orientation === 'vertical';
-  const barSize    = cell.barSize ?? 100;
-  const color      = cell.color || 'var(--accent)';
-  const num        = typeof value === 'number' ? value : Number(value ?? min);
-  const cur        = Number.isFinite(num) ? num : min;
-  const ratio      = Math.max(0, Math.min(1, (cur - min) / (max - min)));
-  const decimals   = cell.decimals ?? defaultDecimals;
-  const label      = `${cell.prefix ?? ''}${Number.isFinite(num) ? formatNum(num, decimals) : '–'}${cell.suffix ?? ''}`;
-  const wrapSty = cell.showLastChange
-    ? { ...cellWrapStyle(cell, index, cols, rows), padding: '4px', flexDirection: 'column' as const, gap: 2 }
-    : { ...cellWrapStyle(cell, index, cols, rows), padding: '4px' };
-  return (
-    <div className={`aura-custom-cell-${index}`} style={wrapSty}>
-      <div style={{ flex: cell.showLastChange ? 1 : undefined, width: '100%', height: cell.showLastChange ? undefined : '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div
-          className="relative rounded-2xl overflow-hidden"
-          style={{
-            width:      isVertical ? `${barSize}%` : '100%',
-            height:     isVertical ? '100%'        : `${barSize}%`,
-            background: `color-mix(in srgb, ${color} 20%, var(--app-bg))`,
-          }}
-        >
-          {isVertical ? (
-            <div className="absolute bottom-0 left-0 right-0 rounded-t-2xl"
-              style={{ height: `${ratio * 100}%`, background: color, transition: 'height 200ms ease' }} />
-          ) : (
-            <div className="absolute top-0 left-0 bottom-0 rounded-r-2xl"
-              style={{ width: `${ratio * 100}%`, background: color, transition: 'width 200ms ease' }} />
-          )}
-          {cell.showValue && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none"
-              style={{ ...cellTextStyle(cell, '#fff'), mixBlendMode: 'difference' }}>
-              <span>{label}</span>
+function ProgressCellView({
+    cell,
+    index,
+    cols,
+    rows,
+    defaultDecimals,
+}: {
+    cell: CustomCell;
+    index: number;
+    cols: number;
+    rows: number;
+    defaultDecimals: number;
+}) {
+    const { state, value } = useDatapoint(cell.dpId ?? '');
+    if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    const min = cell.min ?? 0;
+    const max = cell.max ?? 100;
+    const isVertical = cell.orientation === 'vertical';
+    const barSize = cell.barSize ?? 100;
+    const color = cell.color || 'var(--accent)';
+    const num = typeof value === 'number' ? value : Number(value ?? min);
+    const cur = Number.isFinite(num) ? num : min;
+    const ratio = Math.max(0, Math.min(1, (cur - min) / (max - min)));
+    const decimals = cell.decimals ?? defaultDecimals;
+    const label = `${cell.prefix ?? ''}${Number.isFinite(num) ? formatNum(num, decimals) : '–'}${cell.suffix ?? ''}`;
+    const wrapSty = cell.showLastChange
+        ? { ...cellWrapStyle(cell, index, cols, rows), padding: '4px', flexDirection: 'column' as const, gap: 2 }
+        : { ...cellWrapStyle(cell, index, cols, rows), padding: '4px' };
+    return (
+        <div className={`aura-custom-cell-${index}`} style={wrapSty}>
+            <div
+                style={{
+                    flex: cell.showLastChange ? 1 : undefined,
+                    width: '100%',
+                    height: cell.showLastChange ? undefined : '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                <div
+                    className="relative rounded-2xl overflow-hidden"
+                    style={{
+                        width: isVertical ? `${barSize}%` : '100%',
+                        height: isVertical ? '100%' : `${barSize}%`,
+                        background: `color-mix(in srgb, ${color} 20%, var(--app-bg))`,
+                    }}
+                >
+                    {isVertical ? (
+                        <div
+                            className="absolute bottom-0 left-0 right-0 rounded-t-2xl"
+                            style={{ height: `${ratio * 100}%`, background: color, transition: 'height 200ms ease' }}
+                        />
+                    ) : (
+                        <div
+                            className="absolute top-0 left-0 bottom-0 rounded-r-2xl"
+                            style={{ width: `${ratio * 100}%`, background: color, transition: 'width 200ms ease' }}
+                        />
+                    )}
+                    {cell.showValue && (
+                        <div
+                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                            style={{ ...cellTextStyle(cell, '#fff'), mixBlendMode: 'difference' }}
+                        >
+                            <span>{label}</span>
+                        </div>
+                    )}
+                </div>
             </div>
-          )}
+            {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
         </div>
-      </div>
-      {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
-    </div>
-  );
+    );
 }
 
 /** Text label whose content + color depend on a binary DP value. */
-function StateTextCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
-  const { state, value } = useDatapoint(cell.dpId ?? '');
-  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
-  const truthy = value === true || value === 1 || value === 'true' || value === '1';
-  const label  = truthy ? (cell.trueText  ?? '') : (cell.falseText ?? '');
-  const color  = truthy ? (cell.trueColor || cell.color || 'var(--accent)')
-                        : (cell.falseColor || cell.color || 'var(--text-secondary)');
-  const textSty = { ...cellTextStyle(cell, color), color };
-  return (
-    <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
-      {cell.showLastChange ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: alignItemsFromCell(cell) }}>
-          <span style={textSty}>{label}</span>
-          <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
+function StateTextCellView({
+    cell,
+    index,
+    cols,
+    rows,
+}: {
+    cell: CustomCell;
+    index: number;
+    cols: number;
+    rows: number;
+}) {
+    const { state, value } = useDatapoint(cell.dpId ?? '');
+    if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    const truthy = value === true || value === 1 || value === 'true' || value === '1';
+    const label = truthy ? (cell.trueText ?? '') : (cell.falseText ?? '');
+    const color = truthy
+        ? cell.trueColor || cell.color || 'var(--accent)'
+        : cell.falseColor || cell.color || 'var(--text-secondary)';
+    const textSty = { ...cellTextStyle(cell, color), color };
+    return (
+        <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+            {cell.showLastChange ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: alignItemsFromCell(cell) }}>
+                    <span style={textSty}>{label}</span>
+                    <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
+                </div>
+            ) : (
+                <span style={textSty}>{label}</span>
+            )}
         </div>
-      ) : (
-        <span style={textSty}>{label}</span>
-      )}
-    </div>
-  );
+    );
 }
 
 /** Dropdown bound to a DP — maps DP values to labels (mini enum widget per cell). */
 function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
-  const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
-  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
-  const entries = cell.entries ?? [];
-  const currentStr = value === null || value === undefined ? '' : String(value);
-  const current = entries.find((e) => e.value === currentStr);
-  const onPick = (raw: string) => {
-    if (raw === 'true')  return setValue(true);
-    if (raw === 'false') return setValue(false);
-    const n = Number(raw);
-    if (raw !== '' && Number.isFinite(n)) return setValue(n);
-    setValue(raw);
-  };
-  const showLabel = cell.showSelectedLabel === true;
-  const hideSelect = cell.hideSelect === true;
-  const display = cell.entryDisplay ?? 'text';
-  const showIcon = display === 'icon' || display === 'icon-text';
-  const showText = display === 'text' || display === 'icon-text';
-  const labelText = current?.label ?? (currentStr || '–');
-  const labelColor = current?.color;
-  const finalColor = labelColor ?? cell.color ?? 'var(--text-primary)';
-  const iconSize = cell.fontSize ?? 16;
-  const Icon = current?.icon ? getWidgetIcon(current.icon, HelpCircle) : null;
+    const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
+    if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    const entries = cell.entries ?? [];
+    const currentStr = value === null || value === undefined ? '' : String(value);
+    const current = entries.find((e) => e.value === currentStr);
+    const onPick = (raw: string) => {
+        if (raw === 'true') return setValue(true);
+        if (raw === 'false') return setValue(false);
+        const n = Number(raw);
+        if (raw !== '' && Number.isFinite(n)) return setValue(n);
+        setValue(raw);
+    };
+    const showLabel = cell.showSelectedLabel === true;
+    const hideSelect = cell.hideSelect === true;
+    const display = cell.entryDisplay ?? 'text';
+    const showIcon = display === 'icon' || display === 'icon-text';
+    const showText = display === 'text' || display === 'icon-text';
+    const labelText = current?.label ?? (currentStr || '–');
+    const labelColor = current?.color;
+    const finalColor = labelColor ?? cell.color ?? 'var(--text-primary)';
+    const iconSize = cell.fontSize ?? 16;
+    const Icon = current?.icon ? getWidgetIcon(current.icon, HelpCircle) : null;
 
-  const selectedView = (grow: boolean) => (
-    <div className="flex items-center gap-1 min-w-0" style={{ flex: grow ? '1 1 auto' : '0 1 auto', minWidth: 0 }}>
-      {showIcon && Icon && <Icon size={iconSize} style={{ color: finalColor, flexShrink: 0 }} />}
-      {showText && (
-        <span
-          style={{ ...cellTextStyle(cell, 'var(--text-primary)'), color: finalColor, minWidth: 0, flex: '1 1 0' }}
-        >
-          {labelText}
-        </span>
-      )}
-    </div>
-  );
-
-  const wrapSty = { ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' };
-  const lcLine = cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />;
-
-  if (hideSelect) {
-    return (
-      <div className={`aura-custom-cell-${index}`} style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}>
-        {showLabel && selectedView(false)}
-        {lcLine}
-      </div>
-    );
-  }
-
-  return (
-    <div className={`aura-custom-cell-${index}`} style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}>
-      <div className="flex items-center gap-1 w-full min-w-0">
-        {showLabel && selectedView(true)}
-        <div className="relative inline-flex items-center" style={{ minWidth: 0, flex: showLabel ? '0 1 auto' : '1 1 auto' }}>
-          <select
-            value={current?.value ?? ''}
-            onChange={(e) => onPick(e.target.value)}
-            className="nodrag rounded-lg pl-2 pr-6 py-1 focus:outline-none appearance-none truncate w-full"
-            style={{
-              background: 'var(--app-bg)',
-              color:      cell.color || 'var(--text-primary)',
-              border:     '1px solid var(--app-border)',
-              fontSize:   cell.fontSize ? `${cell.fontSize}px` : 12,
-              fontWeight: cell.bold ? 'bold' : undefined,
-              fontStyle:  cell.italic ? 'italic' : undefined,
-              maxWidth:   '100%',
-              minWidth:   0,
-            }}
-          >
-            {!current && <option value="">–</option>}
-            {entries.map((e) => (
-              <option key={e.value} value={e.value}>{e.label || e.value}</option>
-            ))}
-          </select>
-          <ChevronDown size={12} className="absolute right-1.5 pointer-events-none" style={{ color: 'var(--text-secondary)' }} />
+    const selectedView = (grow: boolean) => (
+        <div className="flex items-center gap-1 min-w-0" style={{ flex: grow ? '1 1 auto' : '0 1 auto', minWidth: 0 }}>
+            {showIcon && Icon && <Icon size={iconSize} style={{ color: finalColor, flexShrink: 0 }} />}
+            {showText && (
+                <span
+                    style={{
+                        ...cellTextStyle(cell, 'var(--text-primary)'),
+                        color: finalColor,
+                        minWidth: 0,
+                        flex: '1 1 0',
+                    }}
+                >
+                    {labelText}
+                </span>
+            )}
         </div>
-      </div>
-      {lcLine}
-    </div>
-  );
+    );
+
+    const wrapSty = { ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' };
+    const lcLine = cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />;
+
+    if (hideSelect) {
+        return (
+            <div
+                className={`aura-custom-cell-${index}`}
+                style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}
+            >
+                {showLabel && selectedView(false)}
+                {lcLine}
+            </div>
+        );
+    }
+
+    return (
+        <div
+            className={`aura-custom-cell-${index}`}
+            style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}
+        >
+            <div className="flex items-center gap-1 w-full min-w-0">
+                {showLabel && selectedView(true)}
+                <div
+                    className="relative inline-flex items-center"
+                    style={{ minWidth: 0, flex: showLabel ? '0 1 auto' : '1 1 auto' }}
+                >
+                    <select
+                        value={current?.value ?? ''}
+                        onChange={(e) => onPick(e.target.value)}
+                        className="nodrag rounded-lg pl-2 pr-6 py-1 focus:outline-none appearance-none truncate w-full"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: cell.color || 'var(--text-primary)',
+                            border: '1px solid var(--app-border)',
+                            fontSize: cell.fontSize ? `${cell.fontSize}px` : 12,
+                            fontWeight: cell.bold ? 'bold' : undefined,
+                            fontStyle: cell.italic ? 'italic' : undefined,
+                            maxWidth: '100%',
+                            minWidth: 0,
+                        }}
+                    >
+                        {!current && <option value="">–</option>}
+                        {entries.map((e) => (
+                            <option key={e.value} value={e.value}>
+                                {e.label || e.value}
+                            </option>
+                        ))}
+                    </select>
+                    <ChevronDown
+                        size={12}
+                        className="absolute right-1.5 pointer-events-none"
+                        style={{ color: 'var(--text-secondary)' }}
+                    />
+                </div>
+            </div>
+            {lcLine}
+        </div>
+    );
 }
 
 /** Date/time picker bound to a DP. Writes back in the configured `dateFormat`. */
-function DatePickerCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
-  const { state, value } = useDatapoint(cell.dpId ?? '');
-  const { setState } = useIoBroker();
-  const timeOnly  = cell.timeOnly === true;
-  const showTime  = timeOnly || cell.showTime === true;
-  const outputFmt = (cell.dateFormat as DateOutputFormat) ?? 'timestamp_ms';
+function DatePickerCellView({
+    cell,
+    index,
+    cols,
+    rows,
+}: {
+    cell: CustomCell;
+    index: number;
+    cols: number;
+    rows: number;
+}) {
+    const { state, value } = useDatapoint(cell.dpId ?? '');
+    const { setState } = useIoBroker();
+    const timeOnly = cell.timeOnly === true;
+    const showTime = timeOnly || cell.showTime === true;
+    const outputFmt = (cell.dateFormat as DateOutputFormat) ?? 'timestamp_ms';
 
-  const currentDate = parseValue(value);
-  const [dateVal, setDateVal] = useState(() => currentDate ? toDateInputValue(currentDate) : '');
-  const [timeVal, setTimeVal] = useState(() => {
-    if (currentDate) return toTimeInputValue(currentDate);
-    if (timeOnly && typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) return value.slice(0, 5);
-    return '00:00';
-  });
+    const currentDate = parseValue(value);
+    const [dateVal, setDateVal] = useState(() => (currentDate ? toDateInputValue(currentDate) : ''));
+    const [timeVal, setTimeVal] = useState(() => {
+        if (currentDate) return toTimeInputValue(currentDate);
+        if (timeOnly && typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) return value.slice(0, 5);
+        return '00:00';
+    });
 
-  useEffect(() => {
-    if (timeOnly) {
-      if (typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) setTimeVal(value.slice(0, 5));
-      else if (currentDate) setTimeVal(toTimeInputValue(currentDate));
-      return;
-    }
-    if (!currentDate) return;
-    setDateVal(toDateInputValue(currentDate));
-    setTimeVal(toTimeInputValue(currentDate));
-  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        if (timeOnly) {
+            if (typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) setTimeVal(value.slice(0, 5));
+            else if (currentDate) setTimeVal(toTimeInputValue(currentDate));
+            return;
+        }
+        if (!currentDate) return;
+        setDateVal(toDateInputValue(currentDate));
+        setTimeVal(toTimeInputValue(currentDate));
+    }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const writeValue = (date: string, time: string) => {
-    if (!cell.dpId) return;
-    if (timeOnly) {
-      if (!time) return;
-      const [h, mi] = time.split(':').map(Number);
-      const dt = new Date(1970, 0, 1, h ?? 0, mi ?? 0);
-      setState(cell.dpId, formatDate(dt, outputFmt));
-      return;
-    }
-    if (!date) return;
-    const [y, mo, d] = date.split('-').map(Number);
-    const [h, mi]    = time.split(':').map(Number);
-    const dt = showTime
-      ? new Date(y, mo - 1, d, h ?? 0, mi ?? 0)
-      : new Date(y, mo - 1, d, 0, 0, 0, 0);
-    if (isNaN(dt.getTime())) return;
-    setState(cell.dpId, formatDate(dt, outputFmt));
-  };
+    const writeValue = (date: string, time: string) => {
+        if (!cell.dpId) return;
+        if (timeOnly) {
+            if (!time) return;
+            const [h, mi] = time.split(':').map(Number);
+            const dt = new Date(1970, 0, 1, h ?? 0, mi ?? 0);
+            setState(cell.dpId, formatDate(dt, outputFmt));
+            return;
+        }
+        if (!date) return;
+        const [y, mo, d] = date.split('-').map(Number);
+        const [h, mi] = time.split(':').map(Number);
+        const dt = showTime ? new Date(y, mo - 1, d, h ?? 0, mi ?? 0) : new Date(y, mo - 1, d, 0, 0, 0, 0);
+        if (isNaN(dt.getTime())) return;
+        setState(cell.dpId, formatDate(dt, outputFmt));
+    };
 
-  if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
 
-  const inputSty: React.CSSProperties = {
-    background:  'var(--app-bg)',
-    color:       'var(--text-primary)',
-    border:      '1px solid var(--app-border)',
-    borderRadius: 8,
-    padding:     '4px 6px',
-    fontSize:    cell.fontSize ? `${cell.fontSize}px` : 12,
-    colorScheme: 'dark' as never,
-    flexShrink:  0,
-    minWidth:    0,
-  };
+    const inputSty: React.CSSProperties = {
+        background: 'var(--app-bg)',
+        color: 'var(--text-primary)',
+        border: '1px solid var(--app-border)',
+        borderRadius: 8,
+        padding: '4px 6px',
+        fontSize: cell.fontSize ? `${cell.fontSize}px` : 12,
+        colorScheme: 'dark' as never,
+        flexShrink: 0,
+        minWidth: 0,
+    };
 
-  const wrapSty = { ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' };
-  return (
-    <div className={`aura-custom-cell-${index}`} style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}>
-      <div className="flex flex-wrap gap-1 items-center w-full">
-        {!timeOnly && (
-          <input
-            type="date"
-            value={dateVal}
-            onChange={(e) => { setDateVal(e.target.value); writeValue(e.target.value, timeVal); }}
-            className="nodrag focus:outline-none flex-1 min-w-0"
-            style={inputSty}
-          />
-        )}
-        {showTime && (
-          <input
-            type="time"
-            value={timeVal}
-            onChange={(e) => { setTimeVal(e.target.value); writeValue(dateVal, e.target.value); }}
-            className="nodrag focus:outline-none flex-1 min-w-0"
-            style={inputSty}
-          />
-        )}
-      </div>
-      {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
-    </div>
-  );
+    const wrapSty = { ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' };
+    return (
+        <div
+            className={`aura-custom-cell-${index}`}
+            style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}
+        >
+            <div className="flex flex-wrap gap-1 items-center w-full">
+                {!timeOnly && (
+                    <input
+                        type="date"
+                        value={dateVal}
+                        onChange={(e) => {
+                            setDateVal(e.target.value);
+                            writeValue(e.target.value, timeVal);
+                        }}
+                        className="nodrag focus:outline-none flex-1 min-w-0"
+                        style={inputSty}
+                    />
+                )}
+                {showTime && (
+                    <input
+                        type="time"
+                        value={timeVal}
+                        onChange={(e) => {
+                            setTimeVal(e.target.value);
+                            writeValue(dateVal, e.target.value);
+                        }}
+                        className="nodrag focus:outline-none flex-1 min-w-0"
+                        style={inputSty}
+                    />
+                )}
+            </div>
+            {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
+        </div>
+    );
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
 interface CustomGridViewProps {
-  config: WidgetConfig;
-  /** Widget's main display value (formatted string). Pass '' for complex widgets. */
-  value: string;
-  /** Raw numeric value before formatting — enables per-cell decimals override on 'value' cells. */
-  rawValue?: number | null;
-  /** Optional unit for 'unit' type cells. */
-  unit?: string;
-  /**
-   * Optional extra named fields for 'field' type cells.
-   * Keys are widget-specific (e.g. 'summary', 'date', 'time', 'calname' for calendar;
-   * 'time', 'date' for clock).
-   */
-  extraFields?: Record<string, string>;
-  /**
-   * Optional pre-rendered React nodes for 'component' type cells.
-   * Keys are widget-specific (e.g. 'slider' for dimmer, 'toggle' for switch).
-   */
-  extraComponents?: Record<string, React.ReactNode>;
-  /** Fallback grid when config has none. Defaults to DEFAULT_CUSTOM_GRID (3×3 title/value/unit). */
-  fallback?: CustomGrid | CustomGridDef;
-  /** Override fallback color for 'value' static cells (e.g. EnumWidget passes the current entry's color). */
-  valueColor?: string;
+    config: WidgetConfig;
+    /** Widget's main display value (formatted string). Pass '' for complex widgets. */
+    value: string;
+    /** Raw numeric value before formatting — enables per-cell decimals override on 'value' cells. */
+    rawValue?: number | null;
+    /** Optional unit for 'unit' type cells. */
+    unit?: string;
+    /**
+     * Optional extra named fields for 'field' type cells.
+     * Keys are widget-specific (e.g. 'summary', 'date', 'time', 'calname' for calendar;
+     * 'time', 'date' for clock).
+     */
+    extraFields?: Record<string, string>;
+    /**
+     * Optional pre-rendered React nodes for 'component' type cells.
+     * Keys are widget-specific (e.g. 'slider' for dimmer, 'toggle' for switch).
+     */
+    extraComponents?: Record<string, React.ReactNode>;
+    /** Fallback grid when config has none. Defaults to DEFAULT_CUSTOM_GRID (3×3 title/value/unit). */
+    fallback?: CustomGrid | CustomGridDef;
+    /** Override fallback color for 'value' static cells (e.g. EnumWidget passes the current entry's color). */
+    valueColor?: string;
 }
 
-export function CustomGridView({ config, value, rawValue, unit, extraFields, extraComponents, fallback, valueColor }: CustomGridViewProps) {
-  const grid = normalizeGrid(config.options?.customGrid, fallback);
-  const { cols, rows, cells, colSizes, rowSizes } = grid;
-  const { defaultDecimals } = useGlobalSettingsStore();
-  // minmax(0, 1fr) — ohne die 0-Untergrenze würde CSS-Grid die Spalten/Zeilen am min-content
-  // der Zellinhalte ausrichten; ein langer Freitext in einer Außenzelle macht dann die Spalte
-  // breiter und verschiebt z.B. den Drehregler in der Mittenzelle aus der Mitte.
-  const gridTemplateColumns = colSizes ? colSizes.join(' ') : `repeat(${cols}, minmax(0, 1fr))`;
-  const gridTemplateRows    = rowSizes ? rowSizes.join(' ') : `repeat(${rows}, minmax(0, 1fr))`;
-  // When custom row sizes are used, anchor content at top instead of CSS-grid's default
-  // "stretch" which distributes free space across auto rows (causing huge gaps).
-  const alignContent = rowSizes ? 'start' : undefined;
-  return (
-    <div
-      className="aura-custom-grid"
-      style={{
-        display: 'grid',
-        gridTemplateColumns,
-        gridTemplateRows,
-        alignContent,
-        width: '100%', height: '100%', gap: '2px',
-      }}
-    >
-      {cells.map((cell, i) => {
-        switch (cell.type) {
-          case 'dp':         return <DpCellView         key={i} cell={cell} index={i} cols={cols} rows={rows} defaultDecimals={defaultDecimals} />;
-          case 'image':      return <ImageCellView      key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-          case 'component':  return <ComponentCellView  key={i} cell={cell} index={i} cols={cols} rows={rows} extraComponents={extraComponents} />;
-          case 'switch':     return <SwitchCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-          case 'slider':     return <SliderCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} defaultDecimals={defaultDecimals} />;
-          case 'button':     return <ButtonCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-          case 'icon':       return <IconCellView       key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-          case 'state-icon': return <StateIconCellView  key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-          case 'datepicker': return <DatePickerCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-          case 'stepper':    return <StepperCellView    key={i} cell={cell} index={i} cols={cols} rows={rows} defaultDecimals={defaultDecimals} />;
-          case 'input':      return <InputCellView      key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-          case 'progress':   return <ProgressCellView   key={i} cell={cell} index={i} cols={cols} rows={rows} defaultDecimals={defaultDecimals} />;
-          case 'state-text': return <StateTextCellView  key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-          case 'select':     return <SelectCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-          default:           return <StaticCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} title={config.title} value={value} rawValue={rawValue} unit={unit} extraFields={extraFields} valueColor={valueColor} mainDpId={config.datapoint} />;
-        }
-      })}
-    </div>
-  );
+export function CustomGridView({
+    config,
+    value,
+    rawValue,
+    unit,
+    extraFields,
+    extraComponents,
+    fallback,
+    valueColor,
+}: CustomGridViewProps) {
+    const grid = normalizeGrid(config.options?.customGrid, fallback);
+    const { cols, rows, cells, colSizes, rowSizes } = grid;
+    const { defaultDecimals } = useGlobalSettingsStore();
+    // minmax(0, 1fr) — ohne die 0-Untergrenze würde CSS-Grid die Spalten/Zeilen am min-content
+    // der Zellinhalte ausrichten; ein langer Freitext in einer Außenzelle macht dann die Spalte
+    // breiter und verschiebt z.B. den Drehregler in der Mittenzelle aus der Mitte.
+    const gridTemplateColumns = colSizes ? colSizes.join(' ') : `repeat(${cols}, minmax(0, 1fr))`;
+    const gridTemplateRows = rowSizes ? rowSizes.join(' ') : `repeat(${rows}, minmax(0, 1fr))`;
+    // When custom row sizes are used, anchor content at top instead of CSS-grid's default
+    // "stretch" which distributes free space across auto rows (causing huge gaps).
+    const alignContent = rowSizes ? 'start' : undefined;
+    return (
+        <div
+            className="aura-custom-grid"
+            style={{
+                display: 'grid',
+                gridTemplateColumns,
+                gridTemplateRows,
+                alignContent,
+                width: '100%',
+                height: '100%',
+                gap: '2px',
+            }}
+        >
+            {cells.map((cell, i) => {
+                switch (cell.type) {
+                    case 'dp':
+                        return (
+                            <DpCellView
+                                key={i}
+                                cell={cell}
+                                index={i}
+                                cols={cols}
+                                rows={rows}
+                                defaultDecimals={defaultDecimals}
+                            />
+                        );
+                    case 'image':
+                        return <ImageCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+                    case 'component':
+                        return (
+                            <ComponentCellView
+                                key={i}
+                                cell={cell}
+                                index={i}
+                                cols={cols}
+                                rows={rows}
+                                extraComponents={extraComponents}
+                            />
+                        );
+                    case 'switch':
+                        return <SwitchCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+                    case 'slider':
+                        return (
+                            <SliderCellView
+                                key={i}
+                                cell={cell}
+                                index={i}
+                                cols={cols}
+                                rows={rows}
+                                defaultDecimals={defaultDecimals}
+                            />
+                        );
+                    case 'button':
+                        return <ButtonCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+                    case 'icon':
+                        return <IconCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+                    case 'state-icon':
+                        return <StateIconCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+                    case 'datepicker':
+                        return <DatePickerCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+                    case 'stepper':
+                        return (
+                            <StepperCellView
+                                key={i}
+                                cell={cell}
+                                index={i}
+                                cols={cols}
+                                rows={rows}
+                                defaultDecimals={defaultDecimals}
+                            />
+                        );
+                    case 'input':
+                        return <InputCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+                    case 'progress':
+                        return (
+                            <ProgressCellView
+                                key={i}
+                                cell={cell}
+                                index={i}
+                                cols={cols}
+                                rows={rows}
+                                defaultDecimals={defaultDecimals}
+                            />
+                        );
+                    case 'state-text':
+                        return <StateTextCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+                    case 'select':
+                        return <SelectCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+                    default:
+                        return (
+                            <StaticCellView
+                                key={i}
+                                cell={cell}
+                                index={i}
+                                cols={cols}
+                                rows={rows}
+                                title={config.title}
+                                value={value}
+                                rawValue={rawValue}
+                                unit={unit}
+                                extraFields={extraFields}
+                                valueColor={valueColor}
+                                mainDpId={config.datapoint}
+                            />
+                        );
+                }
+            })}
+        </div>
+    );
 }

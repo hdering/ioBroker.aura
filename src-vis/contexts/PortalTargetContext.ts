@@ -10,7 +10,7 @@ import { createContext, useContext } from 'react';
 export const PortalTargetContext = createContext<Element | null>(null);
 
 export function usePortalTarget(): Element {
-  return useContext(PortalTargetContext) ?? document.body;
+    return useContext(PortalTargetContext) ?? document.body;
 }
 
 /**
@@ -22,5 +22,5 @@ export function usePortalTarget(): Element {
 export const PortalThemeContext = createContext<React.CSSProperties>({});
 
 export function usePortalThemeVars(): React.CSSProperties {
-  return useContext(PortalThemeContext);
+    return useContext(PortalThemeContext);
 }

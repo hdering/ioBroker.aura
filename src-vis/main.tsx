@@ -14,61 +14,73 @@ installChunkErrorRecovery();
 // Admin pages are large (editors, pickers, echart configurators) and are not
 // needed by the public dashboard route. Lazy-loaded so the frontend bundle
 // stays small for slow mobile/VPN clients.
-const AdminLayout     = lazyWithReload(() => import('./pages/admin/AdminLayout').then((m) => ({ default: m.AdminLayout })));
-const AdminLogin      = lazyWithReload(() => import('./pages/admin/AdminLogin').then((m) => ({ default: m.AdminLogin })));
-const AdminDashboard  = lazyWithReload(() => import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })));
-const AdminSettings   = lazyWithReload(() => import('./pages/admin/AdminSettings').then((m) => ({ default: m.AdminSettings })));
-const AdminEditor     = lazyWithReload(() => import('./pages/admin/AdminEditor').then((m) => ({ default: m.AdminEditor })));
-const AdminWidgets    = lazyWithReload(() => import('./pages/admin/AdminWidgets').then((m) => ({ default: m.AdminWidgets })));
-const AdminLayouts    = lazyWithReload(() => import('./pages/admin/AdminLayouts').then((m) => ({ default: m.AdminLayouts })));
-const AdminFrontend   = lazyWithReload(() => import('./pages/admin/AdminFrontend').then((m) => ({ default: m.AdminFrontend })));
-const AdminCssJs      = lazyWithReload(() => import('./pages/admin/AdminCssJs').then((m) => ({ default: m.AdminCssJs })));
-const AdminPopups     = lazyWithReload(() => import('./pages/admin/AdminPopups').then((m) => ({ default: m.AdminPopups })));
-const PopupViewEditor = lazyWithReload(() => import('./pages/admin/PopupViewEditor').then((m) => ({ default: m.PopupViewEditor })));
+const AdminLayout = lazyWithReload(() => import('./pages/admin/AdminLayout').then((m) => ({ default: m.AdminLayout })));
+const AdminLogin = lazyWithReload(() => import('./pages/admin/AdminLogin').then((m) => ({ default: m.AdminLogin })));
+const AdminDashboard = lazyWithReload(() =>
+    import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })),
+);
+const AdminSettings = lazyWithReload(() =>
+    import('./pages/admin/AdminSettings').then((m) => ({ default: m.AdminSettings })),
+);
+const AdminEditor = lazyWithReload(() => import('./pages/admin/AdminEditor').then((m) => ({ default: m.AdminEditor })));
+const AdminWidgets = lazyWithReload(() =>
+    import('./pages/admin/AdminWidgets').then((m) => ({ default: m.AdminWidgets })),
+);
+const AdminLayouts = lazyWithReload(() =>
+    import('./pages/admin/AdminLayouts').then((m) => ({ default: m.AdminLayouts })),
+);
+const AdminFrontend = lazyWithReload(() =>
+    import('./pages/admin/AdminFrontend').then((m) => ({ default: m.AdminFrontend })),
+);
+const AdminCssJs = lazyWithReload(() => import('./pages/admin/AdminCssJs').then((m) => ({ default: m.AdminCssJs })));
+const AdminPopups = lazyWithReload(() => import('./pages/admin/AdminPopups').then((m) => ({ default: m.AdminPopups })));
+const PopupViewEditor = lazyWithReload(() =>
+    import('./pages/admin/PopupViewEditor').then((m) => ({ default: m.PopupViewEditor })),
+);
 
 function lazyRoute(Comp: ComponentType): JSX.Element {
-  return (
-    <Suspense fallback={<div style={{ padding: 24, color: 'var(--text-secondary)' }}>…</div>}>
-      <Comp />
-    </Suspense>
-  );
+    return (
+        <Suspense fallback={<div style={{ padding: 24, color: 'var(--text-secondary)' }}>…</div>}>
+            <Comp />
+        </Suspense>
+    );
 }
 
 const router = createHashRouter([
-  { path: '/', element: <App /> },
-  { path: '/tab/:tabSlug', element: <App /> },
-  { path: '/view/:layoutSlug', element: <App /> },
-  { path: '/view/:layoutSlug/tab/:tabSlug', element: <App /> },
-  { path: '/admin/login', element: lazyRoute(AdminLogin) },
-  {
-    path: '/admin',
-    element: lazyRoute(AdminLayout),
-    children: [
-      { index: true, element: lazyRoute(AdminDashboard) },
-      { path: 'editor', element: lazyRoute(AdminEditor) },
-      { path: 'theme', element: <Navigate to="/admin/layouts?tab=theme" replace /> },
-      { path: 'widgets', element: lazyRoute(AdminWidgets) },
-      { path: 'layouts', element: lazyRoute(AdminLayouts) },
-      { path: 'frontend', element: lazyRoute(AdminFrontend) },
-      { path: 'css-js', element: lazyRoute(AdminCssJs) },
-      { path: 'popups', element: lazyRoute(AdminPopups) },
-      { path: 'popups/:viewId', element: lazyRoute(PopupViewEditor) },
-      { path: 'settings', element: lazyRoute(AdminSettings) },
-    ],
-  },
+    { path: '/', element: <App /> },
+    { path: '/tab/:tabSlug', element: <App /> },
+    { path: '/view/:layoutSlug', element: <App /> },
+    { path: '/view/:layoutSlug/tab/:tabSlug', element: <App /> },
+    { path: '/admin/login', element: lazyRoute(AdminLogin) },
+    {
+        path: '/admin',
+        element: lazyRoute(AdminLayout),
+        children: [
+            { index: true, element: lazyRoute(AdminDashboard) },
+            { path: 'editor', element: lazyRoute(AdminEditor) },
+            { path: 'theme', element: <Navigate to="/admin/layouts?tab=theme" replace /> },
+            { path: 'widgets', element: lazyRoute(AdminWidgets) },
+            { path: 'layouts', element: lazyRoute(AdminLayouts) },
+            { path: 'frontend', element: lazyRoute(AdminFrontend) },
+            { path: 'css-js', element: lazyRoute(AdminCssJs) },
+            { path: 'popups', element: lazyRoute(AdminPopups) },
+            { path: 'popups/:viewId', element: lazyRoute(PopupViewEditor) },
+            { path: 'settings', element: lazyRoute(AdminSettings) },
+        ],
+    },
 ]);
 
 // Remove the pre-React boot screen once JS has loaded and React is about to paint.
 const bootEl = document.getElementById('aura-boot');
 if (bootEl) {
-  bootEl.classList.add('hidden');
-  bootEl.addEventListener('transitionend', () => bootEl.remove(), { once: true });
+    bootEl.classList.add('hidden');
+    bootEl.addEventListener('transitionend', () => bootEl.remove(), { once: true });
 }
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <ThemeProvider>
-      <RouterProvider router={router} />
-    </ThemeProvider>
-  </StrictMode>,
+    <StrictMode>
+        <ThemeProvider>
+            <RouterProvider router={router} />
+        </ThemeProvider>
+    </StrictMode>,
 );

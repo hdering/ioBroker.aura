@@ -7,61 +7,55 @@ import type { ThemeVars } from '../themes';
 
 // ── FrontendSettings keys that can be overridden per layout ──────────────────
 const LAYOUT_FRONTEND_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = [
-  'customCSS',
-  'customCSSEnabled',
-  'customCSSInEditor',
-  'customJS',
-  'customJSEnabled',
-  'customJSInEditor',
-  'fontScale',
-  'gridRowHeight',
-  'gridSnapX',
-  'gridGap',
-  'widgetPadding',
-  'mobileBreakpoint',
-  'guidelinesEnabled',
-  'guidelinesWidth',
-  'guidelinesHeight',
-  'guidelinesShowInFrontend',
+    'customCSS',
+    'customCSSEnabled',
+    'customCSSInEditor',
+    'customJS',
+    'customJSEnabled',
+    'customJSInEditor',
+    'fontScale',
+    'gridRowHeight',
+    'gridSnapX',
+    'gridGap',
+    'widgetPadding',
+    'mobileBreakpoint',
+    'guidelinesEnabled',
+    'guidelinesWidth',
+    'guidelinesHeight',
+    'guidelinesShowInFrontend',
 ];
 
 /** Merged global + per-layout FrontendSettings. */
 export function useEffectiveSettings(layoutId?: string): FrontendSettings {
-  const global = useConfigStore((s) => s.frontend);
-  // Narrow selector: only re-renders when the specific layout's settings object changes.
-  // patchLayout preserves the settings reference on widget-only mutations, so this
-  // stays stable across widget edits.
-  const ls = useDashboardStore(
-    (s) => layoutId ? s.layouts.find((l) => l.id === layoutId)?.settings : undefined,
-  );
-  if (!ls) return global;
+    const global = useConfigStore((s) => s.frontend);
+    // Narrow selector: only re-renders when the specific layout's settings object changes.
+    // patchLayout preserves the settings reference on widget-only mutations, so this
+    // stays stable across widget edits.
+    const ls = useDashboardStore((s) => (layoutId ? s.layouts.find((l) => l.id === layoutId)?.settings : undefined));
+    if (!ls) return global;
 
-  const patch: Partial<FrontendSettings> = {};
-  for (const key of LAYOUT_FRONTEND_KEYS) {
-    const v = ls[key as keyof LayoutSettings];
-    if (v !== undefined) (patch as Record<string, unknown>)[key] = v;
-  }
-  return { ...global, ...patch };
+    const patch: Partial<FrontendSettings> = {};
+    for (const key of LAYOUT_FRONTEND_KEYS) {
+        const v = ls[key as keyof LayoutSettings];
+        if (v !== undefined) (patch as Record<string, unknown>)[key] = v;
+    }
+    return { ...global, ...patch };
 }
 
 /** Effective theme ID for a layout (falls back to global). */
 export function useEffectiveThemeId(layoutId?: string): string {
-  const globalId    = useThemeStore((s) => s.themeId);
-  const followBrowser = useThemeStore((s) => s.followBrowser);
-  const ls = useDashboardStore(
-    (s) => layoutId ? s.layouts.find((l) => l.id === layoutId)?.settings : undefined,
-  );
-  // When followBrowser is active, the global themeId is already managed by the
-  // browser-sync effect — layout overrides must not fight it.
-  if (followBrowser) return globalId;
-  return ls?.themeId ?? globalId;
+    const globalId = useThemeStore((s) => s.themeId);
+    const followBrowser = useThemeStore((s) => s.followBrowser);
+    const ls = useDashboardStore((s) => (layoutId ? s.layouts.find((l) => l.id === layoutId)?.settings : undefined));
+    // When followBrowser is active, the global themeId is already managed by the
+    // browser-sync effect — layout overrides must not fight it.
+    if (followBrowser) return globalId;
+    return ls?.themeId ?? globalId;
 }
 
 /** Effective custom theme vars for a layout (falls back to global). */
 export function useEffectiveCustomVars(layoutId?: string): Partial<ThemeVars> {
-  const globalVars = useThemeStore((s) => s.customVars);
-  const ls = useDashboardStore(
-    (s) => layoutId ? s.layouts.find((l) => l.id === layoutId)?.settings : undefined,
-  );
-  return ls?.customVars ?? globalVars;
+    const globalVars = useThemeStore((s) => s.customVars);
+    const ls = useDashboardStore((s) => (layoutId ? s.layouts.find((l) => l.id === layoutId)?.settings : undefined));
+    return ls?.customVars ?? globalVars;
 }

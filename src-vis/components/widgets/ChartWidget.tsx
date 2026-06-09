@@ -13,272 +13,391 @@ import { formatYTick } from '../../utils/chartFormat';
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
 function formatTick(ts: number, rangeMs: number): string {
-  const d = new Date(ts);
-  if (rangeMs >= 2 * 86_400_000) {
-    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
-  }
-  return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    const d = new Date(ts);
+    if (rangeMs >= 2 * 86_400_000) {
+        return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+    }
+    return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 }
 
 function formatLabel(ts: number): string {
-  return new Date(ts).toLocaleString('de-DE', {
-    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
-  });
+    return new Date(ts).toLocaleString('de-DE', {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
 }
 
 export function ChartWidget({ config }: WidgetProps) {
-  const { subscribe, connected } = useIoBroker();
-  const fontScale = useConfigStore((s) => s.frontend.fontScale ?? 1);
+    const { subscribe, connected } = useIoBroker();
+    const fontScale = useConfigStore((s) => s.frontend.fontScale ?? 1);
 
-  const o               = config.options ?? {};
-  const showTitle       = o.showTitle !== false;
-  const showIcon        = o.showIcon  !== false;
-  const iconSize        = (o.iconSize  as number) || 20;
-  const { defaultDecimals } = useGlobalSettingsStore();
-  const decimals        = (o.decimals as number) ?? defaultDecimals;
-  const unit            = (o.unit as string | undefined);
-  const historyInstance = (o.historyInstance as string | undefined);
-  const cfgRange        = ((o.historyRange as ChartTimeRange | undefined) ?? '24h');
-  const customVal       = (o.historyRangeCustomValue as number | undefined) ?? 24;
-  const customUnit      = (o.historyRangeCustomUnit as 'h' | 'd' | undefined) ?? 'h';
-  const cfgCustomMs     = cfgRange === 'custom'
-    ? customVal * (customUnit === 'd' ? 86_400_000 : 3_600_000)
-    : undefined;
-  const lockRange          = o.lockRange === true;
-  const titleAlign         = (o.titleAlign as string) ?? 'left';
-  const showAverage        = o.showAverage === true;
-  const showAverageAsValue = o.showAverageAsValue === true;
-  const layout          = config.layout ?? 'default';
-  const lineColor       = (o.lineColor  as string | undefined) ?? 'var(--accent)';
-  const unitColor       = (o.unitColor  as string | undefined) ?? 'var(--text-primary)';
-  const avgColor        = (o.avgColor   as string | undefined) ?? lineColor;
-  const showYAxis       = o.showYAxis === true;
-  const yAxisCompact    = o.yAxisCompact !== false;
-  const showXAxis       = o.showXAxis !== false;
-  const WidgetIcon      = getWidgetIcon(o.icon as string | undefined, TrendingUp);
+    const o = config.options ?? {};
+    const showTitle = o.showTitle !== false;
+    const showIcon = o.showIcon !== false;
+    const iconSize = (o.iconSize as number) || 20;
+    const { defaultDecimals } = useGlobalSettingsStore();
+    const decimals = (o.decimals as number) ?? defaultDecimals;
+    const unit = o.unit as string | undefined;
+    const historyInstance = o.historyInstance as string | undefined;
+    const cfgRange = (o.historyRange as ChartTimeRange | undefined) ?? '24h';
+    const customVal = (o.historyRangeCustomValue as number | undefined) ?? 24;
+    const customUnit = (o.historyRangeCustomUnit as 'h' | 'd' | undefined) ?? 'h';
+    const cfgCustomMs = cfgRange === 'custom' ? customVal * (customUnit === 'd' ? 86_400_000 : 3_600_000) : undefined;
+    const lockRange = o.lockRange === true;
+    const titleAlign = (o.titleAlign as string) ?? 'left';
+    const showAverage = o.showAverage === true;
+    const showAverageAsValue = o.showAverageAsValue === true;
+    const layout = config.layout ?? 'default';
+    const lineColor = (o.lineColor as string | undefined) ?? 'var(--accent)';
+    const unitColor = (o.unitColor as string | undefined) ?? 'var(--text-primary)';
+    const avgColor = (o.avgColor as string | undefined) ?? lineColor;
+    const showYAxis = o.showYAxis === true;
+    const yAxisCompact = o.yAxisCompact !== false;
+    const showXAxis = o.showXAxis !== false;
+    const WidgetIcon = getWidgetIcon(o.icon as string | undefined, TrendingUp);
 
-  // ── Frontend-local range selection (starts from admin config, switchable at runtime) ──
-  const [activeRange, setActiveRange]       = useState<ChartTimeRange>(cfgRange);
-  const [activeCustomMs, setActiveCustomMs] = useState<number | undefined>(cfgCustomMs);
+    // ── Frontend-local range selection (starts from admin config, switchable at runtime) ──
+    const [activeRange, setActiveRange] = useState<ChartTimeRange>(cfgRange);
+    const [activeCustomMs, setActiveCustomMs] = useState<number | undefined>(cfgCustomMs);
 
-  // Reset when admin config changes
-  useEffect(() => { setActiveRange(cfgRange); setActiveCustomMs(cfgCustomMs); }, [cfgRange, cfgCustomMs]);
+    // Reset when admin config changes
+    useEffect(() => {
+        setActiveRange(cfgRange);
+        setActiveCustomMs(cfgCustomMs);
+    }, [cfgRange, cfgCustomMs]);
 
-  const effectiveRangeMs = activeRange === 'custom'
-    ? (activeCustomMs ?? 86_400_000)
-    : ({ '1h': 3_600_000, '6h': 21_600_000, '24h': 86_400_000, '7d': 604_800_000, '30d': 2_592_000_000 } as Record<string, number>)[activeRange] ?? 86_400_000;
+    const effectiveRangeMs =
+        activeRange === 'custom'
+            ? (activeCustomMs ?? 86_400_000)
+            : ((
+                  {
+                      '1h': 3_600_000,
+                      '6h': 21_600_000,
+                      '24h': 86_400_000,
+                      '7d': 604_800_000,
+                      '30d': 2_592_000_000,
+                  } as Record<string, number>
+              )[activeRange] ?? 86_400_000);
 
-  const { history, current, loading } = useChartHistory(
-    config.datapoint,
-    historyInstance,
-    activeRange,
-    connected,
-    subscribe,
-    activeCustomMs,
-  );
-
-  const avg = (showAverage || showAverageAsValue) && history.length > 1
-    ? history.reduce((sum, p) => sum + p.v, 0) / history.length
-    : null;
-
-  // Mount/unmount ResponsiveContainer based on container visibility.
-  // Recharts' internal ResizeObserver fires when display:none collapses the container to 0×0
-  // and logs a warning. Toggle hasSize bidirectionally so the chart unmounts on hide and
-  // remounts on show (isAnimationActive=false means no flicker).
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [hasSize, setHasSize] = useState(false);
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    setHasSize(el.clientWidth > 0 && el.clientHeight > 0);
-    const ro = new ResizeObserver(() => {
-      const w = containerRef.current?.clientWidth ?? 0;
-      const h = containerRef.current?.clientHeight ?? 0;
-      setHasSize(w > 0 && h > 0);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  const tooltipStyle = {
-    background:   'var(--app-surface)',
-    border:       '1px solid var(--app-border)',
-    borderRadius: 8,
-    fontSize:     Math.round(11 * fontScale),
-    color:        'var(--text-primary)',
-  };
-
-  const tickStyle = { fontSize: Math.round(10 * fontScale), fill: 'var(--text-secondary)' };
-
-  const noData = (
-    <div className="flex flex-col items-center justify-center h-full gap-2" style={{ color: 'var(--text-secondary)' }}>
-      {loading
-        ? <Loader size={20} strokeWidth={1.5} className="animate-spin" />
-        : <BarChart2 size={24} strokeWidth={1} />}
-      <span className="text-xs">{loading ? 'Lade Verlauf…' : 'Warte auf Daten…'}</span>
-    </div>
-  );
-
-
-  // Range selector shown only when a history adapter is configured and not locked
-  const rangeSelector = historyInstance && !lockRange ? (
-    <div className="flex gap-1 flex-wrap">
-      {PRESET_RANGES.map((r) => {
-        const active = activeRange === r;
-        return (
-          <button
-            key={r}
-            className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
-            style={{
-              background: active ? 'var(--accent)' : 'var(--app-border)',
-              color: active ? '#fff' : 'var(--text-secondary)',
-            }}
-            onClick={() => { setActiveRange(r); setActiveCustomMs(undefined); }}
-          >
-            {RANGE_LABELS[r]}
-          </button>
-        );
-      })}
-      {cfgRange === 'custom' && (
-        <button
-          className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
-          style={{
-            background: activeRange === 'custom' ? 'var(--accent)' : 'var(--app-border)',
-            color: activeRange === 'custom' ? '#fff' : 'var(--text-secondary)',
-          }}
-          onClick={() => { setActiveRange('custom'); setActiveCustomMs(cfgCustomMs); }}
-        >
-          {customVal}{customUnit === 'd' ? 'd' : 'h'}
-        </button>
-      )}
-    </div>
-  ) : null;
-
-  // ── CARD ─────────────────────────────────────────────────────────────────
-  if (layout === 'card') {
-    return (
-      <div ref={containerRef} className="aura-widget-row flex flex-col h-full">
-        <div className="flex items-start justify-between mb-1">
-          <div className="flex items-start gap-1.5 min-w-0 flex-1">
-            {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0, marginTop: 2 }} />}
-            <div className="min-w-0 flex-1">
-              {showTitle && <p className="aura-widget-title text-xs truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
-              {current !== null && (
-                <p className="aura-widget-value text-xl font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>
-                  {formatNum(current, decimals)}
-                  {unit && <span className="text-lg ml-1 font-medium" style={{ color: unitColor }}>{unit}</span>}
-                </p>
-              )}
-              {showAverageAsValue && avg !== null && (
-                <p className="text-xs leading-tight mt-0.5" style={{ color: avgColor }}>
-                  Ø {formatNum(avg, decimals)}{unit ? ` ${unit}` : ''}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-        {rangeSelector && <div className="mb-1.5">{rangeSelector}</div>}
-        <div className="flex-1" style={{ minHeight: 1 }}>
-          {history.length > 1 ? (
-            hasSize ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={history}>
-                <defs>
-                  <linearGradient id={`grad-${config.id}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor={lineColor} stopOpacity={0.3} />
-                    <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <YAxis
-                  domain={['auto', 'auto']}
-                  hide={!showYAxis}
-                  tick={tickStyle}
-                  tickLine={false}
-                  axisLine={false}
-                  width={showYAxis ? (yAxisCompact ? 22 : 36) : 0}
-                  tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact)}
-                />
-                <XAxis dataKey="t" type="number" domain={['dataMin', 'dataMax']} scale="time" hide />
-                <Tooltip contentStyle={tooltipStyle} labelFormatter={formatLabel}
-                  formatter={(v: number) => `${formatNum(v, decimals)}${unit ? ` ${unit}` : ''}`} />
-                <Area type="monotone" dataKey="v" stroke={lineColor} strokeWidth={2}
-                  fill={`url(#grad-${config.id})`} dot={false} isAnimationActive={false} />
-                {showAverage && avg !== null && (
-                  <ReferenceLine y={avg} stroke={avgColor} strokeDasharray="4 3" strokeWidth={1.5}
-                    label={{ value: `Ø ${formatNum(avg, decimals)}${unit ? ` ${unit}` : ''}`, position: 'insideTopRight', fill: avgColor, fontSize: 10 }} />
-                )}
-              </AreaChart>
-            </ResponsiveContainer>
-            ) : null
-          ) : noData}
-        </div>
-      </div>
+    const { history, current, loading } = useChartHistory(
+        config.datapoint,
+        historyInstance,
+        activeRange,
+        connected,
+        subscribe,
+        activeCustomMs,
     );
-  }
 
-  // ── DEFAULT ───────────────────────────────────────────────────────────────
-  return (
-    <div ref={containerRef} className="flex flex-col h-full">
-      <div className="flex justify-between items-start mb-1">
-        {(showTitle || showIcon) && (
-          <div className="flex items-center gap-1 min-w-0 flex-1">
-            {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} strokeWidth={1.5} style={{ color: lineColor, flexShrink: 0 }} />}
-            {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
-          </div>
-        )}
-        {current !== null && (
-          <div className="aura-widget-value flex flex-col items-end shrink-0 ml-2">
-            <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
-              {formatNum(current, decimals)}{unit ? ` ${unit}` : ''}
-            </span>
-            {showAverageAsValue && avg !== null && (
-              <span className="text-[10px] leading-tight" style={{ color: avgColor }}>
-                Ø {formatNum(avg, decimals)}{unit ? ` ${unit}` : ''}
-              </span>
+    const avg =
+        (showAverage || showAverageAsValue) && history.length > 1
+            ? history.reduce((sum, p) => sum + p.v, 0) / history.length
+            : null;
+
+    // Mount/unmount ResponsiveContainer based on container visibility.
+    // Recharts' internal ResizeObserver fires when display:none collapses the container to 0×0
+    // and logs a warning. Toggle hasSize bidirectionally so the chart unmounts on hide and
+    // remounts on show (isAnimationActive=false means no flicker).
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [hasSize, setHasSize] = useState(false);
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        setHasSize(el.clientWidth > 0 && el.clientHeight > 0);
+        const ro = new ResizeObserver(() => {
+            const w = containerRef.current?.clientWidth ?? 0;
+            const h = containerRef.current?.clientHeight ?? 0;
+            setHasSize(w > 0 && h > 0);
+        });
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, []);
+
+    const tooltipStyle = {
+        background: 'var(--app-surface)',
+        border: '1px solid var(--app-border)',
+        borderRadius: 8,
+        fontSize: Math.round(11 * fontScale),
+        color: 'var(--text-primary)',
+    };
+
+    const tickStyle = { fontSize: Math.round(10 * fontScale), fill: 'var(--text-secondary)' };
+
+    const noData = (
+        <div
+            className="flex flex-col items-center justify-center h-full gap-2"
+            style={{ color: 'var(--text-secondary)' }}
+        >
+            {loading ? (
+                <Loader size={20} strokeWidth={1.5} className="animate-spin" />
+            ) : (
+                <BarChart2 size={24} strokeWidth={1} />
             )}
-          </div>
-        )}
-      </div>
-      {rangeSelector && <div className="mb-1">{rangeSelector}</div>}
-      <div className="flex-1" style={{ minHeight: 1 }}>
-        {history.length > 1 ? (
-          hasSize ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={history}>
-              <YAxis
-                domain={['auto', 'auto']}
-                hide={!showYAxis}
-                tick={tickStyle}
-                tickLine={false}
-                axisLine={false}
-                width={showYAxis ? (yAxisCompact ? 22 : 36) : 0}
-                tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact)}
-              />
-              <XAxis
-                dataKey="t"
-                type="number"
-                domain={['dataMin', 'dataMax']}
-                scale="time"
-                hide={!showXAxis}
-                tickFormatter={(ts) => formatTick(ts, effectiveRangeMs)}
-                tick={tickStyle}
-                tickLine={false}
-                axisLine={false}
-                minTickGap={40}
-              />
-              <Tooltip contentStyle={tooltipStyle} labelFormatter={formatLabel}
-                formatter={(v: number) => `${formatNum(v, decimals)}${unit ? ` ${unit}` : ''}`} />
-              <Line type="monotone" dataKey="v" stroke={lineColor} strokeWidth={2}
-                dot={false} isAnimationActive={false} />
-              {showAverage && avg !== null && (
-                <ReferenceLine y={avg} stroke={avgColor} strokeDasharray="4 3" strokeWidth={1.5}
-                  label={{ value: `Ø ${formatNum(avg, decimals)}${unit ? ` ${unit}` : ''}`, position: 'insideTopRight', fill: avgColor, fontSize: 10 }} />
-              )}
-            </LineChart>
-          </ResponsiveContainer>
-          ) : null
-        ) : noData}
-      </div>
-    </div>
-  );
+            <span className="text-xs">{loading ? 'Lade Verlauf…' : 'Warte auf Daten…'}</span>
+        </div>
+    );
+
+    // Range selector shown only when a history adapter is configured and not locked
+    const rangeSelector =
+        historyInstance && !lockRange ? (
+            <div className="flex gap-1 flex-wrap">
+                {PRESET_RANGES.map((r) => {
+                    const active = activeRange === r;
+                    return (
+                        <button
+                            key={r}
+                            className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+                            style={{
+                                background: active ? 'var(--accent)' : 'var(--app-border)',
+                                color: active ? '#fff' : 'var(--text-secondary)',
+                            }}
+                            onClick={() => {
+                                setActiveRange(r);
+                                setActiveCustomMs(undefined);
+                            }}
+                        >
+                            {RANGE_LABELS[r]}
+                        </button>
+                    );
+                })}
+                {cfgRange === 'custom' && (
+                    <button
+                        className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+                        style={{
+                            background: activeRange === 'custom' ? 'var(--accent)' : 'var(--app-border)',
+                            color: activeRange === 'custom' ? '#fff' : 'var(--text-secondary)',
+                        }}
+                        onClick={() => {
+                            setActiveRange('custom');
+                            setActiveCustomMs(cfgCustomMs);
+                        }}
+                    >
+                        {customVal}
+                        {customUnit === 'd' ? 'd' : 'h'}
+                    </button>
+                )}
+            </div>
+        ) : null;
+
+    // ── CARD ─────────────────────────────────────────────────────────────────
+    if (layout === 'card') {
+        return (
+            <div ref={containerRef} className="aura-widget-row flex flex-col h-full">
+                <div className="flex items-start justify-between mb-1">
+                    <div className="flex items-start gap-1.5 min-w-0 flex-1">
+                        {showIcon && (
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                strokeWidth={1.5}
+                                style={{ color: lineColor, flexShrink: 0, marginTop: 2 }}
+                            />
+                        )}
+                        <div className="min-w-0 flex-1">
+                            {showTitle && (
+                                <p
+                                    className="aura-widget-title text-xs truncate"
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    }}
+                                >
+                                    {config.title}
+                                </p>
+                            )}
+                            {current !== null && (
+                                <p
+                                    className="aura-widget-value text-xl font-bold leading-tight"
+                                    style={{ color: 'var(--text-primary)' }}
+                                >
+                                    {formatNum(current, decimals)}
+                                    {unit && (
+                                        <span className="text-lg ml-1 font-medium" style={{ color: unitColor }}>
+                                            {unit}
+                                        </span>
+                                    )}
+                                </p>
+                            )}
+                            {showAverageAsValue && avg !== null && (
+                                <p className="text-xs leading-tight mt-0.5" style={{ color: avgColor }}>
+                                    Ø {formatNum(avg, decimals)}
+                                    {unit ? ` ${unit}` : ''}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                {rangeSelector && <div className="mb-1.5">{rangeSelector}</div>}
+                <div className="flex-1" style={{ minHeight: 1 }}>
+                    {history.length > 1 ? (
+                        hasSize ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={history}>
+                                    <defs>
+                                        <linearGradient id={`grad-${config.id}`} x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor={lineColor} stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <YAxis
+                                        domain={['auto', 'auto']}
+                                        hide={!showYAxis}
+                                        tick={tickStyle}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        width={showYAxis ? (yAxisCompact ? 22 : 36) : 0}
+                                        tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact)}
+                                    />
+                                    <XAxis
+                                        dataKey="t"
+                                        type="number"
+                                        domain={['dataMin', 'dataMax']}
+                                        scale="time"
+                                        hide
+                                    />
+                                    <Tooltip
+                                        contentStyle={tooltipStyle}
+                                        labelFormatter={formatLabel}
+                                        formatter={(v: number) => `${formatNum(v, decimals)}${unit ? ` ${unit}` : ''}`}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="v"
+                                        stroke={lineColor}
+                                        strokeWidth={2}
+                                        fill={`url(#grad-${config.id})`}
+                                        dot={false}
+                                        isAnimationActive={false}
+                                    />
+                                    {showAverage && avg !== null && (
+                                        <ReferenceLine
+                                            y={avg}
+                                            stroke={avgColor}
+                                            strokeDasharray="4 3"
+                                            strokeWidth={1.5}
+                                            label={{
+                                                value: `Ø ${formatNum(avg, decimals)}${unit ? ` ${unit}` : ''}`,
+                                                position: 'insideTopRight',
+                                                fill: avgColor,
+                                                fontSize: 10,
+                                            }}
+                                        />
+                                    )}
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        ) : null
+                    ) : (
+                        noData
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    // ── DEFAULT ───────────────────────────────────────────────────────────────
+    return (
+        <div ref={containerRef} className="flex flex-col h-full">
+            <div className="flex justify-between items-start mb-1">
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-1 min-w-0 flex-1">
+                        {showIcon && (
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                strokeWidth={1.5}
+                                style={{ color: lineColor, flexShrink: 0 }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                    </div>
+                )}
+                {current !== null && (
+                    <div className="aura-widget-value flex flex-col items-end shrink-0 ml-2">
+                        <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
+                            {formatNum(current, decimals)}
+                            {unit ? ` ${unit}` : ''}
+                        </span>
+                        {showAverageAsValue && avg !== null && (
+                            <span className="text-[10px] leading-tight" style={{ color: avgColor }}>
+                                Ø {formatNum(avg, decimals)}
+                                {unit ? ` ${unit}` : ''}
+                            </span>
+                        )}
+                    </div>
+                )}
+            </div>
+            {rangeSelector && <div className="mb-1">{rangeSelector}</div>}
+            <div className="flex-1" style={{ minHeight: 1 }}>
+                {history.length > 1 ? (
+                    hasSize ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={history}>
+                                <YAxis
+                                    domain={['auto', 'auto']}
+                                    hide={!showYAxis}
+                                    tick={tickStyle}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    width={showYAxis ? (yAxisCompact ? 22 : 36) : 0}
+                                    tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact)}
+                                />
+                                <XAxis
+                                    dataKey="t"
+                                    type="number"
+                                    domain={['dataMin', 'dataMax']}
+                                    scale="time"
+                                    hide={!showXAxis}
+                                    tickFormatter={(ts) => formatTick(ts, effectiveRangeMs)}
+                                    tick={tickStyle}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    minTickGap={40}
+                                />
+                                <Tooltip
+                                    contentStyle={tooltipStyle}
+                                    labelFormatter={formatLabel}
+                                    formatter={(v: number) => `${formatNum(v, decimals)}${unit ? ` ${unit}` : ''}`}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="v"
+                                    stroke={lineColor}
+                                    strokeWidth={2}
+                                    dot={false}
+                                    isAnimationActive={false}
+                                />
+                                {showAverage && avg !== null && (
+                                    <ReferenceLine
+                                        y={avg}
+                                        stroke={avgColor}
+                                        strokeDasharray="4 3"
+                                        strokeWidth={1.5}
+                                        label={{
+                                            value: `Ø ${formatNum(avg, decimals)}${unit ? ` ${unit}` : ''}`,
+                                            position: 'insideTopRight',
+                                            fill: avgColor,
+                                            fontSize: 10,
+                                        }}
+                                    />
+                                )}
+                            </LineChart>
+                        </ResponsiveContainer>
+                    ) : null
+                ) : (
+                    noData
+                )}
+            </div>
+        </div>
+    );
 }

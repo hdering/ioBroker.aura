@@ -15,20 +15,20 @@
 
 /** No-op: icons are now resolved on demand by the `<Icon>` component. */
 export function loadIconSets(): Promise<void> {
-  return Promise.resolve();
+    return Promise.resolve();
 }
 
 /** Always `true`: there is no global "loaded" state in API mode. */
 export function areIconSetsLoaded(): boolean {
-  return true;
+    return true;
 }
 
 /** Convert PascalCase Lucide name to Iconify "lucide:kebab-case" ID.
  *  e.g. "ZapOff" → "lucide:zap-off", "Home" → "lucide:home" */
 export function lucidePascalToIconify(name: string): string {
-  if (name.includes(':')) return name;
-  const kebab = name.replace(/([A-Z])/g, (ch, _, offset) =>
-    offset === 0 ? ch.toLowerCase() : `-${ch.toLowerCase()}`,
-  );
-  return `lucide:${kebab}`;
+    if (name.includes(':')) return name;
+    const kebab = name.replace(/([A-Z])/g, (ch, _, offset) =>
+        offset === 0 ? ch.toLowerCase() : `-${ch.toLowerCase()}`,
+    );
+    return `lucide:${kebab}`;
 }

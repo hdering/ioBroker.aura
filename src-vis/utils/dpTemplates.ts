@@ -10,52 +10,56 @@ import type { WidgetType } from '../types';
  * value type. Returns null if no specific type can be determined.
  */
 export function detectWidgetTypeFromRole(role?: string, valueType?: string): WidgetType | null {
-  const r = (role ?? '').toLowerCase();
+    const r = (role ?? '').toLowerCase();
 
-  // ── SHUTTER / BLIND ───────────────────────────────────────────────────────
-  if (
-    r === 'level.blind' || r === 'level.curtain' ||
-    r.includes('blind') || r.includes('shutter') ||
-    r.includes('cover') || r.includes('awning')
-  ) return 'shutter';
+    // ── SHUTTER / BLIND ───────────────────────────────────────────────────────
+    if (
+        r === 'level.blind' ||
+        r === 'level.curtain' ||
+        r.includes('blind') ||
+        r.includes('shutter') ||
+        r.includes('cover') ||
+        r.includes('awning')
+    )
+        return 'shutter';
 
-  // ── THERMOSTAT / HEATING ──────────────────────────────────────────────────
-  if (
-    r === 'level.temperature' ||
-    r.startsWith('heating') ||
-    (r.includes('temperature') && r.includes('level'))
-  ) return 'thermostat';
+    // ── THERMOSTAT / HEATING ──────────────────────────────────────────────────
+    if (r === 'level.temperature' || r.startsWith('heating') || (r.includes('temperature') && r.includes('level')))
+        return 'thermostat';
 
-  // ── DIMMER / LEVEL CONTROL ────────────────────────────────────────────────
-  if (
-    r === 'level.dimmer' || r === 'level.brightness' ||
-    r === 'level.volume'  || r === 'media.volume'   ||
-    r.startsWith('level.color')
-  ) return 'dimmer';
-  if (r.includes('dimmer') || r.includes('brightness')) return 'dimmer';
-  if (r.startsWith('level.')) return 'dimmer';   // catch-all for other level.* roles
-  if (r === 'level') return 'dimmer';
+    // ── DIMMER / LEVEL CONTROL ────────────────────────────────────────────────
+    if (
+        r === 'level.dimmer' ||
+        r === 'level.brightness' ||
+        r === 'level.volume' ||
+        r === 'media.volume' ||
+        r.startsWith('level.color')
+    )
+        return 'dimmer';
+    if (r.includes('dimmer') || r.includes('brightness')) return 'dimmer';
+    if (r.startsWith('level.')) return 'dimmer'; // catch-all for other level.* roles
+    if (r === 'level') return 'dimmer';
 
-  // ── WINDOW / DOOR CONTACT ─────────────────────────────────────────────────
-  if (r === 'sensor.window' || r === 'window') return 'windowcontact';
-  if (r === 'sensor.door' || r === 'door') return 'windowcontact';
+    // ── WINDOW / DOOR CONTACT ─────────────────────────────────────────────────
+    if (r === 'sensor.window' || r === 'window') return 'windowcontact';
+    if (r === 'sensor.door' || r === 'door') return 'windowcontact';
 
-  // ── SWITCH / BUTTON / SENSOR / INDICATOR ──────────────────────────────────
-  if (r === 'switch' || r.startsWith('switch.')) return 'switch';
-  if (r === 'button') return 'switch';
-  if (r.startsWith('indicator.')) return 'switch';
-  if (r.startsWith('sensor.')) return 'switch';
-  if (r === 'motion' || r.startsWith('sensor.motion') || r.includes('presence')) return 'binarysensor';
-  if (r.startsWith('sensor.alarm') || r === 'alarm' || r.includes('smoke')) return 'binarysensor';
-  // media controls other than volume (play, pause, stop, mute …)
-  if (r.startsWith('media.') && r !== 'media.volume') return 'switch';
-  if (valueType === 'boolean') return 'switch';
+    // ── SWITCH / BUTTON / SENSOR / INDICATOR ──────────────────────────────────
+    if (r === 'switch' || r.startsWith('switch.')) return 'switch';
+    if (r === 'button') return 'switch';
+    if (r.startsWith('indicator.')) return 'switch';
+    if (r.startsWith('sensor.')) return 'switch';
+    if (r === 'motion' || r.startsWith('sensor.motion') || r.includes('presence')) return 'binarysensor';
+    if (r.startsWith('sensor.alarm') || r === 'alarm' || r.includes('smoke')) return 'binarysensor';
+    // media controls other than volume (play, pause, stop, mute …)
+    if (r.startsWith('media.') && r !== 'media.volume') return 'switch';
+    if (valueType === 'boolean') return 'switch';
 
-  // ── VALUE / MEASUREMENT ───────────────────────────────────────────────────
-  if (r.startsWith('value.') || r === 'value') return 'value';
-  if (valueType === 'number') return 'value';
+    // ── VALUE / MEASUREMENT ───────────────────────────────────────────────────
+    if (r.startsWith('value.') || r === 'value') return 'value';
+    if (valueType === 'number') return 'value';
 
-  return null;
+    return null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -63,18 +67,18 @@ export function detectWidgetTypeFromRole(role?: string, valueType?: string): Wid
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface DpTemplateCategory {
-  id: string;
-  label: string;
+    id: string;
+    label: string;
 }
 
 export const DP_TEMPLATE_CATEGORIES: DpTemplateCategory[] = [
-  { id: 'shading',   label: 'Beschattung'       },
-  { id: 'climate',   label: 'Klima'             },
-  { id: 'lighting',  label: 'Licht'             },
-  { id: 'switching', label: 'Schalten'          },
-  { id: 'security',  label: 'Sicherheit'        },
-  { id: 'sensor',    label: 'Messwerte'         },
-  { id: 'special',   label: 'Sonstiges'         },
+    { id: 'shading', label: 'Beschattung' },
+    { id: 'climate', label: 'Klima' },
+    { id: 'lighting', label: 'Licht' },
+    { id: 'switching', label: 'Schalten' },
+    { id: 'security', label: 'Sicherheit' },
+    { id: 'sensor', label: 'Messwerte' },
+    { id: 'special', label: 'Sonstiges' },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -82,207 +86,282 @@ export const DP_TEMPLATE_CATEGORIES: DpTemplateCategory[] = [
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface DpTemplate {
-  id: string;
-  label: string;
-  /** Emoji icon shown in the wizard card */
-  icon: string;
-  widgetType: WidgetType;
-  category: string;
-  /** Default options merged into the widget on creation */
-  defaultOptions?: Record<string, unknown>;
-  /** Sibling DP name patterns to try auto-filling (in order of preference) */
-  secondaryDps: {
-    optionKey: string;
-    siblingNames: string[];
-  }[];
-  /**
-   * Names of the writable PRIMARY sibling DP (the main datapoint for this widget).
-   * When the user selects a DP whose last segment matches a secondaryDps siblingName,
-   * the system looks for one of these in the same channel and promotes it to be the
-   * main datapoint (e.g. user selects ACTUAL_TEMPERATURE → promotes SET_TEMPERATURE).
-   */
-  primarySiblingNames?: string[];
-  /** Short hint shown in ManualWidgetDialog – when to use this template */
-  hint?: string;
+    id: string;
+    label: string;
+    /** Emoji icon shown in the wizard card */
+    icon: string;
+    widgetType: WidgetType;
+    category: string;
+    /** Default options merged into the widget on creation */
+    defaultOptions?: Record<string, unknown>;
+    /** Sibling DP name patterns to try auto-filling (in order of preference) */
+    secondaryDps: {
+        optionKey: string;
+        siblingNames: string[];
+    }[];
+    /**
+     * Names of the writable PRIMARY sibling DP (the main datapoint for this widget).
+     * When the user selects a DP whose last segment matches a secondaryDps siblingName,
+     * the system looks for one of these in the same channel and promotes it to be the
+     * main datapoint (e.g. user selects ACTUAL_TEMPERATURE → promotes SET_TEMPERATURE).
+     */
+    primarySiblingNames?: string[];
+    /** Short hint shown in ManualWidgetDialog – when to use this template */
+    hint?: string;
 }
 
 export const DP_TEMPLATES: DpTemplate[] = [
-
-  // ── BESCHATTUNG ───────────────────────────────────────────────────────────
-  {
-    id: 'shutter',
-    label: 'Rollladen / Markise',
-    icon: '🪟',
-    widgetType: 'shutter',
-    category: 'shading',
-    hint: 'Für alle positionsgesteuerten Beschattungsgeräte: Rollladen, Jalousie, Rollo, Markise – Datenpunkt liefert 0–100 %',
-    secondaryDps: [
-      {
-        optionKey: 'activityDp',
-        siblingNames: ['WORKING', 'working', 'ACTIVITY_STATE', 'activity_state', 'PROCESS', 'process', 'state', 'moving', 'activity', 'ACTIVITY'],
-      },
-      {
-        optionKey: 'directionDp',
-        siblingNames: ['DIRECTION', 'direction'],
-      },
-      {
-        optionKey: 'stopDp',
-        siblingNames: ['STOP', 'stop', 'Pause', 'pause'],
-      },
-      { optionKey: 'batteryDp', siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow', 'BATTERY_LOW'] },
-      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline', 'OFFLINE'] },
-    ],
-  },
-
-  // ── KLIMA ────────────────────────────────────────────────────────────────
-  {
-    id: 'thermostat',
-    label: 'Thermostat',
-    icon: '🌡',
-    widgetType: 'thermostat',
-    category: 'climate',
-    hint: 'Für Heizkörper-Thermostate (HmIP-eTRV, Zigbee TRV …) – Datenpunkt ist der Soll-Temperatur-Setpoint; Ist-Temperatur wird automatisch erkannt',
-    primarySiblingNames: [
-      // Homematic classic (HM-CC-RT-DN, HM-TC-IT-WM)
-      'SET_TEMPERATURE', 'set_temperature', 'SET_TEMP', 'set_temp',
-      // Homematic IP (HmIP-WTH, HmIP-eTRV, HmIP-BWTH)
-      'SET_POINT_TEMPERATURE', 'SETPOINT_TEMPERATURE', 'set_point_temperature',
-      // German alias
-      'SOLLTEMPERATUR', 'solltemperatur', 'Solltemperatur',
-      // Generic / zigbee2mqtt / deconz
-      'setpoint', 'SETPOINT', 'Setpoint',
-      'target_temperature', 'TARGET_TEMPERATURE', 'targetTemperature', 'TARGET_TEMP',
-      'occupied_heating_setpoint', 'OCCUPIED_HEATING_SETPOINT',
-      // MAX! / eQ-3
-      'DESIRED_TEMPERATURE', 'desired_temperature',
-    ],
-    secondaryDps: [
-      {
-        // HomeMatic: ACTUAL_TEMPERATURE  |  generic: ACTUAL, TEMPERATURE
-        // Shelly TRV: temperatureC  |  zigbee: local_temperature
-        optionKey: 'actualDatapoint',
-        siblingNames: [
-          'ACTUAL_TEMPERATURE', 'ACTUAL_TEMP',
-          'ACTUAL', 'actual',
-          'local_temperature', 'localTemperature',
-          'temperatureC', 'temperature_c',
-          'TEMPERATURE', 'temperature',
-          'TEMP', 'temp',
-          'MEASURED_TEMPERATURE',
+    // ── BESCHATTUNG ───────────────────────────────────────────────────────────
+    {
+        id: 'shutter',
+        label: 'Rollladen / Markise',
+        icon: '🪟',
+        widgetType: 'shutter',
+        category: 'shading',
+        hint: 'Für alle positionsgesteuerten Beschattungsgeräte: Rollladen, Jalousie, Rollo, Markise – Datenpunkt liefert 0–100 %',
+        secondaryDps: [
+            {
+                optionKey: 'activityDp',
+                siblingNames: [
+                    'WORKING',
+                    'working',
+                    'ACTIVITY_STATE',
+                    'activity_state',
+                    'PROCESS',
+                    'process',
+                    'state',
+                    'moving',
+                    'activity',
+                    'ACTIVITY',
+                ],
+            },
+            {
+                optionKey: 'directionDp',
+                siblingNames: ['DIRECTION', 'direction'],
+            },
+            {
+                optionKey: 'stopDp',
+                siblingNames: ['STOP', 'stop', 'Pause', 'pause'],
+            },
+            {
+                optionKey: 'batteryDp',
+                siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow', 'BATTERY_LOW'],
+            },
+            {
+                optionKey: 'unreachDp',
+                siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline', 'OFFLINE'],
+            },
         ],
-      },
-      { optionKey: 'batteryDp', siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat'] },
-      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
-    ],
-  },
+    },
 
-  {
-    id: 'climate',
-    label: 'Raumklima',
-    icon: '🌡️',
-    widgetType: 'climate',
-    category: 'climate',
-    hint: 'Für Temperatur- und Luftfeuchtigkeitssensoren – zeigt Ist-Temp, Feuchte und optionalen Verlauf',
-    secondaryDps: [
-      {
-        optionKey: 'humidityDatapoint',
-        siblingNames: [
-          'HUMIDITY', 'humidity', 'Humidity',
-          'RELATIVE_HUMIDITY', 'relative_humidity',
-          'relativeHumidity', 'hum', 'HUM',
-          'FEUCHTE', 'feuchte',
+    // ── KLIMA ────────────────────────────────────────────────────────────────
+    {
+        id: 'thermostat',
+        label: 'Thermostat',
+        icon: '🌡',
+        widgetType: 'thermostat',
+        category: 'climate',
+        hint: 'Für Heizkörper-Thermostate (HmIP-eTRV, Zigbee TRV …) – Datenpunkt ist der Soll-Temperatur-Setpoint; Ist-Temperatur wird automatisch erkannt',
+        primarySiblingNames: [
+            // Homematic classic (HM-CC-RT-DN, HM-TC-IT-WM)
+            'SET_TEMPERATURE',
+            'set_temperature',
+            'SET_TEMP',
+            'set_temp',
+            // Homematic IP (HmIP-WTH, HmIP-eTRV, HmIP-BWTH)
+            'SET_POINT_TEMPERATURE',
+            'SETPOINT_TEMPERATURE',
+            'set_point_temperature',
+            // German alias
+            'SOLLTEMPERATUR',
+            'solltemperatur',
+            'Solltemperatur',
+            // Generic / zigbee2mqtt / deconz
+            'setpoint',
+            'SETPOINT',
+            'Setpoint',
+            'target_temperature',
+            'TARGET_TEMPERATURE',
+            'targetTemperature',
+            'TARGET_TEMP',
+            'occupied_heating_setpoint',
+            'OCCUPIED_HEATING_SETPOINT',
+            // MAX! / eQ-3
+            'DESIRED_TEMPERATURE',
+            'desired_temperature',
         ],
-      },
-    ],
-  },
+        secondaryDps: [
+            {
+                // HomeMatic: ACTUAL_TEMPERATURE  |  generic: ACTUAL, TEMPERATURE
+                // Shelly TRV: temperatureC  |  zigbee: local_temperature
+                optionKey: 'actualDatapoint',
+                siblingNames: [
+                    'ACTUAL_TEMPERATURE',
+                    'ACTUAL_TEMP',
+                    'ACTUAL',
+                    'actual',
+                    'local_temperature',
+                    'localTemperature',
+                    'temperatureC',
+                    'temperature_c',
+                    'TEMPERATURE',
+                    'temperature',
+                    'TEMP',
+                    'temp',
+                    'MEASURED_TEMPERATURE',
+                ],
+            },
+            { optionKey: 'batteryDp', siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat'] },
+            { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
+        ],
+    },
 
-  // ── LICHT ────────────────────────────────────────────────────────────────
-  {
-    id: 'dimmer',
-    label: 'Dimmer',
-    icon: '🔆',
-    widgetType: 'dimmer',
-    category: 'lighting',
-    hint: 'Für dimmbare Leuchten – Datenpunkt steuert die Helligkeit (0–100 %); eignet sich auch für Lautstärke und andere Pegelwerte',
-    secondaryDps: [
-      { optionKey: 'batteryDp', siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow', 'BATTERY_LOW'] },
-      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline', 'OFFLINE'] },
-    ],
-  },
-  {
-    id: 'light',
-    label: 'RGB-Licht',
-    icon: '💡',
-    widgetType: 'light',
-    category: 'lighting',
-    hint: 'Für RGB/CCT-Lampen, LED-Strips (Philips Hue, HmIP, WLED) – findet Helligkeit, Farbe, Lichtwärme und Effekte automatisch',
-    secondaryDps: [
-      { optionKey: 'switchDp',      siblingNames: ['on', 'ON', 'state', 'STATE'] },
-      { optionKey: 'brightnessDp',  siblingNames: ['level', 'LEVEL', 'bri', 'brightness'] },
-      { optionKey: 'hueDp',         siblingNames: ['hue', 'HUE'] },
-      { optionKey: 'saturationDp',  siblingNames: ['sat', 'SAT', 'saturation', 'SATURATION'] },
-      { optionKey: 'rDp',           siblingNames: ['r', 'R', 'red', 'RED'] },
-      { optionKey: 'gDp',           siblingNames: ['g', 'G', 'green', 'GREEN'] },
-      { optionKey: 'bDp',           siblingNames: ['b', 'B', 'blue', 'BLUE'] },
-      { optionKey: 'temperatureDp', siblingNames: ['ct', 'CT', 'color_temp', 'colorTemp', 'color_temperature', 'mired'] },
-      { optionKey: 'effectDp',      siblingNames: ['effect', 'EFFECT'] },
-      { optionKey: 'batteryDp',     siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow', 'BATTERY_LOW'] },
-      { optionKey: 'unreachDp',     siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline', 'OFFLINE', 'reachable'] },
-    ],
-  },
-  // ── SCHALTEN ─────────────────────────────────────────────────────────────
-  {
-    id: 'switch',
-    label: 'Schalter',
-    icon: '🔘',
-    widgetType: 'switch',
-    category: 'switching',
-    hint: 'Für alles mit Ein/Aus: Lichtschalter, Steckdose, Ventilator, Szene – Datenpunkt ist ein Boolean (true/false)',
-    secondaryDps: [
-      { optionKey: 'batteryDp', siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow', 'BATTERY_LOW'] },
-      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline', 'OFFLINE'] },
-    ],
-  },
+    {
+        id: 'climate',
+        label: 'Raumklima',
+        icon: '🌡️',
+        widgetType: 'climate',
+        category: 'climate',
+        hint: 'Für Temperatur- und Luftfeuchtigkeitssensoren – zeigt Ist-Temp, Feuchte und optionalen Verlauf',
+        secondaryDps: [
+            {
+                optionKey: 'humidityDatapoint',
+                siblingNames: [
+                    'HUMIDITY',
+                    'humidity',
+                    'Humidity',
+                    'RELATIVE_HUMIDITY',
+                    'relative_humidity',
+                    'relativeHumidity',
+                    'hum',
+                    'HUM',
+                    'FEUCHTE',
+                    'feuchte',
+                ],
+            },
+        ],
+    },
 
-  // ── SICHERHEIT ───────────────────────────────────────────────────────────
-  {
-    id: 'sensor_contact',
-    label: 'Fenster / Tür',
-    icon: '🚪',
-    widgetType: 'windowcontact',
-    category: 'security',
-    hint: 'Für Reed-Kontakte an Fenstern oder Türen – zeigt offen/geschlossen mit passendem Icon und Statusfarbe',
-    secondaryDps: [
-      { optionKey: 'batteryDp', siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow'] },
-      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
-    ],
-  },
-  {
-    id: 'sensor_binary',
-    label: 'Binärsensor',
-    icon: '👁',
-    widgetType: 'binarysensor',
-    category: 'security',
-    hint: 'Für Bewegungsmelder, Rauchmelder, Wassermelder und andere Alarm-/Statussensoren – zeigt aktiv/inaktiv mit konfigurierbarem Icon',
-    secondaryDps: [
-      { optionKey: 'batteryDp', siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow'] },
-      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
-    ],
-  },
+    // ── LICHT ────────────────────────────────────────────────────────────────
+    {
+        id: 'dimmer',
+        label: 'Dimmer',
+        icon: '🔆',
+        widgetType: 'dimmer',
+        category: 'lighting',
+        hint: 'Für dimmbare Leuchten – Datenpunkt steuert die Helligkeit (0–100 %); eignet sich auch für Lautstärke und andere Pegelwerte',
+        secondaryDps: [
+            {
+                optionKey: 'batteryDp',
+                siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow', 'BATTERY_LOW'],
+            },
+            {
+                optionKey: 'unreachDp',
+                siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline', 'OFFLINE'],
+            },
+        ],
+    },
+    {
+        id: 'light',
+        label: 'RGB-Licht',
+        icon: '💡',
+        widgetType: 'light',
+        category: 'lighting',
+        hint: 'Für RGB/CCT-Lampen, LED-Strips (Philips Hue, HmIP, WLED) – findet Helligkeit, Farbe, Lichtwärme und Effekte automatisch',
+        secondaryDps: [
+            { optionKey: 'switchDp', siblingNames: ['on', 'ON', 'state', 'STATE'] },
+            { optionKey: 'brightnessDp', siblingNames: ['level', 'LEVEL', 'bri', 'brightness'] },
+            { optionKey: 'hueDp', siblingNames: ['hue', 'HUE'] },
+            { optionKey: 'saturationDp', siblingNames: ['sat', 'SAT', 'saturation', 'SATURATION'] },
+            { optionKey: 'rDp', siblingNames: ['r', 'R', 'red', 'RED'] },
+            { optionKey: 'gDp', siblingNames: ['g', 'G', 'green', 'GREEN'] },
+            { optionKey: 'bDp', siblingNames: ['b', 'B', 'blue', 'BLUE'] },
+            {
+                optionKey: 'temperatureDp',
+                siblingNames: ['ct', 'CT', 'color_temp', 'colorTemp', 'color_temperature', 'mired'],
+            },
+            { optionKey: 'effectDp', siblingNames: ['effect', 'EFFECT'] },
+            {
+                optionKey: 'batteryDp',
+                siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow', 'BATTERY_LOW'],
+            },
+            {
+                optionKey: 'unreachDp',
+                siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline', 'OFFLINE', 'reachable'],
+            },
+        ],
+    },
+    // ── SCHALTEN ─────────────────────────────────────────────────────────────
+    {
+        id: 'switch',
+        label: 'Schalter',
+        icon: '🔘',
+        widgetType: 'switch',
+        category: 'switching',
+        hint: 'Für alles mit Ein/Aus: Lichtschalter, Steckdose, Ventilator, Szene – Datenpunkt ist ein Boolean (true/false)',
+        secondaryDps: [
+            {
+                optionKey: 'batteryDp',
+                siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow', 'BATTERY_LOW'],
+            },
+            {
+                optionKey: 'unreachDp',
+                siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline', 'OFFLINE'],
+            },
+        ],
+    },
 
-  // ── MESSWERTE ────────────────────────────────────────────────────────────
-  {
-    id: 'value',
-    label: 'Messwert',
-    icon: '📊',
-    widgetType: 'value',
-    category: 'sensor',
-    hint: 'Für jeden Zahlenwert: Temperatur, Luftfeuchte, Leistung (W), Energie (kWh), CO₂ oder beliebiger Sensor – nur Anzeige, kein Schreiben',
-    secondaryDps: [
-      { optionKey: 'batteryDp', siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow', 'BATTERY_LOW'] },
-      { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline', 'OFFLINE'] },
-    ],
-  },
+    // ── SICHERHEIT ───────────────────────────────────────────────────────────
+    {
+        id: 'sensor_contact',
+        label: 'Fenster / Tür',
+        icon: '🚪',
+        widgetType: 'windowcontact',
+        category: 'security',
+        hint: 'Für Reed-Kontakte an Fenstern oder Türen – zeigt offen/geschlossen mit passendem Icon und Statusfarbe',
+        secondaryDps: [
+            {
+                optionKey: 'batteryDp',
+                siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow'],
+            },
+            { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
+        ],
+    },
+    {
+        id: 'sensor_binary',
+        label: 'Binärsensor',
+        icon: '👁',
+        widgetType: 'binarysensor',
+        category: 'security',
+        hint: 'Für Bewegungsmelder, Rauchmelder, Wassermelder und andere Alarm-/Statussensoren – zeigt aktiv/inaktiv mit konfigurierbarem Icon',
+        secondaryDps: [
+            {
+                optionKey: 'batteryDp',
+                siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow'],
+            },
+            { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
+        ],
+    },
+
+    // ── MESSWERTE ────────────────────────────────────────────────────────────
+    {
+        id: 'value',
+        label: 'Messwert',
+        icon: '📊',
+        widgetType: 'value',
+        category: 'sensor',
+        hint: 'Für jeden Zahlenwert: Temperatur, Luftfeuchte, Leistung (W), Energie (kWh), CO₂ oder beliebiger Sensor – nur Anzeige, kein Schreiben',
+        secondaryDps: [
+            {
+                optionKey: 'batteryDp',
+                siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow', 'BATTERY_LOW'],
+            },
+            {
+                optionKey: 'unreachDp',
+                siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline', 'OFFLINE'],
+            },
+        ],
+    },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -294,44 +373,80 @@ export const DP_TEMPLATES: DpTemplate[] = [
  * or null if none matches. Use this to pre-select a template chip.
  */
 export function findTemplateByRole(role?: string, valueType?: string): DpTemplate | null {
-  const r = (role ?? '').toLowerCase();
+    const r = (role ?? '').toLowerCase();
 
-  // Shading
-  if (r === 'level.blind' || r === 'level.curtain' || r.includes('blind') || r.includes('shutter') || r.includes('cover'))
-    return DP_TEMPLATES.find((t) => t.id === 'shutter')!;
-  if (r.includes('awning'))
-    return DP_TEMPLATES.find((t) => t.id === 'shutter')!;
+    // Shading
+    if (
+        r === 'level.blind' ||
+        r === 'level.curtain' ||
+        r.includes('blind') ||
+        r.includes('shutter') ||
+        r.includes('cover')
+    )
+        return DP_TEMPLATES.find((t) => t.id === 'shutter')!;
+    if (r.includes('awning')) return DP_TEMPLATES.find((t) => t.id === 'shutter')!;
 
-  // Climate
-  if (r === 'level.temperature' || r.startsWith('heating') || (r.includes('temperature') && r.includes('level')))
-    return DP_TEMPLATES.find((t) => t.id === 'thermostat')!;
+    // Climate
+    if (r === 'level.temperature' || r.startsWith('heating') || (r.includes('temperature') && r.includes('level')))
+        return DP_TEMPLATES.find((t) => t.id === 'thermostat')!;
 
-  // Dimmer
-  if (r === 'level.dimmer' || r === 'level.brightness' || r.includes('dimmer') || r.includes('brightness') || r.startsWith('level.color'))
-    return DP_TEMPLATES.find((t) => t.id === 'dimmer')!;
-  if (r === 'level.volume' || r === 'media.volume')
-    return DP_TEMPLATES.find((t) => t.id === 'dimmer')!;
-  if (r.startsWith('level.') || r === 'level')
-    return DP_TEMPLATES.find((t) => t.id === 'dimmer')!;
+    // Dimmer
+    if (
+        r === 'level.dimmer' ||
+        r === 'level.brightness' ||
+        r.includes('dimmer') ||
+        r.includes('brightness') ||
+        r.startsWith('level.color')
+    )
+        return DP_TEMPLATES.find((t) => t.id === 'dimmer')!;
+    if (r === 'level.volume' || r === 'media.volume') return DP_TEMPLATES.find((t) => t.id === 'dimmer')!;
+    if (r.startsWith('level.') || r === 'level') return DP_TEMPLATES.find((t) => t.id === 'dimmer')!;
 
-  // Window / door contacts
-  if (r.startsWith('sensor.door') || r === 'door' || r.startsWith('sensor.window') || r === 'window')
-    return DP_TEMPLATES.find((t) => t.id === 'sensor_contact')!;
-  if (r.startsWith('sensor.motion') || r === 'motion' || r.includes('presence') || r.startsWith('sensor.smoke') || r.includes('smoke') || r.includes('alarm.fire') || r.includes('alarm'))
-    return DP_TEMPLATES.find((t) => t.id === 'sensor_binary')!;
+    // Window / door contacts
+    if (r.startsWith('sensor.door') || r === 'door' || r.startsWith('sensor.window') || r === 'window')
+        return DP_TEMPLATES.find((t) => t.id === 'sensor_contact')!;
+    if (
+        r.startsWith('sensor.motion') ||
+        r === 'motion' ||
+        r.includes('presence') ||
+        r.startsWith('sensor.smoke') ||
+        r.includes('smoke') ||
+        r.includes('alarm.fire') ||
+        r.includes('alarm')
+    )
+        return DP_TEMPLATES.find((t) => t.id === 'sensor_binary')!;
 
-  // Switch sub-types — all map to the single 'switch' template
-  if (r === 'switch.light' || r === 'switch.power' || r.startsWith('socket') || r === 'indicator.power' ||
-      r === 'switch' || r.startsWith('switch.') || r === 'button' || r.startsWith('indicator.') || r.startsWith('sensor.') || valueType === 'boolean')
-    return DP_TEMPLATES.find((t) => t.id === 'switch')!;
+    // Switch sub-types — all map to the single 'switch' template
+    if (
+        r === 'switch.light' ||
+        r === 'switch.power' ||
+        r.startsWith('socket') ||
+        r === 'indicator.power' ||
+        r === 'switch' ||
+        r.startsWith('switch.') ||
+        r === 'button' ||
+        r.startsWith('indicator.') ||
+        r.startsWith('sensor.') ||
+        valueType === 'boolean'
+    )
+        return DP_TEMPLATES.find((t) => t.id === 'switch')!;
 
-  // Value sub-types — all map to the single 'value' template
-  if (r === 'value.temperature' || r === 'temperature' || r === 'value.humidity' || r === 'humidity' ||
-      r === 'value.power' || r === 'value.power.consumption' || r.includes('energy') ||
-      r.startsWith('value.') || r === 'value' || valueType === 'number')
-    return DP_TEMPLATES.find((t) => t.id === 'value')!;
+    // Value sub-types — all map to the single 'value' template
+    if (
+        r === 'value.temperature' ||
+        r === 'temperature' ||
+        r === 'value.humidity' ||
+        r === 'humidity' ||
+        r === 'value.power' ||
+        r === 'value.power.consumption' ||
+        r.includes('energy') ||
+        r.startsWith('value.') ||
+        r === 'value' ||
+        valueType === 'number'
+    )
+        return DP_TEMPLATES.find((t) => t.id === 'value')!;
 
-  return null;
+    return null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -339,11 +454,11 @@ export function findTemplateByRole(role?: string, valueType?: string): DpTemplat
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface MainDpUpgrade {
-  /** The writable primary DP that should become the widget's main datapoint */
-  mainDpId: string;
-  /** The option key under which the originally selected DP should be stored */
-  selectedOptionKey: string;
-  template: DpTemplate;
+    /** The writable primary DP that should become the widget's main datapoint */
+    mainDpId: string;
+    /** The option key under which the originally selected DP should be stored */
+    selectedOptionKey: string;
+    template: DpTemplate;
 }
 
 /**
@@ -360,48 +475,49 @@ export interface MainDpUpgrade {
  * Returns null when no upgrade can be determined.
  */
 export function findMainDpForSecondary(
-  selectedDpId: string,
-  entries: Array<{ id: string; role?: string; write?: boolean }>,
+    selectedDpId: string,
+    entries: Array<{ id: string; role?: string; write?: boolean }>,
 ): MainDpUpgrade | null {
-  const lastSeg  = selectedDpId.split('.').pop() ?? '';
-  const parent   = selectedDpId.split('.').slice(0, -1).join('.');
-  const parentUp = selectedDpId.split('.').slice(0, -2).join('.');
-  const sibs   = entries.filter((e) => e.id.startsWith(parent + '.') && e.id !== selectedDpId);
-  const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.'));
+    const lastSeg = selectedDpId.split('.').pop() ?? '';
+    const parent = selectedDpId.split('.').slice(0, -1).join('.');
+    const parentUp = selectedDpId.split('.').slice(0, -2).join('.');
+    const sibs = entries.filter((e) => e.id.startsWith(`${parent}.`) && e.id !== selectedDpId);
+    const sibsUp = entries.filter((e) => e.id.startsWith(`${parentUp}.`));
 
-  const thermostatTpl = DP_TEMPLATES.find((t) => t.id === 'thermostat')!;
+    const thermostatTpl = DP_TEMPLATES.find((t) => t.id === 'thermostat')!;
 
-  // ── Stage 1: name-based ──────────────────────────────────────────────────
-  for (const tpl of DP_TEMPLATES) {
-    if (!tpl.primarySiblingNames?.length) continue;
-    let matchedOptionKey: string | null = null;
-    for (const sdp of tpl.secondaryDps) {
-      if (sdp.siblingNames.includes(lastSeg)) { matchedOptionKey = sdp.optionKey; break; }
+    // ── Stage 1: name-based ──────────────────────────────────────────────────
+    for (const tpl of DP_TEMPLATES) {
+        if (!tpl.primarySiblingNames?.length) continue;
+        let matchedOptionKey: string | null = null;
+        for (const sdp of tpl.secondaryDps) {
+            if (sdp.siblingNames.includes(lastSeg)) {
+                matchedOptionKey = sdp.optionKey;
+                break;
+            }
+        }
+        if (!matchedOptionKey) continue;
+        const mainDpId =
+            tpl.primarySiblingNames.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean) ??
+            tpl.primarySiblingNames.map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}`)?.id).find(Boolean);
+        if (mainDpId) return { mainDpId, selectedOptionKey: matchedOptionKey, template: tpl };
     }
-    if (!matchedOptionKey) continue;
-    const mainDpId =
-      tpl.primarySiblingNames.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean) ??
-      tpl.primarySiblingNames.map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}`)?.id).find(Boolean);
-    if (mainDpId) return { mainDpId, selectedOptionKey: matchedOptionKey, template: tpl };
-  }
 
-  // ── Stage 2: role-based fallback (covers adapters with non-standard DP names) ──
-  const selectedEntry = entries.find((e) => e.id === selectedDpId);
-  const selectedRole  = (selectedEntry?.role ?? '').toLowerCase();
-  const isActualTemp  = selectedRole === 'value.temperature' || selectedRole === 'temperature';
-  if (isActualTemp) {
-    // Look for a writable temperature sibling (the setpoint)
-    const isWritableSetpoint = (e: { role?: string; write?: boolean }) => {
-      const r = (e.role ?? '').toLowerCase();
-      return (r === 'level.temperature' || r.includes('temp.set')) && e.write !== false;
-    };
-    const mainDpId =
-      sibs.find(isWritableSetpoint)?.id ??
-      sibsUp.find(isWritableSetpoint)?.id;
-    if (mainDpId) return { mainDpId, selectedOptionKey: 'actualDatapoint', template: thermostatTpl };
-  }
+    // ── Stage 2: role-based fallback (covers adapters with non-standard DP names) ──
+    const selectedEntry = entries.find((e) => e.id === selectedDpId);
+    const selectedRole = (selectedEntry?.role ?? '').toLowerCase();
+    const isActualTemp = selectedRole === 'value.temperature' || selectedRole === 'temperature';
+    if (isActualTemp) {
+        // Look for a writable temperature sibling (the setpoint)
+        const isWritableSetpoint = (e: { role?: string; write?: boolean }) => {
+            const r = (e.role ?? '').toLowerCase();
+            return (r === 'level.temperature' || r.includes('temp.set')) && e.write !== false;
+        };
+        const mainDpId = sibs.find(isWritableSetpoint)?.id ?? sibsUp.find(isWritableSetpoint)?.id;
+        if (mainDpId) return { mainDpId, selectedOptionKey: 'actualDatapoint', template: thermostatTpl };
+    }
 
-  return null;
+    return null;
 }
 
 // ── Generic battery/unreach auto-detection ─────────────────────────────────
@@ -414,24 +530,25 @@ const UNREACH_NAMES = ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offl
  * Works for all widget types regardless of template.
  */
 export function autoDetectStatusDps(
-  dpId: string,
-  entries: Array<{ id: string }>,
+    dpId: string,
+    entries: Array<{ id: string }>,
 ): { batteryDp?: string; unreachDp?: string } {
-  const parts = dpId.split('.');
-  const parent   = parts.slice(0, -1).join('.');
-  const parentUp = parts.slice(0, -2).join('.');
-  const sibs   = entries.filter((e) => e.id.startsWith(parent + '.'));
-  const sibsUp = entries.filter((e) => e.id.startsWith(parentUp + '.'));
-  const find   = (names: string[]) =>
-    names.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
-  const findUp = (names: string[]) =>
-    names.map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}` || e.id === `${parentUp}.${n}`)?.id).find(Boolean);
-  const result: { batteryDp?: string; unreachDp?: string } = {};
-  const batt    = find(BATTERY_NAMES) ?? findUp(BATTERY_NAMES);
-  const unreach = find(UNREACH_NAMES) ?? findUp(UNREACH_NAMES);
-  if (batt)    result.batteryDp  = batt;
-  if (unreach) result.unreachDp = unreach;
-  return result;
+    const parts = dpId.split('.');
+    const parent = parts.slice(0, -1).join('.');
+    const parentUp = parts.slice(0, -2).join('.');
+    const sibs = entries.filter((e) => e.id.startsWith(`${parent}.`));
+    const sibsUp = entries.filter((e) => e.id.startsWith(`${parentUp}.`));
+    const find = (names: string[]) => names.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
+    const findUp = (names: string[]) =>
+        names
+            .map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}` || e.id === `${parentUp}.${n}`)?.id)
+            .find(Boolean);
+    const result: { batteryDp?: string; unreachDp?: string } = {};
+    const batt = find(BATTERY_NAMES) ?? findUp(BATTERY_NAMES);
+    const unreach = find(UNREACH_NAMES) ?? findUp(UNREACH_NAMES);
+    if (batt) result.batteryDp = batt;
+    if (unreach) result.unreachDp = unreach;
+    return result;
 }
 
 // ── Light widget: cross-channel auto-detection (Hue / HmIP / WLED …) ───────
@@ -441,27 +558,27 @@ export function autoDetectStatusDps(
 // 2.COLOR, 3.PROGRAM). This function tries both layouts plus role-based fallback.
 
 const LIGHT_NAMES = {
-  switchDp:      ['on', 'ON', 'state', 'STATE'],
-  brightnessDp:  ['level', 'LEVEL', 'bri', 'brightness'],
-  hueDp:         ['hue', 'HUE'],
-  saturationDp:  ['sat', 'SAT', 'saturation', 'SATURATION'],
-  rDp:           ['r', 'R', 'red', 'RED'],
-  gDp:           ['g', 'G', 'green', 'GREEN'],
-  bDp:           ['b', 'B', 'blue', 'BLUE'],
-  colorDp:       ['COLOR', 'color'],
-  temperatureDp: ['ct', 'CT', 'color_temp', 'colorTemp', 'color_temperature'],
-  effectDp:      ['effect', 'EFFECT', 'PROGRAM', 'program'],
+    switchDp: ['on', 'ON', 'state', 'STATE'],
+    brightnessDp: ['level', 'LEVEL', 'bri', 'brightness'],
+    hueDp: ['hue', 'HUE'],
+    saturationDp: ['sat', 'SAT', 'saturation', 'SATURATION'],
+    rDp: ['r', 'R', 'red', 'RED'],
+    gDp: ['g', 'G', 'green', 'GREEN'],
+    bDp: ['b', 'B', 'blue', 'BLUE'],
+    colorDp: ['COLOR', 'color'],
+    temperatureDp: ['ct', 'CT', 'color_temp', 'colorTemp', 'color_temperature'],
+    effectDp: ['effect', 'EFFECT', 'PROGRAM', 'program'],
 } as const;
 
 const LIGHT_ROLES = {
-  switchDp:      ['switch.light', 'switch'],
-  brightnessDp:  ['level.dimmer', 'level.brightness'],
-  hueDp:         ['level.color.hue'],
-  saturationDp:  ['level.color.saturation'],
-  rDp:           ['level.color.red'],
-  gDp:           ['level.color.green'],
-  bDp:           ['level.color.blue'],
-  temperatureDp: ['level.color.temperature'],
+    switchDp: ['switch.light', 'switch'],
+    brightnessDp: ['level.dimmer', 'level.brightness'],
+    hueDp: ['level.color.hue'],
+    saturationDp: ['level.color.saturation'],
+    rDp: ['level.color.red'],
+    gDp: ['level.color.green'],
+    bDp: ['level.color.blue'],
+    temperatureDp: ['level.color.temperature'],
 } as const;
 
 /**
@@ -477,108 +594,106 @@ const LIGHT_ROLES = {
  *    on integer with max ≤ 200) → 'hm-color'
  */
 export function autoDetectLightDps(
-  mainDpId: string,
-  entries: Array<{ id: string; role?: string; type?: string }>,
+    mainDpId: string,
+    entries: Array<{ id: string; role?: string; type?: string }>,
 ): Record<string, string | undefined> & { colorMode?: 'hsv' | 'rgb' | 'hm-color' | 'none' } {
-  if (!mainDpId) return {};
-  const parts = mainDpId.split('.');
-  const parent   = parts.slice(0, -1).join('.');
-  const parentUp = parts.slice(0, -2).join('.');
-  const sibs   = entries.filter((e) => e.id.startsWith(parent + '.'));
-  // Only consult sibling channels (parentUp scope) when parentUp is below the
-  // adapter-instance level (≥ 3 segments). For HmIP-style mainDp like
-  // `hm-rpc.0.DEVICE.1.LEVEL` this is `hm-rpc.0.DEVICE` (the device) → valid.
-  // For zigbee/hue-style mainDp like `zigbee.0.DEVICE.brightness` this would be
-  // `zigbee.0` (the adapter instance), which would let auto-detect cross into
-  // OTHER devices — disable that scope.
-  const sibsUp = parentUp.split('.').length >= 3
-    ? entries.filter((e) => e.id.startsWith(parentUp + '.') && !e.id.startsWith(parent + '.'))
-    : [];
+    if (!mainDpId) return {};
+    const parts = mainDpId.split('.');
+    const parent = parts.slice(0, -1).join('.');
+    const parentUp = parts.slice(0, -2).join('.');
+    const sibs = entries.filter((e) => e.id.startsWith(`${parent}.`));
+    // Only consult sibling channels (parentUp scope) when parentUp is below the
+    // adapter-instance level (≥ 3 segments). For HmIP-style mainDp like
+    // `hm-rpc.0.DEVICE.1.LEVEL` this is `hm-rpc.0.DEVICE` (the device) → valid.
+    // For zigbee/hue-style mainDp like `zigbee.0.DEVICE.brightness` this would be
+    // `zigbee.0` (the adapter instance), which would let auto-detect cross into
+    // OTHER devices — disable that scope.
+    const sibsUp =
+        parentUp.split('.').length >= 3
+            ? entries.filter((e) => e.id.startsWith(`${parentUp}.`) && !e.id.startsWith(`${parent}.`))
+            : [];
 
-  // Find a sibling DP by name: first as a direct child of parent (exact match,
-  // preserves prior priority), then anywhere in the parent's subtree by
-  // last-segment match (covers zigbee's `color_hs.hue`, `color_rgb.r`, …).
-  const findByName = (names: readonly string[]): string | undefined => {
-    for (const n of names) {
-      const hit = sibs.find((e) => e.id === `${parent}.${n}`);
-      if (hit) return hit.id;
+    // Find a sibling DP by name: first as a direct child of parent (exact match,
+    // preserves prior priority), then anywhere in the parent's subtree by
+    // last-segment match (covers zigbee's `color_hs.hue`, `color_rgb.r`, …).
+    const findByName = (names: readonly string[]): string | undefined => {
+        for (const n of names) {
+            const hit = sibs.find((e) => e.id === `${parent}.${n}`);
+            if (hit) return hit.id;
+        }
+        for (const e of sibs) {
+            const last = e.id.split('.').pop() ?? '';
+            if (names.includes(last) && e.id !== mainDpId) return e.id;
+        }
+        return undefined;
+    };
+    // Find by name in any sibling channel (last segment matches). sibsUp is
+    // empty for adapter-instance-level parentUp, so this only fires for
+    // HmIP-style structures.
+    const findByNameCross = (names: readonly string[]): string | undefined => {
+        for (const e of sibsUp) {
+            const last = e.id.split('.').pop() ?? '';
+            if (names.includes(last)) return e.id;
+        }
+        return undefined;
+    };
+    // Find by role anywhere in family
+    const findByRole = (roles: readonly string[]): string | undefined => {
+        const all = [...sibs, ...sibsUp];
+        return all.find((e) => roles.includes((e.role ?? '').toLowerCase()) && e.id !== mainDpId)?.id;
+    };
+
+    const result: Record<string, string | undefined> & { colorMode?: 'hsv' | 'rgb' | 'hm-color' | 'none' } = {};
+
+    // Generic lookup: try same-channel name → cross-channel name → role
+    const lookup = (key: keyof typeof LIGHT_NAMES, roleKey?: keyof typeof LIGHT_ROLES): string | undefined =>
+        findByName(LIGHT_NAMES[key]) ??
+        findByNameCross(LIGHT_NAMES[key]) ??
+        (roleKey ? findByRole(LIGHT_ROLES[roleKey]) : undefined);
+
+    result.switchDp = lookup('switchDp', 'switchDp');
+    result.brightnessDp = lookup('brightnessDp', 'brightnessDp');
+    result.hueDp = lookup('hueDp', 'hueDp');
+    result.saturationDp = lookup('saturationDp', 'saturationDp');
+    result.rDp = lookup('rDp', 'rDp');
+    result.gDp = lookup('gDp', 'gDp');
+    result.bDp = lookup('bDp', 'bDp');
+    result.colorDp = lookup('colorDp');
+    result.temperatureDp = lookup('temperatureDp', 'temperatureDp');
+    result.effectDp = lookup('effectDp');
+
+    // Don't pick the main DP itself as a secondary
+    for (const k of Object.keys(result) as (keyof typeof result)[]) {
+        if (result[k] === mainDpId) result[k] = undefined;
     }
-    for (const e of sibs) {
-      const last = e.id.split('.').pop() ?? '';
-      if (names.includes(last) && e.id !== mainDpId) return e.id;
+
+    // Color mode detection
+    // HmIP COLOR is named exactly 'COLOR' (uppercase) and has no separate saturation.
+    // Hue uses 'hue'+'sat' (lowercase, separate DPs). That's enough to disambiguate.
+    const hasHmColor = !!result.colorDp && !result.saturationDp && result.colorDp.split('.').pop() === 'COLOR';
+    if (hasHmColor) {
+        result.colorMode = 'hm-color';
+        // In hm-color mode, hue/sat/r/g/b should not be set
+        result.hueDp = undefined;
+        result.saturationDp = undefined;
+        result.rDp = undefined;
+        result.gDp = undefined;
+        result.bDp = undefined;
+    } else if (result.hueDp && result.saturationDp) {
+        result.colorMode = 'hsv';
+        result.colorDp = undefined;
+    } else if (result.rDp && result.gDp && result.bDp) {
+        result.colorMode = 'rgb';
+        result.colorDp = undefined;
+    } else {
+        result.colorMode = 'none';
+        result.colorDp = undefined;
     }
-    return undefined;
-  };
-  // Find by name in any sibling channel (last segment matches). sibsUp is
-  // empty for adapter-instance-level parentUp, so this only fires for
-  // HmIP-style structures.
-  const findByNameCross = (names: readonly string[]): string | undefined => {
-    for (const e of sibsUp) {
-      const last = e.id.split('.').pop() ?? '';
-      if (names.includes(last)) return e.id;
-    }
-    return undefined;
-  };
-  // Find by role anywhere in family
-  const findByRole = (roles: readonly string[]): string | undefined => {
-    const all = [...sibs, ...sibsUp];
-    return all.find((e) => roles.includes((e.role ?? '').toLowerCase()) && e.id !== mainDpId)?.id;
-  };
 
-  const result: Record<string, string | undefined> & { colorMode?: 'hsv' | 'rgb' | 'hm-color' | 'none' } = {};
+    // Battery + unreach (works regardless of color mode)
+    const status = autoDetectStatusDps(mainDpId, entries);
+    result.batteryDp = status.batteryDp;
+    result.unreachDp = status.unreachDp;
 
-  // Generic lookup: try same-channel name → cross-channel name → role
-  const lookup = (key: keyof typeof LIGHT_NAMES, roleKey?: keyof typeof LIGHT_ROLES): string | undefined =>
-    findByName(LIGHT_NAMES[key])
-    ?? findByNameCross(LIGHT_NAMES[key])
-    ?? (roleKey ? findByRole(LIGHT_ROLES[roleKey]) : undefined);
-
-  result.switchDp      = lookup('switchDp', 'switchDp');
-  result.brightnessDp  = lookup('brightnessDp', 'brightnessDp');
-  result.hueDp         = lookup('hueDp', 'hueDp');
-  result.saturationDp  = lookup('saturationDp', 'saturationDp');
-  result.rDp           = lookup('rDp', 'rDp');
-  result.gDp           = lookup('gDp', 'gDp');
-  result.bDp           = lookup('bDp', 'bDp');
-  result.colorDp       = lookup('colorDp');
-  result.temperatureDp = lookup('temperatureDp', 'temperatureDp');
-  result.effectDp      = lookup('effectDp');
-
-  // Don't pick the main DP itself as a secondary
-  for (const k of Object.keys(result) as (keyof typeof result)[]) {
-    if (result[k] === mainDpId) result[k] = undefined;
-  }
-
-  // Color mode detection
-  // HmIP COLOR is named exactly 'COLOR' (uppercase) and has no separate saturation.
-  // Hue uses 'hue'+'sat' (lowercase, separate DPs). That's enough to disambiguate.
-  const hasHmColor =
-    !!result.colorDp &&
-    !result.saturationDp &&
-    (result.colorDp.split('.').pop() === 'COLOR');
-  if (hasHmColor) {
-    result.colorMode = 'hm-color';
-    // In hm-color mode, hue/sat/r/g/b should not be set
-    result.hueDp = undefined;
-    result.saturationDp = undefined;
-    result.rDp = undefined;
-    result.gDp = undefined;
-    result.bDp = undefined;
-  } else if (result.hueDp && result.saturationDp) {
-    result.colorMode = 'hsv';
-    result.colorDp = undefined;
-  } else if (result.rDp && result.gDp && result.bDp) {
-    result.colorMode = 'rgb';
-    result.colorDp = undefined;
-  } else {
-    result.colorMode = 'none';
-    result.colorDp = undefined;
-  }
-
-  // Battery + unreach (works regardless of color mode)
-  const status = autoDetectStatusDps(mainDpId, entries);
-  result.batteryDp = status.batteryDp;
-  result.unreachDp = status.unreachDp;
-
-  return result;
+    return result;
 }

@@ -17,822 +17,1104 @@ import { publishListCount, unpublishList } from '../../utils/publishWidgetState'
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface StaticListEntry {
-  id: string;
-  label?: string;
-  unit?: string;
-  decimals?: number;
-  role?: string;
-  trueLabel?: string;
-  falseLabel?: string;
-  writable?: boolean; // false = read-only; undefined/true = writable
-  icon?: string;
-  colorThresholds?: [number, string][]; // [[maxExclusive, color], …] ascending
-  /** Override automatic control type. undefined/'auto' keeps role/value-based detection. */
-  displayType?: 'auto' | 'switch' | 'slider' | 'value';
-  /** Per-DP text color when on/true/>0. Overrides global activeColor. */
-  activeColor?: string;
-  /** Per-DP text color when off/false/0. Overrides global inactiveColor. */
-  inactiveColor?: string;
-  /** Per-DP entry background (row/card/pill) when on/true/>0. Overrides global activeBg. */
-  activeBg?: string;
-  /** Per-DP entry background when off/false/0. Overrides global inactiveBg. */
-  inactiveBg?: string;
-  /** Per-DP icon size in px (entry icon + switch icon). Falls back to per-layout default. */
-  iconSize?: number;
-  /** Per-DP label font size in px. Falls back to per-layout default. */
-  fontSize?: number;
-  /** When switch is shown: 'slide' = toggle (default), 'icon' = clickable power icon. */
-  switchStyle?: 'slide' | 'icon';
-  /** Show last-change timestamp under this entry. */
-  showLastChange?: boolean;
+    id: string;
+    label?: string;
+    unit?: string;
+    decimals?: number;
+    role?: string;
+    trueLabel?: string;
+    falseLabel?: string;
+    writable?: boolean; // false = read-only; undefined/true = writable
+    icon?: string;
+    colorThresholds?: [number, string][]; // [[maxExclusive, color], …] ascending
+    /** Override automatic control type. undefined/'auto' keeps role/value-based detection. */
+    displayType?: 'auto' | 'switch' | 'slider' | 'value';
+    /** Per-DP text color when on/true/>0. Overrides global activeColor. */
+    activeColor?: string;
+    /** Per-DP text color when off/false/0. Overrides global inactiveColor. */
+    inactiveColor?: string;
+    /** Per-DP entry background (row/card/pill) when on/true/>0. Overrides global activeBg. */
+    activeBg?: string;
+    /** Per-DP entry background when off/false/0. Overrides global inactiveBg. */
+    inactiveBg?: string;
+    /** Per-DP icon size in px (entry icon + switch icon). Falls back to per-layout default. */
+    iconSize?: number;
+    /** Per-DP label font size in px. Falls back to per-layout default. */
+    fontSize?: number;
+    /** When switch is shown: 'slide' = toggle (default), 'icon' = clickable power icon. */
+    switchStyle?: 'slide' | 'icon';
+    /** Show last-change timestamp under this entry. */
+    showLastChange?: boolean;
 }
 
 export interface StaticListOptions {
-  entries: StaticListEntry[];
-  /** 'all' = show everything (default), 'active' = only on/> 0, 'inactive' = only off/0 */
-  valueFilter?: 'all' | 'active' | 'inactive';
-  filterActiveLabel?: string;
-  filterInactiveLabel?: string;
-  showId?: boolean;
-  showRoom?: boolean;
-  showTitle?: boolean;
-  showCount?: boolean;
-  sortBy?: 'none' | 'label' | 'value';
-  sortOrder?: 'asc' | 'desc';
-  sortBy2?: 'none' | 'label' | 'value';
-  sortOrder2?: 'asc' | 'desc';
-  /** Global default label for on/true/>0 state (fallback when entry has no trueLabel). */
-  trueText?: string;
-  /** Global default label for off/false/0 state (fallback when entry has no falseLabel). */
-  falseText?: string;
-  /** Global text color when on. Per-DP activeColor overrides. Default: green. */
-  activeColor?: string;
-  /** Global text color when off. Per-DP inactiveColor overrides. */
-  inactiveColor?: string;
-  /** Global entry background when on. Per-DP activeBg overrides. */
-  activeBg?: string;
-  /** Global entry background when off. Per-DP inactiveBg overrides. */
-  inactiveBg?: string;
-  /** Publish the filtered count to aura.0.lists.<widgetId>.count */
-  publishCount?: boolean;
-  /** Backend display filter — independent from frontend valueFilter. Default 'all'. */
-  backendValueFilter?: 'all' | 'active' | 'inactive';
-  /** Show sum of numeric values from visible entries below the title. */
-  showSum?: boolean;
-  /** Prefix label for the sum line (default 'Σ'). */
-  sumLabel?: string;
-  /** Text alignment of the sum line. Default 'left' (inherits titleAlign feel). */
-  sumAlign?: 'left' | 'center' | 'right';
-  /** Font size of the sum line in px. Default 10. */
-  sumFontSize?: number;
-  /** Show divider lines between list entries (standard/compact layouts). Default true. */
-  showDividers?: boolean;
-  /** Hide the frontend filter chip in the widget header. Default false. */
-  hideFilterButton?: boolean;
-  /** Wrap long entry labels AND text values onto multiple lines instead of truncating / overflowing. Default false. */
-  wrapText?: boolean;
-  /** When wrapText is on: minimum % of the row reserved for the label (10..90). Value gets the rest. Default 50. */
-  labelMinPercent?: number;
+    entries: StaticListEntry[];
+    /** 'all' = show everything (default), 'active' = only on/> 0, 'inactive' = only off/0 */
+    valueFilter?: 'all' | 'active' | 'inactive';
+    filterActiveLabel?: string;
+    filterInactiveLabel?: string;
+    showId?: boolean;
+    showRoom?: boolean;
+    showTitle?: boolean;
+    showCount?: boolean;
+    sortBy?: 'none' | 'label' | 'value';
+    sortOrder?: 'asc' | 'desc';
+    sortBy2?: 'none' | 'label' | 'value';
+    sortOrder2?: 'asc' | 'desc';
+    /** Global default label for on/true/>0 state (fallback when entry has no trueLabel). */
+    trueText?: string;
+    /** Global default label for off/false/0 state (fallback when entry has no falseLabel). */
+    falseText?: string;
+    /** Global text color when on. Per-DP activeColor overrides. Default: green. */
+    activeColor?: string;
+    /** Global text color when off. Per-DP inactiveColor overrides. */
+    inactiveColor?: string;
+    /** Global entry background when on. Per-DP activeBg overrides. */
+    activeBg?: string;
+    /** Global entry background when off. Per-DP inactiveBg overrides. */
+    inactiveBg?: string;
+    /** Publish the filtered count to aura.0.lists.<widgetId>.count */
+    publishCount?: boolean;
+    /** Backend display filter — independent from frontend valueFilter. Default 'all'. */
+    backendValueFilter?: 'all' | 'active' | 'inactive';
+    /** Show sum of numeric values from visible entries below the title. */
+    showSum?: boolean;
+    /** Prefix label for the sum line (default 'Σ'). */
+    sumLabel?: string;
+    /** Text alignment of the sum line. Default 'left' (inherits titleAlign feel). */
+    sumAlign?: 'left' | 'center' | 'right';
+    /** Font size of the sum line in px. Default 10. */
+    sumFontSize?: number;
+    /** Show divider lines between list entries (standard/compact layouts). Default true. */
+    showDividers?: boolean;
+    /** Hide the frontend filter chip in the widget header. Default false. */
+    hideFilterButton?: boolean;
+    /** Wrap long entry labels AND text values onto multiple lines instead of truncating / overflowing. Default false. */
+    wrapText?: boolean;
+    /** When wrapText is on: minimum % of the row reserved for the label (10..90). Value gets the rest. Default 50. */
+    labelMinPercent?: number;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function isDimmerRole(id: string) {
-  const r = id.toLowerCase();
-  return r.includes('level') || r.includes('dimmer') || r.includes('brightness');
+    const r = id.toLowerCase();
+    return r.includes('level') || r.includes('dimmer') || r.includes('brightness');
 }
 
 function isActive(val: ioBrokerState['val']): boolean {
-  if (val === null || val === undefined) return false;
-  if (typeof val === 'boolean') return val;
-  if (typeof val === 'number')  return val > 0;
-  if (typeof val === 'string')  return val !== '' && val !== '0' && val.toLowerCase() !== 'false';
-  return false;
+    if (val === null || val === undefined) return false;
+    if (typeof val === 'boolean') return val;
+    if (typeof val === 'number') return val > 0;
+    if (typeof val === 'string') return val !== '' && val !== '0' && val.toLowerCase() !== 'false';
+    return false;
 }
 
 function compareVals(a: ioBrokerState['val'], b: ioBrokerState['val']): number {
-  if (a === null || a === undefined) return 1;
-  if (b === null || b === undefined) return -1;
-  if (typeof a === 'boolean' && typeof b === 'boolean') return (a ? 1 : 0) - (b ? 1 : 0);
-  if (typeof a === 'number' && typeof b === 'number') return a - b;
-  return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+    if (a === null || a === undefined) return 1;
+    if (b === null || b === undefined) return -1;
+    if (typeof a === 'boolean' && typeof b === 'boolean') return (a ? 1 : 0) - (b ? 1 : 0);
+    if (typeof a === 'number' && typeof b === 'number') return a - b;
+    return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
 }
 
 type FilterMode = 'all' | 'active' | 'inactive';
 const DEFAULT_filterLabels: Record<FilterMode, string> = {
-  all: 'Alle',
-  active: 'Nur aktive',
-  inactive: 'Nur inaktive',
+    all: 'Alle',
+    active: 'Nur aktive',
+    inactive: 'Nur inaktive',
 };
 
 // ── Value cell ─────────────────────────────────────────────────────────────────
 
-function EntryValue({ entry, val, writable, setState, globalThresholds, decimals, activeColor, inactiveColor, trueText, falseText, wrap, valueMaxPct }: {
-  entry: StaticListEntry;
-  val: ioBrokerState['val'];
-  writable: boolean;
-  setState: (id: string, v: boolean | number | string) => void;
-  globalThresholds?: [number, string][];
-  decimals: number;
-  activeColor: string;
-  inactiveColor: string;
-  trueText?: string;
-  falseText?: string;
-  wrap?: boolean;
-  valueMaxPct?: number;
+function EntryValue({
+    entry,
+    val,
+    writable,
+    setState,
+    globalThresholds,
+    decimals,
+    activeColor,
+    inactiveColor,
+    trueText,
+    falseText,
+    wrap,
+    valueMaxPct,
+}: {
+    entry: StaticListEntry;
+    val: ioBrokerState['val'];
+    writable: boolean;
+    setState: (id: string, v: boolean | number | string) => void;
+    globalThresholds?: [number, string][];
+    decimals: number;
+    activeColor: string;
+    inactiveColor: string;
+    trueText?: string;
+    falseText?: string;
+    wrap?: boolean;
+    valueMaxPct?: number;
 }) {
-  // For text-style value spans: drop shrink-0 + allow wrapping when wrap=true.
-  // maxWidth caps the value (default 50%) so the label always keeps a guaranteed
-  // share of the row — otherwise flex-basis-0 on the label causes it to collapse
-  // when the value's natural width exceeds the container.
-  const textValueCls = wrap
-    ? 'text-xs font-medium tabular-nums whitespace-normal break-words [overflow-wrap:anywhere] min-w-0 text-right'
-    : 'shrink-0 text-xs font-medium tabular-nums';
-  const valueMaxStyle: React.CSSProperties | undefined = wrap ? { maxWidth: `${valueMaxPct ?? 50}%` } : undefined;
-  const trueLabel  = entry.trueLabel ?? trueText;
-  const falseLabel = entry.falseLabel ?? falseText;
-  const hasLabels = !!(trueLabel || falseLabel);
-  const isBool    = typeof val === 'boolean';
-  const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
-  const on = val === true || val === 1;
-  const displayType = entry.displayType ?? 'auto';
-  const switchStyle = entry.switchStyle ?? 'slide';
-  const thresholdColor = getThresholdColor(val, entry.colorThresholds ?? globalThresholds);
+    // For text-style value spans: drop shrink-0 + allow wrapping when wrap=true.
+    // maxWidth caps the value (default 50%) so the label always keeps a guaranteed
+    // share of the row — otherwise flex-basis-0 on the label causes it to collapse
+    // when the value's natural width exceeds the container.
+    const textValueCls = wrap
+        ? 'text-xs font-medium tabular-nums whitespace-normal break-words [overflow-wrap:anywhere] min-w-0 text-right'
+        : 'shrink-0 text-xs font-medium tabular-nums';
+    const valueMaxStyle: React.CSSProperties | undefined = wrap ? { maxWidth: `${valueMaxPct ?? 50}%` } : undefined;
+    const trueLabel = entry.trueLabel ?? trueText;
+    const falseLabel = entry.falseLabel ?? falseText;
+    const hasLabels = !!(trueLabel || falseLabel);
+    const isBool = typeof val === 'boolean';
+    const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
+    const on = val === true || val === 1;
+    const displayType = entry.displayType ?? 'auto';
+    const switchStyle = entry.switchStyle ?? 'slide';
+    const thresholdColor = getThresholdColor(val, entry.colorThresholds ?? globalThresholds);
 
-  // Reusable: power icon as toggle (used when switchStyle === 'icon')
-  const renderIconToggle = (active: boolean, onClick: () => void) => (
-    <button onClick={writable ? onClick : undefined}
-      className="shrink-0 flex items-center justify-center"
-      style={{ color: active ? activeColor : inactiveColor, cursor: writable ? 'pointer' : 'default', background: 'transparent', padding: 2 }}
-      aria-pressed={active}>
-      <Power size={entry.iconSize ?? 22} strokeWidth={active ? 2.5 : 1.75} />
-    </button>
-  );
+    // Reusable: power icon as toggle (used when switchStyle === 'icon')
+    const renderIconToggle = (active: boolean, onClick: () => void) => (
+        <button
+            onClick={writable ? onClick : undefined}
+            className="shrink-0 flex items-center justify-center"
+            style={{
+                color: active ? activeColor : inactiveColor,
+                cursor: writable ? 'pointer' : 'default',
+                background: 'transparent',
+                padding: 2,
+            }}
+            aria-pressed={active}
+        >
+            <Power size={entry.iconSize ?? 22} strokeWidth={active ? 2.5 : 1.75} />
+        </button>
+    );
 
-  // Forced "Nur Wert" — skip role/switch/slider, render text only
-  if (displayType === 'value') {
+    // Forced "Nur Wert" — skip role/switch/slider, render text only
+    if (displayType === 'value') {
+        const active = isActive(val);
+        const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
+        return (
+            <span
+                className={textValueCls}
+                style={{
+                    ...valueMaxStyle,
+                    color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)'),
+                }}
+            >
+                {val != null ? `${displayVal}${entry.unit ? ` ${entry.unit}` : ''}` : '–'}
+            </span>
+        );
+    }
+
+    // Forced "Slider" — render range 0..100 if writable, else value text with %
+    if (displayType === 'slider') {
+        const num = typeof val === 'number' ? val : val === true ? 100 : 0;
+        if (!writable) {
+            return (
+                <span
+                    className={textValueCls}
+                    style={{ ...valueMaxStyle, color: thresholdColor ?? 'var(--text-primary)' }}
+                >
+                    {Math.round(num)}
+                    {entry.unit ?? '%'}
+                </span>
+            );
+        }
+        return (
+            <div className="shrink-0 flex items-center gap-1.5">
+                <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={num}
+                    onChange={(e) => setState(entry.id, Number(e.target.value))}
+                    className="w-20 h-1"
+                    style={{ accentColor: 'var(--accent)' }}
+                />
+                <span
+                    className="text-[10px] w-8 text-right tabular-nums"
+                    style={{ color: thresholdColor ?? 'var(--text-secondary)' }}
+                >
+                    {Math.round(num)}
+                    {entry.unit ?? '%'}
+                </span>
+            </div>
+        );
+    }
+
+    // Forced "Schalter" — toggle / labeled pill
+    if (displayType === 'switch') {
+        const forcedOn = on || (typeof val === 'number' && val > 0);
+        const writeToggle = () => {
+            if (isBool) setState(entry.id, !forcedOn);
+            else if (typeof val === 'number') setState(entry.id, forcedOn ? 0 : 1);
+            else setState(entry.id, !forcedOn);
+        };
+        if (switchStyle === 'icon') return renderIconToggle(forcedOn, writeToggle);
+        if (hasLabels) {
+            const fill = forcedOn ? activeColor : inactiveColor;
+            return (
+                <button
+                    onClick={writable ? writeToggle : undefined}
+                    className="shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium"
+                    style={{
+                        background: `color-mix(in srgb, ${fill} 18%, transparent)`,
+                        color: fill,
+                        cursor: writable ? 'pointer' : 'default',
+                    }}
+                >
+                    {forcedOn ? trueLabel || 'AN' : falseLabel || 'AUS'}
+                </button>
+            );
+        }
+        if (!writable) {
+            return (
+                <span
+                    className="shrink-0 relative w-9 h-[18px] rounded-full pointer-events-none"
+                    style={{ background: forcedOn ? activeColor : 'var(--app-border)' }}
+                >
+                    <span
+                        className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white"
+                        style={{ left: forcedOn ? 'calc(100% - 16px)' : '2px' }}
+                    />
+                </span>
+            );
+        }
+        return (
+            <button
+                onClick={writeToggle}
+                className="shrink-0 relative w-9 h-[18px] rounded-full transition-colors"
+                style={{ background: forcedOn ? activeColor : 'var(--app-border)' }}
+            >
+                <span
+                    className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
+                    style={{ left: forcedOn ? 'calc(100% - 16px)' : '2px' }}
+                />
+            </button>
+        );
+    }
+
+    // Role-based display for sensors (window, door, motion, smoke, …)
+    if (isBoolLike && !hasLabels) {
+        const roleDisplay = getRoleDisplay(entry.role, val);
+        if (roleDisplay) {
+            return (
+                <span
+                    className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full"
+                    style={{ background: `${roleDisplay.color}22`, color: roleDisplay.color }}
+                >
+                    {roleDisplay.label}
+                </span>
+            );
+        }
+    }
+
+    if (isBoolLike) {
+        if (switchStyle === 'icon') {
+            return renderIconToggle(on, () => setState(entry.id, isBool ? !on : on ? 0 : 1));
+        }
+        if (hasLabels) {
+            const fill = on ? activeColor : inactiveColor;
+            return (
+                <button
+                    onClick={writable ? () => setState(entry.id, isBool ? !on : on ? 0 : 1) : undefined}
+                    className="shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium"
+                    style={{
+                        background: `color-mix(in srgb, ${fill} 18%, transparent)`,
+                        color: fill,
+                        cursor: writable ? 'pointer' : 'default',
+                    }}
+                >
+                    {on ? trueLabel || 'AN' : falseLabel || 'AUS'}
+                </button>
+            );
+        }
+        if (!writable) {
+            return (
+                <span
+                    className="shrink-0 relative w-9 h-[18px] rounded-full pointer-events-none"
+                    style={{ background: on ? activeColor : 'var(--app-border)' }}
+                >
+                    <span
+                        className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white"
+                        style={{ left: on ? 'calc(100% - 16px)' : '2px' }}
+                    />
+                </span>
+            );
+        }
+        return (
+            <button
+                onClick={() => setState(entry.id, isBool ? !on : on ? 0 : 1)}
+                className="shrink-0 relative w-9 h-[18px] rounded-full transition-colors"
+                style={{ background: on ? activeColor : 'var(--app-border)' }}
+            >
+                <span
+                    className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
+                    style={{ left: on ? 'calc(100% - 16px)' : '2px' }}
+                />
+            </button>
+        );
+    }
+
+    if (typeof val === 'number' && isDimmerRole(entry.id)) {
+        if (!writable) {
+            return (
+                <span
+                    className={textValueCls}
+                    style={{ ...valueMaxStyle, color: thresholdColor ?? 'var(--text-primary)' }}
+                >
+                    {Math.round(val)}
+                    {entry.unit ?? '%'}
+                </span>
+            );
+        }
+        return (
+            <div className="shrink-0 flex items-center gap-1.5">
+                <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={val}
+                    onChange={(e) => setState(entry.id, Number(e.target.value))}
+                    className="w-20 h-1"
+                    style={{ accentColor: 'var(--accent)' }}
+                />
+                <span
+                    className="text-[10px] w-8 text-right tabular-nums"
+                    style={{ color: thresholdColor ?? 'var(--text-secondary)' }}
+                >
+                    {Math.round(val)}
+                    {entry.unit ?? '%'}
+                </span>
+            </div>
+        );
+    }
+
     const active = isActive(val);
     const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
     return (
-      <span className={textValueCls}
-        style={{ ...valueMaxStyle, color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)') }}>
-        {val != null ? `${displayVal}${entry.unit ? ' ' + entry.unit : ''}` : '–'}
-      </span>
+        <span
+            className={textValueCls}
+            style={{
+                ...valueMaxStyle,
+                color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)'),
+            }}
+        >
+            {val != null ? `${displayVal}${entry.unit ? ` ${entry.unit}` : ''}` : '–'}
+        </span>
     );
-  }
-
-  // Forced "Slider" — render range 0..100 if writable, else value text with %
-  if (displayType === 'slider') {
-    const num = typeof val === 'number' ? val : (val === true ? 100 : 0);
-    if (!writable) {
-      return (
-        <span className={textValueCls}
-          style={{ ...valueMaxStyle, color: thresholdColor ?? 'var(--text-primary)' }}>
-          {Math.round(num)}{entry.unit ?? '%'}
-        </span>
-      );
-    }
-    return (
-      <div className="shrink-0 flex items-center gap-1.5">
-        <input type="range" min={0} max={100} value={num}
-          onChange={e => setState(entry.id, Number(e.target.value))}
-          className="w-20 h-1" style={{ accentColor: 'var(--accent)' }} />
-        <span className="text-[10px] w-8 text-right tabular-nums"
-          style={{ color: thresholdColor ?? 'var(--text-secondary)' }}>
-          {Math.round(num)}{entry.unit ?? '%'}
-        </span>
-      </div>
-    );
-  }
-
-  // Forced "Schalter" — toggle / labeled pill
-  if (displayType === 'switch') {
-    const forcedOn = on || (typeof val === 'number' && val > 0);
-    const writeToggle = () => {
-      if (isBool) setState(entry.id, !forcedOn);
-      else if (typeof val === 'number') setState(entry.id, forcedOn ? 0 : 1);
-      else setState(entry.id, !forcedOn);
-    };
-    if (switchStyle === 'icon') return renderIconToggle(forcedOn, writeToggle);
-    if (hasLabels) {
-      const fill = forcedOn ? activeColor : inactiveColor;
-      return (
-        <button onClick={writable ? writeToggle : undefined}
-          className="shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium"
-          style={{
-            background: `color-mix(in srgb, ${fill} 18%, transparent)`,
-            color: fill,
-            cursor: writable ? 'pointer' : 'default',
-          }}>
-          {forcedOn ? (trueLabel || 'AN') : (falseLabel || 'AUS')}
-        </button>
-      );
-    }
-    if (!writable) {
-      return (
-        <span className="shrink-0 relative w-9 h-[18px] rounded-full pointer-events-none"
-          style={{ background: forcedOn ? activeColor : 'var(--app-border)' }}>
-          <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white"
-            style={{ left: forcedOn ? 'calc(100% - 16px)' : '2px' }} />
-        </span>
-      );
-    }
-    return (
-      <button onClick={writeToggle}
-        className="shrink-0 relative w-9 h-[18px] rounded-full transition-colors"
-        style={{ background: forcedOn ? activeColor : 'var(--app-border)' }}>
-        <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
-          style={{ left: forcedOn ? 'calc(100% - 16px)' : '2px' }} />
-      </button>
-    );
-  }
-
-  // Role-based display for sensors (window, door, motion, smoke, …)
-  if (isBoolLike && !hasLabels) {
-    const roleDisplay = getRoleDisplay(entry.role, val);
-    if (roleDisplay) {
-      return (
-        <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full"
-          style={{ background: `${roleDisplay.color}22`, color: roleDisplay.color }}>
-          {roleDisplay.label}
-        </span>
-      );
-    }
-  }
-
-  if (isBoolLike) {
-    if (switchStyle === 'icon') {
-      return renderIconToggle(on, () => setState(entry.id, isBool ? !on : on ? 0 : 1));
-    }
-    if (hasLabels) {
-      const fill = on ? activeColor : inactiveColor;
-      return (
-        <button onClick={writable ? () => setState(entry.id, isBool ? !on : on ? 0 : 1) : undefined}
-          className="shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium"
-          style={{
-            background: `color-mix(in srgb, ${fill} 18%, transparent)`,
-            color: fill,
-            cursor: writable ? 'pointer' : 'default',
-          }}>
-          {on ? (trueLabel || 'AN') : (falseLabel || 'AUS')}
-        </button>
-      );
-    }
-    if (!writable) {
-      return (
-        <span className="shrink-0 relative w-9 h-[18px] rounded-full pointer-events-none"
-          style={{ background: on ? activeColor : 'var(--app-border)' }}>
-          <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white"
-            style={{ left: on ? 'calc(100% - 16px)' : '2px' }} />
-        </span>
-      );
-    }
-    return (
-      <button onClick={() => setState(entry.id, isBool ? !on : on ? 0 : 1)}
-        className="shrink-0 relative w-9 h-[18px] rounded-full transition-colors"
-        style={{ background: on ? activeColor : 'var(--app-border)' }}>
-        <span className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
-          style={{ left: on ? 'calc(100% - 16px)' : '2px' }} />
-      </button>
-    );
-  }
-
-  if (typeof val === 'number' && isDimmerRole(entry.id)) {
-    if (!writable) {
-      return (
-        <span className={textValueCls}
-          style={{ ...valueMaxStyle, color: thresholdColor ?? 'var(--text-primary)' }}>
-          {Math.round(val)}{entry.unit ?? '%'}
-        </span>
-      );
-    }
-    return (
-      <div className="shrink-0 flex items-center gap-1.5">
-        <input type="range" min={0} max={100} value={val}
-          onChange={e => setState(entry.id, Number(e.target.value))}
-          className="w-20 h-1" style={{ accentColor: 'var(--accent)' }} />
-        <span className="text-[10px] w-8 text-right tabular-nums"
-          style={{ color: thresholdColor ?? 'var(--text-secondary)' }}>
-          {Math.round(val)}{entry.unit ?? '%'}
-        </span>
-      </div>
-    );
-  }
-
-  const active = isActive(val);
-  const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
-  return (
-    <span className={textValueCls}
-      style={{ ...valueMaxStyle, color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)') }}>
-      {val != null ? `${displayVal}${entry.unit ? ' ' + entry.unit : ''}` : '–'}
-    </span>
-  );
 }
 
 // ── Main Widget ────────────────────────────────────────────────────────────────
 
 export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
-  const opts = useMemo(
-    () => (config.options ?? { entries: [] }) as unknown as StaticListOptions,
-    [config.options],
-  );
-  const entries = useMemo<StaticListEntry[]>(() => opts.entries ?? [], [opts.entries]);
-  const t = useT();
-  const { defaultDecimals } = useGlobalSettingsStore();
-  const { subscribe, setState, getState } = useIoBroker();
-  const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
-  const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
-  const [resolvedRooms, setResolvedRooms] = useState<Record<string, string[]>>({});
-  const [showFilter, setShowFilter] = useState(false);
-  const [lastChangedTs, setLastChangedTs] = useState(0);
+    const opts = useMemo(() => (config.options ?? { entries: [] }) as unknown as StaticListOptions, [config.options]);
+    const entries = useMemo<StaticListEntry[]>(() => opts.entries ?? [], [opts.entries]);
+    const t = useT();
+    const { defaultDecimals } = useGlobalSettingsStore();
+    const { subscribe, setState, getState } = useIoBroker();
+    const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
+    const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
+    const [resolvedRooms, setResolvedRooms] = useState<Record<string, string[]>>({});
+    const [showFilter, setShowFilter] = useState(false);
+    const [lastChangedTs, setLastChangedTs] = useState(0);
 
-  const saveOpts = useCallback((patch: Partial<StaticListOptions>) => {
-    onConfigChange({ ...config, options: { ...opts, ...patch } });
-  }, [config, opts, onConfigChange]);
-
-  // Subscribe to all entry states
-  const entryKey = entries.map(e => e.id).join(',');
-  const prevKey = useRef('');
-  useEffect(() => {
-    if (entryKey === prevKey.current) return;
-    prevKey.current = entryKey;
-    if (entries.length === 0) return;
-    entries.forEach(e => getState(e.id).then(s => setStates(prev => ({ ...prev, [e.id]: s }))));
-    const unsubs = entries.map(e =>
-      subscribe(e.id, s => {
-        setStates(prev => ({ ...prev, [e.id]: s }));
-        if (s) setLastChangedTs(prev => Math.max(prev, s.lc > 0 ? s.lc : s.ts));
-      })
+    const saveOpts = useCallback(
+        (patch: Partial<StaticListOptions>) => {
+            onConfigChange({ ...config, options: { ...opts, ...patch } });
+        },
+        [config, opts, onConfigChange],
     );
-    ensureDatapointCache().then(cache => {
-      const updates: Record<string, string> = {};
-      for (const e of entries.filter(en => !en.label)) {
-        const found = cache.find(c => c.id === e.id);
-        if (found?.name) updates[e.id] = found.name;
-      }
-      if (Object.keys(updates).length > 0)
-        setResolvedNames(prev => ({ ...prev, ...updates }));
-    });
-    return () => unsubs.forEach(u => u());
-  }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Resolve rooms for showRoom display
-  useEffect(() => {
-    if (!opts.showRoom || entries.length === 0) return;
-    getObjectViewDirect('enum', 'enum.rooms.', 'enum.rooms.\u9999').then(result => {
-      const memberRooms = new Map<string, string[]>();
-      for (const { value: obj } of result.rows) {
-        if (!obj?.common?.members?.length) continue;
-        const label = resolveName(obj.common.name as string | Record<string, string>, obj._id.split('.').pop() ?? obj._id);
-        for (const memberId of (obj.common.members as string[])) {
-          if (!memberRooms.has(memberId)) memberRooms.set(memberId, []);
-          memberRooms.get(memberId)!.push(label);
-        }
-      }
-      const map: Record<string, string[]> = {};
-      for (const e of entries) {
-        const parts = e.id.split('.');
-        const roomsSet = new Set<string>();
-        for (let i = parts.length; i >= 2; i--) {
-          memberRooms.get(parts.slice(0, i).join('.'))?.forEach(r => roomsSet.add(r));
-        }
-        if (roomsSet.size > 0) map[e.id] = [...roomsSet];
-      }
-      setResolvedRooms(map);
-    });
-  }, [opts.showRoom, entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const getLabel = (entry: StaticListEntry) =>
-    applyDpNameFilter(entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id);
-
-  // Value filter (same logic as AutoListWidget)
-  const valueFilter = (opts.valueFilter ?? 'all') as FilterMode;
-  const filterLabels: Record<FilterMode, string> = {
-    all: 'Alle',
-    active:   opts.filterActiveLabel   || DEFAULT_filterLabels.active,
-    inactive: opts.filterInactiveLabel || DEFAULT_filterLabels.inactive,
-  };
-
-  // In editMode the Aura admin view honors a separate backendValueFilter so
-  // the editor preview can show what users will see (e.g. only active entries).
-  const backendValueFilter = (opts.backendValueFilter ?? 'all') as FilterMode;
-  const effectiveFilter: FilterMode = editMode ? backendValueFilter : valueFilter;
-
-  const visibleEntries = useMemo(() => {
-    let result = effectiveFilter === 'all'
-      ? entries
-      : entries.filter(e => {
-          const val = states[e.id]?.val ?? null;
-          if (val === null) return false;
-          return effectiveFilter === 'active' ? isActive(val) : !isActive(val);
+    // Subscribe to all entry states
+    const entryKey = entries.map((e) => e.id).join(',');
+    const prevKey = useRef('');
+    useEffect(() => {
+        if (entryKey === prevKey.current) return;
+        prevKey.current = entryKey;
+        if (entries.length === 0) return;
+        entries.forEach((e) => getState(e.id).then((s) => setStates((prev) => ({ ...prev, [e.id]: s }))));
+        const unsubs = entries.map((e) =>
+            subscribe(e.id, (s) => {
+                setStates((prev) => ({ ...prev, [e.id]: s }));
+                if (s) setLastChangedTs((prev) => Math.max(prev, s.lc > 0 ? s.lc : s.ts));
+            }),
+        );
+        ensureDatapointCache().then((cache) => {
+            const updates: Record<string, string> = {};
+            for (const e of entries.filter((en) => !en.label)) {
+                const found = cache.find((c) => c.id === e.id);
+                if (found?.name) updates[e.id] = found.name;
+            }
+            if (Object.keys(updates).length > 0) setResolvedNames((prev) => ({ ...prev, ...updates }));
         });
-    const sortBy = opts.sortBy ?? 'none';
-    const sortOrder = opts.sortOrder ?? 'asc';
-    const sortBy2 = opts.sortBy2 ?? 'none';
-    const sortOrder2 = opts.sortOrder2 ?? 'asc';
-    if (sortBy !== 'none') {
-      const cmpFor = (key: 'label' | 'value', a: StaticListEntry, b: StaticListEntry) =>
-        key === 'label'
-          ? getLabel(a).localeCompare(getLabel(b), undefined, { numeric: true, sensitivity: 'base' })
-          : compareVals(states[a.id]?.val ?? null, states[b.id]?.val ?? null);
-      result = [...result].sort((a, b) => {
-        const cmp1 = cmpFor(sortBy, a, b);
-        if (cmp1 !== 0) return sortOrder === 'desc' ? -cmp1 : cmp1;
-        if (sortBy2 !== 'none' && sortBy2 !== sortBy) {
-          const cmp2 = cmpFor(sortBy2, a, b);
-          return sortOrder2 === 'desc' ? -cmp2 : cmp2;
+        return () => unsubs.forEach((u) => u());
+    }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Resolve rooms for showRoom display
+    useEffect(() => {
+        if (!opts.showRoom || entries.length === 0) return;
+        getObjectViewDirect('enum', 'enum.rooms.', 'enum.rooms.\u9999').then((result) => {
+            const memberRooms = new Map<string, string[]>();
+            for (const { value: obj } of result.rows) {
+                if (!obj?.common?.members?.length) continue;
+                const label = resolveName(
+                    obj.common.name as string | Record<string, string>,
+                    obj._id.split('.').pop() ?? obj._id,
+                );
+                for (const memberId of obj.common.members as string[]) {
+                    if (!memberRooms.has(memberId)) memberRooms.set(memberId, []);
+                    memberRooms.get(memberId)!.push(label);
+                }
+            }
+            const map: Record<string, string[]> = {};
+            for (const e of entries) {
+                const parts = e.id.split('.');
+                const roomsSet = new Set<string>();
+                for (let i = parts.length; i >= 2; i--) {
+                    memberRooms.get(parts.slice(0, i).join('.'))?.forEach((r) => roomsSet.add(r));
+                }
+                if (roomsSet.size > 0) map[e.id] = [...roomsSet];
+            }
+            setResolvedRooms(map);
+        });
+    }, [opts.showRoom, entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const getLabel = (entry: StaticListEntry) =>
+        applyDpNameFilter(entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id);
+
+    // Value filter (same logic as AutoListWidget)
+    const valueFilter = (opts.valueFilter ?? 'all') as FilterMode;
+    const filterLabels: Record<FilterMode, string> = {
+        all: 'Alle',
+        active: opts.filterActiveLabel || DEFAULT_filterLabels.active,
+        inactive: opts.filterInactiveLabel || DEFAULT_filterLabels.inactive,
+    };
+
+    // In editMode the Aura admin view honors a separate backendValueFilter so
+    // the editor preview can show what users will see (e.g. only active entries).
+    const backendValueFilter = (opts.backendValueFilter ?? 'all') as FilterMode;
+    const effectiveFilter: FilterMode = editMode ? backendValueFilter : valueFilter;
+
+    const visibleEntries = useMemo(() => {
+        let result =
+            effectiveFilter === 'all'
+                ? entries
+                : entries.filter((e) => {
+                      const val = states[e.id]?.val ?? null;
+                      if (val === null) return false;
+                      return effectiveFilter === 'active' ? isActive(val) : !isActive(val);
+                  });
+        const sortBy = opts.sortBy ?? 'none';
+        const sortOrder = opts.sortOrder ?? 'asc';
+        const sortBy2 = opts.sortBy2 ?? 'none';
+        const sortOrder2 = opts.sortOrder2 ?? 'asc';
+        if (sortBy !== 'none') {
+            const cmpFor = (key: 'label' | 'value', a: StaticListEntry, b: StaticListEntry) =>
+                key === 'label'
+                    ? getLabel(a).localeCompare(getLabel(b), undefined, { numeric: true, sensitivity: 'base' })
+                    : compareVals(states[a.id]?.val ?? null, states[b.id]?.val ?? null);
+            result = [...result].sort((a, b) => {
+                const cmp1 = cmpFor(sortBy, a, b);
+                if (cmp1 !== 0) return sortOrder === 'desc' ? -cmp1 : cmp1;
+                if (sortBy2 !== 'none' && sortBy2 !== sortBy) {
+                    const cmp2 = cmpFor(sortBy2, a, b);
+                    return sortOrder2 === 'desc' ? -cmp2 : cmp2;
+                }
+                return 0;
+            });
         }
-        return 0;
-      });
-    }
-    return result;
-  }, [entries, states, effectiveFilter, opts.sortBy, opts.sortOrder, opts.sortBy2, opts.sortOrder2, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
+        return result;
+    }, [entries, states, effectiveFilter, opts.sortBy, opts.sortOrder, opts.sortBy2, opts.sortOrder2, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Count published to ioBroker state = view-mode count using the frontend valueFilter,
-  // independent from backendValueFilter (which only affects the editor preview).
-  const viewCount = useMemo(() => {
-    if (valueFilter === 'all') return entries.length;
-    return entries.filter(e => {
-      const val = states[e.id]?.val ?? null;
-      if (val === null) return false;
-      return valueFilter === 'active' ? isActive(val) : !isActive(val);
-    }).length;
-  }, [entries, states, valueFilter]);
+    // Count published to ioBroker state = view-mode count using the frontend valueFilter,
+    // independent from backendValueFilter (which only affects the editor preview).
+    const viewCount = useMemo(() => {
+        if (valueFilter === 'all') return entries.length;
+        return entries.filter((e) => {
+            const val = states[e.id]?.val ?? null;
+            if (val === null) return false;
+            return valueFilter === 'active' ? isActive(val) : !isActive(val);
+        }).length;
+    }, [entries, states, valueFilter]);
 
-  useEffect(() => {
-    if (!opts.publishCount) return;
-    publishListCount(config.id, config.title || 'Statische Liste', viewCount);
-  }, [opts.publishCount, viewCount, config.id, config.title]);
+    useEffect(() => {
+        if (!opts.publishCount) return;
+        publishListCount(config.id, config.title || 'Statische Liste', viewCount);
+    }, [opts.publishCount, viewCount, config.id, config.title]);
 
-  // Sum of numeric values from visible entries (single shared unit assumed —
-  // first encountered unit wins; entries with non-numeric values are skipped).
-  const sumInfo = useMemo(() => {
-    if (!opts.showSum) return null;
-    let sum = 0;
-    let unit: string | undefined;
-    let count = 0;
-    for (const e of visibleEntries) {
-      const v = states[e.id]?.val;
-      if (typeof v !== 'number' || !isFinite(v)) continue;
-      sum += v;
-      count++;
-      if (unit === undefined && e.unit) unit = e.unit;
-    }
-    return count > 0 ? { sum, unit, count } : null;
-  }, [opts.showSum, visibleEntries, states]);
+    // Sum of numeric values from visible entries (single shared unit assumed —
+    // first encountered unit wins; entries with non-numeric values are skipped).
+    const sumInfo = useMemo(() => {
+        if (!opts.showSum) return null;
+        let sum = 0;
+        let unit: string | undefined;
+        let count = 0;
+        for (const e of visibleEntries) {
+            const v = states[e.id]?.val;
+            if (typeof v !== 'number' || !isFinite(v)) continue;
+            sum += v;
+            count++;
+            if (unit === undefined && e.unit) unit = e.unit;
+        }
+        return count > 0 ? { sum, unit, count } : null;
+    }, [opts.showSum, visibleEntries, states]);
 
-  useEffect(() => {
-    if (opts.publishCount) return;
-    unpublishList(config.id).catch(() => { /* ignore */ });
-  }, [opts.publishCount, config.id]);
+    useEffect(() => {
+        if (opts.publishCount) return;
+        unpublishList(config.id).catch(() => {
+            /* ignore */
+        });
+    }, [opts.publishCount, config.id]);
 
-  const o = config.options ?? {};
-  const showTitle  = opts.showTitle !== false;
-  const showIcon   = o.showIcon   !== false;
-  const iconSize   = (o.iconSize   as number) || 20;
-  const titleAlign = (o.titleAlign as string) ?? 'left';
-  const showCount  = opts.showCount !== false;
-  const showLastChange = !!o.showLastChange;
-  const lastChangePos  = (o.lastChangePosition as string) ?? 'left';
+    const o = config.options ?? {};
+    const showTitle = opts.showTitle !== false;
+    const showIcon = o.showIcon !== false;
+    const iconSize = (o.iconSize as number) || 20;
+    const titleAlign = (o.titleAlign as string) ?? 'left';
+    const showCount = opts.showCount !== false;
+    const showLastChange = !!o.showLastChange;
+    const lastChangePos = (o.lastChangePosition as string) ?? 'left';
 
-  const lcOverlay = showLastChange && lastChangedTs > 0 ? (() => {
-    const text = formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lastChangedTs);
-    const posStyle: React.CSSProperties = lastChangePos === 'center'
-      ? { position: 'absolute', bottom: 6, left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap' }
-      : lastChangePos === 'right'
-        ? { position: 'absolute', bottom: 6, right: 8 }
-        : { position: 'absolute', bottom: 6, left: 8 };
-    return (
-      <div className="aura-last-change pointer-events-none text-[8px] opacity-50 whitespace-nowrap"
-        style={{ ...posStyle, color: 'var(--text-secondary)' }}>
-        {text}
-      </div>
-    );
-  })() : null;
+    const lcOverlay =
+        showLastChange && lastChangedTs > 0
+            ? (() => {
+                  const text = formatLastChange(
+                      t as (k: string, v?: Record<string, string | number>) => string,
+                      lastChangedTs,
+                  );
+                  const posStyle: React.CSSProperties =
+                      lastChangePos === 'center'
+                          ? {
+                                position: 'absolute',
+                                bottom: 6,
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                whiteSpace: 'nowrap',
+                            }
+                          : lastChangePos === 'right'
+                            ? { position: 'absolute', bottom: 6, right: 8 }
+                            : { position: 'absolute', bottom: 6, left: 8 };
+                  return (
+                      <div
+                          className="aura-last-change pointer-events-none text-[8px] opacity-50 whitespace-nowrap"
+                          style={{ ...posStyle, color: 'var(--text-secondary)' }}
+                      >
+                          {text}
+                      </div>
+                  );
+              })()
+            : null;
 
-  const layout = config.layout ?? 'default';
-  if (layout === 'custom') return <CustomGridView config={config} value="" />;
+    const layout = config.layout ?? 'default';
+    if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
-  const wrap = !!opts.wrapText;
-  const labelWrapCls = wrap ? 'break-words [overflow-wrap:anywhere]' : 'truncate';
-  const labelMinPct = Math.max(10, Math.min(90, opts.labelMinPercent ?? 50));
-  const valueMaxPct = 100 - labelMinPct;
-  const labelContainerStyle: React.CSSProperties | undefined = wrap ? { minWidth: `${labelMinPct}%` } : undefined;
+    const wrap = !!opts.wrapText;
+    const labelWrapCls = wrap ? 'break-words [overflow-wrap:anywhere]' : 'truncate';
+    const labelMinPct = Math.max(10, Math.min(90, opts.labelMinPercent ?? 50));
+    const valueMaxPct = 100 - labelMinPct;
+    const labelContainerStyle: React.CSSProperties | undefined = wrap ? { minWidth: `${labelMinPct}%` } : undefined;
 
-  const globalThresholds = o.colorThresholds as [number, string][] | undefined;
-  const globalActiveColor   = opts.activeColor   || 'var(--accent-green)';
-  const globalInactiveColor = opts.inactiveColor || 'var(--text-secondary)';
-  const globalActiveBg   = opts.activeBg;
-  const globalInactiveBg = opts.inactiveBg;
-  const showDividers     = opts.showDividers ?? true;
-  const HeaderIcon = getWidgetIcon(o.icon as string | undefined, List);
+    const globalThresholds = o.colorThresholds as [number, string][] | undefined;
+    const globalActiveColor = opts.activeColor || 'var(--accent-green)';
+    const globalInactiveColor = opts.inactiveColor || 'var(--text-secondary)';
+    const globalActiveBg = opts.activeBg;
+    const globalInactiveBg = opts.inactiveBg;
+    const showDividers = opts.showDividers ?? true;
+    const HeaderIcon = getWidgetIcon(o.icon as string | undefined, List);
 
-  // ── Shared header ──────────────────────────────────────────────────────────
-  const header = (showTitle || showIcon || (opts.showSum && sumInfo)) ? (
-    <div className="shrink-0 flex items-center justify-between py-1.5"
-      style={{ borderBottom: '1px solid var(--widget-border)' }}>
-      <div className="flex items-center gap-1.5 min-w-0 flex-1">
-        {showIcon && <HeaderIcon size={iconSize} className="aura-widget-icon shrink-0" style={{ color: 'var(--text-secondary)' }} />}
-        <div className="flex-1 min-w-0">
-          {showTitle && (
-            <p className="aura-widget-title text-xs font-semibold truncate" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>
-              {config.title || 'Statische Liste'}
-              {showCount && entries.length > 0 && (
-                <span className="ml-1 opacity-50">
-                  ({valueFilter !== 'all' ? `${visibleEntries.length}/` : ''}{entries.length})
-                </span>
-              )}
-            </p>
-          )}
-          {opts.showSum && sumInfo && (
-            <p className="tabular-nums truncate"
-              style={{
-                color: 'var(--text-secondary)',
-                opacity: 0.75,
-                textAlign: (opts.sumAlign ?? 'left') as React.CSSProperties['textAlign'],
-                fontSize: `${opts.sumFontSize ?? 10}px`,
-              }}>
-              {(opts.sumLabel ?? 'Σ')} {formatNum(sumInfo.sum, defaultDecimals)}{sumInfo.unit ? ' ' + sumInfo.unit : ''}
-            </p>
-          )}
-        </div>
-      </div>
-      {!opts.hideFilterButton && (
-        <div className="relative shrink-0">
-          <button
-            onClick={() => setShowFilter(v => !v)}
-            className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] hover:opacity-80"
-            style={{
-              background: valueFilter !== 'all' ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
-              color: valueFilter !== 'all' ? 'var(--accent)' : 'var(--text-secondary)',
-              border: `1px solid ${valueFilter !== 'all' ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'transparent'}`,
-            }}
-            title="Filter">
-            <Filter size={10} />
-            {valueFilter !== 'all' && <span>{filterLabels[valueFilter]}</span>}
-          </button>
-          {showFilter && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
-              <div className="absolute right-0 top-6 rounded-lg shadow-xl z-20 overflow-hidden min-w-[110px]"
-                style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}>
-                {(Object.keys(filterLabels) as FilterMode[]).map(mode => (
-                  <button key={mode}
-                    onClick={() => { saveOpts({ valueFilter: mode }); setShowFilter(false); }}
-                    className="w-full px-3 py-2 text-xs text-left hover:opacity-80"
-                    style={{
-                      background: valueFilter === mode ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent',
-                      color: valueFilter === mode ? 'var(--accent)' : 'var(--text-primary)',
-                    }}>
-                    {filterLabels[mode]}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      )}
-    </div>
-  ) : null;
-
-  const empty = (editMode ? entries.length === 0 : visibleEntries.length === 0) && (
-    <div className="flex-1 flex items-center justify-center p-4">
-      <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
-        {entries.length === 0
-          ? `Noch keine Datenpunkte.${editMode ? ' Bearbeiten → Datenpunkt hinzufügen.' : ''}`
-          : valueFilter === 'active' ? 'Alle Datenpunkte inaktiv.'
-          : 'Alle Datenpunkte aktiv.'}
-      </p>
-    </div>
-  );
-
-  // ── KACHELN (card) ─────────────────────────────────────────────────────────
-  if (layout === 'card') {
-    return (
-      <div className="aura-widget-row relative flex flex-col h-full">
-        {header}
-        {empty}
-        {visibleEntries.length > 0 && (
-          <div className="aura-scroll flex-1 overflow-auto min-h-0 p-2"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 6, alignContent: 'start' }}>
-            {visibleEntries.map(entry => {
-              const val = states[entry.id]?.val ?? null;
-              const label = getLabel(entry);
-              const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
-              const eOn = isActive(val);
-              const entryActiveColor   = entry.activeColor   || globalActiveColor;
-              const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
-              const stateBg = (eOn ? (entry.activeBg || globalActiveBg) : (entry.inactiveBg || globalInactiveBg)) || 'var(--app-bg)';
-              const entryIconSize = entry.iconSize ?? 11;
-              const entryFontSize = entry.fontSize;
-              const lcTs = entry.showLastChange ? (states[entry.id]?.lc || states[entry.id]?.ts || 0) : 0;
-              return (
-                <div key={entry.id}
-                  className="rounded-xl p-2.5 flex flex-col gap-2 relative"
-                  style={{ background: stateBg, border: '1px solid var(--widget-border)' }}>
-                  <span className={`flex items-center gap-1 leading-tight ${labelWrapCls}${entryFontSize ? '' : ' text-[10px]'}`}
-                    style={{ color: 'var(--text-secondary)', fontSize: entryFontSize ?? undefined }}>
-                    {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0" />}
-                    {label}
-                  </span>
-                  <div className="flex items-center justify-center">
-                    <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} valueMaxPct={valueMaxPct} />
-                  </div>
-                  {lcTs > 0 && (
-                    <div className="aura-last-change text-[9px] truncate text-center" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                      {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-        {lcOverlay}
-      </div>
-    );
-  }
-
-  // ── KOMPAKT (compact) — 2-column dense list ────────────────────────────────
-  if (layout === 'compact') {
-    return (
-      <div className="aura-widget-row relative flex flex-col h-full">
-        {header}
-        {empty}
-        {visibleEntries.length > 0 && (
-          <div className="aura-scroll flex-1 overflow-auto min-h-0"
-            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignContent: 'start' }}>
-            {visibleEntries.map((entry, i) => {
-              const val = states[entry.id]?.val ?? null;
-              const label = getLabel(entry);
-              const isRight = i % 2 === 1;
-              const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
-              const eOn = isActive(val);
-              const entryActiveColor   = entry.activeColor   || globalActiveColor;
-              const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
-              const stateBg = eOn ? (entry.activeBg || globalActiveBg) : (entry.inactiveBg || globalInactiveBg);
-              const entryIconSize = entry.iconSize ?? 11;
-              const entryFontSize = entry.fontSize;
-              const lcTs = entry.showLastChange ? (states[entry.id]?.lc || states[entry.id]?.ts || 0) : 0;
-              return (
-                <div key={entry.id}
-                  className="flex items-center gap-1.5 px-2 py-1.5"
-                  style={{
-                    background: stateBg,
-                    borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
-                    borderLeft: showDividers && isRight ? '1px solid var(--widget-border)' : undefined,
-                  }}>
-                  {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />}
-                  <div className="flex-1 min-w-0" style={labelContainerStyle}>
-                    <span className={`block ${labelWrapCls}${entryFontSize ? '' : ' text-[11px]'}`}
-                      style={{ color: 'var(--text-primary)', fontSize: entryFontSize ?? undefined }}>{label}</span>
-                    {lcTs > 0 && (
-                      <span className="aura-last-change block text-[8px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                        {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
-                      </span>
+    // ── Shared header ──────────────────────────────────────────────────────────
+    const header =
+        showTitle || showIcon || (opts.showSum && sumInfo) ? (
+            <div
+                className="shrink-0 flex items-center justify-between py-1.5"
+                style={{ borderBottom: '1px solid var(--widget-border)' }}
+            >
+                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    {showIcon && (
+                        <HeaderIcon
+                            size={iconSize}
+                            className="aura-widget-icon shrink-0"
+                            style={{ color: 'var(--text-secondary)' }}
+                        />
                     )}
-                  </div>
-                  <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} valueMaxPct={valueMaxPct} />
+                    <div className="flex-1 min-w-0">
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs font-semibold truncate"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title || 'Statische Liste'}
+                                {showCount && entries.length > 0 && (
+                                    <span className="ml-1 opacity-50">
+                                        ({valueFilter !== 'all' ? `${visibleEntries.length}/` : ''}
+                                        {entries.length})
+                                    </span>
+                                )}
+                            </p>
+                        )}
+                        {opts.showSum && sumInfo && (
+                            <p
+                                className="tabular-nums truncate"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    opacity: 0.75,
+                                    textAlign: (opts.sumAlign ?? 'left') as React.CSSProperties['textAlign'],
+                                    fontSize: `${opts.sumFontSize ?? 10}px`,
+                                }}
+                            >
+                                {opts.sumLabel ?? 'Σ'} {formatNum(sumInfo.sum, defaultDecimals)}
+                                {sumInfo.unit ? ` ${sumInfo.unit}` : ''}
+                            </p>
+                        )}
+                    </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-        {lcOverlay}
-      </div>
-    );
-  }
-
-  // ── BADGES (minimal) — inline pill per entry ───────────────────────────────
-  if (layout === 'minimal') {
-    return (
-      <div className="aura-widget-row relative flex flex-col h-full">
-        {header}
-        {empty}
-        {visibleEntries.length > 0 && (
-          <div className="aura-scroll flex-1 overflow-auto min-h-0 p-2 flex flex-wrap gap-1.5 content-start">
-            {visibleEntries.map(entry => {
-              const val = states[entry.id]?.val ?? null;
-              const label = getLabel(entry);
-              const writable = entry.writable !== false;
-              const trueLabel  = entry.trueLabel ?? opts.trueText;
-              const falseLabel = entry.falseLabel ?? opts.falseText;
-              const hasLabels = !!(trueLabel || falseLabel);
-              const isBool = typeof val === 'boolean';
-              const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
-              const on = val === true || val === 1;
-              const displayType = entry.displayType ?? 'auto';
-              const forceSwitch = displayType === 'switch';
-              const forceValue  = displayType === 'value' || displayType === 'slider';
-              const useRoleDisplay = !forceSwitch && !forceValue && isBoolLike && !hasLabels;
-              const roleDisplay = useRoleDisplay ? getRoleDisplay(entry.role, val) : null;
-              const truthy = on || (typeof val === 'number' && val > 0);
-              const switchActive = forceSwitch ? truthy : (isBoolLike && on);
-              const valueStr = roleDisplay
-                ? roleDisplay.label
-                : (forceSwitch || (isBoolLike && hasLabels))
-                  ? (switchActive ? (trueLabel || 'AN') : (falseLabel || 'AUS'))
-                  : val != null ? `${String(val)}${entry.unit ? '\u202f' + entry.unit : ''}` : '–';
-              const threshColor = !switchActive && !roleDisplay ? getThresholdColor(val, entry.colorThresholds ?? globalThresholds) : null;
-              const entryActiveColor   = entry.activeColor   || globalActiveColor;
-              const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
-              const eOn = isActive(val);
-              const stateBg = eOn ? (entry.activeBg || globalActiveBg) : (entry.inactiveBg || globalInactiveBg);
-              const pillColor = threshColor ?? (roleDisplay ? roleDisplay.color : (switchActive ? entryActiveColor : (hasLabels ? entryInactiveColor : null)));
-              const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
-              const clickable = writable && !roleDisplay && !forceValue && (forceSwitch || isBoolLike);
-
-              const entryIconSize = entry.iconSize ?? 11;
-              const entryFontSize = entry.fontSize;
-              const lcTs = entry.showLastChange ? (states[entry.id]?.lc || states[entry.id]?.ts || 0) : 0;
-              const lcText = lcTs > 0 ? formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs) : '';
-              return (
-                <button key={entry.id}
-                  onClick={() => {
-                    if (!clickable) return;
-                    if (forceSwitch) {
-                      if (isBool) setState(entry.id, !truthy);
-                      else if (typeof val === 'number') setState(entry.id, truthy ? 0 : 1);
-                      else setState(entry.id, !truthy);
-                    } else if (isBool) setState(entry.id, !on);
-                    else if (isBoolLike) setState(entry.id, on ? 0 : 1);
-                  }}
-                  title={lcText || undefined}
-                  className={entryFontSize ? 'flex items-center gap-1.5 px-2.5 py-1 rounded-full font-medium transition-colors hover:opacity-80' : 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors hover:opacity-80'}
-                  style={{
-                    background: stateBg ?? (pillColor ? `color-mix(in srgb, ${pillColor} 12%, transparent)` : 'var(--app-bg)'),
-                    color: pillColor ?? 'var(--text-secondary)',
-                    border: `1px solid ${stateBg ? 'transparent' : (pillColor ? `color-mix(in srgb, ${pillColor} 34%, transparent)` : 'var(--widget-border)')}`,
-                    cursor: clickable ? 'pointer' : 'default',
-                    fontSize: entryFontSize ?? undefined,
-                  }}>
-                  {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0 opacity-70" />}
-                  <span className="opacity-70 truncate" style={{ maxWidth: 80 }}>{label}</span>
-                  <span className="font-semibold tabular-nums" style={{ color: forceSwitch || isBoolLike || roleDisplay ? 'inherit' : 'var(--text-primary)' }}>
-                    {valueStr}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-        {lcOverlay}
-      </div>
-    );
-  }
-
-  // ── STANDARD (default) — full-width rows ───────────────────────────────────
-  return (
-    <div className="relative flex flex-col h-full">
-      {header}
-      {empty}
-      {visibleEntries.length > 0 && (
-        <div className="aura-scroll flex-1 overflow-y-auto min-h-0">
-          {visibleEntries.map(entry => {
-            const val   = states[entry.id]?.val ?? null;
-            const label = getLabel(entry);
-            const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
-            const eOn = isActive(val);
-            const entryActiveColor   = entry.activeColor   || globalActiveColor;
-            const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
-            const stateBg = eOn ? (entry.activeBg || globalActiveBg) : (entry.inactiveBg || globalInactiveBg);
-
-            const entryIconSize = entry.iconSize ?? 13;
-            const entryFontSize = entry.fontSize;
-            const lcTs = entry.showLastChange ? (states[entry.id]?.lc || states[entry.id]?.ts || 0) : 0;
-            return (
-              <div key={entry.id}
-                className={`flex gap-2 px-3 py-2 ${wrap ? 'items-start' : 'items-center'}`}
-                style={{ background: stateBg, borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined }}>
-                {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0 mt-0.5" style={{ color: 'var(--text-secondary)' }} />}
-                <div className="flex-1 min-w-0" style={labelContainerStyle}>
-                  <div className={`${labelWrapCls}${entryFontSize ? '' : ' text-xs'}`}
-                    style={{ color: 'var(--text-primary)', fontSize: entryFontSize ?? undefined }}>
-                    {label}
-                  </div>
-                  {opts.showRoom && (resolvedRooms[entry.id]?.join(', ') || null) && (
-                    <div className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
-                      {resolvedRooms[entry.id].join(', ')}
+                {!opts.hideFilterButton && (
+                    <div className="relative shrink-0">
+                        <button
+                            onClick={() => setShowFilter((v) => !v)}
+                            className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] hover:opacity-80"
+                            style={{
+                                background:
+                                    valueFilter !== 'all'
+                                        ? 'color-mix(in srgb, var(--accent) 15%, transparent)'
+                                        : 'transparent',
+                                color: valueFilter !== 'all' ? 'var(--accent)' : 'var(--text-secondary)',
+                                border: `1px solid ${valueFilter !== 'all' ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'transparent'}`,
+                            }}
+                            title="Filter"
+                        >
+                            <Filter size={10} />
+                            {valueFilter !== 'all' && <span>{filterLabels[valueFilter]}</span>}
+                        </button>
+                        {showFilter && (
+                            <>
+                                <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
+                                <div
+                                    className="absolute right-0 top-6 rounded-lg shadow-xl z-20 overflow-hidden min-w-[110px]"
+                                    style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+                                >
+                                    {(Object.keys(filterLabels) as FilterMode[]).map((mode) => (
+                                        <button
+                                            key={mode}
+                                            onClick={() => {
+                                                saveOpts({ valueFilter: mode });
+                                                setShowFilter(false);
+                                            }}
+                                            className="w-full px-3 py-2 text-xs text-left hover:opacity-80"
+                                            style={{
+                                                background:
+                                                    valueFilter === mode
+                                                        ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
+                                                        : 'transparent',
+                                                color: valueFilter === mode ? 'var(--accent)' : 'var(--text-primary)',
+                                            }}
+                                        >
+                                            {filterLabels[mode]}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
                     </div>
-                  )}
-                  {opts.showId && (
-                    <div className="text-[9px] truncate font-mono" style={{ color: 'var(--text-secondary)' }}>
-                      {entry.id}
-                    </div>
-                  )}
-                  {lcTs > 0 && (
-                    <div className="aura-last-change text-[9px] truncate" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                      {formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, lcTs)}
-                    </div>
-                  )}
-                </div>
-                <EntryValue entry={entry} val={val} writable={entry.writable !== false} setState={setState} globalThresholds={globalThresholds} decimals={entry.decimals ?? defaultDecimals} activeColor={entryActiveColor} inactiveColor={entryInactiveColor} trueText={opts.trueText} falseText={opts.falseText} wrap={wrap} valueMaxPct={valueMaxPct} />
-              </div>
-            );
-          })}
+                )}
+            </div>
+        ) : null;
+
+    const empty = (editMode ? entries.length === 0 : visibleEntries.length === 0) && (
+        <div className="flex-1 flex items-center justify-center p-4">
+            <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
+                {entries.length === 0
+                    ? `Noch keine Datenpunkte.${editMode ? ' Bearbeiten → Datenpunkt hinzufügen.' : ''}`
+                    : valueFilter === 'active'
+                      ? 'Alle Datenpunkte inaktiv.'
+                      : 'Alle Datenpunkte aktiv.'}
+            </p>
         </div>
-      )}
-      {lcOverlay}
-    </div>
-  );
+    );
+
+    // ── KACHELN (card) ─────────────────────────────────────────────────────────
+    if (layout === 'card') {
+        return (
+            <div className="aura-widget-row relative flex flex-col h-full">
+                {header}
+                {empty}
+                {visibleEntries.length > 0 && (
+                    <div
+                        className="aura-scroll flex-1 overflow-auto min-h-0 p-2"
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))',
+                            gap: 6,
+                            alignContent: 'start',
+                        }}
+                    >
+                        {visibleEntries.map((entry) => {
+                            const val = states[entry.id]?.val ?? null;
+                            const label = getLabel(entry);
+                            const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
+                            const eOn = isActive(val);
+                            const entryActiveColor = entry.activeColor || globalActiveColor;
+                            const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
+                            const stateBg =
+                                (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg) ||
+                                'var(--app-bg)';
+                            const entryIconSize = entry.iconSize ?? 11;
+                            const entryFontSize = entry.fontSize;
+                            const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
+                            return (
+                                <div
+                                    key={entry.id}
+                                    className="rounded-xl p-2.5 flex flex-col gap-2 relative"
+                                    style={{ background: stateBg, border: '1px solid var(--widget-border)' }}
+                                >
+                                    <span
+                                        className={`flex items-center gap-1 leading-tight ${labelWrapCls}${entryFontSize ? '' : ' text-[10px]'}`}
+                                        style={{ color: 'var(--text-secondary)', fontSize: entryFontSize ?? undefined }}
+                                    >
+                                        {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0" />}
+                                        {label}
+                                    </span>
+                                    <div className="flex items-center justify-center">
+                                        <EntryValue
+                                            entry={entry}
+                                            val={val}
+                                            writable={entry.writable !== false}
+                                            setState={setState}
+                                            globalThresholds={globalThresholds}
+                                            decimals={entry.decimals ?? defaultDecimals}
+                                            activeColor={entryActiveColor}
+                                            inactiveColor={entryInactiveColor}
+                                            trueText={opts.trueText}
+                                            falseText={opts.falseText}
+                                            wrap={wrap}
+                                            valueMaxPct={valueMaxPct}
+                                        />
+                                    </div>
+                                    {lcTs > 0 && (
+                                        <div
+                                            className="aura-last-change text-[9px] truncate text-center"
+                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                        >
+                                            {formatLastChange(
+                                                t as (k: string, v?: Record<string, string | number>) => string,
+                                                lcTs,
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+                {lcOverlay}
+            </div>
+        );
+    }
+
+    // ── KOMPAKT (compact) — 2-column dense list ────────────────────────────────
+    if (layout === 'compact') {
+        return (
+            <div className="aura-widget-row relative flex flex-col h-full">
+                {header}
+                {empty}
+                {visibleEntries.length > 0 && (
+                    <div
+                        className="aura-scroll flex-1 overflow-auto min-h-0"
+                        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignContent: 'start' }}
+                    >
+                        {visibleEntries.map((entry, i) => {
+                            const val = states[entry.id]?.val ?? null;
+                            const label = getLabel(entry);
+                            const isRight = i % 2 === 1;
+                            const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
+                            const eOn = isActive(val);
+                            const entryActiveColor = entry.activeColor || globalActiveColor;
+                            const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
+                            const stateBg = eOn
+                                ? entry.activeBg || globalActiveBg
+                                : entry.inactiveBg || globalInactiveBg;
+                            const entryIconSize = entry.iconSize ?? 11;
+                            const entryFontSize = entry.fontSize;
+                            const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
+                            return (
+                                <div
+                                    key={entry.id}
+                                    className="flex items-center gap-1.5 px-2 py-1.5"
+                                    style={{
+                                        background: stateBg,
+                                        borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
+                                        borderLeft:
+                                            showDividers && isRight ? '1px solid var(--widget-border)' : undefined,
+                                    }}
+                                >
+                                    {EntryIcon && (
+                                        <EntryIcon
+                                            size={entryIconSize}
+                                            className="shrink-0"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        />
+                                    )}
+                                    <div className="flex-1 min-w-0" style={labelContainerStyle}>
+                                        <span
+                                            className={`block ${labelWrapCls}${entryFontSize ? '' : ' text-[11px]'}`}
+                                            style={{
+                                                color: 'var(--text-primary)',
+                                                fontSize: entryFontSize ?? undefined,
+                                            }}
+                                        >
+                                            {label}
+                                        </span>
+                                        {lcTs > 0 && (
+                                            <span
+                                                className="aura-last-change block text-[8px] truncate"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                            >
+                                                {formatLastChange(
+                                                    t as (k: string, v?: Record<string, string | number>) => string,
+                                                    lcTs,
+                                                )}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <EntryValue
+                                        entry={entry}
+                                        val={val}
+                                        writable={entry.writable !== false}
+                                        setState={setState}
+                                        globalThresholds={globalThresholds}
+                                        decimals={entry.decimals ?? defaultDecimals}
+                                        activeColor={entryActiveColor}
+                                        inactiveColor={entryInactiveColor}
+                                        trueText={opts.trueText}
+                                        falseText={opts.falseText}
+                                        wrap={wrap}
+                                        valueMaxPct={valueMaxPct}
+                                    />
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+                {lcOverlay}
+            </div>
+        );
+    }
+
+    // ── BADGES (minimal) — inline pill per entry ───────────────────────────────
+    if (layout === 'minimal') {
+        return (
+            <div className="aura-widget-row relative flex flex-col h-full">
+                {header}
+                {empty}
+                {visibleEntries.length > 0 && (
+                    <div className="aura-scroll flex-1 overflow-auto min-h-0 p-2 flex flex-wrap gap-1.5 content-start">
+                        {visibleEntries.map((entry) => {
+                            const val = states[entry.id]?.val ?? null;
+                            const label = getLabel(entry);
+                            const writable = entry.writable !== false;
+                            const trueLabel = entry.trueLabel ?? opts.trueText;
+                            const falseLabel = entry.falseLabel ?? opts.falseText;
+                            const hasLabels = !!(trueLabel || falseLabel);
+                            const isBool = typeof val === 'boolean';
+                            const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
+                            const on = val === true || val === 1;
+                            const displayType = entry.displayType ?? 'auto';
+                            const forceSwitch = displayType === 'switch';
+                            const forceValue = displayType === 'value' || displayType === 'slider';
+                            const useRoleDisplay = !forceSwitch && !forceValue && isBoolLike && !hasLabels;
+                            const roleDisplay = useRoleDisplay ? getRoleDisplay(entry.role, val) : null;
+                            const truthy = on || (typeof val === 'number' && val > 0);
+                            const switchActive = forceSwitch ? truthy : isBoolLike && on;
+                            const valueStr = roleDisplay
+                                ? roleDisplay.label
+                                : forceSwitch || (isBoolLike && hasLabels)
+                                  ? switchActive
+                                      ? trueLabel || 'AN'
+                                      : falseLabel || 'AUS'
+                                  : val != null
+                                    ? `${String(val)}${entry.unit ? `\u202f${entry.unit}` : ''}`
+                                    : '–';
+                            const threshColor =
+                                !switchActive && !roleDisplay
+                                    ? getThresholdColor(val, entry.colorThresholds ?? globalThresholds)
+                                    : null;
+                            const entryActiveColor = entry.activeColor || globalActiveColor;
+                            const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
+                            const eOn = isActive(val);
+                            const stateBg = eOn
+                                ? entry.activeBg || globalActiveBg
+                                : entry.inactiveBg || globalInactiveBg;
+                            const pillColor =
+                                threshColor ??
+                                (roleDisplay
+                                    ? roleDisplay.color
+                                    : switchActive
+                                      ? entryActiveColor
+                                      : hasLabels
+                                        ? entryInactiveColor
+                                        : null);
+                            const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
+                            const clickable = writable && !roleDisplay && !forceValue && (forceSwitch || isBoolLike);
+
+                            const entryIconSize = entry.iconSize ?? 11;
+                            const entryFontSize = entry.fontSize;
+                            const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
+                            const lcText =
+                                lcTs > 0
+                                    ? formatLastChange(
+                                          t as (k: string, v?: Record<string, string | number>) => string,
+                                          lcTs,
+                                      )
+                                    : '';
+                            return (
+                                <button
+                                    key={entry.id}
+                                    onClick={() => {
+                                        if (!clickable) return;
+                                        if (forceSwitch) {
+                                            if (isBool) setState(entry.id, !truthy);
+                                            else if (typeof val === 'number') setState(entry.id, truthy ? 0 : 1);
+                                            else setState(entry.id, !truthy);
+                                        } else if (isBool) setState(entry.id, !on);
+                                        else if (isBoolLike) setState(entry.id, on ? 0 : 1);
+                                    }}
+                                    title={lcText || undefined}
+                                    className={
+                                        entryFontSize
+                                            ? 'flex items-center gap-1.5 px-2.5 py-1 rounded-full font-medium transition-colors hover:opacity-80'
+                                            : 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors hover:opacity-80'
+                                    }
+                                    style={{
+                                        background:
+                                            stateBg ??
+                                            (pillColor
+                                                ? `color-mix(in srgb, ${pillColor} 12%, transparent)`
+                                                : 'var(--app-bg)'),
+                                        color: pillColor ?? 'var(--text-secondary)',
+                                        border: `1px solid ${stateBg ? 'transparent' : pillColor ? `color-mix(in srgb, ${pillColor} 34%, transparent)` : 'var(--widget-border)'}`,
+                                        cursor: clickable ? 'pointer' : 'default',
+                                        fontSize: entryFontSize ?? undefined,
+                                    }}
+                                >
+                                    {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0 opacity-70" />}
+                                    <span className="opacity-70 truncate" style={{ maxWidth: 80 }}>
+                                        {label}
+                                    </span>
+                                    <span
+                                        className="font-semibold tabular-nums"
+                                        style={{
+                                            color:
+                                                forceSwitch || isBoolLike || roleDisplay
+                                                    ? 'inherit'
+                                                    : 'var(--text-primary)',
+                                        }}
+                                    >
+                                        {valueStr}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+                {lcOverlay}
+            </div>
+        );
+    }
+
+    // ── STANDARD (default) — full-width rows ───────────────────────────────────
+    return (
+        <div className="relative flex flex-col h-full">
+            {header}
+            {empty}
+            {visibleEntries.length > 0 && (
+                <div className="aura-scroll flex-1 overflow-y-auto min-h-0">
+                    {visibleEntries.map((entry) => {
+                        const val = states[entry.id]?.val ?? null;
+                        const label = getLabel(entry);
+                        const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
+                        const eOn = isActive(val);
+                        const entryActiveColor = entry.activeColor || globalActiveColor;
+                        const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
+                        const stateBg = eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg;
+
+                        const entryIconSize = entry.iconSize ?? 13;
+                        const entryFontSize = entry.fontSize;
+                        const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
+                        return (
+                            <div
+                                key={entry.id}
+                                className={`flex gap-2 px-3 py-2 ${wrap ? 'items-start' : 'items-center'}`}
+                                style={{
+                                    background: stateBg,
+                                    borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
+                                }}
+                            >
+                                {EntryIcon && (
+                                    <EntryIcon
+                                        size={entryIconSize}
+                                        className="shrink-0 mt-0.5"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    />
+                                )}
+                                <div className="flex-1 min-w-0" style={labelContainerStyle}>
+                                    <div
+                                        className={`${labelWrapCls}${entryFontSize ? '' : ' text-xs'}`}
+                                        style={{ color: 'var(--text-primary)', fontSize: entryFontSize ?? undefined }}
+                                    >
+                                        {label}
+                                    </div>
+                                    {opts.showRoom && (resolvedRooms[entry.id]?.join(', ') || null) && (
+                                        <div
+                                            className="text-[10px] truncate"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            {resolvedRooms[entry.id].join(', ')}
+                                        </div>
+                                    )}
+                                    {opts.showId && (
+                                        <div
+                                            className="text-[9px] truncate font-mono"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            {entry.id}
+                                        </div>
+                                    )}
+                                    {lcTs > 0 && (
+                                        <div
+                                            className="aura-last-change text-[9px] truncate"
+                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                        >
+                                            {formatLastChange(
+                                                t as (k: string, v?: Record<string, string | number>) => string,
+                                                lcTs,
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                <EntryValue
+                                    entry={entry}
+                                    val={val}
+                                    writable={entry.writable !== false}
+                                    setState={setState}
+                                    globalThresholds={globalThresholds}
+                                    decimals={entry.decimals ?? defaultDecimals}
+                                    activeColor={entryActiveColor}
+                                    inactiveColor={entryInactiveColor}
+                                    trueText={opts.trueText}
+                                    falseText={opts.falseText}
+                                    wrap={wrap}
+                                    valueMaxPct={valueMaxPct}
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+            {lcOverlay}
+        </div>
+    );
 }

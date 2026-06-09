@@ -10,11 +10,11 @@ import { NS } from './namespace';
 const NAMESPACE = `${NS}.lists`;
 
 export function listChannelId(widgetId: string): string {
-  return `${NAMESPACE}.${widgetId}`;
+    return `${NAMESPACE}.${widgetId}`;
 }
 
 export function listCountStateId(widgetId: string): string {
-  return `${NAMESPACE}.${widgetId}.count`;
+    return `${NAMESPACE}.${widgetId}.count`;
 }
 
 // Track which widget IDs have already had their objects created in this session,
@@ -23,27 +23,34 @@ const ensuredObjects = new Set<string>();
 
 /** Create channel + count state objects if they don't exist, then write the value. */
 export function publishListCount(widgetId: string, title: string, count: number): void {
-  if (!ensuredObjects.has(widgetId)) {
-    setObjectDirect(listChannelId(widgetId), {
-      type: 'channel',
-      common: { name: title || 'List widget' },
-      native: {},
-    });
-    setObjectDirect(listCountStateId(widgetId), {
-      type: 'state',
-      // role 'level' (not 'value') because the frontend writes this via socket
-      // with ack=false; 'value' requires write:false in the ioBroker role catalogue.
-      common: { name: `${title || 'List widget'} — count`, type: 'number', role: 'level', read: true, write: true, def: 0 },
-      native: {},
-    });
-    ensuredObjects.add(widgetId);
-  }
-  setStateDirect(listCountStateId(widgetId), count, false);
+    if (!ensuredObjects.has(widgetId)) {
+        setObjectDirect(listChannelId(widgetId), {
+            type: 'channel',
+            common: { name: title || 'List widget' },
+            native: {},
+        });
+        setObjectDirect(listCountStateId(widgetId), {
+            type: 'state',
+            // role 'level' (not 'value') because the frontend writes this via socket
+            // with ack=false; 'value' requires write:false in the ioBroker role catalogue.
+            common: {
+                name: `${title || 'List widget'} — count`,
+                type: 'number',
+                role: 'level',
+                read: true,
+                write: true,
+                def: 0,
+            },
+            native: {},
+        });
+        ensuredObjects.add(widgetId);
+    }
+    setStateDirect(listCountStateId(widgetId), count, false);
 }
 
 /** Remove the widget's state + channel objects. Safe to call even if they don't exist. */
 export async function unpublishList(widgetId: string): Promise<void> {
-  ensuredObjects.delete(widgetId);
-  await deleteObjectDirect(listCountStateId(widgetId));
-  await deleteObjectDirect(listChannelId(widgetId));
+    ensuredObjects.delete(widgetId);
+    await deleteObjectDirect(listCountStateId(widgetId));
+    await deleteObjectDirect(listChannelId(widgetId));
 }

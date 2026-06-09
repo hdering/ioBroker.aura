@@ -3,150 +3,166 @@ import { useIoBroker, getObjectViewDirect } from './useIoBroker';
 import type { ioBrokerObject, WidgetType } from '../types';
 
 export interface DeviceState {
-  id: string;
-  obj: ioBrokerObject;
-  suggestedWidget: WidgetType;
-  unit?: string;
+    id: string;
+    obj: ioBrokerObject;
+    suggestedWidget: WidgetType;
+    unit?: string;
 }
 
 export interface Device {
-  id: string;
-  name: string;
-  adapter: string;
-  rooms: string[];
-  funcs: string[];
-  roles: string[];
-  states: DeviceState[];
+    id: string;
+    name: string;
+    adapter: string;
+    rooms: string[];
+    funcs: string[];
+    roles: string[];
+    states: DeviceState[];
 }
 
 // Mappt ioBroker-Rollen auf Widget-Typen
 function roleToWidget(role?: string, valueType?: string): WidgetType {
-  if (!role) return valueType === 'boolean' ? 'switch' : 'value';
-  const r = role.toLowerCase();
-  if (r === 'switch' || r === 'button' || r.startsWith('switch.') || r === 'indicator') return 'switch';
-  if (r.includes('dimmer') || r.includes('brightness') || r === 'level' || r.startsWith('level.')) return 'dimmer';
-  if (r.includes('blind') || r.includes('shutter') || r === 'level.blind' || r === 'blind' || r.includes('cover')) return 'shutter';
-  if (r.includes('temperature') && r.includes('level')) return 'thermostat';
-  if (r.includes('temperature')) return 'value';
-  if (valueType === 'boolean') return 'switch';
-  if (valueType === 'number') return 'value';
-  return 'value';
+    if (!role) return valueType === 'boolean' ? 'switch' : 'value';
+    const r = role.toLowerCase();
+    if (r === 'switch' || r === 'button' || r.startsWith('switch.') || r === 'indicator') return 'switch';
+    if (r.includes('dimmer') || r.includes('brightness') || r === 'level' || r.startsWith('level.')) return 'dimmer';
+    if (r.includes('blind') || r.includes('shutter') || r === 'level.blind' || r === 'blind' || r.includes('cover'))
+        return 'shutter';
+    if (r.includes('temperature') && r.includes('level')) return 'thermostat';
+    if (r.includes('temperature')) return 'value';
+    if (valueType === 'boolean') return 'switch';
+    if (valueType === 'number') return 'value';
+    return 'value';
 }
 
 function getObjectName(obj: ioBrokerObject): string {
-  const n = obj.common.name;
-  if (!n) return obj._id.split('.').pop() ?? obj._id;
-  if (typeof n === 'string') return n;
-  return n['de'] ?? n['en'] ?? Object.values(n)[0] ?? obj._id;
+    const n = obj.common.name;
+    if (!n) return obj._id.split('.').pop() ?? obj._id;
+    if (typeof n === 'string') return n;
+    return n['de'] ?? n['en'] ?? Object.values(n)[0] ?? obj._id;
 }
 
 // Extrahiert den Adapter-Präfix: "hm-rpc.0.ABC" → "hm-rpc.0"
 function adapterPrefix(id: string): string {
-  const parts = id.split('.');
-  return parts.length >= 2 ? `${parts[0]}.${parts[1]}` : parts[0];
+    const parts = id.split('.');
+    return parts.length >= 2 ? `${parts[0]}.${parts[1]}` : parts[0];
 }
 
 export function useIoBrokerDevices() {
-  const { getObjectView } = useIoBroker();
-  const [devices, setDevices] = useState<Device[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+    const { getObjectView } = useIoBroker();
+    const [devices, setDevices] = useState<Device[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [loaded, setLoaded] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [devResult, chResult, stResult, enumResult] = await Promise.all([
-        getObjectView('device'),
-        getObjectView('channel'),
-        getObjectView('state'),
-        getObjectViewDirect('enum', 'enum.', 'enum.\u9999'),
-      ]);
+    const load = useCallback(async () => {
+        setLoading(true);
+        try {
+            const [devResult, chResult, stResult, enumResult] = await Promise.all([
+                getObjectView('device'),
+                getObjectView('channel'),
+                getObjectView('state'),
+                getObjectViewDirect('enum', 'enum.', 'enum.\u9999'),
+            ]);
 
-      // Build memberId → { rooms, funcs } map from enums
-      const enumMap = new Map<string, { rooms: string[]; funcs: string[] }>();
-      for (const { value: obj } of enumResult.rows) {
-        const members = (obj?.common as Record<string, unknown> | undefined)?.members as string[] | undefined;
-        if (!members?.length) continue;
-        const isRoom = obj._id.startsWith('enum.rooms.');
-        const isFunc = obj._id.startsWith('enum.functions.');
-        if (!isRoom && !isFunc) continue;
-        const label = getObjectName(obj);
-        for (const memberId of members) {
-          if (!enumMap.has(memberId)) enumMap.set(memberId, { rooms: [], funcs: [] });
-          const e = enumMap.get(memberId)!;
-          if (isRoom) e.rooms.push(label);
-          else e.funcs.push(label);
+            // Build memberId → { rooms, funcs } map from enums
+            const enumMap = new Map<string, { rooms: string[]; funcs: string[] }>();
+            for (const { value: obj } of enumResult.rows) {
+                const members = (obj?.common as Record<string, unknown> | undefined)?.members as string[] | undefined;
+                if (!members?.length) continue;
+                const isRoom = obj._id.startsWith('enum.rooms.');
+                const isFunc = obj._id.startsWith('enum.functions.');
+                if (!isRoom && !isFunc) continue;
+                const label = getObjectName(obj);
+                for (const memberId of members) {
+                    if (!enumMap.has(memberId)) enumMap.set(memberId, { rooms: [], funcs: [] });
+                    const e = enumMap.get(memberId)!;
+                    if (isRoom) e.rooms.push(label);
+                    else e.funcs.push(label);
+                }
+            }
+
+            // States nach Parent-ID gruppieren
+            const statesByParent = new Map<string, DeviceState[]>();
+            for (const { value: obj } of stResult.rows) {
+                if (!obj) continue;
+                const parts = obj._id.split('.');
+                const parent = parts.slice(0, -1).join('.');
+                if (!statesByParent.has(parent)) statesByParent.set(parent, []);
+                statesByParent.get(parent)!.push({
+                    id: obj._id,
+                    obj,
+                    suggestedWidget: roleToWidget(obj.common.role, obj.common.type),
+                    unit: obj.common.unit,
+                });
+            }
+
+            function buildDeviceEnumInfo(states: DeviceState[]): { rooms: string[]; funcs: string[]; roles: string[] } {
+                const rooms = new Set<string>();
+                const funcs = new Set<string>();
+                const roles = new Set<string>();
+                for (const state of states) {
+                    // Check state ID and all parent paths – enum members can reference
+                    // device or channel level, not only individual states.
+                    const parts = state.id.split('.');
+                    for (let i = parts.length; i >= 2; i--) {
+                        const e = enumMap.get(parts.slice(0, i).join('.'));
+                        if (e) {
+                            e.rooms.forEach((r) => rooms.add(r));
+                            e.funcs.forEach((f) => funcs.add(f));
+                        }
+                    }
+                    if (state.obj.common.role) roles.add(state.obj.common.role);
+                }
+                return { rooms: [...rooms].sort(), funcs: [...funcs].sort(), roles: [...roles].sort() };
+            }
+
+            const result: Device[] = [];
+
+            // Geräte (device-Objekte)
+            for (const { value: obj } of devResult.rows) {
+                if (!obj) continue;
+                const states: DeviceState[] = [];
+                // Direkte States + States aus untergeordneten Kanälen sammeln
+                for (const [parent, st] of statesByParent.entries()) {
+                    if (parent === obj._id || parent.startsWith(`${obj._id}.`)) {
+                        states.push(...st);
+                    }
+                }
+                if (states.length === 0) continue;
+                result.push({
+                    id: obj._id,
+                    name: getObjectName(obj),
+                    adapter: adapterPrefix(obj._id),
+                    ...buildDeviceEnumInfo(states),
+                    states,
+                });
+            }
+
+            // Kanäle ohne übergeordnetes Gerät
+            const deviceIds = new Set(result.map((d) => d.id));
+            for (const { value: obj } of chResult.rows) {
+                if (!obj) continue;
+                const parts = obj._id.split('.');
+                const parentDevice = parts.slice(0, -1).join('.');
+                if (deviceIds.has(parentDevice)) continue; // schon über Gerät abgedeckt
+                const states = statesByParent.get(obj._id) ?? [];
+                if (states.length === 0) continue;
+                result.push({
+                    id: obj._id,
+                    name: getObjectName(obj),
+                    adapter: adapterPrefix(obj._id),
+                    ...buildDeviceEnumInfo(states),
+                    states,
+                });
+            }
+
+            // Nach Adapter + Name sortieren
+            result.sort((a, b) => a.adapter.localeCompare(b.adapter) || a.name.localeCompare(b.name));
+            setDevices(result);
+            setLoaded(true);
+        } finally {
+            setLoading(false);
         }
-      }
+    }, [getObjectView]);
 
-      // States nach Parent-ID gruppieren
-      const statesByParent = new Map<string, DeviceState[]>();
-      for (const { value: obj } of stResult.rows) {
-        if (!obj) continue;
-        const parts = obj._id.split('.');
-        const parent = parts.slice(0, -1).join('.');
-        if (!statesByParent.has(parent)) statesByParent.set(parent, []);
-        statesByParent.get(parent)!.push({
-          id: obj._id,
-          obj,
-          suggestedWidget: roleToWidget(obj.common.role, obj.common.type),
-          unit: obj.common.unit,
-        });
-      }
-
-      function buildDeviceEnumInfo(states: DeviceState[]): { rooms: string[]; funcs: string[]; roles: string[] } {
-        const rooms = new Set<string>();
-        const funcs = new Set<string>();
-        const roles = new Set<string>();
-        for (const state of states) {
-          // Check state ID and all parent paths – enum members can reference
-          // device or channel level, not only individual states.
-          const parts = state.id.split('.');
-          for (let i = parts.length; i >= 2; i--) {
-            const e = enumMap.get(parts.slice(0, i).join('.'));
-            if (e) { e.rooms.forEach((r) => rooms.add(r)); e.funcs.forEach((f) => funcs.add(f)); }
-          }
-          if (state.obj.common.role) roles.add(state.obj.common.role);
-        }
-        return { rooms: [...rooms].sort(), funcs: [...funcs].sort(), roles: [...roles].sort() };
-      }
-
-      const result: Device[] = [];
-
-      // Geräte (device-Objekte)
-      for (const { value: obj } of devResult.rows) {
-        if (!obj) continue;
-        const states: DeviceState[] = [];
-        // Direkte States + States aus untergeordneten Kanälen sammeln
-        for (const [parent, st] of statesByParent.entries()) {
-          if (parent === obj._id || parent.startsWith(obj._id + '.')) {
-            states.push(...st);
-          }
-        }
-        if (states.length === 0) continue;
-        result.push({ id: obj._id, name: getObjectName(obj), adapter: adapterPrefix(obj._id), ...buildDeviceEnumInfo(states), states });
-      }
-
-      // Kanäle ohne übergeordnetes Gerät
-      const deviceIds = new Set(result.map((d) => d.id));
-      for (const { value: obj } of chResult.rows) {
-        if (!obj) continue;
-        const parts = obj._id.split('.');
-        const parentDevice = parts.slice(0, -1).join('.');
-        if (deviceIds.has(parentDevice)) continue; // schon über Gerät abgedeckt
-        const states = statesByParent.get(obj._id) ?? [];
-        if (states.length === 0) continue;
-        result.push({ id: obj._id, name: getObjectName(obj), adapter: adapterPrefix(obj._id), ...buildDeviceEnumInfo(states), states });
-      }
-
-      // Nach Adapter + Name sortieren
-      result.sort((a, b) => a.adapter.localeCompare(b.adapter) || a.name.localeCompare(b.name));
-      setDevices(result);
-      setLoaded(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [getObjectView]);
-
-  return { devices, loading, loaded, load };
+    return { devices, loading, loaded, load };
 }

@@ -44,58 +44,60 @@ import { ChipsWidget } from './ChipsWidget';
 // Chart widgets are heavy (recharts ~380 KB, echarts ~1.1 MB) — lazy-loaded so
 // dashboards without charts skip the cost. Consumers must render these inside
 // a <Suspense> boundary.
-const ChartWidget         = lazyWithReload(() => import('./ChartWidget').then((m)         => ({ default: m.ChartWidget })));
-const ClimateWidget       = lazyWithReload(() => import('./ClimateWidget').then((m)       => ({ default: m.ClimateWidget })));
-const EChartWidget        = lazyWithReload(() => import('./EChartWidget').then((m)        => ({ default: m.EChartWidget })));
-const EChartsPresetWidget = lazyWithReload(() => import('./EChartsPresetWidget').then((m) => ({ default: m.EChartsPresetWidget })));
+const ChartWidget = lazyWithReload(() => import('./ChartWidget').then((m) => ({ default: m.ChartWidget })));
+const ClimateWidget = lazyWithReload(() => import('./ClimateWidget').then((m) => ({ default: m.ClimateWidget })));
+const EChartWidget = lazyWithReload(() => import('./EChartWidget').then((m) => ({ default: m.EChartWidget })));
+const EChartsPresetWidget = lazyWithReload(() =>
+    import('./EChartsPresetWidget').then((m) => ({ default: m.EChartsPresetWidget })),
+);
 
 export function getWidgetMap() {
-  return {
-    switch:        SwitchWidget,
-    value:         ValueWidget,
-    dimmer:        DimmerWidget,
-    thermostat:    ThermostatWidget,
-    chart:         ChartWidget,
-    list:          ListWidget,
-    clock:         ClockWidget,
-    calendar:      CalendarWidget,
-    header:        HeaderWidget,
-    group:         GroupWidget,
-    echart:        EChartWidget,
-    evcc:          EvccWidget,
-    weather:       WeatherWidget,
-    gauge:         GaugeWidget,
-    camera:        CameraWidget,
-    autolist:      AutoListWidget,
-    image:         ImageWidget,
-    iframe:        IframeWidget,
-    fill:          FillWidget,
-    trash:         TrashWidget,
-    trashSchedule: TrashScheduleWidget,
-    shutter:       ShutterWidget,
-    jsontable:     JsonTableWidget,
-    html:          HtmlWidget,
-    windowcontact: WindowContactWidget,
-    binarysensor:  BinarySensorWidget,
-    stateimage:    StateImageWidget,
-    echartsPreset: EChartsPresetWidget,
-    datepicker:    DatePickerWidget,
-    mediaplayer:   MediaplayerWidget,
-    slider:        SliderWidget,
-    climate:       ClimateWidget,
-    universal:     UniversalWidget,
-    enum:          EnumWidget,
-    light:         LightWidget,
-    carousel:      CarouselWidget,
-    knob:          KnobWidget,
-    timer:         TimerWidget,
-    adapterstatus: AdapterStatusWidget,
-    scriptstatus:  ScriptStatusWidget,
-    adapterlogs:   AdapterLogsWidget,
-    input:         InputWidget,
-    alarm:         AlarmWidget,
-    chips:         ChipsWidget,
-  } as const;
+    return {
+        switch: SwitchWidget,
+        value: ValueWidget,
+        dimmer: DimmerWidget,
+        thermostat: ThermostatWidget,
+        chart: ChartWidget,
+        list: ListWidget,
+        clock: ClockWidget,
+        calendar: CalendarWidget,
+        header: HeaderWidget,
+        group: GroupWidget,
+        echart: EChartWidget,
+        evcc: EvccWidget,
+        weather: WeatherWidget,
+        gauge: GaugeWidget,
+        camera: CameraWidget,
+        autolist: AutoListWidget,
+        image: ImageWidget,
+        iframe: IframeWidget,
+        fill: FillWidget,
+        trash: TrashWidget,
+        trashSchedule: TrashScheduleWidget,
+        shutter: ShutterWidget,
+        jsontable: JsonTableWidget,
+        html: HtmlWidget,
+        windowcontact: WindowContactWidget,
+        binarysensor: BinarySensorWidget,
+        stateimage: StateImageWidget,
+        echartsPreset: EChartsPresetWidget,
+        datepicker: DatePickerWidget,
+        mediaplayer: MediaplayerWidget,
+        slider: SliderWidget,
+        climate: ClimateWidget,
+        universal: UniversalWidget,
+        enum: EnumWidget,
+        light: LightWidget,
+        carousel: CarouselWidget,
+        knob: KnobWidget,
+        timer: TimerWidget,
+        adapterstatus: AdapterStatusWidget,
+        scriptstatus: ScriptStatusWidget,
+        adapterlogs: AdapterLogsWidget,
+        input: InputWidget,
+        alarm: AlarmWidget,
+        chips: ChipsWidget,
+    } as const;
 }
 
 export type WidgetMap = ReturnType<typeof getWidgetMap>;

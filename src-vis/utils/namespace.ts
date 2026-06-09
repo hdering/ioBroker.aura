@@ -7,10 +7,9 @@
  * by the adapter — in that mode dev-proxy still talks to the primary instance.
  */
 declare global {
-  interface Window {
-    __AURA_NAMESPACE__?: string;
-  }
+    interface Window {
+        __AURA_NAMESPACE__?: string;
+    }
 }
 
-export const NS: string =
-  (typeof window !== 'undefined' && window.__AURA_NAMESPACE__) || 'aura.0';
+export const NS: string = (typeof window !== 'undefined' && window.__AURA_NAMESPACE__) || 'aura.0';

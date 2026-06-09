@@ -17,8 +17,8 @@ const DEFAULT_VARS: Record<string, string> = { ns: NS };
  * Replaces `{key}` placeholders with values from `vars`.
  */
 function interpolate(str: string, vars?: Record<string, string | number>): string {
-  const merged = vars ? { ...DEFAULT_VARS, ...vars } : DEFAULT_VARS;
-  return str.replace(/\{(\w+)\}/g, (_, k) => String(merged[k] ?? `{${k}}`));
+    const merged = vars ? { ...DEFAULT_VARS, ...vars } : DEFAULT_VARS;
+    return str.replace(/\{(\w+)\}/g, (_, k) => String(merged[k] ?? `{${k}}`));
 }
 
 /**
@@ -28,10 +28,10 @@ function interpolate(str: string, vars?: Record<string, string | number>): strin
  * and call this function again with the updated language.
  */
 export function t(key: TranslationKey, vars?: Record<string, string | number>): string {
-  const lang = (useConfigStore.getState().frontend.language ?? 'de') as Language;
-  const dict = TRANSLATIONS[lang] ?? TRANSLATIONS.de;
-  const str = dict[key] ?? TRANSLATIONS.de[key] ?? key;
-  return interpolate(str, vars);
+    const lang = (useConfigStore.getState().frontend.language ?? 'de') as Language;
+    const dict = TRANSLATIONS[lang] ?? TRANSLATIONS.de;
+    const str = dict[key] ?? TRANSLATIONS.de[key] ?? key;
+    return interpolate(str, vars);
 }
 
 /**
@@ -40,12 +40,12 @@ export function t(key: TranslationKey, vars?: Record<string, string | number>): 
  * Returns a `t()` function bound to the current language.
  */
 export function useT(): (key: TranslationKey, vars?: Record<string, string | number>) => string {
-  const lang = useConfigStore((s) => (s.frontend.language ?? 'de') as Language);
-  return (key: TranslationKey, vars?: Record<string, string | number>): string => {
-    const dict = TRANSLATIONS[lang] ?? TRANSLATIONS.de;
-    const str = dict[key] ?? TRANSLATIONS.de[key] ?? key;
-    return interpolate(str, vars);
-  };
+    const lang = useConfigStore((s) => (s.frontend.language ?? 'de') as Language);
+    return (key: TranslationKey, vars?: Record<string, string | number>): string => {
+        const dict = TRANSLATIONS[lang] ?? TRANSLATIONS.de;
+        const str = dict[key] ?? TRANSLATIONS.de[key] ?? key;
+        return interpolate(str, vars);
+    };
 }
 
 export type { TranslationKey };

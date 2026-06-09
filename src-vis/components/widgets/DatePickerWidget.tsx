@@ -8,232 +8,325 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
 
 export type DateOutputFormat =
-  | 'timestamp_ms'
-  | 'timestamp_s'
-  | 'iso'
-  | 'date'
-  | 'datetime_local'
-  | 'de_date'
-  | 'de_datetime'
-  | 'time_hhmm'
-  | 'time_hhmmss';
+    | 'timestamp_ms'
+    | 'timestamp_s'
+    | 'iso'
+    | 'date'
+    | 'datetime_local'
+    | 'de_date'
+    | 'de_datetime'
+    | 'time_hhmm'
+    | 'time_hhmmss';
 
 export const FORMAT_LABELS: Record<DateOutputFormat, string> = {
-  timestamp_ms:   'Timestamp (ms)',
-  timestamp_s:    'Timestamp (s)',
-  iso:            'ISO 8601 (2025-01-15T13:30:00.000Z)',
-  date:           'Datum (2025-01-15)',
-  datetime_local: 'Datum+Zeit (2025-01-15T13:30)',
-  de_date:        'Datum (15.01.2025)',
-  de_datetime:    'Datum+Zeit (15.01.2025 13:30)',
-  time_hhmm:      'Uhrzeit (13:30)',
-  time_hhmmss:    'Uhrzeit (13:30:00)',
+    timestamp_ms: 'Timestamp (ms)',
+    timestamp_s: 'Timestamp (s)',
+    iso: 'ISO 8601 (2025-01-15T13:30:00.000Z)',
+    date: 'Datum (2025-01-15)',
+    datetime_local: 'Datum+Zeit (2025-01-15T13:30)',
+    de_date: 'Datum (15.01.2025)',
+    de_datetime: 'Datum+Zeit (15.01.2025 13:30)',
+    time_hhmm: 'Uhrzeit (13:30)',
+    time_hhmmss: 'Uhrzeit (13:30:00)',
 };
 
-function pad(n: number) { return String(n).padStart(2, '0'); }
+function pad(n: number) {
+    return String(n).padStart(2, '0');
+}
 
 /** Parse any supported format back to a local Date */
 export function parseValue(val: unknown): Date | null {
-  if (val == null || val === '') return null;
-  if (typeof val === 'number') {
-    const d = new Date(val > 1e10 ? val : val * 1000);
-    return isNaN(d.getTime()) ? null : d;
-  }
-  if (typeof val === 'string') {
-    // German format DD.MM.YYYY or DD.MM.YYYY HH:mm
-    const m = val.match(/^(\d{2})\.(\d{2})\.(\d{4})(?:\s+(\d{2}):(\d{2}))?$/);
-    if (m) {
-      const d = new Date(+m[3], +m[2] - 1, +m[1], m[4] ? +m[4] : 0, m[5] ? +m[5] : 0);
-      return isNaN(d.getTime()) ? null : d;
+    if (val == null || val === '') return null;
+    if (typeof val === 'number') {
+        const d = new Date(val > 1e10 ? val : val * 1000);
+        return isNaN(d.getTime()) ? null : d;
     }
-    const d = new Date(val);
-    return isNaN(d.getTime()) ? null : d;
-  }
-  return null;
+    if (typeof val === 'string') {
+        // German format DD.MM.YYYY or DD.MM.YYYY HH:mm
+        const m = val.match(/^(\d{2})\.(\d{2})\.(\d{4})(?:\s+(\d{2}):(\d{2}))?$/);
+        if (m) {
+            const d = new Date(+m[3], +m[2] - 1, +m[1], m[4] ? +m[4] : 0, m[5] ? +m[5] : 0);
+            return isNaN(d.getTime()) ? null : d;
+        }
+        const d = new Date(val);
+        return isNaN(d.getTime()) ? null : d;
+    }
+    return null;
 }
 
 export function formatDate(d: Date, fmt: DateOutputFormat): string | number {
-  switch (fmt) {
-    case 'timestamp_ms':   return d.getTime();
-    case 'timestamp_s':    return Math.floor(d.getTime() / 1000);
-    case 'iso':            return d.toISOString();
-    case 'date':           return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-    case 'datetime_local': return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    case 'de_date':        return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;
-    case 'de_datetime':    return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    case 'time_hhmm':      return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    case 'time_hhmmss':    return `${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
-  }
+    switch (fmt) {
+        case 'timestamp_ms':
+            return d.getTime();
+        case 'timestamp_s':
+            return Math.floor(d.getTime() / 1000);
+        case 'iso':
+            return d.toISOString();
+        case 'date':
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        case 'datetime_local':
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        case 'de_date':
+            return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+        case 'de_datetime':
+            return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        case 'time_hhmm':
+            return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        case 'time_hhmmss':
+            return `${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
+    }
 }
 
 export function toDateInputValue(d: Date) {
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 export function toTimeInputValue(d: Date) {
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export function DatePickerWidget({ config }: WidgetProps) {
-  const o           = config.options ?? {};
-  const timeOnly    = o.timeOnly === true;
-  const showTime    = timeOnly || o.showTime === true;
-  const outputFmt   = (o.outputFormat as DateOutputFormat) ?? 'timestamp_ms';
-  const showTitle   = o.showTitle !== false;
-  const showIcon    = o.showIcon  !== false;
-  const titleAlign  = (o.titleAlign as string) ?? 'left';
-  const showCurrent = o.showCurrentValue !== false;
-  const layout      = config.layout ?? 'default';
-  const iconSize    = (o.iconSize as number) || 20;
-  const defaultIcon = timeOnly ? Clock : showTime ? CalendarClock : CalendarDays;
-  const WidgetIcon  = getWidgetIcon(o.icon as string | undefined, defaultIcon);
+    const o = config.options ?? {};
+    const timeOnly = o.timeOnly === true;
+    const showTime = timeOnly || o.showTime === true;
+    const outputFmt = (o.outputFormat as DateOutputFormat) ?? 'timestamp_ms';
+    const showTitle = o.showTitle !== false;
+    const showIcon = o.showIcon !== false;
+    const titleAlign = (o.titleAlign as string) ?? 'left';
+    const showCurrent = o.showCurrentValue !== false;
+    const layout = config.layout ?? 'default';
+    const iconSize = (o.iconSize as number) || 20;
+    const defaultIcon = timeOnly ? Clock : showTime ? CalendarClock : CalendarDays;
+    const WidgetIcon = getWidgetIcon(o.icon as string | undefined, defaultIcon);
 
-  const { value } = useDatapoint(config.datapoint);
-  const { setState } = useIoBroker();
+    const { value } = useDatapoint(config.datapoint);
+    const { setState } = useIoBroker();
 
-  const currentDate = parseValue(value);
+    const currentDate = parseValue(value);
 
-  const [dateVal, setDateVal] = useState(() => currentDate ? toDateInputValue(currentDate) : '');
-  const [timeVal, setTimeVal] = useState(() => {
-    if (currentDate) return toTimeInputValue(currentDate);
-    // For timeOnly, parse HH:mm string directly
-    if (timeOnly && typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) return value.slice(0, 5);
-    return '00:00';
-  });
+    const [dateVal, setDateVal] = useState(() => (currentDate ? toDateInputValue(currentDate) : ''));
+    const [timeVal, setTimeVal] = useState(() => {
+        if (currentDate) return toTimeInputValue(currentDate);
+        // For timeOnly, parse HH:mm string directly
+        if (timeOnly && typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) return value.slice(0, 5);
+        return '00:00';
+    });
 
-  // Sync when DP value changes externally
-  useEffect(() => {
-    if (timeOnly) {
-      // timeOnly: value may be "HH:mm" or "HH:mm:ss" string
-      if (typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) {
-        setTimeVal(value.slice(0, 5));
-      } else if (currentDate) {
+    // Sync when DP value changes externally
+    useEffect(() => {
+        if (timeOnly) {
+            // timeOnly: value may be "HH:mm" or "HH:mm:ss" string
+            if (typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) {
+                setTimeVal(value.slice(0, 5));
+            } else if (currentDate) {
+                setTimeVal(toTimeInputValue(currentDate));
+            }
+            return;
+        }
+        if (!currentDate) return;
+        setDateVal(toDateInputValue(currentDate));
         setTimeVal(toTimeInputValue(currentDate));
-      }
-      return;
+    }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const writeValue = (date: string, time: string) => {
+        if (timeOnly) {
+            // Write time directly without a date component
+            if (!time) return;
+            const [h, mi] = time.split(':').map(Number);
+            const dt = new Date(1970, 0, 1, h ?? 0, mi ?? 0);
+            setState(config.datapoint, formatDate(dt, outputFmt));
+            return;
+        }
+        if (!date) return;
+        const [y, mo, d] = date.split('-').map(Number);
+        const [h, mi] = time.split(':').map(Number);
+        const dt = showTime ? new Date(y, mo - 1, d, h ?? 0, mi ?? 0) : new Date(y, mo - 1, d, 0, 0, 0, 0);
+        if (isNaN(dt.getTime())) return;
+        setState(config.datapoint, formatDate(dt, outputFmt));
+    };
+
+    const handleDate = (v: string) => {
+        setDateVal(v);
+        writeValue(v, timeVal);
+    };
+    const handleTime = (v: string) => {
+        setTimeVal(v);
+        writeValue(dateVal, v);
+    };
+
+    const currentDisplay = (() => {
+        if (timeOnly) return timeVal || '–';
+        if (!currentDate) return '–';
+        return showTime
+            ? currentDate.toLocaleString('de-DE', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+              })
+            : currentDate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    })();
+
+    const inputSty: React.CSSProperties = {
+        background: 'var(--app-bg)',
+        color: 'var(--text-primary)',
+        border: '1px solid var(--app-border)',
+        borderRadius: 8,
+        padding: '5px 8px',
+        fontSize: 12,
+        colorScheme: 'dark' as never,
+        flexShrink: 0,
+    };
+
+    const dateInput = !timeOnly ? (
+        <input
+            type="date"
+            value={dateVal}
+            onChange={(e) => handleDate(e.target.value)}
+            className="aura-widget-action nodrag focus:outline-none"
+            style={inputSty}
+        />
+    ) : null;
+
+    const timeInput = showTime ? (
+        <input
+            type="time"
+            value={timeVal}
+            onChange={(e) => handleTime(e.target.value)}
+            className="aura-widget-action nodrag focus:outline-none"
+            style={inputSty}
+        />
+    ) : null;
+
+    // ── CARD ─────────────────────────────────────────────────────────────────
+    if (layout === 'card') {
+        return (
+            <div
+                className="aura-widget-row flex flex-col h-full gap-2 items-center justify-center"
+                style={{ position: 'relative' }}
+            >
+                {showIcon && (
+                    <WidgetIcon
+                        className="aura-widget-icon"
+                        size={iconSize}
+                        style={{ color: 'var(--accent)', opacity: 0.8 }}
+                    />
+                )}
+                {showTitle && (
+                    <p
+                        className="aura-widget-title text-xs font-medium"
+                        style={{
+                            color: 'var(--text-secondary)',
+                            textAlign: titleAlign as React.CSSProperties['textAlign'],
+                        }}
+                    >
+                        {config.title}
+                    </p>
+                )}
+                <div className="flex flex-wrap justify-center gap-1.5">
+                    {dateInput}
+                    {timeInput}
+                </div>
+                {showCurrent && (
+                    <p className="aura-widget-value text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        Gesetzt: {currentDisplay}
+                    </p>
+                )}
+                <StatusBadges config={config} />
+            </div>
+        );
     }
-    if (!currentDate) return;
-    setDateVal(toDateInputValue(currentDate));
-    setTimeVal(toTimeInputValue(currentDate));
-  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const writeValue = (date: string, time: string) => {
-    if (timeOnly) {
-      // Write time directly without a date component
-      if (!time) return;
-      const [h, mi] = time.split(':').map(Number);
-      const dt = new Date(1970, 0, 1, h ?? 0, mi ?? 0);
-      setState(config.datapoint, formatDate(dt, outputFmt));
-      return;
+    // ── COMPACT ───────────────────────────────────────────────────────────────
+    if (layout === 'compact') {
+        return (
+            <div className="aura-widget-row flex items-center gap-2 h-full" style={{ position: 'relative' }}>
+                {showIcon && (
+                    <WidgetIcon
+                        className="aura-widget-icon"
+                        size={iconSize}
+                        style={{ color: 'var(--accent)', flexShrink: 0 }}
+                    />
+                )}
+                {showTitle && (
+                    <span
+                        className="aura-widget-title text-sm truncate flex-1 min-w-0"
+                        style={{
+                            color: 'var(--text-secondary)',
+                            textAlign: titleAlign as React.CSSProperties['textAlign'],
+                        }}
+                    >
+                        {config.title}
+                    </span>
+                )}
+                {!showTitle && <span className="flex-1" />}
+                <div className="flex items-center gap-1 shrink-0">
+                    {dateInput}
+                    {timeInput}
+                </div>
+                <StatusBadges config={config} />
+            </div>
+        );
     }
-    if (!date) return;
-    const [y, mo, d] = date.split('-').map(Number);
-    const [h, mi]    = time.split(':').map(Number);
-    const dt = showTime
-      ? new Date(y, mo - 1, d, h ?? 0, mi ?? 0)
-      : new Date(y, mo - 1, d, 0, 0, 0, 0);
-    if (isNaN(dt.getTime())) return;
-    setState(config.datapoint, formatDate(dt, outputFmt));
-  };
 
-  const handleDate = (v: string) => { setDateVal(v); writeValue(v, timeVal); };
-  const handleTime = (v: string) => { setTimeVal(v); writeValue(dateVal, v); };
+    // ── MINIMAL ───────────────────────────────────────────────────────────────
+    if (layout === 'minimal') {
+        return (
+            <div
+                className="aura-widget-row flex flex-col items-center justify-center h-full gap-1.5"
+                style={{ position: 'relative' }}
+            >
+                <div className="flex flex-wrap justify-center gap-1.5">
+                    {dateInput}
+                    {timeInput}
+                </div>
+                {showCurrent && (
+                    <p className="aura-widget-value text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                        {currentDisplay}
+                    </p>
+                )}
+                <StatusBadges config={config} />
+            </div>
+        );
+    }
 
-  const currentDisplay = (() => {
-    if (timeOnly) return timeVal || '–';
-    if (!currentDate) return '–';
-    return showTime
-      ? currentDate.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-      : currentDate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  })();
-
-  const inputSty: React.CSSProperties = {
-    background: 'var(--app-bg)',
-    color: 'var(--text-primary)',
-    border: '1px solid var(--app-border)',
-    borderRadius: 8,
-    padding: '5px 8px',
-    fontSize: 12,
-    colorScheme: 'dark' as never,
-    flexShrink: 0,
-  };
-
-  const dateInput = !timeOnly ? (
-    <input type="date" value={dateVal} onChange={(e) => handleDate(e.target.value)}
-      className="aura-widget-action nodrag focus:outline-none" style={inputSty} />
-  ) : null;
-
-  const timeInput = showTime ? (
-    <input type="time" value={timeVal} onChange={(e) => handleTime(e.target.value)}
-      className="aura-widget-action nodrag focus:outline-none" style={inputSty} />
-  ) : null;
-
-  // ── CARD ─────────────────────────────────────────────────────────────────
-  if (layout === 'card') {
+    // ── DEFAULT ───────────────────────────────────────────────────────────────
+    const posClass = contentPositionClass(o.contentPosition as string | undefined);
     return (
-      <div className="aura-widget-row flex flex-col h-full gap-2 items-center justify-center" style={{ position: 'relative' }}>
-        {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--accent)', opacity: 0.8 }} />}
-        {showTitle && <p className="aura-widget-title text-xs font-medium" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
-        <div className="flex flex-wrap justify-center gap-1.5">
-          {dateInput}
-          {timeInput}
+        <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
+            {(showTitle || showIcon) && (
+                <div className="flex items-center gap-1 shrink-0 min-w-0">
+                    {showIcon && (
+                        <WidgetIcon
+                            className="aura-widget-icon"
+                            size={iconSize}
+                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                        />
+                    )}
+                    {showTitle && (
+                        <p
+                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                            style={{
+                                color: 'var(--text-secondary)',
+                                textAlign: titleAlign as React.CSSProperties['textAlign'],
+                            }}
+                        >
+                            {config.title}
+                        </p>
+                    )}
+                </div>
+            )}
+            <div className="flex flex-wrap gap-1.5">
+                {dateInput}
+                {timeInput}
+            </div>
+            {showCurrent && (
+                <p className="aura-widget-value text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                    Gesetzt: {currentDisplay}
+                </p>
+            )}
+            <StatusBadges config={config} />
         </div>
-        {showCurrent && (
-          <p className="aura-widget-value text-[11px]" style={{ color: 'var(--text-secondary)' }}>Gesetzt: {currentDisplay}</p>
-        )}
-        <StatusBadges config={config} />
-      </div>
     );
-  }
-
-  // ── COMPACT ───────────────────────────────────────────────────────────────
-  if (layout === 'compact') {
-    return (
-      <div className="aura-widget-row flex items-center gap-2 h-full" style={{ position: 'relative' }}>
-        {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--accent)', flexShrink: 0 }} />}
-        {showTitle && <span className="aura-widget-title text-sm truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</span>}
-        {!showTitle && <span className="flex-1" />}
-        <div className="flex items-center gap-1 shrink-0">
-          {dateInput}
-          {timeInput}
-        </div>
-        <StatusBadges config={config} />
-      </div>
-    );
-  }
-
-  // ── MINIMAL ───────────────────────────────────────────────────────────────
-  if (layout === 'minimal') {
-    return (
-      <div className="aura-widget-row flex flex-col items-center justify-center h-full gap-1.5" style={{ position: 'relative' }}>
-        <div className="flex flex-wrap justify-center gap-1.5">
-          {dateInput}
-          {timeInput}
-        </div>
-        {showCurrent && <p className="aura-widget-value text-[10px]" style={{ color: 'var(--text-secondary)' }}>{currentDisplay}</p>}
-        <StatusBadges config={config} />
-      </div>
-    );
-  }
-
-  // ── DEFAULT ───────────────────────────────────────────────────────────────
-  const posClass = contentPositionClass(o.contentPosition as string | undefined);
-  return (
-    <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
-      {(showTitle || showIcon) && (
-        <div className="flex items-center gap-1 shrink-0 min-w-0">
-          {showIcon && <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-          {showTitle && <p className="aura-widget-title text-xs truncate flex-1 min-w-0" style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}>{config.title}</p>}
-        </div>
-      )}
-      <div className="flex flex-wrap gap-1.5">
-        {dateInput}
-        {timeInput}
-      </div>
-      {showCurrent && (
-        <p className="aura-widget-value text-[11px]" style={{ color: 'var(--text-secondary)' }}>Gesetzt: {currentDisplay}</p>
-      )}
-      <StatusBadges config={config} />
-    </div>
-  );
 }

@@ -8,5 +8,5 @@ import { createContext, useContext } from 'react';
 export const ActiveLayoutContext = createContext<string | undefined>(undefined);
 
 export function useActiveLayoutId(): string | undefined {
-  return useContext(ActiveLayoutContext);
+    return useContext(ActiveLayoutContext);
 }

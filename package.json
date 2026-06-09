@@ -40,7 +40,7 @@
     "build": "tsc && vite build",
     "build:adapter": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint src-vis main.js",
+    "lint": "eslint --cache src-vis main.js",
     "test": "node test/adapter.test.js",
     "test:package": "node test/adapter.test.js",
     "test:integration": "node test/adapter.test.js",

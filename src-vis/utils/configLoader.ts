@@ -23,19 +23,27 @@ type StoreKey = SyncStoreKey | 'aura-global-settings';
  *  Also clears the _dirty flag — values pulled from ioBroker are by definition
  *  synced. */
 export function applyRaw(key: StoreKey, raw: string): void {
-  if (key === 'aura-group-defs') { hydrateGroupDefs(raw); clearDirtyFlag(key); return; }
-  try { localStorage.setItem(key, raw); } catch { /* quota — in-memory only */ }
-  clearDirtyFlag(key);
+    if (key === 'aura-group-defs') {
+        hydrateGroupDefs(raw);
+        clearDirtyFlag(key);
+        return;
+    }
+    try {
+        localStorage.setItem(key, raw);
+    } catch {
+        /* quota — in-memory only */
+    }
+    clearDirtyFlag(key);
 }
 
 /** Rehydrate all stores from localStorage / in-memory state. */
 export function rehydrateAll(includeGlobalSettings = true): void {
-  useDashboardStore.persist.rehydrate();
-  useThemeStore.persist.rehydrate();
-  useGroupStore.persist.rehydrate();
-  useConfigStore.persist.rehydrate();
-  usePopupConfigStore.persist.rehydrate();
-  if (includeGlobalSettings) useGlobalSettingsStore.persist.rehydrate();
+    useDashboardStore.persist.rehydrate();
+    useThemeStore.persist.rehydrate();
+    useGroupStore.persist.rehydrate();
+    useConfigStore.persist.rehydrate();
+    usePopupConfigStore.persist.rehydrate();
+    if (includeGlobalSettings) useGlobalSettingsStore.persist.rehydrate();
 }
 
 /**
@@ -47,60 +55,64 @@ export function rehydrateAll(includeGlobalSettings = true): void {
  * skipped (their localStorage value wins; saveToIoBroker will push it).
  * Pass `ignoreDirty: true` from the read-only frontend to always pull remote.
  */
-export async function loadConfigFromIoBroker(includeGlobalSettings = false, { ignoreDirty = false }: { ignoreDirty?: boolean } = {}): Promise<boolean> {
-  const keys = Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[];
-  const extraKeys: StoreKey[] = includeGlobalSettings ? [...keys, 'aura-global-settings'] : keys;
+export async function loadConfigFromIoBroker(
+    includeGlobalSettings = false,
+    { ignoreDirty = false }: { ignoreDirty?: boolean } = {},
+): Promise<boolean> {
+    const keys = Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[];
+    const extraKeys: StoreKey[] = includeGlobalSettings ? [...keys, 'aura-global-settings'] : keys;
 
-  // Load all states in parallel
-  const stateIds = extraKeys.map((key) =>
-    key === 'aura-global-settings'
-      ? `${NS}.config.global-settings`
-      : IOBROKER_STATE_MAP[key as SyncStoreKey]
-  );
-  const results = await Promise.all(stateIds.map((id) => getStateDirect(id)));
+    // Load all states in parallel
+    const stateIds = extraKeys.map((key) =>
+        key === 'aura-global-settings' ? `${NS}.config.global-settings` : IOBROKER_STATE_MAP[key as SyncStoreKey],
+    );
+    const results = await Promise.all(stateIds.map((id) => getStateDirect(id)));
 
-  let changed = false;
+    let changed = false;
 
-  // Check if the dashboard state contains the old blob format
-  const dashboardResult = results[stateIds.indexOf(`${NS}.config.dashboard`)];
-  const dashboardRaw = dashboardResult?.val ? String(dashboardResult.val) : '';
-  const isOldBlob = dashboardRaw.includes('"aura-dashboard"') || dashboardRaw.includes('"aura-theme"');
+    // Check if the dashboard state contains the old blob format
+    const dashboardResult = results[stateIds.indexOf(`${NS}.config.dashboard`)];
+    const dashboardRaw = dashboardResult?.val ? String(dashboardResult.val) : '';
+    const isOldBlob = dashboardRaw.includes('"aura-dashboard"') || dashboardRaw.includes('"aura-theme"');
 
-  if (isOldBlob) {
-    // Migration: extract individual keys from the old blob and write to separate states
-    try {
-      const blob = JSON.parse(dashboardRaw) as Record<string, unknown>;
-      for (const key of extraKeys) {
-        if (!ignoreDirty && hasDirtyFlag(key)) continue; // preserve unsaved edits
-        const val = blob[key];
-        if (!val) continue;
-        const raw = typeof val === 'string' ? val : JSON.stringify(val);
-        if (!raw || raw.length < 3) continue;
-        applyRaw(key, raw);
-        // Write to new separate state so next load uses new format
-        const stateId = key === 'aura-global-settings'
-          ? `${NS}.config.global-settings`
-          : IOBROKER_STATE_MAP[key as SyncStoreKey];
-        setStateDirect(stateId, raw);
-        changed = true;
-      }
-    } catch { /* ignore malformed blob */ }
-  } else {
-    // New format: each result maps directly to its key
-    for (let i = 0; i < extraKeys.length; i++) {
-      const key = extraKeys[i];
-      if (!ignoreDirty && hasDirtyFlag(key)) continue; // preserve unsaved edits
-      const state = results[i];
-      if (!state?.val) continue;
-      const raw = String(state.val);
-      if (!raw || raw.length < 3) continue;
-      const current = key === 'aura-group-defs' ? null : localStorage.getItem(key);
-      if (current === raw) continue;
-      applyRaw(key, raw);
-      changed = true;
+    if (isOldBlob) {
+        // Migration: extract individual keys from the old blob and write to separate states
+        try {
+            const blob = JSON.parse(dashboardRaw) as Record<string, unknown>;
+            for (const key of extraKeys) {
+                if (!ignoreDirty && hasDirtyFlag(key)) continue; // preserve unsaved edits
+                const val = blob[key];
+                if (!val) continue;
+                const raw = typeof val === 'string' ? val : JSON.stringify(val);
+                if (!raw || raw.length < 3) continue;
+                applyRaw(key, raw);
+                // Write to new separate state so next load uses new format
+                const stateId =
+                    key === 'aura-global-settings'
+                        ? `${NS}.config.global-settings`
+                        : IOBROKER_STATE_MAP[key as SyncStoreKey];
+                setStateDirect(stateId, raw);
+                changed = true;
+            }
+        } catch {
+            /* ignore malformed blob */
+        }
+    } else {
+        // New format: each result maps directly to its key
+        for (let i = 0; i < extraKeys.length; i++) {
+            const key = extraKeys[i];
+            if (!ignoreDirty && hasDirtyFlag(key)) continue; // preserve unsaved edits
+            const state = results[i];
+            if (!state?.val) continue;
+            const raw = String(state.val);
+            if (!raw || raw.length < 3) continue;
+            const current = key === 'aura-group-defs' ? null : localStorage.getItem(key);
+            if (current === raw) continue;
+            applyRaw(key, raw);
+            changed = true;
+        }
     }
-  }
 
-  if (changed) rehydrateAll(includeGlobalSettings);
-  return changed;
+    if (changed) rehydrateAll(includeGlobalSettings);
+    return changed;
 }

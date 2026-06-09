@@ -7,441 +7,508 @@ import { useT, t } from '../../i18n';
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const OPERATORS: { value: ConditionOperator; label: () => string; noValue?: boolean }[] = [
-  { value: '==',       label: () => t('cond.equal') },
-  { value: '!=',       label: () => t('cond.notEqual') },
-  { value: '>',        label: () => t('cond.greater') },
-  { value: '>=',       label: () => t('cond.greaterEq') },
-  { value: '<',        label: () => t('cond.less') },
-  { value: '<=',       label: () => t('cond.lessEq') },
-  { value: 'contains', label: () => t('cond.contains') },
-  { value: 'true',     label: () => t('cond.isTrue'), noValue: true },
-  { value: 'false',    label: () => t('cond.isFalse'), noValue: true },
+    { value: '==', label: () => t('cond.equal') },
+    { value: '!=', label: () => t('cond.notEqual') },
+    { value: '>', label: () => t('cond.greater') },
+    { value: '>=', label: () => t('cond.greaterEq') },
+    { value: '<', label: () => t('cond.less') },
+    { value: '<=', label: () => t('cond.lessEq') },
+    { value: 'contains', label: () => t('cond.contains') },
+    { value: 'true', label: () => t('cond.isTrue'), noValue: true },
+    { value: 'false', label: () => t('cond.isFalse'), noValue: true },
 ];
 
 const STYLE_FIELDS: { key: keyof ConditionStyle; labelKey: string }[] = [
-  { key: 'accent',        labelKey: 'cond.colorAccent' },
-  { key: 'bg',            labelKey: 'cond.colorBg' },
-  { key: 'border',        labelKey: 'cond.colorBorder' },
-  { key: 'textPrimary',   labelKey: 'cond.colorText' },
-  { key: 'textSecondary', labelKey: 'cond.colorText2' },
+    { key: 'accent', labelKey: 'cond.colorAccent' },
+    { key: 'bg', labelKey: 'cond.colorBg' },
+    { key: 'border', labelKey: 'cond.colorBorder' },
+    { key: 'textPrimary', labelKey: 'cond.colorText' },
+    { key: 'textSecondary', labelKey: 'cond.colorText2' },
 ];
 
 const inputStyle: React.CSSProperties = {
-  background: 'var(--app-bg)',
-  color: 'var(--text-primary)',
-  border: '1px solid var(--app-border)',
+    background: 'var(--app-bg)',
+    color: 'var(--text-primary)',
+    border: '1px solid var(--app-border)',
 };
 const cls = 'text-xs rounded-lg px-2 py-1.5 focus:outline-none';
 
 function newClause(): ConditionClause {
-  return { datapoint: '', operator: '==', value: '' };
+    return { datapoint: '', operator: '==', value: '' };
 }
 
 function newCondition(): WidgetCondition {
-  return {
-    id: `cond-${Date.now()}`,
-    label: '',
-    logic: 'AND',
-    clauses: [newClause()],
-    style: {},
-    effect: 'none',
-  };
+    return {
+        id: `cond-${Date.now()}`,
+        label: '',
+        logic: 'AND',
+        clauses: [newClause()],
+        style: {},
+        effect: 'none',
+    };
 }
 
 // ── Clause row ────────────────────────────────────────────────────────────────
 
 function ClauseRow({
-  clause,
-  isFirst,
-  logic,
-  onLogicToggle,
-  onChange,
-  onDelete,
+    clause,
+    isFirst,
+    logic,
+    onLogicToggle,
+    onChange,
+    onDelete,
 }: {
-  clause: ConditionClause;
-  isFirst: boolean;
-  logic: 'AND' | 'OR';
-  onLogicToggle: () => void;
-  onChange: (c: ConditionClause) => void;
-  onDelete: () => void;
+    clause: ConditionClause;
+    isFirst: boolean;
+    logic: 'AND' | 'OR';
+    onLogicToggle: () => void;
+    onChange: (c: ConditionClause) => void;
+    onDelete: () => void;
 }) {
-  const t = useT();
-  const [showPicker, setShowPicker] = useState(false);
-  const [showValuePicker, setShowValuePicker] = useState(false);
-  const op = OPERATORS.find((o) => o.value === clause.operator)!;
-  const isDpValue = clause.valueType === 'datapoint';
+    const t = useT();
+    const [showPicker, setShowPicker] = useState(false);
+    const [showValuePicker, setShowValuePicker] = useState(false);
+    const op = OPERATORS.find((o) => o.value === clause.operator)!;
+    const isDpValue = clause.valueType === 'datapoint';
 
-  return (
-    <div className="flex items-center gap-1.5">
-      {/* AND/OR toggle or "WENN" label */}
-      {isFirst ? (
-        <span className="text-[10px] font-semibold w-8 shrink-0 text-center" style={{ color: 'var(--text-secondary)' }}>{t('cond.when')}</span>
-      ) : (
-        <button
-          onClick={onLogicToggle}
-          className="text-[10px] font-bold w-8 h-6 rounded shrink-0 hover:opacity-80"
-          style={{ background: 'var(--accent)22', color: 'var(--accent)', border: '1px solid var(--accent)44' }}
-        >
-          {logic}
-        </button>
-      )}
+    return (
+        <div className="flex items-center gap-1.5">
+            {/* AND/OR toggle or "WENN" label */}
+            {isFirst ? (
+                <span
+                    className="text-[10px] font-semibold w-8 shrink-0 text-center"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    {t('cond.when')}
+                </span>
+            ) : (
+                <button
+                    onClick={onLogicToggle}
+                    className="text-[10px] font-bold w-8 h-6 rounded shrink-0 hover:opacity-80"
+                    style={{
+                        background: 'var(--accent)22',
+                        color: 'var(--accent)',
+                        border: '1px solid var(--accent)44',
+                    }}
+                >
+                    {logic}
+                </button>
+            )}
 
-      {/* Datapoint input + picker */}
-      <div className="flex gap-0.5 flex-1 min-w-0">
-        <input
-          type="text"
-          value={clause.datapoint}
-          onChange={(e) => onChange({ ...clause, datapoint: e.target.value })}
-          placeholder={t('cond.datapointId')}
-          className={`${cls} flex-1 font-mono min-w-0`}
-          style={inputStyle}
-        />
-        <button
-          onClick={() => setShowPicker(true)}
-          className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
-          style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-          title={t('cond.fromIoBroker')}
-        >
-          <Database size={11} />
-        </button>
-      </div>
+            {/* Datapoint input + picker */}
+            <div className="flex gap-0.5 flex-1 min-w-0">
+                <input
+                    type="text"
+                    value={clause.datapoint}
+                    onChange={(e) => onChange({ ...clause, datapoint: e.target.value })}
+                    placeholder={t('cond.datapointId')}
+                    className={`${cls} flex-1 font-mono min-w-0`}
+                    style={inputStyle}
+                />
+                <button
+                    onClick={() => setShowPicker(true)}
+                    className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
+                    style={{
+                        background: 'var(--app-bg)',
+                        color: 'var(--text-secondary)',
+                        border: '1px solid var(--app-border)',
+                    }}
+                    title={t('cond.fromIoBroker')}
+                >
+                    <Database size={11} />
+                </button>
+            </div>
 
-      {/* Operator */}
-      <select
-        value={clause.operator}
-        onChange={(e) => onChange({ ...clause, operator: e.target.value as ConditionOperator, value: '' })}
-        className={`${cls} shrink-0`}
-        style={{ ...inputStyle, width: '112px' }}
-      >
-        {OPERATORS.map((o) => (
-          <option key={o.value} value={o.value}>{o.label()}</option>
-        ))}
-      </select>
-
-      {/* Value (hidden for true/false operators) */}
-      {!op?.noValue ? (
-        <div className={`flex gap-0.5 shrink-0 ${isDpValue ? 'flex-1 min-w-0' : 'w-32'}`}>
-          <button
-            onClick={() => onChange({ ...clause, valueType: isDpValue ? 'static' : 'datapoint', value: '' })}
-            className="px-1.5 rounded-lg shrink-0 hover:opacity-80 text-[9px] font-bold"
-            style={{
-              background: isDpValue ? 'var(--accent)22' : 'var(--app-bg)',
-              color: isDpValue ? 'var(--accent)' : 'var(--text-secondary)',
-              border: `1px solid ${isDpValue ? 'var(--accent)44' : 'var(--app-border)'}`,
-              minWidth: 22,
-            }}
-            title={isDpValue ? t('cond.toStatic') : t('cond.toDatapoint')}
-          >
-            {isDpValue ? 'DP' : '123'}
-          </button>
-          <input
-            type="text"
-            value={clause.value}
-            onChange={(e) => onChange({ ...clause, value: e.target.value })}
-            placeholder={isDpValue ? t('cond.datapointId') : t('cond.value')}
-            className={`${cls} flex-1 min-w-0 ${isDpValue ? 'font-mono' : ''}`}
-            style={inputStyle}
-          />
-          {isDpValue && (
-            <button
-              onClick={() => setShowValuePicker(true)}
-              className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
-              style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-              title={t('cond.fromIoBroker')}
+            {/* Operator */}
+            <select
+                value={clause.operator}
+                onChange={(e) => onChange({ ...clause, operator: e.target.value as ConditionOperator, value: '' })}
+                className={`${cls} shrink-0`}
+                style={{ ...inputStyle, width: '112px' }}
             >
-              <Database size={11} />
+                {OPERATORS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                        {o.label()}
+                    </option>
+                ))}
+            </select>
+
+            {/* Value (hidden for true/false operators) */}
+            {!op?.noValue ? (
+                <div className={`flex gap-0.5 shrink-0 ${isDpValue ? 'flex-1 min-w-0' : 'w-32'}`}>
+                    <button
+                        onClick={() =>
+                            onChange({ ...clause, valueType: isDpValue ? 'static' : 'datapoint', value: '' })
+                        }
+                        className="px-1.5 rounded-lg shrink-0 hover:opacity-80 text-[9px] font-bold"
+                        style={{
+                            background: isDpValue ? 'var(--accent)22' : 'var(--app-bg)',
+                            color: isDpValue ? 'var(--accent)' : 'var(--text-secondary)',
+                            border: `1px solid ${isDpValue ? 'var(--accent)44' : 'var(--app-border)'}`,
+                            minWidth: 22,
+                        }}
+                        title={isDpValue ? t('cond.toStatic') : t('cond.toDatapoint')}
+                    >
+                        {isDpValue ? 'DP' : '123'}
+                    </button>
+                    <input
+                        type="text"
+                        value={clause.value}
+                        onChange={(e) => onChange({ ...clause, value: e.target.value })}
+                        placeholder={isDpValue ? t('cond.datapointId') : t('cond.value')}
+                        className={`${cls} flex-1 min-w-0 ${isDpValue ? 'font-mono' : ''}`}
+                        style={inputStyle}
+                    />
+                    {isDpValue && (
+                        <button
+                            onClick={() => setShowValuePicker(true)}
+                            className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                            title={t('cond.fromIoBroker')}
+                        >
+                            <Database size={11} />
+                        </button>
+                    )}
+                </div>
+            ) : (
+                <div className="w-32 shrink-0" />
+            )}
+
+            <button
+                onClick={onDelete}
+                className="shrink-0 hover:opacity-70"
+                style={{ color: 'var(--accent-red)' }}
+                title={t('cond.removeClause')}
+            >
+                <Trash2 size={12} />
             </button>
-          )}
+
+            {showPicker && (
+                <DatapointPicker
+                    currentValue={clause.datapoint}
+                    onSelect={(id) => {
+                        onChange({ ...clause, datapoint: id });
+                    }}
+                    onClose={() => setShowPicker(false)}
+                />
+            )}
+            {showValuePicker && (
+                <DatapointPicker
+                    currentValue={clause.value}
+                    onSelect={(id) => {
+                        onChange({ ...clause, value: id });
+                    }}
+                    onClose={() => setShowValuePicker(false)}
+                />
+            )}
         </div>
-      ) : (
-        <div className="w-32 shrink-0" />
-      )}
-
-
-      <button
-        onClick={onDelete}
-        className="shrink-0 hover:opacity-70"
-        style={{ color: 'var(--accent-red)' }}
-        title={t('cond.removeClause')}
-      >
-        <Trash2 size={12} />
-      </button>
-
-      {showPicker && (
-        <DatapointPicker
-          currentValue={clause.datapoint}
-          onSelect={(id) => { onChange({ ...clause, datapoint: id }); }}
-          onClose={() => setShowPicker(false)}
-        />
-      )}
-      {showValuePicker && (
-        <DatapointPicker
-          currentValue={clause.value}
-          onSelect={(id) => { onChange({ ...clause, value: id }); }}
-          onClose={() => setShowValuePicker(false)}
-        />
-      )}
-    </div>
-  );
+    );
 }
 
 // ── Color field ───────────────────────────────────────────────────────────────
 
 function ColorField({
-  label,
-  value,
-  onChange,
+    label,
+    value,
+    onChange,
 }: {
-  label: string;
-  value: string | undefined;
-  onChange: (v: string | undefined) => void;
+    label: string;
+    value: string | undefined;
+    onChange: (v: string | undefined) => void;
 }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <label className="text-[10px] w-16 shrink-0 truncate" style={{ color: 'var(--text-secondary)' }}>{label}</label>
-      <input
-        type="color"
-        value={value ?? '#3b82f6'}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-6 h-6 rounded cursor-pointer border-0 p-0 shrink-0"
-        title={label}
-      />
-      <input
-        type="text"
-        value={value ?? ''}
-        onChange={(e) => onChange(e.target.value || undefined)}
-        placeholder="auto"
-        className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0 font-mono"
-        style={inputStyle}
-      />
-      {value && (
-        <button onClick={() => onChange(undefined)} className="shrink-0 hover:opacity-60" style={{ color: 'var(--text-secondary)' }}>
-          <Trash2 size={10} />
-        </button>
-      )}
-    </div>
-  );
+    return (
+        <div className="flex items-center gap-1.5">
+            <label className="text-[10px] w-16 shrink-0 truncate" style={{ color: 'var(--text-secondary)' }}>
+                {label}
+            </label>
+            <input
+                type="color"
+                value={value ?? '#3b82f6'}
+                onChange={(e) => onChange(e.target.value)}
+                className="w-6 h-6 rounded cursor-pointer border-0 p-0 shrink-0"
+                title={label}
+            />
+            <input
+                type="text"
+                value={value ?? ''}
+                onChange={(e) => onChange(e.target.value || undefined)}
+                placeholder="auto"
+                className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0 font-mono"
+                style={inputStyle}
+            />
+            {value && (
+                <button
+                    onClick={() => onChange(undefined)}
+                    className="shrink-0 hover:opacity-60"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    <Trash2 size={10} />
+                </button>
+            )}
+        </div>
+    );
 }
 
 // ── Single condition rule ─────────────────────────────────────────────────────
 
 function ConditionRule({
-  condition,
-  onChange,
-  onDelete,
-  context = 'widget',
+    condition,
+    onChange,
+    onDelete,
+    context = 'widget',
 }: {
-  condition: WidgetCondition;
-  onChange: (c: WidgetCondition) => void;
-  onDelete: () => void;
-  context?: 'widget' | 'tab';
+    condition: WidgetCondition;
+    onChange: (c: WidgetCondition) => void;
+    onDelete: () => void;
+    context?: 'widget' | 'tab';
 }) {
-  const t = useT();
-  const [open, setOpen] = useState(true);
+    const t = useT();
+    const [open, setOpen] = useState(true);
 
-  const setStyle = (patch: Partial<ConditionStyle>) =>
-    onChange({ ...condition, style: { ...condition.style, ...patch } });
+    const setStyle = (patch: Partial<ConditionStyle>) =>
+        onChange({ ...condition, style: { ...condition.style, ...patch } });
 
-  const updateClause = (i: number, c: ConditionClause) =>
-    onChange({ ...condition, clauses: condition.clauses.map((cl, j) => (j === i ? c : cl)) });
+    const updateClause = (i: number, c: ConditionClause) =>
+        onChange({ ...condition, clauses: condition.clauses.map((cl, j) => (j === i ? c : cl)) });
 
-  const deleteClause = (i: number) =>
-    onChange({ ...condition, clauses: condition.clauses.filter((_, j) => j !== i) });
+    const deleteClause = (i: number) =>
+        onChange({ ...condition, clauses: condition.clauses.filter((_, j) => j !== i) });
 
-  const addClause = () =>
-    onChange({ ...condition, clauses: [...condition.clauses, newClause()] });
+    const addClause = () => onChange({ ...condition, clauses: [...condition.clauses, newClause()] });
 
-  const toggleLogic = () =>
-    onChange({ ...condition, logic: condition.logic === 'AND' ? 'OR' : 'AND' });
+    const toggleLogic = () => onChange({ ...condition, logic: condition.logic === 'AND' ? 'OR' : 'AND' });
 
-  const hasActiveStyle = Object.values(condition.style).some(Boolean);
+    const hasActiveStyle = Object.values(condition.style).some(Boolean);
 
-  return (
-    <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-      {/* Header */}
-      <div
-        className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:opacity-80"
-        style={{ background: 'var(--app-surface)' }}
-        onClick={() => setOpen(!open)}
-      >
-        <span style={{ color: 'var(--text-secondary)' }}>
-          {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-        </span>
-        <input
-          type="text"
-          value={condition.label ?? ''}
-          onChange={(e) => onChange({ ...condition, label: e.target.value })}
-          placeholder="Regelname (optional)"
-          onClick={(e) => e.stopPropagation()}
-          className="flex-1 text-xs bg-transparent focus:outline-none"
-          style={{ color: 'var(--text-primary)' }}
-        />
-        {hasActiveStyle && (
-          <div className="flex gap-1 shrink-0">
-            {Object.entries(condition.style).filter(([, v]) => v).map(([k, v]) => (
-              <div key={k} className="w-3 h-3 rounded-full border" style={{ background: v as string, borderColor: 'var(--app-border)' }} />
-            ))}
-          </div>
-        )}
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          className="hover:opacity-70 shrink-0"
-          style={{ color: 'var(--accent-red)' }}
-        >
-          <Trash2 size={13} />
-        </button>
-      </div>
-
-      {open && (
-        <div className="p-3 space-y-3" style={{ background: 'var(--app-bg)' }}>
-          {/* Clauses */}
-          <div className="space-y-1.5">
-            {condition.clauses.map((clause, i) => (
-              <ClauseRow
-                key={i}
-                clause={clause}
-                isFirst={i === 0}
-                logic={condition.logic}
-                onLogicToggle={toggleLogic}
-                onChange={(c) => updateClause(i, c)}
-                onDelete={() => deleteClause(i)}
-              />
-            ))}
-          </div>
-          <button
-            onClick={addClause}
-            className="flex items-center gap-1 text-[10px] hover:opacity-80"
-            style={{ color: 'var(--accent)' }}
-          >
-            <Plus size={11} /> {t('cond.addClause')}
-          </button>
-
-          {/* Separator */}
-          <div className="h-px" style={{ background: 'var(--app-border)' }} />
-
-          {/* Style — label */}
-          <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
-            {t('cond.activeStyle')}
-          </p>
-
-          {/* Color pickers */}
-          <div className="space-y-1.5">
-            {STYLE_FIELDS.map(({ key, labelKey }) => (
-              <ColorField
-                key={key}
-                label={t(labelKey as Parameters<typeof t>[0])}
-                value={condition.style[key]}
-                onChange={(v) => setStyle({ [key]: v })}
-              />
-            ))}
-          </div>
-
-          {/* Effect */}
-          <div className="flex items-center gap-2">
-            <label className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>{t('cond.effect')}</label>
-            <select
-              value={condition.effect ?? 'none'}
-              onChange={(e) => onChange({ ...condition, effect: e.target.value as WidgetCondition['effect'] })}
-              className={`${cls} flex-1`}
-              style={inputStyle}
+    return (
+        <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+            {/* Header */}
+            <div
+                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:opacity-80"
+                style={{ background: 'var(--app-surface)' }}
+                onClick={() => setOpen(!open)}
             >
-              <option value="none">{t('cond.noEffect')}</option>
-              <option value="pulse">{t('cond.pulse')}</option>
-              <option value="blink">{t('cond.blink')}</option>
-            </select>
-          </div>
+                <span style={{ color: 'var(--text-secondary)' }}>
+                    {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                </span>
+                <input
+                    type="text"
+                    value={condition.label ?? ''}
+                    onChange={(e) => onChange({ ...condition, label: e.target.value })}
+                    placeholder="Regelname (optional)"
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex-1 text-xs bg-transparent focus:outline-none"
+                    style={{ color: 'var(--text-primary)' }}
+                />
+                {hasActiveStyle && (
+                    <div className="flex gap-1 shrink-0">
+                        {Object.entries(condition.style)
+                            .filter(([, v]) => v)
+                            .map(([k, v]) => (
+                                <div
+                                    key={k}
+                                    className="w-3 h-3 rounded-full border"
+                                    style={{ background: v as string, borderColor: 'var(--app-border)' }}
+                                />
+                            ))}
+                    </div>
+                )}
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete();
+                    }}
+                    className="hover:opacity-70 shrink-0"
+                    style={{ color: 'var(--accent-red)' }}
+                >
+                    <Trash2 size={13} />
+                </button>
+            </div>
 
-          {/* Hide widget / tab */}
-          <div className="h-px" style={{ background: 'var(--app-border)' }} />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>
-                {context === 'tab' ? t('tabBar.hideTabOnCond') : t('cond.hideWidget')}
-              </p>
-              {context !== 'tab' && (
-                <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>{t('cond.hideWidgetHint')}</p>
-              )}
-            </div>
-            <button
-              onClick={() => onChange({ ...condition, hideWidget: !condition.hideWidget, reflow: condition.hideWidget ? false : condition.reflow })}
-              className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-              style={{ background: condition.hideWidget ? 'var(--accent)' : 'var(--app-border)' }}
-            >
-              <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                style={{ left: condition.hideWidget ? '18px' : '2px' }} />
-            </button>
-          </div>
-          {context !== 'tab' && condition.hideWidget && (
-            <div className="flex items-center justify-between pl-3 border-l-2" style={{ borderColor: 'var(--accent)44' }}>
-              <div>
-                <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>{t('cond.pushOthers')}</p>
-                <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>{t('cond.pushOthersHint')}</p>
-              </div>
-              <button
-                onClick={() => onChange({ ...condition, reflow: !condition.reflow })}
-                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                style={{ background: condition.reflow ? 'var(--accent)' : 'var(--app-border)' }}
-              >
-                <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                  style={{ left: condition.reflow ? '18px' : '2px' }} />
-              </button>
-            </div>
-          )}
+            {open && (
+                <div className="p-3 space-y-3" style={{ background: 'var(--app-bg)' }}>
+                    {/* Clauses */}
+                    <div className="space-y-1.5">
+                        {condition.clauses.map((clause, i) => (
+                            <ClauseRow
+                                key={i}
+                                clause={clause}
+                                isFirst={i === 0}
+                                logic={condition.logic}
+                                onLogicToggle={toggleLogic}
+                                onChange={(c) => updateClause(i, c)}
+                                onDelete={() => deleteClause(i)}
+                            />
+                        ))}
+                    </div>
+                    <button
+                        onClick={addClause}
+                        className="flex items-center gap-1 text-[10px] hover:opacity-80"
+                        style={{ color: 'var(--accent)' }}
+                    >
+                        <Plus size={11} /> {t('cond.addClause')}
+                    </button>
+
+                    {/* Separator */}
+                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
+
+                    {/* Style — label */}
+                    <p
+                        className="text-[10px] font-semibold uppercase tracking-wider"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
+                        {t('cond.activeStyle')}
+                    </p>
+
+                    {/* Color pickers */}
+                    <div className="space-y-1.5">
+                        {STYLE_FIELDS.map(({ key, labelKey }) => (
+                            <ColorField
+                                key={key}
+                                label={t(labelKey as Parameters<typeof t>[0])}
+                                value={condition.style[key]}
+                                onChange={(v) => setStyle({ [key]: v })}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Effect */}
+                    <div className="flex items-center gap-2">
+                        <label className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                            {t('cond.effect')}
+                        </label>
+                        <select
+                            value={condition.effect ?? 'none'}
+                            onChange={(e) =>
+                                onChange({ ...condition, effect: e.target.value as WidgetCondition['effect'] })
+                            }
+                            className={`${cls} flex-1`}
+                            style={inputStyle}
+                        >
+                            <option value="none">{t('cond.noEffect')}</option>
+                            <option value="pulse">{t('cond.pulse')}</option>
+                            <option value="blink">{t('cond.blink')}</option>
+                        </select>
+                    </div>
+
+                    {/* Hide widget / tab */}
+                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>
+                                {context === 'tab' ? t('tabBar.hideTabOnCond') : t('cond.hideWidget')}
+                            </p>
+                            {context !== 'tab' && (
+                                <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('cond.hideWidgetHint')}
+                                </p>
+                            )}
+                        </div>
+                        <button
+                            onClick={() =>
+                                onChange({
+                                    ...condition,
+                                    hideWidget: !condition.hideWidget,
+                                    reflow: condition.hideWidget ? false : condition.reflow,
+                                })
+                            }
+                            className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                            style={{ background: condition.hideWidget ? 'var(--accent)' : 'var(--app-border)' }}
+                        >
+                            <span
+                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                style={{ left: condition.hideWidget ? '18px' : '2px' }}
+                            />
+                        </button>
+                    </div>
+                    {context !== 'tab' && condition.hideWidget && (
+                        <div
+                            className="flex items-center justify-between pl-3 border-l-2"
+                            style={{ borderColor: 'var(--accent)44' }}
+                        >
+                            <div>
+                                <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>
+                                    {t('cond.pushOthers')}
+                                </p>
+                                <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('cond.pushOthersHint')}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => onChange({ ...condition, reflow: !condition.reflow })}
+                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                style={{ background: condition.reflow ? 'var(--accent)' : 'var(--app-border)' }}
+                            >
+                                <span
+                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                    style={{ left: condition.reflow ? '18px' : '2px' }}
+                                />
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 }
 
 // ── Main editor ───────────────────────────────────────────────────────────────
 
 interface ConditionEditorProps {
-  conditions: WidgetCondition[];
-  onChange: (conditions: WidgetCondition[]) => void;
-  context?: 'widget' | 'tab';
-  style?: React.CSSProperties;
+    conditions: WidgetCondition[];
+    onChange: (conditions: WidgetCondition[]) => void;
+    context?: 'widget' | 'tab';
+    style?: React.CSSProperties;
 }
 
 export function ConditionEditor({ conditions, onChange, context = 'widget', style }: ConditionEditorProps) {
-  const t = useT();
-  const update = (i: number, c: WidgetCondition) =>
-    onChange(conditions.map((x, j) => (j === i ? c : x)));
+    const t = useT();
+    const update = (i: number, c: WidgetCondition) => onChange(conditions.map((x, j) => (j === i ? c : x)));
 
-  const remove = (i: number) =>
-    onChange(conditions.filter((_, j) => j !== i));
+    const remove = (i: number) => onChange(conditions.filter((_, j) => j !== i));
 
-  return (
-    <div className="p-3 space-y-2.5" style={{ width: '100%', ...style }} onMouseDown={(e) => e.stopPropagation()}>
-      <div className="flex items-center justify-between mb-1">
-        <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{t('cond.rules')}</p>
-        <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-          {t('cond.rulesHint')}
-        </p>
-      </div>
+    return (
+        <div className="p-3 space-y-2.5" style={{ width: '100%', ...style }} onMouseDown={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-1">
+                <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {t('cond.rules')}
+                </p>
+                <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                    {t('cond.rulesHint')}
+                </p>
+            </div>
 
-      {conditions.length === 0 && (
-        <p className="text-xs text-center py-3" style={{ color: 'var(--text-secondary)' }}>
-          {t('cond.noRules')}
-        </p>
-      )}
+            {conditions.length === 0 && (
+                <p className="text-xs text-center py-3" style={{ color: 'var(--text-secondary)' }}>
+                    {t('cond.noRules')}
+                </p>
+            )}
 
-      {conditions.map((cond, i) => (
-        <ConditionRule
-          key={cond.id}
-          condition={cond}
-          onChange={(c) => update(i, c)}
-          onDelete={() => remove(i)}
-          context={context}
-        />
-      ))}
+            {conditions.map((cond, i) => (
+                <ConditionRule
+                    key={cond.id}
+                    condition={cond}
+                    onChange={(c) => update(i, c)}
+                    onDelete={() => remove(i)}
+                    context={context}
+                />
+            ))}
 
-      <button
-        onClick={() => onChange([...conditions, newCondition()])}
-        className="w-full flex items-center justify-center gap-1.5 py-2 text-xs rounded-xl hover:opacity-80"
-        style={{ background: 'var(--app-surface)', color: 'var(--accent)', border: '1px dashed var(--accent)55' }}
-      >
-        <Plus size={13} /> {t('cond.newRule')}
-      </button>
-    </div>
-  );
+            <button
+                onClick={() => onChange([...conditions, newCondition()])}
+                className="w-full flex items-center justify-center gap-1.5 py-2 text-xs rounded-xl hover:opacity-80"
+                style={{
+                    background: 'var(--app-surface)',
+                    color: 'var(--accent)',
+                    border: '1px dashed var(--accent)55',
+                }}
+            >
+                <Plus size={13} /> {t('cond.newRule')}
+            </button>
+        </div>
+    );
 }
