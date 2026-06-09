@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.193 (2026-06-08)
+- fix(guidelines): make vertical-line label background hug content
+- fix(guidelines): offset lines by header/tab-bar height
+
 ## 0.9.192 (2026-06-08)
 - feat(adapter): allow multiple instances and surface port collisions
 

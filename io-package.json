@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.212",
+    "version": "0.9.213",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.213": {
+        "en": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
+        "de": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
+        "ru": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
+        "pt": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
+        "nl": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
+        "fr": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
+        "it": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
+        "es": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
+        "pl": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
+        "uk": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
+        "zh-cn": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)"
+      },
       "0.9.211": {
         "en": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
         "de": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
