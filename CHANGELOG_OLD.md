@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.191 (2026-06-02)
+- fix(backup): include group children and popup views in backups
+
 ## 0.9.190 (2026-06-01)
 - fix(CarouselWidget): icon flicker, focus auto-scroll, low-speed rotation, more
 

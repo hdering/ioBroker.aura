@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.210",
+    "version": "0.9.211",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.211": {
+        "en": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
+        "de": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
+        "ru": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
+        "pt": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
+        "nl": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
+        "fr": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
+        "it": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
+        "es": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
+        "pl": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
+        "uk": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
+        "zh-cn": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency"
+      },
       "0.9.210": {
         "en": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
         "de": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
@@ -183,19 +196,6 @@
         "pl": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
         "uk": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order",
         "zh-cn": "revert(light): remove onValue/offValue + controlMode from LightWidget; feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp; fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell; fix(switch): move An/Aus-Werte directly below DP field in widget options; feat(dimmer): add custom on/off write values for switchDp; fix(custom-grid): reorder switch cell settings to match widget panel order"
-      },
-      "0.9.200": {
-        "en": "feat(switch): add custom on/off write values (onValue/offValue)",
-        "de": "feat(switch): add custom on/off write values (onValue/offValue)",
-        "ru": "feat(switch): add custom on/off write values (onValue/offValue)",
-        "pt": "feat(switch): add custom on/off write values (onValue/offValue)",
-        "nl": "feat(switch): add custom on/off write values (onValue/offValue)",
-        "fr": "feat(switch): add custom on/off write values (onValue/offValue)",
-        "it": "feat(switch): add custom on/off write values (onValue/offValue)",
-        "es": "feat(switch): add custom on/off write values (onValue/offValue)",
-        "pl": "feat(switch): add custom on/off write values (onValue/offValue)",
-        "uk": "feat(switch): add custom on/off write values (onValue/offValue)",
-        "zh-cn": "feat(switch): add custom on/off write values (onValue/offValue)"
       }
     }
   },
