@@ -481,7 +481,7 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
             scrollbarWidth: hideScrollbar ? 'none' : 'thin',
             // Single mode forces mandatory snap so each release lands on an
             // item boundary. Carousel mode keeps snap opt-in via the toggle.
-            scrollSnapType: isSingle ? 'x mandatory' : (snap ? 'x proximity' : undefined),
+            scrollSnapType: isSingle ? 'x mandatory' : (snap && !autoRotate ? 'x proximity' : undefined),
             paddingBottom: hideScrollbar ? undefined : '2px',
             // In single mode each item fills the viewport — justify has no effect.
             justifyContent: isSingle ? undefined : justify,
@@ -511,7 +511,7 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
                 fs={fs}
                 px={px}
                 iconSz={iconSz}
-                snap={snap || isSingle}
+                snap={(snap && !autoRotate) || isSingle}
                 fullWidth={isSingle}
                 maxWidth={maxItemWidth}
                 labelAlign={labelAlign}
