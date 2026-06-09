@@ -212,6 +212,9 @@ export interface CustomCell {
   showSelectedLabel?: boolean;   // 'select' cell: render current label next to dropdown
   hideSelect?: boolean;          // 'select' cell: hide dropdown and render entries as a button group
   entryDisplay?: 'icon' | 'icon-text' | 'text';  // 'select' cell: how the current entry is shown (default 'text')
+  // last-change display (for value-bearing cells)
+  showLastChange?: boolean;      // show lc timestamp below the cell content
+  lastChangeFormat?: 'relative' | 'time' | 'datetime';  // timestamp format (default 'relative')
 }
 
 /** Legacy: 9-element array, row-major (index = row*3 + col). Kept as alias for compat. */

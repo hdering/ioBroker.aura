@@ -1368,6 +1368,45 @@ export function CustomCellEditor({
         </>
       )}
 
+      {/* Last-change timestamp */}
+      {(cell.type === 'dp' || cell.type === 'value' || cell.type === 'state-text' || cell.type === 'state-icon') && (
+        <>
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>Letzte Änderung</label>
+              <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Zeitstempel unter dem Wert anzeigen</p>
+            </div>
+            <button onClick={() => onChange({ showLastChange: !cell.showLastChange })}
+              className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+              style={{ background: cell.showLastChange ? 'var(--accent)' : 'var(--app-border)' }}>
+              <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                style={{ left: cell.showLastChange ? '18px' : '2px' }} />
+            </button>
+          </div>
+          {cell.showLastChange && (
+            <div>
+              <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>Format</label>
+              <div className="flex gap-1">
+                {([['relative', 'Relativ'], ['time', 'Uhrzeit'], ['datetime', 'Datum+Zeit']] as const).map(([val, lbl]) => {
+                  const active = (cell.lastChangeFormat ?? 'relative') === val;
+                  return (
+                    <button key={val} onClick={() => onChange({ lastChangeFormat: val })}
+                      className="flex-1 text-[10px] py-1.5 rounded-lg transition-colors"
+                      style={{
+                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                        color:      active ? '#fff'          : 'var(--text-secondary)',
+                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                      }}>
+                      {lbl}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
       {/* Spans (col + row) — available for any non-empty cell */}
       {cell.type !== 'empty' && (
         <div className="flex gap-2">

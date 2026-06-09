@@ -113,20 +113,69 @@ function emptyCellStyle(index: number, cols: number): React.CSSProperties {
   return { gridRow: Math.floor(index / cols) + 1, gridColumn: (index % cols) + 1 };
 }
 
+function alignItemsFromCell(cell: CustomCell): React.CSSProperties['alignItems'] {
+  return cell.align === 'center' ? 'center' : cell.align === 'right' ? 'flex-end' : 'flex-start';
+}
+
+function formatLastChange(lc: number, fmt: 'relative' | 'time' | 'datetime'): string {
+  const d = new Date(lc);
+  if (fmt === 'time') {
+    return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  }
+  if (fmt === 'datetime') {
+    const date = d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    const time = d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    return `${date} ${time}`;
+  }
+  const diffMs = Date.now() - lc;
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 60) return 'gerade eben';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `vor ${diffMin} Min`;
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return `vor ${diffH} Std`;
+  const diffD = Math.floor(diffH / 24);
+  if (diffD === 1) return 'gestern';
+  return `vor ${diffD} Tagen`;
+}
+
+const lcStyle: React.CSSProperties = {
+  fontSize: '9px', color: 'var(--text-secondary)', opacity: 0.65, lineHeight: 1, display: 'block',
+};
+
+function LastChangeLine({ lc, fmt }: { lc: number | undefined; fmt: string }) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (fmt !== 'relative' || !lc) return;
+    const id = setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => clearInterval(id);
+  }, [fmt, lc]);
+  if (!lc) return null;
+  return <span style={lcStyle}>{formatLastChange(lc, (fmt as 'relative' | 'time' | 'datetime') ?? 'relative')}</span>;
+}
+
 // ── Read-only cell sub-components ─────────────────────────────────────────────
 
 /** Subscribes to an arbitrary ioBroker DP and renders its value. */
 function DpCellView({ cell, index, cols, rows, defaultDecimals }: { cell: CustomCell; index: number; cols: number; rows: number; defaultDecimals: number }) {
-  const { value } = useDatapoint(cell.dpId ?? '');
+  const { state, value } = useDatapoint(cell.dpId ?? '');
   const decimals = cell.decimals ?? defaultDecimals;
   const formatted = value === null ? '–'
     : typeof value === 'number' ? formatNum(value, decimals)
     : String(value);
   const content = `${cell.prefix ?? ''}${formatted}${cell.suffix ?? ''}`;
   if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+  const textSty = cellTextStyle(cell, 'var(--text-primary)');
   return (
     <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
-      <span style={cellTextStyle(cell, 'var(--text-primary)')}>{content}</span>
+      {cell.showLastChange ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: alignItemsFromCell(cell) }}>
+          <span style={textSty}>{content}</span>
+          <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
+        </div>
+      ) : (
+        <span style={textSty}>{content}</span>
+      )}
     </div>
   );
 }
@@ -177,7 +226,7 @@ function ComponentCellView({ cell, index, cols, rows, extraComponents }: {
 
 /** Renders static / widget-derived content (title, value, unit, free text, extra field). */
 function StaticCellView({
-  cell, index, cols, rows, title, value, rawValue, unit, extraFields, valueColor,
+  cell, index, cols, rows, title, value, rawValue, unit, extraFields, valueColor, mainDpId,
 }: {
   cell: CustomCell;
   index: number;
@@ -190,7 +239,10 @@ function StaticCellView({
   extraFields?: Record<string, string>;
   /** Optional override for the default color of 'value' cells (used by widgets whose current value carries a per-entry color, e.g. EnumWidget). */
   valueColor?: string;
+  /** Main DP id for 'value' cells wanting to show last-change timestamp. */
+  mainDpId?: string;
 }) {
+  const { state: mainState } = useDatapoint(mainDpId ?? '');
   const content = (() => {
     switch (cell.type) {
       case 'title': return title;
@@ -210,9 +262,18 @@ function StaticCellView({
   if (cell.type === 'empty' || !content) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
 
   const fallbackColor = cell.type === 'value' && valueColor ? valueColor : 'var(--text-primary)';
+  const textSty = cellTextStyle(cell, fallbackColor);
+  const lc = cell.type === 'value' ? mainState?.lc : undefined;
   return (
     <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
-      <span style={cellTextStyle(cell, fallbackColor)}>{content}</span>
+      {cell.showLastChange && lc ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: alignItemsFromCell(cell) }}>
+          <span style={textSty}>{content}</span>
+          <LastChangeLine lc={lc} fmt={cell.lastChangeFormat ?? 'relative'} />
+        </div>
+      ) : (
+        <span style={textSty}>{content}</span>
+      )}
     </div>
   );
 }
@@ -462,7 +523,7 @@ function IconCellView({ cell, index, cols, rows }: { cell: CustomCell; index: nu
 
 /** Icon whose symbol+color depend on the DP value (binary). */
 function StateIconCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
-  const { value } = useDatapoint(cell.dpId ?? '');
+  const { state, value } = useDatapoint(cell.dpId ?? '');
   const truthy = value === true || value === 1 || value === 'true' || value === '1';
   const iconName = truthy ? (cell.trueIcon || cell.iconName) : (cell.falseIcon || cell.iconName);
   const color    = truthy ? (cell.trueColor || cell.color || 'var(--accent)') : (cell.falseColor || cell.color || 'var(--text-secondary)');
@@ -470,7 +531,14 @@ function StateIconCellView({ cell, index, cols, rows }: { cell: CustomCell; inde
   const size = cell.fontSize ?? 28;
   return (
     <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
-      <Icon size={size} style={{ color }} />
+      {cell.showLastChange ? (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+          <Icon size={size} style={{ color }} />
+          <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
+        </div>
+      ) : (
+        <Icon size={size} style={{ color }} />
+      )}
     </div>
   );
 }
@@ -614,15 +682,23 @@ function ProgressCellView({ cell, index, cols, rows, defaultDecimals }: { cell: 
 
 /** Text label whose content + color depend on a binary DP value. */
 function StateTextCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
-  const { value } = useDatapoint(cell.dpId ?? '');
+  const { state, value } = useDatapoint(cell.dpId ?? '');
   if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
   const truthy = value === true || value === 1 || value === 'true' || value === '1';
   const label  = truthy ? (cell.trueText  ?? '') : (cell.falseText ?? '');
   const color  = truthy ? (cell.trueColor || cell.color || 'var(--accent)')
                         : (cell.falseColor || cell.color || 'var(--text-secondary)');
+  const textSty = { ...cellTextStyle(cell, color), color };
   return (
     <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
-      <span style={{ ...cellTextStyle(cell, color), color }}>{label}</span>
+      {cell.showLastChange ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: alignItemsFromCell(cell) }}>
+          <span style={textSty}>{label}</span>
+          <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
+        </div>
+      ) : (
+        <span style={textSty}>{label}</span>
+      )}
     </div>
   );
 }
@@ -857,7 +933,7 @@ export function CustomGridView({ config, value, rawValue, unit, extraFields, ext
           case 'progress':   return <ProgressCellView   key={i} cell={cell} index={i} cols={cols} rows={rows} defaultDecimals={defaultDecimals} />;
           case 'state-text': return <StateTextCellView  key={i} cell={cell} index={i} cols={cols} rows={rows} />;
           case 'select':     return <SelectCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-          default:           return <StaticCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} title={config.title} value={value} rawValue={rawValue} unit={unit} extraFields={extraFields} valueColor={valueColor} />;
+          default:           return <StaticCellView     key={i} cell={cell} index={i} cols={cols} rows={rows} title={config.title} value={value} rawValue={rawValue} unit={unit} extraFields={extraFields} valueColor={valueColor} mainDpId={config.datapoint} />;
         }
       })}
     </div>
