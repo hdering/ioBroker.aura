@@ -15,15 +15,32 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
     );
 }
 
-function ToggleRow({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+function ToggleRow({
+    label,
+    hint,
+    value,
+    onChange,
+}: {
+    label: string;
+    hint?: string;
+    value: boolean;
+    onChange: (v: boolean) => void;
+}) {
     return (
         <div
-            className="flex items-center justify-between py-2 border-b last:border-b-0"
+            className="flex items-center justify-between gap-3 py-2 border-b last:border-b-0"
             style={{ borderColor: 'var(--app-border)' }}
         >
-            <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                {label}
-            </p>
+            <div className="min-w-0">
+                <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                    {label}
+                </p>
+                {hint && (
+                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        {hint}
+                    </p>
+                )}
+            </div>
             <Toggle value={value} onChange={onChange} />
         </div>
     );
@@ -221,6 +238,12 @@ export function FrontendSection() {
                     </p>
                 </div>
             )}
+            <ToggleRow
+                label={t('settings.frontend.optimisticUpdates')}
+                hint={t('settings.frontend.optimisticUpdatesHint')}
+                value={frontend.optimisticUpdates !== false}
+                onChange={(v) => updateFrontend({ optimisticUpdates: v })}
+            />
             <ToggleRow
                 label={t('settings.frontend.showHeader')}
                 value={frontend.showHeader}

@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sun, Moon, Settings } from 'lucide-react';
-import { useIoBroker, setStateDirect, subscribeStateDirect, prefetchStates } from './hooks/useIoBroker';
+import {
+    useIoBroker,
+    setStateDirect,
+    subscribeStateDirect,
+    prefetchStates,
+    setOptimisticEcho,
+} from './hooks/useIoBroker';
 import { useCustomJs } from './hooks/useCustomJs';
 import { useCustomCss } from './hooks/useCustomCss';
 import { useConfigSync } from './hooks/useConfigSync';
@@ -306,6 +312,11 @@ export default function App() {
         if (ids.length > 0) void prefetchStates(ids);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTabId, connected]);
+
+    // Keep the module-level optimistic-write flag in sync with the setting.
+    useEffect(() => {
+        setOptimisticEcho(frontend.optimisticUpdates !== false);
+    }, [frontend.optimisticUpdates]);
 
     // Idle-return: switch to default tab after configured inactivity period
     const idleReturnEnabled = frontend.idleReturnEnabled;

@@ -50,6 +50,13 @@ export interface FrontendSettings {
     idleReturnEnabled: boolean;
     /** Seconds of inactivity before returning to the default tab. */
     idleReturnDelay: number;
+    /**
+     * Optimistic writes: reflect a setState locally the instant it is sent,
+     * instead of waiting for ioBroker to push the change back. Fixes stale UI
+     * for datapoints that never echo an ack:false write (e.g. plain
+     * 0_userdata variables with no adapter). Default true.
+     */
+    optimisticUpdates: boolean;
     // Super-admin access (empty = feature disabled)
     superAdminKey: string;
     /**
@@ -107,6 +114,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     layoutDrawerEntryStyle: 'iconAndName',
     idleReturnEnabled: false,
     idleReturnDelay: 30,
+    optimisticUpdates: true,
     superAdminKey: '',
     adminBaseUrl: '',
 };

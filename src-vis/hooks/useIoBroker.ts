@@ -38,6 +38,16 @@ export function getStateFromCache(id: string): ioBrokerState | null {
     return stateCache.get(id) ?? null;
 }
 
+// Optimistic writes: when enabled, setState reflects the written value locally
+// (cache + subscribers) immediately, instead of waiting for ioBroker to echo a
+// stateChange back. Synced from the frontend setting via setOptimisticEcho().
+// Some datapoints (e.g. plain 0_userdata variables with no adapter to ack them)
+// never push an ack:false write back, leaving the UI stale until reload.
+let optimisticEcho = true;
+export function setOptimisticEcho(enabled: boolean): void {
+    optimisticEcho = enabled;
+}
+
 // ioBroker rejects ID patterns that contain URL/query characters with
 // "Invalid pattern on subscribe". Filter them out client-side so a stale
 // URL accidentally stored in a DP-field can never crash the socket.
@@ -220,6 +230,22 @@ export function useIoBroker() {
 
     const setState = useCallback((id: string, val: boolean | number | string) => {
         getSocket().emit('setState', id, { val, ack: false });
+        if (optimisticEcho) {
+            const prev = stateCache.get(id);
+            const ts = Date.now();
+            const echo: ioBrokerState = {
+                val,
+                ack: false,
+                ts,
+                lc: prev && prev.val === val ? prev.lc : ts,
+                from: prev?.from,
+                q: prev?.q,
+            };
+            stateCache.set(id, echo);
+            // Notify in a microtask so the caller's click handler finishes first
+            // (keeps React batching predictable for the writing component).
+            queueMicrotask(() => subscribers.get(id)?.forEach((fn) => fn(echo)));
+        }
     }, []);
 
     const getState = useCallback((id: string): Promise<ioBrokerState | null> => {

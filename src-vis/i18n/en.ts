@@ -111,6 +111,9 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.idleReturnDelay': 'Delay',
     'settings.frontend.idleReturnHint':
         'Switches to the first tab (or the layout default tab) after the specified idle time.',
+    'settings.frontend.optimisticUpdates': 'Instant feedback on control',
+    'settings.frontend.optimisticUpdatesHint':
+        'Reflect written values immediately without waiting for ioBroker to confirm. Fixes stale UI for datapoints that never echo a write back (e.g. plain 0_userdata variables).',
     'settings.frontend.showHeader': 'Show Header',
     'settings.frontend.dashboardTitle': 'Dashboard Title',
     'settings.frontend.connectionBadge': 'Connection Status',

@@ -110,6 +110,9 @@ export const de = {
     'settings.frontend.idleReturnDelay': 'Verzögerung',
     'settings.frontend.idleReturnHint':
         'Wechselt nach der angegebenen Inaktivitätszeit zum ersten Tab (oder dem im Layout definierten Standard-Tab).',
+    'settings.frontend.optimisticUpdates': 'Sofortige Rückmeldung beim Schalten',
+    'settings.frontend.optimisticUpdatesHint':
+        'Zeigt geschriebene Werte direkt an, ohne auf die Bestätigung von ioBroker zu warten. Behebt hängende Anzeigen bei Datenpunkten ohne Rückmeldung (z. B. reine 0_userdata-Variablen).',
     'settings.frontend.showHeader': 'Header anzeigen',
     'settings.frontend.dashboardTitle': 'Dashboard-Titel',
     'settings.frontend.connectionBadge': 'Verbindungsstatus',
