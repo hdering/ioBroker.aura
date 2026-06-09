@@ -4835,6 +4835,32 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                   </div>
                 </div>
               )}
+              {config.type === 'switch' && (
+                <div>
+                  <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>An/Aus-Werte (optional)</label>
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      value={(config.options?.onValue as string) ?? ''}
+                      onChange={(e) => onConfigChange({ ...config, options: { ...config.options, onValue: e.target.value || undefined } })}
+                      placeholder="AN: true"
+                      className="flex-1 text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                      style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                    />
+                    <input
+                      type="text"
+                      value={(config.options?.offValue as string) ?? ''}
+                      onChange={(e) => onConfigChange({ ...config, options: { ...config.options, offValue: e.target.value || undefined } })}
+                      placeholder="AUS: false"
+                      className="flex-1 text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                      style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
+                    />
+                  </div>
+                  <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                    Schreibwerte (z.B. 0/100, 0/255, true/false, an/aus). Leer = true/false.
+                  </p>
+                </div>
+              )}
               {(config.type === 'value' || config.type === 'chart') && (
                 <div>
                   <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>{t('wf.edit.unit')}</label>
@@ -5003,30 +5029,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         </div>
                       </>
                     )}
-                    <div>
-                      <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>An/Aus-Werte (optional)</label>
-                      <div className="flex gap-1">
-                        <input
-                          type="text"
-                          value={(o.onValue as string) ?? ''}
-                          onChange={(e) => set({ onValue: e.target.value || undefined })}
-                          placeholder="AN: true"
-                          className="flex-1 text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                          style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
-                        />
-                        <input
-                          type="text"
-                          value={(o.offValue as string) ?? ''}
-                          onChange={(e) => set({ offValue: e.target.value || undefined })}
-                          placeholder="AUS: false"
-                          className="flex-1 text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                          style={{ background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' }}
-                        />
-                      </div>
-                      <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                        Schreibwerte (z.B. 0/100, 0/255, true/false, an/aus). Leer = true/false.
-                      </p>
-                    </div>
                     <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
                     <div className="flex items-center justify-between">
                       <div>
