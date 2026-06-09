@@ -931,7 +931,7 @@ class Aura extends utils.Adapter {
       this.log.info('[themeMode] creating state config.themeMode.frontend');
       await this.setObjectNotExistsAsync('config.themeMode.frontend', {
         type: 'state',
-        common: { name: "Frontend theme mode ('dark'|'light'|''); empty = no override", type: 'string', role: 'level.mode.color', read: true, write: true, def: '', states: { dark: 'dark', light: 'light' } },
+        common: { name: "Frontend theme mode ('dark'|'light'|''); empty = no override", type: 'string', role: 'text', read: true, write: true, def: '', states: { dark: 'dark', light: 'light' } },
         native: {},
       });
     } catch (e) { this.log.error(`[themeMode] create frontend threw: ${e && e.stack ? e.stack : e}`); }
@@ -940,7 +940,7 @@ class Aura extends utils.Adapter {
       this.log.info('[themeMode] creating state config.themeMode.admin');
       await this.setObjectNotExistsAsync('config.themeMode.admin', {
         type: 'state',
-        common: { name: "Admin theme mode ('dark'|'light'|''); empty = no override", type: 'string', role: 'level.mode.color', read: true, write: true, def: '', states: { dark: 'dark', light: 'light' } },
+        common: { name: "Admin theme mode ('dark'|'light'|''); empty = no override", type: 'string', role: 'text', read: true, write: true, def: '', states: { dark: 'dark', light: 'light' } },
         native: {},
       });
     } catch (e) { this.log.error(`[themeMode] create admin threw: ${e && e.stack ? e.stack : e}`); }

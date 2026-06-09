@@ -31,10 +31,9 @@ export function publishListCount(widgetId: string, title: string, count: number)
     });
     setObjectDirect(listCountStateId(widgetId), {
       type: 'state',
-      // write:true so the frontend ack=false publish doesn't trip ioBroker's
-      // "read-only state written without ack-flag" warning. Frontend sockets
-      // can't write ack=true, so the state must be declared writable.
-      common: { name: `${title || 'List widget'} — count`, type: 'number', role: 'value', read: true, write: true, def: 0 },
+      // role 'level' (not 'value') because the frontend writes this via socket
+      // with ack=false; 'value' requires write:false in the ioBroker role catalogue.
+      common: { name: `${title || 'List widget'} — count`, type: 'number', role: 'level', read: true, write: true, def: 0 },
       native: {},
     });
     ensuredObjects.add(widgetId);
