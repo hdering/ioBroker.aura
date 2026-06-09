@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.183 (2026-05-31)
+- fix(ImportWidgetDialog): default target tab to the active tab instead of the first tab
+
 ## 0.9.182 (2026-05-31)
 - feat: add aura-last-change CSS class to all last-change render sites for global styling
 - feat(TimerWidget): allow icon instead of '+ Add Event' text

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.202",
+    "version": "0.9.203",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.203": {
+        "en": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
+        "de": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
+        "ru": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
+        "pt": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
+        "nl": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
+        "fr": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
+        "it": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
+        "es": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
+        "pl": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
+        "uk": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
+        "zh-cn": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity"
+      },
       "0.9.202": {
         "en": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
         "de": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
@@ -183,19 +196,6 @@
         "pl": "fix(multi-instance): route sendTo messages to running namespace",
         "uk": "fix(multi-instance): route sendTo messages to running namespace",
         "zh-cn": "fix(multi-instance): route sendTo messages to running namespace"
-      },
-      "0.9.196": {
-        "en": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail",
-        "de": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail",
-        "ru": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail",
-        "pt": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail",
-        "nl": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail",
-        "fr": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail",
-        "it": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail",
-        "es": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail",
-        "pl": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail",
-        "uk": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail",
-        "zh-cn": "chore(settings): equal-height row for Admin URL + DP + Decimals; chore(settings): move Clients+Backup below config row; let them stretch to equal height; chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals; fix(settings): cap Clients + Backup list height with internal scroll; chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals; chore(admin): reorder sidebar nav; refactor(admin): split Frontend page from Layouts, switch to master-detail"
       }
     }
   },
