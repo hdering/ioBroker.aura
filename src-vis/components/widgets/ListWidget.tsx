@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Filter, List, Power } from 'lucide-react';
 import { useIoBroker, getObjectViewDirect } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
@@ -439,12 +439,12 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
         [config, opts, onConfigChange],
     );
 
-    // Subscribe to all entry states
+    // Subscribe to all entry states — keyed on entryKey only, no prevKey guard.
+    // A prevKey ref survives the StrictMode mount→unmount→remount cycle and would
+    // make the remount skip re-subscribing after the unmount cleaned up, leaving
+    // the list with zero live subscriptions in dev.
     const entryKey = entries.map((e) => e.id).join(',');
-    const prevKey = useRef('');
     useEffect(() => {
-        if (entryKey === prevKey.current) return;
-        prevKey.current = entryKey;
         if (entries.length === 0) return;
         entries.forEach((e) => getState(e.id).then((s) => setStates((prev) => ({ ...prev, [e.id]: s }))));
         const unsubs = entries.map((e) =>

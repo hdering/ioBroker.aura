@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { RefreshCw, Filter, List } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { getObjectViewDirect, useIoBroker } from '../../hooks/useIoBroker';
@@ -672,10 +672,11 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     );
 
     const entryKey = entries.map((e) => e.id).join(',');
-    const prevKey = useRef('');
+    // NB: keyed on entryKey only — no prevKey guard. A prevKey ref survives the
+    // StrictMode mount→unmount→remount cycle and would make the remount skip
+    // re-subscribing (after the unmount tore the subscriptions down), leaving
+    // the list with zero live subscriptions in dev.
     useEffect(() => {
-        if (entryKey === prevKey.current) return;
-        prevKey.current = entryKey;
         if (entries.length === 0) return;
         entries.forEach((e) => getState(e.id).then((s) => setStates((prev) => ({ ...prev, [e.id]: s }))));
         const unsubs = entries.map((e) =>
