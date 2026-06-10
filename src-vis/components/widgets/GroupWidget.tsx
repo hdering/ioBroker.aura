@@ -264,6 +264,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                         title={`${activeCount}/${total}`}
                         editing={editMode}
                         placeholderHint={t('group.masterPlaceholder')}
+                        placeholderLabel={t('group.masterPlaceholderShort')}
                         className="ml-auto"
                     />
                 )}

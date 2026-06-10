@@ -1049,6 +1049,7 @@ export const en: Record<TranslationKey, string> = {
     'group.noWidgets': 'No widgets yet',
     'group.dropHere': 'Drop widget here',
     'group.masterPlaceholder': 'Group switch enabled – appears once controllable datapoints are configured',
+    'group.masterPlaceholderShort': 'needs DPs',
     'group.fitHeight': 'Fit height to content',
 
     // ── Carousel Widget (chip strip) ──────────────────────────────────────────────

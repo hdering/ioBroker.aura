@@ -20,6 +20,9 @@ interface Props {
     editing?: boolean;
     /** Tooltip shown on the editor placeholder when there is nothing to control yet. */
     placeholderHint?: string;
+    /** Short always-visible label beside the placeholder (the tooltip is often
+     *  obscured by the editor's hover action buttons, so this stays readable). */
+    placeholderLabel?: string;
 }
 
 export function GroupMasterSwitch({
@@ -29,22 +32,34 @@ export function GroupMasterSwitch({
     className = '',
     editing = false,
     placeholderHint,
+    placeholderLabel,
 }: Props) {
     if (aggregate === 'none') {
         if (!editing) return null;
         // Editor-only placeholder: dashed, muted, non-interactive — signals that
         // the master switch is enabled and will appear once controllable DPs exist.
+        // A short inline label stays readable even when the editor's hover action
+        // buttons obscure the native title tooltip.
         return (
-            <span
-                className={`nodrag shrink-0 relative w-9 h-[18px] rounded-full ${className}`}
-                style={{ background: 'transparent', border: '1px dashed var(--app-border)', opacity: 0.6 }}
-                title={placeholderHint}
-                aria-hidden
-            >
+            <span className={`nodrag shrink-0 inline-flex items-center gap-1 ${className}`} title={placeholderHint}>
+                {placeholderLabel && (
+                    <span
+                        className="text-[9px] whitespace-nowrap"
+                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                    >
+                        {placeholderLabel}
+                    </span>
+                )}
                 <span
-                    className="absolute top-[2px] left-[2px] w-[14px] h-[14px] rounded-full"
-                    style={{ background: 'var(--app-border)' }}
-                />
+                    className="relative w-9 h-[18px] rounded-full shrink-0"
+                    style={{ background: 'transparent', border: '1px dashed var(--app-border)', opacity: 0.6 }}
+                    aria-hidden
+                >
+                    <span
+                        className="absolute top-[2px] left-[2px] w-[14px] h-[14px] rounded-full"
+                        style={{ background: 'var(--app-border)' }}
+                    />
+                </span>
             </span>
         );
     }

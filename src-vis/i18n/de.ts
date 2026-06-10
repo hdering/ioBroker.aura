@@ -1051,6 +1051,7 @@ export const de = {
     'group.noWidgets': 'Keine Widgets vorhanden',
     'group.dropHere': 'Widget hier ablegen',
     'group.masterPlaceholder': 'Gruppen-Schalter aktiv – erscheint, sobald steuerbare Datenpunkte konfiguriert sind',
+    'group.masterPlaceholderShort': 'DPs nötig',
     'group.fitHeight': 'Höhe an Inhalt anpassen',
 
     // ── Carousel Widget (Chip-Streifen) ───────────────────────────────────────────
