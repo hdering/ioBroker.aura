@@ -1072,7 +1072,7 @@ class Aura extends utils.Adapter {
     }
     const tickSec = Math.max(5, Math.min(600, Number(this.config.timerTickSeconds) || 30));
     this._timerTickMs = tickSec * 1000;
-    this._timerInterval = setInterval(() => this._timerTick().catch((e) => this.log.warn(`[timers] tick error: ${e.message}`)), this._timerTickMs);
+    this._timerInterval = this.setInterval(() => this._timerTick().catch((e) => this.log.warn(`[timers] tick error: ${e.message}`)), this._timerTickMs);
     this.log.info(`[timers] scheduler tick = ${tickSec}s`);
 
     // ── Live log relay for AdapterLogsWidget ───────────────────────────────────
@@ -1408,7 +1408,7 @@ class Aura extends utils.Adapter {
         // Toggle common.enabled: false → 600ms → true forces controller to restart.
         const wasEnabled = obj.common?.enabled === true;
         await this.extendForeignObjectAsync(objId, { common: { enabled: false } });
-        await new Promise(r => setTimeout(r, 600));
+        await new Promise(r => this.setTimeout(r, 600));
         await this.extendForeignObjectAsync(objId, { common: { enabled: true } });
         this.log.info(`[adapter-status] restart ${id} (was ${wasEnabled ? 'enabled' : 'disabled'})`);
         reply({ ok: true });
@@ -1561,7 +1561,7 @@ class Aura extends utils.Adapter {
         this.on('message', onSubMsg);
 
         // Safety timeout — if host never responds (unlikely), tell the frontend.
-        setTimeout(() => {
+        this.setTimeout(() => {
           if (exitCode === null) {
             this.removeListener('message', onSubMsg);
             this.log.warn(`[adapter-status] upgrade ${name} timeout (no cmdExit from ${hostTarget})`);
@@ -1583,7 +1583,7 @@ class Aura extends utils.Adapter {
     try {
       try { this.requireLog(false); } catch { /* ignore */ }
       if (this._timerInterval) {
-        clearInterval(this._timerInterval);
+        this.clearInterval(this._timerInterval);
         this._timerInterval = null;
       }
       if (this._httpServer) {

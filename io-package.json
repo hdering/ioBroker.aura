@@ -276,7 +276,7 @@
       "common": {
         "name": "Frontend theme mode ('dark'|'light'|''); empty = no override",
         "type": "string",
-        "role": "level.mode.color",
+        "role": "text",
         "read": true,
         "write": true,
         "def": "",
@@ -293,7 +293,7 @@
       "common": {
         "name": "Admin theme mode ('dark'|'light'|''); empty = no override",
         "type": "string",
-        "role": "level.mode.color",
+        "role": "text",
         "read": true,
         "write": true,
         "def": "",
