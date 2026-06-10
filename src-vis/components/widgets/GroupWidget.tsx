@@ -90,11 +90,18 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const groupSwitchEnabled = !!config.options?.groupSwitch;
     const gaCfg = (config.options ?? {}) as GroupActionConfigOpts;
     const groupActionType = (gaCfg.groupActionType ?? 'switch') as GroupActionType;
-    const { groupDimmerOnValue, groupIncludeNumbers, groupNumberOnValue, groupNumberOffValue } = gaCfg;
+    const { groupDimmerOnValue, groupIncludeNumbers, groupNumberOnValue, groupNumberOffValue, groupExcludeIds } = gaCfg;
+    const groupExcludeSet = useMemo(() => new Set(groupExcludeIds ?? []), [groupExcludeIds]);
     const { subscribe, getState, setState } = useIoBroker();
     const [childStates, setChildStates] = useState<Record<string, ioBrokerState['val']>>({});
     // Live child state is only needed for the on/off switch aggregate.
-    const childDpIds = groupSwitchEnabled && groupActionType === 'switch' ? groupChildDpIds(children, gaCfg) : [];
+    const childDpIds =
+        groupSwitchEnabled && groupActionType === 'switch'
+            ? groupChildDpIds(
+                  children.filter((c) => !groupExcludeSet.has(c.id)),
+                  gaCfg,
+              )
+            : [];
     const childDpKey = childDpIds.join(',');
     useEffect(() => {
         if (childDpIds.length === 0) return;
@@ -113,6 +120,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
             groupNumberOffValue,
         };
         return children
+            .filter((c) => !groupExcludeSet.has(c.id))
             .map((c) => groupChildTarget(c, (id) => childStates[id] ?? null, cfg))
             .filter((x): x is GroupTarget => x !== null);
     }, [
@@ -124,18 +132,19 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         groupIncludeNumbers,
         groupNumberOnValue,
         groupNumberOffValue,
+        groupExcludeSet,
     ]);
     const groupDimmerIds = useMemo(
-        () => (groupSwitchEnabled ? groupChildDimmerIds(children) : []),
-        [groupSwitchEnabled, children],
+        () => (groupSwitchEnabled ? groupChildDimmerIds(children, groupExcludeSet) : []),
+        [groupSwitchEnabled, children, groupExcludeSet],
     );
     const groupShutterTargets = useMemo(
-        () => (groupSwitchEnabled ? groupChildShutterTargets(children) : []),
-        [groupSwitchEnabled, children],
+        () => (groupSwitchEnabled ? groupChildShutterTargets(children, groupExcludeSet) : []),
+        [groupSwitchEnabled, children, groupExcludeSet],
     );
     const groupPulseIds = useMemo(
-        () => (groupSwitchEnabled ? groupChildPulseIds(children) : []),
-        [groupSwitchEnabled, children],
+        () => (groupSwitchEnabled ? groupChildPulseIds(children, groupExcludeSet) : []),
+        [groupSwitchEnabled, children, groupExcludeSet],
     );
     const hasAction =
         groupActionType === 'switch'

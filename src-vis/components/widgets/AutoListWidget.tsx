@@ -859,23 +859,25 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     // ── Group action control (switch / dimmer / shutter / momentary) ────────────
     const groupSwitchEnabled = !!opts.groupSwitch;
     const groupActionType = (opts.groupActionType ?? 'switch') as GroupActionType;
+    const groupExcludeSet = useMemo(() => new Set(opts.groupExcludeIds ?? []), [opts.groupExcludeIds]);
     const groupSwitchTargets = useMemo<GroupTarget[]>(() => {
         if (!groupSwitchEnabled || groupActionType !== 'switch') return [];
         return entries
+            .filter((e) => !groupExcludeSet.has(e.id))
             .map((e) => listEntryTarget(e, states[e.id]?.val ?? null, opts))
             .filter((x): x is GroupTarget => x !== null);
-    }, [groupSwitchEnabled, groupActionType, entries, states, opts]);
+    }, [groupSwitchEnabled, groupActionType, entries, states, opts, groupExcludeSet]);
     const groupDimmerIds = useMemo(
-        () => (groupSwitchEnabled ? listDimmerIds(entries) : []),
-        [groupSwitchEnabled, entries],
+        () => (groupSwitchEnabled ? listDimmerIds(entries, groupExcludeSet) : []),
+        [groupSwitchEnabled, entries, groupExcludeSet],
     );
     const groupShutterTargets = useMemo(
-        () => (groupSwitchEnabled ? listShutterTargets(entries) : []),
-        [groupSwitchEnabled, entries],
+        () => (groupSwitchEnabled ? listShutterTargets(entries, groupExcludeSet) : []),
+        [groupSwitchEnabled, entries, groupExcludeSet],
     );
     const groupPulseIds = useMemo(
-        () => (groupSwitchEnabled ? listPulseIds(entries) : []),
-        [groupSwitchEnabled, entries],
+        () => (groupSwitchEnabled ? listPulseIds(entries, groupExcludeSet) : []),
+        [groupSwitchEnabled, entries, groupExcludeSet],
     );
     const masterSwitch = groupSwitchEnabled ? (
         <GroupActionControl

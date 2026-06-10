@@ -61,7 +61,12 @@ import { DP_TEMPLATES, findMainDpForSecondary, autoDetectStatusDps, autoDetectLi
 import { AutoListConfig } from '../config/AutoListConfig';
 import { StaticListConfig } from '../config/StaticListConfig';
 import { GroupActionConfig } from '../config/GroupActionConfig';
-import type { GroupActionConfigOpts } from '../../utils/groupTargets';
+import {
+    listGroupCandidates,
+    groupGroupCandidates,
+    type GroupActionConfigOpts,
+    type GroupActionType,
+} from '../../utils/groupTargets';
 import { EnumConfig } from '../config/EnumConfig';
 import {
     type CameraSlot,
@@ -5236,6 +5241,17 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
     // ── Group-specific hooks (always called, conditionally used) ───────────────
     const groupDefId = isGroup ? (config.options?.defId as string | undefined) : undefined;
     const groupChildren = useGroupDefsStore((s) => (groupDefId ? (s.defs[groupDefId] ?? []) : []));
+    // Candidates for the group-action target checklist (config UI).
+    const groupActionType = (config.options?.groupActionType ?? 'switch') as GroupActionType;
+    const groupActionCandidates =
+        config.type === 'group'
+            ? groupGroupCandidates(groupChildren, groupActionType)
+            : config.type === 'list' || config.type === 'autolist'
+              ? listGroupCandidates(
+                    (config.options?.entries as Parameters<typeof listGroupCandidates>[0]) ?? [],
+                    groupActionType,
+                )
+              : [];
     const groupCellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);
     const groupGridGap = useConfigStore((s) => s.frontend.gridGap ?? 10);
 
@@ -7062,6 +7078,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                 setOpts={(patch) =>
                                     onConfigChange({ ...config, options: { ...config.options, ...patch } })
                                 }
+                                candidates={groupActionCandidates}
                             />
                         </div>
                     )}

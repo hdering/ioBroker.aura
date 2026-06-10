@@ -5,11 +5,13 @@
  * its own persistence. The action type (switch/dimmer/shutter/momentary) decides
  * which extra fields are shown.
  */
-import type { GroupActionConfigOpts, GroupActionType } from '../../utils/groupTargets';
+import type { GroupActionConfigOpts, GroupActionType, GroupCandidate } from '../../utils/groupTargets';
 
 interface Props {
     opts: GroupActionConfigOpts;
     setOpts: (patch: Partial<GroupActionConfigOpts>) => void;
+    /** Controllable items for the current action type — drives the target checklist. */
+    candidates?: GroupCandidate[];
 }
 
 const iSty = {
@@ -49,10 +51,16 @@ function Info({ children }: { children: React.ReactNode }) {
     );
 }
 
-export function GroupActionConfig({ opts, setOpts }: Props) {
+export function GroupActionConfig({ opts, setOpts, candidates }: Props) {
     const enabled = !!opts.groupSwitch;
     const type = (opts.groupActionType ?? 'switch') as GroupActionType;
     const includeNumbers = !!opts.groupIncludeNumbers;
+    const excluded = opts.groupExcludeIds ?? [];
+    const toggleExclude = (key: string) => {
+        const next = excluded.includes(key) ? excluded.filter((k) => k !== key) : [...excluded, key];
+        setOpts({ groupExcludeIds: next.length ? next : undefined });
+    };
+    const includedCount = (candidates ?? []).filter((c) => !excluded.includes(c.key)).length;
 
     return (
         <div>
@@ -291,6 +299,40 @@ export function GroupActionConfig({ opts, setOpts }: Props) {
                                 </div>
                             )}
                         </div>
+                    )}
+                    {/* Target checklist — deselect DPs that should not be controlled */}
+                    {candidates && candidates.length > 0 && (
+                        <details style={{ borderTop: '1px solid var(--app-border)', paddingTop: 6, marginTop: 2 }}>
+                            <summary
+                                className="text-[10px] cursor-pointer select-none"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                Betroffene Datenpunkte ({includedCount}/{candidates.length})
+                            </summary>
+                            <div className="mt-1 space-y-0.5 max-h-40 overflow-y-auto aura-scroll">
+                                {candidates.map((c) => (
+                                    <label
+                                        key={c.key}
+                                        className="flex items-center gap-2 text-[10px] cursor-pointer py-0.5"
+                                        style={{ color: 'var(--text-primary)' }}
+                                        title={c.key}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={!excluded.includes(c.key)}
+                                            onChange={() => toggleExclude(c.key)}
+                                            style={{ accentColor: 'var(--accent)' }}
+                                        />
+                                        <span className="truncate">{c.label}</span>
+                                    </label>
+                                ))}
+                            </div>
+                            {includedCount === 0 && (
+                                <p className="text-[9px] mt-1" style={{ color: 'var(--accent-red, #ef4444)' }}>
+                                    Keine Datenpunkte ausgewählt – die Aktion bewirkt nichts.
+                                </p>
+                            )}
+                        </details>
                     )}
                 </div>
             )}

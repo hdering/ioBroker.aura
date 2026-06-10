@@ -37,6 +37,15 @@ export interface GroupActionConfigOpts {
     groupPulseDelay?: number;
     /** Caption for the Taster button. */
     groupPulseLabel?: string;
+    /** Keys (list entry id / group child id) explicitly excluded from the group action. */
+    groupExcludeIds?: string[];
+}
+
+/** A controllable item shown in the group-action target checklist. */
+export interface GroupCandidate {
+    /** Stable key used for exclusion: list entry id or group child id. */
+    key: string;
+    label: string;
 }
 
 /** One shutter device's command targets, resolved from a list entry or a group
@@ -92,6 +101,7 @@ function parseSwitchVal(raw: unknown, fallback: boolean): boolean | number | str
 /** Minimal entry shape shared by StaticListEntry and AutoListEntry. */
 interface ListEntryLike {
     id: string;
+    label?: string;
     role?: string;
     writable?: boolean;
     /** Forces control rendering; respected here too. */
@@ -235,19 +245,33 @@ export function groupChildTarget(
 }
 
 // ── Dimmer / shutter / pulse collectors (for the dimmer/shutter/momentary group
-//    action types). State-independent — they only resolve which DPs to write. ──
+//    action types). State-independent — they only resolve which DPs to write.
+//    `exclude` holds keys (list entry id / group child id) the user deselected. ──
+
+const RICH_DISPLAY_TYPES = ['shutter', 'stepper', 'buttons', 'momentary'];
+const notExcluded = (key: string, exclude?: ReadonlySet<string>) => !exclude?.has(key);
 
 /** Numeric/level DPs a "Dimmer" group action should set. */
-export function listDimmerIds(entries: ListEntryLike[]): string[] {
+export function listDimmerIds(entries: ListEntryLike[], exclude?: ReadonlySet<string>): string[] {
     return entries
-        .filter((e) => e.writable !== false && (e.displayType === 'slider' || isDimmerRoleOrId(e.role, e.id)))
+        .filter(
+            (e) =>
+                notExcluded(e.id, exclude) &&
+                e.writable !== false &&
+                (e.displayType === 'slider' || isDimmerRoleOrId(e.role, e.id)),
+        )
         .map((e) => e.id);
 }
 
 /** Shutter command targets from list entries configured as displayType 'shutter'. */
-export function listShutterTargets(entries: ListEntryLike[]): ShutterTarget[] {
+export function listShutterTargets(entries: ListEntryLike[], exclude?: ReadonlySet<string>): ShutterTarget[] {
     return entries
-        .filter((e) => e.displayType === 'shutter' && (e.shutterUpDp || e.shutterStopDp || e.shutterDownDp))
+        .filter(
+            (e) =>
+                notExcluded(e.id, exclude) &&
+                e.displayType === 'shutter' &&
+                (e.shutterUpDp || e.shutterStopDp || e.shutterDownDp),
+        )
         .map((e) => ({
             upDp: e.shutterUpDp,
             stopDp: e.shutterStopDp,
@@ -257,24 +281,25 @@ export function listShutterTargets(entries: ListEntryLike[]): ShutterTarget[] {
 }
 
 /** Main DPs a "Taster" group action should pulse. */
-export function listPulseIds(entries: ListEntryLike[]): string[] {
-    return entries.filter((e) => e.writable !== false).map((e) => e.id);
+export function listPulseIds(entries: ListEntryLike[], exclude?: ReadonlySet<string>): string[] {
+    return entries.filter((e) => notExcluded(e.id, exclude) && e.writable !== false).map((e) => e.id);
 }
 
 /** Numeric/level DPs from group child widgets a "Dimmer" action should set. */
-export function groupChildDimmerIds(children: WidgetConfig[]): string[] {
+export function groupChildDimmerIds(children: WidgetConfig[], exclude?: ReadonlySet<string>): string[] {
     const ids: string[] = [];
     for (const c of children) {
-        if (['dimmer', 'light', 'slider', 'knob', 'fill'].includes(c.type) && c.datapoint) ids.push(c.datapoint);
+        if (notExcluded(c.id, exclude) && ['dimmer', 'light', 'slider', 'knob', 'fill'].includes(c.type) && c.datapoint)
+            ids.push(c.datapoint);
     }
     return ids;
 }
 
 /** Shutter command targets resolved from group child shutter widgets. */
-export function groupChildShutterTargets(children: WidgetConfig[]): ShutterTarget[] {
+export function groupChildShutterTargets(children: WidgetConfig[], exclude?: ReadonlySet<string>): ShutterTarget[] {
     const out: ShutterTarget[] = [];
     for (const c of children) {
-        if (c.type !== 'shutter') continue;
+        if (c.type !== 'shutter' || !notExcluded(c.id, exclude)) continue;
         const o = c.options ?? {};
         const taster = o.controlMode === 'taster';
         const openDp = o.openDp as string | undefined;
@@ -290,6 +315,50 @@ export function groupChildShutterTargets(children: WidgetConfig[]): ShutterTarge
 }
 
 /** Main DPs from group children a "Taster" action should pulse. */
-export function groupChildPulseIds(children: WidgetConfig[]): string[] {
-    return children.filter((c) => !!c.datapoint).map((c) => c.datapoint);
+export function groupChildPulseIds(children: WidgetConfig[], exclude?: ReadonlySet<string>): string[] {
+    return children.filter((c) => notExcluded(c.id, exclude) && !!c.datapoint).map((c) => c.datapoint);
+}
+
+// ── Candidate lists for the target checklist (config UI) — which items the
+//    current action type *could* control, with a stable key + label. ──────────
+
+export function listGroupCandidates(entries: ListEntryLike[], type: GroupActionType): GroupCandidate[] {
+    const label = (e: ListEntryLike) => e.label || e.id.split('.').pop() || e.id;
+    let items: ListEntryLike[];
+    if (type === 'dimmer') {
+        items = entries.filter(
+            (e) => e.writable !== false && (e.displayType === 'slider' || isDimmerRoleOrId(e.role, e.id)),
+        );
+    } else if (type === 'shutter') {
+        items = entries.filter(
+            (e) => e.displayType === 'shutter' && (e.shutterUpDp || e.shutterStopDp || e.shutterDownDp),
+        );
+    } else if (type === 'momentary') {
+        items = entries.filter((e) => e.writable !== false);
+    } else {
+        items = entries.filter(
+            (e) => e.writable !== false && !(e.displayType && RICH_DISPLAY_TYPES.includes(e.displayType)),
+        );
+    }
+    return items.map((e) => ({ key: e.id, label: label(e) }));
+}
+
+export function groupGroupCandidates(children: WidgetConfig[], type: GroupActionType): GroupCandidate[] {
+    const label = (c: WidgetConfig) => c.title || c.type;
+    let items: WidgetConfig[];
+    if (type === 'dimmer') {
+        items = children.filter((c) => ['dimmer', 'light', 'slider', 'knob', 'fill'].includes(c.type) && !!c.datapoint);
+    } else if (type === 'shutter') {
+        items = children.filter((c) => c.type === 'shutter');
+    } else if (type === 'momentary') {
+        items = children.filter((c) => !!c.datapoint);
+    } else {
+        items = children.filter((c) => {
+            const o = c.options ?? {};
+            if (c.type === 'switch') return !o.momentary && !!c.datapoint;
+            if (c.type === 'light' || c.type === 'dimmer') return !!(o.switchDp || c.datapoint);
+            return false;
+        });
+    }
+    return items.map((c) => ({ key: c.id, label: label(c) }));
 }
