@@ -311,8 +311,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
         { key: 'pills', label: t('settings.tabBar.stylePills') },
     ];
     // Resolve current font size to px; legacy keyword sizes map to their px equivalents.
-    const fontPx =
-        typeof tbs.fontSize === 'number' ? tbs.fontSize : { sm: 12, md: 14, lg: 16 }[tbs.fontSize ?? 'md'];
+    const fontPx = typeof tbs.fontSize === 'number' ? tbs.fontSize : { sm: 12, md: 14, lg: 16 }[tbs.fontSize ?? 'md'];
     const alignOptions: Array<{ key: TabBarSettings['tabsAlignment']; label: string }> = [
         { key: 'left', label: t('settings.tabBar.alignLeft') },
         { key: 'center', label: t('settings.tabBar.alignCenter') },
