@@ -13800,6 +13800,59 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                                 </div>
                                             </div>
 
+                                            {/* Per-column width (fr ratios) — e.g. 2 / 1 makes the first column twice as wide */}
+                                            {cols > 1 && (
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Spaltenbreiten (Verhältnis)
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        {Array.from({ length: cols }, (_, ci) => {
+                                                            const cur = grid.colSizes?.[ci] ?? '1fr';
+                                                            const num = parseFloat(cur) || 1;
+                                                            return (
+                                                                <input
+                                                                    key={ci}
+                                                                    type="number"
+                                                                    min={0.25}
+                                                                    step={0.25}
+                                                                    value={num}
+                                                                    title={`Spalte ${ci + 1}`}
+                                                                    onChange={(e) => {
+                                                                        const v = Math.max(
+                                                                            0.25,
+                                                                            Number(e.target.value) || 1,
+                                                                        );
+                                                                        const arr = Array.from({ length: cols }, (_, k) =>
+                                                                            k === ci
+                                                                                ? `${v}fr`
+                                                                                : (grid.colSizes?.[k] ?? '1fr'),
+                                                                        );
+                                                                        const allEqual = arr.every((s) => s === arr[0]);
+                                                                        writeGrid({
+                                                                            ...grid,
+                                                                            colSizes: allEqual ? undefined : arr,
+                                                                        });
+                                                                    }}
+                                                                    className={`flex-1 ${inputCls}`}
+                                                                    style={inputSty}
+                                                                />
+                                                            );
+                                                        })}
+                                                    </div>
+                                                    <p
+                                                        className="text-[10px] mt-1"
+                                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                    >
+                                                        Verhältnis der Spaltenbreiten – z.&nbsp;B. 2 / 1 macht die
+                                                        erste Spalte doppelt so breit.
+                                                    </p>
+                                                </div>
+                                            )}
+
                                             {/* Cell picker — dynamic grid (drag&drop move, Ctrl+drag copy, right-click menu) */}
                                             <div
                                                 style={{
