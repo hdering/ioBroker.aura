@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.215",
+    "version": "0.9.216",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.216": {
+        "en": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
+        "de": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
+        "ru": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
+        "pt": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
+        "nl": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
+        "fr": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
+        "it": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
+        "es": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
+        "pl": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
+        "uk": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
+        "zh-cn": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty"
+      },
       "0.9.215": {
         "en": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload",
         "de": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload",
@@ -183,19 +196,6 @@
         "pl": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
         "uk": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
         "zh-cn": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations"
-      },
-      "0.9.204": {
-        "en": "feat(custom-layout): extend last-change to all data-bearing cell types; feat(custom-layout): add last-change timestamp to data cells",
-        "de": "feat(custom-layout): extend last-change to all data-bearing cell types; feat(custom-layout): add last-change timestamp to data cells",
-        "ru": "feat(custom-layout): extend last-change to all data-bearing cell types; feat(custom-layout): add last-change timestamp to data cells",
-        "pt": "feat(custom-layout): extend last-change to all data-bearing cell types; feat(custom-layout): add last-change timestamp to data cells",
-        "nl": "feat(custom-layout): extend last-change to all data-bearing cell types; feat(custom-layout): add last-change timestamp to data cells",
-        "fr": "feat(custom-layout): extend last-change to all data-bearing cell types; feat(custom-layout): add last-change timestamp to data cells",
-        "it": "feat(custom-layout): extend last-change to all data-bearing cell types; feat(custom-layout): add last-change timestamp to data cells",
-        "es": "feat(custom-layout): extend last-change to all data-bearing cell types; feat(custom-layout): add last-change timestamp to data cells",
-        "pl": "feat(custom-layout): extend last-change to all data-bearing cell types; feat(custom-layout): add last-change timestamp to data cells",
-        "uk": "feat(custom-layout): extend last-change to all data-bearing cell types; feat(custom-layout): add last-change timestamp to data cells",
-        "zh-cn": "feat(custom-layout): extend last-change to all data-bearing cell types; feat(custom-layout): add last-change timestamp to data cells"
       }
     }
   },

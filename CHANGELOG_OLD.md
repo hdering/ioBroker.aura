@@ -1,5 +1,14 @@
 # Changelog (older entries)
 
+## 0.9.196 (2026-06-08)
+- chore(settings): equal-height row for Admin URL + DP + Decimals
+- chore(settings): move Clients+Backup below config row; let them stretch to equal height
+- chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals
+- fix(settings): cap Clients + Backup list height with internal scroll
+- chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals
+- chore(admin): reorder sidebar nav
+- refactor(admin): split Frontend page from Layouts, switch to master-detail
+
 ## 0.9.195 (2026-06-08)
 - feat(adapter): per-instance state namespace (multi-instance support)
 

@@ -190,6 +190,12 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.216 (2026-06-10)
+- feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt
+- fix(widgets): add visible label to empty group master switch placeholder
+- feat(widgets): show group master switch placeholder in editor when empty
+
+
 ### 0.9.215 (2026-06-10)
 - @ fix(groups): stop empty group-defs store from clobbering ioBroker on reload
 
@@ -284,16 +290,6 @@ npm run build:adapter
 - fix(multi-instance): route sendTo messages to running namespace
 
 
-### 0.9.196 (2026-06-08)
-- chore(settings): equal-height row for Admin URL + DP + Decimals
-- chore(settings): move Clients+Backup below config row; let them stretch to equal height
-- chore(settings): pair Clients+Backup, group Admin URL+DP+Decimals
-- fix(settings): cap Clients + Backup list height with internal scroll
-- chore(settings): reorder cards — Admin URL + Backup side-by-side above Clients/DP/Decimals
-- chore(admin): reorder sidebar nav
-- refactor(admin): split Frontend page from Layouts, switch to master-detail
-
-
 ## License
 
 MIT License
@@ -305,6 +301,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
