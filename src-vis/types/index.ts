@@ -176,7 +176,8 @@ export type CustomCellType =
     | 'input'
     | 'progress'
     | 'state-text'
-    | 'select';
+    | 'select'
+    | 'lastchange';
 export type CustomCellAlign = 'left' | 'center' | 'right';
 export type CustomCellValign = 'top' | 'middle' | 'bottom';
 

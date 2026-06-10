@@ -33,6 +33,7 @@ export const CELL_LABELS: Record<string, string> = {
     progress: 'Fortschritt',
     'state-text': 'Status-Text',
     select: 'Auswahl',
+    lastchange: 'Letzte Änderung',
 };
 
 const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
@@ -213,6 +214,7 @@ const OWN_DP_CELL_OPTS: CellOpt[] = (
         { key: 'datepicker', label: 'Datumswähler (DP)' },
         { key: 'dp', label: 'Datenpunkt-Wert' },
         { key: 'input', label: 'Eingabe (DP schreiben)' },
+        { key: 'lastchange', label: 'Letzte Änderung (DP)' },
         { key: 'progress', label: 'Fortschrittsbalken (DP)' },
         { key: 'select', label: 'Auswahlfeld (DP)' },
         { key: 'slider', label: 'Schieberegler (DP)' },
@@ -682,7 +684,8 @@ export function CustomCellEditor({
                 cell.type === 'stepper' ||
                 cell.type === 'input' ||
                 cell.type === 'progress' ||
-                cell.type === 'select') && (
+                cell.type === 'select' ||
+                cell.type === 'lastchange') && (
                 <div>
                     <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                         Datenpunkt
@@ -1978,12 +1981,47 @@ export function CustomCellEditor({
                 </>
             )}
 
+            {/* Format picker for the dedicated "Letzte Änderung" cell — the timestamp is the content */}
+            {cell.type === 'lastchange' && (
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        Format
+                    </label>
+                    <div className="flex gap-1">
+                        {(
+                            [
+                                ['relative', 'Relativ'],
+                                ['time', 'Uhrzeit'],
+                                ['datetime', 'Datum+Zeit'],
+                            ] as const
+                        ).map(([val, lbl]) => {
+                            const active = (cell.lastChangeFormat ?? 'relative') === val;
+                            return (
+                                <button
+                                    key={val}
+                                    onClick={() => onChange({ lastChangeFormat: val })}
+                                    className="flex-1 text-[10px] py-1.5 rounded-lg transition-colors"
+                                    style={{
+                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                        color: active ? '#fff' : 'var(--text-secondary)',
+                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                    }}
+                                >
+                                    {lbl}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
             {/* Last-change timestamp */}
             {cell.type !== 'empty' &&
                 cell.type !== 'text' &&
                 cell.type !== 'image' &&
                 cell.type !== 'icon' &&
-                cell.type !== 'component' && (
+                cell.type !== 'component' &&
+                cell.type !== 'lastchange' && (
                     <>
                         <div className="flex items-center justify-between">
                             <div>

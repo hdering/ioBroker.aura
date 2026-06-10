@@ -202,6 +202,36 @@ function DpCellView({
     );
 }
 
+/** Subscribes to a DP and renders only its last-change timestamp as the cell content. */
+function LastChangeCellView({
+    cell,
+    index,
+    cols,
+    rows,
+}: {
+    cell: CustomCell;
+    index: number;
+    cols: number;
+    rows: number;
+}) {
+    const { state } = useDatapoint(cell.dpId ?? '');
+    const lc = state?.lc;
+    const fmt = cell.lastChangeFormat ?? 'relative';
+    const [, setTick] = useState(0);
+    useEffect(() => {
+        if (fmt !== 'relative' || !lc) return;
+        const id = setInterval(() => setTick((t) => t + 1), 30_000);
+        return () => clearInterval(id);
+    }, [fmt, lc]);
+    if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    const textSty = cellTextStyle(cell, 'var(--text-primary)');
+    return (
+        <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
+            <span style={textSty}>{lc ? formatLastChange(lc, fmt) : '–'}</span>
+        </div>
+    );
+}
+
 /** Renders an image from a URL or base64 data URI. */
 function ImageCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
     if (!cell.imageUrl) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
@@ -1326,6 +1356,8 @@ export function CustomGridView({
                         return <StateTextCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
                     case 'select':
                         return <SelectCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+                    case 'lastchange':
+                        return <LastChangeCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
                     default:
                         return (
                             <StaticCellView
