@@ -178,6 +178,55 @@
       "lg": 4,
       "xl": 4
     },
+    "_fsHeader": {
+      "type": "header",
+      "text": {
+        "en": "Image / file paths",
+        "de": "Bild- / Dateipfade"
+      },
+      "size": 2,
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "fsRoots": {
+      "type": "table",
+      "label": {
+        "en": "Allowed root folders",
+        "de": "Erlaubte Wurzelverzeichnisse"
+      },
+      "help": {
+        "en": "Folders the file picker (e.g. image widget) may browse. Add absolute paths for your operating system — Linux: /opt/iobroker/iobroker-data/files · macOS: /Users/you/Pictures · Windows: C:\\Users\\you\\Pictures. Subfolders are included automatically.",
+        "de": "Verzeichnisse, die der Datei-Picker (z. B. Bild-Widget) durchsuchen darf. Absolute Pfade für dein Betriebssystem eintragen — Linux: /opt/iobroker/iobroker-data/files · macOS: /Users/du/Bilder · Windows: C:\\Users\\du\\Bilder. Unterordner werden automatisch einbezogen."
+      },
+      "items": [
+        {
+          "type": "text",
+          "attr": "label",
+          "width": "35%",
+          "title": {
+            "en": "Label",
+            "de": "Bezeichnung"
+          }
+        },
+        {
+          "type": "text",
+          "attr": "path",
+          "width": "65%",
+          "title": {
+            "en": "Absolute path",
+            "de": "Absoluter Pfad"
+          }
+        }
+      ],
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
     "_timerHeader": {
       "type": "header",
       "text": {
