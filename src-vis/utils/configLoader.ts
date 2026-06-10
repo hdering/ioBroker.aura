@@ -80,7 +80,13 @@ export async function loadConfigFromIoBroker(
         try {
             const blob = JSON.parse(dashboardRaw) as Record<string, unknown>;
             for (const key of extraKeys) {
-                if (!ignoreDirty && hasDirtyFlag(key)) continue; // preserve unsaved edits
+                // aura-group-defs is RAM-only (never written to localStorage), so a
+                // page reload already wipes any unsaved edit — there is nothing to
+                // preserve. Honouring its _dirty flag here would skip the load,
+                // leave the store empty, and the next save would then overwrite the
+                // real group children in ioBroker with {}. Always hydrate it from
+                // remote; applyRaw clears the stale flag.
+                if (!ignoreDirty && key !== 'aura-group-defs' && hasDirtyFlag(key)) continue; // preserve unsaved edits
                 const val = blob[key];
                 if (!val) continue;
                 const raw = typeof val === 'string' ? val : JSON.stringify(val);
@@ -101,7 +107,10 @@ export async function loadConfigFromIoBroker(
         // New format: each result maps directly to its key
         for (let i = 0; i < extraKeys.length; i++) {
             const key = extraKeys[i];
-            if (!ignoreDirty && hasDirtyFlag(key)) continue; // preserve unsaved edits
+            // aura-group-defs is RAM-only: see note above. Skipping it on a dirty
+            // flag empties the group-children store and lets the next save clobber
+            // ioBroker with {}. Always hydrate it from remote.
+            if (!ignoreDirty && key !== 'aura-group-defs' && hasDirtyFlag(key)) continue; // preserve unsaved edits
             const state = results[i];
             if (!state?.val) continue;
             const raw = String(state.val);
