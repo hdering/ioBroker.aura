@@ -14,9 +14,16 @@ import { formatLastChange } from '../../utils/formatLastChange';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { publishListCount, unpublishList } from '../../utils/publishWidgetState';
-import { listEntryTarget, type GroupTarget } from '../../utils/groupTargets';
-import { useGroupControl } from '../../hooks/useGroupControl';
-import { GroupMasterSwitch } from './GroupMasterSwitch';
+import {
+    listEntryTarget,
+    listDimmerIds,
+    listShutterTargets,
+    listPulseIds,
+    type GroupTarget,
+    type GroupActionType,
+    type GroupActionConfigOpts,
+} from '../../utils/groupTargets';
+import { GroupActionControl } from './GroupActionControl';
 import {
     ShutterControl,
     StepperControl,
@@ -47,7 +54,7 @@ export interface AutoListEntry extends EntryControlConfig {
     inactiveBg?: string;
 }
 
-export interface AutoListOptions {
+export interface AutoListOptions extends GroupActionConfigOpts {
     entries: AutoListEntry[];
     filterRoles?: string;
     filterIdPattern?: string;
@@ -105,16 +112,7 @@ export interface AutoListOptions {
     wrapText?: boolean;
     /** When wrapText is on: minimum % of the row reserved for the label (10..90). Value gets the rest. Default 50. */
     labelMinPercent?: number;
-    /** Show a master switch in the header that toggles all controllable entries. */
-    groupSwitch?: boolean;
-    /** Value written to dimmer/level DPs on "all on" (off writes 0). Default 100. */
-    groupDimmerOnValue?: number;
-    /** Include plain numeric DPs in group actions. Default false. */
-    groupIncludeNumbers?: boolean;
-    /** Value written to numeric DPs on "all on" when included. Default 1. */
-    groupNumberOnValue?: number;
-    /** Value written to numeric DPs on "all off" when included. Default 0. */
-    groupNumberOffValue?: number;
+    // Group action options (groupSwitch, groupActionType, …) come from GroupActionConfigOpts.
 }
 
 export interface DiscoveredDp {
@@ -858,20 +856,36 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         });
     }, [opts.publishCount, config.id]);
 
-    // ── Master switch (group action) ────────────────────────────────────────────
+    // ── Group action control (switch / dimmer / shutter / momentary) ────────────
     const groupSwitchEnabled = !!opts.groupSwitch;
-    const groupTargets = useMemo<GroupTarget[]>(() => {
-        if (!groupSwitchEnabled) return [];
+    const groupActionType = (opts.groupActionType ?? 'switch') as GroupActionType;
+    const groupSwitchTargets = useMemo<GroupTarget[]>(() => {
+        if (!groupSwitchEnabled || groupActionType !== 'switch') return [];
         return entries
             .map((e) => listEntryTarget(e, states[e.id]?.val ?? null, opts))
             .filter((x): x is GroupTarget => x !== null);
-    }, [groupSwitchEnabled, entries, states, opts]);
-    const { aggregate: groupAgg, toggleAll: groupToggle, activeCount, total } = useGroupControl(groupTargets);
+    }, [groupSwitchEnabled, groupActionType, entries, states, opts]);
+    const groupDimmerIds = useMemo(
+        () => (groupSwitchEnabled ? listDimmerIds(entries) : []),
+        [groupSwitchEnabled, entries],
+    );
+    const groupShutterTargets = useMemo(
+        () => (groupSwitchEnabled ? listShutterTargets(entries) : []),
+        [groupSwitchEnabled, entries],
+    );
+    const groupPulseIds = useMemo(
+        () => (groupSwitchEnabled ? listPulseIds(entries) : []),
+        [groupSwitchEnabled, entries],
+    );
     const masterSwitch = groupSwitchEnabled ? (
-        <GroupMasterSwitch
-            aggregate={groupAgg}
-            onToggle={groupToggle}
-            title={`${activeCount}/${total}`}
+        <GroupActionControl
+            type={groupActionType}
+            cfg={opts}
+            setState={setState}
+            switchTargets={groupSwitchTargets}
+            dimmerIds={groupDimmerIds}
+            shutterTargets={groupShutterTargets}
+            pulseIds={groupPulseIds}
             editing={editMode}
             placeholderHint={t('group.masterPlaceholder')}
             placeholderLabel={t('group.masterPlaceholderShort')}

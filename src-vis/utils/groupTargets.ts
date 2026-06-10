@@ -11,9 +11,13 @@ import type { ioBrokerState, WidgetConfig } from '../types';
 
 /** Config keys controlling how group actions write to different DP kinds.
  *  Stored on a list widget's options or a group widget's options. */
+export type GroupActionType = 'switch' | 'dimmer' | 'shutter' | 'momentary';
+
 export interface GroupActionConfigOpts {
-    /** Show the master switch in the header / title bar. */
+    /** Show the group action control in the header / title bar. */
     groupSwitch?: boolean;
+    /** Which kind of group control to show. Default 'switch'. */
+    groupActionType?: GroupActionType;
     /** Value written to dimmer/level DPs on "all on" (off always writes 0). Default 100. */
     groupDimmerOnValue?: number;
     /** Include plain numeric DPs (value.*) in group actions. Default false. */
@@ -22,6 +26,28 @@ export interface GroupActionConfigOpts {
     groupNumberOnValue?: number;
     /** Value written to numeric DPs on "all off" when included. Default 0. */
     groupNumberOffValue?: number;
+    // ── momentary (Taster) action ──────────────────────────────────────────────
+    /** Value the Taster action writes to every target. Default true. */
+    groupPulseValue?: string | number | boolean;
+    /** Write a reset value after a delay. Default false. */
+    groupPulseReset?: boolean;
+    /** Reset value. Default false. */
+    groupPulseResetValue?: string | number | boolean;
+    /** Delay (ms) before the reset write. Default 500. */
+    groupPulseDelay?: number;
+    /** Caption for the Taster button. */
+    groupPulseLabel?: string;
+}
+
+/** One shutter device's command targets, resolved from a list entry or a group
+ *  child. Either separate up/down command DPs, or a position DP (write 0/100). */
+export interface ShutterTarget {
+    upDp?: string;
+    downDp?: string;
+    stopDp?: string;
+    positionDp?: string;
+    invert?: boolean;
+    writeValue?: string | number | boolean;
 }
 
 export interface GroupTarget {
@@ -70,6 +96,10 @@ interface ListEntryLike {
     writable?: boolean;
     /** Forces control rendering; respected here too. */
     displayType?: string;
+    shutterUpDp?: string;
+    shutterStopDp?: string;
+    shutterDownDp?: string;
+    shutterWriteValue?: string | number | boolean;
 }
 
 /**
@@ -202,4 +232,64 @@ export function groupChildTarget(
         default:
             return null;
     }
+}
+
+// ── Dimmer / shutter / pulse collectors (for the dimmer/shutter/momentary group
+//    action types). State-independent — they only resolve which DPs to write. ──
+
+/** Numeric/level DPs a "Dimmer" group action should set. */
+export function listDimmerIds(entries: ListEntryLike[]): string[] {
+    return entries
+        .filter((e) => e.writable !== false && (e.displayType === 'slider' || isDimmerRoleOrId(e.role, e.id)))
+        .map((e) => e.id);
+}
+
+/** Shutter command targets from list entries configured as displayType 'shutter'. */
+export function listShutterTargets(entries: ListEntryLike[]): ShutterTarget[] {
+    return entries
+        .filter((e) => e.displayType === 'shutter' && (e.shutterUpDp || e.shutterStopDp || e.shutterDownDp))
+        .map((e) => ({
+            upDp: e.shutterUpDp,
+            stopDp: e.shutterStopDp,
+            downDp: e.shutterDownDp,
+            writeValue: e.shutterWriteValue,
+        }));
+}
+
+/** Main DPs a "Taster" group action should pulse. */
+export function listPulseIds(entries: ListEntryLike[]): string[] {
+    return entries.filter((e) => e.writable !== false).map((e) => e.id);
+}
+
+/** Numeric/level DPs from group child widgets a "Dimmer" action should set. */
+export function groupChildDimmerIds(children: WidgetConfig[]): string[] {
+    const ids: string[] = [];
+    for (const c of children) {
+        if (['dimmer', 'light', 'slider', 'knob', 'fill'].includes(c.type) && c.datapoint) ids.push(c.datapoint);
+    }
+    return ids;
+}
+
+/** Shutter command targets resolved from group child shutter widgets. */
+export function groupChildShutterTargets(children: WidgetConfig[]): ShutterTarget[] {
+    const out: ShutterTarget[] = [];
+    for (const c of children) {
+        if (c.type !== 'shutter') continue;
+        const o = c.options ?? {};
+        const taster = o.controlMode === 'taster';
+        const openDp = o.openDp as string | undefined;
+        const closeDp = o.closeDp as string | undefined;
+        const stopDp = o.stopDp as string | undefined;
+        if (taster && (openDp || closeDp)) {
+            out.push({ upDp: openDp, downDp: closeDp, stopDp, writeValue: true });
+        } else if (c.datapoint) {
+            out.push({ positionDp: c.datapoint, invert: !!o.invertPosition, stopDp, writeValue: true });
+        }
+    }
+    return out;
+}
+
+/** Main DPs from group children a "Taster" action should pulse. */
+export function groupChildPulseIds(children: WidgetConfig[]): string[] {
+    return children.filter((c) => !!c.datapoint).map((c) => c.datapoint);
 }

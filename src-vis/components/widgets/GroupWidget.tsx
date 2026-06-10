@@ -7,11 +7,14 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import {
     groupChildDpIds,
     groupChildTarget,
+    groupChildDimmerIds,
+    groupChildShutterTargets,
+    groupChildPulseIds,
     type GroupActionConfigOpts,
+    type GroupActionType,
     type GroupTarget,
 } from '../../utils/groupTargets';
-import { useGroupControl } from '../../hooks/useGroupControl';
-import { GroupMasterSwitch } from './GroupMasterSwitch';
+import { GroupActionControl } from './GroupActionControl';
 import { WIDGET_BY_TYPE } from '../../widgetRegistry';
 // WidgetFrame is imported here — circular dep is safe because GroupWidget only
 // uses WidgetFrame inside its render function, never at module-init time.
@@ -83,13 +86,15 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         return () => ro.disconnect();
     }, []);
 
-    // ── Master switch (group action) ────────────────────────────────────────────
+    // ── Group action control (switch / dimmer / shutter / momentary) ────────────
     const groupSwitchEnabled = !!config.options?.groupSwitch;
     const gaCfg = (config.options ?? {}) as GroupActionConfigOpts;
+    const groupActionType = (gaCfg.groupActionType ?? 'switch') as GroupActionType;
     const { groupDimmerOnValue, groupIncludeNumbers, groupNumberOnValue, groupNumberOffValue } = gaCfg;
-    const { subscribe, getState } = useIoBroker();
+    const { subscribe, getState, setState } = useIoBroker();
     const [childStates, setChildStates] = useState<Record<string, ioBrokerState['val']>>({});
-    const childDpIds = groupSwitchEnabled ? groupChildDpIds(children, gaCfg) : [];
+    // Live child state is only needed for the on/off switch aggregate.
+    const childDpIds = groupSwitchEnabled && groupActionType === 'switch' ? groupChildDpIds(children, gaCfg) : [];
     const childDpKey = childDpIds.join(',');
     useEffect(() => {
         if (childDpIds.length === 0) return;
@@ -99,8 +104,8 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         );
         return () => unsubs.forEach((u) => u());
     }, [childDpKey]); // eslint-disable-line react-hooks/exhaustive-deps
-    const groupTargets = useMemo<GroupTarget[]>(() => {
-        if (!groupSwitchEnabled) return [];
+    const groupSwitchTargets = useMemo<GroupTarget[]>(() => {
+        if (!groupSwitchEnabled || groupActionType !== 'switch') return [];
         const cfg: GroupActionConfigOpts = {
             groupDimmerOnValue,
             groupIncludeNumbers,
@@ -112,6 +117,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
             .filter((x): x is GroupTarget => x !== null);
     }, [
         groupSwitchEnabled,
+        groupActionType,
         children,
         childStates,
         groupDimmerOnValue,
@@ -119,10 +125,29 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         groupNumberOnValue,
         groupNumberOffValue,
     ]);
-    const { aggregate: groupAgg, toggleAll: groupToggle, activeCount, total } = useGroupControl(groupTargets);
+    const groupDimmerIds = useMemo(
+        () => (groupSwitchEnabled ? groupChildDimmerIds(children) : []),
+        [groupSwitchEnabled, children],
+    );
+    const groupShutterTargets = useMemo(
+        () => (groupSwitchEnabled ? groupChildShutterTargets(children) : []),
+        [groupSwitchEnabled, children],
+    );
+    const groupPulseIds = useMemo(
+        () => (groupSwitchEnabled ? groupChildPulseIds(children) : []),
+        [groupSwitchEnabled, children],
+    );
+    const hasAction =
+        groupActionType === 'switch'
+            ? groupSwitchTargets.length > 0
+            : groupActionType === 'dimmer'
+              ? groupDimmerIds.length > 0
+              : groupActionType === 'shutter'
+                ? groupShutterTargets.length > 0
+                : groupPulseIds.length > 0;
     // Frontend: only when there is something to control. Editor: always (the
-    // GroupMasterSwitch shows a placeholder when there are no controllable DPs yet).
-    const showMaster = groupSwitchEnabled && (editMode || groupAgg !== 'none');
+    // control shows a placeholder when there are no controllable DPs yet).
+    const showMaster = groupSwitchEnabled && (editMode || hasAction);
 
     if (configLayout === 'custom') return <CustomGridView config={config} value="" />;
 
@@ -258,10 +283,14 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     </span>
                 )}
                 {showMaster && (
-                    <GroupMasterSwitch
-                        aggregate={groupAgg}
-                        onToggle={groupToggle}
-                        title={`${activeCount}/${total}`}
+                    <GroupActionControl
+                        type={groupActionType}
+                        cfg={gaCfg}
+                        setState={setState}
+                        switchTargets={groupSwitchTargets}
+                        dimmerIds={groupDimmerIds}
+                        shutterTargets={groupShutterTargets}
+                        pulseIds={groupPulseIds}
                         editing={editMode}
                         placeholderHint={t('group.masterPlaceholder')}
                         placeholderLabel={t('group.masterPlaceholderShort')}
