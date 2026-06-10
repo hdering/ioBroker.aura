@@ -5349,7 +5349,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
             {editMode && (
                 <div
-                    className="nodrag absolute top-1.5 right-1.5 z-10 flex items-center gap-1"
+                    className="aura-edit-chrome nodrag absolute top-1.5 right-1.5 z-10 flex items-center gap-1"
                     onMouseDown={stopDrag}
                     onPointerDown={stopDrag}
                 >

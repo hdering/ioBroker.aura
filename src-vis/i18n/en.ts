@@ -481,6 +481,7 @@ export const en: Record<TranslationKey, string> = {
     'editor.layouts.custom': 'Custom',
 
     'editor.mobile.title': 'Mobile Order',
+    'editor.peekHint': 'Hold Ctrl+Alt = preview without edit buttons',
     'editor.mobile.top': 'Top',
     'editor.mobile.bottom': 'Bottom',
     'editor.mobile.hidden': 'Hidden',

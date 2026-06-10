@@ -176,3 +176,13 @@ input[type="range"]::-moz-range-thumb {
 [data-aura-app="frontend"] .text-\[9px\]  { font-size: calc(9px        * var(--font-scale, 1)); }
 [data-aura-app="frontend"] .text-\[10px\] { font-size: calc(10px       * var(--font-scale, 1)); }
 [data-aura-app="frontend"] .text-\[11px\] { font-size: calc(11px       * var(--font-scale, 1)); }
+
+/* Editor "peek" mode — while held (Ctrl+Alt) hide all edit-only chrome so the
+   editor shows the clean frontend look. Toggled by adding `aura-peek` to body. */
+.aura-peek .aura-edit-chrome {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.aura-peek .react-resizable-handle {
+  display: none !important;
+}

@@ -18,6 +18,7 @@ import {
     ChevronDown,
     ChevronRight,
     Download,
+    Eye,
 } from 'lucide-react';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { Icon } from '@iconify/react';
@@ -1678,6 +1679,30 @@ export function AdminEditor() {
     const [showImport, setShowImport] = useState(false);
     const [showMobileOrder, setShowMobileOrder] = useState(false);
 
+    // "Peek" mode: while Ctrl+Alt are held, hide all edit-only chrome (via the
+    // `aura-peek` body class + CSS) so the editor shows the clean frontend look.
+    const [peek, setPeek] = useState(false);
+    useEffect(() => {
+        const sync = (e: KeyboardEvent) => {
+            const on = e.ctrlKey && e.altKey;
+            setPeek(on);
+            document.body.classList.toggle('aura-peek', on);
+        };
+        const clear = () => {
+            setPeek(false);
+            document.body.classList.remove('aura-peek');
+        };
+        window.addEventListener('keydown', sync);
+        window.addEventListener('keyup', sync);
+        window.addEventListener('blur', clear);
+        return () => {
+            window.removeEventListener('keydown', sync);
+            window.removeEventListener('keyup', sync);
+            window.removeEventListener('blur', clear);
+            clear();
+        };
+    }, []);
+
     return (
         <div className="flex flex-col h-screen">
             {/* Toolbar */}
@@ -1704,6 +1729,18 @@ export function AdminEditor() {
                         </option>
                     ))}
                 </select>
+                <div
+                    className="hidden md:flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-lg shrink-0 transition-colors"
+                    style={{
+                        background: peek ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'var(--app-bg)',
+                        color: peek ? 'var(--accent)' : 'var(--text-secondary)',
+                        border: `1px solid ${peek ? 'var(--accent)' : 'var(--app-border)'}`,
+                    }}
+                    title={t('editor.peekHint')}
+                >
+                    <Eye size={13} />
+                    <span>{t('editor.peekHint')}</span>
+                </div>
                 <div className="flex-1" />
                 <button
                     onClick={() => setShowManual(true)}

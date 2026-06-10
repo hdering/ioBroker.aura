@@ -481,6 +481,7 @@ export const de = {
     'editor.layouts.custom': 'Custom',
 
     'editor.mobile.title': 'Mobile-Reihenfolge',
+    'editor.peekHint': 'Strg+Alt halten = Vorschau ohne Bearbeiten-Buttons',
     'editor.mobile.top': 'Oben',
     'editor.mobile.bottom': 'Unten',
     'editor.mobile.hidden': 'Versteckt',
