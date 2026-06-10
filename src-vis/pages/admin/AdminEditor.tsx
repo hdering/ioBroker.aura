@@ -168,8 +168,10 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
     const coveredWidgetTypes = useMemo(() => new Set(DP_TEMPLATES.map((t) => t.widgetType)), []);
     const furtherWidgets = useMemo(
         () =>
+            // Sort by the displayed label (de locale) so new widget types are
+            // inserted alphabetically automatically – no manual ordering needed.
             WIDGET_REGISTRY.filter((w) => !coveredWidgetTypes.has(w.type)).sort((a, b) =>
-                a.shortLabel.localeCompare(b.shortLabel),
+                a.label.localeCompare(b.label, 'de'),
             ),
         [coveredWidgetTypes],
     );
