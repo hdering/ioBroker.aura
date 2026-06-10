@@ -310,11 +310,9 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
         { key: 'filled', label: t('settings.tabBar.styleFilled') },
         { key: 'pills', label: t('settings.tabBar.stylePills') },
     ];
-    const fontOptions: Array<{ key: TabBarSettings['fontSize']; label: string }> = [
-        { key: 'sm', label: t('settings.tabBar.fontSm') },
-        { key: 'md', label: t('settings.tabBar.fontMd') },
-        { key: 'lg', label: t('settings.tabBar.fontLg') },
-    ];
+    // Resolve current font size to px; legacy keyword sizes map to their px equivalents.
+    const fontPx =
+        typeof tbs.fontSize === 'number' ? tbs.fontSize : { sm: 12, md: 14, lg: 16 }[tbs.fontSize ?? 'md'];
     const alignOptions: Array<{ key: TabBarSettings['tabsAlignment']; label: string }> = [
         { key: 'left', label: t('settings.tabBar.alignLeft') },
         { key: 'center', label: t('settings.tabBar.alignCenter') },
@@ -352,23 +350,44 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                             <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
                                 {t('settings.tabBar.height')}
                             </p>
-                            <span
-                                className="text-xs font-mono font-bold px-2 py-0.5 rounded-md"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--accent)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            >
-                                {tbs.height ?? 40}px
-                            </span>
+                            <div className="flex items-center gap-1">
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={tbs.height ?? 40}
+                                    onChange={(e) =>
+                                        update({
+                                            height:
+                                                e.target.value === ''
+                                                    ? undefined
+                                                    : Math.max(1, Math.round(Number(e.target.value))),
+                                        })
+                                    }
+                                    className="w-16 text-xs font-mono font-bold text-right px-2 py-0.5 rounded-md focus:outline-none"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--accent)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                />
+                                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                    px
+                                </span>
+                                <button
+                                    onClick={() => update({ height: undefined })}
+                                    className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    {t('common.reset')}
+                                </button>
+                            </div>
                         </div>
                         <input
                             type="range"
                             min={28}
                             max={72}
                             step={2}
-                            value={tbs.height ?? 40}
+                            value={Math.min(72, Math.max(28, tbs.height ?? 40))}
                             onChange={(e) => update({ height: Number(e.target.value) })}
                             className="w-full accent-[var(--accent)] mb-2"
                         />
@@ -419,24 +438,66 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                     </div>
 
                     <div>
-                        <p className="text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
-                            {t('settings.tabBar.fontSize')}
-                        </p>
-                        <div className="flex gap-1.5">
-                            {fontOptions.map(({ key, label }) => {
-                                const active = (tbs.fontSize ?? 'md') === key;
+                        <div className="flex items-center justify-between mb-1">
+                            <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                                {t('settings.tabBar.fontSize')}
+                            </p>
+                            <div className="flex items-center gap-1">
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={fontPx}
+                                    onChange={(e) =>
+                                        update({
+                                            fontSize:
+                                                e.target.value === ''
+                                                    ? undefined
+                                                    : Math.max(1, Math.round(Number(e.target.value))),
+                                        })
+                                    }
+                                    className="w-16 text-xs font-mono font-bold text-right px-2 py-0.5 rounded-md focus:outline-none"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--accent)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                />
+                                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                    px
+                                </span>
+                                <button
+                                    onClick={() => update({ fontSize: undefined })}
+                                    className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    {t('common.reset')}
+                                </button>
+                            </div>
+                        </div>
+                        <input
+                            type="range"
+                            min={10}
+                            max={24}
+                            step={1}
+                            value={Math.min(24, Math.max(10, fontPx))}
+                            onChange={(e) => update({ fontSize: Number(e.target.value) })}
+                            className="w-full accent-[var(--accent)] mb-2"
+                        />
+                        <div className="flex gap-1.5 flex-wrap">
+                            {[12, 14, 16, 18, 20].map((v) => {
+                                const active = fontPx === v;
                                 return (
                                     <button
-                                        key={key}
-                                        onClick={() => update({ fontSize: key })}
-                                        className="flex-1 py-1.5 rounded-lg text-xs font-medium hover:opacity-80"
+                                        key={v}
+                                        onClick={() => update({ fontSize: v })}
+                                        className="px-2 py-1 rounded-lg text-xs font-medium hover:opacity-80"
                                         style={{
                                             background: active ? 'var(--accent)' : 'var(--app-bg)',
                                             color: active ? '#fff' : 'var(--text-secondary)',
                                             border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
                                         }}
                                     >
-                                        {label}
+                                        {v}
                                     </button>
                                 );
                             })}

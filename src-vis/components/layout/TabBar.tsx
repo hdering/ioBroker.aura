@@ -34,6 +34,11 @@ const FONT_SIZE_MAP: Record<string, string> = {
     lg: '1rem',
 };
 
+function resolveTabBarFontSize(fs: TabBarSettings['fontSize']): string {
+    if (typeof fs === 'number') return `${fs}px`;
+    return FONT_SIZE_MAP[fs ?? 'md'];
+}
+
 // ── Item renderers ─────────────────────────────────────────────────────────────
 
 function TabBarClockItem({ item }: { item: TabBarItem }) {
@@ -296,7 +301,7 @@ export function TabBar({
     const containerStyle: React.CSSProperties = {
         background: barBg,
         borderBottom: '1px solid var(--app-border)',
-        fontSize: FONT_SIZE_MAP[tbSettings?.fontSize ?? 'md'],
+        fontSize: resolveTabBarFontSize(tbSettings?.fontSize),
         ...(barHeight ? { minHeight: `${barHeight}px` } : {}),
     };
 

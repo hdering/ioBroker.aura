@@ -30,7 +30,7 @@ export interface TabBarSettings {
     activeColor?: string; // active tab text + indicator
     inactiveColor?: string; // inactive tab text
     indicatorStyle?: 'underline' | 'filled' | 'pills';
-    fontSize?: 'sm' | 'md' | 'lg';
+    fontSize?: number | 'sm' | 'md' | 'lg'; // px when number; legacy keyword sizes still resolved
     tabsAlignment?: 'left' | 'center' | 'right'; // navigation tabs position
     items?: TabBarItem[];
 }
