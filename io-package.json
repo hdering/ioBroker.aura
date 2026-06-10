@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.216",
+    "version": "0.9.217",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.217": {
+        "en": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)",
+        "de": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)",
+        "ru": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)",
+        "pt": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)",
+        "nl": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)",
+        "fr": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)",
+        "it": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)",
+        "es": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)",
+        "pl": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)",
+        "uk": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)",
+        "zh-cn": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)"
+      },
       "0.9.216": {
         "en": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
         "de": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
@@ -183,19 +196,6 @@
         "pl": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
         "uk": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
         "zh-cn": "fix(ts): use optional chain for unsubscribe call in CalendarWidget"
-      },
-      "0.9.205": {
-        "en": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
-        "de": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
-        "ru": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
-        "pt": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
-        "nl": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
-        "fr": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
-        "it": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
-        "es": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
-        "pl": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
-        "uk": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations",
-        "zh-cn": "fix(adapter): migrate stale themeMode role on adapter start; fix(adapter): fix ioBroker adapter checker role violations"
       }
     }
   },

@@ -190,6 +190,12 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.217 (2026-06-10)
+- fix(lint): prettier formatting + wrap German quotes in JSX expressions
+- feat(widgets): per-column width ratios for custom-grid layout
+- feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)
+
+
 ### 0.9.216 (2026-06-10)
 - feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt
 - fix(widgets): add visible label to empty group master switch placeholder
@@ -286,10 +292,6 @@ npm run build:adapter
 - fix(lazy): auto-reload on stale chunk hashes after deploy
 
 
-### 0.9.197 (2026-06-08)
-- fix(multi-instance): route sendTo messages to running namespace
-
-
 ## License
 
 MIT License
@@ -301,6 +303,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

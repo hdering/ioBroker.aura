@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.197 (2026-06-08)
+- fix(multi-instance): route sendTo messages to running namespace
+
 ## 0.9.196 (2026-06-08)
 - chore(settings): equal-height row for Admin URL + DP + Decimals
 - chore(settings): move Clients+Backup below config row; let them stretch to equal height
