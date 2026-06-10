@@ -7067,19 +7067,27 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     )}
 
                     {/* ─── 4. Widget-spezifische Einstellungen ───────────────────────── */}
+                    {/* The group widget has no type-specific settings — render the box
+                        unstyled (no card) so it collapses to nothing for groups. */}
                     <div
-                        className="space-y-2.5 rounded-lg px-3 py-3"
-                        style={{
-                            background: 'color-mix(in srgb, var(--accent) 10%, var(--app-bg))',
-                            borderLeft: '3px solid var(--accent)',
-                        }}
+                        className={`space-y-2.5 rounded-lg ${config.type === 'group' ? '' : 'px-3 py-3'}`}
+                        style={
+                            config.type === 'group'
+                                ? undefined
+                                : {
+                                      background: 'color-mix(in srgb, var(--accent) 10%, var(--app-bg))',
+                                      borderLeft: '3px solid var(--accent)',
+                                  }
+                        }
                     >
-                        <p
-                            className="text-[10px] font-bold uppercase tracking-widest"
-                            style={{ color: 'var(--accent)' }}
-                        >
-                            {WIDGET_BY_TYPE[config.type]?.label ?? config.type}
-                        </p>
+                        {config.type !== 'group' && (
+                            <p
+                                className="text-[10px] font-bold uppercase tracking-widest"
+                                style={{ color: 'var(--accent)' }}
+                            >
+                                {WIDGET_BY_TYPE[config.type]?.label ?? config.type}
+                            </p>
+                        )}
                         {config.type === 'clock' &&
                             (() => {
                                 const o = config.options ?? {};
