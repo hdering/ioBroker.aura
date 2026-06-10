@@ -844,7 +844,13 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     }, [groupSwitchEnabled, entries, states, opts]);
     const { aggregate: groupAgg, toggleAll: groupToggle, activeCount, total } = useGroupControl(groupTargets);
     const masterSwitch = groupSwitchEnabled ? (
-        <GroupMasterSwitch aggregate={groupAgg} onToggle={groupToggle} title={`${activeCount}/${total}`} />
+        <GroupMasterSwitch
+            aggregate={groupAgg}
+            onToggle={groupToggle}
+            title={`${activeCount}/${total}`}
+            editing={editMode}
+            placeholderHint={t('group.masterPlaceholder')}
+        />
     ) : null;
 
     const o = config.options ?? {};

@@ -120,7 +120,9 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         groupNumberOffValue,
     ]);
     const { aggregate: groupAgg, toggleAll: groupToggle, activeCount, total } = useGroupControl(groupTargets);
-    const showMaster = groupSwitchEnabled && !editMode && groupAgg !== 'none';
+    // Frontend: only when there is something to control. Editor: always (the
+    // GroupMasterSwitch shows a placeholder when there are no controllable DPs yet).
+    const showMaster = groupSwitchEnabled && (editMode || groupAgg !== 'none');
 
     if (configLayout === 'custom') return <CustomGridView config={config} value="" />;
 
@@ -260,6 +262,8 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                         aggregate={groupAgg}
                         onToggle={groupToggle}
                         title={`${activeCount}/${total}`}
+                        editing={editMode}
+                        placeholderHint={t('group.masterPlaceholder')}
                         className="ml-auto"
                     />
                 )}

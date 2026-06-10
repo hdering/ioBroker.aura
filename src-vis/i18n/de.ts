@@ -1050,6 +1050,7 @@ export const de = {
     'group.mobileOrder': 'Mobile Reihenfolge',
     'group.noWidgets': 'Keine Widgets vorhanden',
     'group.dropHere': 'Widget hier ablegen',
+    'group.masterPlaceholder': 'Gruppen-Schalter aktiv – erscheint, sobald steuerbare Datenpunkte konfiguriert sind',
     'group.fitHeight': 'Höhe an Inhalt anpassen',
 
     // ── Carousel Widget (Chip-Streifen) ───────────────────────────────────────────
