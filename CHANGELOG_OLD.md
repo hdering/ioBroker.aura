@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.195 (2026-06-08)
+- feat(adapter): per-instance state namespace (multi-instance support)
+
 ## 0.9.194 (2026-06-08)
 - feat(custom-grid): configurable on/off values for switch cell
 - feat(dimmer): icon control mode for on/off button

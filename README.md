@@ -190,6 +190,10 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.215 (2026-06-10)
+- @ fix(groups): stop empty group-defs store from clobbering ioBroker on reload
+
+
 ### 0.9.214 (2026-06-10)
 - fix(widgets): keep list subscriptions alive under StrictMode
 - feat(settings): optimistic writes with instant UI feedback
@@ -290,10 +294,6 @@ npm run build:adapter
 - refactor(admin): split Frontend page from Layouts, switch to master-detail
 
 
-### 0.9.195 (2026-06-08)
-- feat(adapter): per-instance state namespace (multi-instance support)
-
-
 ## License
 
 MIT License
@@ -305,6 +305,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

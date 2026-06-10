@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.214",
+    "version": "0.9.215",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.215": {
+        "en": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload",
+        "de": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload",
+        "ru": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload",
+        "pt": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload",
+        "nl": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload",
+        "fr": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload",
+        "it": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload",
+        "es": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload",
+        "pl": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload",
+        "uk": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload",
+        "zh-cn": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload"
+      },
       "0.9.214": {
         "en": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
         "de": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
@@ -183,19 +196,6 @@
         "pl": "feat(custom-layout): extend last-change to all data-bearing cell types; feat(custom-layout): add last-change timestamp to data cells",
         "uk": "feat(custom-layout): extend last-change to all data-bearing cell types; feat(custom-layout): add last-change timestamp to data cells",
         "zh-cn": "feat(custom-layout): extend last-change to all data-bearing cell types; feat(custom-layout): add last-change timestamp to data cells"
-      },
-      "0.9.203": {
-        "en": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
-        "de": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
-        "ru": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
-        "pt": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
-        "nl": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
-        "fr": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
-        "it": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
-        "es": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
-        "pl": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
-        "uk": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
-        "zh-cn": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity"
       }
     }
   },
