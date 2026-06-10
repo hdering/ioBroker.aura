@@ -15,6 +15,7 @@ import {
 import { MultiSelect } from './MultiSelect';
 import { DatapointPicker } from './DatapointPicker';
 import { GroupActionConfig } from './GroupActionConfig';
+import { EntryControlsConfig } from './EntryControlsConfig';
 import type { WidgetConfig } from '../../types';
 import { discoverDatapoints, loadFilterOptions } from '../widgets/AutoListWidget';
 import type { AutoListOptions, AutoListEntry, DiscoveredDp } from '../widgets/AutoListWidget';
@@ -226,6 +227,7 @@ function EntryConfigRow({
                             />
                         </div>
                     </div>
+                    <EntryControlsConfig entry={entry} onUpdate={onUpdate} />
                     <div className="grid grid-cols-2 gap-1.5">
                         <ColorField
                             label="Textfarbe AN"

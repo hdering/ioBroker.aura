@@ -17,10 +17,18 @@ import { publishListCount, unpublishList } from '../../utils/publishWidgetState'
 import { listEntryTarget, type GroupTarget } from '../../utils/groupTargets';
 import { useGroupControl } from '../../hooks/useGroupControl';
 import { GroupMasterSwitch } from './GroupMasterSwitch';
+import {
+    ShutterControl,
+    StepperControl,
+    PresetButtons,
+    MomentaryButton,
+    NON_TOGGLE_DISPLAY_TYPES,
+    type EntryControlConfig,
+} from './entryControls';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export interface AutoListEntry {
+export interface AutoListEntry extends EntryControlConfig {
     id: string;
     label?: string;
     rooms?: string[];
@@ -402,6 +410,14 @@ function EntryValue({
     const isBoolLike = (isBool || (typeof val === 'number' && (val === 0 || val === 1))) && !isNumericRole(entry.role);
     const on = val === true || val === 1;
 
+    // Rich control types — shared with the static list (see entryControls).
+    const dt = entry.displayType ?? 'auto';
+    if (dt === 'shutter') return <ShutterControl entry={entry} setState={setState} />;
+    if (dt === 'stepper') return <StepperControl entry={entry} val={val} setState={setState} decimals={decimals} />;
+    if (dt === 'buttons')
+        return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
+    if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
+
     // Role-based display for sensors (window, door, motion, smoke, …)
     if (isBoolLike && !hasLabels) {
         const roleDisplay = getRoleDisplay(entry.role, val);
@@ -543,6 +559,14 @@ function CardEntryValue({
     const isBool = typeof val === 'boolean';
     const isBoolLike = (isBool || (typeof val === 'number' && (val === 0 || val === 1))) && !isNumericRole(entry.role);
     const on = val === true || val === 1;
+
+    // Rich control types — shared with the static list (see entryControls).
+    const dt = entry.displayType ?? 'auto';
+    if (dt === 'shutter') return <ShutterControl entry={entry} setState={setState} />;
+    if (dt === 'stepper') return <StepperControl entry={entry} val={val} setState={setState} decimals={decimals} />;
+    if (dt === 'buttons')
+        return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
+    if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
 
     // Role-based display for sensors
     if (isBoolLike && !hasLabels) {
@@ -1231,6 +1255,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                             const val = state?.val ?? null;
                             const label = getLabel(entry);
                             const writable = entry.writable !== false;
+                            // Rich controls have no compact pill form — show their value, no toggle.
+                            const lockValue = !!entry.displayType && NON_TOGGLE_DISPLAY_TYPES.has(entry.displayType);
                             const trueLabel = entry.trueLabel ?? opts.trueText;
                             const falseLabel = entry.falseLabel ?? opts.falseText;
                             const hasLabels = !!(trueLabel || falseLabel);
@@ -1273,7 +1299,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                 <button
                                     key={entry.id}
                                     onClick={() => {
-                                        if (!writable || roleDisplay) return;
+                                        if (!writable || roleDisplay || lockValue) return;
                                         if (isBool) setState(entry.id, !on);
                                         else if (isBoolLike) setState(entry.id, on ? 0 : 1);
                                     }}

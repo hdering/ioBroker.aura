@@ -16,10 +16,18 @@ import { publishListCount, unpublishList } from '../../utils/publishWidgetState'
 import { listEntryTarget, type GroupTarget } from '../../utils/groupTargets';
 import { useGroupControl } from '../../hooks/useGroupControl';
 import { GroupMasterSwitch } from './GroupMasterSwitch';
+import {
+    ShutterControl,
+    StepperControl,
+    PresetButtons,
+    MomentaryButton,
+    NON_TOGGLE_DISPLAY_TYPES,
+    type EntryControlConfig,
+} from './entryControls';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export interface StaticListEntry {
+export interface StaticListEntry extends EntryControlConfig {
     id: string;
     label?: string;
     unit?: string;
@@ -30,8 +38,6 @@ export interface StaticListEntry {
     writable?: boolean; // false = read-only; undefined/true = writable
     icon?: string;
     colorThresholds?: [number, string][]; // [[maxExclusive, color], …] ascending
-    /** Override automatic control type. undefined/'auto' keeps role/value-based detection. */
-    displayType?: 'auto' | 'switch' | 'slider' | 'value';
     /** Per-DP text color when on/true/>0. Overrides global activeColor. */
     activeColor?: string;
     /** Per-DP text color when off/false/0. Overrides global inactiveColor. */
@@ -201,6 +207,14 @@ function EntryValue({
             <Power size={entry.iconSize ?? 22} strokeWidth={active ? 2.5 : 1.75} />
         </button>
     );
+
+    // Rich control types — rendered by the shared entry-control components.
+    if (displayType === 'shutter') return <ShutterControl entry={entry} setState={setState} />;
+    if (displayType === 'stepper')
+        return <StepperControl entry={entry} val={val} setState={setState} decimals={decimals} />;
+    if (displayType === 'buttons')
+        return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
+    if (displayType === 'momentary') return <MomentaryButton entry={entry} setState={setState} icon={entry.icon} />;
 
     // Forced "Nur Wert" — skip role/switch/slider, render text only
     if (displayType === 'value') {
@@ -964,7 +978,10 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                             const on = val === true || val === 1;
                             const displayType = entry.displayType ?? 'auto';
                             const forceSwitch = displayType === 'switch';
-                            const forceValue = displayType === 'value' || displayType === 'slider';
+                            const forceValue =
+                                displayType === 'value' ||
+                                displayType === 'slider' ||
+                                NON_TOGGLE_DISPLAY_TYPES.has(displayType);
                             const useRoleDisplay = !forceSwitch && !forceValue && isBoolLike && !hasLabels;
                             const roleDisplay = useRoleDisplay ? getRoleDisplay(entry.role, val) : null;
                             const truthy = on || (typeof val === 'number' && val > 0);

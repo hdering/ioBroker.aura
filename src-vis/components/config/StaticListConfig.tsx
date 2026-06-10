@@ -11,6 +11,7 @@ import type { WidgetConfig } from '../../types';
 import type { StaticListEntry, StaticListOptions } from '../widgets/ListWidget';
 import { DatapointPicker } from './DatapointPicker';
 import { GroupActionConfig } from './GroupActionConfig';
+import { EntryControlsConfig } from './EntryControlsConfig';
 import { IconPickerModal } from './IconPickerModal';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
@@ -294,38 +295,7 @@ function EntryRow({
                             />
                         </div>
                     </div>
-                    <div>
-                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            Darstellung
-                        </label>
-                        <div className="flex gap-1">
-                            {(['auto', 'switch', 'slider', 'value'] as const).map((v) => {
-                                const lbl =
-                                    v === 'auto'
-                                        ? 'Auto'
-                                        : v === 'switch'
-                                          ? 'Schalter'
-                                          : v === 'slider'
-                                            ? 'Slider'
-                                            : 'Wert';
-                                const active = (entry.displayType ?? 'auto') === v;
-                                return (
-                                    <button
-                                        key={v}
-                                        onClick={() => onUpdate({ displayType: v === 'auto' ? undefined : v })}
-                                        className="flex-1 text-[10px] py-1 rounded transition-colors"
-                                        style={{
-                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                            color: active ? '#fff' : 'var(--text-secondary)',
-                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                        }}
-                                    >
-                                        {lbl}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
+                    <EntryControlsConfig entry={entry} onUpdate={onUpdate} />
 
                     {/* Schalter-Stil (nur wenn Darstellung Schalter oder Auto bool) */}
                     <div>

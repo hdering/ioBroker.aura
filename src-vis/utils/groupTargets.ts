@@ -68,8 +68,8 @@ interface ListEntryLike {
     id: string;
     role?: string;
     writable?: boolean;
-    /** Static list only — forces control rendering; respected here too. */
-    displayType?: 'auto' | 'switch' | 'slider' | 'value';
+    /** Forces control rendering; respected here too. */
+    displayType?: string;
 }
 
 /**
@@ -95,6 +95,9 @@ export function listEntryTarget(
             : null;
 
     const dt = entry.displayType ?? 'auto';
+    // Rich controls (shutter/stepper/buttons/momentary) are not simple on/off —
+    // never include them in the group master switch.
+    if (dt === 'shutter' || dt === 'stepper' || dt === 'buttons' || dt === 'momentary') return null;
     if (dt === 'switch') {
         const isBool = typeof val === 'boolean';
         return { id: entry.id, active: isActiveVal(val), onWrite: isBool ? true : 1, offWrite: isBool ? false : 0 };
