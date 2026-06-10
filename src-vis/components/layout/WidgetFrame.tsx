@@ -13826,10 +13826,12 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                                                             0.25,
                                                                             Number(e.target.value) || 1,
                                                                         );
-                                                                        const arr = Array.from({ length: cols }, (_, k) =>
-                                                                            k === ci
-                                                                                ? `${v}fr`
-                                                                                : (grid.colSizes?.[k] ?? '1fr'),
+                                                                        const arr = Array.from(
+                                                                            { length: cols },
+                                                                            (_, k) =>
+                                                                                k === ci
+                                                                                    ? `${v}fr`
+                                                                                    : (grid.colSizes?.[k] ?? '1fr'),
                                                                         );
                                                                         const allEqual = arr.every((s) => s === arr[0]);
                                                                         writeGrid({
@@ -13847,8 +13849,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                                         className="text-[10px] mt-1"
                                                         style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                                                     >
-                                                        Verhältnis der Spaltenbreiten – z.&nbsp;B. 2 / 1 macht die
-                                                        erste Spalte doppelt so breit.
+                                                        Verhältnis der Spaltenbreiten – z.&nbsp;B. 2 / 1 macht die erste
+                                                        Spalte doppelt so breit.
                                                     </p>
                                                 </div>
                                             )}

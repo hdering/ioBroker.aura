@@ -146,7 +146,7 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                                             </>
                                         ) : (
                                             <span style={{ color: 'var(--text-secondary)' }}>
-                                                Kein Icon — Text „+ Ereignis hinzufügen“
+                                                {'Kein Icon — Text „+ Ereignis hinzufügen“'}
                                             </span>
                                         )}
                                     </button>

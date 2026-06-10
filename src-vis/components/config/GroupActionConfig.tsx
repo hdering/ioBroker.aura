@@ -52,7 +52,7 @@ export function GroupActionConfig({ opts, setOpts }: Props) {
                     </p>
                     <div>
                         <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            Dimmer „AN“-Wert (AUS = 0)
+                            {'Dimmer „AN“-Wert (AUS = 0)'}
                         </label>
                         <input
                             type="number"
@@ -78,7 +78,7 @@ export function GroupActionConfig({ opts, setOpts }: Props) {
                         <div className="grid grid-cols-2 gap-1.5">
                             <div>
                                 <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                    Zahl „AN“-Wert
+                                    {'Zahl „AN“-Wert'}
                                 </label>
                                 <input
                                     type="number"
@@ -96,7 +96,7 @@ export function GroupActionConfig({ opts, setOpts }: Props) {
                             </div>
                             <div>
                                 <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                    Zahl „AUS“-Wert
+                                    {'Zahl „AUS“-Wert'}
                                 </label>
                                 <input
                                     type="number"
