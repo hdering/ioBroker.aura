@@ -10,7 +10,6 @@ import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../types';
 import type { StaticListEntry, StaticListOptions } from '../widgets/ListWidget';
 import { DatapointPicker } from './DatapointPicker';
-import { GroupActionConfig } from './GroupActionConfig';
 import { EntryControlsConfig } from './EntryControlsConfig';
 import { IconPickerModal } from './IconPickerModal';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
@@ -673,8 +672,6 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
             )}
 
             {/* ── Settings ── */}
-            <GroupActionConfig opts={opts} setOpts={setOpts} />
-
             <div className="flex items-center justify-between">
                 <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                     Anzahl anzeigen

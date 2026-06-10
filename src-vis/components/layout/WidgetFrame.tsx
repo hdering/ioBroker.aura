@@ -7048,6 +7048,24 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         </details>
                     }
 
+                    {/* ─── Group action — own card, outside (above) the widget-specific box ── */}
+                    {(config.type === 'list' || config.type === 'autolist' || config.type === 'group') && (
+                        <div
+                            className="space-y-2.5 rounded-lg px-3 py-3"
+                            style={{
+                                background: 'color-mix(in srgb, var(--accent-green, #22c55e) 12%, var(--app-bg))',
+                                borderLeft: '3px solid var(--accent-green, #22c55e)',
+                            }}
+                        >
+                            <GroupActionConfig
+                                opts={(config.options ?? {}) as GroupActionConfigOpts}
+                                setOpts={(patch) =>
+                                    onConfigChange({ ...config, options: { ...config.options, ...patch } })
+                                }
+                            />
+                        </div>
+                    )}
+
                     {/* ─── 4. Widget-spezifische Einstellungen ───────────────────────── */}
                     <div
                         className="space-y-2.5 rounded-lg px-3 py-3"
@@ -9478,16 +9496,6 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
                         {/* ── Static List config ── */}
                         {config.type === 'list' && <StaticListConfig config={config} onConfigChange={onConfigChange} />}
-
-                        {/* ── Group master switch config ── */}
-                        {config.type === 'group' && (
-                            <GroupActionConfig
-                                opts={(config.options ?? {}) as GroupActionConfigOpts}
-                                setOpts={(patch) =>
-                                    onConfigChange({ ...config, options: { ...config.options, ...patch } })
-                                }
-                            />
-                        )}
 
                         {/* ── Enum / Auswahlfeld config ── */}
                         {config.type === 'enum' && <EnumConfig config={config} onConfigChange={onConfigChange} />}
