@@ -190,6 +190,11 @@ npm run build:adapter
 
 ## Changelog
 
+### 0.9.220 (2026-06-10)
+- style: fix prettier formatting in TabBarSection
+- feat(admin): tab bar height + font size as px sliders extendable beyond range
+
+
 ### 0.9.219 (2026-06-10)
 - feat(admin): make image/file picker root folders (fsRoots) editable in settings
 
@@ -287,10 +292,6 @@ npm run build:adapter
 - fix(custom-grid): reorder switch cell settings to match widget panel order
 
 
-### 0.9.200 (2026-06-09)
-- feat(switch): add custom on/off write values (onValue/offValue)
-
-
 ## License
 
 MIT License
@@ -302,6 +303,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

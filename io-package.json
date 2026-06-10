@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.219",
+    "version": "0.9.220",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.220": {
+        "en": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
+        "de": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
+        "ru": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
+        "pt": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
+        "nl": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
+        "fr": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
+        "it": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
+        "es": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
+        "pl": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
+        "uk": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
+        "zh-cn": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range"
+      },
       "0.9.219": {
         "en": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
         "de": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
@@ -183,19 +196,6 @@
         "pl": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
         "uk": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
         "zh-cn": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups"
-      },
-      "0.9.213": {
-        "en": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
-        "de": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
-        "ru": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
-        "pt": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
-        "nl": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
-        "fr": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
-        "it": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
-        "es": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
-        "pl": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
-        "uk": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
-        "zh-cn": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)"
       }
     }
   },

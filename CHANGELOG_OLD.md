@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.200 (2026-06-09)
+- feat(switch): add custom on/off write values (onValue/offValue)
+
 ## 0.9.199 (2026-06-09)
 - feat(custom-grid): auto-sort cell type options alphabetically per optgroup
 - feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)
