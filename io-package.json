@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.217",
+    "version": "0.9.218",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.218": {
+        "en": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
+        "de": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
+        "ru": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
+        "pt": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
+        "nl": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
+        "fr": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
+        "it": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
+        "es": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
+        "pl": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
+        "uk": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
+        "zh-cn": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically"
+      },
       "0.9.217": {
         "en": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)",
         "de": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)",
@@ -183,19 +196,6 @@
         "pl": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
         "uk": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
         "zh-cn": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency"
-      },
-      "0.9.210": {
-        "en": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
-        "de": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
-        "ru": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
-        "pt": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
-        "nl": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
-        "fr": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
-        "it": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
-        "es": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
-        "pl": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
-        "uk": "fix(ts): use optional chain for unsubscribe call in CalendarWidget",
-        "zh-cn": "fix(ts): use optional chain for unsubscribe call in CalendarWidget"
       }
     }
   },

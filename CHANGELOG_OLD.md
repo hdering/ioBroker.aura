@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.198 (2026-06-08)
+- fix(lazy): auto-reload on stale chunk hashes after deploy
+
 ## 0.9.197 (2026-06-08)
 - fix(multi-instance): route sendTo messages to running namespace
 
