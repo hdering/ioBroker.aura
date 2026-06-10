@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.218",
+    "version": "0.9.219",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.219": {
+        "en": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
+        "de": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
+        "ru": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
+        "pt": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
+        "nl": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
+        "fr": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
+        "it": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
+        "es": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
+        "pl": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
+        "uk": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
+        "zh-cn": "feat(admin): make image/file picker root folders (fsRoots) editable in settings"
+      },
       "0.9.218": {
         "en": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
         "de": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
@@ -183,19 +196,6 @@
         "pl": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
         "uk": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
         "zh-cn": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)"
-      },
-      "0.9.211": {
-        "en": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
-        "de": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
-        "ru": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
-        "pt": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
-        "nl": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
-        "fr": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
-        "it": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
-        "es": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
-        "pl": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
-        "uk": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency",
-        "zh-cn": "chore(lint): remove obsolete eslint devDeps, fix workflow concurrency"
       }
     }
   },

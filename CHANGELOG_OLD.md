@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.199 (2026-06-09)
+- feat(custom-grid): auto-sort cell type options alphabetically per optgroup
+- feat(custom-grid): group cell type options with optgroup (widget vs. own DP vs. static)
+
 ## 0.9.198 (2026-06-08)
 - fix(lazy): auto-reload on stale chunk hashes after deploy
 
