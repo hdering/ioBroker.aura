@@ -1,5 +1,13 @@
 # Changelog (older entries)
 
+## 0.9.201 (2026-06-09)
+- revert(light): remove onValue/offValue + controlMode from LightWidget
+- feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp
+- fix(custom-grid): move An/Aus-Werte directly below DP field for switch cell
+- fix(switch): move An/Aus-Werte directly below DP field in widget options
+- feat(dimmer): add custom on/off write values for switchDp
+- fix(custom-grid): reorder switch cell settings to match widget panel order
+
 ## 0.9.200 (2026-06-09)
 - feat(switch): add custom on/off write values (onValue/offValue)
 

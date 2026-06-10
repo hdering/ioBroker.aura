@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.220",
+    "version": "0.9.221",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.221": {
+        "en": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
+        "de": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
+        "ru": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
+        "pt": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
+        "nl": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
+        "fr": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
+        "it": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
+        "es": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
+        "pl": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
+        "uk": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
+        "zh-cn": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls"
+      },
       "0.9.220": {
         "en": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
         "de": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
@@ -183,19 +196,6 @@
         "pl": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload",
         "uk": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload",
         "zh-cn": "@ fix(groups): stop empty group-defs store from clobbering ioBroker on reload"
-      },
-      "0.9.214": {
-        "en": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
-        "de": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
-        "ru": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
-        "pt": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
-        "nl": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
-        "fr": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
-        "it": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
-        "es": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
-        "pl": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
-        "uk": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
-        "zh-cn": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups"
       }
     }
   },
