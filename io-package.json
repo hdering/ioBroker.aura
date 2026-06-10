@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.213",
+    "version": "0.9.214",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.214": {
+        "en": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
+        "de": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
+        "ru": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
+        "pt": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
+        "nl": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
+        "fr": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
+        "it": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
+        "es": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
+        "pl": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
+        "uk": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups",
+        "zh-cn": "fix(widgets): keep list subscriptions alive under StrictMode; feat(settings): optimistic writes with instant UI feedback; fix(widgets): make group master switch confirm writes via getState; @ fix(widgets): give group master switch instant optimistic feedback; @ feat(widgets): add group master switch for lists and groups"
+      },
       "0.9.213": {
         "en": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
         "de": "fix(meta): remove unpublished 0.9.212 from io-package news (E2004)",
@@ -183,19 +196,6 @@
         "pl": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
         "uk": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity",
         "zh-cn": "fix(frontend): stabilize idle-return timer via ref — prevent spurious resets; fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout); feat(frontend): idle return — auto-switch to default tab after inactivity"
-      },
-      "0.9.202": {
-        "en": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
-        "de": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
-        "ru": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
-        "pt": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
-        "nl": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
-        "fr": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
-        "it": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
-        "es": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
-        "pl": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
-        "uk": "fix(carousel): disable scroll-snap CSS when autoRotate is active",
-        "zh-cn": "fix(carousel): disable scroll-snap CSS when autoRotate is active"
       }
     }
   },

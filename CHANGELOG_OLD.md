@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.194 (2026-06-08)
+- feat(custom-grid): configurable on/off values for switch cell
+- feat(dimmer): icon control mode for on/off button
+- fix(dimmer): align showToggle default with editor convention
+
 ## 0.9.193 (2026-06-08)
 - fix(guidelines): make vertical-line label background hug content
 - fix(guidelines): offset lines by header/tab-bar height
