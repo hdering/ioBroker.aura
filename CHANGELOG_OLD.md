@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.203 (2026-06-09)
+- fix(frontend): stabilize idle-return timer via ref — prevent spurious resets
+- fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout)
+- feat(frontend): idle return — auto-switch to default tab after inactivity
+
 ## 0.9.202 (2026-06-09)
 - fix(carousel): disable scroll-snap CSS when autoRotate is active
 
