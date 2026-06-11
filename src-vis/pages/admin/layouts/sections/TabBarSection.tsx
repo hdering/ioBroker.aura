@@ -504,6 +504,73 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                     </div>
 
                     <div>
+                        <div className="flex items-center justify-between mb-1">
+                            <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                                {t('settings.tabBar.iconSize')}
+                            </p>
+                            <div className="flex items-center gap-1">
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={tbs.iconSize ?? 14}
+                                    onChange={(e) =>
+                                        update({
+                                            iconSize:
+                                                e.target.value === ''
+                                                    ? undefined
+                                                    : Math.max(1, Math.round(Number(e.target.value))),
+                                        })
+                                    }
+                                    className="w-16 text-xs font-mono font-bold text-right px-2 py-0.5 rounded-md focus:outline-none"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--accent)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                />
+                                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                    px
+                                </span>
+                                <button
+                                    onClick={() => update({ iconSize: undefined })}
+                                    className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    {t('common.reset')}
+                                </button>
+                            </div>
+                        </div>
+                        <input
+                            type="range"
+                            min={12}
+                            max={48}
+                            step={1}
+                            value={Math.min(48, Math.max(12, tbs.iconSize ?? 14))}
+                            onChange={(e) => update({ iconSize: Number(e.target.value) })}
+                            className="w-full accent-[var(--accent)] mb-2"
+                        />
+                        <div className="flex gap-1.5 flex-wrap">
+                            {[14, 16, 20, 24, 32].map((v) => {
+                                const active = (tbs.iconSize ?? 14) === v;
+                                return (
+                                    <button
+                                        key={v}
+                                        onClick={() => update({ iconSize: v })}
+                                        className="px-2 py-1 rounded-lg text-xs font-medium hover:opacity-80"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {v}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div>
                         <p className="text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.tabBar.tabsAlignment')}
                         </p>

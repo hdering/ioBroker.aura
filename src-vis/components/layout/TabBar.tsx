@@ -298,6 +298,7 @@ export function TabBar({
     // ── Container style ──────────────────────────────────────────────────────────
     const barHeight = tbSettings?.height;
     const barBg = tbSettings?.background ?? 'var(--app-surface)';
+    const tabIconSize = tbSettings?.iconSize ?? 14;
     const containerStyle: React.CSSProperties = {
         background: barBg,
         borderBottom: '1px solid var(--app-border)',
@@ -398,14 +399,19 @@ export function TabBar({
                             {tab.icon && (
                                 <span
                                     style={{
-                                        width: 14,
-                                        height: 14,
+                                        width: tabIconSize,
+                                        height: tabIconSize,
                                         flexShrink: 0,
                                         display: 'inline-flex',
                                         alignItems: 'center',
                                     }}
                                 >
-                                    <Icon icon={tab.icon} width={14} height={14} style={{ color: 'currentColor' }} />
+                                    <Icon
+                                        icon={tab.icon}
+                                        width={tabIconSize}
+                                        height={tabIconSize}
+                                        style={{ color: 'currentColor' }}
+                                    />
                                 </span>
                             )}
 

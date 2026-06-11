@@ -137,6 +137,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.tabBar.styleFilled': 'Filled',
     'settings.tabBar.stylePills': 'Pills',
     'settings.tabBar.fontSize': 'Font Size',
+    'settings.tabBar.iconSize': 'Icon Size',
     'settings.tabBar.fontSm': 'Small',
     'settings.tabBar.fontMd': 'Medium',
     'settings.tabBar.fontLg': 'Large',

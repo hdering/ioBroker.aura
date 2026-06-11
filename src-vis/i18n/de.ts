@@ -136,6 +136,7 @@ export const de = {
     'settings.tabBar.styleFilled': 'Gefüllt',
     'settings.tabBar.stylePills': 'Pill',
     'settings.tabBar.fontSize': 'Schriftgröße',
+    'settings.tabBar.iconSize': 'Icon-Größe',
     'settings.tabBar.fontSm': 'Klein',
     'settings.tabBar.fontMd': 'Mittel',
     'settings.tabBar.fontLg': 'Groß',

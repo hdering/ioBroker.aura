@@ -31,6 +31,7 @@ export interface TabBarSettings {
     inactiveColor?: string; // inactive tab text
     indicatorStyle?: 'underline' | 'filled' | 'pills';
     fontSize?: number | 'sm' | 'md' | 'lg'; // px when number; legacy keyword sizes still resolved
+    iconSize?: number; // tab icon size in px, default 14
     tabsAlignment?: 'left' | 'center' | 'right'; // navigation tabs position
     items?: TabBarItem[];
 }
