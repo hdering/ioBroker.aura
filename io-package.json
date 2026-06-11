@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.229",
+    "version": "0.9.230",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.230": {
+        "en": "feat(admin): add tab bar icon size control",
+        "de": "feat(admin): add tab bar icon size control",
+        "ru": "feat(admin): add tab bar icon size control",
+        "pt": "feat(admin): add tab bar icon size control",
+        "nl": "feat(admin): add tab bar icon size control",
+        "fr": "feat(admin): add tab bar icon size control",
+        "it": "feat(admin): add tab bar icon size control",
+        "es": "feat(admin): add tab bar icon size control",
+        "pl": "feat(admin): add tab bar icon size control",
+        "uk": "feat(admin): add tab bar icon size control",
+        "zh-cn": "feat(admin): add tab bar icon size control"
+      },
       "0.9.229": {
         "en": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
         "de": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
