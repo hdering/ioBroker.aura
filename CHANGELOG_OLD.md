@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.205 (2026-06-09)
+- fix(adapter): migrate stale themeMode role on adapter start
+- fix(adapter): fix ioBroker adapter checker role violations
+
 ## 0.9.204 (2026-06-09)
 - feat(custom-layout): extend last-change to all data-bearing cell types
 - feat(custom-layout): add last-change timestamp to data cells

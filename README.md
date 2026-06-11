@@ -192,6 +192,12 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.225 (2026-06-11)
+- chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083)
+- chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083)
+- fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)
+
+
 ### 0.9.224 (2026-06-11)
 Release v0.9.224
 
@@ -287,11 +293,6 @@ Release v0.9.224
 - chore: fix adapter checker E0077/E0078/E302x violations
 
 
-### 0.9.205 (2026-06-09)
-- fix(adapter): migrate stale themeMode role on adapter start
-- fix(adapter): fix ioBroker adapter checker role violations
-
-
 ## License
 
 MIT License
@@ -303,6 +304,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
