@@ -3,29 +3,53 @@
 @tailwind utilities;
 
 /* Ensure full-height flex layout works on all mobile browsers */
-html, body, #root {
-  height: 100%;
+html,
+body,
+#root {
+    height: 100%;
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.25; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.25;
+    }
 }
 
 @keyframes tabPulse {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.55; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.55;
+    }
 }
 
 @keyframes tabBlink {
-  0%, 49%   { opacity: 1; }
-  50%, 100% { opacity: 0.2; }
+    0%,
+    49% {
+        opacity: 1;
+    }
+    50%,
+    100% {
+        opacity: 0.2;
+    }
 }
 
 @keyframes aura-loadbar {
-  0%   { transform: translateX(-100%) scaleX(0.3); }
-  50%  { transform: translateX(0%)    scaleX(0.7); }
-  100% { transform: translateX(100%) scaleX(0.3); }
+    0% {
+        transform: translateX(-100%) scaleX(0.3);
+    }
+    50% {
+        transform: translateX(0%) scaleX(0.7);
+    }
+    100% {
+        transform: translateX(100%) scaleX(0.3);
+    }
 }
 
 /* Deep-link focus highlight on a widget in the editor preview. Triggered by
@@ -33,13 +57,25 @@ html, body, #root {
  * transient. The class lives on .aura-widget so it composes with the existing
  * editor ring without fighting it. */
 @keyframes aura-focus-pulse {
-  0%   { box-shadow: 0 0 0 0 var(--accent), 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); }
-  50%  { box-shadow: 0 0 0 4px var(--accent), 0 0 0 14px color-mix(in srgb, var(--accent) 30%, transparent); }
-  100% { box-shadow: 0 0 0 0 var(--accent), 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent); }
+    0% {
+        box-shadow:
+            0 0 0 0 var(--accent),
+            0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);
+    }
+    50% {
+        box-shadow:
+            0 0 0 4px var(--accent),
+            0 0 0 14px color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+    100% {
+        box-shadow:
+            0 0 0 0 var(--accent),
+            0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent);
+    }
 }
 .aura-widget-focused {
-  animation: aura-focus-pulse 1.2s ease-in-out 3 both;
-  z-index: 5;
+    animation: aura-focus-pulse 1.2s ease-in-out 3 both;
+    z-index: 5;
 }
 
 /* ── Frontend font scale ─────────────────────────────────────────────────────
@@ -47,49 +83,87 @@ html, body, #root {
    The --font-scale CSS variable is set by ThemeProvider from configStore.
    Scoped to [data-aura-app="frontend"] so the admin UI is never affected.
    ─────────────────────────────────────────────────────────────────────────── */
-[data-aura-app="frontend"] .text-xs        { font-size: calc(0.75rem   * var(--font-scale, 1)); }
-[data-aura-app="frontend"] .text-sm        { font-size: calc(0.875rem  * var(--font-scale, 1)); }
-[data-aura-app="frontend"] .text-base      { font-size: calc(1rem      * var(--font-scale, 1)); }
-[data-aura-app="frontend"] .text-lg        { font-size: calc(1.125rem  * var(--font-scale, 1)); }
-[data-aura-app="frontend"] .text-xl        { font-size: calc(1.25rem   * var(--font-scale, 1)); }
-[data-aura-app="frontend"] .text-2xl       { font-size: calc(1.5rem    * var(--font-scale, 1)); }
-[data-aura-app="frontend"] .text-3xl       { font-size: calc(1.875rem  * var(--font-scale, 1)); }
-[data-aura-app="frontend"] .text-4xl       { font-size: calc(2.25rem   * var(--font-scale, 1)); }
+[data-aura-app='frontend'] .text-xs {
+    font-size: calc(0.75rem * var(--font-scale, 1));
+}
+[data-aura-app='frontend'] .text-sm {
+    font-size: calc(0.875rem * var(--font-scale, 1));
+}
+[data-aura-app='frontend'] .text-base {
+    font-size: calc(1rem * var(--font-scale, 1));
+}
+[data-aura-app='frontend'] .text-lg {
+    font-size: calc(1.125rem * var(--font-scale, 1));
+}
+[data-aura-app='frontend'] .text-xl {
+    font-size: calc(1.25rem * var(--font-scale, 1));
+}
+[data-aura-app='frontend'] .text-2xl {
+    font-size: calc(1.5rem * var(--font-scale, 1));
+}
+[data-aura-app='frontend'] .text-3xl {
+    font-size: calc(1.875rem * var(--font-scale, 1));
+}
+[data-aura-app='frontend'] .text-4xl {
+    font-size: calc(2.25rem * var(--font-scale, 1));
+}
 /* ── Styled scrollbar ────────────────────────────────────────────────────────
    Thin accent-coloured scrollbar for overflow containers.
    scrollbar-gutter: stable reserves scrollbar space upfront so the layout
    never shifts when the scrollbar appears or disappears.
    ─────────────────────────────────────────────────────────────────────────── */
 .aura-scroll {
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--accent, #888) 35%, transparent) transparent;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--accent, #888) 35%, transparent) transparent;
 }
-.aura-scroll::-webkit-scrollbar        { width: 5px; height: 5px; }
-.aura-scroll::-webkit-scrollbar-track  { background: transparent; }
-.aura-scroll::-webkit-scrollbar-thumb  {
-  background: color-mix(in srgb, var(--accent, #888) 35%, transparent);
-  border-radius: 99px;
+.aura-scroll::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+.aura-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+.aura-scroll::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--accent, #888) 35%, transparent);
+    border-radius: 99px;
 }
 .aura-scroll::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--accent, #888) 60%, transparent);
+    background: color-mix(in srgb, var(--accent, #888) 60%, transparent);
 }
-.aura-scroll::-webkit-scrollbar-corner { background: transparent; }
+.aura-scroll::-webkit-scrollbar-corner {
+    background: transparent;
+}
 
 /* Hide-scrollbar utility — used by the carousel widget when options.hideScrollbar is set */
-.aura-no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
-.aura-no-scrollbar::-webkit-scrollbar { display: none; }
+.aura-no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.aura-no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
 
 /* Carousel shake-on-open: brief rightward nudge + return, triggers when the
    widget mounts (tab opened) and content overflows. Uses scrollLeft, not
    transform, so it doesn't disturb sibling layout. JS sets/removes the class. */
 @keyframes aura-carousel-shake {
-  0%   { transform: translateX(0); }
-  35%  { transform: translateX(14px); }
-  70%  { transform: translateX(-4px); }
-  100% { transform: translateX(0); }
+    0% {
+        transform: translateX(0);
+    }
+    35% {
+        transform: translateX(14px);
+    }
+    70% {
+        transform: translateX(-4px);
+    }
+    100% {
+        transform: translateX(0);
+    }
 }
-.aura-carousel-shake { animation: aura-carousel-shake 600ms ease-out; }
+.aura-carousel-shake {
+    animation: aura-carousel-shake 600ms ease-out;
+}
 
 /* Carousel chip text marquee — used when an item's label is wider than the
    item's max-width. The container clips overflow; the inner element renders
@@ -97,14 +171,18 @@ html, body, #root {
    shifts the second copy exactly into the first copy's start position so
    the loop is seamless. Duration is set per-instance via --marquee-duration. */
 @keyframes aura-marquee {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
 }
 .aura-marquee-track {
-  display: inline-flex;
-  flex-wrap: nowrap;
-  animation: aura-marquee var(--marquee-duration, 10s) linear infinite;
-  will-change: transform;
+    display: inline-flex;
+    flex-wrap: nowrap;
+    animation: aura-marquee var(--marquee-duration, 10s) linear infinite;
+    will-change: transform;
 }
 
 /* ── React-Grid-Layout drag placeholder ──────────────────────────────────────
@@ -113,14 +191,15 @@ html, body, #root {
    never show the red ghost — only real drags become visible.
    ─────────────────────────────────────────────────────────────────────────── */
 .react-grid-placeholder {
-  background: var(--accent, #3b82f6) !important;
-  opacity: 0 !important;
-  animation: rgl-placeholder-in 150ms 120ms forwards !important;
+    background: var(--accent, #3b82f6) !important;
+    opacity: 0 !important;
+    animation: rgl-placeholder-in 150ms 120ms forwards !important;
 }
 @keyframes rgl-placeholder-in {
-  to { opacity: 0.25; }
+    to {
+        opacity: 0.25;
+    }
 }
-
 
 /* ── React-Grid-Layout position transitions ───────────────────────────────────
    Only animate item positions when an actual drag is in progress.
@@ -128,10 +207,10 @@ html, body, #root {
    the 200ms transform transition on all grid items, causing visible flickering.
    ─────────────────────────────────────────────────────────────────────────── */
 .react-grid-layout:not(:has(.react-draggable-dragging)) .react-grid-item.cssTransforms {
-  transition: none !important;
+    transition: none !important;
 }
 .react-grid-layout:not(:has(.react-draggable-dragging)) {
-  transition: none !important;
+    transition: none !important;
 }
 
 /* ── Range-input track ───────────────────────────────────────────────────────
@@ -139,50 +218,56 @@ html, body, #root {
    visible on light themes. The thumb colour is still set per-component via
    accentColor / ::-webkit-slider-thumb overrides where needed.
    ─────────────────────────────────────────────────────────────────────────── */
-input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
+input[type='range'] {
+    -webkit-appearance: none;
+    appearance: none;
 }
-input[type="range"]::-webkit-slider-runnable-track {
-  height: 6px;
-  border-radius: 9999px;
-  background: color-mix(in srgb, var(--text-secondary, #888) 30%, transparent);
+input[type='range']::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--text-secondary, #888) 30%, transparent);
 }
-input[type="range"]::-moz-range-track {
-  height: 6px;
-  border-radius: 9999px;
-  background: color-mix(in srgb, var(--text-secondary, #888) 30%, transparent);
+input[type='range']::-moz-range-track {
+    height: 6px;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--text-secondary, #888) 30%, transparent);
 }
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--slider-thumb-color, var(--accent, #3b82f6));
-  margin-top: -5px;
-  cursor: pointer;
+input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--slider-thumb-color, var(--accent, #3b82f6));
+    margin-top: -5px;
+    cursor: pointer;
 }
-input[type="range"]::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border: none;
-  border-radius: 50%;
-  background: var(--slider-thumb-color, var(--accent, #3b82f6));
-  cursor: pointer;
+input[type='range']::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border: none;
+    border-radius: 50%;
+    background: var(--slider-thumb-color, var(--accent, #3b82f6));
+    cursor: pointer;
 }
 
 /* Arbitrary px sizes used in some widgets */
-[data-aura-app="frontend"] .text-\[9px\]  { font-size: calc(9px        * var(--font-scale, 1)); }
-[data-aura-app="frontend"] .text-\[10px\] { font-size: calc(10px       * var(--font-scale, 1)); }
-[data-aura-app="frontend"] .text-\[11px\] { font-size: calc(11px       * var(--font-scale, 1)); }
+[data-aura-app='frontend'] .text-\[9px\] {
+    font-size: calc(9px * var(--font-scale, 1));
+}
+[data-aura-app='frontend'] .text-\[10px\] {
+    font-size: calc(10px * var(--font-scale, 1));
+}
+[data-aura-app='frontend'] .text-\[11px\] {
+    font-size: calc(11px * var(--font-scale, 1));
+}
 
 /* Editor "peek" mode — while held (Ctrl+Alt) hide all edit-only chrome so the
    editor shows the clean frontend look. Toggled by adding `aura-peek` to body. */
 .aura-peek .aura-edit-chrome {
-  opacity: 0 !important;
-  pointer-events: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 .aura-peek .react-resizable-handle {
-  display: none !important;
+    display: none !important;
 }

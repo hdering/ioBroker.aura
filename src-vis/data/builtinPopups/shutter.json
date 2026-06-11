@@ -1,29 +1,29 @@
 {
-  "id": "pv-builtin-shutter",
-  "name": "Standard: Rolladen",
-  "version": 1,
-  "widgets": [
-    {
-      "id": "pw-bi-shutter-1",
-      "type": "value",
-      "title": "Position",
-      "datapoint": "{{dp}}",
-      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 3 },
-      "options": {}
-    },
-    {
-      "id": "pw-bi-shutter-2",
-      "type": "shutter",
-      "title": "",
-      "datapoint": "{{dp}}",
-      "gridPos": { "x": 0, "y": 3, "w": 12, "h": 6 },
-      "options": {
-        "activityDp": "{{activityDp}}",
-        "directionDp": "{{directionDp}}",
-        "stopDp": "{{stopDp}}",
-        "batteryDp": "{{batteryDp}}",
-        "unreachDp": "{{unreachDp}}"
-      }
-    }
-  ]
+    "id": "pv-builtin-shutter",
+    "name": "Standard: Rolladen",
+    "version": 1,
+    "widgets": [
+        {
+            "id": "pw-bi-shutter-1",
+            "type": "value",
+            "title": "Position",
+            "datapoint": "{{dp}}",
+            "gridPos": { "x": 0, "y": 0, "w": 12, "h": 3 },
+            "options": {}
+        },
+        {
+            "id": "pw-bi-shutter-2",
+            "type": "shutter",
+            "title": "",
+            "datapoint": "{{dp}}",
+            "gridPos": { "x": 0, "y": 3, "w": 12, "h": 6 },
+            "options": {
+                "activityDp": "{{activityDp}}",
+                "directionDp": "{{directionDp}}",
+                "stopDp": "{{stopDp}}",
+                "batteryDp": "{{batteryDp}}",
+                "unreachDp": "{{unreachDp}}"
+            }
+        }
+    ]
 }

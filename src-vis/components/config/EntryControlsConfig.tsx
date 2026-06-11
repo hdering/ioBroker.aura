@@ -202,7 +202,7 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
                     ))}
                     {presets.length === 0 && (
                         <p className="text-[9px] italic" style={{ color: 'var(--text-secondary)', opacity: 0.45 }}>
-                            Noch keine Werte. „Hinzufügen“ für eine Taste.
+                            {'Noch keine Werte. „Hinzufügen“ für eine Taste.'}
                         </p>
                     )}
                 </div>

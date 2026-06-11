@@ -20,9 +20,9 @@ Versionen werden komplett ersetzt — lokale Anpassungen gehen verloren
 
 1. Custom-View im Admin bauen → exportieren.
 2. JSON öffnen und Felder anpassen:
-   - `id`: `pv-builtin-<name>` (z.B. `pv-builtin-airco`)
-   - `name`: z.B. `"Standard: Klimaanlage"`
-   - `version`: `1`
+    - `id`: `pv-builtin-<name>` (z.B. `pv-builtin-airco`)
+    - `name`: z.B. `"Standard: Klimaanlage"`
+    - `version`: `1`
 3. Als `src-vis/data/builtinPopups/<name>.json` ablegen.
 4. Optional: in `BUILTIN_TYPE_DEFAULTS` (popupConfigStore.ts) einen Mapping-Eintrag
    ergänzen, damit Widgets dieses Typs automatisch das Popup verwenden.

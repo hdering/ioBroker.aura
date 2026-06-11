@@ -1,15 +1,15 @@
 {
-  "id": "pv-builtin-switch",
-  "name": "Standard: Schalter",
-  "version": 1,
-  "widgets": [
-    {
-      "id": "pw-bi-switch-1",
-      "type": "switch",
-      "title": "",
-      "datapoint": "{{dp}}",
-      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 4 },
-      "options": {}
-    }
-  ]
+    "id": "pv-builtin-switch",
+    "name": "Standard: Schalter",
+    "version": 1,
+    "widgets": [
+        {
+            "id": "pw-bi-switch-1",
+            "type": "switch",
+            "title": "",
+            "datapoint": "{{dp}}",
+            "gridPos": { "x": 0, "y": 0, "w": 12, "h": 4 },
+            "options": {}
+        }
+    ]
 }

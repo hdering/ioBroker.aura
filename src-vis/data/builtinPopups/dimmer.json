@@ -1,23 +1,23 @@
 {
-  "id": "pv-builtin-dimmer",
-  "name": "Standard: Dimmer",
-  "version": 1,
-  "widgets": [
-    {
-      "id": "pw-bi-dimmer-1",
-      "type": "value",
-      "title": "Helligkeit",
-      "datapoint": "{{dp}}",
-      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 3 },
-      "options": {}
-    },
-    {
-      "id": "pw-bi-dimmer-2",
-      "type": "dimmer",
-      "title": "",
-      "datapoint": "{{dp}}",
-      "gridPos": { "x": 0, "y": 3, "w": 12, "h": 5 },
-      "options": {}
-    }
-  ]
+    "id": "pv-builtin-dimmer",
+    "name": "Standard: Dimmer",
+    "version": 1,
+    "widgets": [
+        {
+            "id": "pw-bi-dimmer-1",
+            "type": "value",
+            "title": "Helligkeit",
+            "datapoint": "{{dp}}",
+            "gridPos": { "x": 0, "y": 0, "w": 12, "h": 3 },
+            "options": {}
+        },
+        {
+            "id": "pw-bi-dimmer-2",
+            "type": "dimmer",
+            "title": "",
+            "datapoint": "{{dp}}",
+            "gridPos": { "x": 0, "y": 3, "w": 12, "h": 5 },
+            "options": {}
+        }
+    ]
 }
