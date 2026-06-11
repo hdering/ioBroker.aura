@@ -4,7 +4,7 @@ const { io } = pkg;
 async function test(label, url, opts) {
   return new Promise((resolve) => {
     const socket = io(url, { ...opts, transports: ['polling', 'websocket'] });
-    const timer = setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       socket.disconnect();
       console.log(label, '→ TIMEOUT');
       resolve();
@@ -16,7 +16,7 @@ async function test(label, url, opts) {
       socket.onAny?.((ev, ...args) => {
         console.log(label, 'EVENT:', ev, JSON.stringify(args).slice(0, 200));
       });
-      setTimeout(() => { socket.disconnect(); resolve(); }, 1500);
+      globalThis.setTimeout(() => { socket.disconnect(); resolve(); }, 1500);
     });
     socket.on('connect_error', (e) => {
       console.log(label, '→ ERROR:', e.message);
