@@ -50,6 +50,28 @@ jobs:
       contents: write
 
     steps:
+      # Idempotency guard: npm versions are immutable, so re-running a deploy
+      # (manual re-run or a re-pushed tag) for an already-published version
+      # fails the whole job with E403. Detect that case and skip the publish.
+      - name: Setup node (npm check)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Check if version already published
+        id: check
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          if npm view iobroker.aura@"$VERSION" version > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::iobroker.aura@$VERSION is already on npm — skipping publish (re-run / duplicate tag)"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       # For prereleases: snapshot the current "latest" npm tag BEFORE the deploy
       # action overwrites it. We restore it afterwards.
       # Pre-release tags contain a hyphen, e.g. v1.2.3-beta.0
@@ -69,7 +91,9 @@ jobs:
 
       # ioBroker/testing-action-deploy@v1 always publishes with tag "latest",
       # ignoring the GitHub release prerelease flag. We fix the tags afterwards.
+      # Skipped when the version is already on npm (see idempotency guard above).
       - uses: ioBroker/testing-action-deploy@v1
+        if: steps.check.outputs.exists != 'true'
         with:
           node-version: '24.x'
           github-token: ${{ secrets.GITHUB_TOKEN }}
