@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.229-beta.0",
+    "version": "0.9.229-beta.1",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.229-beta.1": {
+        "en": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "de": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "ru": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "pt": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "nl": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "fr": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "it": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "es": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "pl": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "uk": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "zh-cn": "fix(ci): skip npm publish when version already published (E403 guard) (beta)"
+      },
       "0.9.229-beta.0": {
         "en": "Release v0.9.229-beta.0 (beta)",
         "de": "Release v0.9.229-beta.0 (beta)",
@@ -183,19 +196,6 @@
         "pl": "Release v0.9.224",
         "uk": "Release v0.9.224",
         "zh-cn": "Release v0.9.224"
-      },
-      "0.9.223": {
-        "en": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)",
-        "de": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)",
-        "ru": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)",
-        "pt": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)",
-        "nl": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)",
-        "fr": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)",
-        "it": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)",
-        "es": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)",
-        "pl": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)",
-        "uk": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)",
-        "zh-cn": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)"
       }
     }
   },
