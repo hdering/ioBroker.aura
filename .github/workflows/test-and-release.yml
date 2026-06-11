@@ -72,26 +72,11 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # For prereleases: snapshot the current "latest" npm tag BEFORE the deploy
-      # action overwrites it. We restore it afterwards.
-      # Pre-release tags contain a hyphen, e.g. v1.2.3-beta.0
-      - name: Setup node (snapshot latest)
-        if: contains(github.ref, '-')
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24.x'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Snapshot current latest
-        if: contains(github.ref, '-')
-        id: snapshot
-        run: echo "latest=$(npm view iobroker.aura dist-tags.latest 2>/dev/null || echo '')" >> $GITHUB_OUTPUT
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      # ioBroker/testing-action-deploy@v1 always publishes with tag "latest",
-      # ignoring the GitHub release prerelease flag. We fix the tags afterwards.
-      # Skipped when the version is already on npm (see idempotency guard above).
+      # testing-action-deploy@v1 publishes via npm OIDC trusted publishing
+      # (id-token: write — no NPM_TOKEN needed). It auto-tags prerelease
+      # versions (hyphen, e.g. 0.9.229-beta.0) under the "next" dist-tag and
+      # leaves "latest" on the stable release, so no manual dist-tag fixup is
+      # required. Skipped when the version is already on npm (guard above).
       - uses: ioBroker/testing-action-deploy@v1
         if: steps.check.outputs.exists != 'true'
         with:
@@ -99,28 +84,3 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           build: 'true'
           build-command: 'npm run build:adapter'
-
-      - name: Setup node (fix tags)
-        if: contains(github.ref, '-')
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24.x'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Fix npm tags — move to beta, restore latest
-        if: contains(github.ref, '-')
-        run: |
-          VERSION="${GITHUB_REF#refs/tags/v}"
-          PREV_LATEST="${{ steps.snapshot.outputs.latest }}"
-
-          npm dist-tag add iobroker.aura@${VERSION} beta
-          echo "Set beta → $VERSION"
-
-          if [ -n "$PREV_LATEST" ] && [ "$PREV_LATEST" != "$VERSION" ]; then
-            npm dist-tag add iobroker.aura@${PREV_LATEST} latest
-            echo "Restored latest → $PREV_LATEST"
-          else
-            echo "No previous latest to restore (was: $PREV_LATEST)"
-          fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

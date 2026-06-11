@@ -192,6 +192,9 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.228 (2026-06-11)
+Release v0.9.228
+
 ### 0.9.227 (2026-06-11)
 - chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)
 
