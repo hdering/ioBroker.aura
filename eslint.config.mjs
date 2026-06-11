@@ -73,6 +73,10 @@ export default [
         files: ['main.js'],
         rules: {
             '@typescript-eslint/no-require-imports': 'off',
+            // main.js is hand-formatted (aligned require block, compact one-liners).
+            // It was previously excluded via .prettierignore; that file is obsolete
+            // under @iobroker/eslint-config (W5048), so the exclusion lives here now.
+            'prettier/prettier': 'off',
         },
     },
 ];
