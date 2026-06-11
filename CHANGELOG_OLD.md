@@ -1,5 +1,13 @@
 # Changelog (older entries)
 
+## 0.9.209 (2026-06-09)
+- fix(lint): suppress no-explicit-any in lazyWithReload generic bound
+
+
+## 0.9.208 (2026-06-09)
+- chore: add .eslintcache to .gitignore
+- chore(ci): drop Node 20 from test matrix
+
 ## 0.9.207 (2026-06-09)
 - fix(lint): remove unused eslint-disable directives
 

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.229-beta.2",
+    "version": "0.9.229-beta.3",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.229-beta.3": {
+        "en": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "de": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "ru": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "pt": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "nl": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "fr": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "it": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "es": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "pl": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "uk": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
+        "zh-cn": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)"
+      },
       "0.9.229-beta.2": {
         "en": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
         "de": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
@@ -183,19 +196,6 @@
         "pl": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)",
         "uk": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)",
         "zh-cn": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)"
-      },
-      "0.9.225": {
-        "en": "chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083); chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083); fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)",
-        "de": "chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083); chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083); fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)",
-        "ru": "chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083); chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083); fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)",
-        "pt": "chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083); chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083); fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)",
-        "nl": "chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083); chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083); fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)",
-        "fr": "chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083); chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083); fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)",
-        "it": "chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083); chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083); fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)",
-        "es": "chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083); chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083); fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)",
-        "pl": "chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083); chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083); fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)",
-        "uk": "chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083); chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083); fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)",
-        "zh-cn": "chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083); chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083); fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)"
       }
     }
   },
