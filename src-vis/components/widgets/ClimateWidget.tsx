@@ -303,8 +303,8 @@ export function ClimateWidget({ config }: WidgetProps) {
                                     />
                                     <Tooltip
                                         contentStyle={tooltipStyle}
-                                        labelFormatter={formatLabel}
-                                        formatter={(v: number) => `${formatNum(v, decimals)} ${unit}`}
+                                        labelFormatter={(label) => formatLabel(Number(label))}
+                                        formatter={(v) => `${formatNum(Number(v), decimals)} ${unit}`}
                                     />
                                     <Area
                                         type="monotone"

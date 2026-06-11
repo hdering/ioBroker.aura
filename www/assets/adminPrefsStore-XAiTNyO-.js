@@ -1,0 +1,1 @@
+import{d as t,p as o,e as r}from"./react-Bk2tEoOi.js";const u=t()(o(e=>({autoSave:!1,autoSaveDelay:30,backupCount:5,setAutoSave:a=>e({autoSave:a}),setAutoSaveDelay:a=>e({autoSaveDelay:a}),setBackupCount:a=>e({backupCount:Math.max(1,Math.min(20,a))})}),{name:"aura-admin-prefs",storage:r(()=>localStorage)}));export{u};

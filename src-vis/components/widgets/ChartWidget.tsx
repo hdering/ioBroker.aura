@@ -258,8 +258,8 @@ export function ChartWidget({ config }: WidgetProps) {
                                     />
                                     <Tooltip
                                         contentStyle={tooltipStyle}
-                                        labelFormatter={formatLabel}
-                                        formatter={(v: number) => `${formatNum(v, decimals)}${unit ? ` ${unit}` : ''}`}
+                                        labelFormatter={(label) => formatLabel(Number(label))}
+                                        formatter={(v) => `${formatNum(Number(v), decimals)}${unit ? ` ${unit}` : ''}`}
                                     />
                                     <Area
                                         type="monotone"
@@ -366,8 +366,8 @@ export function ChartWidget({ config }: WidgetProps) {
                                 />
                                 <Tooltip
                                     contentStyle={tooltipStyle}
-                                    labelFormatter={formatLabel}
-                                    formatter={(v: number) => `${formatNum(v, decimals)}${unit ? ` ${unit}` : ''}`}
+                                    labelFormatter={(label) => formatLabel(Number(label))}
+                                    formatter={(v) => `${formatNum(Number(v), decimals)}${unit ? ` ${unit}` : ''}`}
                                 />
                                 <Line
                                     type="monotone"
