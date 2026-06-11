@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.223",
+    "version": "0.9.224",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.224": {
+        "en": "Release v0.9.224",
+        "de": "Release v0.9.224",
+        "ru": "Release v0.9.224",
+        "pt": "Release v0.9.224",
+        "nl": "Release v0.9.224",
+        "fr": "Release v0.9.224",
+        "it": "Release v0.9.224",
+        "es": "Release v0.9.224",
+        "pl": "Release v0.9.224",
+        "uk": "Release v0.9.224",
+        "zh-cn": "Release v0.9.224"
+      },
       "0.9.223": {
         "en": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)",
         "de": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)",
@@ -183,19 +196,6 @@
         "pl": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)",
         "uk": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)",
         "zh-cn": "fix(lint): prettier formatting + wrap German quotes in JSX expressions; feat(widgets): per-column width ratios for custom-grid layout; feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)"
-      },
-      "0.9.216": {
-        "en": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
-        "de": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
-        "ru": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
-        "pt": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
-        "nl": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
-        "fr": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
-        "it": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
-        "es": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
-        "pl": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
-        "uk": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty",
-        "zh-cn": "feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt; fix(widgets): add visible label to empty group master switch placeholder; feat(widgets): show group master switch placeholder in editor when empty"
       }
     }
   },

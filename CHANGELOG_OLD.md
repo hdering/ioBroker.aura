@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.204 (2026-06-09)
+- feat(custom-layout): extend last-change to all data-bearing cell types
+- feat(custom-layout): add last-change timestamp to data cells
+
 ## 0.9.203 (2026-06-09)
 - fix(frontend): stabilize idle-return timer via ref — prevent spurious resets
 - fix(frontend): guard idleReturnDelay against undefined (NaN setTimeout)
