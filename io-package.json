@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.228",
+    "version": "0.9.229-beta.0",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.229-beta.0": {
+        "en": "Release v0.9.229-beta.0 (beta)",
+        "de": "Release v0.9.229-beta.0 (beta)",
+        "ru": "Release v0.9.229-beta.0 (beta)",
+        "pt": "Release v0.9.229-beta.0 (beta)",
+        "nl": "Release v0.9.229-beta.0 (beta)",
+        "fr": "Release v0.9.229-beta.0 (beta)",
+        "it": "Release v0.9.229-beta.0 (beta)",
+        "es": "Release v0.9.229-beta.0 (beta)",
+        "pl": "Release v0.9.229-beta.0 (beta)",
+        "uk": "Release v0.9.229-beta.0 (beta)",
+        "zh-cn": "Release v0.9.229-beta.0 (beta)"
+      },
       "0.9.228": {
         "en": "Release v0.9.228 (beta)",
         "de": "Release v0.9.228 (beta)",
@@ -183,19 +196,6 @@
         "pl": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)",
         "uk": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)",
         "zh-cn": "style(prettier): auto-format src-vis and main.js; style(prettier): format main.js (indent + collapse aligned requires)"
-      },
-      "0.9.221": {
-        "en": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
-        "de": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
-        "ru": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
-        "pt": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
-        "nl": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
-        "fr": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
-        "it": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
-        "es": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
-        "pl": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
-        "uk": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
-        "zh-cn": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls"
       }
     }
   },
