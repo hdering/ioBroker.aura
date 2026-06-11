@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.229-beta.4",
+    "version": "0.9.229",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,70 +106,18 @@
       }
     ],
     "news": {
-      "0.9.229-beta.4": {
-        "en": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "de": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "ru": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "pt": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "nl": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "fr": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "it": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "es": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "pl": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "uk": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "zh-cn": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)"
-      },
-      "0.9.229-beta.3": {
-        "en": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "de": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "ru": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "pt": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "nl": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "fr": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "it": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "es": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "pl": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "uk": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "zh-cn": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)"
-      },
-      "0.9.229-beta.2": {
-        "en": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "de": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "ru": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "pt": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "nl": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "fr": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "it": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "es": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "pl": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "uk": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "zh-cn": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard) (beta)"
-      },
-      "0.9.229-beta.1": {
-        "en": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "de": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "ru": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "pt": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "nl": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "fr": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "it": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "es": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "pl": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "uk": "fix(ci): skip npm publish when version already published (E403 guard) (beta)",
-        "zh-cn": "fix(ci): skip npm publish when version already published (E403 guard) (beta)"
-      },
-      "0.9.229-beta.0": {
-        "en": "Release v0.9.229-beta.0 (beta)",
-        "de": "Release v0.9.229-beta.0 (beta)",
-        "ru": "Release v0.9.229-beta.0 (beta)",
-        "pt": "Release v0.9.229-beta.0 (beta)",
-        "nl": "Release v0.9.229-beta.0 (beta)",
-        "fr": "Release v0.9.229-beta.0 (beta)",
-        "it": "Release v0.9.229-beta.0 (beta)",
-        "es": "Release v0.9.229-beta.0 (beta)",
-        "pl": "Release v0.9.229-beta.0 (beta)",
-        "uk": "Release v0.9.229-beta.0 (beta)",
-        "zh-cn": "Release v0.9.229-beta.0 (beta)"
+      "0.9.229": {
+        "en": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
+        "de": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
+        "ru": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
+        "pt": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
+        "nl": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
+        "fr": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
+        "it": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
+        "es": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
+        "pl": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
+        "uk": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
+        "zh-cn": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)"
       },
       "0.9.228": {
         "en": "Release v0.9.228 (beta)",

@@ -192,12 +192,7 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
-### 0.9.229-beta.4 (2026-06-11) — beta/test release
-- fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog
-- fix(ci): skip npm publish when version already published (E403 guard)
-
-
-### 0.9.229-beta.3 (2026-06-11) — beta/test release
+### 0.9.229 (2026-06-11)
 - fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog
 - fix(ci): skip npm publish when version already published (E403 guard)
 
@@ -304,6 +299,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
