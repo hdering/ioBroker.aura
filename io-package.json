@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.226",
+    "version": "0.9.227",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.227": {
+        "en": "chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)",
+        "de": "chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)",
+        "ru": "chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)",
+        "pt": "chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)",
+        "nl": "chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)",
+        "fr": "chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)",
+        "it": "chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)",
+        "es": "chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)",
+        "pl": "chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)",
+        "uk": "chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)",
+        "zh-cn": "chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)"
+      },
       "0.9.226": {
         "en": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)",
         "de": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)",
@@ -183,19 +196,6 @@
         "pl": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
         "uk": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
         "zh-cn": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range"
-      },
-      "0.9.219": {
-        "en": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
-        "de": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
-        "ru": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
-        "pt": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
-        "nl": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
-        "fr": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
-        "it": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
-        "es": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
-        "pl": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
-        "uk": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
-        "zh-cn": "feat(admin): make image/file picker root folders (fsRoots) editable in settings"
       }
     }
   },

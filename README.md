@@ -192,6 +192,10 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.227 (2026-06-11)
+- chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)
+
+
 ### 0.9.226 (2026-06-11)
 - chore(lint): disable prettier/prettier for main.js
 - chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083)
@@ -289,10 +293,6 @@ Release v0.9.224
 - chore(ci): drop Node 20 from test matrix
 
 
-### 0.9.207 (2026-06-09)
-- fix(lint): remove unused eslint-disable directives
-
-
 ## License
 
 MIT License
@@ -304,6 +304,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

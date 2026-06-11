@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.207 (2026-06-09)
+- fix(lint): remove unused eslint-disable directives
+
 ## 0.9.206 (2026-06-09)
 - fix(lint): apply prettier formatting + fix ESLint config for ESLint 10
 - fix(lint): make ESLint work with @iobroker/eslint-config
