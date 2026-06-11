@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.210 (2026-06-09)
+- fix(ts): use optional chain for unsubscribe call in CalendarWidget
+
 ## 0.9.209 (2026-06-09)
 - fix(lint): suppress no-explicit-any in lazyWithReload generic bound
 
