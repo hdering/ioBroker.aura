@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.227",
+    "version": "0.9.228",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.228": {
+        "en": "Release v0.9.228 (beta)",
+        "de": "Release v0.9.228 (beta)",
+        "ru": "Release v0.9.228 (beta)",
+        "pt": "Release v0.9.228 (beta)",
+        "nl": "Release v0.9.228 (beta)",
+        "fr": "Release v0.9.228 (beta)",
+        "it": "Release v0.9.228 (beta)",
+        "es": "Release v0.9.228 (beta)",
+        "pl": "Release v0.9.228 (beta)",
+        "uk": "Release v0.9.228 (beta)",
+        "zh-cn": "Release v0.9.228 (beta)"
+      },
       "0.9.227": {
         "en": "chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)",
         "de": "chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)",
@@ -183,19 +196,6 @@
         "pl": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
         "uk": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls",
         "zh-cn": "fix(lint): auto-fix mixed typographic quotes; feat(group-action): per-target checklist to exclude DPs; refactor(editor): hide empty widget-settings card for group widget; refactor(editor): move group action into its own card outside the widget box; feat(group-action): selectable action type (switch/dimmer/shutter/momentary); feat(lists): add shutter, stepper, value-presets and momentary controls"
-      },
-      "0.9.220": {
-        "en": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
-        "de": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
-        "ru": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
-        "pt": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
-        "nl": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
-        "fr": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
-        "it": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
-        "es": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
-        "pl": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
-        "uk": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range",
-        "zh-cn": "style: fix prettier formatting in TabBarSection; feat(admin): tab bar height + font size as px sliders extendable beyond range"
       }
     }
   },
