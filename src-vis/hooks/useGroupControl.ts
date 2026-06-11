@@ -55,7 +55,7 @@ export function useGroupControl(targets: GroupTarget[]) {
             setState(t.id, turnOn ? t.onWrite : t.offWrite);
         }
         // Confirm via getState — a live stateChange push may never arrive.
-        setTimeout(() => {
+        globalThis.setTimeout(() => {
             Promise.all(ids.map((id) => getState(id))).then((states) => {
                 const on = states.reduce((n, s) => n + (isActiveVal(s?.val ?? null) ? 1 : 0), 0);
                 setOverride(on === 0 ? 'off' : on === states.length ? 'on' : 'mixed');

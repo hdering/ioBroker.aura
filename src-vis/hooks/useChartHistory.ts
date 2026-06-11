@@ -86,7 +86,7 @@ export function useChartHistory(
                 ? (customRangeMs ?? 86_400_000)
                 : RANGE_MS[timeRange as Exclude<ChartTimeRange, 'custom'>];
         const interval = rangeMs <= 3_600_000 ? 60_000 : rangeMs <= 86_400_000 ? 300_000 : 900_000;
-        const id = setInterval(() => setRefreshTick((t) => t + 1), interval);
+        const id = globalThis.setInterval(() => setRefreshTick((t) => t + 1), interval);
         return () => clearInterval(id);
     }, [datapointId, effectiveInstance, connected, timeRange, customRangeMs]);
 

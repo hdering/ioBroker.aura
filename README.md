@@ -190,6 +190,8 @@ npm run build:adapter
 
 ## Changelog
 
+_Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
+
 ### 0.9.224 (2026-06-11)
 Release v0.9.224
 

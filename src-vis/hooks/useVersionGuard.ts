@@ -73,7 +73,7 @@ export function useVersionGuard(): void {
             reloadingRef.current = true;
 
             console.info(`[Aura] adapter version ${live} differs from bundle ${bundledVersion} — reloading once`);
-            setTimeout(() => window.location.reload(), RELOAD_DELAY_MS);
+            globalThis.setTimeout(() => window.location.reload(), RELOAD_DELAY_MS);
         })();
         return () => {
             cancelled = true;

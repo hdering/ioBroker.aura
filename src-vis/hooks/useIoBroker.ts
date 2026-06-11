@@ -73,7 +73,7 @@ export function prefetchStates(ids: string[], onProgress?: (loaded: number, tota
                 });
             }),
     );
-    const timeout = new Promise<void>((resolve) => setTimeout(resolve, 4000));
+    const timeout = new Promise<void>((resolve) => globalThis.setTimeout(resolve, 4000));
     return Promise.race([Promise.all(fetches).then(() => undefined), timeout]);
 }
 
@@ -438,7 +438,7 @@ export function sendToDirect<T = unknown>(
             }
         };
         getSocket().emit('sendTo', target, command, payload, (result: unknown) => done((result as T) ?? null));
-        setTimeout(() => done({ __timeout: true }), timeoutMs);
+        globalThis.setTimeout(() => done({ __timeout: true }), timeoutMs);
     });
 }
 

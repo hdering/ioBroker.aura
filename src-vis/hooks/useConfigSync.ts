@@ -124,7 +124,7 @@ export function useConfigSync(
             pollingRef.current = null;
             return;
         }
-        pollingRef.current = setInterval(poll, 30_000);
+        pollingRef.current = globalThis.setInterval(poll, 30_000);
         return () => {
             if (pollingRef.current) {
                 clearInterval(pollingRef.current);

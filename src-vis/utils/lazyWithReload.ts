@@ -56,7 +56,7 @@ export function installChunkErrorRecovery(): void {
     });
 
     window.addEventListener('load', () => {
-        setTimeout(() => {
+        globalThis.setTimeout(() => {
             try {
                 sessionStorage.removeItem(RELOAD_FLAG);
             } catch {
