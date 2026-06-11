@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.202 (2026-06-09)
+- fix(carousel): disable scroll-snap CSS when autoRotate is active
+
 ## 0.9.201 (2026-06-09)
 - revert(light): remove onValue/offValue + controlMode from LightWidget
 - feat(light): add An/Aus-Werte + Schiebeschalter/Icon for switchDp
