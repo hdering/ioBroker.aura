@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ReactGridLayout from 'react-grid-layout';
+import ReactGridLayout from 'react-grid-layout/legacy';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { usePopupConfigStore, BUILTIN_VIEW_IDS } from '../../store/popupConfigStore';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
@@ -92,7 +92,7 @@ export function PopupViewEditor() {
         minH: 1,
     }));
 
-    const syncLayout = (nl: { i: string; x: number; y: number; w: number; h: number }[]) => {
+    const syncLayout = (nl: readonly { i: string; x: number; y: number; w: number; h: number }[]) => {
         nl.forEach(({ i, x, y, w: nw, h: nh }) => {
             const widget = widgets.find((wg) => wg.id === i);
             if (!widget) return;

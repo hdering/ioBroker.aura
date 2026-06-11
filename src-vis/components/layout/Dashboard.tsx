@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import ReactGridLayout from 'react-grid-layout';
+import ReactGridLayout from 'react-grid-layout/legacy';
 import { X } from 'lucide-react';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useGroupDefsStore } from '../../store/groupDefsStore';
@@ -375,7 +375,7 @@ export function Dashboard({
                                         };
                                     });
                                     const buildTabUpdated = (
-                                        newLayout: { i: string; x: number; y: number; w: number; h: number }[],
+                                        newLayout: readonly { i: string; x: number; y: number; w: number; h: number }[],
                                     ) =>
                                         tabWidgets.map((w) => {
                                             if (reflowHiddenIds.has(w.id)) return w;

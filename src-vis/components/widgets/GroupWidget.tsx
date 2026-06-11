@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { Layers } from 'lucide-react';
-import ReactGridLayout from 'react-grid-layout';
+import ReactGridLayout from 'react-grid-layout/legacy';
 import type { WidgetProps, WidgetConfig, WidgetType, ioBrokerState } from '../../types';
 import { useConfigStore } from '../../store/configStore';
 import { useIoBroker } from '../../hooks/useIoBroker';
