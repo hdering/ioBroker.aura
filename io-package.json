@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.225",
+    "version": "0.9.226",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.226": {
+        "en": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)",
+        "de": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)",
+        "ru": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)",
+        "pt": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)",
+        "nl": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)",
+        "fr": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)",
+        "it": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)",
+        "es": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)",
+        "pl": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)",
+        "uk": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)",
+        "zh-cn": "chore(lint): disable prettier/prettier for main.js; chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083); chore(deps): drop @types/dompurify, use bundled types (W0083); fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)"
+      },
       "0.9.225": {
         "en": "chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083); chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083); fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)",
         "de": "chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083); chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083); fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)",
@@ -183,19 +196,6 @@
         "pl": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
         "uk": "feat(admin): make image/file picker root folders (fsRoots) editable in settings",
         "zh-cn": "feat(admin): make image/file picker root folders (fsRoots) editable in settings"
-      },
-      "0.9.218": {
-        "en": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
-        "de": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
-        "ru": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
-        "pt": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
-        "nl": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
-        "fr": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
-        "it": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
-        "es": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
-        "pl": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
-        "uk": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically",
-        "zh-cn": "fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically"
       }
     }
   },

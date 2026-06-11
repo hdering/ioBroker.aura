@@ -192,6 +192,13 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.226 (2026-06-11)
+- chore(lint): disable prettier/prettier for main.js
+- chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083)
+- chore(deps): drop @types/dompurify, use bundled types (W0083)
+- fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)
+
+
 ### 0.9.225 (2026-06-11)
 - chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083)
 - chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083)
@@ -286,13 +293,6 @@ Release v0.9.224
 - fix(lint): remove unused eslint-disable directives
 
 
-### 0.9.206 (2026-06-09)
-- fix(lint): apply prettier formatting + fix ESLint config for ESLint 10
-- fix(lint): make ESLint work with @iobroker/eslint-config
-- fix(ci): fix E3032/E6025/E8917 adapter checker violations
-- chore: fix adapter checker E0077/E0078/E302x violations
-
-
 ## License
 
 MIT License
@@ -304,6 +304,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

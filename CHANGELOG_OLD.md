@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.9.206 (2026-06-09)
+- fix(lint): apply prettier formatting + fix ESLint config for ESLint 10
+- fix(lint): make ESLint work with @iobroker/eslint-config
+- fix(ci): fix E3032/E6025/E8917 adapter checker violations
+- chore: fix adapter checker E0077/E0078/E302x violations
+
 ## 0.9.205 (2026-06-09)
 - fix(adapter): migrate stale themeMode role on adapter start
 - fix(adapter): fix ioBroker adapter checker role violations
