@@ -1233,18 +1233,13 @@ class Aura extends utils.Adapter {
             });
         }
 
-        await this.setObjectNotExistsAsync('config.dashboard_backup', {
-            type: 'state',
-            common: {
-                name: 'Dashboard configuration backup (legacy – migrated to aura.0.backups files)',
-                type: 'string',
-                role: 'json',
-                read: true,
-                write: false,
-                def: '',
-            },
-            native: {},
-        });
+        // Clean up the legacy single-state backup blob on instances that still
+        // have it (backups now live as files under <ns>.backups).
+        try {
+            await this.delObjectAsync('config.dashboard_backup');
+        } catch {
+            /* object may not exist – ignore */
+        }
 
         // Meta namespace for auto-backup files (aura.0.backups). Required for
         // ioBroker writeFile/readFile under that path. Each backup is a JSON
