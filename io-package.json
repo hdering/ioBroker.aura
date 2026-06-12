@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.236",
+    "version": "0.9.237",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.237": {
+        "en": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
+        "de": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
+        "ru": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
+        "pt": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
+        "nl": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
+        "fr": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
+        "it": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
+        "es": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
+        "pl": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
+        "uk": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
+        "zh-cn": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate"
+      },
       "0.9.236": {
         "en": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
         "de": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
@@ -183,19 +196,6 @@
         "pl": "feat(popup): derive {{parent}}/{{name}} placeholders and add optional popup DP override; chore(deps): ignore Vite major version bumps in Dependabot; chore(deps): ignore React major version bumps in Dependabot; chore(deps): bump actions/checkout from 4 to 6 (#222); chore(deps): bump actions/deploy-pages from 4 to 5 (#223); chore(deps): bump actions/configure-pages from 5 to 6 (#224); chore(deps): bump actions/upload-pages-artifact from 3 to 5 (#225); chore(deps): bump dependabot/fetch-metadata from 2 to 3 (#262)",
         "uk": "feat(popup): derive {{parent}}/{{name}} placeholders and add optional popup DP override; chore(deps): ignore Vite major version bumps in Dependabot; chore(deps): ignore React major version bumps in Dependabot; chore(deps): bump actions/checkout from 4 to 6 (#222); chore(deps): bump actions/deploy-pages from 4 to 5 (#223); chore(deps): bump actions/configure-pages from 5 to 6 (#224); chore(deps): bump actions/upload-pages-artifact from 3 to 5 (#225); chore(deps): bump dependabot/fetch-metadata from 2 to 3 (#262)",
         "zh-cn": "feat(popup): derive {{parent}}/{{name}} placeholders and add optional popup DP override; chore(deps): ignore Vite major version bumps in Dependabot; chore(deps): ignore React major version bumps in Dependabot; chore(deps): bump actions/checkout from 4 to 6 (#222); chore(deps): bump actions/deploy-pages from 4 to 5 (#223); chore(deps): bump actions/configure-pages from 5 to 6 (#224); chore(deps): bump actions/upload-pages-artifact from 3 to 5 (#225); chore(deps): bump dependabot/fetch-metadata from 2 to 3 (#262)"
-      },
-      "0.9.230": {
-        "en": "feat(admin): add tab bar icon size control",
-        "de": "feat(admin): add tab bar icon size control",
-        "ru": "feat(admin): add tab bar icon size control",
-        "pt": "feat(admin): add tab bar icon size control",
-        "nl": "feat(admin): add tab bar icon size control",
-        "fr": "feat(admin): add tab bar icon size control",
-        "it": "feat(admin): add tab bar icon size control",
-        "es": "feat(admin): add tab bar icon size control",
-        "pl": "feat(admin): add tab bar icon size control",
-        "uk": "feat(admin): add tab bar icon size control",
-        "zh-cn": "feat(admin): add tab bar icon size control"
       }
     }
   },

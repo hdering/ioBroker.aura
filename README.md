@@ -192,6 +192,11 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.237 (2026-06-12)
+- feat(datapoint): JSON path support on datapoint refs (id#path)
+- feat(group): show loading spinner while group children hydrate
+
+
 ### 0.9.236 (2026-06-12)
 - revert(tabbar): remove tab-bar settings preview
 - feat(tabbar): live preview in tab-bar settings for the edited scope
@@ -302,12 +307,6 @@ Release v0.9.224
 - fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically
 
 
-### 0.9.217 (2026-06-10)
-- fix(lint): prettier formatting + wrap German quotes in JSX expressions
-- feat(widgets): per-column width ratios for custom-grid layout
-- feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)
-
-
 ## License
 
 MIT License
@@ -319,6 +318,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

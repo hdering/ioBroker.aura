@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.217 (2026-06-10)
+- fix(lint): prettier formatting + wrap German quotes in JSX expressions
+- feat(widgets): per-column width ratios for custom-grid layout
+- feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)
+
 ## 0.9.216 (2026-06-10)
 - feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt
 - fix(widgets): add visible label to empty group master switch placeholder
