@@ -10,6 +10,7 @@ import type { WidgetConfig, CustomCell, CustomGrid, CustomGridDef } from '../../
 import { resolveAssetUrl } from '../../utils/assetUrl';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
+import { baseDpId } from '../../utils/dpRef';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { HelpCircle, ChevronDown } from 'lucide-react';
 import { parseValue, formatDate, toDateInputValue, toTimeInputValue, type DateOutputFormat } from './DatePickerWidget';
@@ -1158,7 +1159,7 @@ function DatePickerCellView({
             if (!time) return;
             const [h, mi] = time.split(':').map(Number);
             const dt = new Date(1970, 0, 1, h ?? 0, mi ?? 0);
-            setState(cell.dpId, formatDate(dt, outputFmt));
+            setState(baseDpId(cell.dpId), formatDate(dt, outputFmt));
             return;
         }
         if (!date) return;
@@ -1166,7 +1167,7 @@ function DatePickerCellView({
         const [h, mi] = time.split(':').map(Number);
         const dt = showTime ? new Date(y, mo - 1, d, h ?? 0, mi ?? 0) : new Date(y, mo - 1, d, 0, 0, 0, 0);
         if (isNaN(dt.getTime())) return;
-        setState(cell.dpId, formatDate(dt, outputFmt));
+        setState(baseDpId(cell.dpId), formatDate(dt, outputFmt));
     };
 
     if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;

@@ -5,6 +5,7 @@ import { usePopupConfigStore } from '../store/popupConfigStore';
 import { isDirty, subscribeDirty } from '../store/persistManager';
 import { sendToDirect } from './useIoBroker';
 import { NS } from '../utils/namespace';
+import { baseDpId } from '../utils/dpRef';
 import type { WidgetConfig } from '../types';
 
 export interface BrokenRef {
@@ -139,7 +140,8 @@ export function useBrokenDpRefs(): BrokenDpRefsState {
         setLoading(true);
         try {
             const refs = collectAllRefs();
-            const unique = Array.from(new Set(refs.map((r) => r.dp)));
+            // Existence is checked per bare state ID; the JSON-path suffix is a display detail.
+            const unique = Array.from(new Set(refs.map((r) => baseDpId(r.dp))));
             if (unique.length === 0) {
                 setBroken([]);
                 return;
@@ -150,7 +152,7 @@ export function useBrokenDpRefs(): BrokenDpRefsState {
                     ? (r as { missing: string[] }).missing
                     : [],
             );
-            setBroken(refs.filter((ref) => missing.has(ref.dp)));
+            setBroken(refs.filter((ref) => missing.has(baseDpId(ref.dp))));
         } finally {
             setLoading(false);
         }

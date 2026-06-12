@@ -8,6 +8,7 @@
  */
 import React, { useState } from 'react';
 import { Database, FolderOpen, HelpCircle, type LucideIcon } from 'lucide-react';
+import { JsonPathButton } from '../config/JsonPathButton';
 import type { CustomCell, WidgetType } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { FORMAT_LABELS, type DateOutputFormat } from '../widgets/DatePickerWidget';
@@ -699,6 +700,7 @@ export function CustomCellEditor({
                             className="flex-1 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
                             style={inputSty}
                         />
+                        <JsonPathButton value={cell.dpId} onChange={(ref) => onChange({ dpId: ref })} size={12} />
                         <button
                             onClick={onOpenDpPicker}
                             className="text-xs px-2 py-1.5 rounded-lg shrink-0"

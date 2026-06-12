@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, ChevronDown, ChevronRight, Database } from 'lucide-react';
 import { DatapointPicker } from './DatapointPicker';
+import { JsonPathButton } from './JsonPathButton';
 import type { WidgetCondition, ConditionClause, ConditionOperator, ConditionStyle } from '../../types';
 import { useT, t } from '../../i18n';
 
@@ -117,6 +118,11 @@ function ClauseRow({
                 >
                     <Database size={11} />
                 </button>
+                <JsonPathButton
+                    value={clause.datapoint}
+                    onChange={(ref) => onChange({ ...clause, datapoint: ref })}
+                    size={11}
+                />
             </div>
 
             {/* Operator */}
@@ -172,6 +178,13 @@ function ClauseRow({
                         >
                             <Database size={11} />
                         </button>
+                    )}
+                    {isDpValue && (
+                        <JsonPathButton
+                            value={clause.value}
+                            onChange={(ref) => onChange({ ...clause, value: ref })}
+                            size={11}
+                        />
                     )}
                 </div>
             ) : (

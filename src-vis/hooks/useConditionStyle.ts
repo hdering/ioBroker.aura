@@ -1,5 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useIoBroker, getStateFromCache } from './useIoBroker';
+import { splitDpRef, resolveDpValue } from '../utils/dpRef';
 import type { WidgetCondition, ConditionClause, ConditionStyle } from '../types';
 
 // ── Debug logging ─────────────────────────────────────────────────────────────
@@ -234,10 +235,13 @@ export function useConditionStyle(conditions: WidgetCondition[], widgetId?: stri
         // Populate valuesRef from whatever the cache already has (even partial).
         // The cache check below decides whether we can compute synchronously.
         let cacheHits = 0;
-        uniqueIds.forEach((id) => {
+        uniqueIds.forEach((ref) => {
+            // Subscriptions/cache use the bare state ID; values are keyed by the full ref
+            // (incl. any JSON path) since that is what evaluateClause looks up.
+            const { id, path } = splitDpRef(ref);
             const cached = getStateFromCache(id);
             if (cached !== null) {
-                valuesRef.current.set(id, cached.val ?? null);
+                valuesRef.current.set(ref, resolveDpValue(cached.val, path));
                 cacheHits++;
             }
         });
@@ -266,7 +270,7 @@ export function useConditionStyle(conditions: WidgetCondition[], widgetId?: stri
             widgetId,
             dps: uniqueIds,
             cacheHits,
-            missing: uniqueIds.filter((id) => getStateFromCache(id) === null),
+            missing: uniqueIds.filter((ref) => getStateFromCache(splitDpRef(ref).id) === null),
             conditionsCount: conditions.length,
             mayHide,
             initialHidden: initial.hidden,
@@ -309,8 +313,8 @@ export function useConditionStyle(conditions: WidgetCondition[], widgetId?: stri
         // module-level cache, we stay in the pessimistic in-place hide state.
         let cancelled = false;
         const loadedIds = new Set<string>();
-        uniqueIds.forEach((id) => {
-            if (getStateFromCache(id) !== null) loadedIds.add(id);
+        uniqueIds.forEach((ref) => {
+            if (getStateFromCache(splitDpRef(ref).id) !== null) loadedIds.add(ref);
         });
 
         const pessimistic = (): ConditionResult => {
@@ -352,28 +356,30 @@ export function useConditionStyle(conditions: WidgetCondition[], widgetId?: stri
         // Subscribe + fetch initial values. The cancelled flag prevents late
         // getState resolvers from a stale effect run from writing into the
         // shared valuesRef after a remount.
-        const unsubscribers = uniqueIds.map((id) => {
+        const unsubscribers = uniqueIds.map((ref) => {
+            // The socket only knows bare state IDs; the JSON path is applied to the value.
+            const { id, path } = splitDpRef(ref);
             const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
             getState(id).then((state) => {
                 if (cancelled) return;
                 const dt = typeof performance !== 'undefined' ? performance.now() - t0 : 0;
                 // Mark loaded regardless of state existing — a non-existent DP is
                 // "known to be null", not "still loading".
-                loadedIds.add(id);
+                loadedIds.add(ref);
                 if (state !== null) {
-                    valuesRef.current.set(id, state.val ?? null);
-                    condLog('getState resolved', { widgetId, dp: id, val: state.val, took: `${dt.toFixed(1)}ms` });
+                    valuesRef.current.set(ref, resolveDpValue(state.val, path));
+                    condLog('getState resolved', { widgetId, dp: ref, val: state.val, took: `${dt.toFixed(1)}ms` });
                 } else {
-                    condLog('getState resolved (null — DP missing)', { widgetId, dp: id, took: `${dt.toFixed(1)}ms` });
+                    condLog('getState resolved (null — DP missing)', { widgetId, dp: ref, took: `${dt.toFixed(1)}ms` });
                 }
-                recompute('getState', id);
+                recompute('getState', ref);
             });
             return subscribe(id, (state) => {
                 if (cancelled) return;
-                loadedIds.add(id);
-                valuesRef.current.set(id, state?.val ?? null);
-                condLog('subscribe event', { widgetId, dp: id, val: state?.val });
-                recompute('subscribe', id);
+                loadedIds.add(ref);
+                valuesRef.current.set(ref, resolveDpValue(state?.val, path));
+                condLog('subscribe event', { widgetId, dp: ref, val: state?.val });
+                recompute('subscribe', ref);
             });
         });
 

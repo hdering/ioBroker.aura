@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useIoBroker } from './useIoBroker';
+import { splitDpRef, resolveDpValue } from '../utils/dpRef';
 import type { WidgetCondition, ConditionClause, ConditionStyle } from '../types';
 
 function evaluateClause(clause: ConditionClause, raw: unknown, values: Map<string, unknown>): boolean {
@@ -117,15 +118,17 @@ export function useTabConditionStyle(conditions?: WidgetCondition[]): TabConditi
             });
         };
 
-        const unsubscribers = uniqueIds.map((id) => {
+        const unsubscribers = uniqueIds.map((ref) => {
+            // Socket uses the bare state ID; values are keyed by the full ref (incl. JSON path).
+            const { id, path } = splitDpRef(ref);
             getState(id).then((state) => {
                 if (state !== null) {
-                    valuesRef.current.set(id, state.val ?? null);
+                    valuesRef.current.set(ref, resolveDpValue(state.val, path));
                     recompute();
                 }
             });
             return subscribe(id, (state) => {
-                valuesRef.current.set(id, state?.val ?? null);
+                valuesRef.current.set(ref, resolveDpValue(state?.val, path));
                 recompute();
             });
         });

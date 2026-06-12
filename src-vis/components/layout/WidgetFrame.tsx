@@ -32,6 +32,8 @@ import { copyToClipboard } from '../../utils/clipboard';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
+import { baseDpId } from '../../utils/dpRef';
+import { JsonPathButton } from '../config/JsonPathButton';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useStoreWithEqualityFn } from 'zustand/traditional';
@@ -7406,8 +7408,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                             value={config.datapoint}
                                             onChange={(e) => onConfigChange({ ...config, datapoint: e.target.value })}
                                             onBlur={(e) => {
-                                                const id = e.target.value.trim();
-                                                if (!id) return;
+                                                const ref = e.target.value.trim();
+                                                if (!ref) return;
+                                                // Name/unit metadata lives on the bare state ID; strip any JSON-path suffix.
+                                                const id = baseDpId(ref);
                                                 const supportsUnit = [
                                                     'value',
                                                     'chart',
@@ -7416,7 +7420,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                                     'knob',
                                                 ].includes(config.type);
                                                 const apply = (name: string | undefined, unit: string | undefined) => {
-                                                    let updated: typeof config = { ...config, datapoint: id };
+                                                    let updated: typeof config = { ...config, datapoint: ref };
                                                     if (!updated.title?.trim() && name)
                                                         updated = { ...updated, title: applyDpNameFilter(name) };
                                                     if (
@@ -7445,6 +7449,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                                 color: 'var(--text-primary)',
                                                 border: '1px solid var(--app-border)',
                                             }}
+                                        />
+                                        <JsonPathButton
+                                            value={config.datapoint}
+                                            onChange={(ref) => onConfigChange({ ...config, datapoint: ref })}
                                         />
                                         <button
                                             onClick={() => setPickerTarget('datapoint')}
@@ -13496,6 +13504,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                                         className={`flex-1 ${stInputCls} min-w-0`}
                                                         style={stInputStyle}
                                                     />
+                                                    <JsonPathButton
+                                                        value={o.batteryDp as string}
+                                                        onChange={(ref) => setO({ batteryDp: ref || undefined })}
+                                                    />
                                                     <button
                                                         onClick={() => setPickerTarget('status_batteryDp')}
                                                         className="px-2 rounded-lg hover:opacity-80 shrink-0"
@@ -13624,6 +13636,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                                         placeholder="optional"
                                                         className={`flex-1 ${stInputCls} min-w-0`}
                                                         style={stInputStyle}
+                                                    />
+                                                    <JsonPathButton
+                                                        value={o.unreachDp as string}
+                                                        onChange={(ref) => setO({ unreachDp: ref || undefined })}
                                                     />
                                                     <button
                                                         onClick={() => setPickerTarget('status_unreachDp')}

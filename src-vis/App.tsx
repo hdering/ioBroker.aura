@@ -34,6 +34,7 @@ import { discardPending } from './store/persistManager';
 import { markGroupDefsHydrated } from './store/groupDefsStore';
 import { usePopupConfigStore } from './store/popupConfigStore';
 import { NS } from './utils/namespace';
+import { baseDpId } from './utils/dpRef';
 
 // Module-level cache of the active themeMode.frontend DP override. Lets the
 // DP listener win over delayed config rehydrations and the followBrowser
@@ -202,7 +203,8 @@ function collectOptionDps(obj: unknown, ids: Set<string>): void {
             val &&
             (k === 'datapoint' || k === 'dpid' || k.endsWith('dp') || k.endsWith('datapoint'))
         ) {
-            ids.add(val);
+            // Strip any JSON-path suffix — the cache is warmed per bare state ID.
+            ids.add(baseDpId(val));
         } else if (val && typeof val === 'object') {
             collectOptionDps(val, ids);
         }
@@ -239,7 +241,7 @@ export default function App() {
             if (!tab) return [];
             const ids = new Set<string>();
             (tab.widgets ?? []).forEach((w) => {
-                if (w.datapoint) ids.add(w.datapoint);
+                if (w.datapoint) ids.add(baseDpId(w.datapoint));
                 if (w.options) collectOptionDps(w.options, ids);
             });
             return [...ids];
