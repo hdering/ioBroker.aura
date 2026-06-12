@@ -31,7 +31,10 @@ const TYPE_META = Object.fromEntries(
     WIDGET_REGISTRY.map(({ type, label, Icon, color }) => [type, { label, icon: <Icon size={15} />, color }]),
 ) as Record<WidgetType, { label: string; icon: React.ReactElement; color: string }>;
 
-const TYPE_ORDER: WidgetType[] = WIDGET_REGISTRY.map((m) => m.type);
+// Always alphabetical by displayed label so new widget types auto-insert in order.
+const TYPE_ORDER: WidgetType[] = WIDGET_REGISTRY.map((m) => m.type).sort((a, b) =>
+    TYPE_META[a].label.localeCompare(TYPE_META[b].label, undefined, { sensitivity: 'base' }),
+);
 
 const inputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
 const inputStyle: React.CSSProperties = {
@@ -762,7 +765,9 @@ function DefaultSizesDialog({ onClose }: { onClose: () => void }) {
                     {t('widgets.defaultSizesHint')}
                 </p>
                 <div className="space-y-2 max-h-96 overflow-y-auto aura-scroll">
-                    {WIDGET_REGISTRY.map((w) => {
+                    {[...WIDGET_REGISTRY]
+                        .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }))
+                        .map((w) => {
                         const d = widgetDefaults[w.type] ?? { w: w.defaultW, h: w.defaultH };
                         return (
                             <div
