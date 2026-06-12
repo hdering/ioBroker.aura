@@ -192,6 +192,11 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.236 (2026-06-12)
+- revert(tabbar): remove tab-bar settings preview
+- feat(tabbar): live preview in tab-bar settings for the edited scope
+
+
 ### 0.9.235 (2026-06-12)
 - fix(tabbar): guard undefined global tabBar for pre-existing configs
 - feat(tabbar): make tab-bar settings global with per-layout override
@@ -303,12 +308,6 @@ Release v0.9.224
 - feat(widgets): add 'last change' custom-grid cell type (DP-only timestamp)
 
 
-### 0.9.216 (2026-06-10)
-- feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt
-- fix(widgets): add visible label to empty group master switch placeholder
-- feat(widgets): show group master switch placeholder in editor when empty
-
-
 ## License
 
 MIT License
@@ -320,6 +319,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

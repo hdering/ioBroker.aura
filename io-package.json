@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.235",
+    "version": "0.9.236",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.236": {
+        "en": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
+        "de": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
+        "ru": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
+        "pt": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
+        "nl": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
+        "fr": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
+        "it": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
+        "es": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
+        "pl": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
+        "uk": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
+        "zh-cn": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope"
+      },
       "0.9.235": {
         "en": "fix(tabbar): guard undefined global tabBar for pre-existing configs; feat(tabbar): make tab-bar settings global with per-layout override; fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes",
         "de": "fix(tabbar): guard undefined global tabBar for pre-existing configs; feat(tabbar): make tab-bar settings global with per-layout override; fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes",
@@ -183,19 +196,6 @@
         "pl": "feat(admin): add tab bar icon size control",
         "uk": "feat(admin): add tab bar icon size control",
         "zh-cn": "feat(admin): add tab bar icon size control"
-      },
-      "0.9.229": {
-        "en": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
-        "de": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
-        "ru": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
-        "pt": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
-        "nl": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
-        "fr": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
-        "it": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
-        "es": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
-        "pl": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
-        "uk": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
-        "zh-cn": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)"
       }
     }
   },

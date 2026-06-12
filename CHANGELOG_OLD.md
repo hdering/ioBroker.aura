@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.216 (2026-06-10)
+- feat(editor): peek mode to hide edit chrome while holding Ctrl+Alt
+- fix(widgets): add visible label to empty group master switch placeholder
+- feat(widgets): show group master switch placeholder in editor when empty
+
 ## 0.9.215 (2026-06-10)
 - @ fix(groups): stop empty group-defs store from clobbering ioBroker on reload
 
