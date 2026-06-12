@@ -224,8 +224,8 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
                     {sMode === 'position' ? (
                         <>
                             <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
-                                Steuert den Haupt-DP des Eintrags (z.B. LEVEL): „Auf" / „Ab" schreiben den jeweiligen
-                                Wert, „Stop" schreibt die aktuelle Position zurück (oder nutzt den Stop-DP).
+                                Steuert den Haupt-DP des Eintrags (z.B. LEVEL): „Auf“ / „Ab“ schreiben den jeweiligen
+                                Wert, „Stop“ schreibt die aktuelle Position zurück (oder nutzt den Stop-DP).
                             </p>
                             <div className="grid grid-cols-2 gap-1.5">
                                 <div>
