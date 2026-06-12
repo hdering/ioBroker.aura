@@ -760,9 +760,11 @@ export const WIDGET_BY_TYPE = Object.fromEntries(WIDGET_REGISTRY.map((m) => [m.t
     WidgetMeta
 >;
 
-/** All {{key}} placeholder names available in popup views (union of all popupDefaults keys + dp) */
+/** All {{key}} placeholder names available in popup views (union of all popupDefaults keys + dp/parent/name).
+ *  `dp` is the trigger's main datapoint, `parent` its parent strang (id without the last segment),
+ *  `name` its last segment — so {{parent}}.Trigger resolves to a sibling of the main DP. */
 export const ALL_POPUP_PLACEHOLDER_KEYS: string[] = (() => {
-    const keys = new Set<string>(['dp']);
+    const keys = new Set<string>(['dp', 'parent', 'name']);
     WIDGET_REGISTRY.forEach((m) => Object.keys(m.popupDefaults ?? {}).forEach((k) => keys.add(k)));
     return [...keys].sort();
 })();

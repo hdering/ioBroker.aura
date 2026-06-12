@@ -141,7 +141,7 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
             case 'popup-widget':
                 return <WidgetEmbedBody widget={widget} action={action} allWidgets={allWidgets} />;
             case 'popup-view':
-                return <TabEmbedBody viewId={action.viewId} triggerWidget={widget} />;
+                return <TabEmbedBody viewId={action.viewId} triggerWidget={widget} dpOverride={action.dp} />;
             default:
                 return null;
         }

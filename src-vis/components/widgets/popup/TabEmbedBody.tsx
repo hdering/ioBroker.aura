@@ -34,9 +34,13 @@ function substituteWidget(w: WidgetConfig, map: Record<string, string>): WidgetC
 interface Props {
     viewId: string;
     triggerWidget?: WidgetConfig;
+    /** Explicit main DP for the popup (e.g. set on the click action for widgets
+     *  without a datapoint, like the universal widget). Falls back to the trigger
+     *  widget's own datapoint. */
+    dpOverride?: string;
 }
 
-export function TabEmbedBody({ viewId, triggerWidget }: Props) {
+export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
     const view = usePopupConfigStore((s) => s.views.find((v) => v.id === viewId));
     const settings = useEffectiveSettings();
     const cellSize = settings.gridRowHeight ?? 60;
@@ -81,16 +85,23 @@ export function TabEmbedBody({ viewId, triggerWidget }: Props) {
         );
     }
 
-    const subMap: Record<string, string> = triggerWidget
-        ? {
-              dp: triggerWidget.datapoint,
-              ...Object.fromEntries(
-                  Object.entries(triggerWidget.options ?? {}).filter(
-                      (e): e is [string, string] => typeof e[1] === 'string',
-                  ),
-              ),
-          }
-        : {};
+    // Main DP: explicit override (click action) wins over the trigger widget's own datapoint.
+    const mainDp = dpOverride || triggerWidget?.datapoint || '';
+    const subMap: Record<string, string> = {
+        // String options of the trigger widget become {{key}} placeholders…
+        ...Object.fromEntries(
+            Object.entries(triggerWidget?.options ?? {}).filter((e): e is [string, string] => typeof e[1] === 'string'),
+        ),
+    };
+    // …and the derived DP variables always take precedence.
+    if (mainDp) {
+        subMap.dp = mainDp;
+        const lastDot = mainDp.lastIndexOf('.');
+        if (lastDot > 0) {
+            subMap.parent = mainDp.slice(0, lastDot); // parent strang, e.g. 0_userdata.0
+            subMap.name = mainDp.slice(lastDot + 1); // last segment, e.g. Anzeige
+        }
+    }
 
     const wm = getWidgetMap();
     const widgets = view.widgets.map((w) => substituteWidget(w, subMap));

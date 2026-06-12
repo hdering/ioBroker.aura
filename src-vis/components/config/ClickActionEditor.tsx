@@ -140,7 +140,7 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
     const layouts = useDashboardStore((s) => s.layouts);
 
     const [dpPickerTarget, setDpPickerTarget] = useState<
-        'image-dp' | 'json-dp' | 'html-dp' | 'thermo-setpoint' | 'thermo-mode' | null
+        'image-dp' | 'json-dp' | 'html-dp' | 'thermo-setpoint' | 'thermo-mode' | 'view-dp' | null
     >(null);
     const [widgetSearch, setWidgetSearch] = useState('');
 
@@ -685,6 +685,40 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
                             Noch keine Views konfiguriert. Unter Admin → Popups anlegen.
                         </p>
                     )}
+
+                    <label className={labelCls} style={{ ...labelStyle, marginTop: 12 }}>
+                        Haupt-DP für Popup (leer = Widget-Datenpunkt)
+                    </label>
+                    <div className="flex gap-1">
+                        <input
+                            type="text"
+                            value={action.dp ?? ''}
+                            onChange={(e) => setAction({ ...action, dp: e.target.value || undefined })}
+                            placeholder={config.datapoint || 'z. B. 0_userdata.0.Anzeige'}
+                            className={inputCls}
+                            style={{ ...inputStyle, flex: 1 }}
+                        />
+                        <button
+                            onClick={() => setDpPickerTarget('view-dp')}
+                            className="px-2 rounded-lg"
+                            style={{
+                                background: 'var(--app-bg)',
+                                border: '1px solid var(--app-border)',
+                                color: 'var(--text-secondary)',
+                            }}
+                        >
+                            <Database size={13} />
+                        </button>
+                    </div>
+                    <p
+                        className="text-[10px] mt-1 leading-tight"
+                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                    >
+                        Wird im Popup als <span className="font-mono">{'{{dp}}'}</span> übergeben; daraus abgeleitet{' '}
+                        <span className="font-mono">{'{{parent}}'}</span> (Strang) und{' '}
+                        <span className="font-mono">{'{{name}}'}</span>. Für Universal-Widgets ohne Datenpunkt hier den
+                        DP setzen.
+                    </p>
                 </div>
             )}
 
@@ -934,6 +968,7 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
                             return action.kind === 'popup-thermostat' ? (action.setpointDp ?? '') : '';
                         if (dpPickerTarget === 'thermo-mode')
                             return action.kind === 'popup-thermostat' ? (action.modeDp ?? '') : '';
+                        if (dpPickerTarget === 'view-dp') return action.kind === 'popup-view' ? (action.dp ?? '') : '';
                         return '';
                     })()}
                     onSelect={(id) => {
@@ -947,6 +982,8 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
                             setAction({ ...action, setpointDp: id });
                         if (dpPickerTarget === 'thermo-mode' && action.kind === 'popup-thermostat')
                             setAction({ ...action, modeDp: id });
+                        if (dpPickerTarget === 'view-dp' && action.kind === 'popup-view')
+                            setAction({ ...action, dp: id });
                         setDpPickerTarget(null);
                     }}
                     onClose={() => setDpPickerTarget(null)}

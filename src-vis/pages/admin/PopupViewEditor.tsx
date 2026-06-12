@@ -12,6 +12,22 @@ import type { WidgetConfig, WidgetType } from '../../types';
 
 const DEFAULT_MARGIN = 10;
 
+/** Documented DP placeholders with a worked example (main DP = 0_userdata.0.Anzeige),
+ *  shown in the reference panel so editors see exactly what each resolves to. */
+const PLACEHOLDER_DOCS: { token: string; example: string; desc: string }[] = [
+    { token: '{{dp}}', example: '0_userdata.0.Anzeige', desc: 'Haupt-Datenpunkt' },
+    { token: '{{parent}}', example: '0_userdata.0', desc: 'Eltern-Strang (ohne letztes Segment)' },
+    { token: '{{name}}', example: 'Anzeige', desc: 'Letztes Segment' },
+    { token: '{{parent}}.Trigger', example: '0_userdata.0.Trigger', desc: 'Geschwister-DP (Strang + Suffix)' },
+];
+
+/** Option-based placeholders (everything beyond the core DP vars), listed as plain chips. */
+const OPTION_PLACEHOLDER_KEYS = ALL_POPUP_PLACEHOLDER_KEYS.filter((k) => !['dp', 'parent', 'name'].includes(k));
+
+/** Widget types for the "add" dropdown, sorted alphabetically by label so the list
+ *  stays ordered automatically as new widgets are registered. */
+const SORTED_WIDGET_REGISTRY = [...WIDGET_REGISTRY].sort((a, b) => a.label.localeCompare(b.label, 'de'));
+
 export function PopupViewEditor() {
     const { viewId } = useParams<{ viewId: string }>();
     const navigate = useNavigate();
@@ -44,7 +60,8 @@ export function PopupViewEditor() {
 
     const cols = containerWidth > 0 ? Math.max(2, Math.floor((containerWidth - MARGIN) / (snapX + MARGIN))) : 12;
 
-    const [addType, setAddType] = useState<WidgetType>(WIDGET_REGISTRY[0]?.type as WidgetType);
+    const [addType, setAddType] = useState<WidgetType>(SORTED_WIDGET_REGISTRY[0]?.type as WidgetType);
+    const [showPlaceholders, setShowPlaceholders] = useState(false);
 
     if (!viewId || !view) {
         return (
@@ -139,24 +156,18 @@ export function PopupViewEditor() {
                     <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                         {view.name}
                     </span>
-                    <div
-                        className="flex items-center gap-1 flex-wrap"
-                        title="Verfügbare Platzhalter aus dem auslösenden Widget"
+                    <button
+                        onClick={() => setShowPlaceholders((v) => !v)}
+                        className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg hover:opacity-80 transition-opacity font-mono"
+                        style={{
+                            background: showPlaceholders ? 'var(--accent)' : 'var(--app-bg)',
+                            color: showPlaceholders ? '#fff' : 'var(--text-secondary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                        title="Verfügbare Platzhalter anzeigen"
                     >
-                        {ALL_POPUP_PLACEHOLDER_KEYS.map((key) => (
-                            <span
-                                key={key}
-                                className="text-[10px] px-1.5 py-0.5 rounded font-mono"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-secondary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            >
-                                {`{{${key}}}`}
-                            </span>
-                        ))}
-                    </div>
+                        {'{{ }}'} Platzhalter
+                    </button>
                     <div className="flex-1" />
                     <label
                         className="flex items-center gap-1.5 text-[11px]"
@@ -195,7 +206,7 @@ export function PopupViewEditor() {
                             border: '1px solid var(--app-border)',
                         }}
                     >
-                        {WIDGET_REGISTRY.map((m) => (
+                        {SORTED_WIDGET_REGISTRY.map((m) => (
                             <option key={m.type} value={m.type}>
                                 {m.label}
                             </option>
@@ -209,6 +220,70 @@ export function PopupViewEditor() {
                         <Plus size={12} /> Widget
                     </button>
                 </div>
+
+                {/* Placeholder reference — collapsible, structured */}
+                {showPlaceholders && (
+                    <div
+                        className="shrink-0 px-4 py-3 text-xs"
+                        style={{
+                            borderBottom: '1px solid var(--app-border)',
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-secondary)',
+                        }}
+                    >
+                        <p className="mb-2" style={{ opacity: 0.8 }}>
+                            Platzhalter werden beim Öffnen durch Werte des auslösenden Widgets ersetzt.
+                            Beispiel-Haupt-DP:{' '}
+                            <span className="font-mono" style={{ color: 'var(--text-primary)' }}>
+                                0_userdata.0.Anzeige
+                            </span>
+                        </p>
+                        <table className="border-collapse" style={{ width: 'auto' }}>
+                            <thead>
+                                <tr style={{ textAlign: 'left', opacity: 0.6 }}>
+                                    <th className="pr-6 pb-1 font-normal">Platzhalter</th>
+                                    <th className="pr-6 pb-1 font-normal">ergibt</th>
+                                    <th className="pb-1 font-normal">Bedeutung</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {PLACEHOLDER_DOCS.map((p) => (
+                                    <tr key={p.token}>
+                                        <td
+                                            className="pr-6 py-0.5 font-mono"
+                                            style={{ color: 'var(--text-primary)', whiteSpace: 'nowrap' }}
+                                        >
+                                            {p.token}
+                                        </td>
+                                        <td className="pr-6 py-0.5 font-mono" style={{ whiteSpace: 'nowrap' }}>
+                                            {p.example}
+                                        </td>
+                                        <td className="py-0.5">{p.desc}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        {OPTION_PLACEHOLDER_KEYS.length > 0 && (
+                            <div className="mt-3">
+                                <span style={{ opacity: 0.6 }}>Aus Widget-Optionen: </span>
+                                <span className="inline-flex flex-wrap gap-1 align-middle">
+                                    {OPTION_PLACEHOLDER_KEYS.map((key) => (
+                                        <span
+                                            key={key}
+                                            className="px-1.5 py-0.5 rounded font-mono text-[10px]"
+                                            style={{
+                                                background: 'var(--app-surface)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        >
+                                            {`{{${key}}}`}
+                                        </span>
+                                    ))}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Grid canvas */}
                 <div ref={containerRefCallback} className="aura-scroll flex-1 overflow-auto p-4">
