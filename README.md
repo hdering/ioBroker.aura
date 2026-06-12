@@ -192,6 +192,12 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.235 (2026-06-12)
+- fix(tabbar): guard undefined global tabBar for pre-existing configs
+- feat(tabbar): make tab-bar settings global with per-layout override
+- fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes
+
+
 ### 0.9.234 (2026-06-12)
 - fix(lint): auto-fix mixed typographic quotes
 - fix(group-action): resolve target checklist labels like the list does
@@ -303,10 +309,6 @@ Release v0.9.224
 - feat(widgets): show group master switch placeholder in editor when empty
 
 
-### 0.9.215 (2026-06-10)
-- @ fix(groups): stop empty group-defs store from clobbering ioBroker on reload
-
-
 ## License
 
 MIT License
@@ -318,6 +320,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

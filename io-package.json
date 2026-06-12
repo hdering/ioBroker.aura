@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.234",
+    "version": "0.9.235",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.235": {
+        "en": "fix(tabbar): guard undefined global tabBar for pre-existing configs; feat(tabbar): make tab-bar settings global with per-layout override; fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes",
+        "de": "fix(tabbar): guard undefined global tabBar for pre-existing configs; feat(tabbar): make tab-bar settings global with per-layout override; fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes",
+        "ru": "fix(tabbar): guard undefined global tabBar for pre-existing configs; feat(tabbar): make tab-bar settings global with per-layout override; fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes",
+        "pt": "fix(tabbar): guard undefined global tabBar for pre-existing configs; feat(tabbar): make tab-bar settings global with per-layout override; fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes",
+        "nl": "fix(tabbar): guard undefined global tabBar for pre-existing configs; feat(tabbar): make tab-bar settings global with per-layout override; fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes",
+        "fr": "fix(tabbar): guard undefined global tabBar for pre-existing configs; feat(tabbar): make tab-bar settings global with per-layout override; fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes",
+        "it": "fix(tabbar): guard undefined global tabBar for pre-existing configs; feat(tabbar): make tab-bar settings global with per-layout override; fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes",
+        "es": "fix(tabbar): guard undefined global tabBar for pre-existing configs; feat(tabbar): make tab-bar settings global with per-layout override; fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes",
+        "pl": "fix(tabbar): guard undefined global tabBar for pre-existing configs; feat(tabbar): make tab-bar settings global with per-layout override; fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes",
+        "uk": "fix(tabbar): guard undefined global tabBar for pre-existing configs; feat(tabbar): make tab-bar settings global with per-layout override; fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes",
+        "zh-cn": "fix(tabbar): guard undefined global tabBar for pre-existing configs; feat(tabbar): make tab-bar settings global with per-layout override; fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes"
+      },
       "0.9.234": {
         "en": "fix(lint): auto-fix mixed typographic quotes; fix(group-action): resolve target checklist labels like the list does; refactor(auto-list): compact general per-entry settings to match static list; refactor(static-list): compact general per-entry settings layout; refactor(static-list): move font size up to general settings (paired with decimals); fix(list-widgets): hide switch-only styling for Auto display type too; feat(list-widgets): hide switch-only entry styling for non-switch display types; refactor(static-list): move per-entry icon picker up next to label/unit; feat(list-widgets): support HomeMatic LEVEL position control for shutter entries",
         "de": "fix(lint): auto-fix mixed typographic quotes; fix(group-action): resolve target checklist labels like the list does; refactor(auto-list): compact general per-entry settings to match static list; refactor(static-list): compact general per-entry settings layout; refactor(static-list): move font size up to general settings (paired with decimals); fix(list-widgets): hide switch-only styling for Auto display type too; feat(list-widgets): hide switch-only entry styling for non-switch display types; refactor(static-list): move per-entry icon picker up next to label/unit; feat(list-widgets): support HomeMatic LEVEL position control for shutter entries",
@@ -183,19 +196,6 @@
         "pl": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
         "uk": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)",
         "zh-cn": "fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog; fix(ci): skip npm publish when version already published (E403 guard)"
-      },
-      "0.9.228": {
-        "en": "Release v0.9.228 (beta)",
-        "de": "Release v0.9.228 (beta)",
-        "ru": "Release v0.9.228 (beta)",
-        "pt": "Release v0.9.228 (beta)",
-        "nl": "Release v0.9.228 (beta)",
-        "fr": "Release v0.9.228 (beta)",
-        "it": "Release v0.9.228 (beta)",
-        "es": "Release v0.9.228 (beta)",
-        "pl": "Release v0.9.228 (beta)",
-        "uk": "Release v0.9.228 (beta)",
-        "zh-cn": "Release v0.9.228 (beta)"
       }
     }
   },

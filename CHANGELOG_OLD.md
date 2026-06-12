@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.215 (2026-06-10)
+- @ fix(groups): stop empty group-defs store from clobbering ioBroker on reload
+
 ## 0.9.214 (2026-06-10)
 - fix(widgets): keep list subscriptions alive under StrictMode
 - feat(settings): optimistic writes with instant UI feedback
