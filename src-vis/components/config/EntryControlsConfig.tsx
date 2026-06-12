@@ -4,13 +4,58 @@
  * and AutoListConfig so the static and dynamic lists offer the same controls.
  */
 import { useState } from 'react';
-import { X, Database } from 'lucide-react';
+import { X, Database, Wand2 } from 'lucide-react';
 import { DatapointPicker } from './DatapointPicker';
+import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
 import type { EntryControlConfig, EntryDisplayType, EntryPreset } from '../widgets/entryControls';
 
 interface Props {
-    entry: EntryControlConfig;
+    // entry carries the list-entry id at runtime (StaticListEntry/AutoListEntry);
+    // needed to scope sibling lookup for shutter auto-detection.
+    entry: EntryControlConfig & { id?: string };
     onUpdate: (patch: Partial<EntryControlConfig>) => void;
+}
+
+// ── Shutter auto-detection ────────────────────────────────────────────────────
+// Match up/stop/down command DPs among the siblings of a base shutter DP by
+// last-segment keyword or ioBroker role (button.open/stop/close.blind …).
+const shutterSeg = (id: string) => id.split('.').pop() ?? id;
+
+const SHUTTER_UP_RE =
+    /(?:^|[._])(?:up|open|auf|oeffnen|öffnen|hoch|raise|moving[._]?up)(?:$|[._])|open\.(?:blind|window|slat|shutter)/i;
+const SHUTTER_STOP_RE = /(?:^|[._])(?:stop|stopp|halt)(?:$|[._])|stop\.(?:blind|window|slat|shutter)/i;
+const SHUTTER_DOWN_RE =
+    /(?:^|[._])(?:down|close|ab|zu|schliessen|schließen|runter|tief|lower|moving[._]?down)(?:$|[._])|close\.(?:blind|window|slat|shutter)/i;
+
+function detectShutterDps(
+    baseId: string,
+    entries: DatapointEntry[],
+): { up?: string; stop?: string; down?: string } {
+    const lastDot = baseId.lastIndexOf('.');
+    const parent = lastDot > 0 ? baseId.slice(0, lastDot) : baseId;
+    const grandDot = parent.lastIndexOf('.');
+    const grand = grandDot > 0 ? parent.slice(0, grandDot) : parent;
+
+    const matchIn = (scope: string, re: RegExp): string | undefined => {
+        const cands = entries.filter(
+            (e) => e.id !== baseId && e.id.startsWith(scope + '.') && (re.test(shutterSeg(e.id)) || re.test(e.role ?? '')),
+        );
+        if (!cands.length) return undefined;
+        // Prefer writable command DPs over read-only status DPs.
+        const writable = cands.filter((e) => e.write !== false);
+        return (writable[0] ?? cands[0]).id;
+    };
+
+    const detect = (scope: string) => ({
+        up: matchIn(scope, SHUTTER_UP_RE),
+        stop: matchIn(scope, SHUTTER_STOP_RE),
+        down: matchIn(scope, SHUTTER_DOWN_RE),
+    });
+
+    // Search the immediate parent (channel) first, fall back to the device level.
+    let res = detect(parent);
+    if (!res.up && !res.stop && !res.down && grand !== parent) res = detect(grand);
+    return res;
 }
 
 const TYPE_OPTIONS: { value: EntryDisplayType; label: string }[] = [
@@ -59,11 +104,25 @@ function DpRow({ label, value, onPick }: { label: string; value?: string; onPick
 export function EntryControlsConfig({ entry, onUpdate }: Props) {
     const dt = entry.displayType ?? 'auto';
     const [pickFor, setPickFor] = useState<null | 'shutterUpDp' | 'shutterStopDp' | 'shutterDownDp'>(null);
+    const [autoMsg, setAutoMsg] = useState<string | null>(null);
     const presets = entry.presets ?? [];
 
     const setPreset = (i: number, patch: Partial<EntryPreset>) => {
         const next = presets.map((p, j) => (j === i ? { ...p, ...patch } : p));
         onUpdate({ presets: next });
+    };
+
+    const autoDetectShutter = async () => {
+        if (!entry.id) return;
+        const cache = await ensureDatapointCache();
+        const { up, stop, down } = detectShutterDps(entry.id, cache);
+        const patch: Partial<EntryControlConfig> = {};
+        if (up) patch.shutterUpDp = up;
+        if (stop) patch.shutterStopDp = stop;
+        if (down) patch.shutterDownDp = down;
+        const n = Object.keys(patch).length;
+        if (n > 0) onUpdate(patch);
+        setAutoMsg(n > 0 ? `${n} DP automatisch erkannt` : 'Keine passenden DPs gefunden');
     };
 
     return (
@@ -93,11 +152,31 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
 
             {/* ── Rollladen (shutter) ── */}
             {dt === 'shutter' && (
-                <div className="grid grid-cols-3 gap-1.5">
-                    <DpRow label="Auf-DP" value={entry.shutterUpDp} onPick={() => setPickFor('shutterUpDp')} />
-                    <DpRow label="Stop-DP" value={entry.shutterStopDp} onPick={() => setPickFor('shutterStopDp')} />
-                    <DpRow label="Ab-DP" value={entry.shutterDownDp} onPick={() => setPickFor('shutterDownDp')} />
-                    <div className="col-span-3">
+                <div className="space-y-1.5">
+                    <button
+                        onClick={autoDetectShutter}
+                        disabled={!entry.id}
+                        title="Auf-, Stop- und Ab-DP anhand benachbarter Datenpunkte automatisch auswählen"
+                        className="w-full flex items-center justify-center gap-1 text-[10px] py-1 rounded hover:opacity-80 disabled:opacity-40"
+                        style={{
+                            background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+                            color: 'var(--accent)',
+                            border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)',
+                        }}
+                    >
+                        <Wand2 size={10} /> Auto-Erkennung
+                    </button>
+                    {autoMsg && (
+                        <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.75 }}>
+                            {autoMsg}
+                        </p>
+                    )}
+                    <div className="grid grid-cols-3 gap-1.5">
+                        <DpRow label="Auf-DP" value={entry.shutterUpDp} onPick={() => setPickFor('shutterUpDp')} />
+                        <DpRow label="Stop-DP" value={entry.shutterStopDp} onPick={() => setPickFor('shutterStopDp')} />
+                        <DpRow label="Ab-DP" value={entry.shutterDownDp} onPick={() => setPickFor('shutterDownDp')} />
+                    </div>
+                    <div>
                         <Label>Schreibwert (Standard: true)</Label>
                         <input
                             className={iCls}
