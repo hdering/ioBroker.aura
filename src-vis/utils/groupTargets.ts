@@ -322,8 +322,12 @@ export function groupChildPulseIds(children: WidgetConfig[], exclude?: ReadonlyS
 // ── Candidate lists for the target checklist (config UI) — which items the
 //    current action type *could* control, with a stable key + label. ──────────
 
-export function listGroupCandidates(entries: ListEntryLike[], type: GroupActionType): GroupCandidate[] {
-    const label = (e: ListEntryLike) => e.label || e.id.split('.').pop() || e.id;
+export function listGroupCandidates(
+    entries: ListEntryLike[],
+    type: GroupActionType,
+    resolveName?: (id: string) => string | undefined,
+): GroupCandidate[] {
+    const label = (e: ListEntryLike) => e.label || resolveName?.(e.id) || e.id.split('.').pop() || e.id;
     let items: ListEntryLike[];
     if (type === 'dimmer') {
         items = entries.filter(
@@ -343,8 +347,12 @@ export function listGroupCandidates(entries: ListEntryLike[], type: GroupActionT
     return items.map((e) => ({ key: e.id, label: label(e) }));
 }
 
-export function groupGroupCandidates(children: WidgetConfig[], type: GroupActionType): GroupCandidate[] {
-    const label = (c: WidgetConfig) => c.title || c.type;
+export function groupGroupCandidates(
+    children: WidgetConfig[],
+    type: GroupActionType,
+    typeLabel?: (type: string) => string | undefined,
+): GroupCandidate[] {
+    const label = (c: WidgetConfig) => c.title || typeLabel?.(c.type) || c.type;
     let items: WidgetConfig[];
     if (type === 'dimmer') {
         items = children.filter((c) => ['dimmer', 'light', 'slider', 'knob', 'fill'].includes(c.type) && !!c.datapoint);

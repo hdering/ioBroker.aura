@@ -5243,15 +5243,23 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
     const groupChildren = useGroupDefsStore((s) => (groupDefId ? (s.defs[groupDefId] ?? []) : []));
     // Candidates for the group-action target checklist (config UI).
     const groupActionType = (config.options?.groupActionType ?? 'switch') as GroupActionType;
+    // Warm the datapoint cache so list entries without an explicit label show
+    // their resolved name (same as the list) instead of the bare DP-id tail.
+    const [dpCacheReady, setDpCacheReady] = useState(false);
+    useEffect(() => {
+        void ensureDatapointCache().then(() => setDpCacheReady(true));
+    }, []);
     const groupActionCandidates =
         config.type === 'group'
-            ? groupGroupCandidates(groupChildren, groupActionType)
+            ? groupGroupCandidates(groupChildren, groupActionType, (t) => WIDGET_BY_TYPE[t as WidgetType]?.label)
             : config.type === 'list' || config.type === 'autolist'
               ? listGroupCandidates(
                     (config.options?.entries as Parameters<typeof listGroupCandidates>[0]) ?? [],
                     groupActionType,
+                    (id) => lookupDatapointEntry(id)?.name,
                 )
               : [];
+    void dpCacheReady; // referenced so the checklist re-renders once names load
     const groupCellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);
     const groupGridGap = useConfigStore((s) => s.frontend.gridGap ?? 10);
 
