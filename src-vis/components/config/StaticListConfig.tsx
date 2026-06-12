@@ -5,7 +5,7 @@
  * manually one at a time via the DatapointPicker (object browser).
  */
 import { useState, useEffect } from 'react';
-import { Database, X, ChevronRight, Settings2, GripVertical } from 'lucide-react';
+import { Database, X, ChevronRight, Settings2, GripVertical, Plus } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../types';
 import type { StaticListEntry, StaticListOptions } from '../widgets/ListWidget';
@@ -115,7 +115,7 @@ function EntryRow({
         color: 'var(--text-primary)',
         border: '1px solid var(--app-border)',
     } as React.CSSProperties;
-    const iCls = 'w-full text-[10px] rounded px-2 py-1 focus:outline-none font-mono';
+    const iCls = 'w-full text-[10px] rounded px-2 py-0.5 focus:outline-none font-mono';
 
     return (
         <div
@@ -194,7 +194,7 @@ function EntryRow({
 
             {expanded && (
                 <div
-                    className="px-2.5 pb-2.5 pt-1 space-y-1.5"
+                    className="px-2.5 pb-2.5 pt-1 space-y-1"
                     style={{ borderTop: '1px solid var(--app-border)', background: 'var(--app-surface)' }}
                 >
                     <button
@@ -211,8 +211,44 @@ function EntryRow({
                         <span className="truncate flex-1">{entry.id}</span>
                         <span className="shrink-0 opacity-70">Ändern</span>
                     </button>
-                    <div className="grid grid-cols-2 gap-1.5">
-                        <div>
+                    {/* Icon (kompakt) + Bezeichnung + Einheit in einer Zeile */}
+                    <div className="flex items-end gap-1.5">
+                        <div className="shrink-0">
+                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                Icon
+                            </label>
+                            <div className="relative" style={{ width: 40 }}>
+                                <button
+                                    onClick={() => setIconPickerOpen(true)}
+                                    title={entry.icon || 'Icon wählen'}
+                                    className="w-full flex items-center justify-center rounded hover:opacity-80"
+                                    style={{ ...iSty, height: 23 }}
+                                >
+                                    {entry.icon ? (
+                                        <Icon icon={toIconifyId(entry.icon)} width={15} height={15} />
+                                    ) : (
+                                        <Plus size={13} style={{ color: 'var(--text-secondary)', opacity: 0.6 }} />
+                                    )}
+                                </button>
+                                {entry.icon && (
+                                    <button
+                                        onClick={() => onUpdate({ icon: undefined })}
+                                        title="Icon entfernen"
+                                        className="absolute -top-1 -right-1 flex items-center justify-center rounded-full hover:opacity-80"
+                                        style={{
+                                            width: 13,
+                                            height: 13,
+                                            background: 'var(--app-bg)',
+                                            border: '1px solid var(--app-border)',
+                                            color: 'var(--text-secondary)',
+                                        }}
+                                    >
+                                        <X size={8} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                 Bezeichnung
                             </label>
@@ -224,47 +260,17 @@ function EntryRow({
                                 onChange={(e) => onUpdate({ label: e.target.value || undefined })}
                             />
                         </div>
-                        <div>
+                        <div className="w-16 shrink-0">
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                 Einheit
                             </label>
                             <input
                                 className={iCls}
                                 style={iSty}
-                                placeholder="z.B. °C"
+                                placeholder="°C"
                                 value={entry.unit ?? ''}
                                 onChange={(e) => onUpdate({ unit: e.target.value || undefined })}
                             />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            Icon
-                        </label>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => setIconPickerOpen(true)}
-                                className="flex-1 flex items-center gap-1.5 text-[10px] rounded px-2 py-1 text-left hover:opacity-80"
-                                style={iSty}
-                            >
-                                {entry.icon ? (
-                                    <>
-                                        <Icon icon={toIconifyId(entry.icon)} width={11} height={11} />
-                                        <span className="truncate font-mono">{entry.icon}</span>
-                                    </>
-                                ) : (
-                                    <span style={{ color: 'var(--text-secondary)' }}>Kein Icon</span>
-                                )}
-                            </button>
-                            {entry.icon && (
-                                <button
-                                    onClick={() => onUpdate({ icon: undefined })}
-                                    className="shrink-0 hover:opacity-70 p-1"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
-                                    <X size={10} />
-                                </button>
-                            )}
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-1.5">
@@ -280,7 +286,7 @@ function EntryRow({
                                     disabled={entry.decimals === undefined}
                                     value={entry.decimals ?? defaultDecimals}
                                     onChange={(e) => onUpdate({ decimals: Number(e.target.value) })}
-                                    className="flex-1 text-[10px] rounded px-2 py-1 focus:outline-none text-center"
+                                    className="flex-1 text-[10px] rounded px-2 py-0.5 focus:outline-none text-center"
                                     style={{ ...iSty, opacity: entry.decimals === undefined ? 0.5 : 1 }}
                                 />
                                 <button
