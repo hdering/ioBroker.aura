@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.211 (2026-06-09)
+- chore(lint): remove obsolete eslint devDeps, fix workflow concurrency
+
 ## 0.9.210 (2026-06-09)
 - fix(ts): use optional chain for unsubscribe call in CalendarWidget
 
