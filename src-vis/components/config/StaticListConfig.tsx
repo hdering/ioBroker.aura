@@ -107,6 +107,10 @@ function EntryRow({
     const [expanded, setExpanded] = useState(false);
     const [iconPickerOpen, setIconPickerOpen] = useState(false);
     const [dpPickerOpen, setDpPickerOpen] = useState(false);
+    // AN/AUS styling (switch style, icon size, on/off colors) only applies when the
+    // entry renders as a switch; other display types (slider/value/shutter/…) hide it.
+    const displayType = entry.displayType ?? 'auto';
+    const isSwitchLike = displayType === 'switch' || displayType === 'auto';
     const iSty = {
         background: 'var(--app-bg)',
         color: 'var(--text-primary)',
@@ -327,52 +331,56 @@ function EntryRow({
                     <EntryControlsConfig entry={entry} onUpdate={onUpdate} />
 
                     {/* Schalter-Stil (nur wenn Darstellung Schalter oder Auto bool) */}
-                    <div>
-                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            Schalter-Stil
-                        </label>
-                        <div className="flex gap-1">
-                            {(['slide', 'icon'] as const).map((v) => {
-                                const lbl = v === 'slide' ? 'Schiebeschalter' : 'Icon';
-                                const active = (entry.switchStyle ?? 'slide') === v;
-                                return (
-                                    <button
-                                        key={v}
-                                        onClick={() => onUpdate({ switchStyle: v === 'slide' ? undefined : v })}
-                                        className="flex-1 text-[10px] py-1 rounded transition-colors"
-                                        style={{
-                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                            color: active ? '#fff' : 'var(--text-secondary)',
-                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                        }}
-                                    >
-                                        {lbl}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Icon- und Schriftgröße */}
-                    <div className="grid grid-cols-2 gap-1.5">
+                    {isSwitchLike && (
                         <div>
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Icon-Größe (px)
+                                Schalter-Stil
                             </label>
-                            <input
-                                type="number"
-                                min={8}
-                                max={96}
-                                className={iCls}
-                                style={iSty}
-                                placeholder="Auto"
-                                value={entry.iconSize ?? ''}
-                                onChange={(e) => {
-                                    const n = parseInt(e.target.value, 10);
-                                    onUpdate({ iconSize: isFinite(n) && n > 0 ? n : undefined });
-                                }}
-                            />
+                            <div className="flex gap-1">
+                                {(['slide', 'icon'] as const).map((v) => {
+                                    const lbl = v === 'slide' ? 'Schiebeschalter' : 'Icon';
+                                    const active = (entry.switchStyle ?? 'slide') === v;
+                                    return (
+                                        <button
+                                            key={v}
+                                            onClick={() => onUpdate({ switchStyle: v === 'slide' ? undefined : v })}
+                                            className="flex-1 text-[10px] py-1 rounded transition-colors"
+                                            style={{
+                                                background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                color: active ? '#fff' : 'var(--text-secondary)',
+                                                border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                            }}
+                                        >
+                                            {lbl}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
+                    )}
+
+                    {/* Icon- und Schriftgröße (Icon-Größe nur für Schalter-Darstellung) */}
+                    <div className="grid grid-cols-2 gap-1.5">
+                        {isSwitchLike && (
+                            <div>
+                                <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                    Icon-Größe (px)
+                                </label>
+                                <input
+                                    type="number"
+                                    min={8}
+                                    max={96}
+                                    className={iCls}
+                                    style={iSty}
+                                    placeholder="Auto"
+                                    value={entry.iconSize ?? ''}
+                                    onChange={(e) => {
+                                        const n = parseInt(e.target.value, 10);
+                                        onUpdate({ iconSize: isFinite(n) && n > 0 ? n : undefined });
+                                    }}
+                                />
+                            </div>
+                        )}
                         <div>
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                 Schriftgröße (px)
@@ -392,32 +400,34 @@ function EntryRow({
                             />
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-1.5">
-                        <ColorField
-                            label="Textfarbe AN"
-                            value={entry.activeColor}
-                            fallback="#22c55e"
-                            onChange={(v) => onUpdate({ activeColor: v })}
-                        />
-                        <ColorField
-                            label="Textfarbe AUS"
-                            value={entry.inactiveColor}
-                            fallback="#94a3b8"
-                            onChange={(v) => onUpdate({ inactiveColor: v })}
-                        />
-                        <ColorField
-                            label="Hintergrund AN"
-                            value={entry.activeBg}
-                            fallback="#22c55e"
-                            onChange={(v) => onUpdate({ activeBg: v })}
-                        />
-                        <ColorField
-                            label="Hintergrund AUS"
-                            value={entry.inactiveBg}
-                            fallback="#1f2937"
-                            onChange={(v) => onUpdate({ inactiveBg: v })}
-                        />
-                    </div>
+                    {isSwitchLike && (
+                        <div className="grid grid-cols-2 gap-1.5">
+                            <ColorField
+                                label="Textfarbe AN"
+                                value={entry.activeColor}
+                                fallback="#22c55e"
+                                onChange={(v) => onUpdate({ activeColor: v })}
+                            />
+                            <ColorField
+                                label="Textfarbe AUS"
+                                value={entry.inactiveColor}
+                                fallback="#94a3b8"
+                                onChange={(v) => onUpdate({ inactiveColor: v })}
+                            />
+                            <ColorField
+                                label="Hintergrund AN"
+                                value={entry.activeBg}
+                                fallback="#22c55e"
+                                onChange={(v) => onUpdate({ activeBg: v })}
+                            />
+                            <ColorField
+                                label="Hintergrund AUS"
+                                value={entry.inactiveBg}
+                                fallback="#1f2937"
+                                onChange={(v) => onUpdate({ inactiveBg: v })}
+                            />
+                        </div>
+                    )}
                     {/* Letzte Änderung anzeigen */}
                     <div className="flex items-center justify-between">
                         <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>

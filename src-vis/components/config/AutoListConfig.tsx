@@ -127,6 +127,9 @@ function EntryConfigRow({
 }) {
     const t = useT();
     const [expanded, setExpanded] = useState(false);
+    // AN/AUS colors only apply to a switch-style entry; hide for slider/value/shutter/…
+    const displayType = entry.displayType ?? 'auto';
+    const isSwitchLike = displayType === 'switch' || displayType === 'auto';
     const iSty = {
         background: 'var(--app-bg)',
         color: 'var(--text-primary)',
@@ -227,32 +230,34 @@ function EntryConfigRow({
                         </div>
                     </div>
                     <EntryControlsConfig entry={entry} onUpdate={onUpdate} />
-                    <div className="grid grid-cols-2 gap-1.5">
-                        <ColorField
-                            label="Textfarbe AN"
-                            value={entry.activeColor}
-                            fallback="#22c55e"
-                            onChange={(v) => onUpdate({ activeColor: v })}
-                        />
-                        <ColorField
-                            label="Textfarbe AUS"
-                            value={entry.inactiveColor}
-                            fallback="#94a3b8"
-                            onChange={(v) => onUpdate({ inactiveColor: v })}
-                        />
-                        <ColorField
-                            label="Hintergrund AN"
-                            value={entry.activeBg}
-                            fallback="#22c55e"
-                            onChange={(v) => onUpdate({ activeBg: v })}
-                        />
-                        <ColorField
-                            label="Hintergrund AUS"
-                            value={entry.inactiveBg}
-                            fallback="#1f2937"
-                            onChange={(v) => onUpdate({ inactiveBg: v })}
-                        />
-                    </div>
+                    {isSwitchLike && (
+                        <div className="grid grid-cols-2 gap-1.5">
+                            <ColorField
+                                label="Textfarbe AN"
+                                value={entry.activeColor}
+                                fallback="#22c55e"
+                                onChange={(v) => onUpdate({ activeColor: v })}
+                            />
+                            <ColorField
+                                label="Textfarbe AUS"
+                                value={entry.inactiveColor}
+                                fallback="#94a3b8"
+                                onChange={(v) => onUpdate({ inactiveColor: v })}
+                            />
+                            <ColorField
+                                label="Hintergrund AN"
+                                value={entry.activeBg}
+                                fallback="#22c55e"
+                                onChange={(v) => onUpdate({ activeBg: v })}
+                            />
+                            <ColorField
+                                label="Hintergrund AUS"
+                                value={entry.inactiveBg}
+                                fallback="#1f2937"
+                                onChange={(v) => onUpdate({ inactiveBg: v })}
+                            />
+                        </div>
+                    )}
                 </div>
             )}
         </div>
