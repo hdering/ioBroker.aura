@@ -236,6 +236,36 @@ function EntryRow({
                     </div>
                     <div>
                         <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Icon
+                        </label>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => setIconPickerOpen(true)}
+                                className="flex-1 flex items-center gap-1.5 text-[10px] rounded px-2 py-1 text-left hover:opacity-80"
+                                style={iSty}
+                            >
+                                {entry.icon ? (
+                                    <>
+                                        <Icon icon={toIconifyId(entry.icon)} width={11} height={11} />
+                                        <span className="truncate font-mono">{entry.icon}</span>
+                                    </>
+                                ) : (
+                                    <span style={{ color: 'var(--text-secondary)' }}>Kein Icon</span>
+                                )}
+                            </button>
+                            {entry.icon && (
+                                <button
+                                    onClick={() => onUpdate({ icon: undefined })}
+                                    className="shrink-0 hover:opacity-70 p-1"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    <X size={10} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                    <div>
+                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                             Dezimalstellen
                         </label>
                         <div className="flex gap-1">
@@ -388,37 +418,6 @@ function EntryRow({
                             onChange={(v) => onUpdate({ inactiveBg: v })}
                         />
                     </div>
-                    <div>
-                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            Icon
-                        </label>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => setIconPickerOpen(true)}
-                                className="flex-1 flex items-center gap-1.5 text-[10px] rounded px-2 py-1 text-left hover:opacity-80"
-                                style={iSty}
-                            >
-                                {entry.icon ? (
-                                    <>
-                                        <Icon icon={toIconifyId(entry.icon)} width={11} height={11} />
-                                        <span className="truncate font-mono">{entry.icon}</span>
-                                    </>
-                                ) : (
-                                    <span style={{ color: 'var(--text-secondary)' }}>Kein Icon</span>
-                                )}
-                            </button>
-                            {entry.icon && (
-                                <button
-                                    onClick={() => onUpdate({ icon: undefined })}
-                                    className="shrink-0 hover:opacity-70 p-1"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
-                                    <X size={10} />
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
                     {/* Letzte Änderung anzeigen */}
                     <div className="flex items-center justify-between">
                         <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
