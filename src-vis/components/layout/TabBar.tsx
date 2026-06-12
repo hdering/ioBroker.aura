@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Settings, X, GripVertical, ChevronDown, ChevronRight, Download, Upload } from 'lucide-react';
-import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
+import { useDashboardStore, useActiveLayout, resolveTabBarSettings } from '../../store/dashboardStore';
 import type { Tab, TabBarItem, TabBarSettings, DashboardLayout } from '../../store/dashboardStore';
 import { exportTab, importTab } from '../../utils/widgetExportImport';
 import { useConfigStore } from '../../store/configStore';
@@ -193,7 +193,8 @@ export function TabBar({
 
     const tabs = viewTabs ?? layout.tabs;
     const activeTabId = viewActiveTabId ?? layout.activeTabId;
-    const tbSettings = layout.settings?.tabBar;
+    const globalTabBar = useConfigStore((s) => s.frontend.tabBar);
+    const tbSettings = resolveTabBarSettings(globalTabBar, layout.settings?.tabBar);
     const items = tbSettings?.items ?? [];
 
     const leftItems = items.filter((i) => i.position === 'left');

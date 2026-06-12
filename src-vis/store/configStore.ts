@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { managedStorage } from './persistManager';
+import type { TabBarSettings } from './dashboardStore';
 
 export interface FrontendSettings {
     customCSS: string;
@@ -26,6 +27,8 @@ export interface FrontendSettings {
     gridSnapX: number;
     gridGap: number;
     widgetPadding: number;
+    // Tab bar appearance & items — global defaults; layouts may override per-field
+    tabBar: TabBarSettings;
     wizardMaxDatapoints: number;
     fontScale: number;
     mobileBreakpoint: number;
@@ -98,6 +101,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     gridSnapX: 20,
     gridGap: 10,
     widgetPadding: 16,
+    tabBar: {},
     wizardMaxDatapoints: 500,
     fontScale: 1,
     mobileBreakpoint: 600,

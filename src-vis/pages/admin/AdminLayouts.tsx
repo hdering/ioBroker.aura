@@ -108,7 +108,6 @@ export function AdminLayouts() {
         if (rawContextId && !layouts.some((l) => l.id === rawContextId)) {
             const next = new URLSearchParams(searchParams);
             next.set('ctx', 'global');
-            if (next.get('tab') === 'tabbar') next.set('tab', 'theme');
             setSearchParams(next, { replace: true });
         }
     }, [layouts, rawContextId, searchParams, setSearchParams]);
@@ -116,14 +115,12 @@ export function AdminLayouts() {
     const subTab: SubTab = (() => {
         const valid: SubTab[] = ['theme', 'typo', 'grid', 'guidelines', 'tabbar'];
         if (!tabParam || !valid.includes(tabParam)) return 'theme';
-        if (tabParam === 'tabbar' && contextId === null) return 'theme';
         return tabParam;
     })();
 
     const setContext = (id: string | null) => {
         const next = new URLSearchParams(searchParams);
         next.set('ctx', id ?? 'global');
-        if (id === null && next.get('tab') === 'tabbar') next.set('tab', 'theme');
         setSearchParams(next, { replace: true });
     };
 
@@ -194,7 +191,7 @@ export function AdminLayouts() {
                             borderBottom: '1px solid var(--app-border)',
                         }}
                     >
-                        <SubTabsNav active={subTab} onChange={setSubTab} hideTabBar={contextId === null} />
+                        <SubTabsNav active={subTab} onChange={setSubTab} />
                     </div>
 
                     <ActiveSection subTab={subTab} contextId={contextId} />

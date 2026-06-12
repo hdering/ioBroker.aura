@@ -36,6 +36,23 @@ export interface TabBarSettings {
     items?: TabBarItem[];
 }
 
+/**
+ * Merge a global tab-bar config with an optional per-layout override.
+ * Every defined field in the layout override wins; undefined fields inherit
+ * the global value. `items` is overridden as a whole array (not merged).
+ */
+export function resolveTabBarSettings(
+    global: TabBarSettings | undefined,
+    layout: TabBarSettings | undefined,
+): TabBarSettings {
+    const merged: TabBarSettings = { ...(global ?? {}) };
+    const ov = layout ?? {};
+    (Object.keys(ov) as (keyof TabBarSettings)[]).forEach((k) => {
+        if (ov[k] !== undefined) (merged as Record<string, unknown>)[k] = ov[k];
+    });
+    return merged;
+}
+
 // ── Per-layout overrideable settings ──────────────────────────────────────────
 // All fields are optional; undefined = inherit from global.
 export interface LayoutSettings {

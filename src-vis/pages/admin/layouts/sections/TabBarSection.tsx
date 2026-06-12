@@ -1,16 +1,50 @@
 import { useState } from 'react';
 import { Plus, X } from 'lucide-react';
-import { useDashboardStore, type TabBarSettings, type TabBarItem } from '../../../../store/dashboardStore';
+import {
+    useDashboardStore,
+    resolveTabBarSettings,
+    type TabBarSettings,
+    type TabBarItem,
+} from '../../../../store/dashboardStore';
+import { useConfigStore } from '../../../../store/configStore';
 import { useT } from '../../../../i18n';
+
+// ── OverrideDot ───────────────────────────────────────────────────────────────
+// Small marker shown next to a field that overrides the global value (layout scope).
+
+function OverrideDot({ show, title }: { show: boolean; title: string }) {
+    if (!show) return null;
+    return (
+        <span
+            aria-hidden
+            title={title}
+            className="inline-block w-1.5 h-1.5 rounded-full shrink-0"
+            style={{ background: 'var(--accent)' }}
+        />
+    );
+}
 
 // ── ColorInput ──────────────────────────────────────────────────────────────
 
-function ColorInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function ColorInput({
+    label,
+    value,
+    onChange,
+    overridden = false,
+    overrideTitle = '',
+}: {
+    label: string;
+    value: string;
+    onChange: (v: string) => void;
+    overridden?: boolean;
+    overrideTitle?: string;
+}) {
     const isHex = /^#[0-9a-fA-F]{3,8}$/.test(value);
     return (
         <div>
-            <label className="text-xs mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+            <label className="text-xs mb-1 flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
                 {label}
+                <OverrideDot show={overridden} title={overrideTitle} />
             </label>
             <div className="flex items-center gap-1.5">
                 <input
@@ -265,9 +299,14 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
     const layouts = useDashboardStore((s) => s.layouts);
     const updateLayoutSettings = useDashboardStore((s) => s.updateLayoutSettings);
     const clearLayoutSettings = useDashboardStore((s) => s.clearLayoutSettings);
+    const globalTb = useConfigStore((s) => s.frontend.tabBar);
+    const updateFrontend = useConfigStore((s) => s.updateFrontend);
 
+    const isGlobal = contextId === null;
     const layout = contextId ? layouts.find((l) => l.id === contextId) : null;
-    if (!layout) {
+
+    // Layout selected but no longer exists → nothing to edit.
+    if (!isGlobal && !layout) {
         return (
             <div
                 className="rounded-xl p-6 text-center"
@@ -280,10 +319,19 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
         );
     }
 
-    const tbs: TabBarSettings = layout.settings?.tabBar ?? {};
+    const layoutTb = layout?.settings?.tabBar;
+    // Effective settings shown in the editor: global as base, layout override on top.
+    const tbs: TabBarSettings = isGlobal ? globalTb : resolveTabBarSettings(globalTb, layoutTb);
+    // True when the given field is overridden by the layout (only meaningful in layout scope).
+    const ov = (key: keyof TabBarSettings) => !isGlobal && layoutTb?.[key] !== undefined;
+    const ovTitle = t('layouts.scope.layoutHint');
 
     const update = (patch: Partial<TabBarSettings>) => {
-        updateLayoutSettings(layout.id, { tabBar: { ...(layout.settings?.tabBar ?? {}), ...patch } });
+        if (isGlobal) {
+            updateFrontend({ tabBar: { ...globalTb, ...patch } });
+        } else if (layout) {
+            updateLayoutSettings(layout.id, { tabBar: { ...(layoutTb ?? {}), ...patch } });
+        }
     };
     const updateItem = (id: string, patch: Partial<TabBarItem>) => {
         update({ items: (tbs.items ?? []).map((it) => (it.id === id ? { ...it, ...patch } : it)) });
@@ -301,9 +349,10 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
         update({ items: [...(tbs.items ?? []), newItem] });
     };
     const clearAll = () => {
-        clearLayoutSettings(layout.id, 'tabBar');
+        if (isGlobal) updateFrontend({ tabBar: {} });
+        else if (layout) clearLayoutSettings(layout.id, 'tabBar');
     };
-    const hasOverride = !!layout.settings?.tabBar && Object.keys(layout.settings.tabBar).length > 0;
+    const hasOverride = isGlobal ? Object.keys(globalTb).length > 0 : !!layoutTb && Object.keys(layoutTb).length > 0;
 
     const styleOptions: Array<{ key: TabBarSettings['indicatorStyle']; label: string }> = [
         { key: 'underline', label: t('settings.tabBar.styleUnderline') },
@@ -323,20 +372,25 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
             className="rounded-xl p-4 space-y-4"
             style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
         >
-            <div className="flex items-center justify-between">
-                <p
-                    className="text-xs font-semibold uppercase tracking-widest"
-                    style={{ color: 'var(--text-secondary)' }}
-                >
-                    {t('settings.tabBar.title')}
-                </p>
+            <div className="flex items-start justify-between gap-3">
+                <div>
+                    <p
+                        className="text-xs font-semibold uppercase tracking-widest"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
+                        {t('settings.tabBar.title')}
+                    </p>
+                    <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                        {isGlobal ? t('layouts.context.hintGlobal') : t('layouts.context.hintLayout')}
+                    </p>
+                </div>
                 {hasOverride && (
                     <button
                         onClick={clearAll}
-                        className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
+                        className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70 shrink-0"
                         style={{ color: 'var(--text-secondary)' }}
                     >
-                        {t('settings.tabBar.clearAll')}
+                        {isGlobal ? t('settings.tabBar.clearAll') : t('layouts.scope.resetToGlobal')}
                     </button>
                 )}
             </div>
@@ -346,8 +400,9 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                 <div className="space-y-4">
                     <div>
                         <div className="flex items-center justify-between mb-1">
-                            <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                            <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                                 {t('settings.tabBar.height')}
+                                <OverrideDot show={ov('height')} title={ovTitle} />
                             </p>
                             <div className="flex items-center gap-1">
                                 <input
@@ -412,8 +467,9 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                     </div>
 
                     <div>
-                        <p className="text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
+                        <p className="text-sm mb-2 flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.tabBar.style')}
+                            <OverrideDot show={ov('indicatorStyle')} title={ovTitle} />
                         </p>
                         <div className="flex gap-1.5">
                             {styleOptions.map(({ key, label }) => {
@@ -438,8 +494,9 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
 
                     <div>
                         <div className="flex items-center justify-between mb-1">
-                            <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                            <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                                 {t('settings.tabBar.fontSize')}
+                                <OverrideDot show={ov('fontSize')} title={ovTitle} />
                             </p>
                             <div className="flex items-center gap-1">
                                 <input
@@ -505,8 +562,9 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
 
                     <div>
                         <div className="flex items-center justify-between mb-1">
-                            <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                            <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                                 {t('settings.tabBar.iconSize')}
+                                <OverrideDot show={ov('iconSize')} title={ovTitle} />
                             </p>
                             <div className="flex items-center gap-1">
                                 <input
@@ -571,8 +629,9 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                     </div>
 
                     <div>
-                        <p className="text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
+                        <p className="text-sm mb-2 flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.tabBar.tabsAlignment')}
+                            <OverrideDot show={ov('tabsAlignment')} title={ovTitle} />
                         </p>
                         <div className="flex gap-1.5">
                             {alignOptions.map(({ key, label }) => {
@@ -602,23 +661,30 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                         label={t('settings.tabBar.background')}
                         value={tbs.background ?? ''}
                         onChange={(v) => update({ background: v || undefined })}
+                        overridden={ov('background')}
+                        overrideTitle={ovTitle}
                     />
                     <ColorInput
                         label={t('settings.tabBar.activeColor')}
                         value={tbs.activeColor ?? ''}
                         onChange={(v) => update({ activeColor: v || undefined })}
+                        overridden={ov('activeColor')}
+                        overrideTitle={ovTitle}
                     />
                     <ColorInput
                         label={t('settings.tabBar.inactiveColor')}
                         value={tbs.inactiveColor ?? ''}
                         onChange={(v) => update({ inactiveColor: v || undefined })}
+                        overridden={ov('inactiveColor')}
+                        overrideTitle={ovTitle}
                     />
                 </div>
 
                 {/* Col 3: Items */}
                 <div>
-                    <p className="text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
+                    <p className="text-sm mb-2 flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                         {t('settings.tabBar.items')}
+                        <OverrideDot show={ov('items')} title={ovTitle} />
                     </p>
                     <div className="space-y-1.5">
                         {(tbs.items ?? []).map((item) => (
