@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.212 (2026-06-09)
+- fix(ci): remove release trigger to prevent E3032 run cancellation
+
 ## 0.9.211 (2026-06-09)
 - chore(lint): remove obsolete eslint devDeps, fix workflow concurrency
 
