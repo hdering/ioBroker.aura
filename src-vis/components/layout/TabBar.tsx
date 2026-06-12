@@ -34,7 +34,7 @@ const FONT_SIZE_MAP: Record<string, string> = {
     lg: '1rem',
 };
 
-function resolveTabBarFontSize(fs: TabBarSettings['fontSize']): string {
+export function resolveTabBarFontSize(fs: TabBarSettings['fontSize']): string {
     if (typeof fs === 'number') return `${fs}px`;
     return FONT_SIZE_MAP[fs ?? 'md'];
 }
@@ -116,7 +116,7 @@ function TabBarTextItem({ item }: { item: TabBarItem }) {
     );
 }
 
-function renderTabBarItem(item: TabBarItem) {
+export function renderTabBarItem(item: TabBarItem) {
     if (item.type === 'clock') return <TabBarClockItem key={item.id} item={item} />;
     if (item.type === 'datapoint') return <TabBarDatapointItem key={item.id} item={item} />;
     return <TabBarTextItem key={item.id} item={item} />;
@@ -125,7 +125,7 @@ function renderTabBarItem(item: TabBarItem) {
 // ── Computed tab styles based on indicatorStyle ────────────────────────────────
 // Uses var(--tab-*) with fallbacks so condition CSS vars can override per-tab.
 
-function tabStyle(isActive: boolean, settings: TabBarSettings | undefined): React.CSSProperties {
+export function tabStyle(isActive: boolean, settings: TabBarSettings | undefined): React.CSSProperties {
     const style = settings?.indicatorStyle ?? 'underline';
     const activeClr = settings?.activeColor ?? 'var(--accent)';
     const inactiveClr = settings?.inactiveColor ?? 'var(--text-secondary)';
