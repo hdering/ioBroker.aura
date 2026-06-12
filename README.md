@@ -192,6 +192,13 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.233 (2026-06-12)
+- style(list-widgets): use template literal in shutter DP scope check
+- style(prettier): auto-format code files
+- feat(list-widgets): add shutter DP auto-detection to entry controls
+- feat(admin-widgets): sort widget type listing alphabetically by label
+
+
 ### 0.9.232 (2026-06-12)
 - style(prettier): auto-format code files
 - refactor(backup): drop legacy dashboard_backup state and one-time migration
@@ -296,10 +303,6 @@ Release v0.9.224
 - @ feat(widgets): add group master switch for lists and groups
 
 
-### 0.9.213 (2026-06-09)
-- fix(meta): remove unpublished 0.9.212 from io-package news (E2004)
-
-
 ## License
 
 MIT License
@@ -311,6 +314,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

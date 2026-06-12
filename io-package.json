@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.232",
+    "version": "0.9.233",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.233": {
+        "en": "style(list-widgets): use template literal in shutter DP scope check; style(prettier): auto-format code files; feat(list-widgets): add shutter DP auto-detection to entry controls; feat(admin-widgets): sort widget type listing alphabetically by label",
+        "de": "style(list-widgets): use template literal in shutter DP scope check; style(prettier): auto-format code files; feat(list-widgets): add shutter DP auto-detection to entry controls; feat(admin-widgets): sort widget type listing alphabetically by label",
+        "ru": "style(list-widgets): use template literal in shutter DP scope check; style(prettier): auto-format code files; feat(list-widgets): add shutter DP auto-detection to entry controls; feat(admin-widgets): sort widget type listing alphabetically by label",
+        "pt": "style(list-widgets): use template literal in shutter DP scope check; style(prettier): auto-format code files; feat(list-widgets): add shutter DP auto-detection to entry controls; feat(admin-widgets): sort widget type listing alphabetically by label",
+        "nl": "style(list-widgets): use template literal in shutter DP scope check; style(prettier): auto-format code files; feat(list-widgets): add shutter DP auto-detection to entry controls; feat(admin-widgets): sort widget type listing alphabetically by label",
+        "fr": "style(list-widgets): use template literal in shutter DP scope check; style(prettier): auto-format code files; feat(list-widgets): add shutter DP auto-detection to entry controls; feat(admin-widgets): sort widget type listing alphabetically by label",
+        "it": "style(list-widgets): use template literal in shutter DP scope check; style(prettier): auto-format code files; feat(list-widgets): add shutter DP auto-detection to entry controls; feat(admin-widgets): sort widget type listing alphabetically by label",
+        "es": "style(list-widgets): use template literal in shutter DP scope check; style(prettier): auto-format code files; feat(list-widgets): add shutter DP auto-detection to entry controls; feat(admin-widgets): sort widget type listing alphabetically by label",
+        "pl": "style(list-widgets): use template literal in shutter DP scope check; style(prettier): auto-format code files; feat(list-widgets): add shutter DP auto-detection to entry controls; feat(admin-widgets): sort widget type listing alphabetically by label",
+        "uk": "style(list-widgets): use template literal in shutter DP scope check; style(prettier): auto-format code files; feat(list-widgets): add shutter DP auto-detection to entry controls; feat(admin-widgets): sort widget type listing alphabetically by label",
+        "zh-cn": "style(list-widgets): use template literal in shutter DP scope check; style(prettier): auto-format code files; feat(list-widgets): add shutter DP auto-detection to entry controls; feat(admin-widgets): sort widget type listing alphabetically by label"
+      },
       "0.9.232": {
         "en": "style(prettier): auto-format code files; refactor(backup): drop legacy dashboard_backup state and one-time migration",
         "de": "style(prettier): auto-format code files; refactor(backup): drop legacy dashboard_backup state and one-time migration",
