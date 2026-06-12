@@ -108,9 +108,8 @@ function EntryRow({
     const [iconPickerOpen, setIconPickerOpen] = useState(false);
     const [dpPickerOpen, setDpPickerOpen] = useState(false);
     // AN/AUS styling (switch style, icon size, on/off colors) only applies when the
-    // entry renders as a switch; other display types (slider/value/shutter/…) hide it.
-    const displayType = entry.displayType ?? 'auto';
-    const isSwitchLike = displayType === 'switch' || displayType === 'auto';
+    // entry is explicitly rendered as a switch; all other types (incl. Auto) hide it.
+    const isSwitch = (entry.displayType ?? 'auto') === 'switch';
     const iSty = {
         background: 'var(--app-bg)',
         color: 'var(--text-primary)',
@@ -331,7 +330,7 @@ function EntryRow({
                     <EntryControlsConfig entry={entry} onUpdate={onUpdate} />
 
                     {/* Schalter-Stil (nur wenn Darstellung Schalter oder Auto bool) */}
-                    {isSwitchLike && (
+                    {isSwitch && (
                         <div>
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                 Schalter-Stil
@@ -361,7 +360,7 @@ function EntryRow({
 
                     {/* Icon- und Schriftgröße (Icon-Größe nur für Schalter-Darstellung) */}
                     <div className="grid grid-cols-2 gap-1.5">
-                        {isSwitchLike && (
+                        {isSwitch && (
                             <div>
                                 <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                     Icon-Größe (px)
@@ -400,7 +399,7 @@ function EntryRow({
                             />
                         </div>
                     </div>
-                    {isSwitchLike && (
+                    {isSwitch && (
                         <div className="grid grid-cols-2 gap-1.5">
                             <ColorField
                                 label="Textfarbe AN"

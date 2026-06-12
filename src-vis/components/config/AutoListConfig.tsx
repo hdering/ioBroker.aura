@@ -127,9 +127,8 @@ function EntryConfigRow({
 }) {
     const t = useT();
     const [expanded, setExpanded] = useState(false);
-    // AN/AUS colors only apply to a switch-style entry; hide for slider/value/shutter/…
-    const displayType = entry.displayType ?? 'auto';
-    const isSwitchLike = displayType === 'switch' || displayType === 'auto';
+    // AN/AUS colors only apply to an explicit switch entry; hide for Auto/slider/value/shutter/…
+    const isSwitch = (entry.displayType ?? 'auto') === 'switch';
     const iSty = {
         background: 'var(--app-bg)',
         color: 'var(--text-primary)',
@@ -230,7 +229,7 @@ function EntryConfigRow({
                         </div>
                     </div>
                     <EntryControlsConfig entry={entry} onUpdate={onUpdate} />
-                    {isSwitchLike && (
+                    {isSwitch && (
                         <div className="grid grid-cols-2 gap-1.5">
                             <ColorField
                                 label="Textfarbe AN"
