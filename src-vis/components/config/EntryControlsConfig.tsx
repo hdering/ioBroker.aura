@@ -27,10 +27,7 @@ const SHUTTER_STOP_RE = /(?:^|[._])(?:stop|stopp|halt)(?:$|[._])|stop\.(?:blind|
 const SHUTTER_DOWN_RE =
     /(?:^|[._])(?:down|close|ab|zu|schliessen|schließen|runter|tief|lower|moving[._]?down)(?:$|[._])|close\.(?:blind|window|slat|shutter)/i;
 
-function detectShutterDps(
-    baseId: string,
-    entries: DatapointEntry[],
-): { up?: string; stop?: string; down?: string } {
+function detectShutterDps(baseId: string, entries: DatapointEntry[]): { up?: string; stop?: string; down?: string } {
     const lastDot = baseId.lastIndexOf('.');
     const parent = lastDot > 0 ? baseId.slice(0, lastDot) : baseId;
     const grandDot = parent.lastIndexOf('.');
@@ -38,7 +35,8 @@ function detectShutterDps(
 
     const matchIn = (scope: string, re: RegExp): string | undefined => {
         const cands = entries.filter(
-            (e) => e.id !== baseId && e.id.startsWith(scope + '.') && (re.test(shutterSeg(e.id)) || re.test(e.role ?? '')),
+            (e) =>
+                e.id !== baseId && e.id.startsWith(scope + '.') && (re.test(shutterSeg(e.id)) || re.test(e.role ?? '')),
         );
         if (!cands.length) return undefined;
         // Prefer writable command DPs over read-only status DPs.

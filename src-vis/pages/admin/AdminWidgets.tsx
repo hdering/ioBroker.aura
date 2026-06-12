@@ -768,48 +768,48 @@ function DefaultSizesDialog({ onClose }: { onClose: () => void }) {
                     {[...WIDGET_REGISTRY]
                         .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }))
                         .map((w) => {
-                        const d = widgetDefaults[w.type] ?? { w: w.defaultW, h: w.defaultH };
-                        return (
-                            <div
-                                key={w.type}
-                                className="flex items-center gap-3 px-3 py-2 rounded-lg"
-                                style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-                            >
-                                <span className="text-xs flex-1 truncate" style={{ color: 'var(--text-primary)' }}>
-                                    {w.label}
-                                </span>
-                                <input
-                                    type="number"
-                                    min={1}
-                                    max={12}
-                                    value={d.w}
-                                    onChange={(e) => setWidgetDefault(w.type, Number(e.target.value), d.h)}
-                                    className="w-12 text-xs text-center rounded px-1 py-1 focus:outline-none"
-                                    style={iSty}
-                                />
-                                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                    ×
-                                </span>
-                                <input
-                                    type="number"
-                                    min={1}
-                                    max={12}
-                                    value={d.h}
-                                    onChange={(e) => setWidgetDefault(w.type, d.w, Number(e.target.value))}
-                                    className="w-12 text-xs text-center rounded px-1 py-1 focus:outline-none"
-                                    style={iSty}
-                                />
-                                <button
-                                    onClick={() => resetWidgetDefault(w.type)}
-                                    className="hover:opacity-70 shrink-0"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                    title={t('common.reset')}
+                            const d = widgetDefaults[w.type] ?? { w: w.defaultW, h: w.defaultH };
+                            return (
+                                <div
+                                    key={w.type}
+                                    className="flex items-center gap-3 px-3 py-2 rounded-lg"
+                                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
                                 >
-                                    <RotateCcw size={11} />
-                                </button>
-                            </div>
-                        );
-                    })}
+                                    <span className="text-xs flex-1 truncate" style={{ color: 'var(--text-primary)' }}>
+                                        {w.label}
+                                    </span>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={12}
+                                        value={d.w}
+                                        onChange={(e) => setWidgetDefault(w.type, Number(e.target.value), d.h)}
+                                        className="w-12 text-xs text-center rounded px-1 py-1 focus:outline-none"
+                                        style={iSty}
+                                    />
+                                    <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                        ×
+                                    </span>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={12}
+                                        value={d.h}
+                                        onChange={(e) => setWidgetDefault(w.type, d.w, Number(e.target.value))}
+                                        className="w-12 text-xs text-center rounded px-1 py-1 focus:outline-none"
+                                        style={iSty}
+                                    />
+                                    <button
+                                        onClick={() => resetWidgetDefault(w.type)}
+                                        className="hover:opacity-70 shrink-0"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                        title={t('common.reset')}
+                                    >
+                                        <RotateCcw size={11} />
+                                    </button>
+                                </div>
+                            );
+                        })}
                 </div>
             </div>
         </div>
