@@ -267,38 +267,61 @@ function EntryRow({
                             )}
                         </div>
                     </div>
-                    <div>
-                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            Dezimalstellen
-                        </label>
-                        <div className="flex gap-1">
+                    <div className="grid grid-cols-2 gap-1.5">
+                        <div>
+                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                Dezimalstellen
+                            </label>
+                            <div className="flex gap-1">
+                                <input
+                                    type="number"
+                                    min={0}
+                                    max={4}
+                                    disabled={entry.decimals === undefined}
+                                    value={entry.decimals ?? defaultDecimals}
+                                    onChange={(e) => onUpdate({ decimals: Number(e.target.value) })}
+                                    className="flex-1 text-[10px] rounded px-2 py-1 focus:outline-none text-center"
+                                    style={{ ...iSty, opacity: entry.decimals === undefined ? 0.5 : 1 }}
+                                />
+                                <button
+                                    onClick={() =>
+                                        onUpdate({
+                                            decimals: entry.decimals === undefined ? defaultDecimals : undefined,
+                                        })
+                                    }
+                                    title={
+                                        entry.decimals === undefined
+                                            ? 'Globale Einstellung aktiv – klicken für eigenen Wert'
+                                            : 'Auf globale Einstellung zurücksetzen'
+                                    }
+                                    className="px-1.5 rounded text-[10px] font-bold shrink-0"
+                                    style={{
+                                        background:
+                                            entry.decimals === undefined ? 'var(--accent)' : 'var(--app-border)',
+                                        color: entry.decimals === undefined ? '#fff' : 'var(--text-secondary)',
+                                    }}
+                                >
+                                    Global
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                Schriftgröße (px)
+                            </label>
                             <input
                                 type="number"
-                                min={0}
-                                max={4}
-                                disabled={entry.decimals === undefined}
-                                value={entry.decimals ?? defaultDecimals}
-                                onChange={(e) => onUpdate({ decimals: Number(e.target.value) })}
-                                className="flex-1 text-[10px] rounded px-2 py-1 focus:outline-none text-center"
-                                style={{ ...iSty, opacity: entry.decimals === undefined ? 0.5 : 1 }}
-                            />
-                            <button
-                                onClick={() =>
-                                    onUpdate({ decimals: entry.decimals === undefined ? defaultDecimals : undefined })
-                                }
-                                title={
-                                    entry.decimals === undefined
-                                        ? 'Globale Einstellung aktiv – klicken für eigenen Wert'
-                                        : 'Auf globale Einstellung zurücksetzen'
-                                }
-                                className="px-1.5 rounded text-[10px] font-bold shrink-0"
-                                style={{
-                                    background: entry.decimals === undefined ? 'var(--accent)' : 'var(--app-border)',
-                                    color: entry.decimals === undefined ? '#fff' : 'var(--text-secondary)',
+                                min={8}
+                                max={96}
+                                className={iCls}
+                                style={iSty}
+                                placeholder="Auto"
+                                value={entry.fontSize ?? ''}
+                                onChange={(e) => {
+                                    const n = parseInt(e.target.value, 10);
+                                    onUpdate({ fontSize: isFinite(n) && n > 0 ? n : undefined });
                                 }}
-                            >
-                                Global
-                            </button>
+                            />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-1.5">
@@ -358,31 +381,11 @@ function EntryRow({
                         </div>
                     )}
 
-                    {/* Icon- und Schriftgröße (Icon-Größe nur für Schalter-Darstellung) */}
-                    <div className="grid grid-cols-2 gap-1.5">
-                        {isSwitch && (
-                            <div>
-                                <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                    Icon-Größe (px)
-                                </label>
-                                <input
-                                    type="number"
-                                    min={8}
-                                    max={96}
-                                    className={iCls}
-                                    style={iSty}
-                                    placeholder="Auto"
-                                    value={entry.iconSize ?? ''}
-                                    onChange={(e) => {
-                                        const n = parseInt(e.target.value, 10);
-                                        onUpdate({ iconSize: isFinite(n) && n > 0 ? n : undefined });
-                                    }}
-                                />
-                            </div>
-                        )}
+                    {/* Icon-Größe (nur für Schalter-Darstellung) */}
+                    {isSwitch && (
                         <div>
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Schriftgröße (px)
+                                Icon-Größe (px)
                             </label>
                             <input
                                 type="number"
@@ -391,14 +394,14 @@ function EntryRow({
                                 className={iCls}
                                 style={iSty}
                                 placeholder="Auto"
-                                value={entry.fontSize ?? ''}
+                                value={entry.iconSize ?? ''}
                                 onChange={(e) => {
                                     const n = parseInt(e.target.value, 10);
-                                    onUpdate({ fontSize: isFinite(n) && n > 0 ? n : undefined });
+                                    onUpdate({ iconSize: isFinite(n) && n > 0 ? n : undefined });
                                 }}
                             />
                         </div>
-                    </div>
+                    )}
                     {isSwitch && (
                         <div className="grid grid-cols-2 gap-1.5">
                             <ColorField
