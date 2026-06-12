@@ -1,11 +1,5 @@
 import type { StateStorage } from 'zustand/middleware';
-import {
-    setStateDirect,
-    writeFileDirect,
-    readFileDirect,
-    readDirDirect,
-    deleteFileDirect,
-} from '../hooks/useIoBroker';
+import { setStateDirect, writeFileDirect, readFileDirect, readDirDirect, deleteFileDirect } from '../hooks/useIoBroker';
 import { NS } from '../utils/namespace';
 
 // Each localStorage key maps to its own ioBroker state (no more single blob).
