@@ -134,7 +134,7 @@ function EntryConfigRow({
         color: 'var(--text-primary)',
         border: '1px solid var(--app-border)',
     } as React.CSSProperties;
-    const iCls = 'w-full text-[10px] rounded px-2 py-1 focus:outline-none font-mono';
+    const iCls = 'w-full text-[10px] rounded px-2 py-0.5 focus:outline-none font-mono';
 
     return (
         <div className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
@@ -170,14 +170,15 @@ function EntryConfigRow({
             {/* Expanded config */}
             {expanded && (
                 <div
-                    className="px-2.5 pb-2.5 pt-1 space-y-1.5"
+                    className="px-2.5 pb-2.5 pt-1 space-y-1"
                     style={{ borderTop: '1px solid var(--app-border)', background: 'var(--app-surface)' }}
                 >
                     <div className="text-[9px] font-mono truncate mb-1" style={{ color: 'var(--text-secondary)' }}>
                         {entry.id}
                     </div>
-                    <div className="grid grid-cols-2 gap-1.5">
-                        <div>
+                    {/* Bezeichnung breit + Einheit schmal nebeneinander */}
+                    <div className="flex items-end gap-1.5">
+                        <div className="flex-1 min-w-0">
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                 {t('endpoints.dp.label')}
                             </label>
@@ -189,7 +190,7 @@ function EntryConfigRow({
                                 onChange={(e) => onUpdate({ label: e.target.value || undefined })}
                             />
                         </div>
-                        <div>
+                        <div className="w-16 shrink-0">
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                 {t('endpoints.dp.unit')}
                             </label>
