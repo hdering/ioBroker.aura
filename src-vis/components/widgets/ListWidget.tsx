@@ -207,7 +207,7 @@ function EntryValue({
     );
 
     // Rich control types — rendered by the shared entry-control components.
-    if (displayType === 'shutter') return <ShutterControl entry={entry} setState={setState} />;
+    if (displayType === 'shutter') return <ShutterControl entry={entry} val={val} setState={setState} />;
     if (displayType === 'stepper')
         return <StepperControl entry={entry} val={val} setState={setState} decimals={decimals} />;
     if (displayType === 'buttons')

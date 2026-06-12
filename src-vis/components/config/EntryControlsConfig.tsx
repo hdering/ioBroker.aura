@@ -27,7 +27,10 @@ const SHUTTER_STOP_RE = /(?:^|[._])(?:stop|stopp|halt)(?:$|[._])|stop\.(?:blind|
 const SHUTTER_DOWN_RE =
     /(?:^|[._])(?:down|close|ab|zu|schliessen|schließen|runter|tief|lower|moving[._]?down)(?:$|[._])|close\.(?:blind|window|slat|shutter)/i;
 
-function detectShutterDps(baseId: string, entries: DatapointEntry[]): { up?: string; stop?: string; down?: string } {
+function detectShutterDps(
+    baseId: string,
+    entries: DatapointEntry[],
+): { mode: 'commands' | 'position'; up?: string; stop?: string; down?: string } {
     const lastDot = baseId.lastIndexOf('.');
     const parent = lastDot > 0 ? baseId.slice(0, lastDot) : baseId;
     const grandDot = parent.lastIndexOf('.');
@@ -53,7 +56,11 @@ function detectShutterDps(baseId: string, entries: DatapointEntry[]): { up?: str
     // Search the immediate parent (channel) first, fall back to the device level.
     let res = detect(parent);
     if (!res.up && !res.stop && !res.down && grand !== parent) res = detect(grand);
-    return res;
+
+    // Discrete up/down command DPs → command mode. Otherwise assume HomeMatic-style
+    // position control over the entry's main (LEVEL) DP, keeping any stop DP found.
+    if (res.up || res.down) return { mode: 'commands', ...res };
+    return { mode: 'position', stop: res.stop };
 }
 
 const TYPE_OPTIONS: { value: EntryDisplayType; label: string }[] = [
@@ -101,6 +108,7 @@ function DpRow({ label, value, onPick }: { label: string; value?: string; onPick
 
 export function EntryControlsConfig({ entry, onUpdate }: Props) {
     const dt = entry.displayType ?? 'auto';
+    const sMode = entry.shutterMode ?? 'commands';
     const [pickFor, setPickFor] = useState<null | 'shutterUpDp' | 'shutterStopDp' | 'shutterDownDp'>(null);
     const [autoMsg, setAutoMsg] = useState<string | null>(null);
     const presets = entry.presets ?? [];
@@ -113,14 +121,28 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
     const autoDetectShutter = async () => {
         if (!entry.id) return;
         const cache = await ensureDatapointCache();
-        const { up, stop, down } = detectShutterDps(entry.id, cache);
-        const patch: Partial<EntryControlConfig> = {};
-        if (up) patch.shutterUpDp = up;
-        if (stop) patch.shutterStopDp = stop;
-        if (down) patch.shutterDownDp = down;
-        const n = Object.keys(patch).length;
-        if (n > 0) onUpdate(patch);
-        setAutoMsg(n > 0 ? `${n} DP automatisch erkannt` : 'Keine passenden DPs gefunden');
+        const det = detectShutterDps(entry.id, cache);
+        if (det.mode === 'commands') {
+            onUpdate({
+                shutterMode: undefined,
+                shutterUpDp: det.up,
+                shutterStopDp: det.stop,
+                shutterDownDp: det.down,
+            });
+            const n = [det.up, det.stop, det.down].filter(Boolean).length;
+            setAutoMsg(`Befehls-DPs erkannt (${n})`);
+        } else {
+            // No discrete up/down DPs (e.g. HomeMatic) → position control over the LEVEL DP.
+            onUpdate({
+                shutterMode: 'position',
+                shutterStopDp: det.stop,
+                shutterUpDp: undefined,
+                shutterDownDp: undefined,
+            });
+            setAutoMsg(
+                det.stop ? 'Positionssteuerung (LEVEL) + Stop-DP erkannt' : 'Positionssteuerung über LEVEL (Haupt-DP)',
+            );
+        }
     };
 
     return (
@@ -154,7 +176,7 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
                     <button
                         onClick={autoDetectShutter}
                         disabled={!entry.id}
-                        title="Auf-, Stop- und Ab-DP anhand benachbarter Datenpunkte automatisch auswählen"
+                        title="Steuerung & DPs anhand benachbarter Datenpunkte automatisch erkennen (Befehls-DPs oder LEVEL)"
                         className="w-full flex items-center justify-center gap-1 text-[10px] py-1 rounded hover:opacity-80 disabled:opacity-40"
                         style={{
                             background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
@@ -169,23 +191,117 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
                             {autoMsg}
                         </p>
                     )}
-                    <div className="grid grid-cols-3 gap-1.5">
-                        <DpRow label="Auf-DP" value={entry.shutterUpDp} onPick={() => setPickFor('shutterUpDp')} />
-                        <DpRow label="Stop-DP" value={entry.shutterStopDp} onPick={() => setPickFor('shutterStopDp')} />
-                        <DpRow label="Ab-DP" value={entry.shutterDownDp} onPick={() => setPickFor('shutterDownDp')} />
-                    </div>
+
+                    {/* Steuerungs-Modell: separate Befehls-DPs oder Position über LEVEL */}
                     <div>
-                        <Label>Schreibwert (Standard: true)</Label>
-                        <input
-                            className={iCls}
-                            style={iSty}
-                            placeholder="true"
-                            value={entry.shutterWriteValue === undefined ? '' : String(entry.shutterWriteValue)}
-                            onChange={(e) =>
-                                onUpdate({ shutterWriteValue: e.target.value === '' ? undefined : e.target.value })
-                            }
-                        />
+                        <Label>Steuerung</Label>
+                        <div className="flex gap-1">
+                            {(
+                                [
+                                    ['commands', 'Befehls-DPs'],
+                                    ['position', 'Position (LEVEL)'],
+                                ] as const
+                            ).map(([v, lbl]) => {
+                                const active = sMode === v;
+                                return (
+                                    <button
+                                        key={v}
+                                        onClick={() => onUpdate({ shutterMode: v === 'commands' ? undefined : v })}
+                                        className="flex-1 text-[10px] py-1 rounded transition-colors"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {lbl}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
+
+                    {sMode === 'position' ? (
+                        <>
+                            <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                                Steuert den Haupt-DP des Eintrags (z.B. LEVEL): „Auf" / „Ab" schreiben den jeweiligen
+                                Wert, „Stop" schreibt die aktuelle Position zurück (oder nutzt den Stop-DP).
+                            </p>
+                            <div className="grid grid-cols-2 gap-1.5">
+                                <div>
+                                    <Label>Auf-Wert (Standard: 100)</Label>
+                                    <input
+                                        type="number"
+                                        className={iCls}
+                                        style={iSty}
+                                        placeholder="100"
+                                        value={entry.shutterOpenValue ?? ''}
+                                        onChange={(e) =>
+                                            onUpdate({
+                                                shutterOpenValue:
+                                                    e.target.value === '' ? undefined : Number(e.target.value),
+                                            })
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Ab-Wert (Standard: 0)</Label>
+                                    <input
+                                        type="number"
+                                        className={iCls}
+                                        style={iSty}
+                                        placeholder="0"
+                                        value={entry.shutterCloseValue ?? ''}
+                                        onChange={(e) =>
+                                            onUpdate({
+                                                shutterCloseValue:
+                                                    e.target.value === '' ? undefined : Number(e.target.value),
+                                            })
+                                        }
+                                    />
+                                </div>
+                            </div>
+                            <DpRow
+                                label="Stop-DP (optional)"
+                                value={entry.shutterStopDp}
+                                onPick={() => setPickFor('shutterStopDp')}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <div className="grid grid-cols-3 gap-1.5">
+                                <DpRow
+                                    label="Auf-DP"
+                                    value={entry.shutterUpDp}
+                                    onPick={() => setPickFor('shutterUpDp')}
+                                />
+                                <DpRow
+                                    label="Stop-DP"
+                                    value={entry.shutterStopDp}
+                                    onPick={() => setPickFor('shutterStopDp')}
+                                />
+                                <DpRow
+                                    label="Ab-DP"
+                                    value={entry.shutterDownDp}
+                                    onPick={() => setPickFor('shutterDownDp')}
+                                />
+                            </div>
+                            <div>
+                                <Label>Schreibwert (Standard: true)</Label>
+                                <input
+                                    className={iCls}
+                                    style={iSty}
+                                    placeholder="true"
+                                    value={entry.shutterWriteValue === undefined ? '' : String(entry.shutterWriteValue)}
+                                    onChange={(e) =>
+                                        onUpdate({
+                                            shutterWriteValue: e.target.value === '' ? undefined : e.target.value,
+                                        })
+                                    }
+                                />
+                            </div>
+                        </>
+                    )}
                 </div>
             )}
 

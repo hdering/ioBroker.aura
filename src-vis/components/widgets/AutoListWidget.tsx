@@ -410,7 +410,7 @@ function EntryValue({
 
     // Rich control types — shared with the static list (see entryControls).
     const dt = entry.displayType ?? 'auto';
-    if (dt === 'shutter') return <ShutterControl entry={entry} setState={setState} />;
+    if (dt === 'shutter') return <ShutterControl entry={entry} val={val} setState={setState} />;
     if (dt === 'stepper') return <StepperControl entry={entry} val={val} setState={setState} decimals={decimals} />;
     if (dt === 'buttons')
         return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
@@ -560,7 +560,7 @@ function CardEntryValue({
 
     // Rich control types — shared with the static list (see entryControls).
     const dt = entry.displayType ?? 'auto';
-    if (dt === 'shutter') return <ShutterControl entry={entry} setState={setState} />;
+    if (dt === 'shutter') return <ShutterControl entry={entry} val={val} setState={setState} />;
     if (dt === 'stepper') return <StepperControl entry={entry} val={val} setState={setState} decimals={decimals} />;
     if (dt === 'buttons')
         return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;

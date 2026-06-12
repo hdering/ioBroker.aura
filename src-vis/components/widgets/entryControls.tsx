@@ -30,11 +30,22 @@ export interface EntryPreset {
 export interface EntryControlConfig {
     displayType?: EntryDisplayType;
     // ── shutter ──────────────────────────────────────────────────────────────
+    /**
+     * Shutter control model:
+     *  - 'commands' (default): separate up/stop/down command DPs (Shelly, Zigbee, scripts).
+     *  - 'position': single LEVEL DP (the entry's main DP) — up/down write open/close
+     *    values, stop writes the current position back (HomeMatic-style).
+     */
+    shutterMode?: 'commands' | 'position';
     shutterUpDp?: string;
     shutterStopDp?: string;
     shutterDownDp?: string;
     /** Value written to a shutter command DP on press. Default true. */
     shutterWriteValue?: string | number | boolean;
+    /** Position mode: value written on "up" (open). Default 100. */
+    shutterOpenValue?: number;
+    /** Position mode: value written on "down" (close). Default 0. */
+    shutterCloseValue?: number;
     // ── stepper ──────────────────────────────────────────────────────────────
     stepMin?: number;
     stepMax?: number;
@@ -78,36 +89,63 @@ const btnStyle: React.CSSProperties = {
 
 export function ShutterControl({
     entry,
+    val,
     setState,
     size = 26,
 }: {
-    entry: EntryControlConfig;
+    entry: EntryControlConfig & { id: string };
+    val?: ioBrokerState['val'];
     setState: SetState;
     size?: number;
 }) {
-    const write = parseWrite(entry.shutterWriteValue, true);
     const iconSize = Math.round(size * 0.5);
-    const Btn = ({ dp, children, label }: { dp?: string; children: React.ReactNode; label: string }) => (
+
+    let onUp: (() => void) | undefined;
+    let onStop: (() => void) | undefined;
+    let onDown: (() => void) | undefined;
+
+    if ((entry.shutterMode ?? 'commands') === 'position') {
+        // HomeMatic-style: up/down write open/close values to the entry's main
+        // (LEVEL) DP; stop writes the current position back, or hits a stop DP.
+        const openVal = entry.shutterOpenValue ?? 100;
+        const closeVal = entry.shutterCloseValue ?? 0;
+        onUp = () => setState(entry.id, openVal);
+        onDown = () => setState(entry.id, closeVal);
+        if (entry.shutterStopDp) {
+            const stopWrite = parseWrite(entry.shutterWriteValue, true);
+            onStop = () => setState(entry.shutterStopDp!, stopWrite);
+        } else if (typeof val === 'number') {
+            const cur = val;
+            onStop = () => setState(entry.id, cur);
+        }
+    } else {
+        const write = parseWrite(entry.shutterWriteValue, true);
+        onUp = entry.shutterUpDp ? () => setState(entry.shutterUpDp!, write) : undefined;
+        onStop = entry.shutterStopDp ? () => setState(entry.shutterStopDp!, write) : undefined;
+        onDown = entry.shutterDownDp ? () => setState(entry.shutterDownDp!, write) : undefined;
+    }
+
+    const Btn = ({ onClick, children, label }: { onClick?: () => void; children: React.ReactNode; label: string }) => (
         <button
-            onClick={dp ? () => setState(dp, write) : undefined}
-            disabled={!dp}
+            onClick={onClick}
+            disabled={!onClick}
             title={label}
             aria-label={label}
             className={`${btnCls} disabled:opacity-30`}
-            style={{ ...btnStyle, width: size, height: size, cursor: dp ? 'pointer' : 'default' }}
+            style={{ ...btnStyle, width: size, height: size, cursor: onClick ? 'pointer' : 'default' }}
         >
             {children}
         </button>
     );
     return (
         <div className="shrink-0 flex items-center gap-1">
-            <Btn dp={entry.shutterUpDp} label="Auf">
+            <Btn onClick={onUp} label="Auf">
                 <ChevronUp size={iconSize} />
             </Btn>
-            <Btn dp={entry.shutterStopDp} label="Stop">
+            <Btn onClick={onStop} label="Stop">
                 <Square size={Math.round(iconSize * 0.7)} />
             </Btn>
-            <Btn dp={entry.shutterDownDp} label="Ab">
+            <Btn onClick={onDown} label="Ab">
                 <ChevronDown size={iconSize} />
             </Btn>
         </div>
