@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
-import { Layers } from 'lucide-react';
+import { Layers, Loader } from 'lucide-react';
 import ReactGridLayout from 'react-grid-layout/legacy';
 import type { WidgetProps, WidgetConfig, WidgetType, ioBrokerState } from '../../types';
 import { useConfigStore } from '../../store/configStore';
@@ -36,6 +36,24 @@ function mobileSort(children: WidgetConfig[]): WidgetConfig[] {
     });
 }
 
+/** Empty-state line for a group: a spinner while children are still loading
+ *  from ioBroker, otherwise the plain "no widgets" hint. */
+function GroupEmptyState({ loading }: { loading: boolean }) {
+    const t = useT();
+    return (
+        <div className="flex items-center justify-center gap-1.5 py-6" style={{ color: 'var(--text-secondary)' }}>
+            {loading ? (
+                <>
+                    <Loader size={14} className="animate-spin" />
+                    <span className="text-xs">{t('common.loading')}</span>
+                </>
+            ) : (
+                <span className="text-xs">{t('group.noWidgets')}</span>
+            )}
+        </div>
+    );
+}
+
 export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const t = useT();
     const configLayout = config.layout ?? 'default';
@@ -58,6 +76,11 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const children = useGroupDefsStore((s) => s.defs[defId] ?? []);
+    // Group children hydrate from ioBroker after boot (can take a few seconds).
+    // Until then an empty `children` means "still loading", not "genuinely empty"
+    // — show a spinner instead of the "no widgets" text in that window.
+    const defsHydrated = useGroupDefsStore((s) => s.hydrated);
+    const isLoading = children.length === 0 && !defsHydrated;
     // Children whose conditions resolved to hidden+reflow are kept out of the
     // inner grid (mirroring Dashboard's tab-level behaviour) so others slide up.
     // They still need to be rendered somewhere so their conditions keep being
@@ -370,11 +393,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                             </div>
                         ))}
                     </div>
-                    {children.length === 0 && (
-                        <p className="text-xs text-center py-6" style={{ color: 'var(--text-secondary)' }}>
-                            {t('group.noWidgets')}
-                        </p>
-                    )}
+                    {children.length === 0 && <GroupEmptyState loading={isLoading} />}
                 </div>
                 {offScreenHidden}
             </div>
@@ -482,11 +501,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     </ReactGridLayout>
                 )}
 
-                {children.length === 0 && !editMode && (
-                    <p className="text-xs text-center py-6" style={{ color: 'var(--text-secondary)' }}>
-                        {t('group.noWidgets')}
-                    </p>
-                )}
+                {children.length === 0 && !editMode && <GroupEmptyState loading={isLoading} />}
             </div>
             {offScreenHidden}
         </div>
