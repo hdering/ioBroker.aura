@@ -163,7 +163,6 @@ export const de = {
     'settings.tabBar.alignCenter': 'Mitte',
     'settings.tabBar.alignRight': 'Rechts',
     'settings.tabBar.clearAll': '↩ Alles zurücksetzen',
-    'settings.tabBar.preview': 'Vorschau',
 
     'settings.grid.title': 'Grid & Mobil',
     'settings.grid.rowHeight': 'Rastergröße (Zeile)',

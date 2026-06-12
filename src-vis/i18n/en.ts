@@ -164,7 +164,6 @@ export const en: Record<TranslationKey, string> = {
     'settings.tabBar.alignCenter': 'Center',
     'settings.tabBar.alignRight': 'Right',
     'settings.tabBar.clearAll': '↩ Reset all',
-    'settings.tabBar.preview': 'Preview',
 
     'settings.grid.title': 'Grid & Mobile',
     'settings.grid.rowHeight': 'Grid size (row)',

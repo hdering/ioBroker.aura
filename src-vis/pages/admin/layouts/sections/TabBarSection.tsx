@@ -7,71 +7,7 @@ import {
     type TabBarItem,
 } from '../../../../store/dashboardStore';
 import { useConfigStore } from '../../../../store/configStore';
-import { tabStyle, resolveTabBarFontSize, renderTabBarItem } from '../../../../components/layout/TabBar';
-import { Icon } from '@iconify/react';
 import { useT } from '../../../../i18n';
-
-// ── TabBarPreview ─────────────────────────────────────────────────────────────
-// Live preview that mirrors the real TabBar layout using the effective settings
-// for the scope being edited (global or a specific layout).
-
-function TabBarPreview({ settings, tabs }: { settings: TabBarSettings; tabs: { name: string; icon?: string }[] }) {
-    const items = settings.items ?? [];
-    const leftItems = items.filter((i) => i.position === 'left');
-    const centerItems = items.filter((i) => i.position === 'center');
-    const rightItems = items.filter((i) => i.position === 'right');
-    const indicatorStyle = settings.indicatorStyle ?? 'underline';
-    const align = settings.tabsAlignment ?? 'left';
-    const iconSize = settings.iconSize ?? 14;
-
-    const containerStyle: React.CSSProperties = {
-        background: settings.background ?? 'var(--app-surface)',
-        fontSize: resolveTabBarFontSize(settings.fontSize),
-        minHeight: `${settings.height ?? 40}px`,
-        display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)',
-        alignItems: 'stretch',
-    };
-    const divider = <div className="w-px self-stretch mx-1 shrink-0" style={{ background: 'var(--app-border)' }} />;
-
-    const renderTabs = () =>
-        tabs.map((tab, idx) => (
-            <div
-                key={idx}
-                className={`flex items-center gap-1.5 px-3 whitespace-nowrap ${indicatorStyle === 'underline' ? 'py-2.5 border-b-2' : 'py-1.5'}`}
-                style={tabStyle(idx === 0, settings)}
-            >
-                {tab.icon && (
-                    <span style={{ width: iconSize, height: iconSize, display: 'inline-flex', alignItems: 'center' }}>
-                        <Icon icon={tab.icon} width={iconSize} height={iconSize} style={{ color: 'currentColor' }} />
-                    </span>
-                )}
-                {tab.name}
-            </div>
-        ));
-
-    return (
-        <div className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-            <div style={containerStyle}>
-                <div className="flex items-center gap-1 px-2 overflow-x-auto" style={{ minWidth: 0 }}>
-                    {leftItems.map(renderTabBarItem)}
-                    {align === 'left' && leftItems.length > 0 && divider}
-                    {align === 'left' && renderTabs()}
-                </div>
-                <div className="flex items-center justify-center gap-1 px-2 shrink-0">
-                    {align === 'center' && renderTabs()}
-                    {align === 'center' && centerItems.length > 0 && divider}
-                    {centerItems.map(renderTabBarItem)}
-                </div>
-                <div className="flex items-center justify-end gap-1 px-2 shrink-0">
-                    {align === 'right' && renderTabs()}
-                    {align === 'right' && rightItems.length > 0 && divider}
-                    {rightItems.map(renderTabBarItem)}
-                </div>
-            </div>
-        </div>
-    );
-}
 
 // ── OverrideDot ───────────────────────────────────────────────────────────────
 // Small marker shown next to a field that overrides the global value (layout scope).
@@ -432,12 +368,6 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
         { key: 'right', label: t('settings.tabBar.alignRight') },
     ];
 
-    // Sample tabs for the preview: real layout tabs in layout scope, placeholders globally.
-    const previewTabs =
-        layout && layout.tabs.length > 0
-            ? layout.tabs.slice(0, 4).map((tb) => ({ name: tb.name, icon: tb.icon }))
-            : [{ name: 'Tab 1' }, { name: 'Tab 2' }, { name: 'Tab 3' }];
-
     return (
         <div
             className="rounded-xl p-4 space-y-4"
@@ -464,13 +394,6 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                         {isGlobal ? t('settings.tabBar.clearAll') : t('layouts.scope.resetToGlobal')}
                     </button>
                 )}
-            </div>
-
-            <div>
-                <p className="text-[10px] uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                    {t('settings.tabBar.preview')}
-                </p>
-                <TabBarPreview settings={tbs} tabs={previewTabs} />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
