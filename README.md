@@ -192,6 +192,18 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.234 (2026-06-12)
+- fix(lint): auto-fix mixed typographic quotes
+- fix(group-action): resolve target checklist labels like the list does
+- refactor(auto-list): compact general per-entry settings to match static list
+- refactor(static-list): compact general per-entry settings layout
+- refactor(static-list): move font size up to general settings (paired with decimals)
+- fix(list-widgets): hide switch-only styling for Auto display type too
+- feat(list-widgets): hide switch-only entry styling for non-switch display types
+- refactor(static-list): move per-entry icon picker up next to label/unit
+- feat(list-widgets): support HomeMatic LEVEL position control for shutter entries
+
+
 ### 0.9.233 (2026-06-12)
 - style(list-widgets): use template literal in shutter DP scope check
 - style(prettier): auto-format code files
@@ -295,14 +307,6 @@ Release v0.9.224
 - @ fix(groups): stop empty group-defs store from clobbering ioBroker on reload
 
 
-### 0.9.214 (2026-06-10)
-- fix(widgets): keep list subscriptions alive under StrictMode
-- feat(settings): optimistic writes with instant UI feedback
-- fix(widgets): make group master switch confirm writes via getState
-- @ fix(widgets): give group master switch instant optimistic feedback
-- @ feat(widgets): add group master switch for lists and groups
-
-
 ## License
 
 MIT License
@@ -314,6 +318,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

@@ -1,5 +1,12 @@
 # Changelog (older entries)
 
+## 0.9.214 (2026-06-10)
+- fix(widgets): keep list subscriptions alive under StrictMode
+- feat(settings): optimistic writes with instant UI feedback
+- fix(widgets): make group master switch confirm writes via getState
+- @ fix(widgets): give group master switch instant optimistic feedback
+- @ feat(widgets): add group master switch for lists and groups
+
 ## 0.9.213 (2026-06-09)
 - fix(meta): remove unpublished 0.9.212 from io-package news (E2004)
 
