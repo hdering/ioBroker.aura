@@ -299,7 +299,8 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
     const layouts = useDashboardStore((s) => s.layouts);
     const updateLayoutSettings = useDashboardStore((s) => s.updateLayoutSettings);
     const clearLayoutSettings = useDashboardStore((s) => s.clearLayoutSettings);
-    const globalTb = useConfigStore((s) => s.frontend.tabBar);
+    // Older persisted configs predate the global tabBar key → fall back to {}.
+    const globalTb = useConfigStore((s) => s.frontend.tabBar) ?? {};
     const updateFrontend = useConfigStore((s) => s.updateFrontend);
 
     const isGlobal = contextId === null;
