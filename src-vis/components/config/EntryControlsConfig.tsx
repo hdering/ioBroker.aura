@@ -36,7 +36,7 @@ function detectShutterDps(baseId: string, entries: DatapointEntry[]): { up?: str
     const matchIn = (scope: string, re: RegExp): string | undefined => {
         const cands = entries.filter(
             (e) =>
-                e.id !== baseId && e.id.startsWith(scope + '.') && (re.test(shutterSeg(e.id)) || re.test(e.role ?? '')),
+                e.id !== baseId && e.id.startsWith(`${scope}.`) && (re.test(shutterSeg(e.id)) || re.test(e.role ?? '')),
         );
         if (!cands.length) return undefined;
         // Prefer writable command DPs over read-only status DPs.
