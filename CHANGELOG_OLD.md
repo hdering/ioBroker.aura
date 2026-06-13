@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.218 (2026-06-10)
+- fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically
+
 ## 0.9.217 (2026-06-10)
 - fix(lint): prettier formatting + wrap German quotes in JSX expressions
 - feat(widgets): per-column width ratios for custom-grid layout
