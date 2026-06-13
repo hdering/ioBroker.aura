@@ -428,6 +428,7 @@ export const en: Record<TranslationKey, string> = {
     'widgets.fromIoBroker': 'Select from ioBroker',
     'widgets.close': 'Close',
     'widgets.edit': 'Edit',
+    'widgets.openInEditor': 'Open in dashboard editor',
     'widgets.delete': 'Delete',
     'widgets.noneSelected': 'Nothing selected',
     'widgets.resetDefault': 'Reset to Default',

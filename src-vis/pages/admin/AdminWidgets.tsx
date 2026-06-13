@@ -1,21 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { createPortal } from 'react-dom';
-import { usePortalTarget } from '../../contexts/PortalTargetContext';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useT } from '../../i18n';
-import {
-    ChevronDown,
-    ChevronRight,
-    Copy,
-    Trash2,
-    Pencil,
-    Database,
-    X,
-    Check,
-    RotateCcw,
-    ArrowRightLeft,
-    Download,
-} from 'lucide-react';
+import { ChevronDown, ChevronRight, Trash2, Database, X, Check, RotateCcw, Download, ExternalLink } from 'lucide-react';
 import { useDashboardStore, useActiveLayout, type Tab } from '../../store/dashboardStore';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
 import { WidgetPreview } from '../../components/config/WidgetPreview';
@@ -369,30 +355,21 @@ function InlineEditForm({
 
 // ── Widget Row ────────────────────────────────────────────────────────────────
 
-type TabTarget = { layoutId: string; tabId: string };
-
 function WidgetRow({
     entry,
-    tabs,
     onUpdate,
     onDelete,
-    onCopy,
-    onMove,
     focused,
 }: {
     entry: WidgetEntry;
-    tabs: Tab[];
     onUpdate: (config: WidgetConfig) => void;
     onDelete: () => void;
-    onCopy: (target: TabTarget) => void;
-    onMove: (target: TabTarget) => void;
     focused?: boolean;
 }) {
     const t = useT();
     const [editing, setEditing] = useState(!!focused);
     const rowRef = useRef<HTMLDivElement>(null);
     const [confirmDelete, setConfirmDelete] = useState(false);
-    const [showCopy, setShowCopy] = useState(false);
     const [draft, setDraft] = useState<WidgetConfig>(entry.config);
 
     // Deep-link target: auto-open + scroll into view.
@@ -402,47 +379,12 @@ function WidgetRow({
         setDraft(entry.config);
         queueMicrotask(() => rowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     }, [focused]); // eslint-disable-line react-hooks/exhaustive-deps
-    const copyBtnRef = useRef<HTMLButtonElement>(null);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-    const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null);
-    const { layouts } = useDashboardStore();
-    const portalTarget = usePortalTarget();
-    // Default target: first tab of first layout (excluding source)
-    const firstTarget = layouts
-        .flatMap((l) => l.tabs.map((t) => ({ layoutId: l.id, tabId: t.id })))
-        .find((x) => !(x.layoutId === entry.tab.id || x.tabId === entry.tab.id)) ?? {
-        layoutId: layouts[0]?.id ?? '',
-        tabId: tabs[0]?.id ?? '',
-    };
-    const [copyTarget, setCopyTarget] = useState<TabTarget>(firstTarget);
-
-    useEffect(() => {
-        if (!showCopy) return;
-        const btn = copyBtnRef.current;
-        if (!btn) return;
-        const rect = btn.getBoundingClientRect();
-        setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
-        const onClose = (e: MouseEvent) => {
-            if (dropdownRef.current?.contains(e.target as Node)) return;
-            if (copyBtnRef.current?.contains(e.target as Node)) return;
-            setShowCopy(false);
-        };
-        window.addEventListener('mousedown', onClose);
-        return () => window.removeEventListener('mousedown', onClose);
-    }, [showCopy]);
+    const { activeLayoutId } = useDashboardStore();
+    const navigate = useNavigate();
 
     const handleSave = (c: WidgetConfig) => {
         setDraft(c);
         onUpdate(c);
-    };
-
-    const handleEditToggle = () => {
-        if (editing) {
-            setEditing(false);
-        } else {
-            setDraft(entry.config);
-            setEditing(true);
-        }
     };
 
     return (
@@ -493,17 +435,25 @@ function WidgetRow({
 
                 {/* Actions */}
                 <div className="flex items-center gap-1.5 shrink-0">
+                    {/* Jump to this widget in the dashboard editor (pulse-highlights it). */}
                     <button
-                        onClick={handleEditToggle}
+                        onClick={() =>
+                            navigate(
+                                `/admin/editor?layout=${encodeURIComponent(activeLayoutId)}&tab=${encodeURIComponent(
+                                    entry.tab.id,
+                                )}&focus=${encodeURIComponent(entry.config.id)}`,
+                            )
+                        }
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg hover:opacity-80 transition-opacity"
                         style={{
-                            background: editing ? 'var(--accent)' : 'var(--app-surface)',
-                            color: editing ? '#fff' : 'var(--text-secondary)',
+                            background: 'var(--app-surface)',
+                            color: 'var(--text-secondary)',
                             border: '1px solid var(--app-border)',
                         }}
+                        title={t('widgets.openInEditor')}
                     >
-                        <Pencil size={12} />
-                        {editing ? t('widgets.close') : t('widgets.edit')}
+                        <ExternalLink size={12} />
+                        {t('widgets.openInEditor')}
                     </button>
 
                     {/* Export */}
@@ -519,87 +469,6 @@ function WidgetRow({
                     >
                         <Download size={13} />
                     </button>
-
-                    {/* Copy / Move */}
-                    <button
-                        ref={copyBtnRef}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowCopy((v) => !v);
-                            setConfirmDelete(false);
-                        }}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
-                        style={{
-                            background: showCopy ? 'var(--accent)' : 'var(--app-surface)',
-                            color: showCopy ? '#fff' : 'var(--text-secondary)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                        title={`${t('common.duplicate')} / ${t('common.move')}`}
-                    >
-                        <Copy size={13} />
-                    </button>
-                    {showCopy &&
-                        dropdownPos &&
-                        createPortal(
-                            <div
-                                ref={dropdownRef}
-                                className="rounded-lg shadow-2xl p-2 space-y-1.5 min-w-[210px]"
-                                style={{
-                                    position: 'fixed',
-                                    top: dropdownPos.top,
-                                    right: dropdownPos.right,
-                                    zIndex: 9999,
-                                    background: 'var(--app-surface)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            >
-                                <p className="text-[11px] font-medium px-1" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('widgets.copyTarget')}
-                                </p>
-                                <select
-                                    value={`${copyTarget.layoutId}::${copyTarget.tabId}`}
-                                    onChange={(e) => {
-                                        const [layoutId, tabId] = e.target.value.split('::');
-                                        setCopyTarget({ layoutId, tabId });
-                                    }}
-                                    className="w-full text-xs rounded px-2 py-1.5 focus:outline-none"
-                                    style={inputStyle}
-                                >
-                                    {layouts.map((layout) => (
-                                        <optgroup key={layout.id} label={layout.name}>
-                                            {layout.tabs.map((t) => (
-                                                <option key={t.id} value={`${layout.id}::${t.id}`}>
-                                                    {t.name}
-                                                </option>
-                                            ))}
-                                        </optgroup>
-                                    ))}
-                                </select>
-                                <div className="grid grid-cols-2 gap-1.5">
-                                    <button
-                                        onClick={() => {
-                                            onCopy(copyTarget);
-                                            setShowCopy(false);
-                                        }}
-                                        className="flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-80"
-                                        style={{ background: 'var(--accent)' }}
-                                    >
-                                        <Copy size={11} /> {t('common.duplicate')}
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            onMove(copyTarget);
-                                            setShowCopy(false);
-                                        }}
-                                        className="flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-80"
-                                        style={{ background: '#8b5cf6' }}
-                                    >
-                                        <ArrowRightLeft size={11} /> {t('common.move')}
-                                    </button>
-                                </div>
-                            </div>,
-                            portalTarget,
-                        )}
 
                     {/* Delete */}
                     {confirmDelete ? (
@@ -625,10 +494,7 @@ function WidgetRow({
                         </>
                     ) : (
                         <button
-                            onClick={() => {
-                                setConfirmDelete(true);
-                                setShowCopy(false);
-                            }}
+                            onClick={() => setConfirmDelete(true)}
                             className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
                             style={{
                                 background: 'var(--app-surface)',
@@ -657,21 +523,15 @@ function WidgetRow({
 function TypeSection({
     type,
     entries,
-    tabs,
     onUpdate,
     onDelete,
-    onCopy,
-    onMove,
     defaultOpen,
     focusedId,
 }: {
     type: WidgetType;
     entries: WidgetEntry[];
-    tabs: Tab[];
     onUpdate: (tabId: string, widgetId: string, config: WidgetConfig) => void;
     onDelete: (tabId: string, widgetId: string) => void;
-    onCopy: (entry: WidgetEntry, target: TabTarget) => void;
-    onMove: (entry: WidgetEntry, target: TabTarget) => void;
     defaultOpen: boolean;
     focusedId?: string;
 }) {
@@ -716,11 +576,8 @@ function TypeSection({
                         <WidgetRow
                             key={entry.config.id}
                             entry={entry}
-                            tabs={tabs}
                             onUpdate={(config) => onUpdate(entry.tab.id, entry.config.id, config)}
                             onDelete={() => onDelete(entry.tab.id, entry.config.id)}
-                            onCopy={(target) => onCopy(entry, target)}
-                            onMove={(target) => onMove(entry, target)}
                             focused={focusedId === entry.config.id}
                         />
                     ))}
@@ -820,14 +677,7 @@ function DefaultSizesDialog({ onClose }: { onClose: () => void }) {
 
 export function AdminWidgets() {
     const t = useT();
-    const {
-        updateWidgetInTab,
-        removeWidgetInTab,
-        addWidgetToLayoutTab,
-        removeWidgetFromLayoutTab,
-        activeLayoutId,
-        setActiveLayoutAndTab,
-    } = useDashboardStore();
+    const { updateWidgetInTab, removeWidgetInTab, activeLayoutId, setActiveLayoutAndTab } = useDashboardStore();
     const tabs = useActiveLayout().tabs;
     const [showSizes, setShowSizes] = useState(false);
     const [search, setSearch] = useState('');
@@ -874,23 +724,6 @@ export function AdminWidgets() {
     }, [filteredEntries]);
 
     const activeTypes = TYPE_ORDER.filter((tp) => (byType.get(tp)?.length ?? 0) > 0);
-
-    const handleCopy = (entry: WidgetEntry, target: TabTarget) => {
-        addWidgetToLayoutTab(target.layoutId, target.tabId, {
-            ...entry.config,
-            id: `${entry.config.type}-copy-${Date.now()}`,
-            gridPos: { ...entry.config.gridPos, y: 9999 },
-        });
-    };
-
-    const handleMove = (entry: WidgetEntry, target: TabTarget) => {
-        if (target.tabId === entry.tab.id && target.layoutId === activeLayoutId) return;
-        addWidgetToLayoutTab(target.layoutId, target.tabId, {
-            ...entry.config,
-            gridPos: { ...entry.config.gridPos, y: 9999 },
-        });
-        removeWidgetFromLayoutTab(activeLayoutId, entry.tab.id, entry.config.id);
-    };
 
     return (
         <div className="p-6 space-y-6">
@@ -974,7 +807,6 @@ export function AdminWidgets() {
                             key={type}
                             type={type}
                             entries={byType.get(type) ?? []}
-                            tabs={tabs}
                             onUpdate={(tabId, widgetId, config) => updateWidgetInTab(tabId, widgetId, config)}
                             onDelete={(tabId, widgetId) => {
                                 const widget = tabs
@@ -983,8 +815,6 @@ export function AdminWidgets() {
                                 unpublishTimerForWidget(widget);
                                 removeWidgetInTab(tabId, widgetId);
                             }}
-                            onCopy={handleCopy}
-                            onMove={handleMove}
                             defaultOpen={i === 0}
                             focusedId={focusId}
                         />

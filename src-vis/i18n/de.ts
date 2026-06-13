@@ -428,6 +428,7 @@ export const de = {
     'widgets.fromIoBroker': 'Aus ioBroker wählen',
     'widgets.close': 'Schließen',
     'widgets.edit': 'Bearbeiten',
+    'widgets.openInEditor': 'Im Dashboard-Editor öffnen',
     'widgets.delete': 'Löschen',
     'widgets.noneSelected': 'Nichts ausgewählt',
     'widgets.resetDefault': 'Auf Standard zurücksetzen',
