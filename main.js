@@ -1008,7 +1008,9 @@ class Aura extends utils.Adapter {
             } catch {
                 return;
             }
-            if (parsedUrl.pathname.startsWith('/socket.io/')) {
+            const isClassicSocketIo = parsedUrl.pathname.startsWith('/socket.io/');
+            const isPureWs = parsedUrl.pathname === '/';
+            if (isClassicSocketIo || isPureWs) {
                 const wsScheme = socketSecure ? 'wss' : 'ws';
                 proxyWebSocket(req, socket, `${wsScheme}://${socketHostPort}${req.url}`, this.log);
                 return;
