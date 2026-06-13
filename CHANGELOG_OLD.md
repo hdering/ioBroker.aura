@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.219 (2026-06-10)
+- feat(admin): make image/file picker root folders (fsRoots) editable in settings
+
 ## 0.9.218 (2026-06-10)
 - fix(editor): sort 'Weitere Widgets' by displayed label so new widget types auto-order alphabetically
 

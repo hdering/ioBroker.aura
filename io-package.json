@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.238",
+    "version": "0.9.239",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.239": {
+        "en": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
+        "de": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
+        "ru": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
+        "pt": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
+        "nl": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
+        "fr": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
+        "it": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
+        "es": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
+        "pl": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
+        "uk": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
+        "zh-cn": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)"
+      },
       "0.9.238": {
         "en": "style(prettier): auto-format code files",
         "de": "style(prettier): auto-format code files",
@@ -183,19 +196,6 @@
         "pl": "style(list-widgets): use template literal in shutter DP scope check; style(prettier): auto-format code files; feat(list-widgets): add shutter DP auto-detection to entry controls; feat(admin-widgets): sort widget type listing alphabetically by label",
         "uk": "style(list-widgets): use template literal in shutter DP scope check; style(prettier): auto-format code files; feat(list-widgets): add shutter DP auto-detection to entry controls; feat(admin-widgets): sort widget type listing alphabetically by label",
         "zh-cn": "style(list-widgets): use template literal in shutter DP scope check; style(prettier): auto-format code files; feat(list-widgets): add shutter DP auto-detection to entry controls; feat(admin-widgets): sort widget type listing alphabetically by label"
-      },
-      "0.9.232": {
-        "en": "style(prettier): auto-format code files; refactor(backup): drop legacy dashboard_backup state and one-time migration",
-        "de": "style(prettier): auto-format code files; refactor(backup): drop legacy dashboard_backup state and one-time migration",
-        "ru": "style(prettier): auto-format code files; refactor(backup): drop legacy dashboard_backup state and one-time migration",
-        "pt": "style(prettier): auto-format code files; refactor(backup): drop legacy dashboard_backup state and one-time migration",
-        "nl": "style(prettier): auto-format code files; refactor(backup): drop legacy dashboard_backup state and one-time migration",
-        "fr": "style(prettier): auto-format code files; refactor(backup): drop legacy dashboard_backup state and one-time migration",
-        "it": "style(prettier): auto-format code files; refactor(backup): drop legacy dashboard_backup state and one-time migration",
-        "es": "style(prettier): auto-format code files; refactor(backup): drop legacy dashboard_backup state and one-time migration",
-        "pl": "style(prettier): auto-format code files; refactor(backup): drop legacy dashboard_backup state and one-time migration",
-        "uk": "style(prettier): auto-format code files; refactor(backup): drop legacy dashboard_backup state and one-time migration",
-        "zh-cn": "style(prettier): auto-format code files; refactor(backup): drop legacy dashboard_backup state and one-time migration"
       }
     }
   },
