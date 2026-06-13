@@ -12,13 +12,45 @@ import type { WidgetConfig, WidgetType } from '../../types';
 
 const DEFAULT_MARGIN = 10;
 
-/** Documented DP placeholders with a worked example (main DP = 0_userdata.0.Anzeige),
- *  shown in the reference panel so editors see exactly what each resolves to. */
+/** Worked example used throughout the reference panel — a thermostat with Ist-/Soll-
+ *  Temperatur as siblings, which is exactly the tricky case ({{parent}}.TIST). */
+const EXAMPLE_MAIN_DP = 'alias.0.Heizung.Bad.TSOLL';
+
+/** Documented DP placeholders with their resolved value for EXAMPLE_MAIN_DP. */
 const PLACEHOLDER_DOCS: { token: string; example: string; desc: string }[] = [
-    { token: '{{dp}}', example: '0_userdata.0.Anzeige', desc: 'Haupt-Datenpunkt' },
-    { token: '{{parent}}', example: '0_userdata.0', desc: 'Eltern-Strang (ohne letztes Segment)' },
-    { token: '{{name}}', example: 'Anzeige', desc: 'Letztes Segment' },
-    { token: '{{parent}}.Trigger', example: '0_userdata.0.Trigger', desc: 'Geschwister-DP (Strang + Suffix)' },
+    { token: '{{dp}}', example: 'alias.0.Heizung.Bad.TSOLL', desc: 'Haupt-Datenpunkt (voll)' },
+    { token: '{{parent}}', example: 'alias.0.Heizung.Bad', desc: 'Eltern-Strang (ohne letztes Segment)' },
+    { token: '{{name}}', example: 'TSOLL', desc: 'Letztes Segment' },
+];
+
+/** Concrete usage scenarios — what to type, in which field, and what comes out.
+ *  These cover the non-obvious cases (sibling DPs, chart series, JSON path). */
+const PLACEHOLDER_SCENARIOS: { value: string; field: string; result: string }[] = [
+    {
+        value: '{{parent}}.TIST',
+        field: 'Datenpunkt eines weiteren Wert-/Anzeige-Widgets',
+        result: 'alias.0.Heizung.Bad.TIST',
+    },
+    {
+        value: '{{parent}}.TSOLL',
+        field: 'Diagramm (erweitert) → Serie → Datenpunkt',
+        result: 'alias.0.Heizung.Bad.TSOLL',
+    },
+    {
+        value: '{{parent}}.BOOST',
+        field: 'Schalter- oder Button-Datenpunkt',
+        result: 'alias.0.Heizung.Bad.BOOST',
+    },
+    {
+        value: '{{dp}}#battery.soc',
+        field: 'Datenpunkt mit JSON-Pfad (Wert aus JSON-Payload)',
+        result: 'alias.0.Heizung.Bad.TSOLL#battery.soc',
+    },
+    {
+        value: '{{name}}',
+        field: 'Widget-Titel',
+        result: 'TSOLL',
+    },
 ];
 
 /** Option-based placeholders (everything beyond the core DP vars), listed as plain chips. */
@@ -232,10 +264,11 @@ export function PopupViewEditor() {
                         }}
                     >
                         <p className="mb-2" style={{ opacity: 0.8 }}>
-                            Platzhalter werden beim Öffnen durch Werte des auslösenden Widgets ersetzt.
+                            Platzhalter werden beim Öffnen durch Werte des auslösenden Widgets ersetzt — in{' '}
+                            <em>jedem</em> Datenpunkt-Feld der Popup-Widgets (auch in Diagramm-Serien, Titeln usw.).
                             Beispiel-Haupt-DP:{' '}
                             <span className="font-mono" style={{ color: 'var(--text-primary)' }}>
-                                0_userdata.0.Anzeige
+                                {EXAMPLE_MAIN_DP}
                             </span>
                         </p>
                         <table className="border-collapse" style={{ width: 'auto' }}>
@@ -263,6 +296,37 @@ export function PopupViewEditor() {
                                 ))}
                             </tbody>
                         </table>
+
+                        {/* Concrete usage scenarios — the part editors actually struggle with */}
+                        <p className="mt-3 mb-1 font-medium" style={{ color: 'var(--text-primary)', opacity: 0.85 }}>
+                            Beispiele
+                        </p>
+                        <table className="border-collapse" style={{ width: 'auto' }}>
+                            <thead>
+                                <tr style={{ textAlign: 'left', opacity: 0.6 }}>
+                                    <th className="pr-6 pb-1 font-normal">eingeben</th>
+                                    <th className="pr-6 pb-1 font-normal">in Feld</th>
+                                    <th className="pb-1 font-normal">ergibt</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {PLACEHOLDER_SCENARIOS.map((s) => (
+                                    <tr key={s.value + s.field}>
+                                        <td
+                                            className="pr-6 py-0.5 font-mono"
+                                            style={{ color: 'var(--text-primary)', whiteSpace: 'nowrap' }}
+                                        >
+                                            {s.value}
+                                        </td>
+                                        <td className="pr-6 py-0.5">{s.field}</td>
+                                        <td className="py-0.5 font-mono" style={{ whiteSpace: 'nowrap' }}>
+                                            {s.result}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
                         {OPTION_PLACEHOLDER_KEYS.length > 0 && (
                             <div className="mt-3">
                                 <span style={{ opacity: 0.6 }}>Aus Widget-Optionen: </span>
