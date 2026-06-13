@@ -4919,6 +4919,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
     };
     const [pickerTarget, setPickerTarget] = useState<
         | 'datapoint'
+        | 'universal-dp'
         | 'actualDatapoint'
         | 'localTempDatapoint'
         | 'shutter_activityDp'
@@ -13803,6 +13804,66 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                         >
                                             Widget-Einstellungen
                                         </p>
+                                        {isUniversal && (
+                                            <div
+                                                className="space-y-1.5 rounded-lg p-2.5 mb-2"
+                                                style={{
+                                                    border: '1px solid var(--app-border)',
+                                                    background: 'var(--app-bg)',
+                                                }}
+                                            >
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Haupt-Datenpunkt (optional, für Popup-View)
+                                                </label>
+                                                <div className="flex gap-1">
+                                                    <input
+                                                        type="text"
+                                                        value={config.datapoint ?? ''}
+                                                        onChange={(e) =>
+                                                            onConfigChange({ ...config, datapoint: e.target.value })
+                                                        }
+                                                        placeholder="z. B. 0_userdata.0.Anzeige"
+                                                        className="flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0"
+                                                        style={{
+                                                            background: 'var(--app-bg)',
+                                                            color: 'var(--text-primary)',
+                                                            border: '1px solid var(--app-border)',
+                                                        }}
+                                                    />
+                                                    <JsonPathButton
+                                                        value={config.datapoint ?? ''}
+                                                        onChange={(ref) =>
+                                                            onConfigChange({ ...config, datapoint: ref })
+                                                        }
+                                                    />
+                                                    <button
+                                                        onClick={() => setPickerTarget('universal-dp')}
+                                                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                        style={{
+                                                            background: 'var(--app-bg)',
+                                                            color: 'var(--text-secondary)',
+                                                            border: '1px solid var(--app-border)',
+                                                        }}
+                                                        title={t('wf.edit.fromIoBroker')}
+                                                    >
+                                                        <Database size={13} />
+                                                    </button>
+                                                </div>
+                                                <p
+                                                    className="text-[10px] leading-tight"
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                >
+                                                    Wird beim Öffnen einer Popup-View als{' '}
+                                                    <span className="font-mono">{'{{dp}}'}</span> übergeben (inkl.{' '}
+                                                    <span className="font-mono">{'{{parent}}'}</span>/
+                                                    <span className="font-mono">{'{{name}}'}</span>). Ändert den
+                                                    Widget-Typ nicht.
+                                                </p>
+                                            </div>
+                                        )}
                                         <div
                                             className="space-y-2 rounded-lg p-2.5"
                                             style={{
@@ -14494,7 +14555,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                         pickerTarget === 'datapoint' && config.type === 'stateimage' ? ['boolean'] : undefined
                     }
                     currentValue={
-                        pickerTarget === 'datapoint'
+                        pickerTarget === 'datapoint' || pickerTarget === 'universal-dp'
                             ? config.datapoint
                             : pickerTarget === 'localTempDatapoint'
                               ? ((config.options?.localTempDatapoint as string) ?? '')
@@ -14831,6 +14892,10 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             } else {
                                 applyDp(canAutoSwitch);
                             }
+                        } else if (pickerTarget === 'universal-dp') {
+                            // Universal widget has no inherent main DP — set it plainly,
+                            // never auto-detect/switch the widget type (that path is for 'datapoint').
+                            onConfigChange({ ...config, datapoint: id });
                         } else if (pickerTarget === 'localTempDatapoint') {
                             onConfigChange({ ...config, options: { ...config.options, localTempDatapoint: id } });
                         } else if (pickerTarget === 'weather_adapterPath') {
