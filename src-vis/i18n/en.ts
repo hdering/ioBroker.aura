@@ -363,6 +363,8 @@ export const en: Record<TranslationKey, string> = {
 
     'theme.preset.title': 'Theme Preset',
     'theme.preset.active': 'Active ✓',
+    'theme.preset.desc':
+        'A preset sets all design variables at once: page and card backgrounds, borders, shadows, corner radius, text colors and the accent colors (blue/green/yellow/red) used by widgets. The colored dots show each theme’s card and accent colors. After picking a preset you can fine-tune individual variables below.',
 
     'theme.vars.title': 'Customize CSS Variables',
     'theme.vars.resetAll': 'Reset All',

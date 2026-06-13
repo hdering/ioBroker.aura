@@ -363,6 +363,8 @@ export const de = {
 
     'theme.preset.title': 'Theme-Preset',
     'theme.preset.active': 'Aktiv ✓',
+    'theme.preset.desc':
+        'Ein Preset setzt alle Design-Variablen auf einmal: Seiten- und Karten-Hintergründe, Rahmen, Schatten, Eckenradius, Textfarben sowie die Akzentfarben (Blau/Grün/Gelb/Rot) der Widgets. Die farbigen Punkte zeigen die Karten- und Akzentfarben des jeweiligen Themes. Nach der Auswahl eines Presets kannst du einzelne Variablen unten weiter anpassen.',
 
     'theme.vars.title': 'CSS-Variablen anpassen',
     'theme.vars.resetAll': 'Alle zurücksetzen',
