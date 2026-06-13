@@ -15,17 +15,25 @@ function subAll(value: string, map: Record<string, string>): string {
     return value.replace(/\{\{(\w+)\}\}/g, (_, key) => map[key] ?? `{{${key}}}`);
 }
 
+/** Recursively substitute {{key}} in every string within a value, walking nested
+ *  arrays and objects. Needed so datapoints buried in option arrays — e.g. the
+ *  extended chart's `echartSeries[].datapointId`, camera slots, chips — also resolve. */
+function subDeep(value: unknown, map: Record<string, string>): unknown {
+    if (typeof value === 'string') return subAll(value, map);
+    if (Array.isArray(value)) return value.map((v) => subDeep(v, map));
+    if (value && typeof value === 'object') {
+        return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, subDeep(v, map)]));
+    }
+    return value;
+}
+
 function substituteWidget(w: WidgetConfig, map: Record<string, string>): WidgetConfig {
     if (Object.keys(map).length === 0) return w;
     return {
         ...w,
         datapoint: subAll(w.datapoint, map),
         title: subAll(w.title, map),
-        options: w.options
-            ? Object.fromEntries(
-                  Object.entries(w.options).map(([k, v]) => [k, typeof v === 'string' ? subAll(v, map) : v]),
-              )
-            : w.options,
+        options: w.options ? (subDeep(w.options, map) as WidgetConfig['options']) : w.options,
     };
 }
 
