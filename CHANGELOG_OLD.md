@@ -1,5 +1,13 @@
 # Changelog (older entries)
 
+## 0.9.221 (2026-06-10)
+- fix(lint): auto-fix mixed typographic quotes
+- feat(group-action): per-target checklist to exclude DPs
+- refactor(editor): hide empty widget-settings card for group widget
+- refactor(editor): move group action into its own card outside the widget box
+- feat(group-action): selectable action type (switch/dimmer/shutter/momentary)
+- feat(lists): add shutter, stepper, value-presets and momentary controls
+
 ## 0.9.220 (2026-06-10)
 - style: fix prettier formatting in TabBarSection
 - feat(admin): tab bar height + font size as px sliders extendable beyond range

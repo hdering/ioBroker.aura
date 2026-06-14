@@ -192,6 +192,12 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.241 (2026-06-14)
+- fix(popup): inherit history adapter instance into popup charts
+- Merge branch 'fix/309-open-in-dashboard-editor'
+- docs(popup): add concrete placeholder examples in popup-view editor
+
+
 ### 0.9.240 (2026-06-13)
 - feat(widgets): add "open in dashboard editor" button to widget rows (#309)
 
@@ -297,15 +303,6 @@ Release v0.9.224
 - fix(checker): resolve adapter-checker warnings (deps, roles, timers, prettier)
 
 
-### 0.9.221 (2026-06-10)
-- fix(lint): auto-fix mixed typographic quotes
-- feat(group-action): per-target checklist to exclude DPs
-- refactor(editor): hide empty widget-settings card for group widget
-- refactor(editor): move group action into its own card outside the widget box
-- feat(group-action): selectable action type (switch/dimmer/shutter/momentary)
-- feat(lists): add shutter, stepper, value-presets and momentary controls
-
-
 ## License
 
 MIT License
@@ -317,6 +314,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
