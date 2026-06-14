@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.220 (2026-06-10)
+- style: fix prettier formatting in TabBarSection
+- feat(admin): tab bar height + font size as px sliders extendable beyond range
+
 ## 0.9.219 (2026-06-10)
 - feat(admin): make image/file picker root folders (fsRoots) editable in settings
 
