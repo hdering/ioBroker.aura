@@ -37,6 +37,42 @@ function substituteWidget(w: WidgetConfig, map: Record<string, string>): WidgetC
     };
 }
 
+// ── History-instance inheritance ────────────────────────────────────────────────
+
+/** History adapter instance configured on the trigger widget — top-level (simple
+ *  chart) or on its first series (extended chart). Undefined if none is set. */
+function triggerHistoryInstance(w: WidgetConfig | undefined): string | undefined {
+    const o = w?.options;
+    if (!o) return undefined;
+    if (typeof o.historyInstance === 'string' && o.historyInstance) return o.historyInstance;
+    const series = o.echartSeries as Array<{ historyInstance?: string }> | undefined;
+    return series?.find((s) => s.historyInstance)?.historyInstance;
+}
+
+/** Popup chart/echart widgets inherit the trigger's history instance when they don't
+ *  carry one themselves — so a popup diagram pulls its history from the same adapter as
+ *  the widget that opened it. Explicit per-widget/per-series instances are preserved. */
+function inheritHistoryInstance(w: WidgetConfig, inst: string | undefined): WidgetConfig {
+    if (!inst) return w;
+    if (w.type === 'chart') {
+        const own = w.options?.historyInstance;
+        if (typeof own === 'string' && own) return w;
+        return { ...w, options: { ...w.options, historyInstance: inst } };
+    }
+    if (w.type === 'echart') {
+        const series = w.options?.echartSeries as Array<Record<string, unknown>> | undefined;
+        if (!Array.isArray(series) || series.length === 0 || !series.some((s) => !s.historyInstance)) return w;
+        return {
+            ...w,
+            options: {
+                ...w.options,
+                echartSeries: series.map((s) => (s.historyInstance ? s : { ...s, historyInstance: inst })),
+            },
+        };
+    }
+    return w;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -112,7 +148,9 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
     }
 
     const wm = getWidgetMap();
-    const widgets = view.widgets.map((w) => substituteWidget(w, subMap));
+    // Popup charts inherit the trigger's history adapter instance when they have none.
+    const triggerInstance = triggerHistoryInstance(triggerWidget);
+    const widgets = view.widgets.map((w) => inheritHistoryInstance(substituteWidget(w, subMap), triggerInstance));
 
     const layout = widgets.map((w) => ({
         i: w.id,
