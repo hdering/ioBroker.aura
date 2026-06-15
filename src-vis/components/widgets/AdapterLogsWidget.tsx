@@ -83,7 +83,8 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
     const { connected } = useIoBroker();
 
     const [levels, setLevels] = useState<Set<Severity>>(defaultLevels);
-    const [adapter, setAdapter] = useState<string>('');
+    // Runtime adapter filter — multi-select. Empty set = show all adapters.
+    const [selectedAdapters, setSelectedAdapters] = useState<Set<string>>(new Set());
     const [query, setQuery] = useState('');
     const [paused, setPaused] = useState(false);
     const [autoScroll, setAutoScroll] = useState(true);
@@ -193,12 +194,12 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
             const e = buf[i];
             const sev = normalizeSeverity(e.severity);
             if (!levels.has(sev)) continue;
-            if (adapter && adapterFromSource(e.from) !== adapter) continue;
+            if (selectedAdapters.size > 0 && !selectedAdapters.has(adapterFromSource(e.from))) continue;
             if (lc && !e.message.toLowerCase().includes(lc) && !e.from.toLowerCase().includes(lc)) continue;
             out.push(e);
         }
         return newestFirst ? out : out.reverse();
-    }, [tick, levels, adapter, query, visibleLimit, newestFirst]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [tick, levels, selectedAdapters, query, visibleLimit, newestFirst]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Counts (over whole buffer)
     const counts = useMemo(() => {
@@ -215,6 +216,25 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
             return next;
         });
     };
+
+    const toggleAdapter = (a: string) => {
+        setSelectedAdapters((prev) => {
+            const next = new Set(prev);
+            if (next.has(a)) next.delete(a);
+            else next.add(a);
+            return next;
+        });
+    };
+
+    // Drop selections for adapters that have aged out of the buffer.
+    useEffect(() => {
+        setSelectedAdapters((prev) => {
+            if (prev.size === 0) return prev;
+            const avail = new Set(adapters);
+            const next = new Set([...prev].filter((a) => avail.has(a)));
+            return next.size === prev.size ? prev : next;
+        });
+    }, [adapters]);
 
     const clearBuffer = () => {
         bufferRef.current = [];
@@ -301,24 +321,40 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                         );
                     })}
                     {adapters.length > 0 && (
-                        <select
-                            value={adapter}
-                            onChange={(e) => setAdapter(e.target.value)}
-                            className="text-[10px] px-2 py-0.5 rounded-full"
-                            style={{
-                                background: 'var(--app-bg)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                            title="Adapter filtern"
-                        >
-                            <option value="">Alle Adapter</option>
-                            {adapters.map((a) => (
-                                <option key={a} value={a}>
-                                    {a}
-                                </option>
-                            ))}
-                        </select>
+                        <>
+                            <button
+                                onClick={() => setSelectedAdapters(new Set())}
+                                className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                style={{
+                                    background: selectedAdapters.size === 0 ? 'var(--accent)' : 'var(--app-bg)',
+                                    color: selectedAdapters.size === 0 ? '#fff' : 'var(--text-secondary)',
+                                    border: `1px solid ${
+                                        selectedAdapters.size === 0 ? 'var(--accent)' : 'var(--app-border)'
+                                    }`,
+                                }}
+                                title="Alle Adapter anzeigen"
+                            >
+                                Alle
+                            </button>
+                            {adapters.map((a) => {
+                                const active = selectedAdapters.has(a);
+                                return (
+                                    <button
+                                        key={a}
+                                        onClick={() => toggleAdapter(a)}
+                                        className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                        title={`${a} ein-/ausblenden`}
+                                    >
+                                        {a}
+                                    </button>
+                                );
+                            })}
+                        </>
                     )}
                 </div>
             )}
