@@ -8,6 +8,7 @@ import { CustomGridView } from './CustomGridView';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { samplePreviewSeries } from '../../utils/sampleChartData';
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -34,7 +35,7 @@ function deepMerge(target: Record<string, unknown>, source: Record<string, unkno
     return result;
 }
 
-export function EChartWidget({ config }: WidgetProps) {
+export function EChartWidget({ config, editMode }: WidgetProps) {
     const { subscribe, getState, connected } = useIoBroker();
 
     const layout = config.layout ?? 'default';
@@ -92,11 +93,25 @@ export function EChartWidget({ config }: WidgetProps) {
     const allLoading = echartSeries.length > 0 && echartSeries.every((s) => seriesDataMap.get(s.id)?.loading);
     const hasAnyData = echartSeries.some((s) => (seriesDataMap.get(s.id)?.data.length ?? 0) > 0);
 
+    // In the popup editor the series datapoints are {{placeholders}} that can't resolve,
+    // so there is no real data. Render representative sample curves instead of "Keine Daten".
+    const isPreview =
+        editMode &&
+        echartSeries.length > 0 &&
+        !hasAnyData &&
+        echartSeries.some((s) => (s.datapointId ?? '').includes('{{'));
+    const previewData = isPreview ? echartSeries.map((_, idx) => samplePreviewSeries(idx)) : null;
+    const seriesData = (idx: number, id: string): [number, number][] =>
+        previewData ? previewData[idx] : (seriesDataMap.get(id)?.data ?? []);
+    const seriesCurrent = (idx: number, id: string): number | null =>
+        previewData ? previewData[idx][previewData[idx].length - 1][1] : (seriesDataMap.get(id)?.current ?? null);
+    const effHasData = isPreview || hasAnyData;
+    const effLoading = !isPreview && allLoading;
+
     // Gauge mode: show first series' current value as a gauge
     if (isGauge) {
         const firstSeries = echartSeries[0];
-        const firstData = seriesDataMap.get(firstSeries?.id ?? '');
-        const gaugeValue = firstData?.current ?? 0;
+        const gaugeValue = seriesCurrent(0, firstSeries?.id ?? '') ?? 0;
         const gaugeColor = firstSeries?.color ?? DEFAULT_COLORS[0];
 
         const gaugeOption: Record<string, unknown> = {
@@ -176,7 +191,7 @@ export function EChartWidget({ config }: WidgetProps) {
     if (echartMode === 'comparison') {
         const categories = echartSeries.map((s) => s.name);
         const values = echartSeries.map((s, idx) => ({
-            value: seriesDataMap.get(s.id)?.current ?? null,
+            value: seriesCurrent(idx, s.id),
             itemStyle: { color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length] },
         }));
         const hasData = values.some((v) => v.value !== null);
@@ -340,7 +355,7 @@ export function EChartWidget({ config }: WidgetProps) {
         : { show: false };
 
     const seriesList = echartSeries.map((s, idx) => {
-        const data = seriesDataMap.get(s.id)?.data ?? [];
+        const data = seriesData(idx, s.id);
         return {
             name: s.name,
             type: s.chartType === 'area' ? 'line' : s.chartType,
@@ -439,7 +454,19 @@ export function EChartWidget({ config }: WidgetProps) {
                 </div>
             )}
             <div className="flex-1 relative min-h-0">
-                {allLoading && (
+                {isPreview && (
+                    <span
+                        className="absolute top-1 right-1 z-10 px-1.5 py-0.5 rounded text-[9px] font-medium pointer-events-none"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                    >
+                        Vorschau
+                    </span>
+                )}
+                {effLoading && (
                     <div
                         className="absolute inset-0 flex items-center justify-center"
                         style={{ color: 'var(--text-secondary)' }}
@@ -447,7 +474,7 @@ export function EChartWidget({ config }: WidgetProps) {
                         <Loader size={20} className="animate-spin" />
                     </div>
                 )}
-                {!allLoading && (echartSeries.length === 0 || !hasAnyData) && (
+                {!effLoading && (echartSeries.length === 0 || !effHasData) && (
                     <div
                         className="absolute inset-0 flex flex-col items-center justify-center gap-2"
                         style={{ color: 'var(--text-secondary)' }}
@@ -456,7 +483,7 @@ export function EChartWidget({ config }: WidgetProps) {
                         <span className="text-xs">Keine Daten</span>
                     </div>
                 )}
-                {hasSize && hasAnyData && (
+                {hasSize && effHasData && (
                     <ReactECharts
                         ref={chartRef}
                         option={merged}

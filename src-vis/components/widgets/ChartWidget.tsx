@@ -9,8 +9,12 @@ import type { WidgetProps } from '../../types';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { formatYTick } from '../../utils/chartFormat';
+import { samplePreviewHistory } from '../../utils/sampleChartData';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
+
+/** Static sample series for the editor preview (computed once). */
+const PREVIEW_HISTORY = samplePreviewHistory();
 
 function formatTick(ts: number, rangeMs: number): string {
     const d = new Date(ts);
@@ -29,7 +33,7 @@ function formatLabel(ts: number): string {
     });
 }
 
-export function ChartWidget({ config }: WidgetProps) {
+export function ChartWidget({ config, editMode }: WidgetProps) {
     const { subscribe, connected } = useIoBroker();
     const fontScale = useConfigStore((s) => s.frontend.fontScale ?? 1);
 
@@ -81,14 +85,14 @@ export function ChartWidget({ config }: WidgetProps) {
                   } as Record<string, number>
               )[activeRange] ?? 86_400_000);
 
-    const { history, current, loading } = useChartHistory(
-        config.datapoint,
-        historyInstance,
-        activeRange,
-        connected,
-        subscribe,
-        activeCustomMs,
-    );
+    const raw = useChartHistory(config.datapoint, historyInstance, activeRange, connected, subscribe, activeCustomMs);
+
+    // In the popup editor the datapoint is a {{placeholder}} that can't resolve, so there
+    // is no real history. Show a representative sample chart instead of an empty widget.
+    const isPreview = editMode && (config.datapoint?.startsWith('{{') ?? false) && raw.history.length === 0;
+    const history = isPreview ? PREVIEW_HISTORY : raw.history;
+    const current = isPreview ? history[history.length - 1].v : raw.current;
+    const loading = isPreview ? false : raw.loading;
 
     const avg =
         (showAverage || showAverageAsValue) && history.length > 1
@@ -138,6 +142,20 @@ export function ChartWidget({ config }: WidgetProps) {
         </div>
     );
 
+    // "Vorschau" badge — marks the sample chart shown in the popup editor.
+    const previewBadge = isPreview ? (
+        <span
+            className="absolute top-1 right-1 z-10 px-1.5 py-0.5 rounded text-[9px] font-medium pointer-events-none"
+            style={{
+                background: 'var(--app-bg)',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--app-border)',
+            }}
+        >
+            Vorschau
+        </span>
+    ) : null;
+
     // Range selector shown only when a history adapter is configured and not locked
     const rangeSelector =
         historyInstance && !lockRange ? (
@@ -183,7 +201,8 @@ export function ChartWidget({ config }: WidgetProps) {
     // ── CARD ─────────────────────────────────────────────────────────────────
     if (layout === 'card') {
         return (
-            <div ref={containerRef} className="aura-widget-row flex flex-col h-full">
+            <div ref={containerRef} className="aura-widget-row flex flex-col h-full" style={{ position: 'relative' }}>
+                {previewBadge}
                 <div className="flex items-start justify-between mb-1">
                     <div className="flex items-start gap-1.5 min-w-0 flex-1">
                         {showIcon && (
@@ -297,7 +316,8 @@ export function ChartWidget({ config }: WidgetProps) {
 
     // ── DEFAULT ───────────────────────────────────────────────────────────────
     return (
-        <div ref={containerRef} className="flex flex-col h-full">
+        <div ref={containerRef} className="flex flex-col h-full" style={{ position: 'relative' }}>
+            {previewBadge}
             <div className="flex justify-between items-start mb-1">
                 {(showTitle || showIcon) && (
                     <div className="flex items-center gap-1 min-w-0 flex-1">

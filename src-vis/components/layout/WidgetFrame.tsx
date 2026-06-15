@@ -797,7 +797,7 @@ function ChartHistoryConfig({
                     </label>
                     <input
                         type="text"
-                        placeholder="z.B. history.0"
+                        placeholder="leer = Instanz des auslösenden Widgets"
                         value={selectedInstance ?? ''}
                         onChange={(e) => set({ historyInstance: e.target.value || undefined })}
                         className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
@@ -807,6 +807,10 @@ function ChartHistoryConfig({
                             border: '1px solid var(--app-border)',
                         }}
                     />
+                    <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        Platzhalter-Datenpunkt – leer lassen, um die Verlaufs-Instanz vom auslösenden Widget zu
+                        übernehmen.
+                    </p>
                 </div>
             )}
 

@@ -104,7 +104,9 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     // Detect history adapters when datapoint changes
     useEffect(() => {
         for (const s of series) {
-            if (!s.datapointId) continue;
+            // Template datapoints ({{dp}}, {{parent}}.x) can't be resolved to a real object,
+            // so adapter detection is skipped — a free-text instance field is shown instead.
+            if (!s.datapointId || s.datapointId.includes('{{')) continue;
             const existing = adapterStates[s.id];
             // Only re-detect if we haven't already
             if (existing) continue;
@@ -189,6 +191,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                     {series.map((s, idx) => {
                         const isExpanded = expandedId === s.id;
                         const adState = adapterStates[s.id];
+                        const isTpl = (s.datapointId ?? '').includes('{{');
                         return (
                             <div
                                 key={s.id}
@@ -483,7 +486,36 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                             {t('echart.selectDpFirst')}
                                                         </p>
                                                     )}
-                                                    {s.datapointId && adState?.checking && (
+                                                    {s.datapointId && isTpl && (
+                                                        <div>
+                                                            <label
+                                                                className="text-[11px] mb-1 block"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                {t('echart.instance')}
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="leer = Instanz des auslösenden Widgets"
+                                                                value={s.historyInstance ?? ''}
+                                                                onChange={(e) =>
+                                                                    updateSeries(s.id, {
+                                                                        historyInstance: e.target.value || undefined,
+                                                                    })
+                                                                }
+                                                                className={inputCls}
+                                                                style={inputStyle}
+                                                            />
+                                                            <p
+                                                                className="text-[11px] mt-1"
+                                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                            >
+                                                                Platzhalter-Datenpunkt – leer lassen, um die
+                                                                Verlaufs-Instanz vom auslösenden Widget zu übernehmen.
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                    {s.datapointId && !isTpl && adState?.checking && (
                                                         <p
                                                             className="text-[11px]"
                                                             style={{ color: 'var(--text-secondary)' }}
@@ -491,7 +523,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                             {t('echart.checking')}
                                                         </p>
                                                     )}
-                                                    {s.datapointId && !adState?.checking && !adState && (
+                                                    {s.datapointId && !isTpl && !adState?.checking && !adState && (
                                                         <button
                                                             onClick={() => refreshAdapters(s.id, s.datapointId)}
                                                             className="text-[11px] hover:opacity-80"
@@ -501,6 +533,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                         </button>
                                                     )}
                                                     {s.datapointId &&
+                                                        !isTpl &&
                                                         adState &&
                                                         !adState.checking &&
                                                         adState.adapters.length === 0 && (
@@ -512,6 +545,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                             </p>
                                                         )}
                                                     {s.datapointId &&
+                                                        !isTpl &&
                                                         adState &&
                                                         !adState.checking &&
                                                         adState.adapters.length > 0 && (
