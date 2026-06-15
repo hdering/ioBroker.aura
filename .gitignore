@@ -10,6 +10,7 @@ docs/.vitepress/dist/
 iobroker-data/
 
 # Dev-only files
+examples/
 .iobroker-url
 .claude/
 CLAUDE_CODE_BRIEFING.md
