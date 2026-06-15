@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.247",
+    "version": "0.9.248",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.248": {
+        "en": "@ feat(theme): element-specific CSS variables for widgets (#313)",
+        "de": "@ feat(theme): element-specific CSS variables for widgets (#313)",
+        "ru": "@ feat(theme): element-specific CSS variables for widgets (#313)",
+        "pt": "@ feat(theme): element-specific CSS variables for widgets (#313)",
+        "nl": "@ feat(theme): element-specific CSS variables for widgets (#313)",
+        "fr": "@ feat(theme): element-specific CSS variables for widgets (#313)",
+        "it": "@ feat(theme): element-specific CSS variables for widgets (#313)",
+        "es": "@ feat(theme): element-specific CSS variables for widgets (#313)",
+        "pl": "@ feat(theme): element-specific CSS variables for widgets (#313)",
+        "uk": "@ feat(theme): element-specific CSS variables for widgets (#313)",
+        "zh-cn": "@ feat(theme): element-specific CSS variables for widgets (#313)"
+      },
       "0.9.247": {
         "en": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
         "de": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
@@ -183,19 +196,6 @@
         "pl": "feat(popup): sample chart preview + visible history instance in editor",
         "uk": "feat(popup): sample chart preview + visible history instance in editor",
         "zh-cn": "feat(popup): sample chart preview + visible history instance in editor"
-      },
-      "0.9.241": {
-        "en": "fix(popup): inherit history adapter instance into popup charts; Merge branch 'fix/309-open-in-dashboard-editor'; docs(popup): add concrete placeholder examples in popup-view editor",
-        "de": "fix(popup): inherit history adapter instance into popup charts; Merge branch 'fix/309-open-in-dashboard-editor'; docs(popup): add concrete placeholder examples in popup-view editor",
-        "ru": "fix(popup): inherit history adapter instance into popup charts; Merge branch 'fix/309-open-in-dashboard-editor'; docs(popup): add concrete placeholder examples in popup-view editor",
-        "pt": "fix(popup): inherit history adapter instance into popup charts; Merge branch 'fix/309-open-in-dashboard-editor'; docs(popup): add concrete placeholder examples in popup-view editor",
-        "nl": "fix(popup): inherit history adapter instance into popup charts; Merge branch 'fix/309-open-in-dashboard-editor'; docs(popup): add concrete placeholder examples in popup-view editor",
-        "fr": "fix(popup): inherit history adapter instance into popup charts; Merge branch 'fix/309-open-in-dashboard-editor'; docs(popup): add concrete placeholder examples in popup-view editor",
-        "it": "fix(popup): inherit history adapter instance into popup charts; Merge branch 'fix/309-open-in-dashboard-editor'; docs(popup): add concrete placeholder examples in popup-view editor",
-        "es": "fix(popup): inherit history adapter instance into popup charts; Merge branch 'fix/309-open-in-dashboard-editor'; docs(popup): add concrete placeholder examples in popup-view editor",
-        "pl": "fix(popup): inherit history adapter instance into popup charts; Merge branch 'fix/309-open-in-dashboard-editor'; docs(popup): add concrete placeholder examples in popup-view editor",
-        "uk": "fix(popup): inherit history adapter instance into popup charts; Merge branch 'fix/309-open-in-dashboard-editor'; docs(popup): add concrete placeholder examples in popup-view editor",
-        "zh-cn": "fix(popup): inherit history adapter instance into popup charts; Merge branch 'fix/309-open-in-dashboard-editor'; docs(popup): add concrete placeholder examples in popup-view editor"
       }
     }
   },
