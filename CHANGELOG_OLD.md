@@ -1,5 +1,15 @@
 # Changelog (older entries)
 
+## 0.9.231 (2026-06-12)
+- feat(popup): derive {{parent}}/{{name}} placeholders and add optional popup DP override
+- chore(deps): ignore Vite major version bumps in Dependabot
+- chore(deps): ignore React major version bumps in Dependabot
+- chore(deps): bump actions/checkout from 4 to 6 (#222)
+- chore(deps): bump actions/deploy-pages from 4 to 5 (#223)
+- chore(deps): bump actions/configure-pages from 5 to 6 (#224)
+- chore(deps): bump actions/upload-pages-artifact from 3 to 5 (#225)
+- chore(deps): bump dependabot/fetch-metadata from 2 to 3 (#262)
+
 ## 0.9.230 (2026-06-11)
 - feat(admin): add tab bar icon size control
 

@@ -192,6 +192,10 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.251 (2026-06-15)
+- feat(adapter-logs): multi-select adapter filter in the frontend
+
+
 ### 0.9.250 (2026-06-15)
 - style(prettier): auto-format code files
 - build(adapter-logs): rebuild www so widget sends instances pre-filter
@@ -294,17 +298,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - refactor(backup): drop legacy dashboard_backup state and one-time migration
 
 
-### 0.9.231 (2026-06-12)
-- feat(popup): derive {{parent}}/{{name}} placeholders and add optional popup DP override
-- chore(deps): ignore Vite major version bumps in Dependabot
-- chore(deps): ignore React major version bumps in Dependabot
-- chore(deps): bump actions/checkout from 4 to 6 (#222)
-- chore(deps): bump actions/deploy-pages from 4 to 5 (#223)
-- chore(deps): bump actions/configure-pages from 5 to 6 (#224)
-- chore(deps): bump actions/upload-pages-artifact from 3 to 5 (#225)
-- chore(deps): bump dependabot/fetch-metadata from 2 to 3 (#262)
-
-
 ## License
 
 MIT License
@@ -316,6 +309,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

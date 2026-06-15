@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.250",
+    "version": "0.9.251",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.251": {
+        "en": "feat(adapter-logs): multi-select adapter filter in the frontend",
+        "de": "feat(adapter-logs): multi-select adapter filter in the frontend",
+        "ru": "feat(adapter-logs): multi-select adapter filter in the frontend",
+        "pt": "feat(adapter-logs): multi-select adapter filter in the frontend",
+        "nl": "feat(adapter-logs): multi-select adapter filter in the frontend",
+        "fr": "feat(adapter-logs): multi-select adapter filter in the frontend",
+        "it": "feat(adapter-logs): multi-select adapter filter in the frontend",
+        "es": "feat(adapter-logs): multi-select adapter filter in the frontend",
+        "pl": "feat(adapter-logs): multi-select adapter filter in the frontend",
+        "uk": "feat(adapter-logs): multi-select adapter filter in the frontend",
+        "zh-cn": "feat(adapter-logs): multi-select adapter filter in the frontend"
+      },
       "0.9.250": {
         "en": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
         "de": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
@@ -183,19 +196,6 @@
         "pl": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
         "uk": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
         "zh-cn": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups"
-      },
-      "0.9.244": {
-        "en": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
-        "de": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
-        "ru": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
-        "pt": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
-        "nl": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
-        "fr": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
-        "it": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
-        "es": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
-        "pl": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
-        "uk": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
-        "zh-cn": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog"
       }
     }
   },
