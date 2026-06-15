@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.230 (2026-06-11)
+- feat(admin): add tab bar icon size control
+
 ## 0.9.229 (2026-06-11)
 - fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog
 - fix(ci): skip npm publish when version already published (E403 guard)

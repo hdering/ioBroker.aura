@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.249",
+    "version": "0.9.250",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.250": {
+        "en": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
+        "de": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
+        "ru": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
+        "pt": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
+        "nl": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
+        "fr": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
+        "it": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
+        "es": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
+        "pl": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
+        "uk": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
+        "zh-cn": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend"
+      },
       "0.9.249": {
         "en": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
         "de": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
@@ -183,19 +196,6 @@
         "pl": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
         "uk": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
         "zh-cn": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog"
-      },
-      "0.9.243": {
-        "en": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
-        "de": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
-        "ru": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
-        "pt": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
-        "nl": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
-        "fr": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
-        "it": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
-        "es": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
-        "pl": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
-        "uk": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
-        "zh-cn": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially"
       }
     }
   },
