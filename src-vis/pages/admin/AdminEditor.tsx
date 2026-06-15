@@ -157,6 +157,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
     const isGauge = type === 'gauge';
     const isChart = type === 'chart';
     const isUniversal = type === 'universal';
+    const isHeader = type === 'header';
     const isEchart = type === 'echart';
     const isEvcc = type === 'evcc';
     const isWeather = type === 'weather';
@@ -923,6 +924,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                                     .filter((l) => {
                                         if (isGauge && l.id !== 'default') return false;
                                         if (isChart && (l.id === 'compact' || l.id === 'minimal')) return false;
+                                        if (isHeader && l.id === 'card') return false;
                                         if (isUniversal && l.id !== 'custom') return false;
                                         return true;
                                     })
