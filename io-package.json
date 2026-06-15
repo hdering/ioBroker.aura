@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.248",
+    "version": "0.9.249",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.249": {
+        "en": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
+        "de": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
+        "ru": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
+        "pt": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
+        "nl": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
+        "fr": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
+        "it": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
+        "es": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
+        "pl": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
+        "uk": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
+        "zh-cn": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable"
+      },
       "0.9.248": {
         "en": "@ feat(theme): element-specific CSS variables for widgets (#313)",
         "de": "@ feat(theme): element-specific CSS variables for widgets (#313)",
@@ -183,19 +196,6 @@
         "pl": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
         "uk": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
         "zh-cn": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially"
-      },
-      "0.9.242": {
-        "en": "feat(popup): sample chart preview + visible history instance in editor",
-        "de": "feat(popup): sample chart preview + visible history instance in editor",
-        "ru": "feat(popup): sample chart preview + visible history instance in editor",
-        "pt": "feat(popup): sample chart preview + visible history instance in editor",
-        "nl": "feat(popup): sample chart preview + visible history instance in editor",
-        "fr": "feat(popup): sample chart preview + visible history instance in editor",
-        "it": "feat(popup): sample chart preview + visible history instance in editor",
-        "es": "feat(popup): sample chart preview + visible history instance in editor",
-        "pl": "feat(popup): sample chart preview + visible history instance in editor",
-        "uk": "feat(popup): sample chart preview + visible history instance in editor",
-        "zh-cn": "feat(popup): sample chart preview + visible history instance in editor"
       }
     }
   },

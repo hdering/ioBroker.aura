@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.229 (2026-06-11)
+- fix(ci): drop broken npm dist-tag fixup; add missing 0.9.228 changelog
+- fix(ci): skip npm publish when version already published (E403 guard)
+
 ## 0.9.228 (2026-06-11)
 Release v0.9.228
 
