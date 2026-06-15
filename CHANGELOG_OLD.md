@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.224 (2026-06-11)
+Release v0.9.224
+
 ## 0.9.223 (2026-06-11)
 - style(prettier): auto-format src-vis and main.js
 - style(prettier): format main.js (indent + collapse aligned requires)

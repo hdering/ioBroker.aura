@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.243",
+    "version": "0.9.244",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.244": {
+        "en": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
+        "de": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
+        "ru": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
+        "pt": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
+        "nl": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
+        "fr": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
+        "it": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
+        "es": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
+        "pl": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
+        "uk": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
+        "zh-cn": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog"
+      },
       "0.9.243": {
         "en": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
         "de": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
@@ -183,19 +196,6 @@
         "pl": "style(prettier): auto-format code files",
         "uk": "style(prettier): auto-format code files",
         "zh-cn": "style(prettier): auto-format code files"
-      },
-      "0.9.237": {
-        "en": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
-        "de": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
-        "ru": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
-        "pt": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
-        "nl": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
-        "fr": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
-        "it": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
-        "es": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
-        "pl": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
-        "uk": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
-        "zh-cn": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate"
       }
     }
   },
