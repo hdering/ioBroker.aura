@@ -995,9 +995,11 @@ function StateTextCellView({
     if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
     const truthy = value === true || value === 1 || value === 'true' || value === '1';
     const label = truthy ? (cell.trueText ?? '') : (cell.falseText ?? '');
+    // Fallbacks must match the editor's default color swatches (#22c55e / #64748b),
+    // so the preselected colors apply immediately without the user touching the picker.
     const color = truthy
-        ? cell.trueColor || cell.color || 'var(--accent)'
-        : cell.falseColor || cell.color || 'var(--text-secondary)';
+        ? cell.trueColor || cell.color || '#22c55e'
+        : cell.falseColor || cell.color || '#64748b';
     const textSty = { ...cellTextStyle(cell, color), color };
     return (
         <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
