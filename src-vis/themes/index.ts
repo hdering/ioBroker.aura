@@ -20,12 +20,130 @@ export interface ThemeVars {
     '--accent-red': string;
 }
 
+/**
+ * Element-specific theme variables (Issue #313).
+ *
+ * These are OPTIONAL overrides: widgets reference them via a CSS fallback chain
+ * (e.g. `var(--switch-bg, var(--accent-green))`), so when a key is unset the
+ * widget keeps its previous look. They are NOT defined per-theme — they live in
+ * `customVars` only when the user sets them. The editor resolves a sensible
+ * default for the colour-picker via ELEMENT_VAR_FALLBACKS below.
+ */
+export interface ElementVars {
+    // Switch / toggle
+    '--switch-bg': string; // "on" track
+    '--switch-off-bg': string; // "off" track
+    '--switch-thumb-color': string;
+    '--switch-border': string;
+    // Blind / shutter
+    '--blind-color': string; // viz accent / position indicator
+    '--blind-bg': string; // viz background
+    '--blind-border': string; // viz border
+    '--blind-up-color': string;
+    '--blind-up-bg': string;
+    '--blind-up-border': string;
+    '--blind-stop-color': string;
+    '--blind-stop-bg': string;
+    '--blind-stop-border': string;
+    '--blind-down-color': string;
+    '--blind-down-bg': string;
+    '--blind-down-border': string;
+    // Header
+    '--header-text': string;
+    '--header-bg': string;
+    '--header-accent': string; // the accent bar
+    // Widget inside a group
+    '--widget-in-group-bg': string;
+    '--widget-in-group-border': string;
+    // Slider / dimmer / knob
+    '--slider-track': string;
+    '--slider-fill': string;
+    '--slider-thumb': string;
+    // Button widget
+    '--button-bg': string;
+    '--button-text': string;
+    '--button-border': string;
+    // Gauge
+    '--gauge-arc': string;
+    '--gauge-track': string;
+    // Climate / thermostat
+    '--climate-heat': string;
+    '--climate-cool': string;
+    // Chips
+    '--chip-bg': string;
+    '--chip-border': string;
+    '--chip-active': string;
+    // Status badges
+    '--badge-ok': string;
+    '--badge-warn': string;
+    '--badge-crit': string;
+    // Light / power button
+    '--light-on': string;
+    '--light-off': string;
+    // Navigation / tab bar
+    '--nav-bg': string;
+    '--nav-active': string;
+}
+
+/**
+ * Maps each element var to the base var (or literal) it inherits from when unset.
+ * Used by the theme editor to show the inherited colour in the picker and by any
+ * code that needs the resolved default. Keep these in sync with the
+ * `var(--x, var(--y))` fallbacks used in the widgets.
+ */
+export const ELEMENT_VAR_FALLBACKS: Record<keyof ElementVars, keyof ThemeVars | string> = {
+    '--switch-bg': '--accent-green',
+    '--switch-off-bg': '--app-border',
+    '--switch-thumb-color': '#ffffff',
+    '--switch-border': '--app-border',
+    '--blind-color': '--accent',
+    '--blind-bg': '--app-bg',
+    '--blind-border': '--app-border',
+    '--blind-up-color': '--text-secondary',
+    '--blind-up-bg': '--app-bg',
+    '--blind-up-border': '--app-border',
+    '--blind-stop-color': '--text-secondary',
+    '--blind-stop-bg': '--app-bg',
+    '--blind-stop-border': '--app-border',
+    '--blind-down-color': '--text-secondary',
+    '--blind-down-bg': '--app-bg',
+    '--blind-down-border': '--app-border',
+    '--header-text': '--text-primary',
+    '--header-bg': 'transparent',
+    '--header-accent': '--accent',
+    '--widget-in-group-bg': '--widget-bg',
+    '--widget-in-group-border': '--widget-border',
+    '--slider-track': '--app-border',
+    '--slider-fill': '--accent',
+    '--slider-thumb': '--accent',
+    '--button-bg': '--app-bg',
+    '--button-text': '--text-primary',
+    '--button-border': '--app-border',
+    '--gauge-arc': '--accent',
+    '--gauge-track': '--app-border',
+    '--climate-heat': '--accent-red',
+    '--climate-cool': '--accent',
+    '--chip-bg': '--app-bg',
+    '--chip-border': '--app-border',
+    '--chip-active': '--accent',
+    '--badge-ok': '--accent-green',
+    '--badge-warn': '--accent-yellow',
+    '--badge-crit': '--accent-red',
+    '--light-on': '--accent-yellow',
+    '--light-off': '--text-secondary',
+    '--nav-bg': '--app-surface',
+    '--nav-active': '--accent',
+};
+
 export interface Theme {
     id: string;
     name: string;
     dark: boolean; // für html.dark class
     vars: ThemeVars;
 }
+
+/** Full set of customisable CSS vars: base palette + per-element overrides. */
+export type AllVars = ThemeVars & ElementVars;
 
 export const THEMES: Theme[] = [
     {

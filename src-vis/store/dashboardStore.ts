@@ -4,7 +4,7 @@ import { managedStorage, flushKey, withSuppressedDirty } from './persistManager'
 import { useGroupDefsStore, newGroupDefId, cloneGroupDef } from './groupDefsStore';
 import { slugify } from '../utils/slugify';
 import type { WidgetConfig, WidgetCondition } from '../types';
-import type { ThemeVars } from '../themes';
+import type { AllVars } from '../themes';
 
 // ── Tab bar items (clock / datapoint / static text) ───────────────────────────
 
@@ -58,7 +58,7 @@ export function resolveTabBarSettings(
 export interface LayoutSettings {
     // Theme
     themeId?: string;
-    customVars?: Partial<ThemeVars>;
+    customVars?: Partial<AllVars>;
     // CSS
     customCSS?: string;
     customCSSEnabled?: boolean;

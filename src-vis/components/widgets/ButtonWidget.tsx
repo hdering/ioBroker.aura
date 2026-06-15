@@ -6,7 +6,8 @@ import { CustomGridView } from './CustomGridView';
 export function ButtonWidget({ config }: WidgetProps) {
     const o = config.options ?? {};
     const label = (o.buttonLabel as string) || config.title || 'Button';
-    const color = (o.buttonColor as string) || 'var(--accent)';
+    const color = (o.buttonColor as string) || 'var(--button-text, var(--accent))';
+    const labelColor = 'var(--button-text, var(--text-primary))';
     const iconSize = (o.iconSize as number) || 28;
     const showTitle = o.showTitle !== false;
     const showIcon = o.showIcon !== false;
@@ -31,10 +32,7 @@ export function ButtonWidget({ config }: WidgetProps) {
                 {showIcon && WidgetIcon && (
                     <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color, flexShrink: 0 }} />
                 )}
-                <span
-                    className="aura-widget-action text-sm font-medium truncate"
-                    style={{ color: 'var(--text-primary)' }}
-                >
+                <span className="aura-widget-action text-sm font-medium truncate" style={{ color: labelColor }}>
                     {label}
                 </span>
                 <span className="ml-auto text-xs" style={{ color: 'var(--text-secondary)' }}>
@@ -50,7 +48,7 @@ export function ButtonWidget({ config }: WidgetProps) {
                 {showIcon && WidgetIcon ? (
                     <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color }} />
                 ) : (
-                    <span className="aura-widget-action text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                    <span className="aura-widget-action text-sm font-medium" style={{ color: labelColor }}>
                         {label}
                     </span>
                 )}
@@ -79,7 +77,7 @@ export function ButtonWidget({ config }: WidgetProps) {
                 )}
                 <span
                     className="aura-widget-action text-sm font-medium text-center leading-tight"
-                    style={{ color: 'var(--text-primary)' }}
+                    style={{ color: labelColor }}
                 >
                     {label}
                 </span>

@@ -1545,6 +1545,8 @@ interface WidgetFrameProps {
     onConfigChange: (config: WidgetConfig) => void;
     /** When set, widget is inside a group. "Kopieren" duplicates within the group. */
     onDuplicate?: () => void;
+    /** True when rendered as a child of a GroupWidget — enables --widget-in-group-* vars. */
+    inGroup?: boolean;
 }
 
 // Dropdown als Portal – rendert außerhalb des Grid-Containers
@@ -4816,7 +4818,7 @@ function CarouselEditPanel({
     );
 }
 
-export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDuplicate }: WidgetFrameProps) {
+export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDuplicate, inGroup }: WidgetFrameProps) {
     const t = useT();
     const { defaultDecimals } = useGlobalSettingsStore();
     const focusedWidgetId = useFocusedWidgetId();
@@ -5236,7 +5238,20 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
 
     const isHeader = config.type === 'header';
     const isGroup = config.type === 'group';
+    const isButton = config.type === 'button';
     const isTransparent = !!config.options?.transparent;
+    // Card bg/border: group children > button widget > plain widget. Each element
+    // var falls back to the base widget var so the default look is unchanged.
+    const cardBg = inGroup
+        ? 'var(--widget-in-group-bg, var(--widget-bg))'
+        : isButton
+          ? 'var(--button-bg, var(--widget-bg))'
+          : 'var(--widget-bg)';
+    const cardBorderColor = inGroup
+        ? 'var(--widget-in-group-border, var(--widget-border))'
+        : isButton
+          ? 'var(--button-border, var(--widget-border))'
+          : 'var(--widget-border)';
     const transparencyStrength = isTransparent
         ? Math.max(0, Math.min(100, Number(config.options?.transparency ?? 100)))
         : 100;
@@ -5319,7 +5334,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
             style={
                 isHeader || isTransparent
                     ? {
-                          background: isHeader ? 'transparent' : transparentBg,
+                          background: isHeader ? 'var(--header-bg, transparent)' : transparentBg,
                           borderRadius: isTransparent && editMode ? 'var(--widget-radius)' : 0,
                           boxShadow: 'none',
                           backdropFilter: 'none',
@@ -5333,13 +5348,13 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                               : {}),
                       }
                     : {
-                          background: 'var(--widget-bg)',
+                          background: cardBg,
                           borderRadius: 'var(--widget-radius)',
                           boxShadow: 'var(--widget-shadow)',
                           backdropFilter: 'var(--widget-backdrop)',
                           borderWidth: 'var(--widget-border-width)',
                           borderStyle: 'solid',
-                          borderColor: 'var(--widget-border)',
+                          borderColor: cardBorderColor,
                           padding: isNoPad ? undefined : widgetPadding,
                           cursor: !editMode && hasClickAction ? 'pointer' : undefined,
                           ...cssOverride,

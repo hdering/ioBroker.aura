@@ -117,7 +117,7 @@ function GaugeSVG({
                     <path
                         d={describeArc(cx, cy, r, -180, 0)}
                         fill="none"
-                        stroke="var(--app-border)"
+                        stroke="var(--gauge-track, var(--app-border))"
                         strokeWidth={strokeWidth}
                         strokeLinecap="round"
                     />
@@ -237,7 +237,7 @@ export function GaugeWidget({ config }: WidgetProps) {
     })();
 
     // Build pointers array
-    const ptr1Color = (opts.pointer1Color as string) ?? 'var(--accent)';
+    const ptr1Color = (opts.pointer1Color as string) ?? 'var(--gauge-arc, var(--accent))';
     const pointers: PointerDef[] = [
         { value: safeVal, color: ptr1Color, label: (opts.pointer1Label as string) || config.title || undefined },
     ];

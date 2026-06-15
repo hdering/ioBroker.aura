@@ -124,10 +124,14 @@ export function DimmerWidget({ config }: WidgetProps) {
         <button
             onClick={handleToggle}
             className="aura-widget-action nodrag relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"
-            style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}
+            style={{
+                background: isOn ? 'var(--switch-bg, var(--accent-green))' : 'var(--switch-off-bg, var(--app-border))',
+                border: '1px solid var(--switch-border, transparent)',
+            }}
         >
             <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`}
+                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`}
+                style={{ background: 'var(--switch-thumb-color, #fff)' }}
             />
         </button>
     );
@@ -142,7 +146,7 @@ export function DimmerWidget({ config }: WidgetProps) {
             onChange={(e) => handleSliderChange(Number(e.target.value))}
             onMouseUp={handleSliderRelease}
             onTouchEnd={handleSliderRelease}
-            style={{ '--slider-thumb-color': 'var(--accent-yellow)' } as CSSProperties}
+            style={{ '--slider-thumb-color': 'var(--light-on, var(--accent-yellow))' } as CSSProperties}
             className="aura-widget-action nodrag w-full h-2 rounded-lg appearance-none cursor-pointer"
         />
     );
@@ -153,7 +157,7 @@ export function DimmerWidget({ config }: WidgetProps) {
             style={{
                 width: '100%',
                 height: `${barSize}%`,
-                background: 'color-mix(in srgb, var(--accent-yellow) 20%, var(--app-bg))',
+                background: 'color-mix(in srgb, var(--light-on, var(--accent-yellow)) 20%, var(--app-bg))',
             }}
             onPointerDown={onBarPointerDown}
             onPointerMove={onBarPointerMove}
@@ -161,7 +165,7 @@ export function DimmerWidget({ config }: WidgetProps) {
         >
             <div
                 className="absolute top-0 left-0 bottom-0 rounded-r-2xl"
-                style={{ width: `${fillRatio * 100}%`, background: 'var(--accent-yellow)' }}
+                style={{ width: `${fillRatio * 100}%`, background: 'var(--light-on, var(--accent-yellow))' }}
             />
             <div
                 className="absolute pointer-events-none rounded-full"
@@ -196,7 +200,10 @@ export function DimmerWidget({ config }: WidgetProps) {
                     icon: showIcon ? (
                         <CompactIcon
                             size={iconSize}
-                            style={{ color: isOn ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }}
+                            style={{
+                                color: isOn ? 'var(--light-on, var(--accent-yellow))' : 'var(--text-secondary)',
+                                flexShrink: 0,
+                            }}
                         />
                     ) : null,
                     'battery-icon': batteryIcon,
@@ -235,7 +242,10 @@ export function DimmerWidget({ config }: WidgetProps) {
                         <CompactIcon
                             className="aura-widget-icon"
                             size={iconSize}
-                            style={{ color: isOn ? 'var(--accent-yellow)' : 'var(--text-secondary)', flexShrink: 0 }}
+                            style={{
+                                color: isOn ? 'var(--light-on, var(--accent-yellow))' : 'var(--text-secondary)',
+                                flexShrink: 0,
+                            }}
                         />
                     )}
                     {showTitle && (
@@ -270,7 +280,7 @@ export function DimmerWidget({ config }: WidgetProps) {
                             onChange={(e) => handleSliderChange(Number(e.target.value))}
                             onMouseUp={handleSliderRelease}
                             onTouchEnd={handleSliderRelease}
-                            style={{ '--slider-thumb-color': 'var(--accent-yellow)' } as CSSProperties}
+                            style={{ '--slider-thumb-color': 'var(--light-on, var(--accent-yellow))' } as CSSProperties}
                             className="aura-widget-action nodrag ml-6 h-1.5 rounded-full appearance-none cursor-pointer"
                         />
                     ))}
@@ -289,7 +299,11 @@ export function DimmerWidget({ config }: WidgetProps) {
                 {showValue && (
                     <span
                         className="aura-widget-value text-xl font-bold"
-                        style={{ color: thresholdColor ?? (isOn ? 'var(--accent-yellow)' : 'var(--text-secondary)') }}
+                        style={{
+                            color:
+                                thresholdColor ??
+                                (isOn ? 'var(--light-on, var(--accent-yellow))' : 'var(--text-secondary)'),
+                        }}
                     >
                         {level}%
                     </span>
@@ -310,7 +324,7 @@ export function DimmerWidget({ config }: WidgetProps) {
                         <CompactIcon
                             className="aura-widget-icon"
                             size={iconSize}
-                            style={{ color: isOn ? 'var(--accent-yellow)' : 'var(--text-secondary)' }}
+                            style={{ color: isOn ? 'var(--light-on, var(--accent-yellow))' : 'var(--text-secondary)' }}
                         />
                     )}
                     {showTitle && (
@@ -340,8 +354,8 @@ export function DimmerWidget({ config }: WidgetProps) {
                             <div
                                 className="w-3 h-3 rounded-full transition-all"
                                 style={{
-                                    background: isOn ? 'var(--accent-yellow)' : 'var(--app-border)',
-                                    boxShadow: isOn ? '0 0 6px var(--accent-yellow)' : 'none',
+                                    background: isOn ? 'var(--light-on, var(--accent-yellow))' : 'var(--app-border)',
+                                    boxShadow: isOn ? '0 0 6px var(--light-on, var(--accent-yellow))' : 'none',
                                 }}
                             />
                         )}

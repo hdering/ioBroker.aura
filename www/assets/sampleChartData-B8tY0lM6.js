@@ -1,0 +1,1 @@
+function r(t=0,s=Date.now()){const o=1.8382978723404256e6,a=18+t*4,M=[];for(let n=0;n<48;n++){const e=Math.round(s-864e5+o*n),S=n/48*Math.PI*2,P=a+Math.sin(S+t)*5+Math.sin(S*3.3+t*2)*1.5;M.push([e,Math.round(P*10)/10])}return M}function c(t=0,s=Date.now()){return r(t,s).map(([o,a])=>({t:o,v:a}))}export{r as a,c as s};

@@ -37,7 +37,7 @@ export function SliderWidget({ config }: WidgetProps) {
     const max = (o.max as number) ?? 100;
     const step = (o.step as number) ?? 1;
     const isVertical = (o.orientation as string) === 'vertical';
-    const sliderColor = (o.color as string) || 'var(--accent)';
+    const sliderColor = (o.color as string) || 'var(--slider-fill, var(--accent))';
     const commitOnRelease = !!o.commitOnRelease;
     const readOnly = !!o.readOnly;
     const unit = (o.unit as string) ?? '';

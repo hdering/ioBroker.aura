@@ -1,9 +1,9 @@
 import { useThemeStore } from '../../../../store/themeStore';
 import { useDashboardStore } from '../../../../store/dashboardStore';
-import { getTheme, type ThemeVars } from '../../../../themes';
+import { getTheme, ELEMENT_VAR_FALLBACKS, type ThemeVars, type AllVars } from '../../../../themes';
 import { useT } from '../../../../i18n';
 
-const VAR_GROUPS: { labelKey: string; keys: (keyof ThemeVars)[] }[] = [
+const VAR_GROUPS: { labelKey: string; keys: (keyof AllVars)[] }[] = [
     { labelKey: 'theme.vars.app', keys: ['--app-bg', '--app-surface', '--app-border'] },
     {
         labelKey: 'theme.vars.widget',
@@ -11,9 +11,41 @@ const VAR_GROUPS: { labelKey: string; keys: (keyof ThemeVars)[] }[] = [
     },
     { labelKey: 'theme.vars.text', keys: ['--text-primary', '--text-secondary'] },
     { labelKey: 'theme.vars.colors', keys: ['--accent', '--accent-green', '--accent-yellow', '--accent-red'] },
+    // ── Element-specific overrides (Issue #313) ────────────────────────────────
+    {
+        labelKey: 'theme.vars.elSwitch',
+        keys: ['--switch-bg', '--switch-off-bg', '--switch-thumb-color', '--switch-border'],
+    },
+    {
+        labelKey: 'theme.vars.elBlind',
+        keys: [
+            '--blind-color',
+            '--blind-bg',
+            '--blind-border',
+            '--blind-up-color',
+            '--blind-up-bg',
+            '--blind-up-border',
+            '--blind-stop-color',
+            '--blind-stop-bg',
+            '--blind-stop-border',
+            '--blind-down-color',
+            '--blind-down-bg',
+            '--blind-down-border',
+        ],
+    },
+    { labelKey: 'theme.vars.elHeader', keys: ['--header-text', '--header-bg', '--header-accent'] },
+    { labelKey: 'theme.vars.elGroup', keys: ['--widget-in-group-bg', '--widget-in-group-border'] },
+    { labelKey: 'theme.vars.elSlider', keys: ['--slider-track', '--slider-fill', '--slider-thumb'] },
+    { labelKey: 'theme.vars.elButton', keys: ['--button-bg', '--button-text', '--button-border'] },
+    { labelKey: 'theme.vars.elGauge', keys: ['--gauge-arc', '--gauge-track'] },
+    { labelKey: 'theme.vars.elClimate', keys: ['--climate-heat', '--climate-cool'] },
+    { labelKey: 'theme.vars.elChip', keys: ['--chip-bg', '--chip-border', '--chip-active'] },
+    { labelKey: 'theme.vars.elBadge', keys: ['--badge-ok', '--badge-warn', '--badge-crit'] },
+    { labelKey: 'theme.vars.elLight', keys: ['--light-on', '--light-off'] },
+    { labelKey: 'theme.vars.elNav', keys: ['--nav-bg', '--nav-active'] },
 ];
 
-const VAR_LABEL_KEYS: Partial<Record<keyof ThemeVars, string>> = {
+const VAR_LABEL_KEYS: Partial<Record<keyof AllVars, string>> = {
     '--app-bg': 'theme.vars.bg',
     '--app-surface': 'theme.vars.surface',
     '--app-border': 'theme.vars.border',
@@ -28,10 +60,66 @@ const VAR_LABEL_KEYS: Partial<Record<keyof ThemeVars, string>> = {
     '--accent-green': 'theme.vars.green',
     '--accent-yellow': 'theme.vars.yellow',
     '--accent-red': 'theme.vars.red',
+    // Element vars
+    '--switch-bg': 'theme.vars.elOnBg',
+    '--switch-off-bg': 'theme.vars.elOffBg',
+    '--switch-thumb-color': 'theme.vars.elThumb',
+    '--switch-border': 'theme.vars.border',
+    '--blind-color': 'theme.vars.elIndicator',
+    '--blind-bg': 'theme.vars.bg',
+    '--blind-border': 'theme.vars.border',
+    '--blind-up-color': 'theme.vars.elUpColor',
+    '--blind-up-bg': 'theme.vars.elUpBg',
+    '--blind-up-border': 'theme.vars.elUpBorder',
+    '--blind-stop-color': 'theme.vars.elStopColor',
+    '--blind-stop-bg': 'theme.vars.elStopBg',
+    '--blind-stop-border': 'theme.vars.elStopBorder',
+    '--blind-down-color': 'theme.vars.elDownColor',
+    '--blind-down-bg': 'theme.vars.elDownBg',
+    '--blind-down-border': 'theme.vars.elDownBorder',
+    '--header-text': 'theme.vars.elText',
+    '--header-bg': 'theme.vars.bg',
+    '--header-accent': 'theme.vars.accent',
+    '--widget-in-group-bg': 'theme.vars.bg',
+    '--widget-in-group-border': 'theme.vars.border',
+    '--slider-track': 'theme.vars.elTrack',
+    '--slider-fill': 'theme.vars.elFill',
+    '--slider-thumb': 'theme.vars.elThumb',
+    '--button-bg': 'theme.vars.bg',
+    '--button-text': 'theme.vars.elText',
+    '--button-border': 'theme.vars.border',
+    '--gauge-arc': 'theme.vars.elArc',
+    '--gauge-track': 'theme.vars.elTrack',
+    '--climate-heat': 'theme.vars.elHeat',
+    '--climate-cool': 'theme.vars.elCool',
+    '--chip-bg': 'theme.vars.bg',
+    '--chip-border': 'theme.vars.border',
+    '--chip-active': 'theme.vars.elActive',
+    '--badge-ok': 'theme.vars.green',
+    '--badge-warn': 'theme.vars.yellow',
+    '--badge-crit': 'theme.vars.red',
+    '--light-on': 'theme.vars.elOn',
+    '--light-off': 'theme.vars.elOff',
+    '--nav-bg': 'theme.vars.bg',
+    '--nav-active': 'theme.vars.elActive',
 };
 
 function isColor(v: string) {
     return v.startsWith('#') || v.startsWith('rgb') || v.startsWith('hsl');
+}
+
+/**
+ * Resolve the inherited default for a var: base-palette vars come straight from
+ * the theme; element vars fall back via ELEMENT_VAR_FALLBACKS (to another base
+ * var or a literal like '#ffffff'/'transparent').
+ */
+function resolveBase(key: keyof AllVars, themeVars: ThemeVars): string {
+    if (key in themeVars) return themeVars[key as keyof ThemeVars];
+    const fb = ELEMENT_VAR_FALLBACKS[key as keyof typeof ELEMENT_VAR_FALLBACKS];
+    if (typeof fb === 'string' && fb.startsWith('--') && fb in themeVars) {
+        return themeVars[fb as keyof ThemeVars];
+    }
+    return fb;
 }
 
 interface ThemeVarsSectionProps {
@@ -53,7 +141,7 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
 
     const isThemeOv = (key: keyof typeof customVars) => contextId !== null && ls?.customVars?.[key] !== undefined;
 
-    function setThemeVar(key: keyof ThemeVars, value: string) {
+    function setThemeVar(key: keyof AllVars, value: string) {
         if (!contextId) setCustomVar(key, value);
         else {
             const next = { ...effectiveVars, [key]: value };
@@ -61,12 +149,12 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
         }
     }
 
-    function clearThemeVar(key: keyof ThemeVars) {
+    function clearThemeVar(key: keyof AllVars) {
         if (!contextId) {
             const next = { ...customVars };
             delete next[key];
             resetCustom();
-            Object.entries(next).forEach(([k, v]) => setCustomVar(k as keyof ThemeVars, v!));
+            Object.entries(next).forEach(([k, v]) => setCustomVar(k as keyof AllVars, v!));
         } else {
             const next = { ...effectiveVars };
             delete next[key];
@@ -117,7 +205,7 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
                         </p>
                         <div className="space-y-3">
                             {keys.map((key) => {
-                                const base = activeTheme.vars[key];
+                                const base = resolveBase(key, activeTheme.vars);
                                 const custom = effectiveVars[key];
                                 const current = custom ?? base;
                                 const varLabelKey = VAR_LABEL_KEYS[key];

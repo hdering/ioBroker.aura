@@ -26,8 +26,8 @@ function ShutterViz({
         <div
             className={className}
             style={{
-                background: 'var(--app-bg)',
-                border: '1px solid var(--app-border)',
+                background: 'var(--blind-bg, var(--app-bg))',
+                border: '1px solid var(--blind-border, var(--app-border))',
                 borderRadius: '6px',
                 overflow: 'hidden',
                 position: 'relative',
@@ -87,25 +87,25 @@ function BtnRow({
 }) {
     const pad = Math.max(2, Math.round(iconSz / 4));
     const radius = Math.max(4, Math.round(iconSz / 2));
-    const btnStyle: React.CSSProperties = {
-        background: 'var(--app-bg)',
-        color: 'var(--text-secondary)',
-        border: '1px solid var(--app-border)',
+    const dirStyle = (dir: 'up' | 'stop' | 'down'): React.CSSProperties => ({
+        background: `var(--blind-${dir}-bg, var(--app-bg))`,
+        color: `var(--blind-${dir}-color, var(--text-secondary))`,
+        border: `1px solid var(--blind-${dir}-border, var(--app-border))`,
         padding: pad,
         borderRadius: radius,
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-    };
+    });
     return (
         <div className={`aura-widget-action flex ${vertical ? 'flex-col' : ''} gap-1`}>
-            <button onClick={onUp} className="hover:opacity-80 transition-opacity" style={btnStyle}>
+            <button onClick={onUp} className="hover:opacity-80 transition-opacity" style={dirStyle('up')}>
                 <ChevronUp size={iconSz} />
             </button>
-            <button onClick={onStop} className="hover:opacity-80 transition-opacity" style={btnStyle}>
+            <button onClick={onStop} className="hover:opacity-80 transition-opacity" style={dirStyle('stop')}>
                 <Square size={iconSz} />
             </button>
-            <button onClick={onDown} className="hover:opacity-80 transition-opacity" style={btnStyle}>
+            <button onClick={onDown} className="hover:opacity-80 transition-opacity" style={dirStyle('down')}>
                 <ChevronDown size={iconSz} />
             </button>
         </div>
@@ -178,7 +178,11 @@ export function ShutterWidget({ config }: WidgetProps) {
         }
     };
 
-    const accentColor = isMoving ? 'var(--accent-yellow)' : pos > 0 ? 'var(--accent)' : 'var(--text-secondary)';
+    const accentColor = isMoving
+        ? 'var(--accent-yellow)'
+        : pos > 0
+          ? 'var(--blind-color, var(--accent))'
+          : 'var(--text-secondary)';
 
     const thresholds = opts.colorThresholds as Array<[number, string]> | undefined;
     const thresholdColor = useMemo(() => {
@@ -257,14 +261,14 @@ export function ShutterWidget({ config }: WidgetProps) {
     const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
     if (layout === 'custom') {
-        const btnStyle: React.CSSProperties = {
-            background: 'var(--app-bg)',
-            color: 'var(--text-secondary)',
-            border: '1px solid var(--app-border)',
+        const dirBtnStyle = (dir: 'up' | 'stop' | 'down'): React.CSSProperties => ({
+            background: `var(--blind-${dir}-bg, var(--app-bg))`,
+            color: `var(--blind-${dir}-color, var(--text-secondary))`,
+            border: `1px solid var(--blind-${dir}-border, var(--app-border))`,
             borderRadius: 6,
             padding: '4px 6px',
             cursor: 'pointer',
-        };
+        });
         return (
             <CustomGridView
                 config={config}
@@ -296,17 +300,17 @@ export function ShutterWidget({ config }: WidgetProps) {
                         )
                     ) : null,
                     'btn-up': (
-                        <button className="aura-widget-action nodrag" style={btnStyle} onClick={openFully}>
+                        <button className="aura-widget-action nodrag" style={dirBtnStyle('up')} onClick={openFully}>
                             <ChevronUp size={buttonSize} />
                         </button>
                     ),
                     'btn-stop': (
-                        <button className="aura-widget-action nodrag" style={btnStyle} onClick={stop}>
+                        <button className="aura-widget-action nodrag" style={dirBtnStyle('stop')} onClick={stop}>
                             <Square size={buttonSize} />
                         </button>
                     ),
                     'btn-down': (
-                        <button className="aura-widget-action nodrag" style={btnStyle} onClick={closeFully}>
+                        <button className="aura-widget-action nodrag" style={dirBtnStyle('down')} onClick={closeFully}>
                             <ChevronDown size={buttonSize} />
                         </button>
                     ),
@@ -372,20 +376,22 @@ export function ShutterWidget({ config }: WidgetProps) {
     if (layout === 'minimal') {
         const minBtnPad = Math.max(4, Math.round(buttonSize / 2));
         const minBtnRadius = Math.max(6, Math.round(buttonSize / 1.3));
-        const minBtnStyle: React.CSSProperties = {
-            background: 'var(--app-bg)',
-            color: 'var(--text-secondary)',
-            border: '1px solid var(--app-border)',
+        const minDirStyle = (dir: 'up' | 'stop' | 'down'): React.CSSProperties => ({
+            background: `var(--blind-${dir}-bg, var(--app-bg))`,
+            color: `var(--blind-${dir}-color, var(--text-secondary))`,
+            border: `1px solid var(--blind-${dir}-border, var(--app-border))`,
             padding: minBtnPad,
             borderRadius: minBtnRadius,
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-        };
+        });
+        const minBtnStyle = minDirStyle('up');
         const stopBtnStyle: React.CSSProperties = {
-            ...minBtnStyle,
+            ...minDirStyle('stop'),
             padding: `${Math.max(2, Math.round(buttonSize / 3))}px ${Math.max(6, Math.round(buttonSize))}px`,
         };
+        const downBtnStyle = minDirStyle('down');
         const stopSz = Math.max(8, Math.round(buttonSize * 0.7));
         return (
             <div
@@ -425,7 +431,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                         <button
                             onClick={closeFully}
                             className="aura-widget-action hover:opacity-80 transition-opacity"
-                            style={minBtnStyle}
+                            style={downBtnStyle}
                         >
                             <ChevronDown size={buttonSize} />
                         </button>

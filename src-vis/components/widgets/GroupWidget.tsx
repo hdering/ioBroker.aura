@@ -288,6 +288,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                         editMode={false}
                         onRemove={onRemove}
                         onConfigChange={updateChild}
+                        inGroup
                     />
                 ))}
             </div>
@@ -389,6 +390,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                     onRemove={onRemove}
                                     onConfigChange={updateChild}
                                     onDuplicate={() => duplicateChild(child)}
+                                    inGroup
                                 />
                             </div>
                         ))}
@@ -495,6 +497,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                     onRemove={onRemove}
                                     onConfigChange={updateChild}
                                     onDuplicate={() => duplicateChild(child)}
+                                    inGroup
                                 />
                             </div>
                         ))}

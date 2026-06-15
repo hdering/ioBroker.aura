@@ -79,9 +79,9 @@ export function StatusBadges({ config }: Props) {
 
     if (alertOnly && !isBattLow && !isUnreach) return null;
 
-    const green = 'var(--accent-green, #22c55e)';
-    const orange = '#f59e0b';
-    const red = 'var(--accent-red, #ef4444)';
+    const green = 'var(--badge-ok, var(--accent-green, #22c55e))';
+    const orange = 'var(--badge-warn, #f59e0b)';
+    const red = 'var(--badge-crit, var(--accent-red, #ef4444))';
     const blue = 'var(--accent, #3b82f6)';
 
     const battColor = isBattLow ? orange : green;

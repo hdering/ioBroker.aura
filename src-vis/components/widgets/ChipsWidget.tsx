@@ -93,24 +93,27 @@ export function ChipsWidget({ config }: WidgetProps) {
                       justifyContent: alignFlex,
                   };
 
+    const chipActive = 'var(--chip-active, var(--accent))';
     const chipBg = (active: boolean) =>
         chipStyle === 'filled'
             ? active
-                ? 'var(--accent)'
-                : 'var(--app-bg)'
+                ? chipActive
+                : 'var(--chip-bg, var(--app-bg))'
             : chipStyle === 'ghost'
               ? active
-                  ? 'var(--accent)22'
+                  ? `${chipActive}22`
                   : 'transparent'
               : active
-                ? 'var(--accent)22'
-                : 'var(--app-bg)';
+                ? `${chipActive}22`
+                : 'var(--chip-bg, var(--app-bg))';
 
     const chipColor = (active: boolean) =>
-        active ? (chipStyle === 'filled' ? '#fff' : 'var(--accent)') : 'var(--text-primary)';
+        active ? (chipStyle === 'filled' ? '#fff' : chipActive) : 'var(--text-primary)';
 
     const chipBorder = (active: boolean) =>
-        chipStyle === 'ghost' ? 'none' : `1px solid ${active ? 'var(--accent)44' : 'var(--app-border)'}`;
+        chipStyle === 'ghost'
+            ? 'none'
+            : `1px solid ${active ? `${chipActive}44` : 'var(--chip-border, var(--app-border))'}`;
 
     return (
         <div className="aura-widget-row relative w-full h-full flex flex-col gap-1.5">

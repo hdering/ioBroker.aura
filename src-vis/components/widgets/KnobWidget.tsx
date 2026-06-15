@@ -152,7 +152,7 @@ export function KnobWidget({ config }: WidgetProps) {
     // Endless anchors min at 126° (lower-left). Bounded/scale uses 135 → 405 by default.
     const startAngle = isEndless ? 126 : ((o.startAngle as number) ?? 135);
     const endAngle = isEndless ? 486 : ((o.endAngle as number) ?? 405);
-    const color = (o.color as string) || (isEndless ? '#4a4a4a' : '#3b82f6');
+    const color = (o.color as string) || (isEndless ? '#4a4a4a' : 'var(--slider-fill, #3b82f6)');
 
     const { value: rawVal } = useDatapoint(config.datapoint);
     const numericVal = typeof rawVal === 'number' ? rawVal : Number.isFinite(Number(rawVal)) ? Number(rawVal) : min;
@@ -739,7 +739,7 @@ export function KnobWidget({ config }: WidgetProps) {
                 <path
                     d={describeArc(cx, cy, trackR, startAngle, endAngle)}
                     fill="none"
-                    stroke="var(--app-border)"
+                    stroke="var(--slider-track, var(--app-border))"
                     strokeWidth={trackStroke}
                     strokeLinecap="round"
                     opacity={0.5}

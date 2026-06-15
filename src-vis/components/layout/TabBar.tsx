@@ -127,7 +127,7 @@ function renderTabBarItem(item: TabBarItem) {
 
 function tabStyle(isActive: boolean, settings: TabBarSettings | undefined): React.CSSProperties {
     const style = settings?.indicatorStyle ?? 'underline';
-    const activeClr = settings?.activeColor ?? 'var(--accent)';
+    const activeClr = settings?.activeColor ?? 'var(--nav-active, var(--accent))';
     const inactiveClr = settings?.inactiveColor ?? 'var(--text-secondary)';
 
     if (style === 'pills') {
@@ -298,7 +298,7 @@ export function TabBar({
 
     // ── Container style ──────────────────────────────────────────────────────────
     const barHeight = tbSettings?.height;
-    const barBg = tbSettings?.background ?? 'var(--app-surface)';
+    const barBg = tbSettings?.background ?? 'var(--nav-bg, var(--app-surface))';
     const tabIconSize = tbSettings?.iconSize ?? 14;
     const containerStyle: React.CSSProperties = {
         background: barBg,

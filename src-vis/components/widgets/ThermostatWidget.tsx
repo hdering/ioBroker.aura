@@ -52,7 +52,11 @@ export function ThermostatWidget({ config }: WidgetProps) {
 
     const isHeating = actual !== null && target > actual + 0.2;
     const isCooling = actual !== null && target < actual - 0.2;
-    const accentColor = isHeating ? 'var(--accent-red)' : isCooling ? 'var(--accent)' : 'var(--text-secondary)';
+    const accentColor = isHeating
+        ? 'var(--climate-heat, var(--accent-red))'
+        : isCooling
+          ? 'var(--climate-cool, var(--accent))'
+          : 'var(--text-secondary)';
 
     const thresholds = o.colorThresholds as Array<[number, string]> | undefined;
     const thresholdNum = actual ?? target;
@@ -96,9 +100,9 @@ export function ThermostatWidget({ config }: WidgetProps) {
 
     const StatusIcon = () =>
         isHeating ? (
-            <Flame size={14} style={{ color: 'var(--accent-red)', flexShrink: 0 }} />
+            <Flame size={14} style={{ color: 'var(--climate-heat, var(--accent-red))', flexShrink: 0 }} />
         ) : isCooling ? (
-            <Snowflake size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+            <Snowflake size={14} style={{ color: 'var(--climate-cool, var(--accent))', flexShrink: 0 }} />
         ) : (
             <Wind size={14} style={{ color: 'var(--text-secondary)', flexShrink: 0, opacity: 0.5 }} />
         );

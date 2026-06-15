@@ -511,10 +511,10 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     const isOn = switchDp ? !!switchVal : brightnessVal != null ? brightnessVal > briMin : false;
 
     const accentOn = useMemo(() => {
-        if (colorMode === 'none') return 'var(--accent-yellow)';
+        if (colorMode === 'none') return 'var(--light-on, var(--accent-yellow))';
         return hsvToHex(displayHS[0], displayHS[1] || 0.0001, 1);
     }, [colorMode, displayHS]);
-    const accent = isOn ? accentOn : 'var(--text-secondary)';
+    const accent = isOn ? accentOn : 'var(--light-off, var(--text-secondary))';
 
     // ── Writers ────────────────────────────────────────────────────────────────
     const togglePower = useCallback(() => {

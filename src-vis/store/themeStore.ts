@@ -1,17 +1,17 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { managedStorage } from './persistManager';
-import { DEFAULT_THEME_ID, type ThemeVars } from '../themes';
+import { DEFAULT_THEME_ID, type AllVars } from '../themes';
 
 interface ThemeState {
     themeId: string;
-    customVars: Partial<ThemeVars>;
+    customVars: Partial<AllVars>;
     adminThemeId: string;
     followBrowser: boolean;
     browserDarkThemeId: string;
     browserLightThemeId: string;
     setTheme: (id: string) => void;
-    setCustomVar: (key: keyof ThemeVars, value: string) => void;
+    setCustomVar: (key: keyof AllVars, value: string) => void;
     resetCustom: () => void;
     setAdminTheme: (id: string) => void;
     setFollowBrowser: (v: boolean) => void;

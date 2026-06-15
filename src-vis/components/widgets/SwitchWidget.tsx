@@ -100,11 +100,19 @@ export function SwitchWidget({ config }: WidgetProps) {
                             <button
                                 onClick={handleToggle}
                                 className="aura-widget-action nodrag relative w-10 h-5 rounded-full transition-colors focus:outline-none"
-                                style={{ background: isOn ? 'var(--accent)' : 'var(--app-border)' }}
+                                style={{
+                                    background: isOn
+                                        ? 'var(--switch-bg, var(--accent))'
+                                        : 'var(--switch-off-bg, var(--app-border))',
+                                    border: '1px solid var(--switch-border, transparent)',
+                                }}
                             >
                                 <span
-                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                    style={{ left: isOn ? '22px' : '2px' }}
+                                    className="absolute top-0.5 w-4 h-4 rounded-full shadow transition-transform"
+                                    style={{
+                                        left: isOn ? '22px' : '2px',
+                                        background: 'var(--switch-thumb-color, #fff)',
+                                    }}
                                 />
                             </button>
                         ),
@@ -194,10 +202,16 @@ export function SwitchWidget({ config }: WidgetProps) {
                     <button
                         onClick={handleToggle}
                         className="aura-widget-action relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none"
-                        style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}
+                        style={{
+                            background: isOn
+                                ? 'var(--switch-bg, var(--accent-green))'
+                                : 'var(--switch-off-bg, var(--app-border))',
+                            border: '1px solid var(--switch-border, transparent)',
+                        }}
                     >
                         <span
-                            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`}
+                            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`}
+                            style={{ background: 'var(--switch-thumb-color, #fff)' }}
                         />
                     </button>
                 )}
@@ -256,10 +270,16 @@ export function SwitchWidget({ config }: WidgetProps) {
                     <button
                         onClick={handleToggle}
                         className={`aura-widget-action relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none ${!showLabel ? 'ml-auto' : ''}`}
-                        style={{ background: isOn ? 'var(--accent-green)' : 'var(--app-border)' }}
+                        style={{
+                            background: isOn
+                                ? 'var(--switch-bg, var(--accent-green))'
+                                : 'var(--switch-off-bg, var(--app-border))',
+                            border: '1px solid var(--switch-border, transparent)',
+                        }}
                     >
                         <span
-                            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-6' : 'translate-x-0'}`}
+                            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-6' : 'translate-x-0'}`}
+                            style={{ background: 'var(--switch-thumb-color, #fff)' }}
                         />
                     </button>
                 )}

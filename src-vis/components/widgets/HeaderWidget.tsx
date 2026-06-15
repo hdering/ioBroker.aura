@@ -45,18 +45,21 @@ export function HeaderWidget({ config }: Props) {
     if (layout === 'compact') {
         return (
             <div className="aura-widget-row flex items-center gap-3 h-full">
-                <div className="w-1 self-stretch rounded-full" style={{ background: 'var(--accent)' }} />
+                <div
+                    className="w-1 self-stretch rounded-full"
+                    style={{ background: 'var(--header-accent, var(--accent))' }}
+                />
                 {showIcon && (
                     <WidgetIcon
                         className="aura-widget-icon"
                         size={iconSize}
-                        style={{ color: 'var(--text-primary)', flexShrink: 0 }}
+                        style={{ color: 'var(--header-text, var(--text-primary))', flexShrink: 0 }}
                     />
                 )}
                 {showTitle && (
                     <span
                         className="aura-widget-title font-semibold text-base"
-                        style={{ color: 'var(--text-primary)' }}
+                        style={{ color: 'var(--header-text, var(--text-primary))' }}
                     >
                         {config.title}
                     </span>
@@ -70,19 +73,22 @@ export function HeaderWidget({ config }: Props) {
         <div className="aura-widget-row flex flex-col justify-center h-full gap-0.5">
             <div className="flex items-center gap-3" style={{ justifyContent }}>
                 {titleAlign === 'left' && (
-                    <div className="w-1 self-stretch rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
+                    <div
+                        className="w-1 self-stretch rounded-full shrink-0"
+                        style={{ background: 'var(--header-accent, var(--accent))' }}
+                    />
                 )}
                 {showIcon && (
                     <WidgetIcon
                         className="aura-widget-icon"
                         size={iconSize}
-                        style={{ color: 'var(--text-primary)', flexShrink: 0 }}
+                        style={{ color: 'var(--header-text, var(--text-primary))', flexShrink: 0 }}
                     />
                 )}
                 {showTitle && (
                     <h2
                         className="aura-widget-title font-bold text-xl leading-tight"
-                        style={{ color: 'var(--text-primary)' }}
+                        style={{ color: 'var(--header-text, var(--text-primary))' }}
                     >
                         {config.title}
                     </h2>
