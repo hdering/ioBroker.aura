@@ -2,17 +2,21 @@
  * Datapoint references may carry an optional JSON path so a single ioBroker
  * state that holds an object/array can feed any widget with one nested value.
  *
- * Syntax:  <stateId>#<path>
- *   0_userdata.0.battery#soc
- *   myadapter.0.battery#devices.0.soc      (dot notation)
- *   myadapter.0.battery#devices[0].soc     (bracket notation, equivalent)
+ * Syntax:  <stateId>?<path>
+ *   0_userdata.0.battery?soc
+ *   myadapter.0.battery?devices.0.soc      (dot notation)
+ *   myadapter.0.battery?devices[0].soc     (bracket notation, equivalent)
  *
- * The separator is `#` because it survives isValidStateId() yet never appears
- * in real ioBroker state IDs. The path part is stripped before any socket call
- * (subscribe/getState use the bare base ID) and applied to the returned value.
+ * The separator is `?` because isValidStateId() forbids it (along with
+ * whitespace and & = :), so it can never collide with a real state ID. `#`
+ * must NOT be used here: it is a legitimate character in some adapters
+ * (e.g. Shelly: shelly.0.SHSW-25#XXXXXX#1.Relay0.Switch) — splitting on `#`
+ * truncated such IDs and broke writes (state could no longer be set).
+ * The path part is stripped before any socket call (subscribe/getState use
+ * the bare base ID) and applied to the returned value.
  */
 
-const PATH_SEP = '#';
+const PATH_SEP = '?';
 
 export interface DpRef {
     /** Bare ioBroker state ID — safe to pass to subscribe/getState. */
