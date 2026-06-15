@@ -192,6 +192,10 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.246 (2026-06-15)
+- fix(clients): only register client when new or renamed
+
+
 ### 0.9.245 (2026-06-15)
 - fix(theme): readable preset names + explain what a preset changes (#307)
 - feat(layouts): export/import complete layouts with all tabs, widgets and groups
@@ -297,13 +301,6 @@ Release v0.9.228
 - chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)
 
 
-### 0.9.226 (2026-06-11)
-- chore(lint): disable prettier/prettier for main.js
-- chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083)
-- chore(deps): drop @types/dompurify, use bundled types (W0083)
-- fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)
-
-
 ## License
 
 MIT License
@@ -315,6 +312,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

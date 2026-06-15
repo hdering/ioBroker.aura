@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.245",
+    "version": "0.9.246",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.246": {
+        "en": "fix(clients): only register client when new or renamed",
+        "de": "fix(clients): only register client when new or renamed",
+        "ru": "fix(clients): only register client when new or renamed",
+        "pt": "fix(clients): only register client when new or renamed",
+        "nl": "fix(clients): only register client when new or renamed",
+        "fr": "fix(clients): only register client when new or renamed",
+        "it": "fix(clients): only register client when new or renamed",
+        "es": "fix(clients): only register client when new or renamed",
+        "pl": "fix(clients): only register client when new or renamed",
+        "uk": "fix(clients): only register client when new or renamed",
+        "zh-cn": "fix(clients): only register client when new or renamed"
+      },
       "0.9.245": {
         "en": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
         "de": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
@@ -183,19 +196,6 @@
         "pl": "feat(widgets): add \"open in dashboard editor\" button to widget rows (#309)",
         "uk": "feat(widgets): add \"open in dashboard editor\" button to widget rows (#309)",
         "zh-cn": "feat(widgets): add \"open in dashboard editor\" button to widget rows (#309)"
-      },
-      "0.9.239": {
-        "en": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
-        "de": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
-        "ru": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
-        "pt": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
-        "nl": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
-        "fr": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
-        "it": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
-        "es": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
-        "pl": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
-        "uk": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
-        "zh-cn": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)"
       }
     }
   },

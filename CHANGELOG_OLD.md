@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.9.226 (2026-06-11)
+- chore(lint): disable prettier/prettier for main.js
+- chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083)
+- chore(deps): drop @types/dompurify, use bundled types (W0083)
+- fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)
+
 ## 0.9.225 (2026-06-11)
 - chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083)
 - chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083)
