@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.223 (2026-06-11)
+- style(prettier): auto-format src-vis and main.js
+- style(prettier): format main.js (indent + collapse aligned requires)
+
 ## 0.9.222 (2026-06-11)
 - fix(checker): resolve adapter-checker warnings (deps, roles, timers, prettier)
 

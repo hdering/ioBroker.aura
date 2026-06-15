@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.242",
+    "version": "0.9.243",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.243": {
+        "en": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
+        "de": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
+        "ru": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
+        "pt": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
+        "nl": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
+        "fr": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
+        "it": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
+        "es": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
+        "pl": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
+        "uk": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially",
+        "zh-cn": "style(prettier): auto-format code files; fix(universal-widget): apply preselected state-text colors initially"
+      },
       "0.9.242": {
         "en": "feat(popup): sample chart preview + visible history instance in editor",
         "de": "feat(popup): sample chart preview + visible history instance in editor",
@@ -183,19 +196,6 @@
         "pl": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
         "uk": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate",
         "zh-cn": "feat(datapoint): JSON path support on datapoint refs (id#path); feat(group): show loading spinner while group children hydrate"
-      },
-      "0.9.236": {
-        "en": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
-        "de": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
-        "ru": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
-        "pt": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
-        "nl": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
-        "fr": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
-        "it": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
-        "es": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
-        "pl": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
-        "uk": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope",
-        "zh-cn": "revert(tabbar): remove tab-bar settings preview; feat(tabbar): live preview in tab-bar settings for the edited scope"
       }
     }
   },
