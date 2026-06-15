@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.244",
+    "version": "0.9.245",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.245": {
+        "en": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
+        "de": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
+        "ru": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
+        "pt": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
+        "nl": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
+        "fr": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
+        "it": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
+        "es": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
+        "pl": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
+        "uk": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
+        "zh-cn": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups"
+      },
       "0.9.244": {
         "en": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
         "de": "chore: ignore examples/ directory; chore: remove examples/testdata-generator.js from repo; fix(editor): hide 'card' layout option for header widget in new-widget dialog",
@@ -183,19 +196,6 @@
         "pl": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
         "uk": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)",
         "zh-cn": "fix(popup): resolve {{placeholders}} in nested option arrays (#314)"
-      },
-      "0.9.238": {
-        "en": "style(prettier): auto-format code files",
-        "de": "style(prettier): auto-format code files",
-        "ru": "style(prettier): auto-format code files",
-        "pt": "style(prettier): auto-format code files",
-        "nl": "style(prettier): auto-format code files",
-        "fr": "style(prettier): auto-format code files",
-        "it": "style(prettier): auto-format code files",
-        "es": "style(prettier): auto-format code files",
-        "pl": "style(prettier): auto-format code files",
-        "uk": "style(prettier): auto-format code files",
-        "zh-cn": "style(prettier): auto-format code files"
       }
     }
   },

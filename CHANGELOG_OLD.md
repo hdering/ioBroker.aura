@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.225 (2026-06-11)
+- chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083)
+- chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083)
+- fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)
+
 ## 0.9.224 (2026-06-11)
 Release v0.9.224
 

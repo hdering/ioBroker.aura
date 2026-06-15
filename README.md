@@ -192,6 +192,11 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.245 (2026-06-15)
+- fix(theme): readable preset names + explain what a preset changes (#307)
+- feat(layouts): export/import complete layouts with all tabs, widgets and groups
+
+
 ### 0.9.244 (2026-06-15)
 - chore: ignore examples/ directory
 - chore: remove examples/testdata-generator.js from repo
@@ -299,12 +304,6 @@ Release v0.9.228
 - fix(checker): use globalThis.setTimeout in test-socket.mjs (E5005)
 
 
-### 0.9.225 (2026-06-11)
-- chore(deps): migrate react-grid-layout 1.4.4 -> 2.2.3 via /legacy (W0083)
-- chore(deps): bump autoprefixer, vitepress, globals, lucide-react, eslint-config (W0083)
-- fix(checker): resolve E5004/E5005/E6022 (globalThis timers, CHANGELOG_OLD link)
-
-
 ## License
 
 MIT License
@@ -316,6 +315,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
