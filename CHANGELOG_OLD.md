@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.222 (2026-06-11)
+- fix(checker): resolve adapter-checker warnings (deps, roles, timers, prettier)
+
 ## 0.9.221 (2026-06-10)
 - fix(lint): auto-fix mixed typographic quotes
 - feat(group-action): per-target checklist to exclude DPs
