@@ -32,6 +32,22 @@ const BACKUP_FILE_PREFIX = 'backup-';
 const BACKUP_FILE_SUFFIX = '.json';
 
 export const BACKUP_TS_KEY = '_ts';
+// List of sync-store keys actually written in the save that produced this
+// backup. Older backups predate this field → treated as empty (unknown).
+export const BACKUP_CHANGED_KEY = '_changed';
+// Structured, human-readable change descriptors (e.g. a moved widget). Only
+// populated when a before-value is available (RAM original, same session).
+export const BACKUP_DETAILS_KEY = '_details';
+
+// One semantic change in a save. `label` is filled when exactly one entity of
+// this kind changed; `count` when several were aggregated. The UI translates
+// `kind` and interpolates label/count.
+export interface BackupChangeDetail {
+    store: string; // sync-store key, e.g. 'aura-dashboard'
+    kind: string; // 'widget-moved' | 'tab-renamed' | 'store-changed' | …
+    label?: string;
+    count?: number;
+}
 
 function tsToFilename(ts: string): string {
     return `${BACKUP_FILE_PREFIX}${ts.replace(/[:.]/g, '-')}${BACKUP_FILE_SUFFIX}`;
@@ -230,6 +246,156 @@ export function buildBackupPayload(): Record<string, unknown> {
     return buildBackupEntry();
 }
 
+// ── Change detail diffing ─────────────────────────────────────────────────────
+// Minimal structural shapes for the dashboard store payload. Kept local (not
+// imported from dashboardStore) to avoid a module cycle; only the fields we
+// diff are typed.
+interface WidgetLite {
+    id?: string;
+    type?: string;
+    title?: string;
+    datapoint?: string;
+    gridPos?: { x?: number; y?: number; w?: number; h?: number };
+    options?: { echartSeries?: unknown[] } & Record<string, unknown>;
+}
+interface TabLite {
+    id?: string;
+    name?: string;
+    widgets?: WidgetLite[];
+}
+interface LayoutLite {
+    id?: string;
+    name?: string;
+    tabs?: TabLite[];
+}
+
+type RawChange = { kind: string; label?: string };
+
+function parseLayouts(raw: string): LayoutLite[] | null {
+    try {
+        const obj = JSON.parse(raw) as { state?: { layouts?: unknown } };
+        const layouts = obj?.state?.layouts;
+        return Array.isArray(layouts) ? (layouts as LayoutLite[]) : null;
+    } catch {
+        return null;
+    }
+}
+
+function widgetLabel(w: WidgetLite): string {
+    return (w.title && w.title.trim()) || w.type || 'Widget';
+}
+
+function gridChanged(a?: WidgetLite['gridPos'], b?: WidgetLite['gridPos']): boolean {
+    return a?.x !== b?.x || a?.y !== b?.y || a?.w !== b?.w || a?.h !== b?.h;
+}
+
+// True when anything other than gridPos differs (title, datapoint, options…).
+function widgetEdited(a: WidgetLite, b: WidgetLite): boolean {
+    return JSON.stringify({ ...a, gridPos: undefined }) !== JSON.stringify({ ...b, gridPos: undefined });
+}
+
+function diffWidgets(before: WidgetLite[], after: WidgetLite[], out: RawChange[]): void {
+    const beforeById = new Map(before.filter((w) => w.id).map((w) => [w.id, w]));
+    const afterById = new Map(after.filter((w) => w.id).map((w) => [w.id, w]));
+    after.forEach((w) => {
+        if (w.id && !beforeById.has(w.id)) out.push({ kind: 'widget-added', label: widgetLabel(w) });
+    });
+    before.forEach((w) => {
+        if (w.id && !afterById.has(w.id)) out.push({ kind: 'widget-removed', label: widgetLabel(w) });
+    });
+    after.forEach((wa) => {
+        const wb = wa.id ? beforeById.get(wa.id) : undefined;
+        if (!wb) return;
+        if (gridChanged(wb.gridPos, wa.gridPos)) out.push({ kind: 'widget-moved', label: widgetLabel(wa) });
+        if (!widgetEdited(wb, wa)) return; // only gridPos changed (or nothing)
+        const label = widgetLabel(wa);
+        let specific = false;
+        if ((wb.datapoint ?? '') !== (wa.datapoint ?? '')) {
+            out.push({ kind: 'widget-dp', label });
+            specific = true;
+        }
+        if ((wb.title ?? '') !== (wa.title ?? '')) {
+            out.push({ kind: 'widget-renamed', label });
+            specific = true;
+        }
+        // EChart series live in options.echartSeries — a length change means a
+        // series was added/removed (reordering/editing falls through to generic).
+        const sb = Array.isArray(wb.options?.echartSeries) ? wb.options!.echartSeries!.length : -1;
+        const sa = Array.isArray(wa.options?.echartSeries) ? wa.options!.echartSeries!.length : -1;
+        if (sb !== -1 && sa !== -1 && sb !== sa) {
+            out.push({ kind: sa > sb ? 'series-added' : 'series-removed', label });
+            specific = true;
+        }
+        // Anything else (other options, mobileOrder, type) → generic.
+        if (!specific) out.push({ kind: 'widget-edited', label });
+    });
+}
+
+function diffTabs(before: TabLite[], after: TabLite[], out: RawChange[]): void {
+    const beforeById = new Map(before.filter((t) => t.id).map((t) => [t.id, t]));
+    const afterById = new Map(after.filter((t) => t.id).map((t) => [t.id, t]));
+    after.forEach((t) => {
+        if (t.id && !beforeById.has(t.id)) out.push({ kind: 'tab-added', label: t.name });
+    });
+    before.forEach((t) => {
+        if (t.id && !afterById.has(t.id)) out.push({ kind: 'tab-removed', label: t.name });
+    });
+    after.forEach((ta) => {
+        const tb = ta.id ? beforeById.get(ta.id) : undefined;
+        if (!tb) return;
+        if (ta.name !== tb.name) out.push({ kind: 'tab-renamed', label: ta.name });
+        diffWidgets(tb.widgets ?? [], ta.widgets ?? [], out);
+    });
+}
+
+function diffDashboard(beforeRaw: string, afterRaw: string): RawChange[] {
+    const before = parseLayouts(beforeRaw);
+    const after = parseLayouts(afterRaw);
+    if (!before || !after) return [];
+    const out: RawChange[] = [];
+    const beforeById = new Map(before.filter((l) => l.id).map((l) => [l.id, l]));
+    const afterById = new Map(after.filter((l) => l.id).map((l) => [l.id, l]));
+    after.forEach((l) => {
+        if (l.id && !beforeById.has(l.id)) out.push({ kind: 'layout-added', label: l.name });
+    });
+    before.forEach((l) => {
+        if (l.id && !afterById.has(l.id)) out.push({ kind: 'layout-removed', label: l.name });
+    });
+    after.forEach((la) => {
+        const lb = la.id ? beforeById.get(la.id) : undefined;
+        if (!lb) return;
+        if (la.name !== lb.name) out.push({ kind: 'layout-renamed', label: la.name });
+        diffTabs(lb.tabs ?? [], la.tabs ?? [], out);
+    });
+    return out;
+}
+
+// Collapse raw changes per kind: one entity → keep its label; several → count.
+function aggregate(store: string, raw: RawChange[]): BackupChangeDetail[] {
+    const byKind = new Map<string, RawChange[]>();
+    raw.forEach((r) => {
+        const list = byKind.get(r.kind);
+        if (list) list.push(r);
+        else byKind.set(r.kind, [r]);
+    });
+    const out: BackupChangeDetail[] = [];
+    byKind.forEach((list, kind) => {
+        if (list.length === 1) out.push({ store, kind, label: list[0].label });
+        else out.push({ store, kind, count: list.length });
+    });
+    return out;
+}
+
+// Produce change details for one saved key. `before === undefined` means no
+// pre-save value is available (e.g. after F5) → coarse store-level fallback.
+function summarizeKeyChange(key: SyncStoreKey, before: string | null | undefined, after: string): BackupChangeDetail[] {
+    if (key === 'aura-dashboard' && typeof before === 'string') {
+        const details = aggregate(key, diffDashboard(before, after));
+        if (details.length > 0) return details;
+    }
+    return [{ store: key, kind: 'store-changed', label: key }];
+}
+
 async function pruneOldBackups(): Promise<number> {
     const files = await readDirDirect(BACKUP_NAMESPACE, '');
     const backupFiles = files
@@ -244,9 +410,11 @@ async function pruneOldBackups(): Promise<number> {
     return toDelete.length;
 }
 
-async function writeBackup(): Promise<void> {
+async function writeBackup(changedKeys: SyncStoreKey[] = [], details: BackupChangeDetail[] = []): Promise<void> {
     try {
         const entry = buildBackupEntry();
+        entry[BACKUP_CHANGED_KEY] = changedKeys;
+        entry[BACKUP_DETAILS_KEY] = details;
         const ts = String(entry[BACKUP_TS_KEY]);
         const filename = tsToFilename(ts);
         const payload = JSON.stringify(entry);
@@ -264,23 +432,51 @@ export interface BackupFileEntry {
     ts: string;
     filename: string;
     size: number;
+    // Sync-store keys written in the save that produced this backup. Empty for
+    // backups created before the field existed (→ UI shows nothing extra).
+    changed: string[];
+    // Structured per-entity changes (moved widget, renamed tab…). Empty for
+    // pre-Stufe-2 backups → UI falls back to the coarse `changed` labels.
+    details: BackupChangeDetail[];
 }
 
-// Returns metadata only — payloads are fetched on demand in loadBackupPayload.
+// Reads each backup's payload to extract its _changed list (cap ≤ 20 small
+// files). Payloads are otherwise fetched on demand in loadBackupPayload.
 export async function listBackupFiles(): Promise<BackupFileEntry[]> {
     const files = await readDirDirect(BACKUP_NAMESPACE, '');
-    return files
+    const backupFiles = files
         .filter((f) => !f.isDir && isBackupFile(f.file))
-        .sort((a, b) => b.file.localeCompare(a.file))
-        .map((f) => {
+        .sort((a, b) => b.file.localeCompare(a.file));
+    return Promise.all(
+        backupFiles.map(async (f) => {
             const stem = f.file.slice(BACKUP_FILE_PREFIX.length, -BACKUP_FILE_SUFFIX.length);
             // Reverse tsToFilename: 2026-05-17T14-23-11-456Z → 2026-05-17T14:23:11.456Z
             const ts = stem.replace(
                 /^(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z$/,
                 '$1-$2-$3T$4:$5:$6.$7Z',
             );
-            return { ts, filename: f.file, size: f.size };
-        });
+            let changed: string[] = [];
+            let details: BackupChangeDetail[] = [];
+            try {
+                const raw = await readFileDirect(BACKUP_NAMESPACE, f.file);
+                if (raw) {
+                    const parsed = JSON.parse(raw) as Record<string, unknown>;
+                    const c = parsed[BACKUP_CHANGED_KEY];
+                    if (Array.isArray(c)) changed = c.filter((x): x is string => typeof x === 'string');
+                    const d = parsed[BACKUP_DETAILS_KEY];
+                    if (Array.isArray(d)) {
+                        details = d.filter(
+                            (x): x is BackupChangeDetail =>
+                                !!x && typeof x === 'object' && typeof (x as BackupChangeDetail).kind === 'string',
+                        );
+                    }
+                }
+            } catch {
+                /* unreadable/old backup — leave changed/details empty */
+            }
+            return { ts, filename: f.file, size: f.size, changed, details };
+        }),
+    );
 }
 
 export async function loadBackupPayload(filename: string): Promise<Record<string, unknown> | null> {
@@ -303,18 +499,24 @@ export function saveToIoBroker({ backup = true, all = false }: { backup?: boolea
     const now = Date.now();
     const targetKeys: SyncStoreKey[] = all ? SYNC_STORE_KEYS : SYNC_STORE_KEYS.filter(isPending);
 
+    const changedKeys: SyncStoreKey[] = [];
+    const details: BackupChangeDetail[] = [];
     targetKeys.forEach((key) => {
         const raw = getRaw(key);
         if (raw) {
+            // Pre-save value (RAM only) for diffing; undefined → no before available.
+            const before = originals.has(key) ? originals.get(key) : undefined;
             setStateDirect(IOBROKER_STATE_MAP[key], raw);
             savedAtMap.set(key, { ts: now, value: raw });
             clearDirtyFlag(key);
+            changedKeys.push(key);
+            details.push(...summarizeKeyChange(key, before, raw));
         }
         pending.delete(key);
     });
     originals.clear();
     notify();
-    if (backup) void writeBackup();
+    if (backup) void writeBackup(changedKeys, details);
 }
 
 export const managedStorage: StateStorage = {

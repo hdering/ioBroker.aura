@@ -16,6 +16,7 @@ import {
     loadBackupPayload,
     buildBackupPayload,
     type BackupFileEntry,
+    type BackupChangeDetail,
 } from '../../store/persistManager';
 import {
     Eye,
@@ -30,7 +31,7 @@ import {
     History,
     Download,
 } from 'lucide-react';
-import { useT } from '../../i18n';
+import { useT, type TranslationKey } from '../../i18n';
 import { NS } from '../../utils/namespace';
 
 // ── Shared primitives ──────────────────────────────────────────────────────────
@@ -93,6 +94,8 @@ interface BackupEntry {
     ts: string;
     filename: string;
     size: number;
+    changed: string[];
+    details: BackupChangeDetail[];
 }
 
 function fmtTs(iso: string): string {
@@ -139,11 +142,28 @@ function BackupCard() {
     const [downloadingIdx, setDownloadingIdx] = useState<number | null>(null);
     const [status, setStatus] = useState<'idle' | 'success' | 'error' | 'nodata'>('idle');
 
+    // Render one structured change detail: a named single change, an aggregated
+    // count, or the coarse store-level fallback.
+    const fmtDetail = (d: BackupChangeDetail): string => {
+        if (d.kind === 'store-changed') return t(`settings.autobackup.store.${d.label}` as TranslationKey);
+        if (d.count && d.count > 1)
+            return t(`settings.autobackup.change.${d.kind}.n` as TranslationKey, { count: d.count });
+        return t(`settings.autobackup.change.${d.kind}` as TranslationKey, { label: d.label ?? '' });
+    };
+
     const loadBackups = useCallback(async () => {
         setLoading(true);
         try {
             const files: BackupFileEntry[] = await listBackupFiles();
-            setBackups(files.map((f) => ({ ts: f.ts, filename: f.filename, size: f.size })));
+            setBackups(
+                files.map((f) => ({
+                    ts: f.ts,
+                    filename: f.filename,
+                    size: f.size,
+                    changed: f.changed,
+                    details: f.details,
+                })),
+            );
         } catch {
             setBackups([]);
         } finally {
@@ -372,6 +392,24 @@ function BackupCard() {
                                             {t('settings.autobackup.latest')}
                                         </p>
                                     )}
+                                    {(() => {
+                                        const text =
+                                            b.details.length > 0
+                                                ? b.details.map(fmtDetail).join(', ')
+                                                : b.changed
+                                                      .map((k) => t(`settings.autobackup.store.${k}` as TranslationKey))
+                                                      .join(', ');
+                                        if (!text) return null;
+                                        return (
+                                            <p
+                                                className="text-[10px] truncate"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                                title={text}
+                                            >
+                                                {t('settings.autobackup.changed')}: {text}
+                                            </p>
+                                        );
+                                    })()}
                                 </div>
                                 {confirmIdx === i ? (
                                     <div className="flex gap-1.5 shrink-0">
