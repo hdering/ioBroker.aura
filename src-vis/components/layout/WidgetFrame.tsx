@@ -10687,9 +10687,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                                 style={{ color: 'var(--text-secondary)' }}
                                             >
                                                 Instanz-Filter{' '}
-                                                <span className="opacity-60">
-                                                    (leer = alle, kommagetrennt)
-                                                </span>
+                                                <span className="opacity-60">(leer = alle, kommagetrennt)</span>
                                             </label>
                                             <input
                                                 type="text"

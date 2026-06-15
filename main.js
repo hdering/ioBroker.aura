@@ -1868,9 +1868,7 @@ class Aura extends utils.Adapter {
                     if (tokens.length === 0) return true;
                     const src = String(from ?? '').toLowerCase();
                     const adapter = src.includes('.') ? src.slice(0, src.indexOf('.')) : src;
-                    return tokens.some((tok) =>
-                        tok.includes('.') ? src === tok : adapter === tok,
-                    );
+                    return tokens.some((tok) => (tok.includes('.') ? src === tok : adapter === tok));
                 };
                 let entries = sinceSeq > 0 ? buf.filter((e) => e.seq > sinceSeq) : buf.slice();
                 if (tokens.length > 0) entries = entries.filter((e) => matchesInstance(e.from));
