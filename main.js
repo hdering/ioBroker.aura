@@ -1857,7 +1857,23 @@ class Aura extends utils.Adapter {
             if (msg.command === 'getRecentLogs') {
                 const sinceSeq = Number(msg.message?.sinceSeq) || 0;
                 const buf = this._logBuffer || [];
-                const entries = sinceSeq > 0 ? buf.filter((e) => e.seq > sinceSeq) : buf.slice();
+                // Optional comma-separated instance filter. Tokens may be either
+                // an adapter name ("aura", "admin") matching every instance of it,
+                // or a full instance id ("aura.0", "admin.1") matching exactly.
+                const rawInstances = msg.message?.instances;
+                const tokens = (Array.isArray(rawInstances) ? rawInstances : String(rawInstances ?? '').split(','))
+                    .map((t) => String(t).trim().toLowerCase())
+                    .filter(Boolean);
+                const matchesInstance = (from) => {
+                    if (tokens.length === 0) return true;
+                    const src = String(from ?? '').toLowerCase();
+                    const adapter = src.includes('.') ? src.slice(0, src.indexOf('.')) : src;
+                    return tokens.some((tok) =>
+                        tok.includes('.') ? src === tok : adapter === tok,
+                    );
+                };
+                let entries = sinceSeq > 0 ? buf.filter((e) => e.seq > sinceSeq) : buf.slice();
+                if (tokens.length > 0) entries = entries.filter((e) => matchesInstance(e.from));
                 reply({ ok: true, entries, latestSeq: this._logSeq || 0 });
                 return;
             }

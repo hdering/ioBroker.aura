@@ -10686,14 +10686,16 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                                 className="text-[11px] mb-1 block"
                                                 style={{ color: 'var(--text-secondary)' }}
                                             >
-                                                Standard-Adapter-Filter{' '}
-                                                <span className="opacity-60">(leer = alle)</span>
+                                                Instanz-Filter{' '}
+                                                <span className="opacity-60">
+                                                    (leer = alle, kommagetrennt)
+                                                </span>
                                             </label>
                                             <input
                                                 type="text"
                                                 value={adapterFilter}
                                                 onChange={(e) => set({ adapterFilter: e.target.value })}
-                                                placeholder="z.B. shelly"
+                                                placeholder="z.B. aura, admin oder aura.0, admin.1"
                                                 className={`${lCls} font-mono`}
                                                 style={lSty}
                                             />

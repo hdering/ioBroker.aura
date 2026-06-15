@@ -71,18 +71,22 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
             return new Set(raw.filter((s): s is Severity => SEVERITY_ORDER.includes(s)));
         return new Set<Severity>(['info', 'warn', 'error']);
     })();
-    const defaultAdapter = ((o.adapterFilter as string) ?? '').trim();
+    // Backend pre-filter: comma-separated instances ("aura, admin" matches every
+    // instance of those adapters; "aura.0, admin.1" matches exact instances).
+    // Normalised to a stable string so it can drive the poll effect deps.
+    const instancesFilter = ((o.adapterFilter as string) ?? '')
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .join(',');
 
     const { connected } = useIoBroker();
 
     const [levels, setLevels] = useState<Set<Severity>>(defaultLevels);
-    const [adapter, setAdapter] = useState<string>(defaultAdapter);
+    const [adapter, setAdapter] = useState<string>('');
     const [query, setQuery] = useState('');
     const [paused, setPaused] = useState(false);
     const [autoScroll, setAutoScroll] = useState(true);
-    useEffect(() => {
-        setAdapter(defaultAdapter);
-    }, [defaultAdapter]);
 
     // Live ring buffer of recent entries. Kept outside React state so paused mode
     // can still collect without forcing re-renders.
@@ -99,6 +103,14 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
     // Backend health: null = unknown, true = answered, false = timed out
     const [backendOk, setBackendOk] = useState<boolean | null>(null);
 
+    // Changing the backend instance pre-filter invalidates the buffer: the old
+    // entries belong to a different filter and seq numbers must restart.
+    useEffect(() => {
+        bufferRef.current = [];
+        seenSeqRef.current = 0;
+        setTick((t) => t + 1);
+    }, [instancesFilter]);
+
     // Poll the aura backend for new log entries. The frontend would need admin
     // permissions to receive `requireLog` events directly from iobroker.web —
     // anonymous web users do not, so we route through aura's sendTo handler.
@@ -114,7 +126,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                 ok?: boolean;
                 entries?: Array<LogEntry & { seq: number }>;
                 latestSeq?: number;
-            }>(auraInstance, 'getRecentLogs', { sinceSeq: seenSeqRef.current }, 10000);
+            }>(auraInstance, 'getRecentLogs', { sinceSeq: seenSeqRef.current, instances: instancesFilter }, 10000);
             if (cancelled) return;
             if (result && typeof result === 'object' && '__timeout' in (result as object)) {
                 setBackendOk(false);
@@ -150,7 +162,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
             cancelled = true;
             if (timer) clearTimeout(timer);
         };
-    }, [connected, bufferSize]);
+    }, [connected, bufferSize, instancesFilter]);
 
     // Auto-scroll handling — follow whichever end shows the newest entry.
     const listRef = useRef<HTMLDivElement | null>(null);
