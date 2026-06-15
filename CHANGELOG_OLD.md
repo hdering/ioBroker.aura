@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.227 (2026-06-11)
+- chore(deps): bump echarts/postcss, drop orphaned vitest & react-resizable (W0083)
+
 ## 0.9.226 (2026-06-11)
 - chore(lint): disable prettier/prettier for main.js
 - chore(deps): migrate recharts 2.12.7 -> 3.8.1 (W0083)

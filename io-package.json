@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.246",
+    "version": "0.9.247",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.247": {
+        "en": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
+        "de": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
+        "ru": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
+        "pt": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
+        "nl": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
+        "fr": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
+        "it": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
+        "es": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
+        "pl": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
+        "uk": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
+        "zh-cn": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list"
+      },
       "0.9.246": {
         "en": "fix(clients): only register client when new or renamed",
         "de": "fix(clients): only register client when new or renamed",
@@ -183,19 +196,6 @@
         "pl": "fix(popup): inherit history adapter instance into popup charts; Merge branch 'fix/309-open-in-dashboard-editor'; docs(popup): add concrete placeholder examples in popup-view editor",
         "uk": "fix(popup): inherit history adapter instance into popup charts; Merge branch 'fix/309-open-in-dashboard-editor'; docs(popup): add concrete placeholder examples in popup-view editor",
         "zh-cn": "fix(popup): inherit history adapter instance into popup charts; Merge branch 'fix/309-open-in-dashboard-editor'; docs(popup): add concrete placeholder examples in popup-view editor"
-      },
-      "0.9.240": {
-        "en": "feat(widgets): add \"open in dashboard editor\" button to widget rows (#309)",
-        "de": "feat(widgets): add \"open in dashboard editor\" button to widget rows (#309)",
-        "ru": "feat(widgets): add \"open in dashboard editor\" button to widget rows (#309)",
-        "pt": "feat(widgets): add \"open in dashboard editor\" button to widget rows (#309)",
-        "nl": "feat(widgets): add \"open in dashboard editor\" button to widget rows (#309)",
-        "fr": "feat(widgets): add \"open in dashboard editor\" button to widget rows (#309)",
-        "it": "feat(widgets): add \"open in dashboard editor\" button to widget rows (#309)",
-        "es": "feat(widgets): add \"open in dashboard editor\" button to widget rows (#309)",
-        "pl": "feat(widgets): add \"open in dashboard editor\" button to widget rows (#309)",
-        "uk": "feat(widgets): add \"open in dashboard editor\" button to widget rows (#309)",
-        "zh-cn": "feat(widgets): add \"open in dashboard editor\" button to widget rows (#309)"
       }
     }
   },
