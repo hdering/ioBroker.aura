@@ -294,6 +294,29 @@ function widgetEdited(a: WidgetLite, b: WidgetLite): boolean {
     return JSON.stringify({ ...a, gridPos: undefined }) !== JSON.stringify({ ...b, gridPos: undefined });
 }
 
+// Scan all option keys (except echartSeries, handled with nicer wording) for
+// array values whose length changed → a list item was added/removed. Type-
+// agnostic, so any widget that stores a list in options benefits with no rule.
+function optionArrayDelta(
+    before: Record<string, unknown> | undefined,
+    after: Record<string, unknown> | undefined,
+): { added: boolean; removed: boolean } {
+    const bo = before ?? {};
+    const ao = after ?? {};
+    let added = false;
+    let removed = false;
+    new Set([...Object.keys(bo), ...Object.keys(ao)]).forEach((k) => {
+        if (k === 'echartSeries') return;
+        const bv = bo[k];
+        const av = ao[k];
+        if (Array.isArray(bv) && Array.isArray(av) && bv.length !== av.length) {
+            if (av.length > bv.length) added = true;
+            else removed = true;
+        }
+    });
+    return { added, removed };
+}
+
 function diffWidgets(before: WidgetLite[], after: WidgetLite[], out: RawChange[]): void {
     const beforeById = new Map(before.filter((w) => w.id).map((w) => [w.id, w]));
     const afterById = new Map(after.filter((w) => w.id).map((w) => [w.id, w]));
@@ -326,7 +349,20 @@ function diffWidgets(before: WidgetLite[], after: WidgetLite[], out: RawChange[]
             out.push({ kind: sa > sb ? 'series-added' : 'series-removed', label });
             specific = true;
         }
-        // Anything else (other options, mobileOrder, type) → generic.
+        // Generic: any OTHER array-valued option whose length changed means a
+        // list item was added/removed. Works for every widget type (autolist
+        // entries, table columns, conditions, media sources…) with no per-type
+        // rule — echartSeries is excluded above as it has nicer wording.
+        const delta = optionArrayDelta(wb.options, wa.options);
+        if (delta.added) {
+            out.push({ kind: 'widget-item-added', label });
+            specific = true;
+        }
+        if (delta.removed) {
+            out.push({ kind: 'widget-item-removed', label });
+            specific = true;
+        }
+        // Anything else (scalar options, mobileOrder, type) → generic.
         if (!specific) out.push({ kind: 'widget-edited', label });
     });
 }
