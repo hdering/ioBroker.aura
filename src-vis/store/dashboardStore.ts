@@ -189,6 +189,7 @@ interface DashboardState {
 
     // ── Layout CRUD ──────────────────────────────────────────────────────────
     addLayout: (name: string) => void;
+    addLayoutFromImport: (layoutData: Omit<DashboardLayout, 'id'>) => void;
     duplicateLayout: (id: string, newName: string) => void;
     removeLayout: (id: string) => void;
     renameLayout: (id: string, name: string) => void;
@@ -256,6 +257,22 @@ export const useDashboardStore = create<DashboardState>()(
                             slug: uniqueLayoutSlug(slugify(name), s.layouts),
                             tabs: [{ ...DEFAULT_TAB, id: `tab-${Date.now()}`, slug: 'dashboard' }],
                             activeTabId: `tab-${Date.now()}`,
+                        },
+                    ],
+                    activeLayoutId: id,
+                }));
+            },
+
+            addLayoutFromImport: (layoutData) => {
+                const id = `layout-${Date.now()}`;
+                set((s) => ({
+                    layouts: [
+                        ...s.layouts,
+                        {
+                            ...layoutData,
+                            id,
+                            slug: uniqueLayoutSlug(slugify(layoutData.slug || layoutData.name), s.layouts),
+                            tabs: ensureSlugs(layoutData.tabs),
                         },
                     ],
                     activeLayoutId: id,

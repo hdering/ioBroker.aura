@@ -1,9 +1,23 @@
-import { useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Pencil, Copy, Trash2, Check, X, ExternalLink, LayoutDashboard, Star, GripVertical } from 'lucide-react';
+import {
+    Plus,
+    Pencil,
+    Copy,
+    Trash2,
+    Check,
+    X,
+    ExternalLink,
+    LayoutDashboard,
+    Star,
+    GripVertical,
+    Download,
+    Upload,
+} from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { useDashboardStore, type DashboardLayout } from '../../../../store/dashboardStore';
 import { IconPickerModal } from '../../../../components/config/IconPickerModal';
+import { exportLayout, importLayout } from '../../../../utils/widgetExportImport';
 import { useT } from '../../../../i18n';
 
 function layoutUrl(layout: DashboardLayout, isFirst: boolean): string {
@@ -280,6 +294,18 @@ function LayoutRow({
                     >
                         <Copy size={13} />
                     </button>
+                    <button
+                        onClick={() => exportLayout(layout)}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                        title={t('layouts.export')}
+                    >
+                        <Download size={13} />
+                    </button>
                     {!isOnly &&
                         (confirmDelete ? (
                             <>
@@ -419,15 +445,40 @@ export function LayoutsListSection({
     onCancelNew,
 }: LayoutsListSectionProps) {
     const t = useT();
-    const { layouts, reorderLayouts } = useDashboardStore();
+    const { layouts, reorderLayouts, addLayoutFromImport } = useDashboardStore();
     const [dragIdx, setDragIdx] = useState<number | null>(null);
     const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+    const importRef = useRef<HTMLInputElement>(null);
 
     const handleDrop = (toIdx: number) => {
         if (dragIdx !== null && dragIdx !== toIdx) reorderLayouts(dragIdx, toIdx);
         setDragIdx(null);
         setDragOverIdx(null);
     };
+
+    const handleImport = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const raw = JSON.parse(ev.target?.result as string);
+                    const layoutData = importLayout(raw);
+                    if (!layoutData) {
+                        alert(t('layouts.importInvalidFile'));
+                        return;
+                    }
+                    addLayoutFromImport(layoutData);
+                } catch {
+                    alert(t('layouts.importInvalidFile'));
+                }
+                if (importRef.current) importRef.current.value = '';
+            };
+            reader.readAsText(file);
+        },
+        [addLayoutFromImport, t],
+    );
 
     return (
         <div className="space-y-3">
@@ -440,13 +491,28 @@ export function LayoutsListSection({
                         {t('layouts.subtitle')}
                     </p>
                 </div>
-                <button
-                    onClick={onShowNew}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white hover:opacity-80"
-                    style={{ background: 'var(--accent)' }}
-                >
-                    <Plus size={14} /> {t('layouts.newLayout')}
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => importRef.current?.click()}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium hover:opacity-80"
+                        style={{
+                            background: 'var(--app-surface)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                        title={t('layouts.import')}
+                    >
+                        <Upload size={14} /> {t('layouts.import')}
+                        <input ref={importRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
+                    </button>
+                    <button
+                        onClick={onShowNew}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white hover:opacity-80"
+                        style={{ background: 'var(--accent)' }}
+                    >
+                        <Plus size={14} /> {t('layouts.newLayout')}
+                    </button>
+                </div>
             </div>
 
             {showNew && (
