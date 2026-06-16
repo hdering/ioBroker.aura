@@ -381,6 +381,7 @@ export function PopupViewEditor() {
                                             editMode
                                             onRemove={(id) => removeWidgetFromView(viewId, id)}
                                             onConfigChange={(cfg) => updateWidgetInView(viewId, cfg.id, cfg)}
+                                            onCopy={(copy) => addWidgetToView(viewId, copy)}
                                         />
                                     </div>
                                 ))}

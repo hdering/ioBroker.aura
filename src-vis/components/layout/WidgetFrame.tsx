@@ -1546,6 +1546,12 @@ interface WidgetFrameProps {
     onConfigChange: (config: WidgetConfig) => void;
     /** When set, widget is inside a group. "Kopieren" duplicates within the group. */
     onDuplicate?: () => void;
+    /**
+     * When set (popup-view editor), "Kopieren" duplicates the widget within the same
+     * popup view via this callback instead of the dashboard store, and the cross-tab
+     * "Verschieben" button is hidden. Receives a ready-to-add copy (fresh id, y=9999).
+     */
+    onCopy?: (widget: WidgetConfig) => void;
     /** True when rendered as a child of a GroupWidget — enables --widget-in-group-* vars. */
     inGroup?: boolean;
 }
@@ -4819,7 +4825,15 @@ function CarouselEditPanel({
     );
 }
 
-export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDuplicate, inGroup }: WidgetFrameProps) {
+export function WidgetFrame({
+    config,
+    editMode,
+    onRemove,
+    onConfigChange,
+    onDuplicate,
+    onCopy,
+    inGroup,
+}: WidgetFrameProps) {
     const t = useT();
     const { defaultDecimals } = useGlobalSettingsStore();
     const focusedWidgetId = useFocusedWidgetId();
@@ -5691,6 +5705,23 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                 <Copy size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
                                 {t('wf.menu.duplicateInGroup')}
                             </button>
+                        ) : onCopy ? (
+                            <button
+                                onClick={() => {
+                                    // Popup-view editor: duplicate within the same popup view only.
+                                    onCopy({
+                                        ...copyConfig(config),
+                                        id: `pw-${Date.now()}`,
+                                        gridPos: { ...config.gridPos, y: 9999 },
+                                    });
+                                    openPanelFor(null);
+                                }}
+                                className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                <Copy size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                                {t('wf.menu.copy')}
+                            </button>
                         ) : (
                             <button
                                 onClick={() => {
@@ -5797,8 +5828,8 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             </div>
                         )}
 
-                        {/* Verschieben */}
-                        {moveTargets.length > 0 && (
+                        {/* Verschieben — not available in the popup-view editor (single view) */}
+                        {!onCopy && moveTargets.length > 0 && (
                             <>
                                 <button
                                     onClick={() => setShowMoveMenu((v) => !v)}
