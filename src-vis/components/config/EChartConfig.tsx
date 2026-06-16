@@ -50,11 +50,15 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
     const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
     const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
-    const echartFrontendRange = (o.echartFrontendRange as boolean | undefined) ?? false;
-    const echartRange = (o.echartRange as EChartTimeRange | undefined) ?? '24h';
-    const echartRangeCustomValue = (o.echartRangeCustomValue as number | undefined) ?? 24;
-    const echartRangeCustomUnit = (o.echartRangeCustomUnit as 'h' | 'd' | undefined) ?? 'h';
+    // Single widget-level range (replaces the former per-series ranges). Falls back to the
+    // first series' old range so existing widgets keep their configured window after upgrade.
+    const echartRange = (o.echartRange as EChartTimeRange | undefined) ?? series[0]?.historyRange ?? '24h';
+    const echartRangeCustomValue =
+        (o.echartRangeCustomValue as number | undefined) ?? series[0]?.historyRangeCustomValue ?? 24;
+    const echartRangeCustomUnit =
+        (o.echartRangeCustomUnit as 'h' | 'd' | undefined) ?? series[0]?.historyRangeCustomUnit ?? 'h';
     const lockRange = (o.lockRange as boolean | undefined) ?? false;
+    const anyHistory = series.some((s) => !!s.historyInstance);
     const echartLeftUnit = (o.echartLeftUnit as string | undefined) ?? '';
     const echartRightUnit = (o.echartRightUnit as string | undefined) ?? '';
     const echartLeftMin = (o.echartLeftMin as string | undefined) ?? '';
@@ -592,87 +596,6 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                 </select>
                                                             </div>
                                                         )}
-                                                    {s.historyInstance && (
-                                                        <div className="mt-1.5">
-                                                            <label
-                                                                className="text-[11px] mb-1 block"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                            >
-                                                                {t('echart.timeRange')}
-                                                            </label>
-                                                            <div className="flex gap-1 flex-wrap">
-                                                                {CHART_RANGES.map((r) => (
-                                                                    <button
-                                                                        key={r}
-                                                                        onClick={() =>
-                                                                            updateSeries(s.id, { historyRange: r })
-                                                                        }
-                                                                        className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
-                                                                        style={{
-                                                                            background:
-                                                                                (s.historyRange ?? '24h') === r
-                                                                                    ? 'var(--accent)'
-                                                                                    : 'var(--app-bg)',
-                                                                            color:
-                                                                                (s.historyRange ?? '24h') === r
-                                                                                    ? '#fff'
-                                                                                    : 'var(--text-secondary)',
-                                                                            border: `1px solid ${(s.historyRange ?? '24h') === r ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                                            minWidth: 36,
-                                                                        }}
-                                                                    >
-                                                                        {RANGE_LABELS[r]}
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                            {s.historyRange === 'custom' && (
-                                                                <div className="flex items-center gap-1.5 mt-1.5">
-                                                                    <input
-                                                                        type="number"
-                                                                        min={1}
-                                                                        max={365}
-                                                                        value={s.historyRangeCustomValue ?? 24}
-                                                                        onChange={(e) =>
-                                                                            updateSeries(s.id, {
-                                                                                historyRangeCustomValue: Math.max(
-                                                                                    1,
-                                                                                    Number(e.target.value) || 1,
-                                                                                ),
-                                                                            })
-                                                                        }
-                                                                        className="w-16 text-xs rounded-md px-2 py-1 text-center focus:outline-none"
-                                                                        style={inputStyle}
-                                                                    />
-                                                                    {(['h', 'd'] as const).map((u) => {
-                                                                        const active =
-                                                                            (s.historyRangeCustomUnit ?? 'h') === u;
-                                                                        return (
-                                                                            <button
-                                                                                key={u}
-                                                                                onClick={() =>
-                                                                                    updateSeries(s.id, {
-                                                                                        historyRangeCustomUnit: u,
-                                                                                    })
-                                                                                }
-                                                                                className="text-[11px] px-2 py-1 rounded-md transition-opacity hover:opacity-80"
-                                                                                style={{
-                                                                                    background: active
-                                                                                        ? 'var(--accent)'
-                                                                                        : 'var(--app-bg)',
-                                                                                    color: active
-                                                                                        ? '#fff'
-                                                                                        : 'var(--text-secondary)',
-                                                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                                                }}
-                                                                            >
-                                                                                {u === 'h' ? 'Std' : 'Tage'}
-                                                                            </button>
-                                                                        );
-                                                                    })}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
                                                 </div>
                                             </>
                                         )}
@@ -776,30 +699,9 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                     </button>
                 </div>
 
-                {/* Frontend time-range selector */}
-                <div className="flex items-center justify-between mb-2">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Zeitraum-Auswahl (Frontend)
-                    </label>
-                    <button
-                        onClick={() => setO({ echartFrontendRange: !echartFrontendRange })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: echartFrontendRange ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                            style={{ left: echartFrontendRange ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
-                {echartFrontendRange && (
-                    <div className="mb-2 pl-1">
-                        <p
-                            className="text-[10px] mb-1.5 leading-tight"
-                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                        >
-                            Überschreibt den Zeitraum aller Serien; im Frontend umschaltbar.
-                        </p>
+                {/* Time range — one window shared by all series, frontend-switchable unless locked */}
+                {anyHistory && (
+                    <div className="mb-2">
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                             {t('echart.timeRange')}
                         </label>

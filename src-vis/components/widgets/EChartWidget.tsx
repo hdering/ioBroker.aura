@@ -67,11 +67,13 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const echartMode = (o.echartMode as string | undefined) ?? 'timeseries';
     const isGauge = config.layout === ('gauge' as string);
 
-    // ── Frontend range selection (opt-in: overrides every series' configured range) ──
-    const echartFrontendRange = (o.echartFrontendRange as boolean | undefined) ?? false;
-    const cfgRange = (o.echartRange as EChartTimeRange | undefined) ?? '24h';
-    const cfgCustomVal = (o.echartRangeCustomValue as number | undefined) ?? 24;
-    const cfgCustomUnit = (o.echartRangeCustomUnit as 'h' | 'd' | undefined) ?? 'h';
+    // ── Single widget-level range shared by all series (frontend-switchable unless locked) ──
+    // Falls back to the first series' former per-series range so upgraded widgets keep their window.
+    const cfgRange = (o.echartRange as EChartTimeRange | undefined) ?? echartSeries[0]?.historyRange ?? '24h';
+    const cfgCustomVal =
+        (o.echartRangeCustomValue as number | undefined) ?? echartSeries[0]?.historyRangeCustomValue ?? 24;
+    const cfgCustomUnit =
+        (o.echartRangeCustomUnit as 'h' | 'd' | undefined) ?? echartSeries[0]?.historyRangeCustomUnit ?? 'h';
     const lockRange = o.lockRange === true;
 
     const [activeRange, setActiveRange] = useState<EChartTimeRange>(cfgRange);
@@ -85,15 +87,13 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         setActiveCustomUnit(cfgCustomUnit);
     }, [cfgRange, cfgCustomVal, cfgCustomUnit]);
 
-    // When the frontend selector is active, all series share the selected range.
-    const effectiveSeries = echartFrontendRange
-        ? echartSeries.map((s) => ({
-              ...s,
-              historyRange: activeRange,
-              historyRangeCustomValue: activeCustomVal,
-              historyRangeCustomUnit: activeCustomUnit,
-          }))
-        : echartSeries;
+    // All series share the single widget-level range.
+    const effectiveSeries = echartSeries.map((s) => ({
+        ...s,
+        historyRange: activeRange,
+        historyRangeCustomValue: activeCustomVal,
+        historyRangeCustomUnit: activeCustomUnit,
+    }));
 
     const hasHistory = echartSeries.some((s) => !!s.historyInstance);
 
@@ -483,9 +483,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
 
     const showCurrentBlock = echartShowCurrent && currentValues.length > 0;
 
-    // Frontend range selector — shown when enabled, at least one series has history, and not locked.
+    // Frontend range selector — shown when at least one series has history and not locked.
     const rangeSelector =
-        echartFrontendRange && hasHistory && !lockRange ? (
+        hasHistory && !lockRange ? (
             <div className="flex gap-1 flex-wrap">
                 {PRESET_RANGES.map((r) => {
                     const active = activeRange === r;
