@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.251",
+    "version": "0.9.252",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.252": {
+        "en": "fix(useIoBroker): allow spaces in state IDs",
+        "de": "fix(useIoBroker): allow spaces in state IDs",
+        "ru": "fix(useIoBroker): allow spaces in state IDs",
+        "pt": "fix(useIoBroker): allow spaces in state IDs",
+        "nl": "fix(useIoBroker): allow spaces in state IDs",
+        "fr": "fix(useIoBroker): allow spaces in state IDs",
+        "it": "fix(useIoBroker): allow spaces in state IDs",
+        "es": "fix(useIoBroker): allow spaces in state IDs",
+        "pl": "fix(useIoBroker): allow spaces in state IDs",
+        "uk": "fix(useIoBroker): allow spaces in state IDs",
+        "zh-cn": "fix(useIoBroker): allow spaces in state IDs"
+      },
       "0.9.251": {
         "en": "feat(adapter-logs): multi-select adapter filter in the frontend",
         "de": "feat(adapter-logs): multi-select adapter filter in the frontend",
@@ -183,19 +196,6 @@
         "pl": "fix(clients): only register client when new or renamed",
         "uk": "fix(clients): only register client when new or renamed",
         "zh-cn": "fix(clients): only register client when new or renamed"
-      },
-      "0.9.245": {
-        "en": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
-        "de": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
-        "ru": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
-        "pt": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
-        "nl": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
-        "fr": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
-        "it": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
-        "es": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
-        "pl": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
-        "uk": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups",
-        "zh-cn": "fix(theme): readable preset names + explain what a preset changes (#307); feat(layouts): export/import complete layouts with all tabs, widgets and groups"
       }
     }
   },

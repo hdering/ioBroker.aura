@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.232 (2026-06-12)
+- style(prettier): auto-format code files
+- refactor(backup): drop legacy dashboard_backup state and one-time migration
+
 ## 0.9.231 (2026-06-12)
 - feat(popup): derive {{parent}}/{{name}} placeholders and add optional popup DP override
 - chore(deps): ignore Vite major version bumps in Dependabot
