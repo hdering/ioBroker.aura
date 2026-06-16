@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.241 (2026-06-14)
+- fix(popup): inherit history adapter instance into popup charts
+- Merge branch 'fix/309-open-in-dashboard-editor'
+- docs(popup): add concrete placeholder examples in popup-view editor
+
 ## 0.9.240 (2026-06-13)
 - feat(widgets): add "open in dashboard editor" button to widget rows (#309)
 

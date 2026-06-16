@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.260",
+    "version": "0.9.261",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.261": {
+        "en": "feat(navigate): add view/tab selector datapoint",
+        "de": "feat(navigate): add view/tab selector datapoint",
+        "ru": "feat(navigate): add view/tab selector datapoint",
+        "pt": "feat(navigate): add view/tab selector datapoint",
+        "nl": "feat(navigate): add view/tab selector datapoint",
+        "fr": "feat(navigate): add view/tab selector datapoint",
+        "it": "feat(navigate): add view/tab selector datapoint",
+        "es": "feat(navigate): add view/tab selector datapoint",
+        "pl": "feat(navigate): add view/tab selector datapoint",
+        "uk": "feat(navigate): add view/tab selector datapoint",
+        "zh-cn": "feat(navigate): add view/tab selector datapoint"
+      },
       "0.9.260": {
         "en": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct",
         "de": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct",
@@ -183,19 +196,6 @@
         "pl": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections",
         "uk": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections",
         "zh-cn": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections"
-      },
-      "0.9.254": {
-        "en": "chore(frontend): silence benign recharts zero-size container warning",
-        "de": "chore(frontend): silence benign recharts zero-size container warning",
-        "ru": "chore(frontend): silence benign recharts zero-size container warning",
-        "pt": "chore(frontend): silence benign recharts zero-size container warning",
-        "nl": "chore(frontend): silence benign recharts zero-size container warning",
-        "fr": "chore(frontend): silence benign recharts zero-size container warning",
-        "it": "chore(frontend): silence benign recharts zero-size container warning",
-        "es": "chore(frontend): silence benign recharts zero-size container warning",
-        "pl": "chore(frontend): silence benign recharts zero-size container warning",
-        "uk": "chore(frontend): silence benign recharts zero-size container warning",
-        "zh-cn": "chore(frontend): silence benign recharts zero-size container warning"
       }
     }
   },
