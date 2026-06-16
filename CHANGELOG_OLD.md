@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.238 (2026-06-13)
+- style(prettier): auto-format code files
+
 ## 0.9.237 (2026-06-12)
 - feat(datapoint): JSON path support on datapoint refs (id#path)
 - feat(group): show loading spinner while group children hydrate
