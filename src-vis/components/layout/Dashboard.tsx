@@ -254,7 +254,9 @@ export function Dashboard({
                                                         <div
                                                             key={w.id}
                                                             style={
-                                                                w.type === 'group' || w.type === 'mediaplayer'
+                                                                w.type === 'group' ||
+                                                                w.type === 'panels' ||
+                                                                w.type === 'mediaplayer'
                                                                     ? undefined
                                                                     : {
                                                                           height:

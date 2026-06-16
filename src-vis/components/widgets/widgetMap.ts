@@ -32,6 +32,7 @@ import { UniversalWidget } from './UniversalWidget';
 import { EnumWidget } from './EnumWidget';
 import { LightWidget } from './LightWidget';
 import { CarouselWidget } from './CarouselWidget';
+import { PanelsWidget } from './PanelsWidget';
 import { KnobWidget } from './KnobWidget';
 import { TimerWidget } from './TimerWidget';
 import { AdapterStatusWidget } from './AdapterStatusWidget';
@@ -89,6 +90,7 @@ export function getWidgetMap() {
         enum: EnumWidget,
         light: LightWidget,
         carousel: CarouselWidget,
+        panels: PanelsWidget,
         knob: KnobWidget,
         timer: TimerWidget,
         adapterstatus: AdapterStatusWidget,

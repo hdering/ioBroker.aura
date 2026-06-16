@@ -139,6 +139,7 @@ import { UniversalWidget } from '../widgets/UniversalWidget';
 import { EnumWidget } from '../widgets/EnumWidget';
 import { LightWidget } from '../widgets/LightWidget';
 import { CarouselWidget } from '../widgets/CarouselWidget';
+import { PanelsWidget } from '../widgets/PanelsWidget';
 
 import { TimerWidget } from '../widgets/TimerWidget';
 import { AdapterStatusWidget } from '../widgets/AdapterStatusWidget';
@@ -309,6 +310,7 @@ function getWidgetMap() {
         enum: EnumWidget,
         light: LightWidget,
         carousel: CarouselWidget,
+        panels: PanelsWidget,
         knob: KnobWidget,
         timer: TimerWidget,
         adapterstatus: AdapterStatusWidget,
@@ -4884,7 +4886,7 @@ export function WidgetFrame({
 
     // GROUP widgets: create a fresh defId + clone children so copies are independent
     function copyConfig(src: WidgetConfig): WidgetConfig {
-        if (src.type === 'group' && src.options?.defId) {
+        if ((src.type === 'group' || src.type === 'panels') && src.options?.defId) {
             return { ...src, options: { ...src.options, defId: cloneGroupDef(src.options.defId as string) } };
         }
         // TIMER widgets: deep-clone options + regenerate event IDs so the copy is independent
@@ -5340,7 +5342,13 @@ export function WidgetFrame({
     const activeLayoutIdCtx = useActiveLayoutId();
     const effectiveSettings = useEffectiveSettings(activeLayoutIdCtx);
     const widgetPadding = effectiveSettings.widgetPadding ?? 16;
-    const isNoPad = isHeader || isGroup || isTransparent || config.type === 'iframe' || config.type === 'echartsPreset';
+    const isNoPad =
+        isHeader ||
+        isGroup ||
+        config.type === 'panels' ||
+        isTransparent ||
+        config.type === 'iframe' ||
+        config.type === 'echartsPreset';
 
     return (
         <div
@@ -6139,7 +6147,9 @@ export function WidgetFrame({
                                                                       },
                                                                       { value: 'custom', label: 'Custom' },
                                                                   ]
-                                                                : config.type === 'group' || config.type === 'carousel'
+                                                                : config.type === 'group' ||
+                                                                    config.type === 'carousel' ||
+                                                                    config.type === 'panels'
                                                                   ? [
                                                                         {
                                                                             value: 'default',
@@ -7439,6 +7449,7 @@ export function WidgetFrame({
                             config.type !== 'mediaplayer' &&
                             config.type !== 'chips' &&
                             config.type !== 'carousel' &&
+                            config.type !== 'panels' &&
                             config.type !== 'httpRequest' &&
                             config.type !== 'universal' &&
                             config.type !== 'timer' &&
@@ -9634,6 +9645,96 @@ export function WidgetFrame({
                                 onOpenCheckDpPicker={() => setPickerTarget('carousel_checkDp')}
                             />
                         )}
+
+                        {/* ── Panels config (slide-of-widgets) ── */}
+                        {config.type === 'panels' &&
+                            (() => {
+                                const o = config.options ?? {};
+                                const set = (patch: Record<string, unknown>) =>
+                                    onConfigChange({ ...config, options: { ...o, ...patch } });
+                                const loop = !!o.loop;
+                                const showDots = o.showDots !== false;
+                                const showArrows = o.showArrows !== false;
+                                const autoplay = !!o.autoplay;
+                                const interval = (o.autoplayInterval as number) ?? 5;
+                                const Toggle = ({
+                                    label,
+                                    value,
+                                    onToggle,
+                                }: {
+                                    label: string;
+                                    value: boolean;
+                                    onToggle: () => void;
+                                }) => (
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                            {label}
+                                        </label>
+                                        <button
+                                            onClick={onToggle}
+                                            className="relative w-9 h-5 rounded-full transition-colors"
+                                            style={{ background: value ? 'var(--accent)' : 'var(--app-border)' }}
+                                        >
+                                            <span
+                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                style={{ left: value ? '18px' : '2px' }}
+                                            />
+                                        </button>
+                                    </div>
+                                );
+                                return (
+                                    <>
+                                        <Toggle
+                                            label={t('panels.opt.loop')}
+                                            value={loop}
+                                            onToggle={() => set({ loop: !loop })}
+                                        />
+                                        <Toggle
+                                            label={t('panels.opt.showDots')}
+                                            value={showDots}
+                                            onToggle={() => set({ showDots: !showDots })}
+                                        />
+                                        <Toggle
+                                            label={t('panels.opt.showArrows')}
+                                            value={showArrows}
+                                            onToggle={() => set({ showArrows: !showArrows })}
+                                        />
+                                        <Toggle
+                                            label={t('panels.opt.autoplay')}
+                                            value={autoplay}
+                                            onToggle={() => set({ autoplay: !autoplay })}
+                                        />
+                                        {autoplay && (
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {t('panels.opt.interval')} <span style={{ opacity: 0.6 }}>(s)</span>
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={1}
+                                                    max={60}
+                                                    step={1}
+                                                    value={interval}
+                                                    onChange={(e) =>
+                                                        set({
+                                                            autoplayInterval: Math.max(1, Number(e.target.value) || 5),
+                                                        })
+                                                    }
+                                                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                    style={{
+                                                        background: 'var(--app-bg)',
+                                                        color: 'var(--text-primary)',
+                                                        border: '1px solid var(--app-border)',
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                    </>
+                                );
+                            })()}
 
                         {/* ── iFrame config ── */}
                         {config.type === 'iframe' &&

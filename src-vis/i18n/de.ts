@@ -1141,6 +1141,23 @@ export const de = {
     'group.masterPlaceholderShort': 'DPs nötig',
     'group.fitHeight': 'Höhe an Inhalt anpassen',
 
+    // ── Panels Widget (Slide-of-Widgets) ──────────────────────────────────────────
+    'panels.noSlides': 'Keine Slides',
+    'panels.dropHere': 'Widget hier ablegen',
+    'panels.empty.editHint': 'Widgets unten hinzufügen oder per Drag & Drop ablegen',
+    'panels.empty.viewHint': 'Keine Slides konfiguriert',
+    'panels.removeSlide': 'Slide entfernen',
+    'panels.prev': 'Zurück',
+    'panels.next': 'Weiter',
+    'panels.slide': 'Slide',
+    'panels.addSlide': 'Slide hinzufügen',
+    'panels.pickWidget': 'Widget wählen',
+    'panels.opt.loop': 'Endlos-Schleife',
+    'panels.opt.showDots': 'Pagination-Punkte',
+    'panels.opt.showArrows': 'Pfeil-Buttons',
+    'panels.opt.autoplay': 'Automatisch weiterblättern',
+    'panels.opt.interval': 'Intervall',
+
     // ── Carousel Widget (Chip-Streifen) ───────────────────────────────────────────
     'carousel.items.title': 'Elemente',
     'carousel.items.add': '+ Element hinzufügen',

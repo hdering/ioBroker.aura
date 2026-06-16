@@ -9,7 +9,7 @@ function collectGroupDefs(
     out: Record<string, WidgetConfig[]>,
 ): void {
     for (const w of widgets) {
-        if (w.type === 'group' && w.options?.defId) {
+        if ((w.type === 'group' || w.type === 'panels') && w.options?.defId) {
             const defId = w.options.defId as string;
             if (!(defId in out) && allDefs[defId]) {
                 out[defId] = allDefs[defId];
@@ -27,7 +27,7 @@ function freshWidgetId(): string {
 export function exportWidget(config: WidgetConfig) {
     const payload: Record<string, unknown> = { ...config };
 
-    if (config.type === 'group' && config.options?.defId) {
+    if ((config.type === 'group' || config.type === 'panels') && config.options?.defId) {
         const allDefs = useGroupDefsStore.getState().defs;
         const groupDefs: Record<string, WidgetConfig[]> = {};
         collectGroupDefs([config], allDefs, groupDefs);
@@ -60,7 +60,7 @@ export function importGroupDefs(config: WidgetConfig, importedDefs: Record<strin
 
     function remapChildren(children: WidgetConfig[]): WidgetConfig[] {
         return children.map((child) => {
-            if (child.type === 'group' && child.options?.defId) {
+            if ((child.type === 'group' || child.type === 'panels') && child.options?.defId) {
                 const oldDefId = child.options.defId as string;
                 const newDefId = idMap[oldDefId] ?? oldDefId;
                 return { ...child, options: { ...child.options, defId: newDefId } };
@@ -125,7 +125,7 @@ export function importTab(raw: unknown): Omit<Tab, 'id'> | null {
     function remapWidgets(widgets: WidgetConfig[]): WidgetConfig[] {
         return widgets.map((w) => {
             const newId = freshWidgetId();
-            if (w.type === 'group' && w.options?.defId) {
+            if ((w.type === 'group' || w.type === 'panels') && w.options?.defId) {
                 const newDefId = defIdMap[w.options.defId as string] ?? (w.options.defId as string);
                 return { ...w, id: newId, options: { ...w.options, defId: newDefId } };
             }
@@ -204,7 +204,7 @@ export function importLayout(raw: unknown): Omit<DashboardLayout, 'id'> | null {
     function remapWidgets(widgets: WidgetConfig[]): WidgetConfig[] {
         return widgets.map((w) => {
             const newId = freshWidgetId();
-            if (w.type === 'group' && w.options?.defId) {
+            if ((w.type === 'group' || w.type === 'panels') && w.options?.defId) {
                 const newDefId = defIdMap[w.options.defId as string] ?? (w.options.defId as string);
                 return { ...w, id: newId, options: { ...w.options, defId: newDefId } };
             }

@@ -35,6 +35,7 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
         case 'chips':
         case 'group':
         case 'carousel':
+        case 'panels':
         case 'trash':
         case 'trashSchedule':
         case 'adapterstatus':

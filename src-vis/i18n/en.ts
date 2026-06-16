@@ -1139,6 +1139,23 @@ export const en: Record<TranslationKey, string> = {
     'group.masterPlaceholderShort': 'needs DPs',
     'group.fitHeight': 'Fit height to content',
 
+    // ── Panels Widget (slide of widgets) ──────────────────────────────────────────
+    'panels.noSlides': 'No slides',
+    'panels.dropHere': 'Drop widget here',
+    'panels.empty.editHint': 'Add widgets below or drag & drop them here',
+    'panels.empty.viewHint': 'No slides configured',
+    'panels.removeSlide': 'Remove slide',
+    'panels.prev': 'Previous',
+    'panels.next': 'Next',
+    'panels.slide': 'Slide',
+    'panels.addSlide': 'Add slide',
+    'panels.pickWidget': 'Pick widget',
+    'panels.opt.loop': 'Infinite loop',
+    'panels.opt.showDots': 'Pagination dots',
+    'panels.opt.showArrows': 'Arrow buttons',
+    'panels.opt.autoplay': 'Autoplay',
+    'panels.opt.interval': 'Interval',
+
     // ── Carousel Widget (chip strip) ──────────────────────────────────────────────
     'carousel.items.title': 'Items',
     'carousel.items.add': '+ Add item',

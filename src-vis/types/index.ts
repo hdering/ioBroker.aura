@@ -54,6 +54,7 @@ export type WidgetType =
     | 'enum'
     | 'light'
     | 'carousel'
+    | 'panels'
     | 'knob'
     | 'timer'
     | 'adapterstatus'

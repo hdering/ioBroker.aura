@@ -158,9 +158,9 @@ function uniqueTabSlug(base: string, tabs: Tab[]): string {
 
 // ── GROUP widget helpers ──────────────────────────────────────────────────────
 
-/** Deep-clone a widget: GROUP widgets get a fresh defId with cloned children. */
+/** Deep-clone a widget: GROUP / PANELS widgets get a fresh defId with cloned children. */
 function cloneWidgetDef(w: WidgetConfig): WidgetConfig {
-    if (w.type === 'group' && w.options?.defId) {
+    if ((w.type === 'group' || w.type === 'panels') && w.options?.defId) {
         return { ...w, options: { ...w.options, defId: cloneGroupDef(w.options.defId as string) } };
     }
     return w;

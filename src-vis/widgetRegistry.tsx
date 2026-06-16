@@ -52,6 +52,7 @@ import {
     FileText,
     TextCursorInput,
     GalleryHorizontal,
+    GalleryThumbnails,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -751,6 +752,20 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'special',
         mock: { t: 'Karussell', v: '••• •••' },
         hint: 'Horizontal scrollbare Chip-Liste – pro Item Datenpunkt + eigene Klick-Aktion (DP schalten, Popup-Widget, Popup-View, Tab-Sprung)',
+    },
+    {
+        type: 'panels',
+        label: 'Panels',
+        shortLabel: 'Panels',
+        Icon: GalleryThumbnails,
+        iconName: 'GalleryThumbnails',
+        color: '#ec4899',
+        defaultW: 12,
+        defaultH: 6,
+        addMode: 'free',
+        widgetGroup: 'layout',
+        mock: { t: 'Panels', v: '' },
+        hint: 'Mehrere Widgets als swipebare Slides – Wischen, Pagination-Dots und Pfeil-Buttons',
     },
 ];
 
