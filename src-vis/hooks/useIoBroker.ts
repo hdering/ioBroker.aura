@@ -53,8 +53,11 @@ export function setOptimisticEcho(enabled: boolean): void {
 // URL accidentally stored in a DP-field can never crash the socket.
 // NOTE: '#' is a legitimate separator in some adapters (e.g. Shelly:
 // shelly.0.SHSW-25#XXXXXX#1.Relay0.Switch) and must NOT be filtered.
+// NOTE: a plain space is legal in ioBroker IDs (common in hand-created
+// 0_userdata.0.* objects, e.g. "...Pool.PoolPumpe Switch"), so it must NOT
+// be filtered — only the URL/query characters that break the socket are.
 function isValidStateId(id: unknown): id is string {
-    return typeof id === 'string' && id.length > 0 && !/[\s/?&=:]/.test(id);
+    return typeof id === 'string' && id.length > 0 && !/[/?&=:]/.test(id);
 }
 
 /** Fetch multiple state IDs in parallel and warm the cache. Returns when all have resolved (or 4 s timeout). */
