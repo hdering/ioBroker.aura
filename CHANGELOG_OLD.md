@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.242 (2026-06-15)
+- feat(popup): sample chart preview + visible history instance in editor
+
 ## 0.9.241 (2026-06-14)
 - fix(popup): inherit history adapter instance into popup charts
 - Merge branch 'fix/309-open-in-dashboard-editor'
