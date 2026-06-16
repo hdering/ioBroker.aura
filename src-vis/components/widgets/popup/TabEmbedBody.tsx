@@ -73,6 +73,29 @@ function inheritHistoryInstance(w: WidgetConfig, inst: string | undefined): Widg
     return w;
 }
 
+/** Flag popup chart widgets whose history instance could not be determined — a template
+ *  datapoint ({{dp}}) was resolved at runtime but the trigger widget (e.g. a value display)
+ *  has no instance to inherit. The chart then auto-detects the DP's history adapter and, when
+ *  several exist, shows a selection field. `orig` is the pre-substitution widget so the
+ *  template check targets exactly the "opened from a value widget" case. */
+function markAutoHistory(w: WidgetConfig, orig: WidgetConfig): WidgetConfig {
+    if (w.type === 'chart') {
+        const isTpl = (orig.datapoint ?? '').includes('{{');
+        const inst = w.options?.historyInstance;
+        const hasInst = typeof inst === 'string' && inst.length > 0;
+        if (isTpl && !hasInst) return { ...w, options: { ...w.options, autoHistoryInstance: true } };
+    }
+    if (w.type === 'echart') {
+        const origSeries = (orig.options?.echartSeries as Array<{ datapointId?: string }> | undefined) ?? [];
+        const series = (w.options?.echartSeries as Array<{ historyInstance?: string }> | undefined) ?? [];
+        const anyUnresolvedTpl = origSeries.some(
+            (s, i) => (s.datapointId ?? '').includes('{{') && !series[i]?.historyInstance,
+        );
+        if (anyUnresolvedTpl) return { ...w, options: { ...w.options, autoHistoryInstance: true } };
+    }
+    return w;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -150,7 +173,9 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
     const wm = getWidgetMap();
     // Popup charts inherit the trigger's history adapter instance when they have none.
     const triggerInstance = triggerHistoryInstance(triggerWidget);
-    const widgets = view.widgets.map((w) => inheritHistoryInstance(substituteWidget(w, subMap), triggerInstance));
+    const widgets = view.widgets.map((w) =>
+        markAutoHistory(inheritHistoryInstance(substituteWidget(w, subMap), triggerInstance), w),
+    );
 
     const layout = widgets.map((w) => ({
         i: w.id,

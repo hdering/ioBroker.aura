@@ -2,7 +2,12 @@ import ReactECharts from 'echarts-for-react';
 import { useRef, useState, useEffect } from 'react';
 import { BarChart2, Loader } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
-import { useMultiSeriesData, type EChartSeriesConfig, type EChartTimeRange } from '../../hooks/useMultiSeriesData';
+import {
+    useMultiSeriesData,
+    useAutoHistoryInstances,
+    type EChartSeriesConfig,
+    type EChartTimeRange,
+} from '../../hooks/useMultiSeriesData';
 import type { WidgetProps } from '../../types';
 import { CustomGridView } from './CustomGridView';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
@@ -87,15 +92,35 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         setActiveCustomUnit(cfgCustomUnit);
     }, [cfgRange, cfgCustomVal, cfgCustomUnit]);
 
-    // All series share the single widget-level range.
+    // Popup charts opened from a value-display widget carry no history instance to inherit.
+    // Detect the adapter per series from its resolved datapoint — auto-select the sole one,
+    // or offer a selection field when several exist.
+    const autoHistory = o.autoHistoryInstance === true;
+    const { resolved, setPicked } = useAutoHistoryInstances(echartSeries, autoHistory);
+
+    // All series share the single widget-level range; auto-resolved instances fill in where none
+    // is configured.
     const effectiveSeries = echartSeries.map((s) => ({
         ...s,
+        historyInstance: s.historyInstance ?? resolved[s.id]?.instance,
         historyRange: activeRange,
         historyRangeCustomValue: activeCustomVal,
         historyRangeCustomUnit: activeCustomUnit,
     }));
 
-    const hasHistory = echartSeries.some((s) => !!s.historyInstance);
+    const hasHistory = effectiveSeries.some((s) => !!s.historyInstance);
+
+    // Series whose resolved DP has several history adapters → render a selection field each.
+    const instancePickers = autoHistory
+        ? echartSeries
+              .filter((s) => !s.historyInstance && (resolved[s.id]?.adapters.length ?? 0) > 1)
+              .map((s) => ({
+                  id: s.id,
+                  name: s.name,
+                  adapters: resolved[s.id]!.adapters,
+                  value: resolved[s.id]!.instance ?? '',
+              }))
+        : [];
 
     const seriesDataMap = useMultiSeriesData(effectiveSeries, connected, subscribe, getState);
 
@@ -554,6 +579,30 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 </div>
             )}
             {rangeSelector && <div className="shrink-0 mb-1">{rangeSelector}</div>}
+            {instancePickers.length > 0 && (
+                <div className="shrink-0 mb-1 flex items-center gap-1 flex-wrap">
+                    {instancePickers.map((p) => (
+                        <select
+                            key={p.id}
+                            className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium focus:outline-none"
+                            style={{
+                                background: 'var(--app-border)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                            value={p.value}
+                            onChange={(e) => setPicked(p.id, e.target.value)}
+                            title={echartSeries.length > 1 ? p.name : 'Verlaufs-Instanz'}
+                        >
+                            {p.adapters.map((a) => (
+                                <option key={a.instance} value={a.instance}>
+                                    {a.label}
+                                </option>
+                            ))}
+                        </select>
+                    ))}
+                </div>
+            )}
             <div className="flex-1 relative min-h-0">
                 {isPreview && (
                     <span

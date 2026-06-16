@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { getHistoryDirect, getStateFromCache, type HistoryEntry } from './useIoBroker';
+import { getHistoryDirect, getStateFromCache, getObjectDirect, type HistoryEntry } from './useIoBroker';
+import { detectHistoryAdapters, type DetectedAdapter } from './useChartHistory';
 import type { ioBrokerState } from '../types';
 
 export type EChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d' | 'custom';
@@ -58,6 +59,82 @@ function getStepForMs(rangeMs: number): number | undefined {
     if (rangeMs <= 48 * 3_600_000) return 900_000;
     if (rangeMs <= 14 * 86_400_000) return 3_600_000;
     return 21_600_000;
+}
+
+export interface SeriesInstanceResolution {
+    /** Effective history instance to use — the sole detected adapter, or the picked one. */
+    instance?: string;
+    /** All detected adapters for this series' datapoint — drives the selection field. */
+    adapters: DetectedAdapter[];
+}
+
+/**
+ * Resolve a history-adapter instance per series at runtime for series that carry no
+ * configured instance — used when a popup chart is opened from a value-display widget
+ * that has no history instance to inherit (so `enabled` is the popup auto-flag).
+ *
+ *   • exactly one detected adapter  → auto-selected
+ *   • several detected adapters      → first one as default, switchable via the returned picker
+ *
+ * Series with an explicit `historyInstance` are left untouched (no entry in `resolved`).
+ */
+export function useAutoHistoryInstances(
+    series: EChartSeriesConfig[],
+    enabled: boolean,
+): {
+    resolved: Record<string, SeriesInstanceResolution>;
+    setPicked: (seriesId: string, instance: string) => void;
+} {
+    const [adaptersById, setAdaptersById] = useState<Record<string, DetectedAdapter[]>>({});
+    const [pickedById, setPickedById] = useState<Record<string, string>>({});
+    const mountedRef = useRef(true);
+    useEffect(() => {
+        mountedRef.current = true;
+        return () => {
+            mountedRef.current = false;
+        };
+    }, []);
+
+    // Series needing detection: enabled, no configured instance, and a resolvable (non-template) DP.
+    const targets = enabled
+        ? series.filter((s) => !s.historyInstance && s.datapointId && !s.datapointId.includes('{{'))
+        : [];
+    const depKey = targets.map((s) => `${s.id}:${s.datapointId}`).join(',');
+
+    useEffect(() => {
+        if (!enabled) {
+            setAdaptersById({});
+            return;
+        }
+        targets.forEach((s) => {
+            getObjectDirect(s.datapointId)
+                .then((obj) => {
+                    if (!mountedRef.current) return;
+                    const custom = obj?.common?.custom;
+                    const adapters = custom
+                        ? detectHistoryAdapters(custom as Record<string, { enabled?: boolean }>)
+                        : [];
+                    setAdaptersById((prev) => ({ ...prev, [s.id]: adapters }));
+                })
+                .catch(() => {});
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [depKey, enabled]);
+
+    const resolved: Record<string, SeriesInstanceResolution> = {};
+    for (const s of series) {
+        if (s.historyInstance) continue; // explicit config wins — nothing to resolve
+        const adapters = adaptersById[s.id] ?? [];
+        let instance: string | undefined;
+        if (adapters.length === 1) instance = adapters[0].instance;
+        else if (adapters.length > 1) instance = pickedById[s.id] ?? adapters[0].instance;
+        resolved[s.id] = { instance, adapters };
+    }
+
+    const setPicked = (seriesId: string, instance: string) =>
+        setPickedById((prev) => ({ ...prev, [seriesId]: instance }));
+
+    return { resolved, setPicked };
 }
 
 export function useMultiSeriesData(

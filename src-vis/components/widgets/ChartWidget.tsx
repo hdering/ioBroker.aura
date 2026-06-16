@@ -45,6 +45,9 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     const decimals = (o.decimals as number) ?? defaultDecimals;
     const unit = o.unit as string | undefined;
     const historyInstance = o.historyInstance as string | undefined;
+    // Set on popup charts opened from a value-display widget that had no history instance to
+    // inherit — the chart then auto-detects the DP's adapter (selection field when several).
+    const autoHistory = o.autoHistoryInstance === true;
     const cfgRange = (o.historyRange as ChartTimeRange | undefined) ?? '24h';
     const customVal = (o.historyRangeCustomValue as number | undefined) ?? 24;
     const customUnit = (o.historyRangeCustomUnit as 'h' | 'd' | undefined) ?? 'h';
@@ -85,7 +88,24 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                   } as Record<string, number>
               )[activeRange] ?? 86_400_000);
 
-    const raw = useChartHistory(config.datapoint, historyInstance, activeRange, connected, subscribe, activeCustomMs);
+    // Auto-detected instance picked at runtime (only relevant when autoHistory and no
+    // configured instance). useChartHistory falls back to its first detected adapter on its
+    // own, so a single adapter needs no pick; this state only drives the multi-adapter case.
+    const [pickedInstance, setPickedInstance] = useState<string | undefined>(undefined);
+    const effInstance = historyInstance ?? (autoHistory ? pickedInstance : undefined);
+
+    const raw = useChartHistory(config.datapoint, effInstance, activeRange, connected, subscribe, activeCustomMs);
+
+    // Default the picker to the first adapter once several are detected.
+    useEffect(() => {
+        if (autoHistory && !historyInstance && raw.adapters.length > 1 && !pickedInstance) {
+            setPickedInstance(raw.adapters[0].instance);
+        }
+    }, [autoHistory, historyInstance, raw.adapters, pickedInstance]);
+
+    // A history range is available when an instance is configured, or one was auto-detected.
+    const hasResolvedInstance = !!historyInstance || (autoHistory && raw.adapters.length > 0);
+    const showAdapterPicker = autoHistory && !historyInstance && raw.adapters.length > 1;
 
     // In the popup editor the datapoint is a {{placeholder}} that can't resolve, so there
     // is no real history. Show a representative sample chart instead of an empty widget.
@@ -156,9 +176,31 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
         </span>
     ) : null;
 
-    // Range selector shown only when a history adapter is configured and not locked
+    // Selection field for the history adapter — shown in the popup auto-detect case when the
+    // resolved datapoint has more than one history instance to choose from.
+    const adapterPicker = showAdapterPicker ? (
+        <select
+            className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium focus:outline-none"
+            style={{
+                background: 'var(--app-border)',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--app-border)',
+            }}
+            value={pickedInstance ?? raw.adapters[0].instance}
+            onChange={(e) => setPickedInstance(e.target.value)}
+            title="Verlaufs-Instanz"
+        >
+            {raw.adapters.map((a) => (
+                <option key={a.instance} value={a.instance}>
+                    {a.label}
+                </option>
+            ))}
+        </select>
+    ) : null;
+
+    // Range selector shown only when a history adapter is configured/detected and not locked
     const rangeSelector =
-        historyInstance && !lockRange ? (
+        hasResolvedInstance && !lockRange ? (
             <div className="flex gap-1 flex-wrap">
                 {PRESET_RANGES.map((r) => {
                     const active = activeRange === r;
@@ -247,7 +289,12 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                         </div>
                     </div>
                 </div>
-                {rangeSelector && <div className="mb-1.5">{rangeSelector}</div>}
+                {(rangeSelector || adapterPicker) && (
+                    <div className="mb-1.5 flex items-center gap-1 flex-wrap">
+                        {rangeSelector}
+                        {adapterPicker}
+                    </div>
+                )}
                 <div className="flex-1" style={{ minHeight: 1 }}>
                     {history.length > 1 ? (
                         hasSize ? (
@@ -357,7 +404,12 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                     </div>
                 )}
             </div>
-            {rangeSelector && <div className="mb-1">{rangeSelector}</div>}
+            {(rangeSelector || adapterPicker) && (
+                <div className="mb-1 flex items-center gap-1 flex-wrap">
+                    {rangeSelector}
+                    {adapterPicker}
+                </div>
+            )}
             <div className="flex-1" style={{ minHeight: 1 }}>
                 {history.length > 1 ? (
                     hasSize ? (
