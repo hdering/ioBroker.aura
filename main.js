@@ -1119,14 +1119,30 @@ class Aura extends utils.Adapter {
             const raw = st && st.val ? String(st.val) : '';
             const states = this._buildNavigateStates(raw);
             await this._setTargetStates('navigate.target', states);
+            // Enumerate clients via their navigate.url DP (exists for every
+            // client) so we can also create the navigate.target selector for
+            // clients that registered before this DP existed.
             const view = await this.getObjectViewAsync('system', 'state', {
                 startkey: `${this.namespace}.clients.`,
                 endkey: `${this.namespace}.clients.￿`,
             });
             for (const row of (view && view.rows) || []) {
-                if (!row.id.endsWith('.navigate.target')) continue;
-                const rel = row.id.slice(this.namespace.length + 1);
+                if (!row.id.endsWith('.navigate.url')) continue;
+                const rel = row.id.slice(this.namespace.length + 1).replace(/\.navigate\.url$/, '.navigate.target');
                 try {
+                    await this.setObjectNotExistsAsync(rel, {
+                        type: 'state',
+                        common: {
+                            name: 'Navigate to view/tab (select)',
+                            type: 'string',
+                            role: 'value',
+                            read: true,
+                            write: true,
+                            def: '',
+                            states: {},
+                        },
+                        native: {},
+                    });
                     await this._setTargetStates(rel, states);
                 } catch {
                     /* ignore a client object that vanished mid-sync */
