@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.259",
+    "version": "0.9.260",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.260": {
+        "en": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct",
+        "de": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct",
+        "ru": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct",
+        "pt": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct",
+        "nl": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct",
+        "fr": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct",
+        "it": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct",
+        "es": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct",
+        "pl": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct",
+        "uk": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct",
+        "zh-cn": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct"
+      },
       "0.9.259": {
         "en": "fix(image-widget): write selected datapoint to imageDatapoint option",
         "de": "fix(image-widget): write selected datapoint to imageDatapoint option",
@@ -183,19 +196,6 @@
         "pl": "chore(frontend): silence benign recharts zero-size container warning",
         "uk": "chore(frontend): silence benign recharts zero-size container warning",
         "zh-cn": "chore(frontend): silence benign recharts zero-size container warning"
-      },
-      "0.9.253": {
-        "en": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
-        "de": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
-        "ru": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
-        "pt": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
-        "nl": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
-        "fr": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
-        "it": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
-        "es": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
-        "pl": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
-        "uk": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
-        "zh-cn": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle"
       }
     }
   },

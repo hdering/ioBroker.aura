@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.240 (2026-06-13)
+- feat(widgets): add "open in dashboard editor" button to widget rows (#309)
+
 ## 0.9.239 (2026-06-13)
 - fix(popup): resolve {{placeholders}} in nested option arrays (#314)
 
