@@ -192,6 +192,10 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.257 (2026-06-16)
+- feat(popup): auto-detect history adapter for charts opened from value widgets
+
+
 ### 0.9.256 (2026-06-16)
 - feat(widgets): display-only value transform (factor/offset) with preset dropdown
 - chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)
@@ -283,11 +287,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - style(prettier): auto-format code files
 
 
-### 0.9.237 (2026-06-12)
-- feat(datapoint): JSON path support on datapoint refs (id#path)
-- feat(group): show loading spinner while group children hydrate
-
-
 ## License
 
 MIT License
@@ -299,6 +298,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

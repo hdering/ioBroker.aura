@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.256",
+    "version": "0.9.257",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.257": {
+        "en": "feat(popup): auto-detect history adapter for charts opened from value widgets",
+        "de": "feat(popup): auto-detect history adapter for charts opened from value widgets",
+        "ru": "feat(popup): auto-detect history adapter for charts opened from value widgets",
+        "pt": "feat(popup): auto-detect history adapter for charts opened from value widgets",
+        "nl": "feat(popup): auto-detect history adapter for charts opened from value widgets",
+        "fr": "feat(popup): auto-detect history adapter for charts opened from value widgets",
+        "it": "feat(popup): auto-detect history adapter for charts opened from value widgets",
+        "es": "feat(popup): auto-detect history adapter for charts opened from value widgets",
+        "pl": "feat(popup): auto-detect history adapter for charts opened from value widgets",
+        "uk": "feat(popup): auto-detect history adapter for charts opened from value widgets",
+        "zh-cn": "feat(popup): auto-detect history adapter for charts opened from value widgets"
+      },
       "0.9.256": {
         "en": "feat(widgets): display-only value transform (factor/offset) with preset dropdown; chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)",
         "de": "feat(widgets): display-only value transform (factor/offset) with preset dropdown; chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)",
@@ -183,19 +196,6 @@
         "pl": "feat(adapter-logs): multi-select adapter filter in the frontend",
         "uk": "feat(adapter-logs): multi-select adapter filter in the frontend",
         "zh-cn": "feat(adapter-logs): multi-select adapter filter in the frontend"
-      },
-      "0.9.250": {
-        "en": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
-        "de": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
-        "ru": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
-        "pt": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
-        "nl": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
-        "fr": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
-        "it": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
-        "es": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
-        "pl": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
-        "uk": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
-        "zh-cn": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend"
       }
     }
   },

@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.237 (2026-06-12)
+- feat(datapoint): JSON path support on datapoint refs (id#path)
+- feat(group): show loading spinner while group children hydrate
+
 ## 0.9.236 (2026-06-12)
 - revert(tabbar): remove tab-bar settings preview
 - feat(tabbar): live preview in tab-bar settings for the edited scope
