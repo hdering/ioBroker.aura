@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.9.233 (2026-06-12)
+- style(list-widgets): use template literal in shutter DP scope check
+- style(prettier): auto-format code files
+- feat(list-widgets): add shutter DP auto-detection to entry controls
+- feat(admin-widgets): sort widget type listing alphabetically by label
+
 ## 0.9.232 (2026-06-12)
 - style(prettier): auto-format code files
 - refactor(backup): drop legacy dashboard_backup state and one-time migration

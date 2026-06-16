@@ -192,6 +192,13 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.253 (2026-06-16)
+- refactor(echart): single shared time range, drop per-series ranges
+- feat(echart-config): auto-select sole history adapter per series
+- fix(echart): fit Y-axis to data range (scale) to remove empty space
+- feat(echart): current value, frontend range selector, grid-line toggle
+
+
 ### 0.9.252 (2026-06-16)
 - fix(useIoBroker): allow spaces in state IDs
 
@@ -290,13 +297,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - feat(list-widgets): support HomeMatic LEVEL position control for shutter entries
 
 
-### 0.9.233 (2026-06-12)
-- style(list-widgets): use template literal in shutter DP scope check
-- style(prettier): auto-format code files
-- feat(list-widgets): add shutter DP auto-detection to entry controls
-- feat(admin-widgets): sort widget type listing alphabetically by label
-
-
 ## License
 
 MIT License
@@ -308,6 +308,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

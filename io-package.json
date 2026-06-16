@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.252",
+    "version": "0.9.253",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.253": {
+        "en": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
+        "de": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
+        "ru": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
+        "pt": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
+        "nl": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
+        "fr": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
+        "it": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
+        "es": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
+        "pl": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
+        "uk": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
+        "zh-cn": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle"
+      },
       "0.9.252": {
         "en": "fix(useIoBroker): allow spaces in state IDs",
         "de": "fix(useIoBroker): allow spaces in state IDs",
@@ -183,19 +196,6 @@
         "pl": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
         "uk": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
         "zh-cn": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list"
-      },
-      "0.9.246": {
-        "en": "fix(clients): only register client when new or renamed",
-        "de": "fix(clients): only register client when new or renamed",
-        "ru": "fix(clients): only register client when new or renamed",
-        "pt": "fix(clients): only register client when new or renamed",
-        "nl": "fix(clients): only register client when new or renamed",
-        "fr": "fix(clients): only register client when new or renamed",
-        "it": "fix(clients): only register client when new or renamed",
-        "es": "fix(clients): only register client when new or renamed",
-        "pl": "fix(clients): only register client when new or renamed",
-        "uk": "fix(clients): only register client when new or renamed",
-        "zh-cn": "fix(clients): only register client when new or renamed"
       }
     }
   },
