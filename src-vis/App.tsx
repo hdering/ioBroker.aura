@@ -514,13 +514,20 @@ export default function App() {
             if (!val) return;
             if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('//')) {
                 window.location.href = val;
+            } else if (val.startsWith('/')) {
+                // Absolute in-app route, e.g. "/view/haus/tab/buero" or "/tab/buero"
+                navigate(val);
+            } else if (val.includes('/')) {
+                // "<viewSlug>/<tabSlug>" from the navigate.target selector
+                const [viewSlug, tabSl] = val.split('/');
+                navigate(tabSl ? `/view/${viewSlug}/tab/${tabSl}` : `/view/${viewSlug}`);
             } else {
                 const tab = tabs.find((t) => (t.slug ?? t.id) === val);
                 if (tab) setActiveTabId(tab.id);
             }
             setStateDirect(clearId, '');
         },
-        [tabs],
+        [tabs, navigate],
     );
 
     // Subscribe to global navigate datapoint (affects all clients)

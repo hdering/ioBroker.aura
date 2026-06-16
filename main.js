@@ -519,6 +519,21 @@ class Aura extends utils.Adapter {
                 common: { name: 'Navigate', type: 'string', role: 'url', read: true, write: true, def: '' },
                 native: {},
             });
+            await this.setObjectNotExistsAsync(`clients.${cId}.navigate.target`, {
+                type: 'state',
+                common: {
+                    name: 'Navigate to view/tab (select)',
+                    type: 'string',
+                    role: 'value',
+                    read: true,
+                    write: true,
+                    def: '',
+                    states: {},
+                },
+                native: {},
+            });
+            // Populate the freshly-created selector with the current view/tab list.
+            await this._syncNavigateTargets();
 
             await this.setStateAsync(`clients.${cId}.info.name`, { val: displayName, ack: true });
             await this.setStateAsync(`clients.${cId}.info.lastSeen`, { val: Date.now(), ack: true });
@@ -538,6 +553,7 @@ class Aura extends utils.Adapter {
                     `${base}.info.lastSeen`,
                     `${base}.info`,
                     `${base}.navigate.url`,
+                    `${base}.navigate.target`,
                     `${base}.navigate`,
                     base,
                 ];
@@ -552,6 +568,24 @@ class Aura extends utils.Adapter {
                 this.log.info(`[clients] deleted: ${base}`);
             }
             await this.setStateAsync('clients.deleteRequest', '', true);
+            return;
+        }
+
+        // Navigate selector → relay the chosen "<viewSlug>/<tabSlug>" to the
+        // matching navigate.url DP (global or per-client). The frontend already
+        // subscribes to navigate.url and resolves it to an in-app route.
+        if (id.endsWith('.navigate.target') && state && !state.ack && state.val) {
+            const target = String(state.val).trim();
+            const urlDp = id.replace(/\.navigate\.target$/, '.navigate.url');
+            if (target) await this.setForeignStateAsync(urlDp, { val: target, ack: false });
+            // Reset the selector so the same entry can be picked again.
+            await this.setForeignStateAsync(id, { val: '', ack: true });
+            return;
+        }
+
+        // Dashboard config changed → rebuild the navigate selector dropdowns.
+        if (id.endsWith('.config.dashboard') && state) {
+            await this._syncNavigateTargets();
             return;
         }
 
@@ -1039,6 +1073,70 @@ class Aura extends utils.Adapter {
         this._httpServer = server;
     }
 
+    // Build the common.states map for the navigate selector from the persisted
+    // dashboard config. Key = "<viewSlug>/<tabSlug>", value = "View / Tab".
+    // Disabled tabs are skipped (they are hidden in the frontend anyway).
+    _buildNavigateStates(dashboardRaw) {
+        const states = {};
+        try {
+            const parsed = JSON.parse(dashboardRaw);
+            const layouts = parsed && parsed.state && parsed.state.layouts;
+            if (!Array.isArray(layouts)) return states;
+            for (const layout of layouts) {
+                const viewSlug = layout && layout.slug;
+                if (!viewSlug || !Array.isArray(layout.tabs)) continue;
+                const viewName = layout.name || viewSlug;
+                for (const tab of layout.tabs) {
+                    if (!tab || tab.disabled) continue;
+                    const tabSlug = tab.slug || tab.id;
+                    if (!tabSlug) continue;
+                    states[`${viewSlug}/${tabSlug}`] = `${viewName} / ${tab.name || tabSlug}`;
+                }
+            }
+        } catch {
+            /* malformed config → empty dropdown */
+        }
+        return states;
+    }
+
+    // Refresh the common.states of every navigate.target selector (global + each
+    // client) from the current dashboard config. Cheap to call on startup, on a
+    // dashboard config change, and after a new client registers.
+    // Replace common.states fully (extendObject deep-merges and would keep stale
+    // keys for views/tabs that were deleted or renamed). No-op if unchanged.
+    async _setTargetStates(objId, states) {
+        const obj = await this.getObjectAsync(objId);
+        if (!obj || obj.type !== 'state') return;
+        if (JSON.stringify(obj.common && obj.common.states) === JSON.stringify(states)) return;
+        obj.common = obj.common || {};
+        obj.common.states = states;
+        await this.setObjectAsync(objId, obj);
+    }
+
+    async _syncNavigateTargets() {
+        try {
+            const st = await this.getStateAsync('config.dashboard');
+            const raw = st && st.val ? String(st.val) : '';
+            const states = this._buildNavigateStates(raw);
+            await this._setTargetStates('navigate.target', states);
+            const view = await this.getObjectViewAsync('system', 'state', {
+                startkey: `${this.namespace}.clients.`,
+                endkey: `${this.namespace}.clients.￿`,
+            });
+            for (const row of (view && view.rows) || []) {
+                if (!row.id.endsWith('.navigate.target')) continue;
+                const rel = row.id.slice(this.namespace.length + 1);
+                try {
+                    await this._setTargetStates(rel, states);
+                } catch {
+                    /* ignore a client object that vanished mid-sync */
+                }
+            }
+        } catch (e) {
+            this.log.warn(`[navigate] sync targets failed: ${e.message}`);
+        }
+    }
+
     async onReady() {
         this.log.info('aura adapter started');
 
@@ -1263,6 +1361,24 @@ class Aura extends utils.Adapter {
             native: {},
         });
 
+        // Combined view/tab selector. common.states is kept in sync with the
+        // dashboard config (_syncNavigateTargets) so it offers a dropdown of all
+        // view/tab combinations. Writing a key relays "<viewSlug>/<tabSlug>" to
+        // navigate.url, which the frontend resolves to an in-app route.
+        await this.setObjectNotExistsAsync('navigate.target', {
+            type: 'state',
+            common: {
+                name: 'Navigate to view/tab (select)',
+                type: 'string',
+                role: 'value',
+                read: true,
+                write: true,
+                def: '',
+                states: {},
+            },
+            native: {},
+        });
+
         await this.setObjectNotExistsAsync('calendar.cache', {
             type: 'state',
             common: {
@@ -1352,6 +1468,13 @@ class Aura extends utils.Adapter {
         this.subscribeStates('calendar.clientError');
         this.subscribeStates('clients.deleteRequest');
         this.subscribeStates('clients.register');
+
+        // Navigate selector: relay target selections and keep dropdowns in sync
+        // with the dashboard config (views/tabs added, renamed or removed).
+        this.subscribeStates('navigate.target');
+        this.subscribeStates('clients.*.navigate.target');
+        this.subscribeStates('config.dashboard');
+        await this._syncNavigateTargets();
 
         // ── Timer widget scheduler ─────────────────────────────────────────────
         // Subscribe to per-widget config/enabled DPs and run a tick to evaluate
