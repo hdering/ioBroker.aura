@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.254",
+    "version": "0.9.255",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.255": {
+        "en": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections",
+        "de": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections",
+        "ru": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections",
+        "pt": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections",
+        "nl": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections",
+        "fr": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections",
+        "it": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections",
+        "es": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections",
+        "pl": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections",
+        "uk": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections",
+        "zh-cn": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections"
+      },
       "0.9.254": {
         "en": "chore(frontend): silence benign recharts zero-size container warning",
         "de": "chore(frontend): silence benign recharts zero-size container warning",
@@ -183,19 +196,6 @@
         "pl": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
         "uk": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
         "zh-cn": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable"
-      },
-      "0.9.248": {
-        "en": "@ feat(theme): element-specific CSS variables for widgets (#313)",
-        "de": "@ feat(theme): element-specific CSS variables for widgets (#313)",
-        "ru": "@ feat(theme): element-specific CSS variables for widgets (#313)",
-        "pt": "@ feat(theme): element-specific CSS variables for widgets (#313)",
-        "nl": "@ feat(theme): element-specific CSS variables for widgets (#313)",
-        "fr": "@ feat(theme): element-specific CSS variables for widgets (#313)",
-        "it": "@ feat(theme): element-specific CSS variables for widgets (#313)",
-        "es": "@ feat(theme): element-specific CSS variables for widgets (#313)",
-        "pl": "@ feat(theme): element-specific CSS variables for widgets (#313)",
-        "uk": "@ feat(theme): element-specific CSS variables for widgets (#313)",
-        "zh-cn": "@ feat(theme): element-specific CSS variables for widgets (#313)"
       }
     }
   },

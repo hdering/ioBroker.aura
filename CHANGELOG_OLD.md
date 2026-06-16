@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.235 (2026-06-12)
+- fix(tabbar): guard undefined global tabBar for pre-existing configs
+- feat(tabbar): make tab-bar settings global with per-layout override
+- fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes
+
 ## 0.9.234 (2026-06-12)
 - fix(lint): auto-fix mixed typographic quotes
 - fix(group-action): resolve target checklist labels like the list does

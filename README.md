@@ -192,6 +192,11 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.255 (2026-06-16)
+- style(prettier): auto-format code files
+- feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections
+
+
 ### 0.9.254 (2026-06-16)
 - chore(frontend): silence benign recharts zero-size container warning
 
@@ -283,12 +288,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - feat(tabbar): live preview in tab-bar settings for the edited scope
 
 
-### 0.9.235 (2026-06-12)
-- fix(tabbar): guard undefined global tabBar for pre-existing configs
-- feat(tabbar): make tab-bar settings global with per-layout override
-- fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes
-
-
 ## License
 
 MIT License
@@ -300,6 +299,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
