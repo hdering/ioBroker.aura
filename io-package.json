@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.255",
+    "version": "0.9.256",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.256": {
+        "en": "feat(widgets): display-only value transform (factor/offset) with preset dropdown; chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)",
+        "de": "feat(widgets): display-only value transform (factor/offset) with preset dropdown; chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)",
+        "ru": "feat(widgets): display-only value transform (factor/offset) with preset dropdown; chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)",
+        "pt": "feat(widgets): display-only value transform (factor/offset) with preset dropdown; chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)",
+        "nl": "feat(widgets): display-only value transform (factor/offset) with preset dropdown; chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)",
+        "fr": "feat(widgets): display-only value transform (factor/offset) with preset dropdown; chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)",
+        "it": "feat(widgets): display-only value transform (factor/offset) with preset dropdown; chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)",
+        "es": "feat(widgets): display-only value transform (factor/offset) with preset dropdown; chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)",
+        "pl": "feat(widgets): display-only value transform (factor/offset) with preset dropdown; chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)",
+        "uk": "feat(widgets): display-only value transform (factor/offset) with preset dropdown; chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)",
+        "zh-cn": "feat(widgets): display-only value transform (factor/offset) with preset dropdown; chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)"
+      },
       "0.9.255": {
         "en": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections",
         "de": "style(prettier): auto-format code files; feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections",
@@ -183,19 +196,6 @@
         "pl": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
         "uk": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend",
         "zh-cn": "style(prettier): auto-format code files; build(adapter-logs): rebuild www so widget sends instances pre-filter; feat(adapter-logs): comma-separated instance filter in getRecentLogs backend"
-      },
-      "0.9.249": {
-        "en": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
-        "de": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
-        "ru": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
-        "pt": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
-        "nl": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
-        "fr": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
-        "it": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
-        "es": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
-        "pl": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
-        "uk": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable",
-        "zh-cn": "fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable"
       }
     }
   },
