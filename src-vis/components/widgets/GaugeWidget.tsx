@@ -197,11 +197,19 @@ export function GaugeWidget({ config }: WidgetProps) {
     const { value: val2 } = useDatapoint(ptr2Dp);
     const { value: val3 } = useDatapoint(ptr3Dp);
 
+    // Display-only transform: live DP values are mapped into display space, while
+    // static min/max and zones stay as configured (user enters them in display units).
+    const factor = Number(opts.valueFactor ?? 1);
+    const offset = Number(opts.valueOffset ?? 0);
+    const tx = (n: number): number => n * factor + offset;
+
     const staticMin = (opts.minValue as number) ?? 0;
     const staticMax = (opts.maxValue as number) ?? 100;
 
-    const resolvedMin = minDp && minDpVal !== undefined && minDpVal !== null ? parseFloat(String(minDpVal)) : staticMin;
-    const resolvedMax = maxDp && maxDpVal !== undefined && maxDpVal !== null ? parseFloat(String(maxDpVal)) : staticMax;
+    const resolvedMin =
+        minDp && minDpVal !== undefined && minDpVal !== null ? tx(parseFloat(String(minDpVal))) : staticMin;
+    const resolvedMax =
+        maxDp && maxDpVal !== undefined && maxDpVal !== null ? tx(parseFloat(String(maxDpVal))) : staticMax;
 
     const { defaultDecimals } = useGlobalSettingsStore();
     const unit = (opts.unit as string) ?? '';
@@ -211,7 +219,7 @@ export function GaugeWidget({ config }: WidgetProps) {
     const showMinMax = (opts.showMinMax as boolean) ?? true;
 
     const numVal = typeof value === 'number' ? value : parseFloat(String(value ?? 0));
-    const safeVal = isNaN(numVal) ? resolvedMin : numVal;
+    const safeVal = isNaN(numVal) ? resolvedMin : tx(numVal);
 
     const dynamicMaxEnabled = !!opts.dynamicMax;
     const effectiveMax = dynamicMaxEnabled ? Math.max(resolvedMax, safeVal) : resolvedMax;
@@ -244,7 +252,7 @@ export function GaugeWidget({ config }: WidgetProps) {
     if (ptr2Dp) {
         const v = parseFloat(String(val2 ?? 0));
         pointers.push({
-            value: isNaN(v) ? effectiveMin : v,
+            value: isNaN(v) ? effectiveMin : tx(v),
             color: (opts.pointer2Color as string) ?? '#f97316',
             label: (opts.pointer2Label as string) || undefined,
         });
@@ -252,7 +260,7 @@ export function GaugeWidget({ config }: WidgetProps) {
     if (ptr3Dp) {
         const v = parseFloat(String(val3 ?? 0));
         pointers.push({
-            value: isNaN(v) ? effectiveMin : v,
+            value: isNaN(v) ? effectiveMin : tx(v),
             color: (opts.pointer3Color as string) ?? '#8b5cf6',
             label: (opts.pointer3Label as string) || undefined,
         });

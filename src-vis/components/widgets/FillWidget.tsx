@@ -797,7 +797,11 @@ export function FillWidget({ config }: WidgetProps) {
         ];
     })();
 
-    const numVal = typeof value === 'number' ? value : parseFloat(String(value ?? min));
+    // Display-only transform: live value mapped into display space; min/max + zones stay in display units.
+    const factor = Number(opts.valueFactor ?? 1);
+    const offset = Number(opts.valueOffset ?? 0);
+    const rawNum = typeof value === 'number' ? value : parseFloat(String(value ?? ''));
+    const numVal = isNaN(rawNum) ? NaN : rawNum * factor + offset;
     const safeVal = isNaN(numVal) ? min : Math.max(min, Math.min(max, numVal));
     const pct = max > min ? ((safeVal - min) / (max - min)) * 100 : 0;
 

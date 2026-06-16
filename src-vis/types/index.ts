@@ -190,6 +190,8 @@ export interface CustomCell {
     prefix?: string; // 'value' / 'dp' type: text prepended to value
     suffix?: string; // 'value' / 'dp' type: text appended to value
     decimals?: number; // 'value' / 'dp' type: decimal places override (undefined = use global)
+    valueFactor?: number; // 'dp' / 'progress' type: display-only multiplier (default 1)
+    valueOffset?: number; // 'dp' / 'progress' type: display-only additive offset (default 0)
     fontSize?: number; // px; undefined = auto
     bold?: boolean;
     italic?: boolean;

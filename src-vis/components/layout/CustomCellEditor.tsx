@@ -13,6 +13,7 @@ import type { CustomCell, WidgetType } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { FORMAT_LABELS, type DateOutputFormat } from '../widgets/DatePickerWidget';
 import { IconPickerModal } from '../config/IconPickerModal';
+import { ValueTransformButton } from '../config/ValueTransformButton';
 
 export const CELL_LABELS: Record<string, string> = {
     empty: '–',
@@ -701,6 +702,16 @@ export function CustomCellEditor({
                             style={inputSty}
                         />
                         <JsonPathButton value={cell.dpId} onChange={(ref) => onChange({ dpId: ref })} size={12} />
+                        {(cell.type === 'dp' || cell.type === 'progress') && (
+                            <ValueTransformButton
+                                factor={cell.valueFactor}
+                                offset={cell.valueOffset}
+                                onPatch={(patch) =>
+                                    onChange({ valueFactor: patch.valueFactor, valueOffset: patch.valueOffset })
+                                }
+                                size={12}
+                            />
+                        )}
                         <button
                             onClick={onOpenDpPicker}
                             className="text-xs px-2 py-1.5 rounded-lg shrink-0"

@@ -10,6 +10,7 @@ import type { WidgetConfig, CustomCell, CustomGrid, CustomGridDef } from '../../
 import { resolveAssetUrl } from '../../utils/assetUrl';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
+import { applyValueTransform } from '../../utils/valueTransform';
 import { baseDpId } from '../../utils/dpRef';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { HelpCircle, ChevronDown } from 'lucide-react';
@@ -185,7 +186,8 @@ function DpCellView({
 }) {
     const { state, value } = useDatapoint(cell.dpId ?? '');
     const decimals = cell.decimals ?? defaultDecimals;
-    const formatted = value === null ? '–' : typeof value === 'number' ? formatNum(value, decimals) : String(value);
+    const tValue = applyValueTransform(value, cell.valueFactor, cell.valueOffset);
+    const formatted = tValue === null ? '–' : typeof tValue === 'number' ? formatNum(tValue, decimals) : String(tValue);
     const content = `${cell.prefix ?? ''}${formatted}${cell.suffix ?? ''}`;
     if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
     const textSty = cellTextStyle(cell, 'var(--text-primary)');
@@ -925,7 +927,9 @@ function ProgressCellView({
     const isVertical = cell.orientation === 'vertical';
     const barSize = cell.barSize ?? 100;
     const color = cell.color || 'var(--accent)';
-    const num = typeof value === 'number' ? value : Number(value ?? min);
+    // Display-only transform: value mapped into display space; min/max are in display units.
+    const rawNum = typeof value === 'number' ? value : Number(value ?? min);
+    const num = applyValueTransform(rawNum, cell.valueFactor, cell.valueOffset);
     const cur = Number.isFinite(num) ? num : min;
     const ratio = Math.max(0, Math.min(1, (cur - min) / (max - min)));
     const decimals = cell.decimals ?? defaultDecimals;

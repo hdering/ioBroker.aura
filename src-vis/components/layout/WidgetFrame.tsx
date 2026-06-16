@@ -125,6 +125,7 @@ import { BinarySensorWidget, BINARY_SENSOR_PRESETS } from '../widgets/BinarySens
 import { StateImageWidget } from '../widgets/StateImageWidget';
 import { EChartsPresetConfig } from '../config/EChartsPresetConfig';
 import { JsonTableConfig } from '../config/JsonTableConfig';
+import { ValueTransformButton } from '../config/ValueTransformButton';
 import { HtmlWidget } from '../widgets/HtmlWidget';
 import { HtmlConfig } from '../config/HtmlConfig';
 import { DatePickerWidget, FORMAT_LABELS, type DateOutputFormat } from '../widgets/DatePickerWidget';
@@ -7486,6 +7487,21 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                             value={config.datapoint}
                                             onChange={(ref) => onConfigChange({ ...config, datapoint: ref })}
                                         />
+                                        {(config.type === 'value' ||
+                                            config.type === 'gauge' ||
+                                            config.type === 'fill') && (
+                                            <ValueTransformButton
+                                                factor={config.options?.valueFactor as number | undefined}
+                                                offset={config.options?.valueOffset as number | undefined}
+                                                fillUnit
+                                                onPatch={(patch) =>
+                                                    onConfigChange({
+                                                        ...config,
+                                                        options: { ...config.options, ...patch },
+                                                    })
+                                                }
+                                            />
+                                        )}
                                         <button
                                             onClick={() => setPickerTarget('datapoint')}
                                             className="px-2 rounded-lg hover:opacity-80 shrink-0"

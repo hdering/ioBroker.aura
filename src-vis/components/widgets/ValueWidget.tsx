@@ -9,6 +9,7 @@ import { StatusBadges } from './StatusBadges';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
+import { applyValueTransform } from '../../utils/valueTransform';
 
 export function ValueWidget({ config }: WidgetProps) {
     const { value } = useDatapoint(config.datapoint);
@@ -32,19 +33,24 @@ export function ValueWidget({ config }: WidgetProps) {
     const { defaultDecimals } = useGlobalSettingsStore();
     const decimals = (o.decimals as number) ?? defaultDecimals;
 
-    const displayValue = value === null ? '–' : typeof value === 'number' ? formatNum(value, decimals) : String(value);
+    // Display-only transform: rawValue * factor + offset. Datapoint itself is untouched.
+    const tValue = applyValueTransform(value, Number(o.valueFactor ?? 1), Number(o.valueOffset ?? 0));
 
-    // Threshold-based color: [[maxExclusive, color], …] sorted ascending
+    const displayValue =
+        tValue === null ? '–' : typeof tValue === 'number' ? formatNum(tValue, decimals) : String(tValue);
+
+    // Threshold-based color: [[maxExclusive, color], …] sorted ascending.
+    // Applied to the transformed (displayed) value so thresholds are configured in display units.
     const thresholds = o.colorThresholds as Array<[number, string]> | undefined;
     const thresholdColor = useMemo(() => {
         if (!thresholds?.length) return undefined;
-        const num = typeof value === 'number' ? value : parseFloat(String(value));
+        const num = typeof tValue === 'number' ? tValue : parseFloat(String(tValue));
         if (isNaN(num)) return undefined;
         for (const [thresh, color] of thresholds) {
             if (num < thresh) return color;
         }
         return thresholds[thresholds.length - 1][1];
-    }, [thresholds, value]);
+    }, [thresholds, tValue]);
 
     const accentColor = thresholdColor ?? 'var(--accent)';
     const valueColor = thresholdColor ?? 'var(--text-primary)';
@@ -61,7 +67,7 @@ export function ValueWidget({ config }: WidgetProps) {
             <CustomGridView
                 config={config}
                 value={displayValue}
-                rawValue={typeof value === 'number' ? value : null}
+                rawValue={typeof tValue === 'number' ? tValue : null}
                 unit={unit}
                 extraFields={{ unit: unit ?? '', battery, reach }}
                 extraComponents={{
