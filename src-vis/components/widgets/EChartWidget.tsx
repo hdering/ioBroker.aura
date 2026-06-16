@@ -359,6 +359,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
 
     const leftAxis: Record<string, unknown> = {
         type: 'value',
+        // Fit the axis to the data range instead of forcing zero in — otherwise a
+        // line at e.g. 200–250 sits at the top with the whole 0–200 band left blank.
+        scale: true,
         axisLabel: {
             show: echartShowYAxis,
             color: '#888',
@@ -375,6 +378,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const rightAxis: Record<string, unknown> = hasRightAxis
         ? {
               type: 'value',
+              scale: true,
               axisLabel: {
                   show: echartShowYAxis,
                   color: '#888',
