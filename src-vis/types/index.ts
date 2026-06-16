@@ -192,6 +192,7 @@ export interface CustomCell {
     decimals?: number; // 'value' / 'dp' type: decimal places override (undefined = use global)
     valueFactor?: number; // 'dp' / 'progress' type: display-only multiplier (default 1)
     valueOffset?: number; // 'dp' / 'progress' type: display-only additive offset (default 0)
+    valueTransform?: string; // 'dp' / 'progress' type: selected transform preset id (editor only; disambiguates presets sharing factor/offset)
     fontSize?: number; // px; undefined = auto
     bold?: boolean;
     italic?: boolean;

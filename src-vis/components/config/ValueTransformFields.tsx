@@ -1,21 +1,23 @@
-import { useState } from 'react';
 import { VALUE_TRANSFORM_PRESETS, matchValueTransformPreset } from '../../utils/valueTransform';
 
 export interface ValueTransformPatch {
     valueFactor?: number;
     valueOffset?: number;
+    /** Selected preset id (or 'custom') — disambiguates presets that share factor/offset (e.g. Wh→kWh vs W→kW). */
+    valueTransform?: string;
     /** Only emitted when `fillUnit` is set and the chosen preset suggests a unit. */
     unit?: string;
 }
 
 /**
  * Preset dropdown + optional manual factor/offset inputs for display-only value
- * transformation. Stores the result as `valueFactor` / `valueOffset` on the
- * caller's options/cell object via `onPatch`.
+ * transformation. Stores the result as `valueFactor` / `valueOffset` (+ the
+ * selected `valueTransform` id) on the caller's options/cell object via `onPatch`.
  */
 export function ValueTransformFields({
     factor,
     offset,
+    presetId,
     onPatch,
     fillUnit = false,
     inputStyle,
@@ -23,16 +25,22 @@ export function ValueTransformFields({
 }: {
     factor?: number;
     offset?: number;
+    /** Stored selection id; takes precedence over factor/offset matching. */
+    presetId?: string;
     onPatch: (patch: ValueTransformPatch) => void;
     /** When true, selecting a preset also fills the `unit` field. */
     fillUnit?: boolean;
     inputStyle?: React.CSSProperties;
     inputClassName?: string;
 }) {
-    const matched = matchValueTransformPreset(factor, offset);
-    // Stay in manual mode even when factor/offset happen to equal a preset (e.g. 1 / 0).
-    const [manual, setManual] = useState(matched === 'custom');
-    const selected = manual ? 'custom' : matched;
+    // The stored preset id wins (several presets share a factor, e.g. Wh→kWh and W→kW are both ×0.001).
+    // Fall back to factor/offset matching only for configs saved before the id was stored.
+    const selected =
+        presetId === 'custom'
+            ? 'custom'
+            : presetId && VALUE_TRANSFORM_PRESETS.some((p) => p.id === presetId)
+              ? presetId
+              : matchValueTransformPreset(factor, offset);
 
     const sty: React.CSSProperties = inputStyle ?? {
         background: 'var(--app-bg)',
@@ -43,17 +51,19 @@ export function ValueTransformFields({
 
     const choose = (id: string) => {
         if (id === 'custom') {
-            setManual(true);
-            onPatch({ valueFactor: factor ?? 1, valueOffset: offset });
+            onPatch({ valueTransform: 'custom', valueFactor: factor ?? 1, valueOffset: offset });
             return;
         }
-        setManual(false);
         const p = VALUE_TRANSFORM_PRESETS.find((x) => x.id === id);
         if (!p || p.id === 'none') {
-            onPatch({ valueFactor: undefined, valueOffset: undefined });
+            onPatch({ valueTransform: undefined, valueFactor: undefined, valueOffset: undefined });
             return;
         }
-        const patch: ValueTransformPatch = { valueFactor: p.factor, valueOffset: p.offset || undefined };
+        const patch: ValueTransformPatch = {
+            valueTransform: p.id,
+            valueFactor: p.factor,
+            valueOffset: p.offset || undefined,
+        };
         if (fillUnit && p.unit) patch.unit = p.unit;
         onPatch(patch);
     };
@@ -90,6 +100,7 @@ export function ValueTransformFields({
                             value={factor ?? 1}
                             onChange={(e) =>
                                 onPatch({
+                                    valueTransform: 'custom',
                                     valueFactor: e.target.value === '' ? undefined : Number(e.target.value),
                                     valueOffset: offset,
                                 })
@@ -108,6 +119,7 @@ export function ValueTransformFields({
                             value={offset ?? 0}
                             onChange={(e) =>
                                 onPatch({
+                                    valueTransform: 'custom',
                                     valueFactor: factor,
                                     valueOffset: e.target.value === '' ? undefined : Number(e.target.value),
                                 })

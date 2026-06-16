@@ -706,8 +706,13 @@ export function CustomCellEditor({
                             <ValueTransformButton
                                 factor={cell.valueFactor}
                                 offset={cell.valueOffset}
+                                presetId={cell.valueTransform}
                                 onPatch={(patch) =>
-                                    onChange({ valueFactor: patch.valueFactor, valueOffset: patch.valueOffset })
+                                    onChange({
+                                        valueFactor: patch.valueFactor,
+                                        valueOffset: patch.valueOffset,
+                                        valueTransform: patch.valueTransform,
+                                    })
                                 }
                                 size={12}
                             />

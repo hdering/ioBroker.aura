@@ -8,6 +8,8 @@ import { ValueTransformFields, type ValueTransformPatch } from './ValueTransform
 interface ValueTransformButtonProps {
     factor?: number;
     offset?: number;
+    /** Stored selection id; takes precedence over factor/offset matching. */
+    presetId?: string;
     onPatch: (patch: ValueTransformPatch) => void;
     /** When true, selecting a preset also fills the `unit` field. */
     fillUnit?: boolean;
@@ -23,6 +25,7 @@ interface ValueTransformButtonProps {
 export function ValueTransformButton({
     factor,
     offset,
+    presetId,
     onPatch,
     fillUnit = false,
     size = 13,
@@ -109,7 +112,13 @@ export function ValueTransformButton({
                                 <X size={13} />
                             </button>
                         </div>
-                        <ValueTransformFields factor={factor} offset={offset} onPatch={onPatch} fillUnit={fillUnit} />
+                        <ValueTransformFields
+                            factor={factor}
+                            offset={offset}
+                            presetId={presetId}
+                            onPatch={onPatch}
+                            fillUnit={fillUnit}
+                        />
                     </div>,
                     document.body,
                 )}

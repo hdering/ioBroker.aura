@@ -7494,6 +7494,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                             <ValueTransformButton
                                                 factor={config.options?.valueFactor as number | undefined}
                                                 offset={config.options?.valueOffset as number | undefined}
+                                                presetId={config.options?.valueTransform as string | undefined}
                                                 fillUnit
                                                 onPatch={(patch) =>
                                                     onConfigChange({
