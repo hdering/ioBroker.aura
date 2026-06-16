@@ -9,6 +9,17 @@ import App from './App';
 import { ThemeProvider } from './ThemeProvider';
 import { lazyWithReload, installChunkErrorRecovery } from './utils/lazyWithReload';
 
+// Recharts' ResponsiveContainer logs a "width(-1) and height(-1) of chart should be
+// greater than 0" warning when a chart briefly renders inside a hidden tab (container
+// measured at 0/-1) before its ResizeObserver fires. It is purely cosmetic — the chart
+// redraws correctly once visible — so we filter just that one message to keep the
+// console clean. Every other warning passes through untouched.
+const __origWarn = console.warn.bind(console);
+console.warn = (...args: unknown[]) => {
+    if (typeof args[0] === 'string' && args[0].includes('of chart should be greater than 0')) return;
+    __origWarn(...args);
+};
+
 installChunkErrorRecovery();
 
 // Admin pages are large (editors, pickers, echart configurators) and are not
