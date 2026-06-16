@@ -192,6 +192,10 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.254 (2026-06-16)
+- chore(frontend): silence benign recharts zero-size container warning
+
+
 ### 0.9.253 (2026-06-16)
 - refactor(echart): single shared time range, drop per-series ranges
 - feat(echart-config): auto-select sole history adapter per series
@@ -285,18 +289,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - fix(lint): wrap shutter help text in JS string to avoid JSX typographic quotes
 
 
-### 0.9.234 (2026-06-12)
-- fix(lint): auto-fix mixed typographic quotes
-- fix(group-action): resolve target checklist labels like the list does
-- refactor(auto-list): compact general per-entry settings to match static list
-- refactor(static-list): compact general per-entry settings layout
-- refactor(static-list): move font size up to general settings (paired with decimals)
-- fix(list-widgets): hide switch-only styling for Auto display type too
-- feat(list-widgets): hide switch-only entry styling for non-switch display types
-- refactor(static-list): move per-entry icon picker up next to label/unit
-- feat(list-widgets): support HomeMatic LEVEL position control for shutter entries
-
-
 ## License
 
 MIT License
@@ -308,6 +300,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

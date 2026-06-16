@@ -1,5 +1,16 @@
 # Changelog (older entries)
 
+## 0.9.234 (2026-06-12)
+- fix(lint): auto-fix mixed typographic quotes
+- fix(group-action): resolve target checklist labels like the list does
+- refactor(auto-list): compact general per-entry settings to match static list
+- refactor(static-list): compact general per-entry settings layout
+- refactor(static-list): move font size up to general settings (paired with decimals)
+- fix(list-widgets): hide switch-only styling for Auto display type too
+- feat(list-widgets): hide switch-only entry styling for non-switch display types
+- refactor(static-list): move per-entry icon picker up next to label/unit
+- feat(list-widgets): support HomeMatic LEVEL position control for shutter entries
+
 ## 0.9.233 (2026-06-12)
 - style(list-widgets): use template literal in shutter DP scope check
 - style(prettier): auto-format code files

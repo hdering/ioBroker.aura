@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.253",
+    "version": "0.9.254",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.254": {
+        "en": "chore(frontend): silence benign recharts zero-size container warning",
+        "de": "chore(frontend): silence benign recharts zero-size container warning",
+        "ru": "chore(frontend): silence benign recharts zero-size container warning",
+        "pt": "chore(frontend): silence benign recharts zero-size container warning",
+        "nl": "chore(frontend): silence benign recharts zero-size container warning",
+        "fr": "chore(frontend): silence benign recharts zero-size container warning",
+        "it": "chore(frontend): silence benign recharts zero-size container warning",
+        "es": "chore(frontend): silence benign recharts zero-size container warning",
+        "pl": "chore(frontend): silence benign recharts zero-size container warning",
+        "uk": "chore(frontend): silence benign recharts zero-size container warning",
+        "zh-cn": "chore(frontend): silence benign recharts zero-size container warning"
+      },
       "0.9.253": {
         "en": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
         "de": "refactor(echart): single shared time range, drop per-series ranges; feat(echart-config): auto-select sole history adapter per series; fix(echart): fit Y-axis to data range (scale) to remove empty space; feat(echart): current value, frontend range selector, grid-line toggle",
@@ -183,19 +196,6 @@
         "pl": "@ feat(theme): element-specific CSS variables for widgets (#313)",
         "uk": "@ feat(theme): element-specific CSS variables for widgets (#313)",
         "zh-cn": "@ feat(theme): element-specific CSS variables for widgets (#313)"
-      },
-      "0.9.247": {
-        "en": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
-        "de": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
-        "ru": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
-        "pt": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
-        "nl": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
-        "fr": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
-        "it": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
-        "es": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
-        "pl": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
-        "uk": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list",
-        "zh-cn": "fix(lint): auto-fix mixed typographic quotes; feat(backup): generic list-item change detection across all widget types; feat(backup): record per-entity change details in backup list"
       }
     }
   },
