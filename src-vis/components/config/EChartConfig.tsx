@@ -125,6 +125,10 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         ? detectHistoryAdapters(custom as Record<string, { enabled?: boolean }>)
                         : [];
                     setAdapterStates((prev) => ({ ...prev, [s.id]: { adapters, checking: false } }));
+                    // Auto-select the only history adapter when none is chosen yet.
+                    if (adapters.length === 1 && !s.historyInstance) {
+                        updateSeries(s.id, { historyInstance: adapters[0].instance });
+                    }
                 })
                 .catch(() => {
                     setAdapterStates((prev) => ({ ...prev, [s.id]: { adapters: [], checking: false } }));
@@ -141,6 +145,11 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                 const custom = obj?.common?.custom;
                 const adapters = custom ? detectHistoryAdapters(custom as Record<string, { enabled?: boolean }>) : [];
                 setAdapterStates((prev) => ({ ...prev, [id]: { adapters, checking: false } }));
+                // Auto-select the only history adapter when none is chosen yet.
+                const cur = series.find((x) => x.id === id);
+                if (adapters.length === 1 && !cur?.historyInstance) {
+                    updateSeries(id, { historyInstance: adapters[0].instance });
+                }
             })
             .catch(() => {
                 setAdapterStates((prev) => ({ ...prev, [id]: { adapters: [], checking: false } }));
