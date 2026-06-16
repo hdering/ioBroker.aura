@@ -10379,6 +10379,7 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                                                 <option value="enabled">Nur aktivierte</option>
                                                 <option value="running">Nur laufende</option>
                                                 <option value="stopped">Nur gestoppte</option>
+                                                <option value="disabled">Nur deaktivierte</option>
                                                 <option value="updates">Nur mit Update</option>
                                             </select>
                                         </div>

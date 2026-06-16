@@ -13,13 +13,14 @@ import { NS } from '../../utils/namespace';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-type FilterMode = 'all' | 'enabled' | 'running' | 'stopped' | 'updates';
+type FilterMode = 'all' | 'enabled' | 'running' | 'stopped' | 'disabled' | 'updates';
 
 const FILTER_LABELS: Record<FilterMode, string> = {
     all: 'Alle',
     enabled: 'Aktiv',
     running: 'Läuft',
     stopped: 'Gestoppt',
+    disabled: 'Deaktiviert',
     updates: 'Updates',
 };
 
@@ -387,7 +388,8 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
             const aliveSt = states[`system.adapter.${inst.id}.alive`]?.val === true;
             if (filter === 'enabled' && !inst.enabled) return false;
             if (filter === 'running' && !aliveSt) return false;
-            if (filter === 'stopped' && aliveSt) return false;
+            if (filter === 'stopped' && (aliveSt || !inst.enabled)) return false;
+            if (filter === 'disabled' && inst.enabled) return false;
             if (filter === 'updates' && !updates[inst.adapter]) return false;
             if (lc && !inst.id.toLowerCase().includes(lc) && !inst.title.toLowerCase().includes(lc)) return false;
             return true;
@@ -483,9 +485,11 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
                                     ? counts.running
                                     : f === 'stopped'
                                       ? counts.stopped
-                                      : f === 'updates'
-                                        ? counts.hasUpdate
-                                        : 0;
+                                      : f === 'disabled'
+                                        ? counts.disabled
+                                        : f === 'updates'
+                                          ? counts.hasUpdate
+                                          : 0;
                         return (
                             <button
                                 key={f}
