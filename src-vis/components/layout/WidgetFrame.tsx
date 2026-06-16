@@ -6549,7 +6549,14 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                             : null;
                         const displayIconSize = draftIconSize ?? ((o.iconSize as number) || 20);
                         return (
-                            <details className="group">
+                            <details
+                                className="group rounded-lg px-3 py-3"
+                                style={{
+                                    background:
+                                        'color-mix(in srgb, var(--accent-yellow, #eab308) 7%, var(--app-bg))',
+                                    border: '1px solid color-mix(in srgb, var(--accent-yellow, #eab308) 26%, var(--app-border))',
+                                }}
+                            >
                                 <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                                     <span
                                         className="text-[11px] font-semibold"
@@ -6986,7 +6993,13 @@ export function WidgetFrame({ config, editMode, onRemove, onConfigChange, onDupl
                     {/* ─── ERWEITERT ───────────────────────────────────────────────────── */}
                     {/* Always shown — CSS-Overrides apply to every widget type. */}
                     {
-                        <details className="group">
+                        <details
+                            className="group rounded-lg px-3 py-3"
+                            style={{
+                                background: 'color-mix(in srgb, var(--accent-yellow, #eab308) 7%, var(--app-bg))',
+                                border: '1px solid color-mix(in srgb, var(--accent-yellow, #eab308) 26%, var(--app-border))',
+                            }}
+                        >
                             <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                                 <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>
                                     Erweitert
