@@ -48,6 +48,13 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? true;
     const echartShowYAxis = (o.echartShowYAxis as boolean | undefined) ?? true;
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
+    const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
+    const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
+    const echartFrontendRange = (o.echartFrontendRange as boolean | undefined) ?? false;
+    const echartRange = (o.echartRange as EChartTimeRange | undefined) ?? '24h';
+    const echartRangeCustomValue = (o.echartRangeCustomValue as number | undefined) ?? 24;
+    const echartRangeCustomUnit = (o.echartRangeCustomUnit as 'h' | 'd' | undefined) ?? 'h';
+    const lockRange = (o.lockRange as boolean | undefined) ?? false;
     const echartLeftUnit = (o.echartLeftUnit as string | undefined) ?? '';
     const echartRightUnit = (o.echartRightUnit as string | undefined) ?? '';
     const echartLeftMin = (o.echartLeftMin as string | undefined) ?? '';
@@ -725,6 +732,127 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         />
                     </button>
                 </div>
+
+                {/* Horizontal grid lines */}
+                <div className="flex items-center justify-between mb-2">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        Horizontale Linien
+                    </label>
+                    <button
+                        onClick={() => setO({ echartShowGridLines: !echartShowGridLines })}
+                        className="relative w-9 h-5 rounded-full transition-colors"
+                        style={{ background: echartShowGridLines ? 'var(--accent)' : 'var(--app-border)' }}
+                    >
+                        <span
+                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                            style={{ left: echartShowGridLines ? '18px' : '2px' }}
+                        />
+                    </button>
+                </div>
+
+                {/* Show current value */}
+                <div className="flex items-center justify-between mb-2">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        Aktuellen Wert anzeigen
+                    </label>
+                    <button
+                        onClick={() => setO({ echartShowCurrent: !echartShowCurrent })}
+                        className="relative w-9 h-5 rounded-full transition-colors"
+                        style={{ background: echartShowCurrent ? 'var(--accent)' : 'var(--app-border)' }}
+                    >
+                        <span
+                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                            style={{ left: echartShowCurrent ? '18px' : '2px' }}
+                        />
+                    </button>
+                </div>
+
+                {/* Frontend time-range selector */}
+                <div className="flex items-center justify-between mb-2">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        Zeitraum-Auswahl (Frontend)
+                    </label>
+                    <button
+                        onClick={() => setO({ echartFrontendRange: !echartFrontendRange })}
+                        className="relative w-9 h-5 rounded-full transition-colors"
+                        style={{ background: echartFrontendRange ? 'var(--accent)' : 'var(--app-border)' }}
+                    >
+                        <span
+                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                            style={{ left: echartFrontendRange ? '18px' : '2px' }}
+                        />
+                    </button>
+                </div>
+                {echartFrontendRange && (
+                    <div className="mb-2 pl-1">
+                        <p
+                            className="text-[10px] mb-1.5 leading-tight"
+                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                        >
+                            Überschreibt den Zeitraum aller Serien; im Frontend umschaltbar.
+                        </p>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.timeRange')}
+                        </label>
+                        <div className="flex gap-1 flex-wrap">
+                            {CHART_RANGES.map((r) => (
+                                <button
+                                    key={r}
+                                    onClick={() => setO({ echartRange: r })}
+                                    className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                    style={{
+                                        background: echartRange === r ? 'var(--accent)' : 'var(--app-bg)',
+                                        color: echartRange === r ? '#fff' : 'var(--text-secondary)',
+                                        border: `1px solid ${echartRange === r ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        minWidth: 36,
+                                    }}
+                                >
+                                    {RANGE_LABELS[r]}
+                                </button>
+                            ))}
+                        </div>
+                        {echartRange === 'custom' && (
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                                <input
+                                    type="number"
+                                    min={1}
+                                    max={365}
+                                    value={echartRangeCustomValue}
+                                    onChange={(e) =>
+                                        setO({ echartRangeCustomValue: Math.max(1, Number(e.target.value) || 1) })
+                                    }
+                                    className="w-16 text-xs rounded-md px-2 py-1 text-center focus:outline-none"
+                                    style={inputStyle}
+                                />
+                                {(['h', 'd'] as const).map((u) => (
+                                    <button
+                                        key={u}
+                                        onClick={() => setO({ echartRangeCustomUnit: u })}
+                                        className="text-[11px] px-2 py-1 rounded-md transition-opacity hover:opacity-80"
+                                        style={{
+                                            background: echartRangeCustomUnit === u ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: echartRangeCustomUnit === u ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${echartRangeCustomUnit === u ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {u === 'h' ? 'Std' : 'Tage'}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                        <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={lockRange}
+                                onChange={(e) => setO({ lockRange: e.target.checked })}
+                                className="rounded"
+                            />
+                            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                Zeitraum im Frontend sperren
+                            </span>
+                        </label>
+                    </div>
+                )}
 
                 {/* Decimal places */}
                 <div className="flex items-center justify-between mb-2">

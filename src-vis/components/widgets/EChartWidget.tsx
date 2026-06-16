@@ -2,15 +2,18 @@ import ReactECharts from 'echarts-for-react';
 import { useRef, useState, useEffect } from 'react';
 import { BarChart2, Loader } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
-import { useMultiSeriesData, type EChartSeriesConfig } from '../../hooks/useMultiSeriesData';
+import { useMultiSeriesData, type EChartSeriesConfig, type EChartTimeRange } from '../../hooks/useMultiSeriesData';
 import type { WidgetProps } from '../../types';
 import { CustomGridView } from './CustomGridView';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { samplePreviewSeries } from '../../utils/sampleChartData';
+import { RANGE_LABELS } from '../../hooks/useChartHistory';
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+
+const PRESET_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
 function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
     const result = { ...target };
@@ -59,10 +62,42 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const echartJsonExtra = (o.echartJsonExtra as string | undefined) ?? '';
     const echartShowYAxis = (o.echartShowYAxis as boolean | undefined) ?? true;
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
+    const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
+    const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
     const echartMode = (o.echartMode as string | undefined) ?? 'timeseries';
     const isGauge = config.layout === ('gauge' as string);
 
-    const seriesDataMap = useMultiSeriesData(echartSeries, connected, subscribe, getState);
+    // ── Frontend range selection (opt-in: overrides every series' configured range) ──
+    const echartFrontendRange = (o.echartFrontendRange as boolean | undefined) ?? false;
+    const cfgRange = (o.echartRange as EChartTimeRange | undefined) ?? '24h';
+    const cfgCustomVal = (o.echartRangeCustomValue as number | undefined) ?? 24;
+    const cfgCustomUnit = (o.echartRangeCustomUnit as 'h' | 'd' | undefined) ?? 'h';
+    const lockRange = o.lockRange === true;
+
+    const [activeRange, setActiveRange] = useState<EChartTimeRange>(cfgRange);
+    const [activeCustomVal, setActiveCustomVal] = useState<number>(cfgCustomVal);
+    const [activeCustomUnit, setActiveCustomUnit] = useState<'h' | 'd'>(cfgCustomUnit);
+
+    // Reset frontend selection when the admin config changes
+    useEffect(() => {
+        setActiveRange(cfgRange);
+        setActiveCustomVal(cfgCustomVal);
+        setActiveCustomUnit(cfgCustomUnit);
+    }, [cfgRange, cfgCustomVal, cfgCustomUnit]);
+
+    // When the frontend selector is active, all series share the selected range.
+    const effectiveSeries = echartFrontendRange
+        ? echartSeries.map((s) => ({
+              ...s,
+              historyRange: activeRange,
+              historyRangeCustomValue: activeCustomVal,
+              historyRangeCustomUnit: activeCustomUnit,
+          }))
+        : echartSeries;
+
+    const hasHistory = echartSeries.some((s) => !!s.historyInstance);
+
+    const seriesDataMap = useMultiSeriesData(effectiveSeries, connected, subscribe, getState);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const chartRef = useRef<any>(null);
@@ -332,7 +367,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         },
         axisTick: { show: echartShowYAxis },
         axisLine: { show: echartShowYAxis, lineStyle: { color: '#444' } },
-        splitLine: { show: echartShowYAxis, lineStyle: { color: '#333' } },
+        splitLine: { show: echartShowYAxis && echartShowGridLines, lineStyle: { color: '#333' } },
         ...(echartLeftMin !== undefined ? { min: echartLeftMin } : {}),
         ...(echartLeftMax !== undefined ? { max: echartLeftMax } : {}),
     };
@@ -405,10 +440,10 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         },
         legend: echartShowLegend ? { show: true, textStyle: { color: '#888', fontSize: 11 }, top: 4 } : { show: false },
         grid: {
-            left: echartShowYAxis ? 60 : 12,
-            right: hasRightAxis && echartShowYAxis ? 60 : 12,
-            top: echartShowLegend ? 30 : 16,
-            bottom: echartShowXAxis ? 40 : 12,
+            left: echartShowYAxis ? 60 : 6,
+            right: hasRightAxis && echartShowYAxis ? 60 : 6,
+            top: echartShowLegend ? 30 : 6,
+            bottom: echartShowXAxis ? 32 : 6,
             containLabel: false,
         },
         xAxis: {
@@ -433,9 +468,60 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         }
     }
 
+    // Current value(s) shown top-right — one per series, tinted with its colour.
+    const currentValues = echartSeries
+        .map((s, idx) => ({
+            value: seriesCurrent(idx, s.id),
+            color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length],
+            unit: (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
+        }))
+        .filter((c) => c.value !== null);
+
+    const showCurrentBlock = echartShowCurrent && currentValues.length > 0;
+
+    // Frontend range selector — shown when enabled, at least one series has history, and not locked.
+    const rangeSelector =
+        echartFrontendRange && hasHistory && !lockRange ? (
+            <div className="flex gap-1 flex-wrap">
+                {PRESET_RANGES.map((r) => {
+                    const active = activeRange === r;
+                    return (
+                        <button
+                            key={r}
+                            className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+                            style={{
+                                background: active ? 'var(--accent)' : 'var(--app-border)',
+                                color: active ? '#fff' : 'var(--text-secondary)',
+                            }}
+                            onClick={() => setActiveRange(r)}
+                        >
+                            {RANGE_LABELS[r]}
+                        </button>
+                    );
+                })}
+                {cfgRange === 'custom' && (
+                    <button
+                        className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+                        style={{
+                            background: activeRange === 'custom' ? 'var(--accent)' : 'var(--app-border)',
+                            color: activeRange === 'custom' ? '#fff' : 'var(--text-secondary)',
+                        }}
+                        onClick={() => {
+                            setActiveRange('custom');
+                            setActiveCustomVal(cfgCustomVal);
+                            setActiveCustomUnit(cfgCustomUnit);
+                        }}
+                    >
+                        {cfgCustomVal}
+                        {cfgCustomUnit === 'd' ? 'd' : 'h'}
+                    </button>
+                )}
+            </div>
+        ) : null;
+
     return (
         <div ref={containerRef} className="flex flex-col w-full h-full">
-            {(showTitle || showIcon) && (
+            {(showTitle || showIcon || showCurrentBlock) && (
                 <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                     {showIcon && (
                         <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
@@ -451,8 +537,19 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                             {config.title}
                         </p>
                     )}
+                    {showCurrentBlock && (
+                        <div className="flex items-center gap-2 shrink-0 ml-auto">
+                            {currentValues.map((c, i) => (
+                                <span key={i} className="text-sm font-bold leading-none" style={{ color: c.color }}>
+                                    {formatNum(c.value as number, decimals)}
+                                    {c.unit ? ` ${c.unit}` : ''}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
+            {rangeSelector && <div className="shrink-0 mb-1">{rangeSelector}</div>}
             <div className="flex-1 relative min-h-0">
                 {isPreview && (
                     <span
