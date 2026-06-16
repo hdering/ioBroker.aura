@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.239 (2026-06-13)
+- fix(popup): resolve {{placeholders}} in nested option arrays (#314)
+
 ## 0.9.238 (2026-06-13)
 - style(prettier): auto-format code files
 
