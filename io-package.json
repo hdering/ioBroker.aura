@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.270",
+    "version": "0.9.271",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.271": {
+        "en": "feat(widgets): derive panels/group add-widget pickers from registry",
+        "de": "feat(widgets): derive panels/group add-widget pickers from registry",
+        "ru": "feat(widgets): derive panels/group add-widget pickers from registry",
+        "pt": "feat(widgets): derive panels/group add-widget pickers from registry",
+        "nl": "feat(widgets): derive panels/group add-widget pickers from registry",
+        "fr": "feat(widgets): derive panels/group add-widget pickers from registry",
+        "it": "feat(widgets): derive panels/group add-widget pickers from registry",
+        "es": "feat(widgets): derive panels/group add-widget pickers from registry",
+        "pl": "feat(widgets): derive panels/group add-widget pickers from registry",
+        "uk": "feat(widgets): derive panels/group add-widget pickers from registry",
+        "zh-cn": "feat(widgets): derive panels/group add-widget pickers from registry"
+      },
       "0.9.270": {
         "en": "docs(widgets): expand every widget page with layout & option details",
         "de": "docs(widgets): expand every widget page with layout & option details",
@@ -183,19 +196,6 @@
         "pl": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble",
         "uk": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble",
         "zh-cn": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble"
-      },
-      "0.9.264": {
-        "en": "style(prettier): auto-format code files; feat(group): add autoShrink option that collapses group height when child widgets are condition-hidden",
-        "de": "style(prettier): auto-format code files; feat(group): add autoShrink option that collapses group height when child widgets are condition-hidden",
-        "ru": "style(prettier): auto-format code files; feat(group): add autoShrink option that collapses group height when child widgets are condition-hidden",
-        "pt": "style(prettier): auto-format code files; feat(group): add autoShrink option that collapses group height when child widgets are condition-hidden",
-        "nl": "style(prettier): auto-format code files; feat(group): add autoShrink option that collapses group height when child widgets are condition-hidden",
-        "fr": "style(prettier): auto-format code files; feat(group): add autoShrink option that collapses group height when child widgets are condition-hidden",
-        "it": "style(prettier): auto-format code files; feat(group): add autoShrink option that collapses group height when child widgets are condition-hidden",
-        "es": "style(prettier): auto-format code files; feat(group): add autoShrink option that collapses group height when child widgets are condition-hidden",
-        "pl": "style(prettier): auto-format code files; feat(group): add autoShrink option that collapses group height when child widgets are condition-hidden",
-        "uk": "style(prettier): auto-format code files; feat(group): add autoShrink option that collapses group height when child widgets are condition-hidden",
-        "zh-cn": "style(prettier): auto-format code files; feat(group): add autoShrink option that collapses group height when child widgets are condition-hidden"
       }
     }
   },

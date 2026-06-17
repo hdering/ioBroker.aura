@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.251 (2026-06-15)
+- feat(adapter-logs): multi-select adapter filter in the frontend
+
 ## 0.9.250 (2026-06-15)
 - style(prettier): auto-format code files
 - build(adapter-logs): rebuild www so widget sends instances pre-filter
