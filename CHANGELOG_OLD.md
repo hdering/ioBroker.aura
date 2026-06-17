@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.250 (2026-06-15)
+- style(prettier): auto-format code files
+- build(adapter-logs): rebuild www so widget sends instances pre-filter
+- feat(adapter-logs): comma-separated instance filter in getRecentLogs backend
+
 ## 0.9.249 (2026-06-15)
 - fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable
 

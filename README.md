@@ -192,6 +192,10 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.270 (2026-06-17)
+- docs(widgets): expand every widget page with layout & option details
+
+
 ### 0.9.269 (2026-06-17)
 - docs(widgets): document all remaining widgets with screenshots
 
@@ -283,12 +287,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - feat(adapter-logs): multi-select adapter filter in the frontend
 
 
-### 0.9.250 (2026-06-15)
-- style(prettier): auto-format code files
-- build(adapter-logs): rebuild www so widget sends instances pre-filter
-- feat(adapter-logs): comma-separated instance filter in getRecentLogs backend
-
-
 ## License
 
 MIT License
@@ -300,6 +298,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
