@@ -524,7 +524,7 @@ class Aura extends utils.Adapter {
                 common: {
                     name: 'Navigate to view/tab (select)',
                     type: 'string',
-                    role: 'value',
+                    role: 'text',
                     read: true,
                     write: true,
                     def: '',
@@ -1107,8 +1107,13 @@ class Aura extends utils.Adapter {
     async _setTargetStates(objId, states) {
         const obj = await this.getObjectAsync(objId);
         if (!obj || obj.type !== 'state') return;
-        if (JSON.stringify(obj.common && obj.common.states) === JSON.stringify(states)) return;
         obj.common = obj.common || {};
+        // Repair the role on objects created before the fix: role 'value' rejects
+        // a writable string (E1009/E1011). The selector is a writable text DP.
+        const roleWrong = obj.common.role !== 'text';
+        const statesChanged = JSON.stringify(obj.common.states) !== JSON.stringify(states);
+        if (!roleWrong && !statesChanged) return;
+        obj.common.role = 'text';
         obj.common.states = states;
         await this.setObjectAsync(objId, obj);
     }
@@ -1135,7 +1140,7 @@ class Aura extends utils.Adapter {
                         common: {
                             name: 'Navigate to view/tab (select)',
                             type: 'string',
-                            role: 'value',
+                            role: 'text',
                             read: true,
                             write: true,
                             def: '',
@@ -1386,7 +1391,7 @@ class Aura extends utils.Adapter {
             common: {
                 name: 'Navigate to view/tab (select)',
                 type: 'string',
-                role: 'value',
+                role: 'text',
                 read: true,
                 write: true,
                 def: '',
