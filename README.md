@@ -192,6 +192,12 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.263 (2026-06-17)
+- feat(panels): block save when group-defs unhydrated, rename slides→panels, move to Spezial
+- fix(panels): align defId seeding to GroupWidget + loading state
+- feat(panels): re-add slide-of-widgets carousel as new 'panels' widget
+
+
 ### 0.9.262 (2026-06-16)
 - fix(navigate): create per-client navigate.target for existing clients
 - fix(popup-editor): copy widgets within the popup, drop cross-tab move
@@ -281,11 +287,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - fix(editor): hide 'card' layout option for header widget in new-widget dialog
 
 
-### 0.9.243 (2026-06-15)
-- style(prettier): auto-format code files
-- fix(universal-widget): apply preselected state-text colors initially
-
-
 ## License
 
 MIT License
@@ -297,6 +298,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

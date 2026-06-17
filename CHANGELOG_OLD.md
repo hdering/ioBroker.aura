@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.243 (2026-06-15)
+- style(prettier): auto-format code files
+- fix(universal-widget): apply preselected state-text colors initially
+
 ## 0.9.242 (2026-06-15)
 - feat(popup): sample chart preview + visible history instance in editor
 
