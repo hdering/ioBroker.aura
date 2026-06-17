@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.249 (2026-06-15)
+- fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable
+
 ## 0.9.248 (2026-06-15)
 - @ feat(theme): element-specific CSS variables for widgets (#313)
 

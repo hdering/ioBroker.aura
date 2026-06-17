@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.268",
+    "version": "0.9.269",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.269": {
+        "en": "docs(widgets): document all remaining widgets with screenshots",
+        "de": "docs(widgets): document all remaining widgets with screenshots",
+        "ru": "docs(widgets): document all remaining widgets with screenshots",
+        "pt": "docs(widgets): document all remaining widgets with screenshots",
+        "nl": "docs(widgets): document all remaining widgets with screenshots",
+        "fr": "docs(widgets): document all remaining widgets with screenshots",
+        "it": "docs(widgets): document all remaining widgets with screenshots",
+        "es": "docs(widgets): document all remaining widgets with screenshots",
+        "pl": "docs(widgets): document all remaining widgets with screenshots",
+        "uk": "docs(widgets): document all remaining widgets with screenshots",
+        "zh-cn": "docs(widgets): document all remaining widgets with screenshots"
+      },
       "0.9.268": {
         "en": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots",
         "de": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots",
@@ -183,19 +196,6 @@
         "pl": "feat(panels): block save when group-defs unhydrated, rename slides→panels, move to Spezial; fix(panels): align defId seeding to GroupWidget + loading state; feat(panels): re-add slide-of-widgets carousel as new 'panels' widget",
         "uk": "feat(panels): block save when group-defs unhydrated, rename slides→panels, move to Spezial; fix(panels): align defId seeding to GroupWidget + loading state; feat(panels): re-add slide-of-widgets carousel as new 'panels' widget",
         "zh-cn": "feat(panels): block save when group-defs unhydrated, rename slides→panels, move to Spezial; fix(panels): align defId seeding to GroupWidget + loading state; feat(panels): re-add slide-of-widgets carousel as new 'panels' widget"
-      },
-      "0.9.262": {
-        "en": "fix(navigate): create per-client navigate.target for existing clients; fix(popup-editor): copy widgets within the popup, drop cross-tab move",
-        "de": "fix(navigate): create per-client navigate.target for existing clients; fix(popup-editor): copy widgets within the popup, drop cross-tab move",
-        "ru": "fix(navigate): create per-client navigate.target for existing clients; fix(popup-editor): copy widgets within the popup, drop cross-tab move",
-        "pt": "fix(navigate): create per-client navigate.target for existing clients; fix(popup-editor): copy widgets within the popup, drop cross-tab move",
-        "nl": "fix(navigate): create per-client navigate.target for existing clients; fix(popup-editor): copy widgets within the popup, drop cross-tab move",
-        "fr": "fix(navigate): create per-client navigate.target for existing clients; fix(popup-editor): copy widgets within the popup, drop cross-tab move",
-        "it": "fix(navigate): create per-client navigate.target for existing clients; fix(popup-editor): copy widgets within the popup, drop cross-tab move",
-        "es": "fix(navigate): create per-client navigate.target for existing clients; fix(popup-editor): copy widgets within the popup, drop cross-tab move",
-        "pl": "fix(navigate): create per-client navigate.target for existing clients; fix(popup-editor): copy widgets within the popup, drop cross-tab move",
-        "uk": "fix(navigate): create per-client navigate.target for existing clients; fix(popup-editor): copy widgets within the popup, drop cross-tab move",
-        "zh-cn": "fix(navigate): create per-client navigate.target for existing clients; fix(popup-editor): copy widgets within the popup, drop cross-tab move"
       }
     }
   },

@@ -192,6 +192,10 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.269 (2026-06-17)
+- docs(widgets): document all remaining widgets with screenshots
+
+
 ### 0.9.268 (2026-06-17)
 - fix: apply value transform to numeric string states
 - docs: click-to-zoom lightbox + modest inline image sizing
@@ -285,10 +289,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - feat(adapter-logs): comma-separated instance filter in getRecentLogs backend
 
 
-### 0.9.249 (2026-06-15)
-- fix(dp): use `?` not `#` as JSON-path separator so IDs containing `#` stay writable
-
-
 ## License
 
 MIT License
@@ -300,6 +300,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
