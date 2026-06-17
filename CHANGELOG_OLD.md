@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.254 (2026-06-16)
+- chore(frontend): silence benign recharts zero-size container warning
+
 ## 0.9.253 (2026-06-16)
 - refactor(echart): single shared time range, drop per-series ranges
 - feat(echart-config): auto-select sole history adapter per series

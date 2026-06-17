@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.273",
+    "version": "0.9.274",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.274": {
+        "en": "fix(widgets): keep last-change timestamp inside narrow widgets",
+        "de": "fix(widgets): keep last-change timestamp inside narrow widgets",
+        "ru": "fix(widgets): keep last-change timestamp inside narrow widgets",
+        "pt": "fix(widgets): keep last-change timestamp inside narrow widgets",
+        "nl": "fix(widgets): keep last-change timestamp inside narrow widgets",
+        "fr": "fix(widgets): keep last-change timestamp inside narrow widgets",
+        "it": "fix(widgets): keep last-change timestamp inside narrow widgets",
+        "es": "fix(widgets): keep last-change timestamp inside narrow widgets",
+        "pl": "fix(widgets): keep last-change timestamp inside narrow widgets",
+        "uk": "fix(widgets): keep last-change timestamp inside narrow widgets",
+        "zh-cn": "fix(widgets): keep last-change timestamp inside narrow widgets"
+      },
       "0.9.273": {
         "en": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
         "de": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
@@ -183,19 +196,6 @@
         "pl": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots",
         "uk": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots",
         "zh-cn": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots"
-      },
-      "0.9.267": {
-        "en": "fix(objects): use role 'text' for navigate.target selector",
-        "de": "fix(objects): use role 'text' for navigate.target selector",
-        "ru": "fix(objects): use role 'text' for navigate.target selector",
-        "pt": "fix(objects): use role 'text' for navigate.target selector",
-        "nl": "fix(objects): use role 'text' for navigate.target selector",
-        "fr": "fix(objects): use role 'text' for navigate.target selector",
-        "it": "fix(objects): use role 'text' for navigate.target selector",
-        "es": "fix(objects): use role 'text' for navigate.target selector",
-        "pl": "fix(objects): use role 'text' for navigate.target selector",
-        "uk": "fix(objects): use role 'text' for navigate.target selector",
-        "zh-cn": "fix(objects): use role 'text' for navigate.target selector"
       }
     }
   },
