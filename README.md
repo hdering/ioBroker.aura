@@ -192,6 +192,10 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.267 (2026-06-17)
+- fix(objects): use role 'text' for navigate.target selector
+
+
 ### 0.9.266 (2026-06-17)
 - fix(backup): gzip auto-backups to stay under socket.io frame limit
 
@@ -280,12 +284,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - @ feat(theme): element-specific CSS variables for widgets (#313)
 
 
-### 0.9.247 (2026-06-15)
-- fix(lint): auto-fix mixed typographic quotes
-- feat(backup): generic list-item change detection across all widget types
-- feat(backup): record per-entity change details in backup list
-
-
 ## License
 
 MIT License
@@ -297,6 +295,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
