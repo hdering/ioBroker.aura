@@ -7,7 +7,7 @@
  * New format: each key has its own state (aura.0.config.theme etc.)
  */
 import { getStateDirect, setStateDirect } from '../hooks/useIoBroker';
-import { IOBROKER_STATE_MAP, type SyncStoreKey, hasDirtyFlag, clearDirtyFlag } from '../store/persistManager';
+import { IOBROKER_STATE_MAP, type SyncStoreKey, hasDirtyFlag, clearDirtyFlag, isScreenshotMode } from '../store/persistManager';
 import { hydrateGroupDefs } from '../store/groupDefsStore';
 import { useDashboardStore } from '../store/dashboardStore';
 import { useThemeStore } from '../store/themeStore';
@@ -59,6 +59,9 @@ export async function loadConfigFromIoBroker(
     includeGlobalSettings = false,
     { ignoreDirty = false }: { ignoreDirty?: boolean } = {},
 ): Promise<boolean> {
+    // Screenshot harness controls the layout entirely — never pull the real
+    // instance config, otherwise it would race with / clobber the injected demo.
+    if (isScreenshotMode()) return false;
     const keys = Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[];
     const extraKeys: StoreKey[] = includeGlobalSettings ? [...keys, 'aura-global-settings'] : keys;
 

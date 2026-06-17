@@ -179,6 +179,18 @@ export function withSuppressedDirty<T>(fn: () => T): T {
     }
 }
 
+// Screenshot harness: when on, every persistence side-effect is disabled —
+// managedStorage never marks a key dirty and saveToIoBroker is a no-op. This
+// guarantees the documentation screenshot runs cannot write anything back to
+// the (real) ioBroker instance the dev server proxies to.
+let screenshotMode = false;
+export function setScreenshotMode(on: boolean): void {
+    screenshotMode = on;
+}
+export function isScreenshotMode(): boolean {
+    return screenshotMode;
+}
+
 function notify() {
     subscribers.forEach((fn) => fn());
 }
@@ -593,6 +605,8 @@ export async function loadBackupPayload(filename: string): Promise<Record<string
  * `all: true` for the initial bootstrap that seeds an empty ioBroker.
  */
 export function saveToIoBroker({ backup = true, all = false }: { backup?: boolean; all?: boolean } = {}): boolean {
+    // Screenshot harness active → never write to the real ioBroker instance.
+    if (screenshotMode) return false;
     // Refuse to write while group-defs is unhydrated — otherwise this save (and
     // its backup) would omit every group / panels child and a later restore
     // would bring them back empty.
@@ -647,7 +661,7 @@ export const managedStorage: StateStorage = {
         // mark dirty for that, otherwise a new device with empty localStorage
         // would see _dirty=1 on every store and refuse to load remote config.
         const isInit = current === null;
-        const suppress = suppressDirtyDepth > 0;
+        const suppress = suppressDirtyDepth > 0 || screenshotMode;
         try {
             localStorage.setItem(name, value);
             if (!isInit && !suppress) setDirtyFlag(name);

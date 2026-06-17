@@ -8,6 +8,7 @@ import './index.css';
 import App from './App';
 import { ThemeProvider } from './ThemeProvider';
 import { lazyWithReload, installChunkErrorRecovery } from './utils/lazyWithReload';
+import { setScreenshotMode } from './store/persistManager';
 
 // Recharts' ResponsiveContainer logs a "width(-1) and height(-1) of chart should be
 // greater than 0" warning when a chart briefly renders inside a hidden tab (container
@@ -21,6 +22,15 @@ console.warn = (...args: unknown[]) => {
 };
 
 installChunkErrorRecovery();
+
+// DEV-only screenshot harness: enabled with ?shot=1 so the documentation
+// tooling can render widgets in controlled states. Never bundled in prod.
+if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('shot')) {
+    // Set screenshot mode synchronously (before React mounts and configLoader
+    // can fire) so the real instance config is never pulled in over the demo.
+    setScreenshotMode(true);
+    import('./devtools/screenshotApi');
+}
 
 // Admin pages are large (editors, pickers, echart configurators) and are not
 // needed by the public dashboard route. Lazy-loaded so the frontend bundle

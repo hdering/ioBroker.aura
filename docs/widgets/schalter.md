@@ -34,6 +34,10 @@ Icon, Titel, Status und Schalter frei in einer Zellenmatrix platzieren — siehe
 
 ## Einstellungen
 
+Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
+
+![](./assets/schalter/config-dialog.png)
+
 ### Anzeige
 
 | Option | Standard | |

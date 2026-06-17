@@ -38,6 +38,15 @@ export function getStateFromCache(id: string): ioBrokerState | null {
     return stateCache.get(id) ?? null;
 }
 
+/** DEV-only: push a fabricated state into the cache and notify live subscribers,
+ *  exactly like an inbound `stateChange` — but without any socket round-trip or
+ *  write to ioBroker. Used by the screenshot harness to render widgets against
+ *  controlled, side-effect-free values. Not wired up in production builds. */
+export function __devInjectState(id: string, state: ioBrokerState): void {
+    stateCache.set(id, state);
+    subscribers.get(id)?.forEach((fn) => fn(state));
+}
+
 // Optimistic writes: when enabled, setState reflects the written value locally
 // (cache + subscribers) immediately, instead of waiting for ioBroker to echo a
 // stateChange back. Synced from the frontend setting via setOptimisticEcho().
