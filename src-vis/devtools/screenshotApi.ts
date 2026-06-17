@@ -14,6 +14,7 @@
 
 import { __devInjectState } from '../hooks/useIoBroker';
 import { useDashboardStore, type DashboardLayout } from '../store/dashboardStore';
+import { useThemeStore } from '../store/themeStore';
 import { withSuppressedDirty, setScreenshotMode } from '../store/persistManager';
 import type { WidgetConfig, ioBrokerState } from '../types';
 
@@ -42,9 +43,17 @@ const DEMO_TAB_ID = 'screenshot-tab';
 
 function installScreenshotApi(): void {
     setScreenshotMode(true);
+    // Force the light frontend theme so all documentation screenshots share a
+    // consistent look (the default frontend theme is dark).
+    withSuppressedDirty(() => useThemeStore.getState().setTheme('light'));
 
     const api = {
         ready: true,
+
+        /** Switch the frontend theme preset (e.g. 'light', 'dark'). */
+        setTheme(id: string): void {
+            withSuppressedDirty(() => useThemeStore.getState().setTheme(id));
+        },
 
         /** Inject fabricated datapoint values: { 'demo.switch': true, 'demo.temp': { val: 21.5, unit: '°C' } } */
         mock(map: Record<string, MockValue>): void {

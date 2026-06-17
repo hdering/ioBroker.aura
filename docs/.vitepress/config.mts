@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress';
+import widgetsSidebar from './widgetsSidebar.json';
 
 export default defineConfig({
   lang: 'de-DE',
@@ -20,22 +21,7 @@ export default defineConfig({
     ],
 
     sidebar: {
-      '/widgets/': [
-        {
-          text: 'Widgets',
-          items: [
-            { text: 'Übersicht', link: '/widgets/' },
-            { text: 'Schalter', link: '/widgets/schalter' },
-            { text: 'Zeitschaltuhr', link: '/widgets/zeitschaltuhr' },
-          ],
-        },
-        {
-          text: 'Konzepte',
-          items: [
-            { text: 'Custom-Layout', link: '/widgets/custom-layout' },
-          ],
-        },
-      ],
+      '/widgets/': widgetsSidebar,
       '/einstellungen/': [
         {
           text: 'Adminbereich',

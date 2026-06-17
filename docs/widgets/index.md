@@ -1,63 +1,69 @@
 # Widgets
 
-Übersicht über alle Widget-Typen in ioBroker.aura. Die Detail-Seiten entstehen nach und nach — wo bereits Doku existiert, ist der Name verlinkt.
-
-## Konzepte
-
-| Thema | Beschreibung |
-| --- | --- |
-| [Custom-Layout](./custom-layout) | Freies Zellenraster mit Drag&Drop, Kopieren, Strg+C/V – verfügbar in allen Widgets mit Layout-Auswahl |
+Übersicht aller verfügbaren Widgets. Jede Seite zeigt das Widget und seinen Einstellungs-Dialog.
 
 ## Steuerung & Anzeige
 
-| Widget | Beschreibung | Status |
-| --- | --- | --- |
-| Auswahlfeld | DP-Werte auf Text-Labels mappen, Dropdown | geplant |
-| Binärsensor | Bewegungsmelder, Alarm … | geplant |
-| Diagramm (einfach) | Verlauf eines Datenpunkts | geplant |
-| Diagramm (erweitert) | Mehrere Datenpunkte mit Optionen | geplant |
-| Dimmer | Licht dimmen mit Helligkeitsregler 0–100 % | geplant |
-| Dynamische Liste | Datenpunkte automatisch aus ioBroker-Ordner | geplant |
-| eCharts | Vorkonfiguriertes eCharts-Diagramm per JSON-Preset | geplant |
-| Fenster-/Türkontakt | Offen/geschlossen | geplant |
-| Füllstandsanzeige | Wassertank, Heizöl … als Balken | geplant |
-| Gauge | Zahlenwert als Tachonadel / Kreisbogen | geplant |
-| HTTP-Aktion | HTTP GET/POST per Klick (Webhook) | geplant |
-| Mediaplayer | Sonos, Squeezeserver, Spotify … | geplant |
-| Raumklima | Temperatur, Luftfeuchtigkeit, optional Verlauf | geplant |
-| RGB-Licht | RGB / CCT / Dimmer in einem Widget | geplant |
-| Rollladen | Rollladen-Position (0–100 %) steuern und anzeigen | geplant |
-| [Schalter](./schalter) | Ein/Aus für `boolean`-Datenpunkte | ✓ dokumentiert |
-| Schieberegler | Beliebigen Zahlenwert per Slider einstellen | geplant |
-| Schnellzugriff-Chips | Kompakte Schaltflächen-Leiste für Szenen | geplant |
-| Statische Liste | Manuell gepflegte Liste mit Datenpunkt-Links | geplant |
-| Thermostat | Soll-Temperatur einstellen, Ist-Temperatur anzeigen | geplant |
-| Universal-Widget | Freies Raster mit individuell belegten Zellen | geplant |
-| Wert-Anzeige | Datenpunktwert als Zahl/Text (read-only) | geplant |
-| Zustandsbild | Bild je nach `true`/`false` | geplant |
+| Widget | Beschreibung |
+| --- | --- |
+| [Auswahlfeld](./auswahlfeld) | DP-Werte (0,1,2…) auf Text-Labels mappen; Dropdown schreibt den Wert zurück. |
+| [Binärsensor](./binaersensor) | Allgemeinen Binärsensor anzeigen (z. B. Bewegungsmelder, Alarm). |
+| [Datumswähler](./datumswaehler) | Datum/Uhrzeit auswählen und als Datenpunkt speichern. |
+| [Diagramm (einfach)](./diagramm) | Verlauf eines einzelnen Datenpunkts als einfaches Diagramm. |
+| [Diagramm (erweitert)](./diagramm-erweitert) | Erweitertes Diagramm mit mehreren Datenpunkten und Optionen. |
+| [Dimmer](./dimmer) | Licht dimmen – Helligkeitsregler 0–100 % mit Ein/Aus-Taste. |
+| [Drehregler](./drehregler) | Wert über Drehknopf einstellen – 3 Zeigertypen, Winkelbereich konfigurierbar. |
+| [Dynamische Liste](./dynamische-liste) | Datenpunkte automatisch aus einem ioBroker-Ordner auflisten. |
+| [eCharts](./echarts) | Vorkonfiguriertes eCharts-Diagramm per JSON-Preset. |
+| [Eingabefeld](./eingabefeld) | Text per Tastatur eingeben und in einen Datenpunkt schreiben. |
+| [Fenster-/Türkontakt](./fensterkontakt) | Fenster- oder Türkontakt-Status anzeigen (offen/geschlossen). |
+| [Füllstandsanzeige](./fuellstandsanzeige) | Füllstand (z. B. Wassertank, Heizöl) als Balken visualisieren. |
+| [Gauge](./gauge) | Zahlenwert als Tachonadel/Kreisbogen visualisieren. |
+| [HTTP-Aktion](./http-aktion) | HTTP GET/POST-Anfrage per Klick auslösen (z. B. Webhook). |
+| [Mediaplayer](./mediaplayer) | Mediaplayer steuern (Sonos, Squeezeserver, Spotify …). |
+| [Raumklima](./raumklima) | Temperatur, Luftfeuchtigkeit und optionalen Temperaturverlauf kombiniert anzeigen. |
+| [RGB-Licht](./rgb-licht) | RGB / CCT / Dimmer in einem Widget – Helligkeit, Farbe, Lichtwärme, Effekte. |
+| [Rollladen](./rollladen) | Rollladen-Position (0–100 %) steuern und anzeigen. |
+| [Schalter](./schalter) | Ein/Aus-Schalter für Boolean-Datenpunkte (z. B. Lampe, Steckdose). |
+| [Schieberegler](./schieberegler) | Beliebigen Zahlenwert per Schieberegler einstellen. |
+| [Schnellzugriff-Chips](./chips) | Kompakte Schaltflächen-Leiste für Szenen und häufige Aktionen. |
+| [Statische Liste](./liste) | Manuell gepflegte Liste mit frei konfigurierbaren Datenpunkt-Links. |
+| [Thermostat](./thermostat) | Soll-Temperatur einstellen und Ist-Temperatur anzeigen. |
+| [Universal-Widget](./universal-widget) | Freies Raster – Zellen einzeln mit Schaltern, Reglern, Werten und Bildern belegen. |
+| [Wert-Anzeige](./wert-anzeige) | Einen Datenpunktwert als Zahl/Text anzeigen (read-only). |
 
 ## Spezial
 
-| Widget | Beschreibung | Status |
-| --- | --- | --- |
-| Bild | Statisches Bild, lokale Datei oder URL | geplant |
-| Datumswähler | Datum/Uhrzeit auswählen und schreiben | geplant |
-| evcc | Wallbox-Ladesteuerung | geplant |
-| HTML | Beliebigen HTML/CSS-Code einbetten | geplant |
-| iFrame | Externe Webseite oder lokale URL einbetten | geplant |
-| JSON-Tabelle | JSON-Array-Datenpunkt als Tabelle | geplant |
-| Kalender | Termine aus dem iCal-Adapter | geplant |
-| Kamera | Livebild (go2rtc / MJPEG-Stream) | geplant |
-| Müllabfuhr | Nächste Müllabfuhr-Termine | geplant |
-| Müllabfuhr-Zeitplan | Detaillierter Müllabfuhr-Kalender | geplant |
-| Uhrzeit | Aktuelle Uhrzeit und Datum | geplant |
-| Wetter | Wetterdaten vom ioBroker-Wetter-Adapter | geplant |
-| [Zeitschaltuhr](./zeitschaltuhr) | Datenpunkte zeitgesteuert (Wochentag · Astro · Einmalig · Zeitraum) | ✓ dokumentiert |
+| Widget | Beschreibung |
+| --- | --- |
+| [Adapter-Logs](./adapter-logs) | Live-Log-Stream aller Adapter — Filter nach Schweregrad, Adapter und Freitext. |
+| [Adapter-Status](./adapter-status) | Liste aller ioBroker-Instanzen mit Status, Update-Hinweisen und Aktionen. |
+| [Alarmanlage](./alarmanlage) | ioBroker.alarm-Adapter steuern — Scharf/Inside/Nacht, Zonen, PIN, Tages-Log. |
+| [Bild](./bild) | Statisches Bild, lokale Datei oder URL anzeigen. |
+| [evcc](./evcc) | evcc Wallbox-Ladesteuerung einbinden. |
+| [HTML](./html) | Beliebigen HTML/CSS-Code frei einbetten. |
+| [iFrame](./iframe) | Externe Webseite oder lokale URL einbetten. |
+| [JSON-Tabelle](./json-tabelle) | JSON-Array-Datenpunkt als formatierte Tabelle anzeigen. |
+| [Kalender](./kalender) | Termine aus dem iCal-Adapter (nur per Tab-Wizard hinzufügbar). |
+| [Kamera](./kamera) | Kamera-Livebild einbinden (go2rtc / MJPEG-Stream). |
+| [Karussell](./karussell) | Horizontal scrollbare Chip-Liste – pro Item Datenpunkt + eigene Klick-Aktion. |
+| [Müllabfuhr](./muellabfuhr) | Nächste Müllabfuhr-Termine vom Trash-Adapter anzeigen. |
+| [Müllabfuhr-Zeitplan](./muellabfuhr-zeitplan) | Detaillierter Müllabfuhr-Kalender (Datenpunkt vom Trash-Adapter). |
+| [Skript-Status](./skript-status) | Liste aller JavaScript-Skripte mit Status, Filter und Start-/Stopp-Aktionen. |
+| [Uhrzeit](./uhrzeit) | Aktuelle Uhrzeit und Datum anzeigen (kein Datenpunkt nötig). |
+| [Wetter](./wetter) | Wetterdaten vom ioBroker-Wetter-Adapter anzeigen. |
+| [Zeitschaltuhr](./zeitschaltuhr) | Zeitgesteuerte Ereignisse — Wochentag/Astro/Einmalig/Zeitraum. |
+| [Zustandsbild](./zustandsbild) | Je nach Zustand (true/false) ein anderes Bild anzeigen. |
 
 ## Layout
 
-| Widget | Beschreibung | Status |
-| --- | --- | --- |
-| Abschnittstitel | Trennlinie mit Überschrift | geplant |
-| Button | Klick-Aktion (DP schreiben, HTTP, Szene) | geplant |
-| Gruppe | Mehrere Widgets im gemeinsamen Rahmen | geplant |
+| Widget | Beschreibung |
+| --- | --- |
+| [Abschnittstitel](./abschnittstitel) | Trennlinie mit Überschrift zur Gliederung des Dashboards. |
+| [Button](./button) | Klick-Aktion auslösen (Datenpunkt schreiben, HTTP-Call, Szene …). |
+| [Gruppe](./gruppe) | Mehrere Widgets in einem gemeinsamen Rahmen gruppieren. |
+| [Panels](./panels) | Mehrere Widgets als swipebare Slides – Wischen, Pagination-Dots und Pfeil-Buttons. |
+
+## Konzepte
+
+- [Custom-Layout](./custom-layout) — Widgets mit freier Zellen-Matrix gestalten

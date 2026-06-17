@@ -1,0 +1,221 @@
+[
+  {
+    "text": "Übersicht",
+    "link": "/widgets/"
+  },
+  {
+    "text": "Steuerung & Anzeige",
+    "collapsed": false,
+    "items": [
+      {
+        "text": "Auswahlfeld",
+        "link": "/widgets/auswahlfeld"
+      },
+      {
+        "text": "Binärsensor",
+        "link": "/widgets/binaersensor"
+      },
+      {
+        "text": "Datumswähler",
+        "link": "/widgets/datumswaehler"
+      },
+      {
+        "text": "Diagramm (einfach)",
+        "link": "/widgets/diagramm"
+      },
+      {
+        "text": "Diagramm (erweitert)",
+        "link": "/widgets/diagramm-erweitert"
+      },
+      {
+        "text": "Dimmer",
+        "link": "/widgets/dimmer"
+      },
+      {
+        "text": "Drehregler",
+        "link": "/widgets/drehregler"
+      },
+      {
+        "text": "Dynamische Liste",
+        "link": "/widgets/dynamische-liste"
+      },
+      {
+        "text": "eCharts",
+        "link": "/widgets/echarts"
+      },
+      {
+        "text": "Eingabefeld",
+        "link": "/widgets/eingabefeld"
+      },
+      {
+        "text": "Fenster-/Türkontakt",
+        "link": "/widgets/fensterkontakt"
+      },
+      {
+        "text": "Füllstandsanzeige",
+        "link": "/widgets/fuellstandsanzeige"
+      },
+      {
+        "text": "Gauge",
+        "link": "/widgets/gauge"
+      },
+      {
+        "text": "HTTP-Aktion",
+        "link": "/widgets/http-aktion"
+      },
+      {
+        "text": "Mediaplayer",
+        "link": "/widgets/mediaplayer"
+      },
+      {
+        "text": "Raumklima",
+        "link": "/widgets/raumklima"
+      },
+      {
+        "text": "RGB-Licht",
+        "link": "/widgets/rgb-licht"
+      },
+      {
+        "text": "Rollladen",
+        "link": "/widgets/rollladen"
+      },
+      {
+        "text": "Schalter",
+        "link": "/widgets/schalter"
+      },
+      {
+        "text": "Schieberegler",
+        "link": "/widgets/schieberegler"
+      },
+      {
+        "text": "Schnellzugriff-Chips",
+        "link": "/widgets/chips"
+      },
+      {
+        "text": "Statische Liste",
+        "link": "/widgets/liste"
+      },
+      {
+        "text": "Thermostat",
+        "link": "/widgets/thermostat"
+      },
+      {
+        "text": "Universal-Widget",
+        "link": "/widgets/universal-widget"
+      },
+      {
+        "text": "Wert-Anzeige",
+        "link": "/widgets/wert-anzeige"
+      }
+    ]
+  },
+  {
+    "text": "Spezial",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "Adapter-Logs",
+        "link": "/widgets/adapter-logs"
+      },
+      {
+        "text": "Adapter-Status",
+        "link": "/widgets/adapter-status"
+      },
+      {
+        "text": "Alarmanlage",
+        "link": "/widgets/alarmanlage"
+      },
+      {
+        "text": "Bild",
+        "link": "/widgets/bild"
+      },
+      {
+        "text": "evcc",
+        "link": "/widgets/evcc"
+      },
+      {
+        "text": "HTML",
+        "link": "/widgets/html"
+      },
+      {
+        "text": "iFrame",
+        "link": "/widgets/iframe"
+      },
+      {
+        "text": "JSON-Tabelle",
+        "link": "/widgets/json-tabelle"
+      },
+      {
+        "text": "Kalender",
+        "link": "/widgets/kalender"
+      },
+      {
+        "text": "Kamera",
+        "link": "/widgets/kamera"
+      },
+      {
+        "text": "Karussell",
+        "link": "/widgets/karussell"
+      },
+      {
+        "text": "Müllabfuhr",
+        "link": "/widgets/muellabfuhr"
+      },
+      {
+        "text": "Müllabfuhr-Zeitplan",
+        "link": "/widgets/muellabfuhr-zeitplan"
+      },
+      {
+        "text": "Skript-Status",
+        "link": "/widgets/skript-status"
+      },
+      {
+        "text": "Uhrzeit",
+        "link": "/widgets/uhrzeit"
+      },
+      {
+        "text": "Wetter",
+        "link": "/widgets/wetter"
+      },
+      {
+        "text": "Zeitschaltuhr",
+        "link": "/widgets/zeitschaltuhr"
+      },
+      {
+        "text": "Zustandsbild",
+        "link": "/widgets/zustandsbild"
+      }
+    ]
+  },
+  {
+    "text": "Layout",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "Abschnittstitel",
+        "link": "/widgets/abschnittstitel"
+      },
+      {
+        "text": "Button",
+        "link": "/widgets/button"
+      },
+      {
+        "text": "Gruppe",
+        "link": "/widgets/gruppe"
+      },
+      {
+        "text": "Panels",
+        "link": "/widgets/panels"
+      }
+    ]
+  },
+  {
+    "text": "Konzepte",
+    "items": [
+      {
+        "text": "Custom-Layout",
+        "link": "/widgets/custom-layout"
+      }
+    ]
+  }
+]
