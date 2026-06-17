@@ -56,7 +56,17 @@ export function BinarySensorWidget({ config }: WidgetProps) {
 
     const label = isActive ? labelOn : labelOff;
     const color = isActive ? colorOn : colorOff;
-    const Icon = getWidgetIcon(opts.icon as string | undefined, isActive ? ShieldAlert : CheckCircle2);
+    // Keep the icon component reference stable across active/inactive toggles.
+    // A custom Iconify icon is cached by iconId+fallback, so flipping the
+    // fallback (ShieldAlert/CheckCircle2) with isActive would remount the
+    // wrapper on every state change → brief reload → title shift. With a custom
+    // icon we therefore pin one fallback; without one the static Lucide icon
+    // swaps instantly and can still reflect the state.
+    const Icon = opts.icon
+        ? getWidgetIcon(opts.icon as string, ShieldAlert)
+        : isActive
+          ? ShieldAlert
+          : CheckCircle2;
     const showTitle = opts.showTitle !== false;
     const showIcon = opts.showIcon !== false;
     const titleAlign = (opts.titleAlign as string) ?? 'left';

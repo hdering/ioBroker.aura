@@ -12454,6 +12454,67 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                         </div>
+                                        {/* Farben */}
+                                        {(() => {
+                                            // type="color" needs a hex; preset defaults may be CSS vars
+                                            const VAR_HEX: Record<string, string> = {
+                                                'var(--accent-green)': '#22c55e',
+                                                'var(--accent-red, #ef4444)': '#ef4444',
+                                                'var(--text-secondary)': '#9ca3af',
+                                            };
+                                            const toHex = (c: string) =>
+                                                c.startsWith('#') ? c : (VAR_HEX[c] ?? '#9ca3af');
+                                            const renderColor = (
+                                                key: 'colorOn' | 'colorOff',
+                                                labelText: string,
+                                                presetColor: string,
+                                            ) => {
+                                                const current = (o[key] as string) || presetColor;
+                                                const isCustom = Boolean(o[key]);
+                                                return (
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            {labelText}
+                                                        </label>
+                                                        <div className="flex items-center gap-1">
+                                                            <input
+                                                                type="color"
+                                                                value={toHex(current)}
+                                                                onChange={(e) => setO({ [key]: e.target.value })}
+                                                                className="w-8 h-7 rounded cursor-pointer shrink-0"
+                                                                style={{
+                                                                    border: '1px solid var(--app-border)',
+                                                                    padding: '1px',
+                                                                }}
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setO({ [key]: undefined })}
+                                                                title="Auf Standard zurücksetzen"
+                                                                className="w-7 h-7 flex items-center justify-center rounded shrink-0 transition-opacity"
+                                                                style={{
+                                                                    color: 'var(--text-secondary)',
+                                                                    background: 'var(--app-bg)',
+                                                                    border: '1px solid var(--app-border)',
+                                                                    opacity: isCustom ? 1 : 0.3,
+                                                                }}
+                                                            >
+                                                                ↺
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            };
+                                            return (
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {renderColor('colorOn', 'Farbe aktiv', preset.colorOn)}
+                                                    {renderColor('colorOff', 'Farbe inaktiv', preset.colorOff)}
+                                                </div>
+                                            );
+                                        })()}
                                     </>
                                 );
                             })()}
