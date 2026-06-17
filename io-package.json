@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.272",
+    "version": "0.9.273",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.273": {
+        "en": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
+        "de": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
+        "ru": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
+        "pt": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
+        "nl": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
+        "fr": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
+        "it": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
+        "es": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
+        "pl": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
+        "uk": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
+        "zh-cn": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap"
+      },
       "0.9.272": {
         "en": "Release v0.9.272",
         "de": "Release v0.9.272",
@@ -183,19 +196,6 @@
         "pl": "fix(objects): use role 'text' for navigate.target selector",
         "uk": "fix(objects): use role 'text' for navigate.target selector",
         "zh-cn": "fix(objects): use role 'text' for navigate.target selector"
-      },
-      "0.9.266": {
-        "en": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
-        "de": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
-        "ru": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
-        "pt": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
-        "nl": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
-        "fr": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
-        "it": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
-        "es": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
-        "pl": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
-        "uk": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
-        "zh-cn": "fix(backup): gzip auto-backups to stay under socket.io frame limit"
       }
     }
   },

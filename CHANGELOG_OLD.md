@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.9.253 (2026-06-16)
+- refactor(echart): single shared time range, drop per-series ranges
+- feat(echart-config): auto-select sole history adapter per series
+- fix(echart): fit Y-axis to data range (scale) to remove empty space
+- feat(echart): current value, frontend range selector, grid-line toggle
+
 ## 0.9.252 (2026-06-16)
 - fix(useIoBroker): allow spaces in state IDs
 
