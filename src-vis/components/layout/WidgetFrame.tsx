@@ -5527,21 +5527,21 @@ export function WidgetFrame({
                 lastChangedTs > 0 &&
                 (() => {
                     const text = formatLastChange(lastChangedTs);
-                    const posStyle: React.CSSProperties =
-                        lastChangePos === 'center'
-                            ? {
-                                  position: 'absolute',
-                                  bottom: 6,
-                                  left: '50%',
-                                  transform: 'translateX(-50%)',
-                                  whiteSpace: 'nowrap',
-                              }
-                            : lastChangePos === 'right'
-                              ? { position: 'absolute', bottom: 6, right: 8 }
-                              : { position: 'absolute', bottom: 6, left: 8 };
+                    // Anchor across the full widget width (left+right) so the relative-time
+                    // string wraps inside the widget instead of overflowing nowrap and being
+                    // clipped/covered by an adjacent widget — common on narrow widgets like
+                    // the fill/tank gauge. Alignment follows the configured position.
+                    const posStyle: React.CSSProperties = {
+                        position: 'absolute',
+                        bottom: 6,
+                        left: 8,
+                        right: 8,
+                        lineHeight: 1.15,
+                        textAlign: lastChangePos === 'center' ? 'center' : lastChangePos === 'right' ? 'right' : 'left',
+                    };
                     return (
                         <div
-                            className="aura-last-change nodrag pointer-events-none text-[8px] opacity-50 whitespace-nowrap"
+                            className="aura-last-change nodrag pointer-events-none text-[8px] opacity-50"
                             style={{ ...posStyle, color: 'var(--text-secondary)', zIndex: 2 }}
                         >
                             {text}
