@@ -7,7 +7,13 @@
  * New format: each key has its own state (aura.0.config.theme etc.)
  */
 import { getStateDirect, setStateDirect } from '../hooks/useIoBroker';
-import { IOBROKER_STATE_MAP, type SyncStoreKey, hasDirtyFlag, clearDirtyFlag, isScreenshotMode } from '../store/persistManager';
+import {
+    IOBROKER_STATE_MAP,
+    type SyncStoreKey,
+    hasDirtyFlag,
+    clearDirtyFlag,
+    isScreenshotMode,
+} from '../store/persistManager';
 import { hydrateGroupDefs } from '../store/groupDefsStore';
 import { useDashboardStore } from '../store/dashboardStore';
 import { useThemeStore } from '../store/themeStore';
