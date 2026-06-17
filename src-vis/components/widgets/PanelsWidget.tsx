@@ -8,8 +8,8 @@
  * This is the revived "slide-of-widgets" carousel, re-introduced as its own
  * widget type alongside the newer chip-strip 'carousel'.
  */
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { GalleryThumbnails, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { GalleryThumbnails, ChevronLeft, ChevronRight, Plus, Trash2, Loader } from 'lucide-react';
 import type { WidgetProps, WidgetConfig, WidgetType } from '../../types';
 import { WIDGET_BY_TYPE } from '../../widgetRegistry';
 import { WidgetFrame } from '../layout/WidgetFrame';
@@ -24,22 +24,31 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
     const t = useT();
 
     // ── defId initialisation ────────────────────────────────────────────────
-    // Once a defId is generated for this widget instance, it lives in this ref
-    // until config.options.defId is round-tripped back through onConfigChange.
-    // Using useState for the seed guarantees the SAME id across re-renders.
-    const [seedDefId] = useState(() => newGroupDefId());
-    const defId = (config.options?.defId as string | undefined) ?? seedDefId;
+    // Mirrors GroupWidget: a stable temp defId (useRef) bridges the gap between
+    // mount and the first onConfigChange round-trip. Persisted ONCE on mount via
+    // useEffect — never re-seeded, so children can never end up under a defId the
+    // saved dashboard doesn't reference.
+    const tempDefIdRef = useRef<string | null>(null);
+    const defId =
+        (config.options?.defId as string | undefined) ??
+        (() => {
+            if (!tempDefIdRef.current) tempDefIdRef.current = newGroupDefId();
+            return tempDefIdRef.current;
+        })();
 
-    // Persist defId to dashboard config synchronously before paint, so duplication
-    // / save / export can find the children later. Re-runs guard against state
-    // loss after HMR / parent re-creation.
-    useLayoutEffect(() => {
-        if (config.options?.defId !== defId) {
+    // Persist the defId to aura-dashboard on first render if it wasn't saved yet.
+    useEffect(() => {
+        if (!config.options?.defId) {
             onConfigChange({ ...config, options: { ...config.options, defId } });
         }
-    }, [defId, config.options?.defId]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const children = useGroupDefsStore((s) => s.defs[defId] ?? []);
+    // Children hydrate from ioBroker after boot (can take a few seconds). Until
+    // then an empty `children` means "still loading", not "genuinely empty" —
+    // show a spinner instead of the empty hint in that window (mirrors GroupWidget).
+    const defsHydrated = useGroupDefsStore((s) => s.hydrated);
+    const isLoading = children.length === 0 && !defsHydrated;
     const setChildren = (next: WidgetConfig[]) => {
         useGroupDefsStore.getState().setDef(defId, next);
         // Defensive: also bump dashboard config so save flushes both keys together.
@@ -280,10 +289,20 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
                 }}
             >
                 {children.length === 0 ? (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
-                            {editMode ? t('panels.empty.editHint') : t('panels.empty.viewHint')}
-                        </p>
+                    <div
+                        className="absolute inset-0 flex items-center justify-center gap-1.5"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
+                        {isLoading ? (
+                            <>
+                                <Loader size={14} className="animate-spin" />
+                                <span className="text-xs">{t('common.loading')}</span>
+                            </>
+                        ) : (
+                            <p className="text-xs text-center">
+                                {editMode ? t('panels.empty.editHint') : t('panels.empty.viewHint')}
+                            </p>
+                        )}
                     </div>
                 ) : (
                     <div
