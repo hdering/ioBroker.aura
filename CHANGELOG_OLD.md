@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.246 (2026-06-15)
+- fix(clients): only register client when new or renamed
+
 ## 0.9.245 (2026-06-15)
 - fix(theme): readable preset names + explain what a preset changes (#307)
 - feat(layouts): export/import complete layouts with all tabs, widgets and groups

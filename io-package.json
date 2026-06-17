@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.265",
+    "version": "0.9.266",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.266": {
+        "en": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
+        "de": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
+        "ru": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
+        "pt": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
+        "nl": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
+        "fr": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
+        "it": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
+        "es": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
+        "pl": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
+        "uk": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
+        "zh-cn": "fix(backup): gzip auto-backups to stay under socket.io frame limit"
+      },
       "0.9.265": {
         "en": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble",
         "de": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble",
@@ -183,19 +196,6 @@
         "pl": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct",
         "uk": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct",
         "zh-cn": "fix(value-transform): persist selected preset so presets sharing a factor stay distinct"
-      },
-      "0.9.259": {
-        "en": "fix(image-widget): write selected datapoint to imageDatapoint option",
-        "de": "fix(image-widget): write selected datapoint to imageDatapoint option",
-        "ru": "fix(image-widget): write selected datapoint to imageDatapoint option",
-        "pt": "fix(image-widget): write selected datapoint to imageDatapoint option",
-        "nl": "fix(image-widget): write selected datapoint to imageDatapoint option",
-        "fr": "fix(image-widget): write selected datapoint to imageDatapoint option",
-        "it": "fix(image-widget): write selected datapoint to imageDatapoint option",
-        "es": "fix(image-widget): write selected datapoint to imageDatapoint option",
-        "pl": "fix(image-widget): write selected datapoint to imageDatapoint option",
-        "uk": "fix(image-widget): write selected datapoint to imageDatapoint option",
-        "zh-cn": "fix(image-widget): write selected datapoint to imageDatapoint option"
       }
     }
   },
