@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.271",
+    "version": "0.9.272",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.272": {
+        "en": "Release v0.9.272",
+        "de": "Release v0.9.272",
+        "ru": "Release v0.9.272",
+        "pt": "Release v0.9.272",
+        "nl": "Release v0.9.272",
+        "fr": "Release v0.9.272",
+        "it": "Release v0.9.272",
+        "es": "Release v0.9.272",
+        "pl": "Release v0.9.272",
+        "uk": "Release v0.9.272",
+        "zh-cn": "Release v0.9.272"
+      },
       "0.9.271": {
         "en": "feat(widgets): derive panels/group add-widget pickers from registry",
         "de": "feat(widgets): derive panels/group add-widget pickers from registry",
@@ -183,19 +196,6 @@
         "pl": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
         "uk": "fix(backup): gzip auto-backups to stay under socket.io frame limit",
         "zh-cn": "fix(backup): gzip auto-backups to stay under socket.io frame limit"
-      },
-      "0.9.265": {
-        "en": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble",
-        "de": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble",
-        "ru": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble",
-        "pt": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble",
-        "nl": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble",
-        "fr": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble",
-        "it": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble",
-        "es": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble",
-        "pl": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble",
-        "uk": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble",
-        "zh-cn": "style(prettier): auto-format code files; feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble"
       }
     }
   },
