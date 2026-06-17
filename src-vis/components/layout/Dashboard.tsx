@@ -5,7 +5,7 @@ import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { useIframeStore, type IframeFullscreenData } from '../../store/iframeStore';
 import { WidgetFrame } from './WidgetFrame';
-import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
+import { useReflowHiddenIds, useConditionReflowIds } from '../../hooks/useConditionStyle';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
 import { DashboardMobileContext } from '../../contexts/DashboardMobileContext';
@@ -13,6 +13,7 @@ import type { WidgetConfig } from '../../types';
 import type { Tab } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
 import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
+import { verticalCompact } from '../../utils/gridCompact';
 
 // Default gap — overridden by config at runtime
 const DEFAULT_MARGIN = 10;
@@ -73,6 +74,8 @@ export function Dashboard({
     }, [activeTabId]);
 
     const reflowHiddenIds = useReflowHiddenIds();
+    // Raw condition verdict (works in edit mode too) — drives group auto-shrink.
+    const conditionReflowIds = useConditionReflowIds();
 
     // ── iFrame fullscreen overlay ──────────────────────────────────────────
     const iframeFullscreen = useIframeStore((s) => s.fullscreen);
@@ -352,19 +355,59 @@ export function Dashboard({
                                             !reflowHiddenIds.has(w.id) && !(fillTabWidget && w.id === fillTabWidget.id),
                                     );
                                     const tabLayout = tabGridWidgets.map((w) => {
+                                        const isGroup = w.type === 'group';
+                                        const autoShrink = isGroup && !!w.options?.autoShrink;
+                                        const defId = isGroup ? (w.options?.defId as string | undefined) : undefined;
+                                        const groupChildren = defId ? (groupDefs[defId] ?? []) : [];
+
                                         let minH = 1;
-                                        if (editMode && w.type === 'group') {
-                                            const defId = w.options?.defId as string | undefined;
-                                            const children = defId ? (groupDefs[defId] ?? []) : [];
-                                            if (children.length > 0) {
+                                        // Editor: force a group tall enough to show ALL children so they
+                                        // stay editable — except when autoShrink is on, where we let the
+                                        // box shrink and rely on the group's inner scrollbar instead.
+                                        if (editMode && isGroup && !autoShrink && groupChildren.length > 0) {
+                                            const maxBottom = Math.max(
+                                                ...groupChildren.map((c) => c.gridPos.y + c.gridPos.h),
+                                            );
+                                            const innerH = maxBottom * (cellSize + MARGIN) - MARGIN;
+                                            const titleBarH = w.title ? 37 : 36;
+                                            minH = Math.ceil((titleBarH + innerH + 10 + MARGIN) / (cellSize + MARGIN));
+                                        }
+                                        let h = Math.max(w.gridPos.h ?? 2, minH);
+
+                                        // Auto-shrink: collapse the group's outer height to its remaining
+                                        // condition-visible children. The two views fit a different layout:
+                                        //  • Frontend — hidden children are removed and the rest compacted
+                                        //    upward, so the box fits the *compacted* visible layout exactly.
+                                        //  • Editor — every child stays mounted at its stored position (so
+                                        //    hidden ones remain editable). Fitting the visible children at
+                                        //    their *original* positions never cuts a visible widget; only
+                                        //    hidden children trailing below the last visible one fall past
+                                        //    the fold, reachable via the group's inner scrollbar.
+                                        if (autoShrink && groupChildren.length > 0) {
+                                            const visible = groupChildren.filter(
+                                                (c) => !conditionReflowIds.has(c.id),
+                                            );
+                                            if (visible.length > 0 && visible.length < groupChildren.length) {
+                                                const fitLayout = editMode ? visible : verticalCompact(visible);
                                                 const maxBottom = Math.max(
-                                                    ...children.map((c) => c.gridPos.y + c.gridPos.h),
+                                                    ...fitLayout.map((c) => c.gridPos.y + c.gridPos.h),
                                                 );
-                                                const innerH = maxBottom * (cellSize + MARGIN) - MARGIN;
-                                                const titleBarH = w.title ? 37 : 36;
-                                                minH = Math.ceil(
-                                                    (titleBarH + innerH + 10 + MARGIN) / (cellSize + MARGIN),
+                                                const innerH =
+                                                    maxBottom > 0 ? maxBottom * (cellSize + MARGIN) - MARGIN : 0;
+                                                const showTitle = w.options?.showTitle !== false;
+                                                const titleBarH = editMode
+                                                    ? w.title
+                                                        ? 37
+                                                        : 36
+                                                    : (showTitle && w.title) || w.options?.groupSwitch
+                                                      ? 37
+                                                      : 0;
+                                                const shrunk = Math.max(
+                                                    1,
+                                                    Math.ceil((titleBarH + innerH + 10 + MARGIN) / (cellSize + MARGIN)),
                                                 );
+                                                h = Math.min(h, shrunk);
+                                                minH = Math.min(minH, h); // never let RGL clamp back up
                                             }
                                         }
                                         return {
@@ -372,7 +415,7 @@ export function Dashboard({
                                             x: Math.min(w.gridPos.x ?? 0, effectiveCols - 1),
                                             y: w.gridPos.y ?? 9999,
                                             w: Math.min(w.gridPos.w ?? 2, effectiveCols),
-                                            h: Math.max(w.gridPos.h ?? 2, minH),
+                                            h,
                                             minH,
                                         };
                                     });
@@ -383,7 +426,12 @@ export function Dashboard({
                                             if (reflowHiddenIds.has(w.id)) return w;
                                             const pos = newLayout.find((l) => l.i === w.id);
                                             if (!pos) return w;
-                                            return { ...w, gridPos: { x: pos.x, y: pos.y, w: pos.w, h: pos.h } };
+                                            // Auto-shrink groups render at a condition-derived height that is
+                                            // NOT stored — keep the canonical gridPos.h so a transient shrunk
+                                            // value can't get persisted on an unrelated drag/resize.
+                                            const h =
+                                                w.type === 'group' && w.options?.autoShrink ? w.gridPos.h : pos.h;
+                                            return { ...w, gridPos: { x: pos.x, y: pos.y, w: pos.w, h } };
                                         });
 
                                     if (isActive && tabGridWidgets.length === 0) {

@@ -126,8 +126,17 @@ function styleToVars(style: ConditionStyle): Record<string, string> {
 // ── Reflow-hidden registry ────────────────────────────────────────────────────
 // Lets Dashboard subscribe to which widgets want to be removed from the grid.
 
+// `reflowHiddenIds` is the *removal* set: widgets that should be pulled out of
+// the grid so others slide up. It is edit-mode-gated by the caller (an editor
+// must keep every widget mounted and editable), so it is empty while editing.
 const reflowHiddenIds = new Set<string>();
 const reflowListeners = new Set<() => void>();
+// `conditionReflowIds` mirrors the raw condition verdict (hidden+reflow)
+// regardless of edit mode. It does NOT remove anything — it just lets the group
+// auto-shrink height calc know which children a condition currently hides, so a
+// group can shrink (with an inner scrollbar) even inside the editor.
+const conditionReflowIds = new Set<string>();
+const conditionListeners = new Set<() => void>();
 if (typeof window !== 'undefined') {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).auraConditionStats = () => {
@@ -137,28 +146,32 @@ if (typeof window !== 'undefined') {
     };
 }
 
-export function notifyHiddenState(widgetId: string, hidden: boolean, reflow: boolean) {
-    const wasReflow = reflowHiddenIds.has(widgetId);
+function syncSet(set: Set<string>, listeners: Set<() => void>, widgetId: string, member: boolean): boolean {
+    const was = set.has(widgetId);
+    if (member === was) return false;
+    if (member) set.add(widgetId);
+    else set.delete(widgetId);
+    listeners.forEach((fn) => fn());
+    return true;
+}
+
+export function notifyHiddenState(widgetId: string, hidden: boolean, reflow: boolean, conditionReflow?: boolean) {
     const isReflow = hidden && reflow;
-    if (isReflow === wasReflow) {
-        condLog('notify (no-op)', { widgetId, hidden, reflow, inReflowSet: wasReflow });
-        return;
+    if (syncSet(reflowHiddenIds, reflowListeners, widgetId, isReflow)) {
+        condLog(isReflow ? 'reflow-set ADD' : 'reflow-set REMOVE', {
+            widgetId,
+            hidden,
+            reflow,
+            reflowSetSize: reflowHiddenIds.size,
+        });
     }
-    if (isReflow) reflowHiddenIds.add(widgetId);
-    else reflowHiddenIds.delete(widgetId);
-    condLog(isReflow ? 'reflow-set ADD' : 'reflow-set REMOVE', {
-        widgetId,
-        hidden,
-        reflow,
-        reflowSetSize: reflowHiddenIds.size,
-    });
-    reflowListeners.forEach((fn) => fn());
+    // Default to the removal verdict when the caller doesn't pass the raw one.
+    syncSet(conditionReflowIds, conditionListeners, widgetId, conditionReflow ?? isReflow);
 }
 
 export function cleanupHiddenState(widgetId: string) {
-    if (reflowHiddenIds.delete(widgetId)) {
-        reflowListeners.forEach((fn) => fn());
-    }
+    syncSet(conditionReflowIds, conditionListeners, widgetId, false);
+    syncSet(reflowHiddenIds, reflowListeners, widgetId, false);
 }
 
 export function useReflowHiddenIds(): Set<string> {
@@ -168,6 +181,19 @@ export function useReflowHiddenIds(): Set<string> {
         reflowListeners.add(fn);
         return () => {
             reflowListeners.delete(fn);
+        };
+    }, []);
+    return ids;
+}
+
+/** Widgets a condition currently hides (reflow), independent of edit mode. */
+export function useConditionReflowIds(): Set<string> {
+    const [ids, setIds] = useState(() => new Set(conditionReflowIds));
+    useLayoutEffect(() => {
+        const fn = () => setIds(new Set(conditionReflowIds));
+        conditionListeners.add(fn);
+        return () => {
+            conditionListeners.delete(fn);
         };
     }, []);
     return ids;

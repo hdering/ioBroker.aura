@@ -602,6 +602,9 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.hideName': 'Hide Name',
     'wf.edit.titlePosition': 'Title Position',
     'wf.edit.showLastChange': 'Show Last Change',
+    'wf.edit.group.autoShrink': 'Shrink when widgets are hidden',
+    'wf.edit.group.autoShrinkHint':
+        'When child widgets are hidden by a condition, the group shrinks to fit the visible content (frontend only).',
     'wf.edit.position': 'Position',
     'wf.edit.posLeft': 'Left',
     'wf.edit.posCenter': 'Center',

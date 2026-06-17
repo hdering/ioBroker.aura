@@ -4922,10 +4922,17 @@ export function WidgetFrame({
         };
     }, [config.id]);
 
-    // Keep the reflow-hidden registry in sync (only when not in edit mode).
-    // useLayoutEffect fires synchronously before paint → no single-frame flicker.
+    // Keep the reflow-hidden registry in sync. The *removal* verdict is gated by
+    // edit mode (the editor must keep every widget mounted); the raw condition
+    // verdict (4th arg) is always reported so groups can auto-shrink in the
+    // editor too. useLayoutEffect fires synchronously before paint → no flicker.
     useLayoutEffect(() => {
-        notifyHiddenState(config.id, !editMode && conditionResult.hidden, conditionResult.reflow);
+        notifyHiddenState(
+            config.id,
+            !editMode && conditionResult.hidden,
+            conditionResult.reflow,
+            conditionResult.hidden && conditionResult.reflow,
+        );
     }, [config.id, editMode, conditionResult.hidden, conditionResult.reflow]);
 
     const openPanelFor = (panel: typeof openPanel) => {
@@ -7167,6 +7174,62 @@ export function WidgetFrame({
                             />
                         </div>
                     )}
+
+                    {/* ─── Group settings — own card (group only) ───────────────────────── */}
+                    {config.type === 'group' &&
+                        (() => {
+                            const o = config.options ?? {};
+                            const autoShrink = !!o.autoShrink;
+                            return (
+                                <div
+                                    className="space-y-2.5 rounded-lg px-3 py-3"
+                                    style={{
+                                        background: 'color-mix(in srgb, var(--accent) 10%, var(--app-bg))',
+                                        borderLeft: '3px solid var(--accent)',
+                                    }}
+                                >
+                                    <p
+                                        className="text-[10px] font-bold uppercase tracking-widest"
+                                        style={{ color: 'var(--accent)' }}
+                                    >
+                                        {t('widget.group')}
+                                    </p>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div>
+                                            <label
+                                                className="text-[11px] font-medium"
+                                                style={{ color: 'var(--text-primary)' }}
+                                            >
+                                                {t('wf.edit.group.autoShrink')}
+                                            </label>
+                                            <p
+                                                className="text-[10px] mt-0.5"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                            >
+                                                {t('wf.edit.group.autoShrinkHint')}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() =>
+                                                onConfigChange({
+                                                    ...config,
+                                                    options: { ...o, autoShrink: !autoShrink },
+                                                })
+                                            }
+                                            className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                            style={{
+                                                background: autoShrink ? 'var(--accent)' : 'var(--app-border)',
+                                            }}
+                                        >
+                                            <span
+                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                style={{ left: autoShrink ? '18px' : '2px' }}
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                     {/* ─── 4. Widget-spezifische Einstellungen ───────────────────────── */}
                     {/* The group widget has no type-specific settings — render the box

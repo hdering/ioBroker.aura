@@ -602,6 +602,9 @@ export const de = {
     'wf.edit.hideName': 'Name ausblenden',
     'wf.edit.titlePosition': 'Titel-Position',
     'wf.edit.showLastChange': 'Letzte Änderung anzeigen',
+    'wf.edit.group.autoShrink': 'Bei versteckten Widgets schrumpfen',
+    'wf.edit.group.autoShrinkHint':
+        'Sind Kind-Widgets per Bedingung ausgeblendet, verkleinert sich die Gruppe auf die sichtbaren Inhalte (nur im Frontend).',
     'wf.edit.position': 'Position',
     'wf.edit.posLeft': 'Links',
     'wf.edit.posCenter': 'Mitte',
