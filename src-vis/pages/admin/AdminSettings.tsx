@@ -15,6 +15,7 @@ import {
     listBackupFiles,
     loadBackupPayload,
     buildBackupPayload,
+    isScreenshotMode,
     type BackupFileEntry,
     type BackupChangeDetail,
 } from '../../store/persistManager';
@@ -152,6 +153,21 @@ function BackupCard() {
     };
 
     const loadBackups = useCallback(async () => {
+        // Screenshot harness: show one representative entry instead of the real
+        // instance's backup files.
+        if (isScreenshotMode()) {
+            setBackups([
+                {
+                    ts: '2026-06-17T13:54:02.000Z',
+                    filename: 'backup-2026-06-17T13-54-02-000Z.json.gz',
+                    size: 61234,
+                    changed: ['aura-dashboard'],
+                    details: [{ store: 'aura-dashboard', kind: 'widget-added', label: 'CO₂' }],
+                },
+            ]);
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         try {
             const files: BackupFileEntry[] = await listBackupFiles();
@@ -499,6 +515,32 @@ function ClientsCard() {
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
     const load = useCallback(async () => {
+        // Screenshot harness: show representative devices, not the real clients.
+        if (isScreenshotMode()) {
+            const now = Date.now();
+            setClients([
+                {
+                    channelId: `${NS}.clients.${myClientId}`,
+                    clientId: myClientId,
+                    name: 'Wohnzimmer-Tablet',
+                    lastSeen: now,
+                },
+                {
+                    channelId: `${NS}.clients.kitchen`,
+                    clientId: 'kitchen',
+                    name: 'K\u00fcche-Tablet',
+                    lastSeen: now - 2 * 3600_000,
+                },
+                {
+                    channelId: `${NS}.clients.office`,
+                    clientId: 'office',
+                    name: 'B\u00fcro-PC',
+                    lastSeen: now - 26 * 3600_000,
+                },
+            ]);
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         try {
             const result = await getObjectViewDirect('channel', `${NS}.clients.`, `${NS}.clients.\u9999`);

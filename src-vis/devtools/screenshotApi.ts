@@ -86,6 +86,17 @@ function installScreenshotApi(): void {
         setEditMode(on: boolean): void {
             withSuppressedDirty(() => useDashboardStore.setState({ editMode: on }));
         },
+
+        /** Seed a full multi-layout demo config (for admin-area screenshots). */
+        seed(payload: { layouts: DashboardLayout[]; activeLayoutId?: string; editMode?: boolean }): void {
+            withSuppressedDirty(() => {
+                useDashboardStore.setState({
+                    layouts: payload.layouts,
+                    activeLayoutId: payload.activeLayoutId ?? payload.layouts[0]?.id,
+                    editMode: payload.editMode ?? false,
+                });
+            });
+        },
     };
 
     (window as unknown as Record<string, unknown>).__auraShot = api;

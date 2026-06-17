@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDashboardStore } from '../store/dashboardStore';
 import { useGroupDefsStore } from '../store/groupDefsStore';
 import { usePopupConfigStore } from '../store/popupConfigStore';
-import { isDirty, subscribeDirty } from '../store/persistManager';
+import { isDirty, subscribeDirty, isScreenshotMode } from '../store/persistManager';
 import { sendToDirect } from './useIoBroker';
 import { timerBackendKey } from '../utils/publishTimerConfig';
 import { NS } from '../utils/namespace';
@@ -52,6 +52,11 @@ export function useTimerOrphans(): OrphansState {
     const [loading, setLoading] = useState(false);
 
     const refresh = useCallback(async () => {
+        if (isScreenshotMode()) {
+            setTimer([]);
+            setList([]);
+            return;
+        }
         setLoading(true);
         try {
             const knownTimer = new Set<string>();

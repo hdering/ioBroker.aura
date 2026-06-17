@@ -7,6 +7,7 @@ import {
     isSavingRecently,
     discardPendingKey,
     IOBROKER_STATE_MAP,
+    isScreenshotMode,
     type SyncStoreKey,
 } from '../store/persistManager';
 import { applyRaw, rehydrateAll } from '../utils/configLoader';
@@ -14,6 +15,9 @@ import { applyRaw, rehydrateAll } from '../utils/configLoader';
 /** Apply one state value received from ioBroker to localStorage + stores. */
 function applyOneState(key: SyncStoreKey, raw: string): boolean {
     if (!raw || raw.length < 3) return false;
+    // Screenshot harness owns the config — never let inbound ioBroker state
+    // (subscription or poll) overwrite the seeded demo layout.
+    if (isScreenshotMode()) return false;
 
     if (key === 'aura-group-defs') {
         hydrateGroupDefs(raw);
