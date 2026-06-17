@@ -190,11 +190,21 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
                 )}
 
                 {/* Body */}
+                {/* Centering uses margin:auto (not flex items-/justify-center) so a popup
+                    view taller/wider than the viewport stays fully scrollable. Flex
+                    alignment centers overflowing content and clips its top/left edge
+                    beyond the scroll origin, hiding the first widgets unreachably.
+                    scrollbar-gutter reserves a dedicated lane for the vertical scrollbar
+                    (both-edges keeps the content centered) so a long popup-view's scrollbar
+                    no longer overlaps the rightmost widgets. */}
                 <div
-                    className="overflow-auto flex items-center justify-center"
-                    style={{ flex: isIframe ? 'none' : '1 1 auto' }}
+                    className="overflow-auto flex"
+                    style={{
+                        flex: isIframe ? 'none' : '1 1 auto',
+                        scrollbarGutter: isIframe ? undefined : 'stable both-edges',
+                    }}
                 >
-                    {body}
+                    <div className="m-auto">{body}</div>
                 </div>
             </div>
         </div>,
