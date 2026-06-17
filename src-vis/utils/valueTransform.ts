@@ -36,8 +36,17 @@ function num(v: unknown, fallback: number): number {
 
 /** Applies factor/offset to a numeric value; non-numeric values pass through unchanged. */
 export function applyValueTransform<T>(value: T, factor?: number, offset?: number): T | number {
-    if (typeof value !== 'number' || !Number.isFinite(value)) return value;
-    return value * num(factor, 1) + num(offset, 0);
+    // Some adapters (e.g. upnp) store number datapoints as strings — coerce those
+    // so the transform still applies. Genuine text values pass through unchanged.
+    let n: number | null = null;
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        n = value;
+    } else if (typeof value === 'string' && value.trim() !== '') {
+        const parsed = Number(value);
+        if (Number.isFinite(parsed)) n = parsed;
+    }
+    if (n === null) return value;
+    return n * num(factor, 1) + num(offset, 0);
 }
 
 function close(a: number, b: number): boolean {
