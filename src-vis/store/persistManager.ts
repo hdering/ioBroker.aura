@@ -29,7 +29,49 @@ const SYNC_STORE_KEYS = Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[];
 // The meta object is created by the adapter in onReady (main.js).
 const BACKUP_NAMESPACE = `${NS}.backups`;
 const BACKUP_FILE_PREFIX = 'backup-';
+// Legacy plain-JSON suffix (backups written before gzip) and the current
+// gzip+base64 suffix. New backups are gzipped because the combined payload of
+// all sync-stores grew past the socket.io frame limit (~1 MB) — an uncompressed
+// writeFile of that size silently drops the websocket and the write never
+// lands. Gzip shrinks ~960 KB → ~60 KB; base64 keeps it a plain text transfer.
 const BACKUP_FILE_SUFFIX = '.json';
+const BACKUP_FILE_SUFFIX_GZ = '.json.gz';
+
+// ── gzip helpers (browser-native CompressionStream, base64 transport) ──────────
+async function gzipToBase64(text: string): Promise<string> {
+    const stream = new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'));
+    const buf = new Uint8Array(await new Response(stream).arrayBuffer());
+    let bin = '';
+    const CHUNK = 0x8000; // chunk to avoid String.fromCharCode arg-count overflow
+    for (let i = 0; i < buf.length; i += CHUNK) {
+        bin += String.fromCharCode(...buf.subarray(i, i + CHUNK));
+    }
+    return btoa(bin);
+}
+
+async function gunzipFromBase64(b64: string): Promise<string> {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return new Response(stream).text();
+}
+
+/** Read a backup file and return its decoded JSON text, transparently
+ *  decompressing the gzip+base64 format. Legacy plain-.json backups pass through. */
+async function readBackupText(filename: string): Promise<string | null> {
+    const raw = await readFileDirect(BACKUP_NAMESPACE, filename);
+    if (raw == null) return null;
+    if (filename.endsWith(BACKUP_FILE_SUFFIX_GZ)) {
+        try {
+            return await gunzipFromBase64(raw);
+        } catch (err) {
+            console.warn(`[aura backup] could not decompress ${filename}`, err);
+            return null;
+        }
+    }
+    return raw;
+}
 
 export const BACKUP_TS_KEY = '_ts';
 // List of sync-store keys actually written in the save that produced this
@@ -50,11 +92,14 @@ export interface BackupChangeDetail {
 }
 
 function tsToFilename(ts: string): string {
-    return `${BACKUP_FILE_PREFIX}${ts.replace(/[:.]/g, '-')}${BACKUP_FILE_SUFFIX}`;
+    return `${BACKUP_FILE_PREFIX}${ts.replace(/[:.]/g, '-')}${BACKUP_FILE_SUFFIX_GZ}`;
 }
 
 export function isBackupFile(name: string): boolean {
-    return name.startsWith(BACKUP_FILE_PREFIX) && name.endsWith(BACKUP_FILE_SUFFIX);
+    return (
+        name.startsWith(BACKUP_FILE_PREFIX) &&
+        (name.endsWith(BACKUP_FILE_SUFFIX_GZ) || name.endsWith(BACKUP_FILE_SUFFIX))
+    );
 }
 
 // Persistent flag in localStorage marking a key as having unsaved edits.
@@ -464,8 +509,13 @@ async function writeBackup(changedKeys: SyncStoreKey[] = [], details: BackupChan
         const ts = String(entry[BACKUP_TS_KEY]);
         const filename = tsToFilename(ts);
         const payload = JSON.stringify(entry);
-        console.info(`[aura backup] writing ${BACKUP_NAMESPACE}/${filename} (${payload.length} bytes)`);
-        await writeFileDirect(BACKUP_NAMESPACE, filename, payload);
+        // Gzip+base64 before writing — a raw ~1 MB writeFile exceeds the socket.io
+        // frame limit and drops the connection without acknowledging the write.
+        const compressed = await gzipToBase64(payload);
+        console.info(
+            `[aura backup] writing ${BACKUP_NAMESPACE}/${filename} (${payload.length} → ${compressed.length} bytes gzip+base64)`,
+        );
+        await writeFileDirect(BACKUP_NAMESPACE, filename, compressed);
         console.info('[aura backup] write acknowledged');
         const pruned = await pruneOldBackups();
         if (pruned > 0) console.info(`[aura backup] pruned ${pruned} old backup file(s) (cap ${maxBackups})`);
@@ -495,7 +545,8 @@ export async function listBackupFiles(): Promise<BackupFileEntry[]> {
         .sort((a, b) => b.file.localeCompare(a.file));
     return Promise.all(
         backupFiles.map(async (f) => {
-            const stem = f.file.slice(BACKUP_FILE_PREFIX.length, -BACKUP_FILE_SUFFIX.length);
+            const suffix = f.file.endsWith(BACKUP_FILE_SUFFIX_GZ) ? BACKUP_FILE_SUFFIX_GZ : BACKUP_FILE_SUFFIX;
+            const stem = f.file.slice(BACKUP_FILE_PREFIX.length, -suffix.length);
             // Reverse tsToFilename: 2026-05-17T14-23-11-456Z → 2026-05-17T14:23:11.456Z
             const ts = stem.replace(
                 /^(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z$/,
@@ -504,7 +555,7 @@ export async function listBackupFiles(): Promise<BackupFileEntry[]> {
             let changed: string[] = [];
             let details: BackupChangeDetail[] = [];
             try {
-                const raw = await readFileDirect(BACKUP_NAMESPACE, f.file);
+                const raw = await readBackupText(f.file);
                 if (raw) {
                     const parsed = JSON.parse(raw) as Record<string, unknown>;
                     const c = parsed[BACKUP_CHANGED_KEY];
@@ -526,7 +577,7 @@ export async function listBackupFiles(): Promise<BackupFileEntry[]> {
 }
 
 export async function loadBackupPayload(filename: string): Promise<Record<string, unknown> | null> {
-    const raw = await readFileDirect(BACKUP_NAMESPACE, filename);
+    const raw = await readBackupText(filename);
     if (!raw) return null;
     try {
         return JSON.parse(raw) as Record<string, unknown>;

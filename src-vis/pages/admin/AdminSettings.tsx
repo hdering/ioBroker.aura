@@ -217,7 +217,8 @@ function BackupCard() {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = entry.filename;
+            // Decompressed plain JSON — drop the .gz so the download name matches content.
+            a.download = entry.filename.replace(/\.gz$/, '');
             a.click();
             URL.revokeObjectURL(url);
         } catch {
