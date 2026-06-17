@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useLayoutEffect, useSyncExternalSto
 import { lazyWithReload } from '../../utils/lazyWithReload';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
-import { useT, t, type TranslationKey } from '../../i18n';
+import { useT, t } from '../../i18n';
 import {
     X,
     Pencil,
@@ -5647,11 +5647,14 @@ export function WidgetFrame({
                                         style={{ border: '1px solid var(--app-border)' }}
                                     >
                                         {WIDGET_GROUPS.map((g) => {
+                                            // Pull every manually-addable type in this category (excludes
+                                            // wizard-only types like calendar) and sort by the displayed
+                                            // label so the picker stays alphabetical as widgets are added.
                                             const types = WIDGET_REGISTRY.filter(
-                                                (m) => m.widgetGroup === g.id && m.type !== 'calendar',
+                                                (m) => m.widgetGroup === g.id && m.addMode !== 'wizard-only',
                                             )
                                                 .slice()
-                                                .sort((a, b) => a.label.localeCompare(b.label, 'de'));
+                                                .sort((a, b) => a.shortLabel.localeCompare(b.shortLabel, 'de'));
                                             if (types.length === 0) return null;
                                             return (
                                                 <div key={g.id} className="p-1.5">
@@ -5662,20 +5665,25 @@ export function WidgetFrame({
                                                         {g.label}
                                                     </div>
                                                     <div className="flex flex-wrap gap-1">
-                                                        {types.map((m) => (
-                                                            <button
-                                                                key={m.type}
-                                                                onClick={() => addGroupChild(m.type as WidgetType)}
-                                                                className="text-[10px] px-2 py-1 rounded-lg hover:opacity-80"
-                                                                style={{
-                                                                    background: 'var(--app-bg)',
-                                                                    color: 'var(--text-primary)',
-                                                                    border: '1px solid var(--app-border)',
-                                                                }}
-                                                            >
-                                                                {t(`widget.${m.type}` as TranslationKey)}
-                                                            </button>
-                                                        ))}
+                                                        {types.map((m) => {
+                                                            const Icon = m.Icon;
+                                                            return (
+                                                                <button
+                                                                    key={m.type}
+                                                                    onClick={() => addGroupChild(m.type as WidgetType)}
+                                                                    className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg hover:opacity-80"
+                                                                    style={{
+                                                                        background: 'var(--app-bg)',
+                                                                        color: 'var(--text-primary)',
+                                                                        border: '1px solid var(--app-border)',
+                                                                    }}
+                                                                    title={m.hint}
+                                                                >
+                                                                    <Icon size={12} style={{ color: m.color }} />
+                                                                    {m.shortLabel}
+                                                                </button>
+                                                            );
+                                                        })}
                                                     </div>
                                                 </div>
                                             );

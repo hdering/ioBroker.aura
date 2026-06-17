@@ -11,7 +11,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { GalleryThumbnails, ChevronLeft, ChevronRight, Plus, Trash2, Loader } from 'lucide-react';
 import type { WidgetProps, WidgetConfig, WidgetType } from '../../types';
-import { WIDGET_BY_TYPE } from '../../widgetRegistry';
+import { WIDGET_BY_TYPE, WIDGET_REGISTRY } from '../../widgetRegistry';
 import { WidgetFrame } from '../layout/WidgetFrame';
 import { useT } from '../../i18n';
 import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
@@ -418,31 +418,23 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
     );
 }
 
+// Every widget type that can live on a slide: all manually-addable types
+// (excludes 'wizard-only' types like calendar) except the panels widget itself,
+// sorted alphabetically by their displayed label. Derived from the registry so
+// new widgets show up automatically — and stay sorted — without touching this file.
+const PANEL_WIDGET_TYPES: WidgetType[] = WIDGET_REGISTRY.filter(
+    (m) => m.addMode !== 'wizard-only' && m.type !== 'panels',
+)
+    .slice()
+    .sort((a, b) => a.shortLabel.localeCompare(b.shortLabel, 'de'))
+    .map((m) => m.type);
+
 // ── Add-slide panel ─────────────────────────────────────────────────────────
 function PanelsAddPanel({ onAdd }: { onAdd: (type: WidgetType) => void }) {
     const t = useT();
     const [open, setOpen] = useState(false);
 
-    const types: WidgetType[] = [
-        'switch',
-        'value',
-        'dimmer',
-        'thermostat',
-        'gauge',
-        'knob',
-        'chart',
-        'list',
-        'autolist',
-        'clock',
-        'weather',
-        'image',
-        'camera',
-        'iframe',
-        'html',
-        'fill',
-        'mediaplayer',
-        'universal',
-    ];
+    const types: WidgetType[] = PANEL_WIDGET_TYPES;
 
     if (!open) {
         return (
