@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.248 (2026-06-15)
+- @ feat(theme): element-specific CSS variables for widgets (#313)
+
 ## 0.9.247 (2026-06-15)
 - fix(lint): auto-fix mixed typographic quotes
 - feat(backup): generic list-item change detection across all widget types
