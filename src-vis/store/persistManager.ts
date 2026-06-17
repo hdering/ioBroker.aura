@@ -103,6 +103,16 @@ export function registerExternalReader(key: string, reader: () => string | null)
     externalReaders.set(key, reader);
 }
 
+/** True when group-defs is safe to persist: either no RAM-only reader is
+ *  registered, or the reader (serialise) currently returns data — i.e. the
+ *  store has hydrated from ioBroker. When false, a save/backup would silently
+ *  drop every group / panels child (serialise refuses while unhydrated), so
+ *  callers must refuse to write rather than produce an incomplete snapshot. */
+export function groupDefsReadyForSave(): boolean {
+    const reader = externalReaders.get('aura-group-defs');
+    return !reader || reader() != null;
+}
+
 /** Mark a key as dirty without buffering a value — used by RAM-only stores
  *  that provide their data via registerExternalReader at save time. */
 export function markDirty(key: string): void {
@@ -531,7 +541,16 @@ export async function loadBackupPayload(filename: string): Promise<Record<string
  * (Fix 3 — avoids cross-browser overwrites from unrelated saves). Pass
  * `all: true` for the initial bootstrap that seeds an empty ioBroker.
  */
-export function saveToIoBroker({ backup = true, all = false }: { backup?: boolean; all?: boolean } = {}): void {
+export function saveToIoBroker({ backup = true, all = false }: { backup?: boolean; all?: boolean } = {}): boolean {
+    // Refuse to write while group-defs is unhydrated — otherwise this save (and
+    // its backup) would omit every group / panels child and a later restore
+    // would bring them back empty.
+    if (!groupDefsReadyForSave()) {
+        console.warn(
+            '[persistManager] saveToIoBroker aborted — aura-group-defs not hydrated; refusing to write incomplete config/backup',
+        );
+        return false;
+    }
     const now = Date.now();
     const targetKeys: SyncStoreKey[] = all ? SYNC_STORE_KEYS : SYNC_STORE_KEYS.filter(isPending);
 
@@ -553,6 +572,7 @@ export function saveToIoBroker({ backup = true, all = false }: { backup?: boolea
     originals.clear();
     notify();
     if (backup) void writeBackup(changedKeys, details);
+    return true;
 }
 
 export const managedStorage: StateStorage = {

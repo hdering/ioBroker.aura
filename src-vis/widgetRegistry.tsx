@@ -763,7 +763,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         defaultW: 12,
         defaultH: 6,
         addMode: 'free',
-        widgetGroup: 'layout',
+        widgetGroup: 'special',
         mock: { t: 'Panels', v: '' },
         hint: 'Mehrere Widgets als swipebare Slides – Wischen, Pagination-Dots und Pfeil-Buttons',
     },

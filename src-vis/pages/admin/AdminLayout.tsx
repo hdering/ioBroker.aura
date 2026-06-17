@@ -32,6 +32,7 @@ import {
     subscribeDirty,
     saveToIoBroker,
     configureBackup,
+    groupDefsReadyForSave,
 } from '../../store/persistManager';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { useGroupStore } from '../../store/groupStore';
@@ -54,6 +55,14 @@ function useSaveState() {
 
     const save = () => {
         setSaveError(null);
+        // Block saving while group-defs hasn't loaded from ioBroker — saving now
+        // would drop every group / panels child and write an incomplete backup.
+        if (!groupDefsReadyForSave()) {
+            setSaveError(
+                'Speichern blockiert: Gruppen-/Panels-Daten noch nicht aus ioBroker geladen. Bitte Seite neu laden, sobald die Instanz läuft.',
+            );
+            return;
+        }
         try {
             saveAll();
             saveToIoBroker();
