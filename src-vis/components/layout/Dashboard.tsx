@@ -384,9 +384,7 @@ export function Dashboard({
                                         //    hidden children trailing below the last visible one fall past
                                         //    the fold, reachable via the group's inner scrollbar.
                                         if (autoShrink && groupChildren.length > 0) {
-                                            const visible = groupChildren.filter(
-                                                (c) => !conditionReflowIds.has(c.id),
-                                            );
+                                            const visible = groupChildren.filter((c) => !conditionReflowIds.has(c.id));
                                             if (visible.length > 0 && visible.length < groupChildren.length) {
                                                 const fitLayout = editMode ? visible : verticalCompact(visible);
                                                 const maxBottom = Math.max(
@@ -429,8 +427,7 @@ export function Dashboard({
                                             // Auto-shrink groups render at a condition-derived height that is
                                             // NOT stored — keep the canonical gridPos.h so a transient shrunk
                                             // value can't get persisted on an unrelated drag/resize.
-                                            const h =
-                                                w.type === 'group' && w.options?.autoShrink ? w.gridPos.h : pos.h;
+                                            const h = w.type === 'group' && w.options?.autoShrink ? w.gridPos.h : pos.h;
                                             return { ...w, gridPos: { x: pos.x, y: pos.y, w: pos.w, h } };
                                         });
 
