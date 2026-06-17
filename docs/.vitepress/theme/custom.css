@@ -1,0 +1,23 @@
+/* Documentation images: shown as modest, centred thumbnails with a click-to-zoom
+   affordance. Full resolution is available via the medium-zoom lightbox, so even
+   dense full-page screenshots stay readable without bloating the page. */
+.vp-doc img {
+    display: block;
+    margin: 1.25rem auto;
+    max-width: 100%;
+    max-height: 360px;
+    width: auto;
+    border: 1px solid var(--vp-c-divider);
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    cursor: zoom-in;
+}
+
+/* Lightbox: render the zoomed image at native size, above the navbar. */
+.medium-zoom-overlay {
+    z-index: 1000;
+}
+.medium-zoom-image--opened {
+    z-index: 1001;
+    border-radius: 10px;
+}
