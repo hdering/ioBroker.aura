@@ -62,11 +62,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
     // wrapper on every state change → brief reload → title shift. With a custom
     // icon we therefore pin one fallback; without one the static Lucide icon
     // swaps instantly and can still reflect the state.
-    const Icon = opts.icon
-        ? getWidgetIcon(opts.icon as string, ShieldAlert)
-        : isActive
-          ? ShieldAlert
-          : CheckCircle2;
+    const Icon = opts.icon ? getWidgetIcon(opts.icon as string, ShieldAlert) : isActive ? ShieldAlert : CheckCircle2;
     const showTitle = opts.showTitle !== false;
     const showIcon = opts.showIcon !== false;
     const titleAlign = (opts.titleAlign as string) ?? 'left';
