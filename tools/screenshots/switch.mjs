@@ -28,6 +28,28 @@ const shots = [
         options: { controlMode: 'icon', onColor: 'var(--accent-green)', controlIconSize: 34 },
     },
     {
+        // Representative custom cell matrix: icon | title / status | switch.
+        file: 'layout-custom',
+        value: true,
+        layout: 'custom',
+        w: 16,
+        h: 8,
+        title: 'Stehlampe',
+        options: {
+            customGrid: {
+                cols: 2,
+                rows: 2,
+                colSizes: ['auto', '1fr'],
+                cells: [
+                    { type: 'component', componentKey: 'icon', align: 'center', valign: 'middle' },
+                    { type: 'title', align: 'left', valign: 'middle', bold: true },
+                    { type: 'value', align: 'center', valign: 'middle', bold: true, color: 'var(--accent-green)' },
+                    { type: 'component', componentKey: 'toggle', align: 'right', valign: 'middle' },
+                ],
+            },
+        },
+    },
+    {
         file: 'sicherheitsabfrage',
         value: false,
         layout: 'default',
