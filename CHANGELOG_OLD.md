@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.245 (2026-06-15)
+- fix(theme): readable preset names + explain what a preset changes (#307)
+- feat(layouts): export/import complete layouts with all tabs, widgets and groups
+
 ## 0.9.244 (2026-06-15)
 - chore: ignore examples/ directory
 - chore: remove examples/testdata-generator.js from repo
