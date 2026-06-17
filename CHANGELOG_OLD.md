@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.244 (2026-06-15)
+- chore: ignore examples/ directory
+- chore: remove examples/testdata-generator.js from repo
+- fix(editor): hide 'card' layout option for header widget in new-widget dialog
+
 ## 0.9.243 (2026-06-15)
 - style(prettier): auto-format code files
 - fix(universal-widget): apply preselected state-text colors initially
