@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.265 (2026-06-17)
+- style(prettier): auto-format code files
+- feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble
+
 ## 0.9.264 (2026-06-17)
 - style(prettier): auto-format code files
 - feat(group): add autoShrink option that collapses group height when child widgets are condition-hidden

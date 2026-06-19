@@ -192,6 +192,10 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.285 (2026-06-19)
+- fix(panels): let child clicks through; capture pointer only on real swipe
+
+
 ### 0.9.284 (2026-06-19)
 - fix(panels): pause autoplay while pointer over or focus inside panel
 
@@ -279,11 +283,6 @@ Release v0.9.272
 - fix(backup): gzip auto-backups to stay under socket.io frame limit
 
 
-### 0.9.265 (2026-06-17)
-- style(prettier): auto-format code files
-- feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble
-
-
 ## License
 
 MIT License
@@ -295,6 +294,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
