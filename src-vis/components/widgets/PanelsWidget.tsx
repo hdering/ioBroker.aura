@@ -88,10 +88,13 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
     const pendingDragRef = useRef<{ startX: number; pointerId: number; captured: boolean } | null>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
     const [viewportW, setViewportW] = useState(0);
-    // Auto-advance pauses while the user is interacting with the panel — hovering
-    // with the mouse or keyboard-focused inside it. Without this, an autoplay tick
-    // can fire mid-interaction and flip to the next slide right as the user clicks.
-    const [paused, setPaused] = useState(false);
+    // Auto-advance pauses while the user is interacting with the panel. Hover and
+    // focus are tracked SEPARATELY and OR-ed together: a single flag would let
+    // onMouseLeave un-pause while a control is still focused (e.g. an open select),
+    // so the slide would change out from under the open dropdown.
+    const [hovered, setHovered] = useState(false);
+    const [focusedWithin, setFocusedWithin] = useState(false);
+    const interacting = hovered || focusedWithin;
 
     // Clamp active index when children count drops
     useEffect(() => {
@@ -112,7 +115,7 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
     // Re-entering the effect on un-pause restarts the interval from zero, so the
     // next slide is always a full interval away from the user's last interaction.
     useEffect(() => {
-        if (!autoplay || editMode || paused || children.length < 2) return;
+        if (!autoplay || editMode || interacting || children.length < 2) return;
         const iv = setInterval(() => {
             setActive((i) => {
                 if (i + 1 < children.length) return i + 1;
@@ -120,7 +123,7 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
             });
         }, autoplayInterval * 1000);
         return () => clearInterval(iv);
-    }, [autoplay, autoplayInterval, editMode, paused, children.length, loop]);
+    }, [autoplay, autoplayInterval, editMode, interacting, children.length, loop]);
 
     // ── Navigation ───────────────────────────────────────────────────────────
     const goTo = (i: number) => {
@@ -293,13 +296,13 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
             // Pause auto-advance while the user interacts: mouse over the panel, or
             // focus landing on any control inside it (onFocus/onBlur bubble from
             // children). editMode never autoplays, so the handlers are harmless there.
-            onMouseEnter={() => setPaused(true)}
-            onMouseLeave={() => setPaused(false)}
-            onFocus={() => setPaused(true)}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            onFocus={() => setFocusedWithin(true)}
             onBlur={(e) => {
-                // Only un-pause when focus leaves the panel entirely, not when it
-                // moves between two controls inside it.
-                if (!e.currentTarget.contains(e.relatedTarget as Node)) setPaused(false);
+                // Only clear focus-pause when focus leaves the panel entirely, not
+                // when it moves between two controls inside it.
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) setFocusedWithin(false);
             }}
             {...dragHandlers}
         >
