@@ -626,7 +626,10 @@ export function saveToIoBroker({ backup = true, all = false }: { backup?: boolea
         if (raw) {
             // Pre-save value (RAM only) for diffing; undefined → no before available.
             const before = originals.has(key) ? originals.get(key) : undefined;
-            setStateDirect(IOBROKER_STATE_MAP[key], raw);
+            // ack=true: these are owned config-storage blobs (current values), not
+            // pending commands, so they should land acknowledged rather than as an
+            // unconfirmed client write that no adapter ever acks.
+            setStateDirect(IOBROKER_STATE_MAP[key], raw, true);
             savedAtMap.set(key, { ts: now, value: raw });
             clearDirtyFlag(key);
             changedKeys.push(key);
