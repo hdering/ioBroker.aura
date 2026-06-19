@@ -136,12 +136,12 @@ export function AdminLayout() {
     useVersionGuard();
 
     // ── Datapoint-driven dark/light mode ──────────────────────────────────────
-    // Mirrors the DP aura.0.config.themeMode.admin ('dark'|'light'|'') → admin theme.
+    // Mirrors the DP aura.0.config.themeMode.adminUi ('dark'|'light'|'') → admin theme.
     // The toggle button below also writes to this DP, so frontend and admin
     // stay in sync. Empty string = no override; do nothing.
     useEffect(() => {
         if (!connected) return;
-        return subscribeStateDirect(`${NS}.config.themeMode.admin`, (state) => {
+        return subscribeStateDirect(`${NS}.config.themeMode.adminUi`, (state) => {
             if (state?.val == null) return;
             const raw = state.val;
             let desired: 'dark' | 'light' | null = null;
@@ -375,7 +375,7 @@ export function AdminLayout() {
                                     onClick={() => {
                                         const next = adminTheme.dark ? 'light' : 'dark';
                                         setAdminTheme(next);
-                                        setStateDirect(`${NS}.config.themeMode.admin`, next);
+                                        setStateDirect(`${NS}.config.themeMode.adminUi`, next, true);
                                     }}
                                     className="w-8 h-8 flex items-center justify-center rounded-lg hover:opacity-80 transition-opacity"
                                     style={{

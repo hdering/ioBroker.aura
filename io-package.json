@@ -288,7 +288,7 @@
       "native": {}
     },
     {
-      "_id": "config.themeMode.admin",
+      "_id": "config.themeMode.adminUi",
       "type": "state",
       "common": {
         "name": "Admin theme mode ('dark'|'light'|''); empty = no override",

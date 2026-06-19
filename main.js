@@ -1259,7 +1259,7 @@ class Aura extends utils.Adapter {
         }
 
         // Pre-creation snapshot — what does each id currently look like?
-        for (const id of ['config.themeMode', 'config.themeMode.frontend', 'config.themeMode.admin']) {
+        for (const id of ['config.themeMode', 'config.themeMode.frontend', 'config.themeMode.adminUi']) {
             try {
                 const obj = await this.getObjectAsync(id);
                 this.log.info(
@@ -1283,7 +1283,7 @@ class Aura extends utils.Adapter {
 
         for (const [subId, label] of [
             ['config.themeMode.frontend', 'Frontend'],
-            ['config.themeMode.admin', 'Admin'],
+            ['config.themeMode.adminUi', 'Admin'],
         ]) {
             const common = {
                 name: `${label} theme mode ('dark'|'light'|''); empty = no override`,
@@ -1308,8 +1308,29 @@ class Aura extends utils.Adapter {
             }
         }
 
+        // One-time migration: the admin override used to live at
+        // 'config.themeMode.admin', but ioBroker's Admin Objects tree hides any
+        // id ending in '.admin' in non-expert mode (objectBrowserUtils filter),
+        // so the DP was effectively invisible. Move its value to the renamed,
+        // always-visible 'config.themeMode.adminUi' and drop the old object.
+        try {
+            const legacyAdmin = await this.getObjectAsync('config.themeMode.admin');
+            if (legacyAdmin) {
+                const cur = await this.getStateAsync('config.themeMode.admin');
+                const v = cur && (cur.val === 'dark' || cur.val === 'light') ? cur.val : '';
+                if (v) {
+                    this.log.info(`[themeMode] migrating config.themeMode.admin → adminUi (val='${v}')`);
+                    await this.setStateAsync('config.themeMode.adminUi', v, true);
+                }
+                await this.delObjectAsync('config.themeMode.admin');
+                this.log.info('[themeMode] removed legacy hidden config.themeMode.admin');
+            }
+        } catch (e) {
+            this.log.warn(`[themeMode] admin→adminUi migration threw: ${e && e.stack ? e.stack : e}`);
+        }
+
         // Post-creation snapshot — did each id end up existing?
-        for (const id of ['config.themeMode', 'config.themeMode.frontend', 'config.themeMode.admin']) {
+        for (const id of ['config.themeMode', 'config.themeMode.frontend', 'config.themeMode.adminUi']) {
             try {
                 const obj = await this.getObjectAsync(id);
                 this.log.info(
@@ -1329,7 +1350,7 @@ class Aura extends utils.Adapter {
             }
             try {
                 this.log.info(`[themeMode] seeding admin with '${themeModeSeed}'`);
-                await this.setStateAsync('config.themeMode.admin', themeModeSeed, true);
+                await this.setStateAsync('config.themeMode.adminUi', themeModeSeed, true);
             } catch (e) {
                 this.log.warn(`[themeMode] admin seed threw: ${e && e.stack ? e.stack : e}`);
             }
