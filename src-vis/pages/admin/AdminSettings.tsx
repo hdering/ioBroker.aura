@@ -68,7 +68,7 @@ function ToggleRow({ label, value, onChange }: { label: string; value: boolean; 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
     return (
         <div
-            className="rounded-xl p-4 space-y-3"
+            className="rounded-xl p-4 flex flex-col gap-3"
             style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
         >
             <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>
@@ -652,7 +652,10 @@ function ClientsCard() {
                     {loading ? '…' : t('settings.clients.none')}
                 </p>
             ) : (
-                <div className="aura-scroll space-y-2 mt-1 overflow-y-auto" style={{ maxHeight: 260 }}>
+                <div
+                    className="aura-scroll space-y-2 mt-1 overflow-y-auto flex-1"
+                    style={{ minHeight: 260 }}
+                >
                     {clients.map((c) => {
                         const isMine = c.clientId === myClientId;
                         const isEditing = editingId === c.clientId;
