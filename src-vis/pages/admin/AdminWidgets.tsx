@@ -527,6 +527,7 @@ function TypeSection({
     onDelete,
     defaultOpen,
     focusedId,
+    scrollSignal,
 }: {
     type: WidgetType;
     entries: WidgetEntry[];
@@ -534,17 +535,25 @@ function TypeSection({
     onDelete: (tabId: string, widgetId: string) => void;
     defaultOpen: boolean;
     focusedId?: string;
+    scrollSignal?: number;
 }) {
     const t = useT();
     const hasFocused = !!focusedId && entries.some((e) => e.config.id === focusedId);
     const [open, setOpen] = useState(defaultOpen || hasFocused);
+    const sectionRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         if (hasFocused) setOpen(true);
     }, [hasFocused]);
+    // Chip clicked in the summary bar: open this section and scroll it into view.
+    useEffect(() => {
+        if (scrollSignal == null) return;
+        setOpen(true);
+        queueMicrotask(() => sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }, [scrollSignal]);
     const meta = TYPE_META[type];
 
     return (
-        <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+        <div ref={sectionRef} className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
             <button
                 onClick={() => setOpen(!open)}
                 className="w-full flex items-center gap-3 px-5 py-4 text-left hover:opacity-80 transition-opacity"
@@ -681,6 +690,8 @@ export function AdminWidgets() {
     const tabs = useActiveLayout().tabs;
     const [showSizes, setShowSizes] = useState(false);
     const [search, setSearch] = useState('');
+    // Bumped on each summary-chip click so the matching TypeSection opens + scrolls.
+    const [scrollTarget, setScrollTarget] = useState<{ type: WidgetType; key: number } | null>(null);
     const [searchParams] = useSearchParams();
     const focusId = searchParams.get('focus') || undefined;
     const focusLayout = searchParams.get('layout') || undefined;
@@ -767,9 +778,13 @@ export function AdminWidgets() {
                     const meta = TYPE_META[type];
                     const count = byType.get(type)?.length ?? 0;
                     return (
-                        <span
+                        <button
                             key={type}
-                            className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium"
+                            type="button"
+                            onClick={() =>
+                                setScrollTarget((prev) => ({ type, key: (prev?.key ?? 0) + 1 }))
+                            }
+                            className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium hover:opacity-80 transition-opacity"
                             style={{
                                 background: `${meta.color}18`,
                                 color: meta.color,
@@ -778,7 +793,7 @@ export function AdminWidgets() {
                         >
                             {meta.icon}
                             {meta.label}: {count}
-                        </span>
+                        </button>
                     );
                 })}
             </div>
@@ -802,7 +817,7 @@ export function AdminWidgets() {
                 </p>
             ) : (
                 <div className="space-y-3">
-                    {activeTypes.map((type, i) => (
+                    {activeTypes.map((type) => (
                         <TypeSection
                             key={type}
                             type={type}
@@ -815,8 +830,9 @@ export function AdminWidgets() {
                                 unpublishTimerForWidget(widget);
                                 removeWidgetInTab(tabId, widgetId);
                             }}
-                            defaultOpen={i === 0}
+                            defaultOpen={false}
                             focusedId={focusId}
+                            scrollSignal={scrollTarget?.type === type ? scrollTarget.key : undefined}
                         />
                     ))}
                 </div>
