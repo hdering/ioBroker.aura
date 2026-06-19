@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.264 (2026-06-17)
+- style(prettier): auto-format code files
+- feat(group): add autoShrink option that collapses group height when child widgets are condition-hidden
+
 ## 0.9.263 (2026-06-17)
 - feat(panels): block save when group-defs unhydrated, rename slides→panels, move to Spezial
 - fix(panels): align defId seeding to GroupWidget + loading state

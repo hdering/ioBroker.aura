@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.283",
+    "version": "0.9.284",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.284": {
+        "en": "fix(panels): pause autoplay while pointer over or focus inside panel",
+        "de": "fix(panels): pause autoplay while pointer over or focus inside panel",
+        "ru": "fix(panels): pause autoplay while pointer over or focus inside panel",
+        "pt": "fix(panels): pause autoplay while pointer over or focus inside panel",
+        "nl": "fix(panels): pause autoplay while pointer over or focus inside panel",
+        "fr": "fix(panels): pause autoplay while pointer over or focus inside panel",
+        "it": "fix(panels): pause autoplay while pointer over or focus inside panel",
+        "es": "fix(panels): pause autoplay while pointer over or focus inside panel",
+        "pl": "fix(panels): pause autoplay while pointer over or focus inside panel",
+        "uk": "fix(panels): pause autoplay while pointer over or focus inside panel",
+        "zh-cn": "fix(panels): pause autoplay while pointer over or focus inside panel"
+      },
       "0.9.283": {
         "en": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
         "de": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
@@ -183,19 +196,6 @@
         "pl": "perf(panels): keep slide track on its own GPU layer to reduce autoplay jank",
         "uk": "perf(panels): keep slide track on its own GPU layer to reduce autoplay jank",
         "zh-cn": "perf(panels): keep slide track on its own GPU layer to reduce autoplay jank"
-      },
-      "0.9.277": {
-        "en": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
-        "de": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
-        "ru": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
-        "pt": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
-        "nl": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
-        "fr": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
-        "it": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
-        "es": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
-        "pl": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
-        "uk": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
-        "zh-cn": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)"
       }
     }
   },
