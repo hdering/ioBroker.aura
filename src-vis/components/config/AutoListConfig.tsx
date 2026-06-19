@@ -152,7 +152,7 @@ function EntryConfigRow({
                         resolvedName ||
                         entry.id?.split('.').pop() ||
                         entry.id ||
-                        '⚠ ' + t('autolist.invalidEntry')}
+                        `⚠ ${t('autolist.invalidEntry')}`}
                 </span>
                 <button
                     onClick={() => setExpanded((e) => !e)}
