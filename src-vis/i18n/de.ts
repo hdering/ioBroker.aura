@@ -1095,6 +1095,7 @@ export const de = {
     'autolist.found': '{count} gefunden · {selected} ausgewählt',
     'autolist.apply': '{count} Einträge übernehmen',
     'autolist.settings': 'Einstellungen',
+    'autolist.invalidEntry': 'ungültiger Eintrag (kein Datenpunkt) — entfernen',
     'autolist.auto': 'Automatisch',
     'autolist.roles': 'Rollen',
     'autolist.room': 'Raum',

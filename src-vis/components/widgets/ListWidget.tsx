@@ -434,7 +434,7 @@ function EntryValue({
 
 export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const opts = useMemo(() => (config.options ?? { entries: [] }) as unknown as StaticListOptions, [config.options]);
-    const entries = useMemo<StaticListEntry[]>(() => opts.entries ?? [], [opts.entries]);
+    const entries = useMemo<StaticListEntry[]>(() => (opts.entries ?? []).filter((e) => !!e?.id), [opts.entries]);
     const t = useT();
     const { defaultDecimals } = useGlobalSettingsStore();
     const { subscribe, setState, getState } = useIoBroker();

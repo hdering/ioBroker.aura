@@ -148,7 +148,11 @@ function EntryConfigRow({
                     <ChevronRight size={11} />
                 </button>
                 <span className="flex-1 text-[10px] truncate" style={{ color: 'var(--text-primary)' }}>
-                    {entry.label || resolvedName || entry.id.split('.').pop() || entry.id}
+                    {entry.label ||
+                        resolvedName ||
+                        entry.id?.split('.').pop() ||
+                        entry.id ||
+                        '⚠ ' + t('autolist.invalidEntry')}
                 </span>
                 <button
                     onClick={() => setExpanded((e) => !e)}
@@ -378,12 +382,14 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
     const apply = () => {
         const discovered = new Map(results.map((d) => [d.id, d]));
         const existingMap = new Map((opts.entries ?? []).map((e) => [e.id, e]));
-        const entries: AutoListEntry[] = [...selected].map((id) => {
-            const existing = existingMap.get(id);
-            if (existing) return existing; // preserve user-edited label/unit/trueLabel/falseLabel
-            const dp = discovered.get(id);
-            return { id, label: undefined, rooms: dp?.rooms, unit: dp?.unit, role: dp?.role, writable: dp?.write };
-        });
+        const entries: AutoListEntry[] = [...selected]
+            .filter((id) => !!id)
+            .map((id) => {
+                const existing = existingMap.get(id);
+                if (existing) return existing; // preserve user-edited label/unit/trueLabel/falseLabel
+                const dp = discovered.get(id);
+                return { id, label: undefined, rooms: dp?.rooms, unit: dp?.unit, role: dp?.role, writable: dp?.write };
+            });
         setOpts({
             entries,
             filterAdapters: toCsv(selAdapters),

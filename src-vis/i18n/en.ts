@@ -1093,6 +1093,7 @@ export const en: Record<TranslationKey, string> = {
     'autolist.found': '{count} found · {selected} selected',
     'autolist.apply': 'Apply {count} entries',
     'autolist.settings': 'Settings',
+    'autolist.invalidEntry': 'invalid entry (no datapoint) — remove',
     'autolist.auto': 'Automatic',
     'autolist.roles': 'Roles',
     'autolist.room': 'Room',

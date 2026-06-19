@@ -327,6 +327,7 @@ export function listGroupCandidates(
     type: GroupActionType,
     resolveName?: (id: string) => string | undefined,
 ): GroupCandidate[] {
+    entries = entries.filter((e) => !!e?.id);
     const label = (e: ListEntryLike) => e.label || resolveName?.(e.id) || e.id.split('.').pop() || e.id;
     let items: ListEntryLike[];
     if (type === 'dimmer') {

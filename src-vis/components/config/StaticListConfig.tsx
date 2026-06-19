@@ -16,6 +16,7 @@ import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatap
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { NS } from '../../utils/namespace';
+import { useT } from '../../i18n';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -104,6 +105,7 @@ function EntryRow({
     onDragEnd: () => void;
     onDrop: (idx: number) => void;
 }) {
+    const t = useT();
     const [expanded, setExpanded] = useState(false);
     const [iconPickerOpen, setIconPickerOpen] = useState(false);
     const [dpPickerOpen, setDpPickerOpen] = useState(false);
@@ -174,7 +176,11 @@ function EntryRow({
                         );
                     })()}
                 <span className="flex-1 text-[10px] truncate" style={{ color: 'var(--text-primary)' }}>
-                    {entry.label || resolvedName || entry.id.split('.').pop() || entry.id}
+                    {entry.label ||
+                        resolvedName ||
+                        entry.id?.split('.').pop() ||
+                        entry.id ||
+                        '⚠ ' + t('autolist.invalidEntry')}
                 </span>
                 <button
                     onClick={() => setExpanded((e) => !e)}
@@ -586,7 +592,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
     };
 
     const addEntry = (id: string, _name?: string, unit?: string) => {
-        if (entries.find((e) => e.id === id)) return;
+        if (!id || entries.find((e) => e.id === id)) return;
         const dp = lookupDatapointEntry(id);
         const writable = dp?.write !== false ? undefined : false;
         setOpts({ entries: [...entries, { id, label: undefined, unit: unit || undefined, role: dp?.role, writable }] });
@@ -1210,7 +1216,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                     multiSelect
                     onMultiSelect={(picks) => {
                         const newEntries = picks
-                            .filter((p) => !entries.find((e) => e.id === p.id))
+                            .filter((p) => !!p.id && !entries.find((e) => e.id === p.id))
                             .map((p) => ({
                                 id: p.id,
                                 label: undefined,

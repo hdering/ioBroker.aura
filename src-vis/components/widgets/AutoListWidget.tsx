@@ -673,7 +673,7 @@ function CardEntryValue({
 
 export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const opts = useMemo(() => (config.options ?? { entries: [] }) as unknown as AutoListOptions, [config.options]);
-    const entries = useMemo<AutoListEntry[]>(() => opts.entries ?? [], [opts.entries]);
+    const entries = useMemo<AutoListEntry[]>(() => (opts.entries ?? []).filter((e) => !!e?.id), [opts.entries]);
     const t = useT();
     const { defaultDecimals } = useGlobalSettingsStore();
     const decimals = (opts.decimals as number) ?? defaultDecimals;
