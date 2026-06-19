@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.266 (2026-06-17)
+- fix(backup): gzip auto-backups to stay under socket.io frame limit
+
 ## 0.9.265 (2026-06-17)
 - style(prettier): auto-format code files
 - feat(binarysensor): add active/inactive label color pickers, fix icon toggle wobble

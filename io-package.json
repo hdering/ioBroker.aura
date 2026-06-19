@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.285",
+    "version": "0.9.286",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.286": {
+        "en": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
+        "de": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
+        "ru": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
+        "pt": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
+        "nl": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
+        "fr": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
+        "it": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
+        "es": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
+        "pl": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
+        "uk": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
+        "zh-cn": "fix(panels): track hover and focus separately so open dropdowns don't slide away"
+      },
       "0.9.285": {
         "en": "fix(panels): let child clicks through; capture pointer only on real swipe",
         "de": "fix(panels): let child clicks through; capture pointer only on real swipe",
@@ -183,19 +196,6 @@
         "pl": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
         "uk": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
         "zh-cn": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config"
-      },
-      "0.9.279": {
-        "en": "style(prettier): auto-format code files; chore: stop tracking .vite-dev.log dev artifact; feat(admin-widgets): collapse all type sections by default + clickable summary chips",
-        "de": "style(prettier): auto-format code files; chore: stop tracking .vite-dev.log dev artifact; feat(admin-widgets): collapse all type sections by default + clickable summary chips",
-        "ru": "style(prettier): auto-format code files; chore: stop tracking .vite-dev.log dev artifact; feat(admin-widgets): collapse all type sections by default + clickable summary chips",
-        "pt": "style(prettier): auto-format code files; chore: stop tracking .vite-dev.log dev artifact; feat(admin-widgets): collapse all type sections by default + clickable summary chips",
-        "nl": "style(prettier): auto-format code files; chore: stop tracking .vite-dev.log dev artifact; feat(admin-widgets): collapse all type sections by default + clickable summary chips",
-        "fr": "style(prettier): auto-format code files; chore: stop tracking .vite-dev.log dev artifact; feat(admin-widgets): collapse all type sections by default + clickable summary chips",
-        "it": "style(prettier): auto-format code files; chore: stop tracking .vite-dev.log dev artifact; feat(admin-widgets): collapse all type sections by default + clickable summary chips",
-        "es": "style(prettier): auto-format code files; chore: stop tracking .vite-dev.log dev artifact; feat(admin-widgets): collapse all type sections by default + clickable summary chips",
-        "pl": "style(prettier): auto-format code files; chore: stop tracking .vite-dev.log dev artifact; feat(admin-widgets): collapse all type sections by default + clickable summary chips",
-        "uk": "style(prettier): auto-format code files; chore: stop tracking .vite-dev.log dev artifact; feat(admin-widgets): collapse all type sections by default + clickable summary chips",
-        "zh-cn": "style(prettier): auto-format code files; chore: stop tracking .vite-dev.log dev artifact; feat(admin-widgets): collapse all type sections by default + clickable summary chips"
       }
     }
   },
