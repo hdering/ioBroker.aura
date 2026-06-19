@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.274",
+    "version": "0.9.275",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.275": {
+        "en": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
+        "de": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
+        "ru": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
+        "pt": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
+        "nl": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
+        "fr": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
+        "it": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
+        "es": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
+        "pl": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
+        "uk": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
+        "zh-cn": "fix(theme): upsert themeMode sub-states so admin DP actually persists"
+      },
       "0.9.274": {
         "en": "fix(widgets): keep last-change timestamp inside narrow widgets",
         "de": "fix(widgets): keep last-change timestamp inside narrow widgets",
@@ -183,19 +196,6 @@
         "pl": "docs(widgets): document all remaining widgets with screenshots",
         "uk": "docs(widgets): document all remaining widgets with screenshots",
         "zh-cn": "docs(widgets): document all remaining widgets with screenshots"
-      },
-      "0.9.268": {
-        "en": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots",
-        "de": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots",
-        "ru": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots",
-        "pt": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots",
-        "nl": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots",
-        "fr": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots",
-        "it": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots",
-        "es": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots",
-        "pl": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots",
-        "uk": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots",
-        "zh-cn": "fix: apply value transform to numeric string states; docs: click-to-zoom lightbox + modest inline image sizing; docs(admin): document the full admin area with screenshots; style: wrap configLoader persistManager import (prettier); feat(docs): add switch custom-layout screenshot; feat(docs): screenshot harness + real switch widget screenshots"
       }
     }
   },

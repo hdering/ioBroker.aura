@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.255 (2026-06-16)
+- style(prettier): auto-format code files
+- feat(widget-editor): card framing with amber tint for Darstellung/Erweitert sections
+
 ## 0.9.254 (2026-06-16)
 - chore(frontend): silence benign recharts zero-size container warning
 
