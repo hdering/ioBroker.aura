@@ -1295,14 +1295,14 @@ class Aura extends utils.Adapter {
                 states: { dark: 'dark', light: 'light' },
             };
             try {
-                this.log.info(`[themeMode] creating/migrating state ${subId}`);
-                await this.setObjectNotExistsAsync(subId, { type: 'state', common, native: {} });
-                // Migrate existing object: fix stale role 'level.mode.color' left by earlier versions.
-                const existing = await this.getObjectAsync(subId);
-                if (existing && existing.common && existing.common.role !== 'text') {
-                    this.log.info(`[themeMode] migrating role of ${subId}: '${existing.common.role}' → 'text'`);
-                    await this.extendObjectAsync(subId, { common: { role: 'text' } });
-                }
+                // Use extendObjectAsync (upsert) rather than setObjectNotExistsAsync:
+                // setObjectNotExists skips the DB write when the objects cache reports
+                // the id as existing, which can leave a phantom (cache says exists, DB
+                // empty → Objects browser shows the DP missing while post-create logs
+                // 'exists'). extendObject always issues a write, so the DP is guaranteed
+                // to persist, and it folds in the stale-role ('level.mode.color') fix.
+                this.log.info(`[themeMode] upserting state ${subId}`);
+                await this.extendObjectAsync(subId, { type: 'state', common, native: {} });
             } catch (e) {
                 this.log.error(`[themeMode] create/migrate ${subId} threw: ${e && e.stack ? e.stack : e}`);
             }
