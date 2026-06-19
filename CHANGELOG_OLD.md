@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.267 (2026-06-17)
+- fix(objects): use role 'text' for navigate.target selector
+
 ## 0.9.266 (2026-06-17)
 - fix(backup): gzip auto-backups to stay under socket.io frame limit
 

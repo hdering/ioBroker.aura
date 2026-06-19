@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.286",
+    "version": "0.9.287",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.287": {
+        "en": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
+        "de": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
+        "ru": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
+        "pt": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
+        "nl": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
+        "fr": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
+        "it": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
+        "es": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
+        "pl": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
+        "uk": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
+        "zh-cn": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme"
+      },
       "0.9.286": {
         "en": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
         "de": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
@@ -183,19 +196,6 @@
         "pl": "feat(editor): surface save-blocked hint in the save bar",
         "uk": "feat(editor): surface save-blocked hint in the save bar",
         "zh-cn": "feat(editor): surface save-blocked hint in the save bar"
-      },
-      "0.9.280": {
-        "en": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
-        "de": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
-        "ru": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
-        "pt": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
-        "nl": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
-        "fr": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
-        "it": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
-        "es": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
-        "pl": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
-        "uk": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
-        "zh-cn": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config"
       }
     }
   },
