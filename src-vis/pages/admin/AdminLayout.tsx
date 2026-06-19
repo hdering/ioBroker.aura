@@ -21,6 +21,7 @@ import {
     BookOpen,
     Code2,
     MonitorSmartphone,
+    AlertTriangle,
 } from 'lucide-react';
 import { useAuthStore, logout } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
@@ -108,6 +109,11 @@ export function AdminLayout() {
     const t = useT();
     const { sessionActive } = useAuthStore();
     const { dirty, save, revert, saveError } = useSaveState();
+    // Keep a stable ref to the latest save() so the Ctrl+S / auto-save effects
+    // (which don't depend on `save`) always invoke the current closure — and so
+    // both paths surface the same save-blocked hint instead of failing silently.
+    const saveRef = useRef(save);
+    saveRef.current = save;
     const { adminThemeId, setAdminTheme } = useThemeStore();
     const frontendUrl = useFrontendUrl();
     const { connected } = useIoBroker();
@@ -204,10 +210,7 @@ export function AdminLayout() {
         const handler = (e: KeyboardEvent) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
-                if (isDirty()) {
-                    saveAll();
-                    saveToIoBroker();
-                }
+                if (isDirty()) saveRef.current();
             }
         };
         window.addEventListener('keydown', handler);
@@ -240,10 +243,7 @@ export function AdminLayout() {
                 clearInterval(autoSaveTimerRef.current!);
                 autoSaveTimerRef.current = null;
                 setCountdown(null);
-                if (isDirty()) {
-                    saveAll();
-                    saveToIoBroker();
-                }
+                if (isDirty()) saveRef.current();
             } else {
                 setCountdown(remaining);
             }
@@ -461,8 +461,12 @@ export function AdminLayout() {
                                     <Menu size={16} />
                                 </button>
                             )}
-                            {saveError && !dirty && (
-                                <span className="text-xs mr-auto" style={{ color: 'var(--accent-red)' }}>
+                            {saveError && (
+                                <span
+                                    className="flex items-center gap-1 text-xs mr-auto"
+                                    style={{ color: 'var(--accent-red)' }}
+                                >
+                                    <AlertTriangle size={13} className="shrink-0" />
                                     {saveError}
                                 </span>
                             )}
