@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.260 (2026-06-16)
+- fix(value-transform): persist selected preset so presets sharing a factor stay distinct
+
 ## 0.9.259 (2026-06-16)
 - fix(image-widget): write selected datapoint to imageDatapoint option
 

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.279",
+    "version": "0.9.280",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.280": {
+        "en": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
+        "de": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
+        "ru": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
+        "pt": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
+        "nl": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
+        "fr": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
+        "it": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
+        "es": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
+        "pl": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
+        "uk": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
+        "zh-cn": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config"
+      },
       "0.9.279": {
         "en": "style(prettier): auto-format code files; chore: stop tracking .vite-dev.log dev artifact; feat(admin-widgets): collapse all type sections by default + clickable summary chips",
         "de": "style(prettier): auto-format code files; chore: stop tracking .vite-dev.log dev artifact; feat(admin-widgets): collapse all type sections by default + clickable summary chips",
@@ -183,19 +196,6 @@
         "pl": "fix(widgets): keep last-change timestamp inside narrow widgets",
         "uk": "fix(widgets): keep last-change timestamp inside narrow widgets",
         "zh-cn": "fix(widgets): keep last-change timestamp inside narrow widgets"
-      },
-      "0.9.273": {
-        "en": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
-        "de": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
-        "ru": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
-        "pt": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
-        "nl": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
-        "fr": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
-        "it": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
-        "es": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
-        "pl": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
-        "uk": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap",
-        "zh-cn": "fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap"
       }
     }
   },
