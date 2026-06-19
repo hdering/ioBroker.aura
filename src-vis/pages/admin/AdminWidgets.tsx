@@ -781,9 +781,7 @@ export function AdminWidgets() {
                         <button
                             key={type}
                             type="button"
-                            onClick={() =>
-                                setScrollTarget((prev) => ({ type, key: (prev?.key ?? 0) + 1 }))
-                            }
+                            onClick={() => setScrollTarget((prev) => ({ type, key: (prev?.key ?? 0) + 1 }))}
                             className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium hover:opacity-80 transition-opacity"
                             style={{
                                 background: `${meta.color}18`,
