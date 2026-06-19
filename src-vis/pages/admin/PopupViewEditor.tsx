@@ -1,10 +1,11 @@
 import { useCallback, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactGridLayout from 'react-grid-layout/legacy';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, Plus, Upload } from 'lucide-react';
 import { usePopupConfigStore, BUILTIN_VIEW_IDS } from '../../store/popupConfigStore';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { WidgetFrame } from '../../components/layout/WidgetFrame';
+import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
 import { WIDGET_REGISTRY, ALL_POPUP_PLACEHOLDER_KEYS } from '../../widgetRegistry';
 import { useSuperAdmin } from '../../hooks/useSuperAdmin';
@@ -94,6 +95,7 @@ export function PopupViewEditor() {
 
     const [addType, setAddType] = useState<WidgetType>(SORTED_WIDGET_REGISTRY[0]?.type as WidgetType);
     const [showPlaceholders, setShowPlaceholders] = useState(false);
+    const [showImport, setShowImport] = useState(false);
 
     if (!viewId || !view) {
         return (
@@ -251,6 +253,17 @@ export function PopupViewEditor() {
                     >
                         <Plus size={12} /> Widget
                     </button>
+                    <button
+                        onClick={() => setShowImport(true)}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                    >
+                        <Upload size={12} /> Import
+                    </button>
                 </div>
 
                 {/* Placeholder reference — collapsible, structured */}
@@ -390,6 +403,18 @@ export function PopupViewEditor() {
                     )}
                 </div>
             </div>
+            {showImport && (
+                <ImportWidgetDialog
+                    onAdd={(widget) =>
+                        addWidgetToView(viewId, {
+                            ...widget,
+                            id: `pw-${Date.now()}`,
+                            gridPos: { ...widget.gridPos, x: 0, y: 9999 },
+                        })
+                    }
+                    onClose={() => setShowImport(false)}
+                />
+            )}
         </ActiveLayoutContext.Provider>
     );
 }
