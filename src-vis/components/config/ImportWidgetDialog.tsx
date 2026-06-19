@@ -24,6 +24,7 @@ export function ImportWidgetDialog({
     onClose,
     tabs,
     activeTabId,
+    datapointDefault = '',
 }: {
     onAdd: (widget: WidgetConfig, tabId?: string) => void;
     onAddTab?: (tabData: Omit<Tab, 'id'>) => void;
@@ -32,6 +33,8 @@ export function ImportWidgetDialog({
     tabs?: { id: string; name: string }[];
     /** Optional: pre-selects this tab in the target selector (defaults to first tab) */
     activeTabId?: string;
+    /** Fallback datapoint when an imported widget carries none (e.g. '{{dp}}' for popup views) */
+    datapointDefault?: string;
 }) {
     const t = useT();
     const [jsonText, setJsonText] = useState('');
@@ -69,7 +72,7 @@ export function ImportWidgetDialog({
                 groupDefs?: Record<string, WidgetConfig[]>;
             };
             setParsed({ kind: 'widget', config: widgetConfig as WidgetConfig, groupDefs: defs ?? {} });
-            setDatapoint((widgetConfig as WidgetConfig).datapoint ?? '');
+            setDatapoint((widgetConfig as WidgetConfig).datapoint || datapointDefault);
             setParseError('');
         } catch (e) {
             setParsed(null);

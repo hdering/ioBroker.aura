@@ -405,6 +405,7 @@ export function PopupViewEditor() {
             </div>
             {showImport && (
                 <ImportWidgetDialog
+                    datapointDefault="{{dp}}"
                     onAdd={(widget) =>
                         addWidgetToView(viewId, {
                             ...widget,
