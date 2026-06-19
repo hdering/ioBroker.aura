@@ -591,6 +591,7 @@ export const en: Record<TranslationKey, string> = {
     'wf.menu.dragToGroup': 'Drag into group',
     'wf.menu.dragOutOfGroup': 'Drag out of group',
     'wf.menu.move': 'Move',
+    'wf.menu.popupViews': 'Popup views',
     'wf.menu.delete': 'Delete',
     'wf.menu.confirm': 'Confirm',
     'wf.menu.hidden': 'Hidden',

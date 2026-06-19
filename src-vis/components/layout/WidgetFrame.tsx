@@ -152,7 +152,7 @@ import { IconPickerModal } from '../config/IconPickerModal';
 import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
 import { WidgetClickPopup } from '../widgets/popup/WidgetClickPopup';
 import { useNavigationStore } from '../../store/navigationStore';
-import { usePopupConfigStore } from '../../store/popupConfigStore';
+import { usePopupConfigStore, BUILTIN_VIEW_IDS } from '../../store/popupConfigStore';
 
 // Stable empty array – avoids creating a new reference on every render when no conditions are set
 const NO_CONDITIONS: WidgetCondition[] = [];
@@ -4881,6 +4881,16 @@ export function WidgetFrame({
     );
     const moveLayoutCount = new Set(moveTargets.map((m) => m.layoutId)).size;
 
+    const addWidgetToView = usePopupConfigStore((s) => s.addWidgetToView);
+    // Custom (non-builtin) popup views the widget can be copied/moved into. Built-ins
+    // are excluded because they are overwritten on version bumps, so edits would be lost.
+    // Stable across widget-only mutations: only id/name pairs are compared.
+    const popupViewTargets = useStoreWithEqualityFn(
+        usePopupConfigStore,
+        (s) => s.views.filter((v) => !BUILTIN_VIEW_IDS.has(v.id)).map((v) => ({ id: v.id, name: v.name })),
+        (a, b) => a.length === b.length && a.every((ai, i) => ai.id === b[i].id && ai.name === b[i].name),
+    );
+
     // Stable reference: never create a new [] on every render (would cause infinite effect loop)
     const conditions = (config.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
 
@@ -5748,8 +5758,8 @@ export function WidgetFrame({
                         ) : (
                             <button
                                 onClick={() => {
-                                    if (moveTargets.length === 0) {
-                                        // No other tabs – duplicate directly on same tab
+                                    if (moveTargets.length === 0 && popupViewTargets.length === 0) {
+                                        // No other tabs / popup views – duplicate directly on same tab
                                         addWidgetToLayoutTab(activeLayoutId, activeTabId, {
                                             ...copyConfig(config),
                                             id: `w-${Date.now()}`,
@@ -5766,7 +5776,7 @@ export function WidgetFrame({
                             >
                                 <Copy size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
                                 {t('wf.menu.copy')}
-                                {moveTargets.length > 0 && (
+                                {(moveTargets.length > 0 || popupViewTargets.length > 0) && (
                                     <ChevronDown
                                         size={11}
                                         className="ml-auto transition-transform"
@@ -5778,7 +5788,7 @@ export function WidgetFrame({
                                 )}
                             </button>
                         )}
-                        {showCopyMenu && moveTargets.length > 0 && (
+                        {showCopyMenu && (moveTargets.length > 0 || popupViewTargets.length > 0) && (
                             <div
                                 className="mx-1 mb-0.5 rounded-md overflow-hidden"
                                 style={{ border: '1px solid var(--app-border)' }}
@@ -5848,11 +5858,48 @@ export function WidgetFrame({
                                         );
                                     },
                                 )}
+                                {/* Popup-Views – copy the widget into a custom popup view */}
+                                {popupViewTargets.length > 0 && (
+                                    <div>
+                                        <p
+                                            className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
+                                            style={{
+                                                background: 'var(--app-surface)',
+                                                color: 'var(--text-secondary)',
+                                                borderBottom: '1px solid var(--app-border)',
+                                            }}
+                                        >
+                                            {t('wf.menu.popupViews')}
+                                        </p>
+                                        {popupViewTargets.map((pv) => (
+                                            <button
+                                                key={pv.id}
+                                                onClick={() => {
+                                                    addWidgetToView(pv.id, {
+                                                        ...copyConfig(config),
+                                                        id: `pw-${Date.now()}`,
+                                                        gridPos: { ...config.gridPos, y: 9999 },
+                                                    });
+                                                    openPanelFor(null);
+                                                }}
+                                                className="w-full text-left px-3 py-1.5 text-xs hover:opacity-80 transition-opacity"
+                                                style={{
+                                                    background: 'var(--app-bg)',
+                                                    color: 'var(--text-primary)',
+                                                    display: 'block',
+                                                    borderBottom: '1px solid var(--app-border)',
+                                                }}
+                                            >
+                                                {pv.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
 
                         {/* Verschieben — not available in the popup-view editor (single view) */}
-                        {!onCopy && moveTargets.length > 0 && (
+                        {!onCopy && (moveTargets.length > 0 || popupViewTargets.length > 0) && (
                             <>
                                 <button
                                     onClick={() => setShowMoveMenu((v) => !v)}
@@ -5924,6 +5971,48 @@ export function WidgetFrame({
                                                     </div>
                                                 );
                                             },
+                                        )}
+                                        {/* Popup-Views – move the widget into a custom popup view */}
+                                        {popupViewTargets.length > 0 && (
+                                            <div>
+                                                <p
+                                                    className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
+                                                    style={{
+                                                        background: 'var(--app-surface)',
+                                                        color: 'var(--text-secondary)',
+                                                        borderBottom: '1px solid var(--app-border)',
+                                                    }}
+                                                >
+                                                    {t('wf.menu.popupViews')}
+                                                </p>
+                                                {popupViewTargets.map((pv) => (
+                                                    <button
+                                                        key={pv.id}
+                                                        onClick={() => {
+                                                            addWidgetToView(pv.id, {
+                                                                ...config,
+                                                                id: `pw-${Date.now()}`,
+                                                                gridPos: { ...config.gridPos, y: 9999 },
+                                                            });
+                                                            removeWidgetFromLayoutTab(
+                                                                activeLayoutId,
+                                                                activeTabId,
+                                                                config.id,
+                                                            );
+                                                            openPanelFor(null);
+                                                        }}
+                                                        className="w-full text-left px-3 py-1.5 text-xs hover:opacity-80 transition-opacity"
+                                                        style={{
+                                                            background: 'var(--app-bg)',
+                                                            color: 'var(--text-primary)',
+                                                            display: 'block',
+                                                            borderBottom: '1px solid var(--app-border)',
+                                                        }}
+                                                    >
+                                                        {pv.name}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         )}
                                     </div>
                                 )}

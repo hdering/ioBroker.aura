@@ -591,6 +591,7 @@ export const de = {
     'wf.menu.dragToGroup': 'In Gruppe ziehen',
     'wf.menu.dragOutOfGroup': 'Aus Gruppe herausziehen',
     'wf.menu.move': 'Verschieben',
+    'wf.menu.popupViews': 'Popup-Views',
     'wf.menu.delete': 'Löschen',
     'wf.menu.confirm': 'Bestätigen',
     'wf.menu.hidden': 'Versteckt',
