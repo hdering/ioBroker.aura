@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.280",
+    "version": "0.9.281",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.281": {
+        "en": "feat(editor): surface save-blocked hint in the save bar",
+        "de": "feat(editor): surface save-blocked hint in the save bar",
+        "ru": "feat(editor): surface save-blocked hint in the save bar",
+        "pt": "feat(editor): surface save-blocked hint in the save bar",
+        "nl": "feat(editor): surface save-blocked hint in the save bar",
+        "fr": "feat(editor): surface save-blocked hint in the save bar",
+        "it": "feat(editor): surface save-blocked hint in the save bar",
+        "es": "feat(editor): surface save-blocked hint in the save bar",
+        "pl": "feat(editor): surface save-blocked hint in the save bar",
+        "uk": "feat(editor): surface save-blocked hint in the save bar",
+        "zh-cn": "feat(editor): surface save-blocked hint in the save bar"
+      },
       "0.9.280": {
         "en": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
         "de": "style(list): use template literal for invalid-entry marker (prefer-template); fix(list): stop id-less entries from crashing list widgets and config",
@@ -183,19 +196,6 @@
         "pl": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
         "uk": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
         "zh-cn": "fix(theme): upsert themeMode sub-states so admin DP actually persists"
-      },
-      "0.9.274": {
-        "en": "fix(widgets): keep last-change timestamp inside narrow widgets",
-        "de": "fix(widgets): keep last-change timestamp inside narrow widgets",
-        "ru": "fix(widgets): keep last-change timestamp inside narrow widgets",
-        "pt": "fix(widgets): keep last-change timestamp inside narrow widgets",
-        "nl": "fix(widgets): keep last-change timestamp inside narrow widgets",
-        "fr": "fix(widgets): keep last-change timestamp inside narrow widgets",
-        "it": "fix(widgets): keep last-change timestamp inside narrow widgets",
-        "es": "fix(widgets): keep last-change timestamp inside narrow widgets",
-        "pl": "fix(widgets): keep last-change timestamp inside narrow widgets",
-        "uk": "fix(widgets): keep last-change timestamp inside narrow widgets",
-        "zh-cn": "fix(widgets): keep last-change timestamp inside narrow widgets"
       }
     }
   },
