@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.276",
+    "version": "0.9.277",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.277": {
+        "en": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
+        "de": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
+        "ru": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
+        "pt": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
+        "nl": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
+        "fr": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
+        "it": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
+        "es": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
+        "pl": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
+        "uk": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
+        "zh-cn": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)"
+      },
       "0.9.276": {
         "en": "fix(persist): acknowledge config-storage DP writes (ack=true)",
         "de": "fix(persist): acknowledge config-storage DP writes (ack=true)",
@@ -183,19 +196,6 @@
         "pl": "feat(widgets): derive panels/group add-widget pickers from registry",
         "uk": "feat(widgets): derive panels/group add-widget pickers from registry",
         "zh-cn": "feat(widgets): derive panels/group add-widget pickers from registry"
-      },
-      "0.9.270": {
-        "en": "docs(widgets): expand every widget page with layout & option details",
-        "de": "docs(widgets): expand every widget page with layout & option details",
-        "ru": "docs(widgets): expand every widget page with layout & option details",
-        "pt": "docs(widgets): expand every widget page with layout & option details",
-        "nl": "docs(widgets): expand every widget page with layout & option details",
-        "fr": "docs(widgets): expand every widget page with layout & option details",
-        "it": "docs(widgets): expand every widget page with layout & option details",
-        "es": "docs(widgets): expand every widget page with layout & option details",
-        "pl": "docs(widgets): expand every widget page with layout & option details",
-        "uk": "docs(widgets): expand every widget page with layout & option details",
-        "zh-cn": "docs(widgets): expand every widget page with layout & option details"
       }
     }
   },

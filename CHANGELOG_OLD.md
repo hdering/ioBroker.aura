@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.257 (2026-06-16)
+- feat(popup): auto-detect history adapter for charts opened from value widgets
+
 ## 0.9.256 (2026-06-16)
 - feat(widgets): display-only value transform (factor/offset) with preset dropdown
 - chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)
