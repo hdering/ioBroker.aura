@@ -1,22 +1,21 @@
 /**
- * HtmlSelect — a select-style dropdown whose options can render HTML
- * (e.g. <img> logos), which a native <select>/<option> cannot do.
+ * HtmlSelect — a select-style dropdown whose options can render arbitrary
+ * React content (text, <img> logos, sanitised HTML, icons), which a native
+ * <select>/<option> cannot do.
  *
  * The open list is rendered into a portal (usePortalTarget) so it is not
  * clipped by the widget's overflow, positioned + viewport-clamped like the
- * PortalDropdown in WidgetFrame.tsx. Each option's label is sanitised and
- * rendered via SafeHtml.
+ * PortalDropdown in WidgetFrame.tsx. Each option supplies a precomputed
+ * `content` node so this component stays agnostic of how labels are rendered.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
-import { SafeHtml } from './SafeHtml';
 
 export interface HtmlSelectEntry {
     value: string;
-    label: string;
-    color?: string;
+    content: React.ReactNode;
 }
 
 interface Props {
@@ -41,16 +40,12 @@ export function HtmlSelect({ entries, value, onPick }: Props) {
                 className="nodrag text-xs rounded-lg pl-2.5 pr-7 py-1.5 focus:outline-none inline-flex items-center truncate"
                 style={{
                     background: 'var(--app-bg)',
-                    color: current?.color ?? 'var(--text-primary)',
+                    color: 'var(--text-primary)',
                     border: '1px solid var(--app-border)',
                     maxWidth: '100%',
                 }}
             >
-                {current ? (
-                    <SafeHtml html={current.label} className="truncate" />
-                ) : (
-                    <span style={{ color: 'var(--text-secondary)' }}>–</span>
-                )}
+                {current ? current.content : <span style={{ color: 'var(--text-secondary)' }}>–</span>}
             </button>
             <ChevronDown
                 size={12}
@@ -155,12 +150,9 @@ function HtmlSelectMenu({
                     type="button"
                     onClick={() => onPick(e.value)}
                     className="w-full text-left px-3 py-1.5 text-xs flex items-center hover:opacity-80"
-                    style={{
-                        background: e.value === value ? 'var(--app-bg)' : 'transparent',
-                        color: e.color ?? 'var(--text-primary)',
-                    }}
+                    style={{ background: e.value === value ? 'var(--app-bg)' : 'transparent' }}
                 >
-                    <SafeHtml html={e.label} />
+                    {e.content}
                 </button>
             ))}
         </div>,
