@@ -19,6 +19,10 @@ import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 const SWIPE_THRESHOLD = 60; // px — minimum drag distance to trigger slide change
+// px the pointer must travel before a swipe takes over. Below this we never
+// capture the pointer, so taps/clicks reach interactive children (switches,
+// buttons) unharmed; only a real horizontal drag starts paging.
+const DRAG_START_THRESHOLD = 8;
 
 export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const t = useT();
@@ -78,6 +82,10 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
     const [active, setActive] = useState(0);
     const [dragOver, setDragOver] = useState(false);
     const [drag, setDrag] = useState<{ startX: number; dx: number } | null>(null);
+    // Tracks an in-progress pointer interaction before it's promoted to a swipe.
+    // `captured` flips true once movement crosses DRAG_START_THRESHOLD; only then
+    // do we grab the pointer and start moving the slide track.
+    const pendingDragRef = useRef<{ startX: number; pointerId: number; captured: boolean } | null>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
     const [viewportW, setViewportW] = useState(0);
     // Auto-advance pauses while the user is interacting with the panel — hovering
@@ -132,19 +140,33 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
         if (editMode || children.length < 2) return;
         // Only react to primary button / single-touch
         if (e.pointerType === 'mouse' && e.button !== 0) return;
-        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-        setDrag({ startX: e.clientX, dx: 0 });
+        // Record the start but DON'T capture yet — capturing here would swallow the
+        // click on interactive children (switches/buttons). We take over only once
+        // the pointer actually moves past DRAG_START_THRESHOLD (a real swipe).
+        pendingDragRef.current = { startX: e.clientX, pointerId: e.pointerId, captured: false };
     };
     const onPointerMove = (e: React.PointerEvent) => {
-        if (!drag) return;
-        setDrag({ ...drag, dx: e.clientX - drag.startX });
+        const pd = pendingDragRef.current;
+        if (!pd) return;
+        const dx = e.clientX - pd.startX;
+        if (!pd.captured) {
+            if (Math.abs(dx) < DRAG_START_THRESHOLD) return; // still could be a tap — let it be
+            pd.captured = true;
+            (e.currentTarget as HTMLElement).setPointerCapture(pd.pointerId);
+        }
+        setDrag({ startX: pd.startX, dx });
     };
     const onPointerUp = (e: React.PointerEvent) => {
-        if (!drag) return;
-        (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
-        if (Math.abs(drag.dx) > SWIPE_THRESHOLD) {
-            if (drag.dx < 0) next();
-            else prev();
+        const pd = pendingDragRef.current;
+        pendingDragRef.current = null;
+        if (!pd) return;
+        if (pd.captured) {
+            (e.currentTarget as HTMLElement).releasePointerCapture?.(pd.pointerId);
+            const dx = e.clientX - pd.startX;
+            if (Math.abs(dx) > SWIPE_THRESHOLD) {
+                if (dx < 0) next();
+                else prev();
+            }
         }
         setDrag(null);
     };
