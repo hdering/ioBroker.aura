@@ -18,6 +18,29 @@ export interface HtmlSelectEntry {
     content: React.ReactNode;
 }
 
+/**
+ * Theme vars the portaled menu references (directly or via inheritance). They
+ * are copied from the anchor's resolved style onto the portal panel so the menu
+ * matches the widget's theme even when it portals into a differently-themed
+ * scope (e.g. a per-layout theme is scoped to [data-aura-app="frontend"] while
+ * the menu lands on document.body, which only carries the global :root theme).
+ */
+const THEME_VAR_NAMES = [
+    '--app-bg',
+    '--app-surface',
+    '--app-border',
+    '--widget-bg',
+    '--widget-border',
+    '--widget-radius',
+    '--widget-shadow',
+    '--text-primary',
+    '--text-secondary',
+    '--accent',
+    '--accent-green',
+    '--accent-yellow',
+    '--accent-red',
+] as const;
+
 interface Props {
     entries: HtmlSelectEntry[];
     /** Currently selected entry value (''=none). */
@@ -90,6 +113,15 @@ function HtmlSelectMenu({
         const anchor = anchorRef.current;
         if (!panel || !anchor) return;
 
+        // Inherit the widget's theme: copy the anchor's resolved CSS vars onto the
+        // panel so var(--app-surface) etc. resolve to the same values the trigger
+        // uses, regardless of which DOM scope the portal target lives in.
+        const cs = getComputedStyle(anchor);
+        for (const name of THEME_VAR_NAMES) {
+            const v = cs.getPropertyValue(name).trim();
+            if (v) panel.style.setProperty(name, v);
+        }
+
         const panelRect = panel.getBoundingClientRect();
         const anchorRect = anchor.getBoundingClientRect();
         const vw = window.innerWidth;
@@ -134,6 +166,7 @@ function HtmlSelectMenu({
                 left: -9999,
                 maxHeight: '60vh',
                 background: 'var(--app-surface)',
+                color: 'var(--text-primary)',
                 border: '1px solid var(--app-border)',
                 visibility: 'hidden',
             }}
