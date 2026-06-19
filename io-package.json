@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.277",
+    "version": "0.9.278",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.278": {
+        "en": "perf(panels): keep slide track on its own GPU layer to reduce autoplay jank",
+        "de": "perf(panels): keep slide track on its own GPU layer to reduce autoplay jank",
+        "ru": "perf(panels): keep slide track on its own GPU layer to reduce autoplay jank",
+        "pt": "perf(panels): keep slide track on its own GPU layer to reduce autoplay jank",
+        "nl": "perf(panels): keep slide track on its own GPU layer to reduce autoplay jank",
+        "fr": "perf(panels): keep slide track on its own GPU layer to reduce autoplay jank",
+        "it": "perf(panels): keep slide track on its own GPU layer to reduce autoplay jank",
+        "es": "perf(panels): keep slide track on its own GPU layer to reduce autoplay jank",
+        "pl": "perf(panels): keep slide track on its own GPU layer to reduce autoplay jank",
+        "uk": "perf(panels): keep slide track on its own GPU layer to reduce autoplay jank",
+        "zh-cn": "perf(panels): keep slide track on its own GPU layer to reduce autoplay jank"
+      },
       "0.9.277": {
         "en": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
         "de": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
@@ -183,19 +196,6 @@
         "pl": "Release v0.9.272",
         "uk": "Release v0.9.272",
         "zh-cn": "Release v0.9.272"
-      },
-      "0.9.271": {
-        "en": "feat(widgets): derive panels/group add-widget pickers from registry",
-        "de": "feat(widgets): derive panels/group add-widget pickers from registry",
-        "ru": "feat(widgets): derive panels/group add-widget pickers from registry",
-        "pt": "feat(widgets): derive panels/group add-widget pickers from registry",
-        "nl": "feat(widgets): derive panels/group add-widget pickers from registry",
-        "fr": "feat(widgets): derive panels/group add-widget pickers from registry",
-        "it": "feat(widgets): derive panels/group add-widget pickers from registry",
-        "es": "feat(widgets): derive panels/group add-widget pickers from registry",
-        "pl": "feat(widgets): derive panels/group add-widget pickers from registry",
-        "uk": "feat(widgets): derive panels/group add-widget pickers from registry",
-        "zh-cn": "feat(widgets): derive panels/group add-widget pickers from registry"
       }
     }
   },

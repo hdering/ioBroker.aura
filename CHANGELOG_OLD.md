@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.258 (2026-06-16)
+- feat(adapter-status): add "Deaktiviert" filter for disabled instances
+
 ## 0.9.257 (2026-06-16)
 - feat(popup): auto-detect history adapter for charts opened from value widgets
 
