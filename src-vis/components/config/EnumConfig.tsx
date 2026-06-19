@@ -9,6 +9,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import type { EnumEntry } from '../widgets/EnumWidget';
 import { getObjectDirect } from '../../hooks/useIoBroker';
+import { SafeHtml } from '../common/SafeHtml';
 
 interface Props {
     config: WidgetConfig;
@@ -157,12 +158,12 @@ export function EnumConfig({ config, onConfigChange }: Props) {
                                 className={`${iCls} font-mono`}
                                 style={{ ...iSty, width: '80px', flexShrink: 0 }}
                             />
-                            <input
-                                type="text"
+                            <textarea
                                 value={entry.label}
                                 onChange={(e) => update(idx, { label: e.target.value })}
-                                placeholder="Label"
-                                className={`flex-1 ${iCls} min-w-0`}
+                                placeholder="Label (HTML erlaubt)"
+                                rows={2}
+                                className={`flex-1 ${iCls} min-w-0 resize-y font-mono leading-snug`}
                                 style={iSty}
                             />
                             <input
@@ -200,6 +201,19 @@ export function EnumConfig({ config, onConfigChange }: Props) {
                                 <Trash2 size={12} />
                             </button>
                         </div>
+                        {entry.label.includes('<') && (
+                            <div
+                                className="flex items-center gap-1.5 text-[10px]"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                <span className="shrink-0 opacity-70">Vorschau:</span>
+                                <SafeHtml
+                                    html={entry.label}
+                                    className="min-w-0 truncate"
+                                    style={{ color: entry.color ?? 'var(--text-primary)' }}
+                                />
+                            </div>
+                        )}
                     </div>
                 ))}
                 <button
@@ -213,6 +227,10 @@ export function EnumConfig({ config, onConfigChange }: Props) {
                 >
                     <Plus size={12} /> Eintrag hinzufügen
                 </button>
+                <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                    Label unterstützt HTML, z.B. <code>{`<img src='…/logo.png' width='40' height='40'>`}</code>. Skripte
+                    werden entfernt.
+                </p>
             </div>
         </>
     );

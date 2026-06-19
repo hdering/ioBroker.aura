@@ -1,4 +1,4 @@
-import { ListChecks, ChevronDown } from 'lucide-react';
+import { ListChecks } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
@@ -6,6 +6,8 @@ import { contentPositionClass, titlePositionStyle } from '../../utils/widgetUtil
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
+import { SafeHtml } from '../common/SafeHtml';
+import { HtmlSelect } from '../common/HtmlSelect';
 
 export interface EnumEntry {
     value: string; // stored as string; parsed to number if numeric
@@ -50,33 +52,7 @@ export function EnumWidget({ config }: WidgetProps) {
         setState(config.datapoint, parseValue(raw));
     };
 
-    const selectEl = showSelect ? (
-        <div className="aura-widget-action relative inline-flex items-center" style={{ minWidth: 0 }}>
-            <select
-                value={current?.value ?? ''}
-                onChange={(e) => onPick(e.target.value)}
-                className="nodrag text-xs rounded-lg pl-2.5 pr-7 py-1.5 focus:outline-none appearance-none truncate"
-                style={{
-                    background: 'var(--app-bg)',
-                    color: 'var(--text-primary)',
-                    border: '1px solid var(--app-border)',
-                    maxWidth: '100%',
-                }}
-            >
-                {!current && <option value="">–</option>}
-                {entries.map((e) => (
-                    <option key={e.value} value={e.value}>
-                        {e.label}
-                    </option>
-                ))}
-            </select>
-            <ChevronDown
-                size={12}
-                className="absolute right-2 pointer-events-none"
-                style={{ color: 'var(--text-secondary)' }}
-            />
-        </div>
-    ) : null;
+    const selectEl = showSelect ? <HtmlSelect entries={entries} value={current?.value ?? ''} onPick={onPick} /> : null;
 
     // --- CUSTOM (3×3 Standard-Grid, vordefinierte Component-Slots: icon / select / label) ---
     if (layout === 'custom') {
@@ -95,12 +71,11 @@ export function EnumWidget({ config }: WidgetProps) {
                     ) : null,
                     select: selectEl,
                     label: showValue ? (
-                        <span
+                        <SafeHtml
+                            html={currentLabel}
                             className="aura-widget-value text-base font-semibold truncate"
                             style={{ color: currentColor ?? 'var(--text-primary)' }}
-                        >
-                            {currentLabel}
-                        </span>
+                        />
                     ) : null,
                 }}
             />
@@ -140,12 +115,11 @@ export function EnumWidget({ config }: WidgetProps) {
                 )}
                 <div className="flex items-center gap-2 shrink-0 min-w-0">
                     {showValue && (
-                        <span
+                        <SafeHtml
+                            html={currentLabel}
                             className="aura-widget-value text-base font-semibold truncate"
                             style={{ color: currentColor ?? 'var(--text-primary)' }}
-                        >
-                            {currentLabel}
-                        </span>
+                        />
                     )}
                     {selectEl}
                 </div>
@@ -162,12 +136,11 @@ export function EnumWidget({ config }: WidgetProps) {
                 style={{ position: 'relative' }}
             >
                 {showValue && (
-                    <span
+                    <SafeHtml
+                        html={currentLabel}
                         className="aura-widget-value text-xl font-bold truncate max-w-full"
                         style={{ color: currentColor ?? 'var(--accent)' }}
-                    >
-                        {currentLabel}
-                    </span>
+                    />
                 )}
                 {selectEl}
                 {showTitle && (
@@ -215,9 +188,11 @@ export function EnumWidget({ config }: WidgetProps) {
                     )}
                     <div className="flex items-center gap-2 flex-wrap min-w-0">
                         {showValue && (
-                            <span className="aura-widget-value text-xl font-bold truncate" style={{ color: accent }}>
-                                {currentLabel}
-                            </span>
+                            <SafeHtml
+                                html={currentLabel}
+                                className="aura-widget-value text-xl font-bold truncate"
+                                style={{ color: accent }}
+                            />
                         )}
                         {selectEl}
                     </div>
@@ -263,12 +238,11 @@ export function EnumWidget({ config }: WidgetProps) {
             )}
             <div className="flex items-center gap-2 flex-wrap min-w-0">
                 {showValue && (
-                    <span
+                    <SafeHtml
+                        html={currentLabel}
                         className="aura-widget-value text-base font-semibold truncate"
                         style={{ color: currentColor ?? 'var(--text-primary)' }}
-                    >
-                        {currentLabel}
-                    </span>
+                    />
                 )}
                 {selectEl}
             </div>
