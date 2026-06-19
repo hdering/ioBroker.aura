@@ -311,13 +311,26 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
                             transform: `translate3d(${translateX}px, 0, 0)`,
                             transition: drag ? 'none' : 'transform 280ms ease-out',
                             width: `${children.length * 100}%`,
+                            // Keep the slide track promoted to its own compositor layer so
+                            // each transition just moves an existing texture instead of
+                            // re-rasterising every slide on each autoplay tick — the main
+                            // source of jank on weaker tablets. backfaceVisibility nudges
+                            // stubborn GPUs into actually creating the layer.
+                            willChange: 'transform',
+                            backfaceVisibility: 'hidden',
                         }}
                     >
                         {children.map((child) => (
                             <div
                                 key={child.id}
                                 className="relative shrink-0 p-1"
-                                style={{ width: viewportW || `${100 / Math.max(1, children.length)}%` }}
+                                style={{
+                                    width: viewportW || `${100 / Math.max(1, children.length)}%`,
+                                    // Layout containment: a child widget resizing/ticking
+                                    // can't reflow the sibling slides, so the track layer
+                                    // stays valid through the whole transition.
+                                    contain: 'layout',
+                                }}
                             >
                                 <WidgetFrame
                                     config={child}
