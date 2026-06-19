@@ -192,6 +192,12 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.279 (2026-06-19)
+- style(prettier): auto-format code files
+- chore: stop tracking .vite-dev.log dev artifact
+- feat(admin-widgets): collapse all type sections by default + clickable summary chips
+
+
 ### 0.9.278 (2026-06-19)
 - perf(panels): keep slide track on its own GPU layer to reduce autoplay jank
 
@@ -278,10 +284,6 @@ Release v0.9.272
 - fix(value-transform): persist selected preset so presets sharing a factor stay distinct
 
 
-### 0.9.259 (2026-06-16)
-- fix(image-widget): write selected datapoint to imageDatapoint option
-
-
 ## License
 
 MIT License
@@ -293,6 +295,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.259 (2026-06-16)
+- fix(image-widget): write selected datapoint to imageDatapoint option
+
 ## 0.9.258 (2026-06-16)
 - feat(adapter-status): add "Deaktiviert" filter for disabled instances
 
