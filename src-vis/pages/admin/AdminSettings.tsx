@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { setupPin } from '../../store/authStore';
 import { useActiveLayout } from '../../store/dashboardStore';
 
@@ -513,6 +513,15 @@ function ClientsCard() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editValue, setEditValue] = useState('');
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+    // Scroll the expanded confirm/edit row into view: for devices near the bottom of the
+    // scroll container the inline panel would otherwise open below the fold and go unnoticed.
+    const expandedRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (confirmDeleteId || editingId) {
+            expandedRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+    }, [confirmDeleteId, editingId]);
 
     const load = useCallback(async () => {
         // Screenshot harness: show representative devices, not the real clients.
@@ -721,6 +730,7 @@ function ClientsCard() {
                                 {/* Inline edit */}
                                 {isEditing && (
                                     <div
+                                        ref={expandedRef}
                                         className="flex items-center gap-2 px-3 py-2.5"
                                         style={{
                                             background: 'var(--app-surface)',
@@ -760,6 +770,7 @@ function ClientsCard() {
                                 {/* Delete confirmation */}
                                 {confirmDeleteId === c.clientId && (
                                     <div
+                                        ref={expandedRef}
                                         className="flex items-center gap-2 px-3 py-2.5"
                                         style={{
                                             background: 'var(--app-surface)',
