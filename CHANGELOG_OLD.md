@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.263 (2026-06-17)
+- feat(panels): block save when group-defs unhydrated, rename slides→panels, move to Spezial
+- fix(panels): align defId seeding to GroupWidget + loading state
+- feat(panels): re-add slide-of-widgets carousel as new 'panels' widget
+
 ## 0.9.262 (2026-06-16)
 - fix(navigate): create per-client navigate.target for existing clients
 - fix(popup-editor): copy widgets within the popup, drop cross-tab move

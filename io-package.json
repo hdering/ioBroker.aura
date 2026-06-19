@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.282",
+    "version": "0.9.283",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.283": {
+        "en": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
+        "de": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
+        "ru": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
+        "pt": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
+        "nl": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
+        "fr": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
+        "it": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
+        "es": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
+        "pl": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
+        "uk": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
+        "zh-cn": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view"
+      },
       "0.9.282": {
         "en": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
         "de": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
@@ -183,19 +196,6 @@
         "pl": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
         "uk": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)",
         "zh-cn": "fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)"
-      },
-      "0.9.276": {
-        "en": "fix(persist): acknowledge config-storage DP writes (ack=true)",
-        "de": "fix(persist): acknowledge config-storage DP writes (ack=true)",
-        "ru": "fix(persist): acknowledge config-storage DP writes (ack=true)",
-        "pt": "fix(persist): acknowledge config-storage DP writes (ack=true)",
-        "nl": "fix(persist): acknowledge config-storage DP writes (ack=true)",
-        "fr": "fix(persist): acknowledge config-storage DP writes (ack=true)",
-        "it": "fix(persist): acknowledge config-storage DP writes (ack=true)",
-        "es": "fix(persist): acknowledge config-storage DP writes (ack=true)",
-        "pl": "fix(persist): acknowledge config-storage DP writes (ack=true)",
-        "uk": "fix(persist): acknowledge config-storage DP writes (ack=true)",
-        "zh-cn": "fix(persist): acknowledge config-storage DP writes (ack=true)"
       }
     }
   },
