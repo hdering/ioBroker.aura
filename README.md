@@ -192,6 +192,10 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.276 (2026-06-19)
+- fix(persist): acknowledge config-storage DP writes (ack=true)
+
+
 ### 0.9.275 (2026-06-19)
 - fix(theme): upsert themeMode sub-states so admin DP actually persists
 
@@ -278,11 +282,6 @@ Release v0.9.272
 - feat(popup): auto-detect history adapter for charts opened from value widgets
 
 
-### 0.9.256 (2026-06-16)
-- feat(widgets): display-only value transform (factor/offset) with preset dropdown
-- chore(deps-dev): bump lucide-react from 1.17.0 to 1.20.0 (#332)
-
-
 ## License
 
 MIT License
@@ -294,6 +293,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
