@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.262 (2026-06-16)
+- fix(navigate): create per-client navigate.target for existing clients
+- fix(popup-editor): copy widgets within the popup, drop cross-tab move
+
 ## 0.9.261 (2026-06-16)
 - feat(navigate): add view/tab selector datapoint
 

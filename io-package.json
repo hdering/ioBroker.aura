@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.281",
+    "version": "0.9.282",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.282": {
+        "en": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
+        "de": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
+        "ru": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
+        "pt": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
+        "nl": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
+        "fr": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
+        "it": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
+        "es": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
+        "pl": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
+        "uk": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
+        "zh-cn": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels"
+      },
       "0.9.281": {
         "en": "feat(editor): surface save-blocked hint in the save bar",
         "de": "feat(editor): surface save-blocked hint in the save bar",
@@ -183,19 +196,6 @@
         "pl": "fix(persist): acknowledge config-storage DP writes (ack=true)",
         "uk": "fix(persist): acknowledge config-storage DP writes (ack=true)",
         "zh-cn": "fix(persist): acknowledge config-storage DP writes (ack=true)"
-      },
-      "0.9.275": {
-        "en": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
-        "de": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
-        "ru": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
-        "pt": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
-        "nl": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
-        "fr": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
-        "it": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
-        "es": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
-        "pl": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
-        "uk": "fix(theme): upsert themeMode sub-states so admin DP actually persists",
-        "zh-cn": "fix(theme): upsert themeMode sub-states so admin DP actually persists"
       }
     }
   },
