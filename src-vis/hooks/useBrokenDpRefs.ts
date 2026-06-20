@@ -66,17 +66,24 @@ function collectRefs(widget: WidgetConfig, location: string, routeTo: string | u
     return refs;
 }
 
+const isGroupHost = (w: WidgetConfig): boolean =>
+    (w.type === 'group' || w.type === 'panels') && typeof w.options?.defId === 'string';
+
 function collectAllRefs(): BrokenRef[] {
     const out: BrokenRef[] = [];
     const layouts = useDashboardStore.getState().layouts;
     const defs = useGroupDefsStore.getState().defs;
+    const views = usePopupConfigStore.getState().views;
 
-    // Build a defId -> top-level host location map first so group children can
-    // deep-link into the editor. A defId can be hosted directly by a group/panels
-    // widget on a tab, or nested inside another group def. Either way the editor
-    // can only focus a *top-level* widget, so we walk each host's def tree and map
-    // every reachable defId (including nested ones) back to that same top-level host.
-    type ParentLoc = { parent: WidgetConfig; layoutId: string; layoutName: string; tabId: string; tabName: string };
+    // Build a defId -> host map so group children can deep-link into the editor.
+    // A defId is hosted by a group/panels widget that lives either on a dashboard
+    // tab or inside a popup view, possibly nested inside other group defs. The
+    // editor can only focus a *top-level* widget, so we walk each host's def tree
+    // and map every reachable defId (including nested ones) back to that same host.
+    // Defs that never appear here are orphans (no widget references them anymore)
+    // and are skipped below — listing their broken DPs would be noise the user
+    // can neither locate nor fix.
+    type ParentLoc = { parent: WidgetConfig; route: string; locationPrefix: string };
     const defIdToParent = new Map<string, ParentLoc>();
     // First-wins (Map.has guard) keeps the deep-link stable when a defId is
     // referenced from multiple hosts, and doubles as cycle protection while
@@ -85,52 +92,41 @@ function collectAllRefs(): BrokenRef[] {
         if (!defId || defIdToParent.has(defId)) return;
         defIdToParent.set(defId, loc);
         for (const child of defs[defId] ?? []) {
-            if ((child.type === 'group' || child.type === 'panels') && typeof child.options?.defId === 'string') {
-                mapDefTree(child.options.defId, loc);
-            }
+            if (isGroupHost(child)) mapDefTree(child.options!.defId as string, loc);
         }
     };
+
     for (const l of layouts) {
         for (const tab of l.tabs) {
             for (const w of tab.widgets) {
-                if ((w.type === 'group' || w.type === 'panels') && typeof w.options?.defId === 'string') {
-                    mapDefTree(w.options.defId, {
+                const route = `/admin/editor?layout=${encodeURIComponent(l.id)}&tab=${encodeURIComponent(tab.id)}&focus=${encodeURIComponent(w.id)}`;
+                if (isGroupHost(w)) {
+                    mapDefTree(w.options!.defId as string, {
                         parent: w,
-                        layoutId: l.id,
-                        layoutName: l.name,
-                        tabId: tab.id,
-                        tabName: tab.name,
+                        route,
+                        locationPrefix: `${l.name} / ${tab.name}`,
                     });
                 }
-                const route = `/admin/editor?layout=${encodeURIComponent(l.id)}&tab=${encodeURIComponent(tab.id)}&focus=${encodeURIComponent(w.id)}`;
                 out.push(...collectRefs(w, `${l.name} / ${tab.name}`, route));
             }
         }
     }
 
-    for (const [defId, children] of Object.entries(defs)) {
-        const parentLoc = defIdToParent.get(defId);
-        for (const w of children) {
-            const location = parentLoc
-                ? `${parentLoc.layoutName} / ${parentLoc.tabName} · in ${parentLoc.parent.title || parentLoc.parent.type}`
-                : `Group ${defId.slice(0, 8)}`;
-            const route = parentLoc
-                ? `/admin/editor?layout=${encodeURIComponent(parentLoc.layoutId)}&tab=${encodeURIComponent(parentLoc.tabId)}&focus=${encodeURIComponent(parentLoc.parent.id)}`
-                : undefined;
-            out.push(...collectRefs(w, location, route));
+    for (const v of views) {
+        const locationPrefix = `Popup ${v.name || v.id}`;
+        for (const w of v.widgets) {
+            const route = `/admin/popups/${encodeURIComponent(v.id)}?focus=${encodeURIComponent(w.id)}`;
+            if (isGroupHost(w)) mapDefTree(w.options!.defId as string, { parent: w, route, locationPrefix });
+            out.push(...collectRefs(w, locationPrefix, route));
         }
     }
 
-    const views = usePopupConfigStore.getState().views;
-    for (const v of views) {
-        for (const w of v.widgets) {
-            out.push(
-                ...collectRefs(
-                    w,
-                    `Popup ${v.name || v.id}`,
-                    `/admin/popups/${encodeURIComponent(v.id)}?focus=${encodeURIComponent(w.id)}`,
-                ),
-            );
+    for (const [defId, children] of Object.entries(defs)) {
+        const parentLoc = defIdToParent.get(defId);
+        if (!parentLoc) continue; // orphaned def — not reachable from any dashboard/popup
+        const location = `${parentLoc.locationPrefix} · in ${parentLoc.parent.title || parentLoc.parent.type}`;
+        for (const w of children) {
+            out.push(...collectRefs(w, location, parentLoc.route));
         }
     }
     return out;
