@@ -652,7 +652,10 @@ function ClientsCard() {
                     {loading ? '…' : t('settings.clients.none')}
                 </p>
             ) : (
-                <div className="aura-scroll space-y-2 mt-1 overflow-y-auto flex-1" style={{ minHeight: 260 }}>
+                <div
+                    className="aura-scroll space-y-2 mt-1 overflow-y-auto"
+                    style={{ flex: '1 1 auto', minHeight: 260, maxHeight: 600 }}
+                >
                     {clients.map((c) => {
                         const isMine = c.clientId === myClientId;
                         const isEditing = editingId === c.clientId;
