@@ -1757,9 +1757,7 @@ class Aura extends utils.Adapter {
                 this._astroLon = lon;
                 this.log.info(`[timers] astro location ${lat}, ${lon}`);
             } else {
-                this.log.warn(
-                    '[timers] no latitude/longitude in system.config — astro timer events will not fire',
-                );
+                this.log.warn('[timers] no latitude/longitude in system.config — astro timer events will not fire');
             }
         } catch (e) {
             this.log.warn(`[timers] could not read system.config for astro: ${e.message}`);
