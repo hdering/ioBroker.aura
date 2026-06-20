@@ -69,27 +69,38 @@ function collectRefs(widget: WidgetConfig, location: string, routeTo: string | u
 function collectAllRefs(): BrokenRef[] {
     const out: BrokenRef[] = [];
     const layouts = useDashboardStore.getState().layouts;
+    const defs = useGroupDefsStore.getState().defs;
 
-    // Build a defId -> parent location map first so group children can deep-link
-    // to whichever group widget on the dashboard hosts their def.
+    // Build a defId -> top-level host location map first so group children can
+    // deep-link into the editor. A defId can be hosted directly by a group/panels
+    // widget on a tab, or nested inside another group def. Either way the editor
+    // can only focus a *top-level* widget, so we walk each host's def tree and map
+    // every reachable defId (including nested ones) back to that same top-level host.
     type ParentLoc = { parent: WidgetConfig; layoutId: string; layoutName: string; tabId: string; tabName: string };
     const defIdToParent = new Map<string, ParentLoc>();
+    // First-wins (Map.has guard) keeps the deep-link stable when a defId is
+    // referenced from multiple hosts, and doubles as cycle protection while
+    // recursing through nested group defs.
+    const mapDefTree = (defId: string, loc: ParentLoc): void => {
+        if (!defId || defIdToParent.has(defId)) return;
+        defIdToParent.set(defId, loc);
+        for (const child of defs[defId] ?? []) {
+            if ((child.type === 'group' || child.type === 'panels') && typeof child.options?.defId === 'string') {
+                mapDefTree(child.options.defId, loc);
+            }
+        }
+    };
     for (const l of layouts) {
         for (const tab of l.tabs) {
             for (const w of tab.widgets) {
-                if (w.type === 'group' && typeof w.options?.defId === 'string') {
-                    // First-wins: a defId can in principle be referenced from multiple
-                    // hosts, but in practice it points to one. Pick the first to keep
-                    // the deep-link stable.
-                    if (!defIdToParent.has(w.options.defId)) {
-                        defIdToParent.set(w.options.defId, {
-                            parent: w,
-                            layoutId: l.id,
-                            layoutName: l.name,
-                            tabId: tab.id,
-                            tabName: tab.name,
-                        });
-                    }
+                if ((w.type === 'group' || w.type === 'panels') && typeof w.options?.defId === 'string') {
+                    mapDefTree(w.options.defId, {
+                        parent: w,
+                        layoutId: l.id,
+                        layoutName: l.name,
+                        tabId: tab.id,
+                        tabName: tab.name,
+                    });
                 }
                 const route = `/admin/editor?layout=${encodeURIComponent(l.id)}&tab=${encodeURIComponent(tab.id)}&focus=${encodeURIComponent(w.id)}`;
                 out.push(...collectRefs(w, `${l.name} / ${tab.name}`, route));
@@ -97,7 +108,6 @@ function collectAllRefs(): BrokenRef[] {
         }
     }
 
-    const defs = useGroupDefsStore.getState().defs;
     for (const [defId, children] of Object.entries(defs)) {
         const parentLoc = defIdToParent.get(defId);
         for (const w of children) {
