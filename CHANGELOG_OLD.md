@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.269 (2026-06-17)
+- docs(widgets): document all remaining widgets with screenshots
+
 ## 0.9.268 (2026-06-17)
 - fix: apply value transform to numeric string states
 - docs: click-to-zoom lightbox + modest inline image sizing

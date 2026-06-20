@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.288",
+    "version": "0.9.289",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.289": {
+        "en": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
+        "de": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
+        "ru": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
+        "pt": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
+        "nl": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
+        "fr": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
+        "it": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
+        "es": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
+        "pl": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
+        "uk": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
+        "zh-cn": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content"
+      },
       "0.9.288": {
         "en": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view",
         "de": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view",
@@ -183,19 +196,6 @@
         "pl": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
         "uk": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
         "zh-cn": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view"
-      },
-      "0.9.282": {
-        "en": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
-        "de": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
-        "ru": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
-        "pt": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
-        "nl": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
-        "fr": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
-        "it": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
-        "es": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
-        "pl": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
-        "uk": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels",
-        "zh-cn": "feat(enum): per-entry render mode (text/image/html/icon) with pickers; feat(enum): support HTML in Auswahlfeld entry labels"
       }
     }
   },
