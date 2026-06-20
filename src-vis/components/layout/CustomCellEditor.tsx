@@ -1299,7 +1299,7 @@ export function CustomCellEditor({
                             border: '1px solid var(--app-border)',
                         }}
                     >
-                        ⚠ Veraltet: stattdessen „Schalter (DP)" mit Bedienelement „Button" verwenden.
+                        ⚠ Veraltet: stattdessen „Schalter (DP)“ mit Bedienelement „Button“ verwenden.
                     </p>
                     <div>
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
