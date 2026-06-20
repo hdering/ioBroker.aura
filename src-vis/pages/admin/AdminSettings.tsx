@@ -387,7 +387,7 @@ function BackupCard() {
             ) : (
                 <div
                     className="aura-scroll rounded-lg mt-1 overflow-y-auto"
-                    style={{ border: '1px solid var(--app-border)', maxHeight: 260 }}
+                    style={{ border: '1px solid var(--app-border)', flex: '1 1 auto', minHeight: 260, maxHeight: 600 }}
                 >
                     {backups.map((b, i) => (
                         <div
