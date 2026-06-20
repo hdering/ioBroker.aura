@@ -1,5 +1,13 @@
 # Changelog (older entries)
 
+## 0.9.268 (2026-06-17)
+- fix: apply value transform to numeric string states
+- docs: click-to-zoom lightbox + modest inline image sizing
+- docs(admin): document the full admin area with screenshots
+- style: wrap configLoader persistManager import (prettier)
+- feat(docs): add switch custom-layout screenshot
+- feat(docs): screenshot harness + real switch widget screenshots
+
 ## 0.9.267 (2026-06-17)
 - fix(objects): use role 'text' for navigate.target selector
 

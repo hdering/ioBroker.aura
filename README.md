@@ -192,6 +192,12 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.288 (2026-06-20)
+- style(prettier): auto-format code files
+- fix(settings): let the device list fill the full card height
+- fix(settings): scroll the device edit/delete-confirm row into view
+
+
 ### 0.9.287 (2026-06-19)
 - fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme
 
@@ -274,15 +280,6 @@ Release v0.9.272
 - docs(widgets): document all remaining widgets with screenshots
 
 
-### 0.9.268 (2026-06-17)
-- fix: apply value transform to numeric string states
-- docs: click-to-zoom lightbox + modest inline image sizing
-- docs(admin): document the full admin area with screenshots
-- style: wrap configLoader persistManager import (prettier)
-- feat(docs): add switch custom-layout screenshot
-- feat(docs): screenshot harness + real switch widget screenshots
-
-
 ## License
 
 MIT License
@@ -294,6 +291,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
