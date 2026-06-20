@@ -223,7 +223,9 @@ export interface CustomCell {
     trueColor?: string; // 'state-icon' / 'switch' (icon mode): color for truthy value
     falseColor?: string; // 'state-icon' / 'switch' (icon mode): color for falsy value
     // 'switch' type
-    controlMode?: 'toggle' | 'icon'; // 'switch' cell: visual control style (default 'toggle')
+    controlMode?: 'toggle' | 'icon' | 'button'; // 'switch' cell: visual control style (default 'toggle')
+    buttonTextColor?: string; // 'switch' cell (button mode): label text color (default #fff)
+    buttonSize?: number; // 'switch' cell (button mode): padding scale in px (default 8)
     momentary?: boolean; // 'switch' cell: Taster-Modus — write trueValue on press, falseValue after delay
     momentaryDelay?: number; // 'switch' cell: ms before writing falseValue (default 500)
     confirmAction?: boolean; // 'switch' cell: require confirmation overlay before toggling

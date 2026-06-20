@@ -406,6 +406,42 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
         ...(cell.showLastChange ? { flexDirection: 'column' as const, gap: 2 } : {}),
     };
     const lcLine = cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />;
+    if (cell.controlMode === 'button') {
+        const pad = cell.buttonSize ?? 8;
+        const label = cell.text || (on ? 'AN' : 'AUS');
+        return (
+            <div className={`aura-custom-cell-${index}`} style={wrap}>
+                <button
+                    ref={btnRef}
+                    onClick={handleClick}
+                    className="nodrag rounded-lg font-medium hover:opacity-85 transition-opacity"
+                    style={{
+                        background: cell.color || 'var(--accent)',
+                        color: cell.buttonTextColor || '#fff',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: `${pad}px ${pad * 2}px`,
+                        fontSize: cell.fontSize ? `${cell.fontSize}px` : undefined,
+                        fontWeight: cell.bold ? 'bold' : undefined,
+                        fontStyle: cell.italic ? 'italic' : undefined,
+                    }}
+                    aria-label={cell.text || (on ? 'AN' : 'AUS')}
+                >
+                    {label}
+                </button>
+                {pending && (
+                    <ConfirmOverlay
+                        popup
+                        anchorRef={btnRef}
+                        text={cell.confirmText}
+                        onConfirm={confirm}
+                        onCancel={cancel}
+                    />
+                )}
+                {lcLine}
+            </div>
+        );
+    }
     if (cell.controlMode === 'icon') {
         const iconName = on ? cell.trueIcon || cell.iconName : cell.falseIcon || cell.iconName;
         const color = on

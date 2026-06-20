@@ -810,6 +810,7 @@ export function CustomCellEditor({
                                         [
                                             ['toggle', 'Schiebeschalter'],
                                             ['icon', 'Icon'],
+                                            ['button', 'Button'],
                                         ] as const
                                     ).map(([val, lbl]) => (
                                         <button
@@ -905,6 +906,123 @@ export function CustomCellEditor({
                                             max={192}
                                             step={2}
                                             value={ctrlIconSize}
+                                            onChange={(e) => onChange({ fontSize: Number(e.target.value) })}
+                                            className="w-full h-1"
+                                            style={{ accentColor: 'var(--accent)' }}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                            {mode === 'button' && (
+                                <>
+                                    <div>
+                                        <label
+                                            className="text-[11px] mb-1 block"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            Beschriftung
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={cell.text ?? ''}
+                                            onChange={(e) => onChange({ text: e.target.value || undefined })}
+                                            placeholder="z.B. AN/AUS"
+                                            className={inputCls}
+                                            style={inputSty}
+                                        />
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <div className="flex-1">
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Hintergrundfarbe
+                                            </label>
+                                            <div className="flex items-center gap-1">
+                                                <input
+                                                    type="color"
+                                                    value={
+                                                        cell.color && cell.color.startsWith('#')
+                                                            ? cell.color
+                                                            : '#3b82f6'
+                                                    }
+                                                    onChange={(e) => onChange({ color: e.target.value })}
+                                                    className="flex-1 h-7 rounded cursor-pointer border-0 p-0"
+                                                />
+                                                <button
+                                                    onClick={() => onChange({ color: '' })}
+                                                    className="text-[10px] px-2 py-0.5 rounded shrink-0"
+                                                    style={{
+                                                        background: 'var(--app-bg)',
+                                                        color: 'var(--text-secondary)',
+                                                        border: '1px solid var(--app-border)',
+                                                    }}
+                                                >
+                                                    Theme
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1">
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Textfarbe
+                                            </label>
+                                            <input
+                                                type="color"
+                                                value={
+                                                    cell.buttonTextColor && cell.buttonTextColor.startsWith('#')
+                                                        ? cell.buttonTextColor
+                                                        : '#ffffff'
+                                                }
+                                                onChange={(e) => onChange({ buttonTextColor: e.target.value })}
+                                                className="w-full h-7 rounded cursor-pointer border-0 p-0"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                                Buttongröße
+                                            </label>
+                                            <span
+                                                className="text-[11px] tabular-nums"
+                                                style={{ color: 'var(--text-primary)' }}
+                                            >
+                                                {cell.buttonSize ?? 8} px
+                                            </span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min={2}
+                                            max={40}
+                                            step={1}
+                                            value={cell.buttonSize ?? 8}
+                                            onChange={(e) => onChange({ buttonSize: Number(e.target.value) })}
+                                            className="w-full h-1"
+                                            style={{ accentColor: 'var(--accent)' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                                Textgröße
+                                            </label>
+                                            <span
+                                                className="text-[11px] tabular-nums"
+                                                style={{ color: 'var(--text-primary)' }}
+                                            >
+                                                {cell.fontSize ?? 12} px
+                                            </span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min={8}
+                                            max={48}
+                                            step={1}
+                                            value={cell.fontSize ?? 12}
                                             onChange={(e) => onChange({ fontSize: Number(e.target.value) })}
                                             className="w-full h-1"
                                             style={{ accentColor: 'var(--accent)' }}
