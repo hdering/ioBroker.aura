@@ -5,6 +5,7 @@ const http = require('node:http');
 const https = require('node:https');
 const fs = require('node:fs');
 const path = require('node:path');
+const SunCalc = require('suncalc');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -1535,6 +1536,7 @@ class Aura extends utils.Adapter {
         this._timerState = new Map(); // widgetId → { enabled, payload }
         this._timerFired = new Set(); // dedupe key → true (cleared at midnight)
         this._timerLastDay = this._currentDayKey();
+        await this._loadAstroLocation();
         try {
             const existing = await this.getStatesAsync(`${this.namespace}.timers.*`);
             for (const [fullId, st] of Object.entries(existing || {})) {
@@ -1726,13 +1728,55 @@ class Aura extends utils.Adapter {
     }
 
     _astroPattern(event) {
-        // Map our event names to ioBroker getAstroDate patterns.
+        // Map our event names to SunCalc.getTimes() result keys.
         if (event === 'sunrise') return 'sunrise';
         if (event === 'sunset') return 'sunset';
         if (event === 'dawn') return 'dawn';
         if (event === 'dusk') return 'dusk';
         if (event === 'solarNoon') return 'solarNoon';
         return 'sunset';
+    }
+
+    /**
+     * Load latitude/longitude from system.config once at scheduler startup and
+     * cache them for astro calculations. We do NOT rely on the host's
+     * this.getAstroDate(): that method is provided by js-controller at runtime
+     * and is absent on some hosts ("this.getAstroDate is not a function"), so we
+     * compute sun times locally with the bundled `suncalc` dependency instead.
+     * Missing coordinates leave the cache undefined → astro events are skipped.
+     */
+    async _loadAstroLocation() {
+        this._astroLat = undefined;
+        this._astroLon = undefined;
+        try {
+            const sys = await this.getForeignObjectAsync('system.config');
+            const lat = Number(sys && sys.common && sys.common.latitude);
+            const lon = Number(sys && sys.common && sys.common.longitude);
+            if (Number.isFinite(lat) && Number.isFinite(lon)) {
+                this._astroLat = lat;
+                this._astroLon = lon;
+                this.log.info(`[timers] astro location ${lat}, ${lon}`);
+            } else {
+                this.log.warn(
+                    '[timers] no latitude/longitude in system.config — astro timer events will not fire',
+                );
+            }
+        } catch (e) {
+            this.log.warn(`[timers] could not read system.config for astro: ${e.message}`);
+        }
+    }
+
+    /**
+     * Compute the astro Date for the given event on the day of `date`, applying
+     * an optional offset in minutes. Returns null when coordinates are missing
+     * or SunCalc cannot resolve the event (e.g. polar day/night → Invalid Date).
+     */
+    _computeAstroDate(event, date, offsetMin) {
+        if (!Number.isFinite(this._astroLat) || !Number.isFinite(this._astroLon)) return null;
+        const times = SunCalc.getTimes(date, this._astroLat, this._astroLon);
+        const base = times[this._astroPattern(event)];
+        if (!(base instanceof Date) || Number.isNaN(base.getTime())) return null;
+        return new Date(base.getTime() + (Number(offsetMin) || 0) * 60000);
     }
 
     async _filterPasses(ev, date, holidays, vacation) {
@@ -1820,11 +1864,7 @@ class Aura extends utils.Adapter {
                     if (!this._weekdayMatches(ev.weekdays, now)) continue;
                     let astroDate;
                     try {
-                        astroDate = this.getAstroDate(
-                            this._astroPattern(ev.trigger.event),
-                            now,
-                            ev.trigger.offsetMin || 0,
-                        );
+                        astroDate = this._computeAstroDate(ev.trigger.event, now, ev.trigger.offsetMin || 0);
                     } catch (e) {
                         this.log.warn(`[timers] astro failed (${ev.trigger.event}): ${e.message}`);
                         continue;
