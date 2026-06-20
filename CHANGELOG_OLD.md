@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.270 (2026-06-17)
+- docs(widgets): expand every widget page with layout & option details
+
 ## 0.9.269 (2026-06-17)
 - docs(widgets): document all remaining widgets with screenshots
 

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.289",
+    "version": "0.9.290",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.290": {
+        "en": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
+        "de": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
+        "ru": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
+        "pt": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
+        "nl": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
+        "fr": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
+        "it": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
+        "es": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
+        "pl": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
+        "uk": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
+        "zh-cn": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate"
+      },
       "0.9.289": {
         "en": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
         "de": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
@@ -183,19 +196,6 @@
         "pl": "fix(panels): pause autoplay while pointer over or focus inside panel",
         "uk": "fix(panels): pause autoplay while pointer over or focus inside panel",
         "zh-cn": "fix(panels): pause autoplay while pointer over or focus inside panel"
-      },
-      "0.9.283": {
-        "en": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
-        "de": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
-        "ru": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
-        "pt": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
-        "nl": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
-        "fr": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
-        "it": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
-        "es": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
-        "pl": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
-        "uk": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view",
-        "zh-cn": "feat(popup): default importer datapoint to {{dp}}; feat(popup): import widgets in the popup-view editor; @ feat(editor): copy/move dashboard widget into a popup view"
       }
     }
   },
