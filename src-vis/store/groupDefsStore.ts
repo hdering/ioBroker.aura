@@ -1,5 +1,7 @@
 import { create } from 'zustand';
-import { registerExternalReader, markDirty } from './persistManager';
+import { registerExternalReader, markDirty, registerPreSaveHook } from './persistManager';
+import { useDashboardStore } from './dashboardStore';
+import { usePopupConfigStore } from './popupConfigStore';
 import type { WidgetConfig } from '../types';
 
 export interface GroupDefsState {
@@ -122,12 +124,31 @@ function collectDefIds(widgets: WidgetConfig[], defs: Record<string, WidgetConfi
     }
 }
 
-/** Remove all group defs that are no longer referenced by any widget in the dashboard. */
-export function gcGroupDefs(allWidgets: WidgetConfig[]): void {
+/** Remove all group defs no longer referenced by any widget — across every
+ *  dashboard tab AND popup view (both can host group/panels widgets, so popup-
+ *  only defs must not be GC'd as orphans). Walks nested group defs recursively.
+ *  Registered as a pre-save hook so orphaned defs left behind by deleted group
+ *  widgets don't accumulate in the persisted aura-group-defs blob. */
+export function gcGroupDefs(): void {
     const { defs, removeDef } = useGroupDefsStore.getState();
+    if (Object.keys(defs).length === 0) return;
+
+    const layouts = useDashboardStore.getState().layouts;
+    const views = usePopupConfigStore.getState().views;
+    // Safety net: if neither store has loaded yet, every def would look orphaned.
+    // Never GC against an empty host set while defs exist — that would erase them.
+    if (layouts.length === 0 && views.length === 0) return;
+
     const referenced = new Set<string>();
-    collectDefIds(allWidgets, defs, referenced);
+    for (const l of layouts) {
+        for (const tab of l.tabs) collectDefIds(tab.widgets, defs, referenced);
+    }
+    for (const v of views) collectDefIds(v.widgets, defs, referenced);
+
     for (const defId of Object.keys(defs)) {
         if (!referenced.has(defId)) removeDef(defId);
     }
 }
+
+// Tidy orphaned defs right before every save so they don't pile up over time.
+registerPreSaveHook(gcGroupDefs);

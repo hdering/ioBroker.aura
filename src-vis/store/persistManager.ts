@@ -148,6 +148,24 @@ export function registerExternalReader(key: string, reader: () => string | null)
     externalReaders.set(key, reader);
 }
 
+// Pre-save hooks run at the very start of saveToIoBroker (after the hydration
+// guard, before any key is serialised) so they can mutate stores and have the
+// result land in this same save — e.g. GC orphaned group defs so they don't
+// accumulate in the persisted aura-group-defs blob.
+const preSaveHooks = new Set<() => void>();
+export function registerPreSaveHook(fn: () => void): void {
+    preSaveHooks.add(fn);
+}
+function runPreSaveHooks(): void {
+    preSaveHooks.forEach((fn) => {
+        try {
+            fn();
+        } catch (e) {
+            console.warn('[persistManager] pre-save hook failed', e);
+        }
+    });
+}
+
 /** True when group-defs is safe to persist: either no RAM-only reader is
  *  registered, or the reader (serialise) currently returns data — i.e. the
  *  store has hydrated from ioBroker. When false, a save/backup would silently
@@ -616,6 +634,10 @@ export function saveToIoBroker({ backup = true, all = false }: { backup?: boolea
         );
         return false;
     }
+    // Let registered hooks (e.g. group-def GC) tidy stores before we snapshot, so
+    // their changes are part of this save and the dirty keys they touch are picked
+    // up by the targetKeys computation below.
+    runPreSaveHooks();
     const now = Date.now();
     const targetKeys: SyncStoreKey[] = all ? SYNC_STORE_KEYS : SYNC_STORE_KEYS.filter(isPending);
 
