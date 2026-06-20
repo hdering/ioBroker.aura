@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.272 (2026-06-17)
+Release v0.9.272
+
 ## 0.9.271 (2026-06-17)
 - feat(widgets): derive panels/group add-widget pickers from registry
 

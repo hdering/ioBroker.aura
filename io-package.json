@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.291",
+    "version": "0.9.292",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.292": {
+        "en": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
+        "de": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
+        "ru": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
+        "pt": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
+        "nl": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
+        "fr": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
+        "it": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
+        "es": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
+        "pl": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
+        "uk": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
+        "zh-cn": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children"
+      },
       "0.9.291": {
         "en": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
         "de": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
@@ -183,19 +196,6 @@
         "pl": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
         "uk": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
         "zh-cn": "fix(panels): track hover and focus separately so open dropdowns don't slide away"
-      },
-      "0.9.285": {
-        "en": "fix(panels): let child clicks through; capture pointer only on real swipe",
-        "de": "fix(panels): let child clicks through; capture pointer only on real swipe",
-        "ru": "fix(panels): let child clicks through; capture pointer only on real swipe",
-        "pt": "fix(panels): let child clicks through; capture pointer only on real swipe",
-        "nl": "fix(panels): let child clicks through; capture pointer only on real swipe",
-        "fr": "fix(panels): let child clicks through; capture pointer only on real swipe",
-        "it": "fix(panels): let child clicks through; capture pointer only on real swipe",
-        "es": "fix(panels): let child clicks through; capture pointer only on real swipe",
-        "pl": "fix(panels): let child clicks through; capture pointer only on real swipe",
-        "uk": "fix(panels): let child clicks through; capture pointer only on real swipe",
-        "zh-cn": "fix(panels): let child clicks through; capture pointer only on real swipe"
       }
     }
   },
