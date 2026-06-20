@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.271 (2026-06-17)
+- feat(widgets): derive panels/group add-widget pickers from registry
+
 ## 0.9.270 (2026-06-17)
 - docs(widgets): expand every widget page with layout & option details
 

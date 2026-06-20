@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.290",
+    "version": "0.9.291",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.291": {
+        "en": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
+        "de": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
+        "ru": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
+        "pt": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
+        "nl": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
+        "fr": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
+        "it": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
+        "es": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
+        "pl": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
+        "uk": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
+        "zh-cn": "fix(broken-dp): deep-link group/panels and nested-group children to editor"
+      },
       "0.9.290": {
         "en": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
         "de": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
@@ -183,19 +196,6 @@
         "pl": "fix(panels): let child clicks through; capture pointer only on real swipe",
         "uk": "fix(panels): let child clicks through; capture pointer only on real swipe",
         "zh-cn": "fix(panels): let child clicks through; capture pointer only on real swipe"
-      },
-      "0.9.284": {
-        "en": "fix(panels): pause autoplay while pointer over or focus inside panel",
-        "de": "fix(panels): pause autoplay while pointer over or focus inside panel",
-        "ru": "fix(panels): pause autoplay while pointer over or focus inside panel",
-        "pt": "fix(panels): pause autoplay while pointer over or focus inside panel",
-        "nl": "fix(panels): pause autoplay while pointer over or focus inside panel",
-        "fr": "fix(panels): pause autoplay while pointer over or focus inside panel",
-        "it": "fix(panels): pause autoplay while pointer over or focus inside panel",
-        "es": "fix(panels): pause autoplay while pointer over or focus inside panel",
-        "pl": "fix(panels): pause autoplay while pointer over or focus inside panel",
-        "uk": "fix(panels): pause autoplay while pointer over or focus inside panel",
-        "zh-cn": "fix(panels): pause autoplay while pointer over or focus inside panel"
       }
     }
   },
