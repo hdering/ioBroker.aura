@@ -209,10 +209,12 @@ const WIDGET_CELL_OPTS: CellOpt[] = (
     ] satisfies CellOpt[]
 ).sort(sortDe);
 
-// "Eigener Datenpunkt" — add new entries anywhere; list self-sorts
+// "Eigener Datenpunkt" — add new entries anywhere; list self-sorts.
+// NOTE: 'button' (Button (DP schreiben)) is deprecated — superseded by the
+// 'switch' cell's button control mode. Kept out of the picker but still
+// rendered (and editable) for existing configs; see deprecated option below.
 const OWN_DP_CELL_OPTS: CellOpt[] = (
     [
-        { key: 'button', label: 'Button (DP schreiben)' },
         { key: 'datepicker', label: 'Datumswähler (DP)' },
         { key: 'dp', label: 'Datenpunkt-Wert' },
         { key: 'input', label: 'Eingabe (DP schreiben)' },
@@ -494,6 +496,8 @@ export function CustomCellEditor({
                                 {label}
                             </option>
                         ))}
+                        {/* Deprecated: only shown when an existing cell still uses it. */}
+                        {cell.type === 'button' && <option value="button">Button (DP, veraltet)</option>}
                     </optgroup>
                     <optgroup label="Statisch">
                         {STATIC_CELL_OPTS.map(({ key, label }) => (
@@ -1284,9 +1288,19 @@ export function CustomCellEditor({
                 </div>
             )}
 
-            {/* Button label + payload */}
+            {/* Button label + payload (deprecated — use 'Schalter (DP)' → Button mode) */}
             {cell.type === 'button' && (
                 <>
+                    <p
+                        className="text-[10px] rounded-lg px-2 py-1.5"
+                        style={{
+                            color: 'var(--text-secondary)',
+                            background: 'var(--app-bg)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                    >
+                        ⚠ Veraltet: stattdessen „Schalter (DP)" mit Bedienelement „Button" verwenden.
+                    </p>
                     <div>
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                             Beschriftung
