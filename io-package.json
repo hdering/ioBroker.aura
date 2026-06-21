@@ -47,10 +47,6 @@
     "messagebox": true,
     "logTransporter": true,
     "type": "visualization",
-    "licenseInformation": {
-      "license": "MIT",
-      "type": "free"
-    },
     "mode": "daemon",
     "compact": false,
     "tier": 3,
