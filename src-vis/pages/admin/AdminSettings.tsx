@@ -1168,7 +1168,11 @@ export function AdminSettings() {
                                 // Clearing only localStorage left the <ns>.config.* states
                                 // intact, so the next load pulled everything back.
                                 await resetAllConfig();
-                                window.location.href = '/';
+                                // Stay in the backend (Übersicht), not the frontend. Hash
+                                // changes alone don't reload, so force a full reload to
+                                // re-bootstrap the stores from the now-empty backend.
+                                window.location.hash = '#/admin';
+                                window.location.reload();
                             }}
                             className="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-80 disabled:opacity-50"
                             style={{ background: 'var(--accent-red)' }}
