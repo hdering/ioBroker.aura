@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.296",
+    "version": "0.9.297",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -102,6 +102,19 @@
       }
     ],
     "news": {
+      "0.9.297": {
+        "en": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
+        "de": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
+        "ru": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
+        "pt": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
+        "nl": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
+        "fr": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
+        "it": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
+        "es": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
+        "pl": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
+        "uk": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
+        "zh-cn": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts"
+      },
       "0.9.296": {
         "en": "fix(reset): land on backend overview after reset, not the frontend",
         "de": "fix(reset): land on backend overview after reset, not the frontend",
@@ -179,19 +192,6 @@
         "pl": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
         "uk": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
         "zh-cn": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content"
-      },
-      "0.9.288": {
-        "en": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view",
-        "de": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view",
-        "ru": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view",
-        "pt": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view",
-        "nl": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view",
-        "fr": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view",
-        "it": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view",
-        "es": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view",
-        "pl": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view",
-        "uk": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view",
-        "zh-cn": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view"
       }
     }
   },

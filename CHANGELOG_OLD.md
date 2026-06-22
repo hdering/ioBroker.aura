@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.277 (2026-06-19)
+- fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)
+
 ## 0.9.276 (2026-06-19)
 - fix(persist): acknowledge config-storage DP writes (ack=true)
 
