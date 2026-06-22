@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.293",
+    "version": "0.9.294",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -102,18 +102,18 @@
       }
     ],
     "news": {
-      "0.9.293": {
-        "en": "chore(io-package): remove licenseInformation to skip admin license dialog",
-        "de": "chore(io-package): remove licenseInformation to skip admin license dialog",
-        "ru": "chore(io-package): remove licenseInformation to skip admin license dialog",
-        "pt": "chore(io-package): remove licenseInformation to skip admin license dialog",
-        "nl": "chore(io-package): remove licenseInformation to skip admin license dialog",
-        "fr": "chore(io-package): remove licenseInformation to skip admin license dialog",
-        "it": "chore(io-package): remove licenseInformation to skip admin license dialog",
-        "es": "chore(io-package): remove licenseInformation to skip admin license dialog",
-        "pl": "chore(io-package): remove licenseInformation to skip admin license dialog",
-        "uk": "chore(io-package): remove licenseInformation to skip admin license dialog",
-        "zh-cn": "chore(io-package): remove licenseInformation to skip admin license dialog"
+      "0.9.294": {
+        "en": "fix(reset): wipe backend config states on \"reset everything\", not just localStorage",
+        "de": "fix(reset): wipe backend config states on \"reset everything\", not just localStorage",
+        "ru": "fix(reset): wipe backend config states on \"reset everything\", not just localStorage",
+        "pt": "fix(reset): wipe backend config states on \"reset everything\", not just localStorage",
+        "nl": "fix(reset): wipe backend config states on \"reset everything\", not just localStorage",
+        "fr": "fix(reset): wipe backend config states on \"reset everything\", not just localStorage",
+        "it": "fix(reset): wipe backend config states on \"reset everything\", not just localStorage",
+        "es": "fix(reset): wipe backend config states on \"reset everything\", not just localStorage",
+        "pl": "fix(reset): wipe backend config states on \"reset everything\", not just localStorage",
+        "uk": "fix(reset): wipe backend config states on \"reset everything\", not just localStorage",
+        "zh-cn": "fix(reset): wipe backend config states on \"reset everything\", not just localStorage"
       },
       "0.9.292": {
         "en": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",

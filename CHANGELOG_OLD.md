@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.274 (2026-06-17)
+- fix(widgets): keep last-change timestamp inside narrow widgets
+
 ## 0.9.273 (2026-06-17)
 - fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap
 
