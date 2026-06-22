@@ -2,15 +2,30 @@ import { useState, useEffect, useCallback } from 'react';
 import type { ioBrokerState, ObjectViewResult } from '../types';
 import { version as appVersion } from '../../package.json';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore – socket.io-client v2 hat kein ESM-Export
-import io from 'socket.io-client';
-
 interface IoBrokerSocket {
     connected: boolean;
     on(event: string, callback: (...args: unknown[]) => void): void;
     emit(event: string, ...args: unknown[]): void;
     disconnect(): void;
+}
+
+// The socket library is loaded at runtime from the web adapter
+// (<script src="/socket.io/socket.io.js"> in index.html) instead of being
+// bundled. web serves the matching library for its configured mode — classic
+// socket.io v2 or @iobroker/ws ("pure web sockets") — and BOTH expose
+// globalThis.io.connect(url). Bundling socket.io-client breaks against
+// pure-ws servers ('No sid found'); calling io.connect without path/transport
+// options lets each library use its own correct defaults.
+interface IoBrokerSocketFactory {
+    connect(url: string, opts?: Record<string, unknown>): IoBrokerSocket;
+}
+
+function getIo(): IoBrokerSocketFactory {
+    const lib = (globalThis as unknown as { io?: IoBrokerSocketFactory }).io;
+    if (!lib || typeof lib.connect !== 'function') {
+        throw new Error('Socket library not loaded — expected window.io.connect (from /socket.io/socket.io.js).');
+    }
+    return lib;
 }
 
 /** A single line emitted by the iobroker log stream. The frontend never
@@ -123,15 +138,22 @@ function getInitialUrl(): string {
 let currentUrl = getInitialUrl();
 
 function createSocket(url: string): IoBrokerSocket {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const s = (io as any)(url, {
-        path: '/socket.io',
-        transports: ['websocket', 'polling'],
-    }) as IoBrokerSocket;
+    const s = getIo().connect(url);
 
-    s.on('connect', () => {
+    // A re-established connection is signalled differently depending on the
+    // runtime socket library: the bundled classic socket.io-client re-fires
+    // 'connect', whereas @iobroker/ws ("pure web sockets") fires 'reconnect'.
+    // Register the same recovery for BOTH events and dedupe with this flag so
+    // it runs once per (re)connection. Without the 'reconnect' branch the
+    // connection indicator stayed "offline" and subscriptions were never
+    // re-established after the first drop on a pure-ws server, until a full
+    // page reload created a fresh socket.
+    let connectionActive = false;
+    const handleConnected = (reconnected: boolean): void => {
+        if (connectionActive) return;
+        connectionActive = true;
         console.log(
-            `%c Aura %c v${appVersion} %c connected %c ${url} `,
+            `%c Aura %c v${appVersion} %c ${reconnected ? 'reconnected' : 'connected'} %c ${url} `,
             'background:#6366f1;color:#fff;font-weight:bold;border-radius:3px 0 0 3px;padding:2px 6px;',
             'background:#1e293b;color:#cbd5e1;padding:2px 6px;',
             'background:#10b981;color:#fff;font-weight:bold;padding:2px 6px;',
@@ -153,8 +175,12 @@ function createSocket(url: string): IoBrokerSocket {
                 if (state) callbacks.forEach((fn) => fn(state as ioBrokerState));
             });
         });
-    });
+    };
+
+    s.on('connect', () => handleConnected(false));
+    s.on('reconnect', () => handleConnected(true));
     s.on('disconnect', () => {
+        connectionActive = false;
         console.log(
             '%c Aura %c disconnected ',
             'background:#6366f1;color:#fff;font-weight:bold;border-radius:3px 0 0 3px;padding:2px 6px;',
