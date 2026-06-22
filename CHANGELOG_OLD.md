@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.279 (2026-06-19)
+- style(prettier): auto-format code files
+- chore: stop tracking .vite-dev.log dev artifact
+- feat(admin-widgets): collapse all type sections by default + clickable summary chips
+
 ## 0.9.278 (2026-06-19)
 - perf(panels): keep slide track on its own GPU layer to reduce autoplay jank
 

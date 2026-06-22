@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.298",
+    "version": "0.9.299",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.9.299": {
+        "en": "fix(io-package): restore required common.licenseInformation (E1015/E1105)",
+        "de": "fix(io-package): restore required common.licenseInformation (E1015/E1105)",
+        "ru": "fix(io-package): restore required common.licenseInformation (E1015/E1105)",
+        "pt": "fix(io-package): restore required common.licenseInformation (E1015/E1105)",
+        "nl": "fix(io-package): restore required common.licenseInformation (E1015/E1105)",
+        "fr": "fix(io-package): restore required common.licenseInformation (E1015/E1105)",
+        "it": "fix(io-package): restore required common.licenseInformation (E1015/E1105)",
+        "es": "fix(io-package): restore required common.licenseInformation (E1015/E1105)",
+        "pl": "fix(io-package): restore required common.licenseInformation (E1015/E1105)",
+        "uk": "fix(io-package): restore required common.licenseInformation (E1015/E1105)",
+        "zh-cn": "fix(io-package): restore required common.licenseInformation (E1015/E1105)"
+      },
       "0.9.298": {
         "en": "fix(backup): decode binary .gz reads so backups aren't reported empty",
         "de": "fix(backup): decode binary .gz reads so backups aren't reported empty",
@@ -183,19 +196,6 @@
         "pl": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
         "uk": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
         "zh-cn": "fix(broken-dp): deep-link group/panels and nested-group children to editor"
-      },
-      "0.9.290": {
-        "en": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
-        "de": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
-        "ru": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
-        "pt": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
-        "nl": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
-        "fr": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
-        "it": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
-        "es": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
-        "pl": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
-        "uk": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
-        "zh-cn": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate"
       }
     }
   },
