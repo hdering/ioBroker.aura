@@ -501,16 +501,25 @@ export function readFileDirect(adapter: string, filename: string): Promise<strin
                 resolve(null);
                 return;
             }
-            // ioBroker may return Buffer-like {type:'Buffer', data:[...]}, a string, or base64
-            if (typeof data === 'string') resolve(data);
-            else if (data && typeof data === 'object' && 'data' in (data as Record<string, unknown>)) {
-                try {
+            // ioBroker classifies files by extension; binary types (e.g. .gz) come
+            // back not as a string but as raw bytes, whose exact shape depends on the
+            // host's storage backend / js-controller version: a string, a Buffer-like
+            // {type:'Buffer', data:[...]}, an ArrayBuffer, or a typed-array view. Decode
+            // every shape to text — returning null here surfaces as "backup has no data".
+            try {
+                if (typeof data === 'string') {
+                    resolve(data);
+                } else if (data instanceof ArrayBuffer) {
+                    resolve(new TextDecoder().decode(new Uint8Array(data)));
+                } else if (ArrayBuffer.isView(data)) {
+                    resolve(new TextDecoder().decode(data as ArrayBufferView));
+                } else if (data && typeof data === 'object' && 'data' in (data as Record<string, unknown>)) {
                     const arr = (data as { data: number[] }).data;
                     resolve(new TextDecoder().decode(new Uint8Array(arr)));
-                } catch {
+                } else {
                     resolve(null);
                 }
-            } else {
+            } catch {
                 resolve(null);
             }
         });
