@@ -20,10 +20,10 @@ import { ConfirmOverlay } from './ConfirmOverlay';
 // ── Default grid (title top-left, large value + unit in middle row) ──────────
 
 export const DEFAULT_CUSTOM_GRID: CustomGrid = [
-    { type: 'title', align: 'left', valign: 'top' },
+    { type: 'title', fontSize: 12, align: 'left', valign: 'top' },
     { type: 'empty' },
     { type: 'empty' },
-    { type: 'value', fontSize: 32, bold: true, align: 'left', valign: 'middle' },
+    { type: 'value', fontSize: 20, align: 'left', valign: 'middle' },
     { type: 'unit', fontSize: 14, align: 'left', valign: 'middle' },
     { type: 'empty' },
     { type: 'empty' },

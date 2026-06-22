@@ -1,25 +1,10 @@
 import { useMemo } from 'react';
 import { Activity, TrendingUp, Hash } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
-import type { WidgetProps, CustomGrid } from '../../types';
+import type { WidgetProps } from '../../types';
 import { contentPositionClass, titlePositionStyle } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CustomGridView } from './CustomGridView';
-
-// Custom-layout default that mirrors the non-custom layouts' typography:
-// title 12px (text-xs), value 20px non-bold (text-xl), unit 14px (text-sm).
-// Without this the shared DEFAULT_CUSTOM_GRID would render value at 32px bold.
-const VALUE_CUSTOM_GRID: CustomGrid = [
-    { type: 'title', fontSize: 12, align: 'left', valign: 'top' },
-    { type: 'empty' },
-    { type: 'empty' },
-    { type: 'value', fontSize: 20, align: 'left', valign: 'middle' },
-    { type: 'unit', fontSize: 14, align: 'left', valign: 'middle' },
-    { type: 'empty' },
-    { type: 'empty' },
-    { type: 'empty' },
-    { type: 'empty' },
-];
 import { StatusBadges } from './StatusBadges';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
@@ -84,7 +69,6 @@ export function ValueWidget({ config }: WidgetProps) {
                 value={displayValue}
                 rawValue={typeof tValue === 'number' ? tValue : null}
                 unit={unit}
-                fallback={VALUE_CUSTOM_GRID}
                 extraFields={{ unit: unit ?? '', battery, reach }}
                 extraComponents={{
                     icon: <DefaultIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />,
