@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.275 (2026-06-19)
+- fix(theme): upsert themeMode sub-states so admin DP actually persists
+
 ## 0.9.274 (2026-06-17)
 - fix(widgets): keep last-change timestamp inside narrow widgets
 
