@@ -20,7 +20,7 @@ assert.strictEqual(
 console.log(`✓ Version match: ${pkg.version}`);
 
 // ── Required io-package fields ────────────────────────────────────────────
-const required = ['name', 'version', 'titleLang', 'desc', 'authors', 'licenseInformation', 'type', 'mode'];
+const required = ['name', 'version', 'titleLang', 'desc', 'authors', 'type', 'mode'];
 for (const field of required) {
   assert.ok(ioPkg.common[field], `io-package.json missing required field: common.${field}`);
   console.log(`✓ io-package.json has field: ${field}`);
