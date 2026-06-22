@@ -16,6 +16,7 @@ import {
     loadBackupPayload,
     buildBackupPayload,
     isScreenshotMode,
+    resetAllConfig,
     type BackupFileEntry,
     type BackupChangeDetail,
 } from '../../store/persistManager';
@@ -931,6 +932,7 @@ export function AdminSettings() {
     const [show, setShow] = useState(false);
     const [pinMsg, setPinMsg] = useState('');
     const [showReset, setShowReset] = useState(false);
+    const [resetting, setResetting] = useState(false);
 
     const handlePinChange = (e: React.FormEvent) => {
         e.preventDefault();
@@ -1158,16 +1160,20 @@ export function AdminSettings() {
                 ) : (
                     <div className="flex gap-2">
                         <button
-                            onClick={() => {
-                                ['aura-dashboard', 'aura-theme', 'aura-config'].forEach((k) =>
-                                    localStorage.removeItem(k),
-                                );
+                            disabled={resetting}
+                            onClick={async () => {
+                                if (resetting) return;
+                                setResetting(true);
+                                // Wipe backend config states + localStorage, then reload.
+                                // Clearing only localStorage left the <ns>.config.* states
+                                // intact, so the next load pulled everything back.
+                                await resetAllConfig();
                                 window.location.href = '/';
                             }}
-                            className="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-80"
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-80 disabled:opacity-50"
                             style={{ background: 'var(--accent-red)' }}
                         >
-                            {t('settings.reset.confirm')}
+                            {resetting ? t('settings.reset.button') : t('settings.reset.confirm')}
                         </button>
                         <button
                             onClick={() => setShowReset(false)}

@@ -416,6 +416,15 @@ export function setStateDirect(id: string, val: boolean | number | string, ack =
     getSocket().emit('setState', id, { val, ack });
 }
 
+/** Promise variant of setStateDirect: resolves once the server acks the write.
+ * Use when the next step (e.g. a page reload) would otherwise race the buffered
+ * websocket frame before it flushes. */
+export function setStateDirectAsync(id: string, val: boolean | number | string, ack = false): Promise<void> {
+    return new Promise((resolve) => {
+        getSocket().emit('setState', id, { val, ack }, () => resolve());
+    });
+}
+
 /** Create or update an ioBroker object definition without a React hook. */
 export function setObjectDirect(id: string, obj: object): void {
     invalidateObjectCache(id);

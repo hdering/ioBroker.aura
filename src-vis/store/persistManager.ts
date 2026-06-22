@@ -1,5 +1,12 @@
 import type { StateStorage } from 'zustand/middleware';
-import { setStateDirect, writeFileDirect, readFileDirect, readDirDirect, deleteFileDirect } from '../hooks/useIoBroker';
+import {
+    setStateDirect,
+    setStateDirectAsync,
+    writeFileDirect,
+    readFileDirect,
+    readDirDirect,
+    deleteFileDirect,
+} from '../hooks/useIoBroker';
 import { NS } from '../utils/namespace';
 
 // Each localStorage key maps to its own ioBroker state (no more single blob).
@@ -663,6 +670,42 @@ export function saveToIoBroker({ backup = true, all = false }: { backup?: boolea
     notify();
     if (backup) void writeBackup(changedKeys, details);
     return true;
+}
+
+/**
+ * Hard reset: wipe every synced config store in ioBroker *and* locally.
+ *
+ * The old "reset" only cleared a few localStorage keys and reloaded — but the
+ * real config lives in `<ns>.config.*` states, so loadConfigFromIoBroker pulled
+ * everything straight back and the widgets reappeared. Here we empty each backend
+ * state (loadConfigFromIoBroker skips `raw.length < 3`, so the stores fall back to
+ * defaults on the next boot) and drop all localStorage keys + dirty/pending
+ * bookkeeping so nothing re-hydrates the old config.
+ *
+ * Backups under `<ns>.backups` are intentionally left intact as a recovery path.
+ * Resolves once every backend write has been acked; the caller should reload after.
+ */
+export async function resetAllConfig(): Promise<void> {
+    // Screenshot harness must never write to the real instance.
+    if (screenshotMode) return;
+    await Promise.all(
+        SYNC_STORE_KEYS.map((key) => {
+            // Drop local copy + any pending/dirty bookkeeping so a save can't
+            // resurrect the old value before the reload completes.
+            try {
+                localStorage.removeItem(key);
+            } catch {
+                /* ignore */
+            }
+            clearDirtyFlag(key);
+            pending.delete(key);
+            originals.delete(key);
+            savedAtMap.delete(key);
+            // Empty the backend state (ack=true: owned config value, not a command).
+            return setStateDirectAsync(IOBROKER_STATE_MAP[key], '', true);
+        }),
+    );
+    notify();
 }
 
 export const managedStorage: StateStorage = {
