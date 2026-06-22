@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.297",
+    "version": "0.9.298",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -102,6 +102,19 @@
       }
     ],
     "news": {
+      "0.9.298": {
+        "en": "fix(backup): decode binary .gz reads so backups aren't reported empty",
+        "de": "fix(backup): decode binary .gz reads so backups aren't reported empty",
+        "ru": "fix(backup): decode binary .gz reads so backups aren't reported empty",
+        "pt": "fix(backup): decode binary .gz reads so backups aren't reported empty",
+        "nl": "fix(backup): decode binary .gz reads so backups aren't reported empty",
+        "fr": "fix(backup): decode binary .gz reads so backups aren't reported empty",
+        "it": "fix(backup): decode binary .gz reads so backups aren't reported empty",
+        "es": "fix(backup): decode binary .gz reads so backups aren't reported empty",
+        "pl": "fix(backup): decode binary .gz reads so backups aren't reported empty",
+        "uk": "fix(backup): decode binary .gz reads so backups aren't reported empty",
+        "zh-cn": "fix(backup): decode binary .gz reads so backups aren't reported empty"
+      },
       "0.9.297": {
         "en": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
         "de": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
@@ -179,19 +192,6 @@
         "pl": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
         "uk": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate",
         "zh-cn": "fix(lint): auto-fix mixed typographic quotes; chore(deps): keep suncalc only in dependencies (backend runtime require); feat(universal-widget): deprecate standalone Button (DP) cell type; feat(universal-widget): add button control mode to switch (DP) cell; style(prettier): auto-format code files; fix(timers): compute astro times with bundled suncalc instead of host getAstroDate"
-      },
-      "0.9.289": {
-        "en": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
-        "de": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
-        "ru": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
-        "pt": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
-        "nl": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
-        "fr": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
-        "it": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
-        "es": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
-        "pl": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
-        "uk": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content",
-        "zh-cn": "fix(settings): let device and backup lists grow together symmetrically; fix(settings): let the backup list grow with its content"
       }
     }
   },

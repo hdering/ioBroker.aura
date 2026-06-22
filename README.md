@@ -192,6 +192,10 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.9.298 (2026-06-22)
+- fix(backup): decode binary .gz reads so backups aren't reported empty
+
+
 ### 0.9.297 (2026-06-22)
 - fix(custom-grid): align default custom-layout font sizes across all widgets
 - fix(value-widget): match custom-layout font sizes to other layouts
@@ -285,10 +289,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - feat(admin-widgets): collapse all type sections by default + clickable summary chips
 
 
-### 0.9.278 (2026-06-19)
-- perf(panels): keep slide track on its own GPU layer to reduce autoplay jank
-
-
 ## License
 
 MIT License
@@ -300,6 +300,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.278 (2026-06-19)
+- perf(panels): keep slide track on its own GPU layer to reduce autoplay jank
+
 ## 0.9.277 (2026-06-19)
 - fix(theme): rename config.themeMode.admin → adminUi (hidden by Admin tree)
 
