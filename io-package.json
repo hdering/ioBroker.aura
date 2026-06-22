@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.295",
+    "version": "0.9.296",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -102,6 +102,19 @@
       }
     ],
     "news": {
+      "0.9.296": {
+        "en": "fix(reset): land on backend overview after reset, not the frontend",
+        "de": "fix(reset): land on backend overview after reset, not the frontend",
+        "ru": "fix(reset): land on backend overview after reset, not the frontend",
+        "pt": "fix(reset): land on backend overview after reset, not the frontend",
+        "nl": "fix(reset): land on backend overview after reset, not the frontend",
+        "fr": "fix(reset): land on backend overview after reset, not the frontend",
+        "it": "fix(reset): land on backend overview after reset, not the frontend",
+        "es": "fix(reset): land on backend overview after reset, not the frontend",
+        "pl": "fix(reset): land on backend overview after reset, not the frontend",
+        "uk": "fix(reset): land on backend overview after reset, not the frontend",
+        "zh-cn": "fix(reset): land on backend overview after reset, not the frontend"
+      },
       "0.9.295": {
         "en": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache",
         "de": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache",
@@ -179,19 +192,6 @@
         "pl": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view",
         "uk": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view",
         "zh-cn": "style(prettier): auto-format code files; fix(settings): let the device list fill the full card height; fix(settings): scroll the device edit/delete-confirm row into view"
-      },
-      "0.9.287": {
-        "en": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
-        "de": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
-        "ru": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
-        "pt": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
-        "nl": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
-        "fr": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
-        "it": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
-        "es": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
-        "pl": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
-        "uk": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
-        "zh-cn": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme"
       }
     }
   },
