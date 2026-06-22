@@ -6,6 +6,7 @@ import {
     readFileDirect,
     readDirDirect,
     deleteFileDirect,
+    getStateFromCache,
 } from '../hooks/useIoBroker';
 import { NS } from '../utils/namespace';
 
@@ -653,8 +654,17 @@ export function saveToIoBroker({ backup = true, all = false }: { backup?: boolea
     targetKeys.forEach((key) => {
         const raw = getRaw(key);
         if (raw) {
-            // Pre-save value (RAM only) for diffing; undefined → no before available.
-            const before = originals.has(key) ? originals.get(key) : undefined;
+            // Pre-save value for diffing. First choice is the RAM original captured
+            // on edit (most accurate). It is wiped on page reload / adapter restart,
+            // though — so when it's gone, fall back to the value ioBroker still holds
+            // (the subscription cache = last saved). Without this fallback every save
+            // made after a reload produced only the coarse "store-changed" label
+            // instead of the per-entity change (e.g. "Widget X moved").
+            let before = originals.has(key) ? originals.get(key) : undefined;
+            if (before === undefined) {
+                const cached = getStateFromCache(IOBROKER_STATE_MAP[key])?.val;
+                if (typeof cached === 'string') before = cached;
+            }
             // ack=true: these are owned config-storage blobs (current values), not
             // pending commands, so they should land acknowledged rather than as an
             // unconfirmed client write that no adapter ever acks.
