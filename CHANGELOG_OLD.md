@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.273 (2026-06-17)
+- fix(popup): keep long popup-view fully scrollable and stop scrollbar overlap
+
 ## 0.9.272 (2026-06-17)
 Release v0.9.272
 

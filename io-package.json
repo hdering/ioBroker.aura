@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.292",
+    "version": "0.9.293",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -102,6 +102,19 @@
       }
     ],
     "news": {
+      "0.9.293": {
+        "en": "chore(io-package): remove licenseInformation to skip admin license dialog",
+        "de": "chore(io-package): remove licenseInformation to skip admin license dialog",
+        "ru": "chore(io-package): remove licenseInformation to skip admin license dialog",
+        "pt": "chore(io-package): remove licenseInformation to skip admin license dialog",
+        "nl": "chore(io-package): remove licenseInformation to skip admin license dialog",
+        "fr": "chore(io-package): remove licenseInformation to skip admin license dialog",
+        "it": "chore(io-package): remove licenseInformation to skip admin license dialog",
+        "es": "chore(io-package): remove licenseInformation to skip admin license dialog",
+        "pl": "chore(io-package): remove licenseInformation to skip admin license dialog",
+        "uk": "chore(io-package): remove licenseInformation to skip admin license dialog",
+        "zh-cn": "chore(io-package): remove licenseInformation to skip admin license dialog"
+      },
       "0.9.292": {
         "en": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
         "de": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
@@ -179,19 +192,6 @@
         "pl": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
         "uk": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme",
         "zh-cn": "fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme"
-      },
-      "0.9.286": {
-        "en": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
-        "de": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
-        "ru": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
-        "pt": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
-        "nl": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
-        "fr": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
-        "it": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
-        "es": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
-        "pl": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
-        "uk": "fix(panels): track hover and focus separately so open dropdowns don't slide away",
-        "zh-cn": "fix(panels): track hover and focus separately so open dropdowns don't slide away"
       }
     }
   },
