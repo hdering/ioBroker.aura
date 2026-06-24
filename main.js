@@ -259,6 +259,26 @@ function buildHeaders(incoming) {
     return out;
 }
 
+// Add/extend the X-Forwarded-* chain on requests we forward to the backend
+// (web/socketio adapter). Without this the backend sees every proxied
+// connection as coming from 127.0.0.1 (the aura proxy) and logs noise like
+// `No sid found from ::ffff:127.0.0.1`; with it the real client IP/proto is
+// preserved. Respects an upstream proxy's existing headers (e.g. nginx in
+// front of aura) by appending rather than overwriting.
+function applyForwardedHeaders(headers, req) {
+    const prior = req.headers['x-forwarded-for'];
+    const clientIp = req.socket && req.socket.remoteAddress;
+    const xff = prior ? (clientIp ? `${prior}, ${clientIp}` : String(prior)) : clientIp;
+    if (xff) {
+        headers['X-Forwarded-For'] = xff;
+        // Real client = first hop in the chain.
+        headers['X-Real-IP'] = req.headers['x-real-ip'] || String(xff).split(',')[0].trim();
+    }
+    headers['X-Forwarded-Proto'] =
+        req.headers['x-forwarded-proto'] || (req.socket && req.socket.encrypted ? 'https' : 'http');
+    if (req.headers['host']) headers['X-Forwarded-Host'] = req.headers['x-forwarded-host'] || req.headers['host'];
+}
+
 function proxyWebSocket(req, socket, targetWsUrl, log) {
     let targetUrl;
     try {
@@ -289,6 +309,7 @@ function proxyWebSocket(req, socket, targetWsUrl, log) {
     if (req.headers['sec-websocket-protocol'])
         opts.headers['Sec-WebSocket-Protocol'] = req.headers['sec-websocket-protocol'];
     if (req.headers['cookie']) opts.headers['Cookie'] = req.headers['cookie'];
+    applyForwardedHeaders(opts.headers, req);
 
     const proxyReq = lib.request(opts);
     proxyReq.on('upgrade', (proxyRes, proxySocket, proxyHead) => {
@@ -945,13 +966,15 @@ class Aura extends utils.Adapter {
             const webAdapterPrefixes = ['/socket.io', '/echarts', '/lib'];
             if (webAdapterPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
                 const socketLib = socketSecure ? https : http;
+                const fwdHeaders = { ...req.headers, host: socketHostPort };
+                applyForwardedHeaders(fwdHeaders, req);
                 const proxyReq = socketLib.request(
                     {
                         hostname: socketHost,
                         port: socketPort,
                         path: req.url,
                         method: req.method,
-                        headers: { ...req.headers, host: socketHostPort },
+                        headers: fwdHeaders,
                         timeout: 30000,
                         rejectUnauthorized: false,
                     },
