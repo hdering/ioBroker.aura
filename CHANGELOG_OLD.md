@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.282 (2026-06-19)
+- feat(enum): per-entry render mode (text/image/html/icon) with pickers
+- feat(enum): support HTML in Auswahlfeld entry labels
+
 ## 0.9.281 (2026-06-19)
 - feat(editor): surface save-blocked hint in the save bar
 

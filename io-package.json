@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.10.1-beta.0",
+    "version": "0.10.2-next.0",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.10.2-next.0": {
+        "en": "Release v0.10.2-next.0 (next)",
+        "de": "Release v0.10.2-next.0 (next)",
+        "ru": "Release v0.10.2-next.0 (next)",
+        "pt": "Release v0.10.2-next.0 (next)",
+        "nl": "Release v0.10.2-next.0 (next)",
+        "fr": "Release v0.10.2-next.0 (next)",
+        "it": "Release v0.10.2-next.0 (next)",
+        "es": "Release v0.10.2-next.0 (next)",
+        "pl": "Release v0.10.2-next.0 (next)",
+        "uk": "Release v0.10.2-next.0 (next)",
+        "zh-cn": "Release v0.10.2-next.0 (next)"
+      },
       "0.10.1-beta.0": {
         "en": "Release v0.10.1-beta.0 (beta)",
         "de": "Release v0.10.1-beta.0 (beta)",
@@ -183,19 +196,6 @@
         "pl": "fix(reset): land on backend overview after reset, not the frontend",
         "uk": "fix(reset): land on backend overview after reset, not the frontend",
         "zh-cn": "fix(reset): land on backend overview after reset, not the frontend"
-      },
-      "0.9.295": {
-        "en": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache",
-        "de": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache",
-        "ru": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache",
-        "pt": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache",
-        "nl": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache",
-        "fr": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache",
-        "it": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache",
-        "es": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache",
-        "pl": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache",
-        "uk": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache",
-        "zh-cn": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache"
       }
     }
   },

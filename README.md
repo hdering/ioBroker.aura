@@ -192,6 +192,10 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.10.2-next.0 (2026-06-24) — next/test release
+Release v0.10.2-next.0
+
+
 ### 0.10.1-beta.0 (2026-06-24) — beta/test release
 Release v0.10.1-beta.0
 
@@ -284,11 +288,6 @@ Release v0.10.1-beta.0
 - @ feat(editor): copy/move dashboard widget into a popup view
 
 
-### 0.9.282 (2026-06-19)
-- feat(enum): per-entry render mode (text/image/html/icon) with pickers
-- feat(enum): support HTML in Auswahlfeld entry labels
-
-
 ## License
 
 MIT License
@@ -300,6 +299,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
