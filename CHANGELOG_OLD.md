@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.285 (2026-06-19)
+- fix(panels): let child clicks through; capture pointer only on real swipe
+
 ## 0.9.284 (2026-06-19)
 - fix(panels): pause autoplay while pointer over or focus inside panel
 
