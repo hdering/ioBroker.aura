@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.288 (2026-06-20)
+- style(prettier): auto-format code files
+- fix(settings): let the device list fill the full card height
+- fix(settings): scroll the device edit/delete-confirm row into view
+
 ## 0.9.287 (2026-06-19)
 - fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme
 
