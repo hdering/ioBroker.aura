@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.9.283 (2026-06-19)
+- feat(popup): default importer datapoint to {{dp}}
+- feat(popup): import widgets in the popup-view editor
+- @ feat(editor): copy/move dashboard widget into a popup view
+
 ## 0.9.282 (2026-06-19)
 - feat(enum): per-entry render mode (text/image/html/icon) with pickers
 - feat(enum): support HTML in Auswahlfeld entry labels
