@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.10.2-next.1",
+    "version": "0.10.2-next.2",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.10.2-next.2": {
+        "en": "chore(build): rebuild www frontend bundle; Merge pull request #359 from hdering/fix/force-websockets-transport; fix(socket): connect websocket-first so \"Force web sockets\" works; chore(deps): bump actions/checkout from 6 to 7 (#356); chore(deps): bump zustand to v5 and migrate equality-fn store hooks (#358); chore(build): rebuild www frontend bundle; chore(deps-dev): bump typescript from 5.9.3 to 6.0.3 (#330); chore(deps): bump @iobroker/adapter-core from 3.3.2 to 3.4.1 (#331); chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327) (next)",
+        "de": "chore(build): rebuild www frontend bundle; Merge pull request #359 from hdering/fix/force-websockets-transport; fix(socket): connect websocket-first so \"Force web sockets\" works; chore(deps): bump actions/checkout from 6 to 7 (#356); chore(deps): bump zustand to v5 and migrate equality-fn store hooks (#358); chore(build): rebuild www frontend bundle; chore(deps-dev): bump typescript from 5.9.3 to 6.0.3 (#330); chore(deps): bump @iobroker/adapter-core from 3.3.2 to 3.4.1 (#331); chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327) (next)",
+        "ru": "chore(build): rebuild www frontend bundle; Merge pull request #359 from hdering/fix/force-websockets-transport; fix(socket): connect websocket-first so \"Force web sockets\" works; chore(deps): bump actions/checkout from 6 to 7 (#356); chore(deps): bump zustand to v5 and migrate equality-fn store hooks (#358); chore(build): rebuild www frontend bundle; chore(deps-dev): bump typescript from 5.9.3 to 6.0.3 (#330); chore(deps): bump @iobroker/adapter-core from 3.3.2 to 3.4.1 (#331); chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327) (next)",
+        "pt": "chore(build): rebuild www frontend bundle; Merge pull request #359 from hdering/fix/force-websockets-transport; fix(socket): connect websocket-first so \"Force web sockets\" works; chore(deps): bump actions/checkout from 6 to 7 (#356); chore(deps): bump zustand to v5 and migrate equality-fn store hooks (#358); chore(build): rebuild www frontend bundle; chore(deps-dev): bump typescript from 5.9.3 to 6.0.3 (#330); chore(deps): bump @iobroker/adapter-core from 3.3.2 to 3.4.1 (#331); chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327) (next)",
+        "nl": "chore(build): rebuild www frontend bundle; Merge pull request #359 from hdering/fix/force-websockets-transport; fix(socket): connect websocket-first so \"Force web sockets\" works; chore(deps): bump actions/checkout from 6 to 7 (#356); chore(deps): bump zustand to v5 and migrate equality-fn store hooks (#358); chore(build): rebuild www frontend bundle; chore(deps-dev): bump typescript from 5.9.3 to 6.0.3 (#330); chore(deps): bump @iobroker/adapter-core from 3.3.2 to 3.4.1 (#331); chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327) (next)",
+        "fr": "chore(build): rebuild www frontend bundle; Merge pull request #359 from hdering/fix/force-websockets-transport; fix(socket): connect websocket-first so \"Force web sockets\" works; chore(deps): bump actions/checkout from 6 to 7 (#356); chore(deps): bump zustand to v5 and migrate equality-fn store hooks (#358); chore(build): rebuild www frontend bundle; chore(deps-dev): bump typescript from 5.9.3 to 6.0.3 (#330); chore(deps): bump @iobroker/adapter-core from 3.3.2 to 3.4.1 (#331); chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327) (next)",
+        "it": "chore(build): rebuild www frontend bundle; Merge pull request #359 from hdering/fix/force-websockets-transport; fix(socket): connect websocket-first so \"Force web sockets\" works; chore(deps): bump actions/checkout from 6 to 7 (#356); chore(deps): bump zustand to v5 and migrate equality-fn store hooks (#358); chore(build): rebuild www frontend bundle; chore(deps-dev): bump typescript from 5.9.3 to 6.0.3 (#330); chore(deps): bump @iobroker/adapter-core from 3.3.2 to 3.4.1 (#331); chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327) (next)",
+        "es": "chore(build): rebuild www frontend bundle; Merge pull request #359 from hdering/fix/force-websockets-transport; fix(socket): connect websocket-first so \"Force web sockets\" works; chore(deps): bump actions/checkout from 6 to 7 (#356); chore(deps): bump zustand to v5 and migrate equality-fn store hooks (#358); chore(build): rebuild www frontend bundle; chore(deps-dev): bump typescript from 5.9.3 to 6.0.3 (#330); chore(deps): bump @iobroker/adapter-core from 3.3.2 to 3.4.1 (#331); chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327) (next)",
+        "pl": "chore(build): rebuild www frontend bundle; Merge pull request #359 from hdering/fix/force-websockets-transport; fix(socket): connect websocket-first so \"Force web sockets\" works; chore(deps): bump actions/checkout from 6 to 7 (#356); chore(deps): bump zustand to v5 and migrate equality-fn store hooks (#358); chore(build): rebuild www frontend bundle; chore(deps-dev): bump typescript from 5.9.3 to 6.0.3 (#330); chore(deps): bump @iobroker/adapter-core from 3.3.2 to 3.4.1 (#331); chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327) (next)",
+        "uk": "chore(build): rebuild www frontend bundle; Merge pull request #359 from hdering/fix/force-websockets-transport; fix(socket): connect websocket-first so \"Force web sockets\" works; chore(deps): bump actions/checkout from 6 to 7 (#356); chore(deps): bump zustand to v5 and migrate equality-fn store hooks (#358); chore(build): rebuild www frontend bundle; chore(deps-dev): bump typescript from 5.9.3 to 6.0.3 (#330); chore(deps): bump @iobroker/adapter-core from 3.3.2 to 3.4.1 (#331); chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327) (next)",
+        "zh-cn": "chore(build): rebuild www frontend bundle; Merge pull request #359 from hdering/fix/force-websockets-transport; fix(socket): connect websocket-first so \"Force web sockets\" works; chore(deps): bump actions/checkout from 6 to 7 (#356); chore(deps): bump zustand to v5 and migrate equality-fn store hooks (#358); chore(build): rebuild www frontend bundle; chore(deps-dev): bump typescript from 5.9.3 to 6.0.3 (#330); chore(deps): bump @iobroker/adapter-core from 3.3.2 to 3.4.1 (#331); chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327) (next)"
+      },
       "0.10.2-next.1": {
         "en": "chore(build): rebuild www frontend bundle (next)",
         "de": "chore(build): rebuild www frontend bundle (next)",
@@ -183,19 +196,6 @@
         "pl": "fix(backup): decode binary .gz reads so backups aren't reported empty",
         "uk": "fix(backup): decode binary .gz reads so backups aren't reported empty",
         "zh-cn": "fix(backup): decode binary .gz reads so backups aren't reported empty"
-      },
-      "0.9.297": {
-        "en": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
-        "de": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
-        "ru": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
-        "pt": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
-        "nl": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
-        "fr": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
-        "it": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
-        "es": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
-        "pl": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
-        "uk": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
-        "zh-cn": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts"
       }
     }
   },

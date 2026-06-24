@@ -192,6 +192,18 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.10.2-next.2 (2026-06-24) — next/test release
+- chore(build): rebuild www frontend bundle
+- Merge pull request #359 from hdering/fix/force-websockets-transport
+- fix(socket): connect websocket-first so "Force web sockets" works
+- chore(deps): bump actions/checkout from 6 to 7 (#356)
+- chore(deps): bump zustand to v5 and migrate equality-fn store hooks (#358)
+- chore(build): rebuild www frontend bundle
+- chore(deps-dev): bump typescript from 5.9.3 to 6.0.3 (#330)
+- chore(deps): bump @iobroker/adapter-core from 3.3.2 to 3.4.1 (#331)
+- chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327)
+
+
 ### 0.10.2-next.1 (2026-06-24) — next/test release
 - chore(build): rebuild www frontend bundle
 
@@ -282,10 +294,6 @@ Release v0.10.1-beta.0
 - fix(panels): let child clicks through; capture pointer only on real swipe
 
 
-### 0.9.284 (2026-06-19)
-- fix(panels): pause autoplay while pointer over or focus inside panel
-
-
 ## License
 
 MIT License
@@ -297,6 +305,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

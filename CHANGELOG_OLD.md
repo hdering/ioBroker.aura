@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.284 (2026-06-19)
+- fix(panels): pause autoplay while pointer over or focus inside panel
+
 ## 0.9.283 (2026-06-19)
 - feat(popup): default importer datapoint to {{dp}}
 - feat(popup): import widgets in the popup-view editor
