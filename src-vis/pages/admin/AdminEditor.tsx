@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect, memo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { shallow } from 'zustand/shallow';
+import { useStoreWithEqualityFn } from 'zustand/traditional';
 import {
     Plus,
     Trash2,
@@ -1156,7 +1157,8 @@ const TabBar = memo(function TabBar() {
     const activeTabId = useDashboardStore(
         (s) => (s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0]).activeTabId,
     );
-    const { addTab, setActiveTab, renameTab, removeTab, setTabSlug, updateTab, reorderTabs } = useDashboardStore(
+    const { addTab, setActiveTab, renameTab, removeTab, setTabSlug, updateTab, reorderTabs } = useStoreWithEqualityFn(
+        useDashboardStore,
         (s) => ({
             addTab: s.addTab,
             setActiveTab: s.setActiveTab,
@@ -1631,7 +1633,8 @@ export function AdminEditor() {
     // Narrow subscriptions — none of these change on tab switch, so AdminEditor
     // itself does NOT re-render when the user clicks a different tab.
     const activeLayoutId = useDashboardStore((s) => s.activeLayoutId);
-    const layoutOptions = useDashboardStore(
+    const layoutOptions = useStoreWithEqualityFn(
+        useDashboardStore,
         (s) => s.layouts.map((l) => ({ id: l.id, name: l.name })),
         (a, b) => a.length === b.length && a.every((l, i) => l.id === b[i].id && l.name === b[i].name),
     );
