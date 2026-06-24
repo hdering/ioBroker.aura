@@ -279,7 +279,7 @@ function applyForwardedHeaders(headers, req) {
     if (req.headers['host']) headers['X-Forwarded-Host'] = req.headers['x-forwarded-host'] || req.headers['host'];
 }
 
-function proxyWebSocket(req, socket, targetWsUrl, log) {
+function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true) {
     let targetUrl;
     try {
         targetUrl = new URL(targetWsUrl);
@@ -309,7 +309,7 @@ function proxyWebSocket(req, socket, targetWsUrl, log) {
     if (req.headers['sec-websocket-protocol'])
         opts.headers['Sec-WebSocket-Protocol'] = req.headers['sec-websocket-protocol'];
     if (req.headers['cookie']) opts.headers['Cookie'] = req.headers['cookie'];
-    applyForwardedHeaders(opts.headers, req);
+    if (sendForwardedFor) applyForwardedHeaders(opts.headers, req);
 
     const proxyReq = lib.request(opts);
     proxyReq.on('upgrade', (proxyRes, proxySocket, proxyHead) => {
@@ -341,7 +341,7 @@ function proxyWebSocket(req, socket, targetWsUrl, log) {
 const SOCKET_BACKEND_WILDCARDS = new Set(['0.0.0.0', '::', '::0', '']);
 
 function pickSocketBackend(objectsMap, socketPort) {
-    const fallback = { host: '127.0.0.1', secure: false, source: null, found: false, conflicts: [] };
+    const fallback = { host: '127.0.0.1', secure: false, pureWs: false, source: null, found: false, conflicts: [] };
     const port = Number(socketPort);
     if (!Number.isFinite(port) || port <= 0) return fallback;
     const candidates = [];
@@ -359,9 +359,20 @@ function pickSocketBackend(objectsMap, socketPort) {
     const bind = String(pick.native.bind || '').trim();
     const host = SOCKET_BACKEND_WILDCARDS.has(bind) ? '127.0.0.1' : bind;
     const secure = !!pick.native.secure;
+    // Socket transport mode of the web/socketio instance:
+    //  - usePureWebSockets (@iobroker/ws): the client connects at the root path
+    //    (/?sid=) and the server only accepts the connection as a trusted session
+    //    when it appears to come from localhost. Forwarding X-Forwarded-For makes
+    //    the backend see the real remote IP, drop the trust, and log
+    //    "No sid found" on every keepalive ping — so we must NOT forward it.
+    //  - classic socket.io (default) / forceWebSockets: engine.io establishes the
+    //    session inline during the handshake, independent of the source IP, so
+    //    X-Forwarded-For is safe and gives honest backend logs.
+    const pureWs = !!pick.native.usePureWebSockets;
     return {
         host,
         secure,
+        pureWs,
         source: pick.id,
         found: true,
         conflicts: candidates.slice(1).map((c) => c.id),
@@ -717,10 +728,20 @@ class Aura extends utils.Adapter {
         const socketHost = backend.host;
         const socketSecure = backend.found ? backend.secure : !!this.config.socketSecure;
         const socketHostPort = formatHostPort(socketHost, socketPort);
+        // Only forward X-Forwarded-For to the socket backend for engine.io modes
+        // (classic socket.io / forceWebSockets), which establish the session inline.
+        // For usePureWebSockets the backend relies on the connection looking like
+        // localhost; forwarding the real IP breaks the session ("No sid found" on
+        // every ping). When no backend was detected, stay conservative and don't
+        // forward (works for every mode, just logs localhost). See pickSocketBackend.
+        const socketSendForwardedFor = backend.found && !backend.pureWs;
         if (backend.found) {
             const proto = socketSecure ? 'https' : 'http';
+            const mode = backend.pureWs ? 'pure-ws (iobroker.ws)' : 'socket.io';
             const extra = backend.conflicts.length ? ` (other matches ignored: ${backend.conflicts.join(', ')})` : '';
-            this.log.info(`aura: socket.io backend ${proto}://${socketHostPort} (via ${backend.source})${extra}`);
+            this.log.info(
+                `aura: socket.io backend ${proto}://${socketHostPort} (via ${backend.source}, ${mode}, X-Forwarded-For ${socketSendForwardedFor ? 'on' : 'off'})${extra}`,
+            );
         } else {
             this.log.warn(
                 `aura: no enabled web/socketio instance found with port ${socketPort} — proxying to ${socketHostPort}`,
@@ -967,7 +988,7 @@ class Aura extends utils.Adapter {
             if (webAdapterPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
                 const socketLib = socketSecure ? https : http;
                 const fwdHeaders = { ...req.headers, host: socketHostPort };
-                applyForwardedHeaders(fwdHeaders, req);
+                if (socketSendForwardedFor) applyForwardedHeaders(fwdHeaders, req);
                 const proxyReq = socketLib.request(
                     {
                         hostname: socketHost,
@@ -1070,7 +1091,7 @@ class Aura extends utils.Adapter {
             const isPureWs = parsedUrl.pathname === '/';
             if (isClassicSocketIo || isPureWs) {
                 const wsScheme = socketSecure ? 'wss' : 'ws';
-                proxyWebSocket(req, socket, `${wsScheme}://${socketHostPort}${req.url}`, this.log);
+                proxyWebSocket(req, socket, `${wsScheme}://${socketHostPort}${req.url}`, this.log, socketSendForwardedFor);
                 return;
             }
             if (parsedUrl.pathname !== '/proxyws') return;
