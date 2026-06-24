@@ -1091,10 +1091,24 @@ class Aura extends utils.Adapter {
             const isPureWs = parsedUrl.pathname === '/';
             if (isClassicSocketIo || isPureWs) {
                 const wsScheme = socketSecure ? 'wss' : 'ws';
+                let targetReqUrl = req.url;
+                // Pure web sockets (@iobroker/ws): the server (ioBroker.ws.server)
+                // closes any root WS upgrade that arrives without a `sid` query param
+                // ("No sid found" → 501 invalid sid → close after 500ms → the client
+                // reconnects every ~5s). The client always sends ?sid=<Date.now()>,
+                // but a reverse proxy in front of aura can drop the query on the root
+                // path. Guarantee a sid so the connection is accepted; the server only
+                // requires it to be non-empty (auth setups use the session cookie
+                // regardless). Classic socket.io is untouched — its sid is issued by
+                // the engine.io handshake under /socket.io/.
+                if (isPureWs && !parsedUrl.searchParams.has('sid')) {
+                    const sid = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+                    targetReqUrl = `${req.url}${parsedUrl.search ? '&' : '?'}sid=${sid}`;
+                }
                 proxyWebSocket(
                     req,
                     socket,
-                    `${wsScheme}://${socketHostPort}${req.url}`,
+                    `${wsScheme}://${socketHostPort}${targetReqUrl}`,
                     this.log,
                     socketSendForwardedFor,
                 );
