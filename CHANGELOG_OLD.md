@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.286 (2026-06-19)
+- fix(panels): track hover and focus separately so open dropdowns don't slide away
+
 ## 0.9.285 (2026-06-19)
 - fix(panels): let child clicks through; capture pointer only on real swipe
 
