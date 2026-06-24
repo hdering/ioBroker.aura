@@ -1093,18 +1093,29 @@ class Aura extends utils.Adapter {
                 const wsScheme = socketSecure ? 'wss' : 'ws';
                 let targetReqUrl = req.url;
                 // Pure web sockets (@iobroker/ws): the server (ioBroker.ws.server)
-                // closes any root WS upgrade that arrives without a `sid` query param
-                // ("No sid found" → 501 invalid sid → close after 500ms → the client
-                // reconnects every ~5s). The client always sends ?sid=<Date.now()>,
-                // but a reverse proxy in front of aura can drop the query on the root
-                // path. Guarantee a sid so the connection is accepted; the server only
-                // requires it to be non-empty (auth setups use the session cookie
-                // regardless). Classic socket.io is untouched — its sid is issued by
-                // the engine.io handshake under /socket.io/.
-                if (isPureWs && !parsedUrl.searchParams.has('sid')) {
+                // closes any root WS upgrade that arrives without a non-empty `sid`
+                // query param ("No sid found" → 501 invalid sid → close after 500ms →
+                // the client reconnects every ~5s). The client always sends
+                // ?sid=<Date.now()>, but a reverse proxy in front of aura can drop or
+                // empty the query on the root path. Guarantee a sid so the connection
+                // is accepted; the server only requires it to be non-empty (auth
+                // setups use the session cookie regardless). Classic socket.io is
+                // untouched — its sid is issued by the engine.io handshake under
+                // /socket.io/.
+                let injected = false;
+                if (isPureWs && !parsedUrl.searchParams.get('sid')) {
                     const sid = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
-                    targetReqUrl = `${req.url}${parsedUrl.search ? '&' : '?'}sid=${sid}`;
+                    const base = req.url.split('?')[0] || '/';
+                    const rest = parsedUrl.search ? parsedUrl.search.replace(/^\?/, '').replace(/(^|&)sid=([^&]*)/, '') : '';
+                    const extra = rest.replace(/^&/, '');
+                    targetReqUrl = `${base}?sid=${sid}${extra ? `&${extra}` : ''}`;
+                    injected = true;
                 }
+                // Diagnostic: shows what the backend actually receives. Remove once
+                // the pure-ws "No sid found" issue is confirmed resolved in the field.
+                this.log.info(
+                    `aura: WS upgrade in="${req.url}" pure=${isPureWs} sid="${parsedUrl.searchParams.get('sid') ?? ''}" injected=${injected} -> "${targetReqUrl}"`,
+                );
                 proxyWebSocket(
                     req,
                     socket,
