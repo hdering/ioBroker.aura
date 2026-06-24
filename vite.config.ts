@@ -1,9 +1,9 @@
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
-import fs from 'fs';
-import path from 'path';
-import http from 'http';
-import https from 'https';
+import fs from 'node:fs';
+import path from 'node:path';
+import http from 'node:http';
+import https from 'node:https';
 
 const DEFAULT_URL = 'http://192.168.188.168:8082';
 const URL_FILE = path.resolve('.iobroker-url');
