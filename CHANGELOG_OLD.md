@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.287 (2026-06-19)
+- fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme
+
 ## 0.9.286 (2026-06-19)
 - fix(panels): track hover and focus separately so open dropdowns don't slide away
 
