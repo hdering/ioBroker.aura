@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.280 (2026-06-19)
+- style(list): use template literal for invalid-entry marker (prefer-template)
+- fix(list): stop id-less entries from crashing list widgets and config
+
 ## 0.9.279 (2026-06-19)
 - style(prettier): auto-format code files
 - chore: stop tracking .vite-dev.log dev artifact

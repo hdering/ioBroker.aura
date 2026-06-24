@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.9.299",
+    "version": "0.10.0",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.10.0": {
+        "en": "Merge pull request #357 from hdering/pr218-pure-ws-followup; fix(socket): resolve no-use-before-define in load guard; fix(socket): dev-proxy pure-ws root upgrade + socket-lib load guard; Support pure WebSocket transport (load socket.io client at runtime) (beta)",
+        "de": "Merge pull request #357 from hdering/pr218-pure-ws-followup; fix(socket): resolve no-use-before-define in load guard; fix(socket): dev-proxy pure-ws root upgrade + socket-lib load guard; Support pure WebSocket transport (load socket.io client at runtime) (beta)",
+        "ru": "Merge pull request #357 from hdering/pr218-pure-ws-followup; fix(socket): resolve no-use-before-define in load guard; fix(socket): dev-proxy pure-ws root upgrade + socket-lib load guard; Support pure WebSocket transport (load socket.io client at runtime) (beta)",
+        "pt": "Merge pull request #357 from hdering/pr218-pure-ws-followup; fix(socket): resolve no-use-before-define in load guard; fix(socket): dev-proxy pure-ws root upgrade + socket-lib load guard; Support pure WebSocket transport (load socket.io client at runtime) (beta)",
+        "nl": "Merge pull request #357 from hdering/pr218-pure-ws-followup; fix(socket): resolve no-use-before-define in load guard; fix(socket): dev-proxy pure-ws root upgrade + socket-lib load guard; Support pure WebSocket transport (load socket.io client at runtime) (beta)",
+        "fr": "Merge pull request #357 from hdering/pr218-pure-ws-followup; fix(socket): resolve no-use-before-define in load guard; fix(socket): dev-proxy pure-ws root upgrade + socket-lib load guard; Support pure WebSocket transport (load socket.io client at runtime) (beta)",
+        "it": "Merge pull request #357 from hdering/pr218-pure-ws-followup; fix(socket): resolve no-use-before-define in load guard; fix(socket): dev-proxy pure-ws root upgrade + socket-lib load guard; Support pure WebSocket transport (load socket.io client at runtime) (beta)",
+        "es": "Merge pull request #357 from hdering/pr218-pure-ws-followup; fix(socket): resolve no-use-before-define in load guard; fix(socket): dev-proxy pure-ws root upgrade + socket-lib load guard; Support pure WebSocket transport (load socket.io client at runtime) (beta)",
+        "pl": "Merge pull request #357 from hdering/pr218-pure-ws-followup; fix(socket): resolve no-use-before-define in load guard; fix(socket): dev-proxy pure-ws root upgrade + socket-lib load guard; Support pure WebSocket transport (load socket.io client at runtime) (beta)",
+        "uk": "Merge pull request #357 from hdering/pr218-pure-ws-followup; fix(socket): resolve no-use-before-define in load guard; fix(socket): dev-proxy pure-ws root upgrade + socket-lib load guard; Support pure WebSocket transport (load socket.io client at runtime) (beta)",
+        "zh-cn": "Merge pull request #357 from hdering/pr218-pure-ws-followup; fix(socket): resolve no-use-before-define in load guard; fix(socket): dev-proxy pure-ws root upgrade + socket-lib load guard; Support pure WebSocket transport (load socket.io client at runtime) (beta)"
+      },
       "0.9.299": {
         "en": "fix(io-package): restore required common.licenseInformation (E1015/E1105)",
         "de": "fix(io-package): restore required common.licenseInformation (E1015/E1105)",
@@ -183,19 +196,6 @@
         "pl": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
         "uk": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
         "zh-cn": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children"
-      },
-      "0.9.291": {
-        "en": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
-        "de": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
-        "ru": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
-        "pt": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
-        "nl": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
-        "fr": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
-        "it": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
-        "es": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
-        "pl": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
-        "uk": "fix(broken-dp): deep-link group/panels and nested-group children to editor",
-        "zh-cn": "fix(broken-dp): deep-link group/panels and nested-group children to editor"
       }
     }
   },
