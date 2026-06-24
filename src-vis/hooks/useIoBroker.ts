@@ -152,7 +152,14 @@ function createSocket(url: string): IoBrokerSocket {
         return makeStubSocket();
     }
     ioLoadWarned = false;
-    const s = io.connect(url);
+    // transports: websocket first, polling as fallback. The classic socket.io
+    // client defaults to polling-first, which fails when the web adapter has
+    // "Force web sockets" enabled (server rejects the polling handshake) — so we
+    // must offer websocket first. @iobroker/ws ("pure web sockets") ignores this
+    // option and uses its own pure-WS connect. We deliberately do NOT pass
+    // `path` (socket.io's default /socket.io is already correct, and @iobroker/ws
+    // would mishandle it — it connects at the root).
+    const s = io.connect(url, { transports: ['websocket', 'polling'] });
 
     // A re-established connection is signalled differently depending on the
     // runtime socket library: the bundled classic socket.io-client re-fires
