@@ -318,6 +318,7 @@ Release v0.10.1-beta.0
 ### 0.9.287 (2026-06-19)
 - fix(enum): theme the Auswahlfeld dropdown from its anchor so it matches the layout theme
 
+[Older changelogs can be found there](CHANGELOG_OLD.md)
 
 ## License
 
