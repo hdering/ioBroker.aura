@@ -192,6 +192,10 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+
+### **WORK IN PROGRESS**
+- (ioBroker-Bot) Adapter requires admin >= 7.8.23 now.
+
 ### 0.10.2-next.4 (2026-06-24) — next/test release
 - chore(build): rebuild www frontend bundle
 - Merge pull request #369 from hdering/fix/proxy-x-forwarded-for
