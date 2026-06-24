@@ -143,6 +143,60 @@ function ioBrokerDevPlugin(): Plugin {
           }
         });
       });
+
+      // Pure web sockets (@iobroker/ws) open their WebSocket at the ROOT path
+      // (ws://host/?sid=…), not under /socket.io — so the '/socket.io' proxy
+      // below never sees them and Vite's HMR server kills the upgrade
+      // (CLOSE_ABNORMAL). Production aura's main.js already forwards root `/`
+      // upgrades; mirror that here for dev. Vite's own HMR socket uses the
+      // 'vite-hmr' subprotocol, so we leave those untouched.
+      server.httpServer?.on('upgrade', (req, socket, _head) => {
+        try {
+          const subproto = String(req.headers['sec-websocket-protocol'] ?? '');
+          if (subproto.includes('vite-hmr')) return; // Vite HMR — let Vite handle it
+          const reqUrl = new URL(req.url ?? '/', 'http://localhost');
+          if (reqUrl.pathname !== '/' || !reqUrl.searchParams.has('sid')) return; // not pure-ws
+          const target = new URL(proxyTarget);
+          const secure = target.protocol === 'https:';
+          const lib = secure ? https : http;
+          const headers: Record<string, string> = {
+            Connection: 'Upgrade',
+            Upgrade: 'websocket',
+            Host: target.host,
+            'Sec-WebSocket-Version': (req.headers['sec-websocket-version'] as string) || '13',
+            'Sec-WebSocket-Key': req.headers['sec-websocket-key'] as string,
+          };
+          if (req.headers['sec-websocket-protocol']) headers['Sec-WebSocket-Protocol'] = subproto;
+          if (req.headers['cookie']) headers['Cookie'] = req.headers['cookie'] as string;
+          const proxyReq = lib.request({
+            hostname: target.hostname,
+            port: target.port || (secure ? 443 : 80),
+            path: reqUrl.pathname + reqUrl.search,
+            method: 'GET',
+            headers,
+            rejectUnauthorized: false,
+          } as http.RequestOptions);
+          proxyReq.on('upgrade', (proxyRes, proxySocket) => {
+            const lines = [
+              'HTTP/1.1 101 Switching Protocols',
+              'Upgrade: websocket',
+              'Connection: Upgrade',
+              `Sec-WebSocket-Accept: ${proxyRes.headers['sec-websocket-accept']}`,
+            ];
+            if (proxyRes.headers['sec-websocket-protocol'])
+              lines.push(`Sec-WebSocket-Protocol: ${proxyRes.headers['sec-websocket-protocol']}`);
+            socket.write(lines.join('\r\n') + '\r\n\r\n');
+            proxySocket.pipe(socket);
+            socket.pipe(proxySocket);
+            proxySocket.on('error', () => socket.destroy());
+            socket.on('error', () => proxySocket.destroy());
+          });
+          proxyReq.on('error', () => socket.destroy());
+          proxyReq.end();
+        } catch {
+          socket.destroy();
+        }
+      });
     },
   };
 }

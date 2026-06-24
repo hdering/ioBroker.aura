@@ -20,12 +20,66 @@ interface IoBrokerSocketFactory {
     connect(url: string, opts?: Record<string, unknown>): IoBrokerSocket;
 }
 
-function getIo(): IoBrokerSocketFactory {
+function getIo(): IoBrokerSocketFactory | null {
     const lib = (globalThis as unknown as { io?: IoBrokerSocketFactory }).io;
-    if (!lib || typeof lib.connect !== 'function') {
-        throw new Error('Socket library not loaded — expected window.io.connect (from /socket.io/socket.io.js).');
-    }
-    return lib;
+    return lib && typeof lib.connect === 'function' ? lib : null;
+}
+
+// Load-failure guard. The socket library is delivered by a separate
+// <script src="/socket.io/socket.io.js"> served by the web adapter. If that
+// adapter is briefly unreachable when the page loads (404 / network blip), the
+// global never appears. Rather than throw — which would crash every getSocket()
+// caller and white-screen the dashboard — we hand out an inert stub, keep the
+// connection indicator "offline", and poll until the library shows up, then
+// swap in the real socket (which re-subscribes everything via handleConnected).
+function makeStubSocket(): IoBrokerSocket {
+    return {
+        connected: false,
+        on() {},
+        emit() {},
+        disconnect() {},
+    };
+}
+
+let ioRetryTimer: ReturnType<typeof setTimeout> | null = null;
+let ioLoadWarned = false;
+
+// Re-inject the socket-library script. The original tag in index.html does not
+// re-fetch after a failed load, so simply polling for window.io would wait
+// forever — we must request the script again (cache-busted) and connect once it
+// arrives. Lets a dashboard left open through a web-adapter restart self-heal.
+function loadSocketLib(): Promise<boolean> {
+    return new Promise((resolve) => {
+        if (getIo()) {
+            resolve(true);
+            return;
+        }
+        const el = document.createElement('script');
+        el.src = `/socket.io/socket.io.js?_retry=${Date.now()}`;
+        const done = (ok: boolean): void => {
+            el.remove();
+            resolve(ok && !!getIo());
+        };
+        el.onload = () => done(true);
+        el.onerror = () => done(false);
+        document.head.appendChild(el);
+    });
+}
+
+function scheduleIoRetry(): void {
+    if (ioRetryTimer) return;
+    ioRetryTimer = setTimeout(() => {
+        ioRetryTimer = null;
+        void loadSocketLib().then((ok) => {
+            if (ok) {
+                // Library arrived — drop the stub so getSocket() builds a real one.
+                socket = null;
+                getSocket();
+            } else {
+                scheduleIoRetry();
+            }
+        });
+    }, 1500);
 }
 
 /** A single line emitted by the iobroker log stream. The frontend never
@@ -138,7 +192,21 @@ function getInitialUrl(): string {
 let currentUrl = getInitialUrl();
 
 function createSocket(url: string): IoBrokerSocket {
-    const s = getIo().connect(url);
+    const io = getIo();
+    if (!io) {
+        if (!ioLoadWarned) {
+            ioLoadWarned = true;
+            console.error(
+                '[useIoBroker] socket library not loaded (/socket.io/socket.io.js) — ' +
+                    'is the ioBroker web/socketio adapter reachable? Showing offline and retrying…',
+            );
+        }
+        connectionListeners.forEach((fn) => fn(false));
+        scheduleIoRetry();
+        return makeStubSocket();
+    }
+    ioLoadWarned = false;
+    const s = io.connect(url);
 
     // A re-established connection is signalled differently depending on the
     // runtime socket library: the bundled classic socket.io-client re-fires
