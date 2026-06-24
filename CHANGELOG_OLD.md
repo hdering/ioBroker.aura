@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.281 (2026-06-19)
+- feat(editor): surface save-blocked hint in the save bar
+
 ## 0.9.280 (2026-06-19)
 - style(list): use template literal for invalid-entry marker (prefer-template)
 - fix(list): stop id-less entries from crashing list widgets and config

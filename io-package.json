@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.10.0",
+    "version": "0.10.1-beta.0",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.10.1-beta.0": {
+        "en": "Release v0.10.1-beta.0 (beta)",
+        "de": "Release v0.10.1-beta.0 (beta)",
+        "ru": "Release v0.10.1-beta.0 (beta)",
+        "pt": "Release v0.10.1-beta.0 (beta)",
+        "nl": "Release v0.10.1-beta.0 (beta)",
+        "fr": "Release v0.10.1-beta.0 (beta)",
+        "it": "Release v0.10.1-beta.0 (beta)",
+        "es": "Release v0.10.1-beta.0 (beta)",
+        "pl": "Release v0.10.1-beta.0 (beta)",
+        "uk": "Release v0.10.1-beta.0 (beta)",
+        "zh-cn": "Release v0.10.1-beta.0 (beta)"
+      },
       "0.10.0": {
         "en": "Merge pull request #357 from hdering/pr218-pure-ws-followup; fix(socket): resolve no-use-before-define in load guard; fix(socket): dev-proxy pure-ws root upgrade + socket-lib load guard; Support pure WebSocket transport (load socket.io client at runtime) (beta)",
         "de": "Merge pull request #357 from hdering/pr218-pure-ws-followup; fix(socket): resolve no-use-before-define in load guard; fix(socket): dev-proxy pure-ws root upgrade + socket-lib load guard; Support pure WebSocket transport (load socket.io client at runtime) (beta)",
@@ -183,19 +196,6 @@
         "pl": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache",
         "uk": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache",
         "zh-cn": "test: drop licenseInformation from required io-package fields; fix(backup): keep change-comment after reload by falling back to ioBroker cache"
-      },
-      "0.9.292": {
-        "en": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
-        "de": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
-        "ru": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
-        "pt": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
-        "nl": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
-        "fr": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
-        "it": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
-        "es": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
-        "pl": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
-        "uk": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children",
-        "zh-cn": "fix(group-defs): actually run gcGroupDefs to clean orphaned defs; fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children"
       }
     }
   },
