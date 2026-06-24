@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.10.2-next.0",
+    "version": "0.10.2-next.1",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.10.2-next.1": {
+        "en": "chore(build): rebuild www frontend bundle (next)",
+        "de": "chore(build): rebuild www frontend bundle (next)",
+        "ru": "chore(build): rebuild www frontend bundle (next)",
+        "pt": "chore(build): rebuild www frontend bundle (next)",
+        "nl": "chore(build): rebuild www frontend bundle (next)",
+        "fr": "chore(build): rebuild www frontend bundle (next)",
+        "it": "chore(build): rebuild www frontend bundle (next)",
+        "es": "chore(build): rebuild www frontend bundle (next)",
+        "pl": "chore(build): rebuild www frontend bundle (next)",
+        "uk": "chore(build): rebuild www frontend bundle (next)",
+        "zh-cn": "chore(build): rebuild www frontend bundle (next)"
+      },
       "0.10.2-next.0": {
         "en": "Release v0.10.2-next.0 (next)",
         "de": "Release v0.10.2-next.0 (next)",
@@ -183,19 +196,6 @@
         "pl": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
         "uk": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts",
         "zh-cn": "fix(custom-grid): align default custom-layout font sizes across all widgets; fix(value-widget): match custom-layout font sizes to other layouts"
-      },
-      "0.9.296": {
-        "en": "fix(reset): land on backend overview after reset, not the frontend",
-        "de": "fix(reset): land on backend overview after reset, not the frontend",
-        "ru": "fix(reset): land on backend overview after reset, not the frontend",
-        "pt": "fix(reset): land on backend overview after reset, not the frontend",
-        "nl": "fix(reset): land on backend overview after reset, not the frontend",
-        "fr": "fix(reset): land on backend overview after reset, not the frontend",
-        "it": "fix(reset): land on backend overview after reset, not the frontend",
-        "es": "fix(reset): land on backend overview after reset, not the frontend",
-        "pl": "fix(reset): land on backend overview after reset, not the frontend",
-        "uk": "fix(reset): land on backend overview after reset, not the frontend",
-        "zh-cn": "fix(reset): land on backend overview after reset, not the frontend"
       }
     }
   },
