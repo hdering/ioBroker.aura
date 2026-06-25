@@ -515,6 +515,13 @@ export function TabBar({
         ));
 
     // ── Tab settings portal ──────────────────────────────────────────────────────
+    const panelWidth = conditionsOpen ? 500 : 256;
+    // Clamp left so a far-right tab's panel (esp. the wide 500px conditions view)
+    // stays inside the viewport instead of being cut off on the right edge.
+    const panelLeft = Math.max(
+        8,
+        Math.min(panelPos.left, (typeof window !== 'undefined' ? window.innerWidth : panelPos.left + panelWidth) - panelWidth - 8),
+    );
     const settingsPanel =
         settingsTabId && settingsTab
             ? createPortal(
@@ -524,8 +531,8 @@ export function TabBar({
                           className="fixed z-[999] rounded-xl shadow-2xl p-3 space-y-3 overflow-y-auto"
                           style={{
                               top: panelPos.top,
-                              left: panelPos.left,
-                              width: conditionsOpen ? 500 : 256,
+                              left: panelLeft,
+                              width: panelWidth,
                               maxHeight: `calc(100vh - ${panelPos.top}px - 16px)`,
                               background: 'var(--app-surface)',
                               backdropFilter: 'blur(20px)',
