@@ -257,8 +257,7 @@ export function Dashboard({
                                                         <div
                                                             key={w.id}
                                                             style={
-                                                                w.type === 'group' ||
-                                                                w.type === 'mediaplayer'
+                                                                w.type === 'group' || w.type === 'mediaplayer'
                                                                     ? undefined
                                                                     : {
                                                                           // 'panels' is a fixed-viewport carousel: its
