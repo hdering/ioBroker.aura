@@ -541,8 +541,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                             setActiveCustomUnit(cfgCustomUnit);
                         }}
                     >
-                        {cfgCustomVal}
-                        {cfgCustomUnit === 'd' ? 'd' : 'h'}
+                        {cfgCustomVal} {cfgCustomUnit === 'd' ? (cfgCustomVal === 1 ? 'Tag' : 'Tage') : 'Std'}
                     </button>
                 )}
             </div>

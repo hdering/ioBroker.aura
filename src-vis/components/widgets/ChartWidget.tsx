@@ -233,8 +233,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                             setActiveCustomMs(cfgCustomMs);
                         }}
                     >
-                        {customVal}
-                        {customUnit === 'd' ? 'd' : 'h'}
+                        {customVal} {customUnit === 'd' ? (customVal === 1 ? 'Tag' : 'Tage') : 'Std'}
                     </button>
                 )}
             </div>
