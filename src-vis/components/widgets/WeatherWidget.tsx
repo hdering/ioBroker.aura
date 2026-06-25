@@ -3,7 +3,8 @@ import { Cloud, Loader } from 'lucide-react';
 import type { WidgetProps, CustomGrid, CustomGridDef, CustomCell } from '../../types';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useAdapterWeather } from '../../hooks/useAdapterWeather';
-import { useT } from '../../i18n';
+import { useT, type Language } from '../../i18n';
+import { useConfigStore } from '../../store/configStore';
 import { CustomGridView } from './CustomGridView';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 
@@ -188,15 +189,52 @@ interface WeatherData {
     };
 }
 
-// ── Brightsky (DWD) warning type ──────────────────────────────────────────────
+// ── Brightsky (DWD) warning types ─────────────────────────────────────────────
+type Severity = 'minor' | 'moderate' | 'severe' | 'extreme';
+
+// Raw item from Brightsky /alerts: text fields are language-suffixed (no plain
+// `headline`/`event`/`description`) and `severity` is lowercase.
+interface RawDwdAlert {
+    id: number;
+    headline_en: string | null;
+    headline_de: string | null;
+    description_en: string | null;
+    description_de: string | null;
+    event_en: string | null;
+    event_de: string | null;
+    severity: string;
+    onset: string;
+    expires: string | null;
+}
+
+// Normalized warning the UI renders (localized text + lowercased severity).
 interface DwdWarning {
     id: number;
     headline: string;
     description: string | null;
-    severity: 'Minor' | 'Moderate' | 'Severe' | 'Extreme';
+    severity: Severity;
     event: string;
     onset: string;
     expires: string | null;
+}
+
+// Map a raw Brightsky alert to the normalized shape, picking the active language
+// (falling back to the other language) and coercing severity to a known key.
+function normalizeAlert(a: RawDwdAlert, lang: Language): DwdWarning {
+    const pick = (de: string | null, en: string | null) => (lang === 'de' ? (de ?? en) : (en ?? de)) ?? '';
+    const sev = String(a.severity ?? '').toLowerCase();
+    const severity: Severity =
+        sev === 'extreme' || sev === 'severe' || sev === 'moderate' ? (sev as Severity) : 'minor';
+    return {
+        id: a.id,
+        headline: pick(a.headline_de, a.headline_en),
+        description:
+            (lang === 'de' ? (a.description_de ?? a.description_en) : (a.description_en ?? a.description_de)) ?? null,
+        severity,
+        event: pick(a.event_de, a.event_en),
+        onset: a.onset,
+        expires: a.expires,
+    };
 }
 
 type TFn = (key: Parameters<ReturnType<typeof useT>>[0], vars?: Record<string, string | number>) => string;
@@ -233,18 +271,18 @@ function getTempBarColor(temp: number, thresholds?: [number, string][]): string 
     return chosen;
 }
 
-const SEVERITY_COLOR: Record<string, string> = {
-    Minor: '#f59e0b',
-    Moderate: '#f97316',
-    Severe: '#ef4444',
-    Extreme: '#7c3aed',
+const SEVERITY_COLOR: Record<Severity, string> = {
+    minor: '#f59e0b',
+    moderate: '#f97316',
+    severe: '#ef4444',
+    extreme: '#7c3aed',
 };
 
-const SEVERITY_EMOJI: Record<string, string> = {
-    Minor: '⚠️',
-    Moderate: '🔶',
-    Severe: '🔴',
-    Extreme: '🟣',
+const SEVERITY_EMOJI: Record<Severity, string> = {
+    minor: '⚠️',
+    moderate: '🔶',
+    severe: '🔴',
+    extreme: '🟣',
 };
 
 // ── Warnings panel ────────────────────────────────────────────────────────────
@@ -311,6 +349,7 @@ function WarningsPanel({
 // ── Main widget ───────────────────────────────────────────────────────────────
 export function WeatherWidget({ config }: WidgetProps) {
     const t = useT();
+    const lang = useConfigStore((s) => (s.frontend.language ?? 'de') as Language);
     const opts = config.options ?? {};
     const lat = (opts.latitude as number) ?? 48.1;
     const lon = (opts.longitude as number) ?? 11.6;
@@ -453,9 +492,9 @@ export function WeatherWidget({ config }: WidgetProps) {
             try {
                 const res = await fetch(`https://api.brightsky.dev/alerts?lat=${lat}&lon=${lon}`);
                 if (!res.ok) throw new Error('HTTP error');
-                const json = (await res.json()) as { alerts?: DwdWarning[] };
+                const json = (await res.json()) as { alerts?: RawDwdAlert[] };
                 if (!cancelled) {
-                    setWarnings(json.alerts ?? []);
+                    setWarnings((json.alerts ?? []).map((a) => normalizeAlert(a, lang)));
                     setWarnLoading(false);
                 }
             } catch {
@@ -471,7 +510,7 @@ export function WeatherWidget({ config }: WidgetProps) {
             cancelled = true;
             clearInterval(id);
         };
-    }, [lat, lon, refreshMin, showWarnings]);
+    }, [lat, lon, refreshMin, showWarnings, lang]);
 
     // ── Warnings-only mode ────────────────────────────────────────────────────
     if (!showWeather && showWarnings) {
