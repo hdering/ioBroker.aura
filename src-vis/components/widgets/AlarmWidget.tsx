@@ -672,7 +672,10 @@ export function AlarmWidget({ config }: WidgetProps) {
                                 >
                                     {entry.time}
                                 </span>
-                                <span className="flex-1 min-w-0 truncate" style={{ color: 'var(--text-primary)' }}>
+                                <span
+                                    className="flex-1 min-w-0"
+                                    style={{ color: 'var(--text-primary)', overflowWrap: 'anywhere' }}
+                                >
                                     {entry.text}
                                 </span>
                             </div>
