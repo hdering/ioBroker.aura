@@ -13,6 +13,7 @@ Kein klassischer Haupt-Datenpunkt. Stattdessen wird ein **Instanz-Präfix** gese
 | `status.burglar_alarm` · `status.silent_alarm` · `status.siren` | lesen | Auslöse-Zustände |
 | `status.activation_countdown` · `status.silent_countdown` | lesen | Countdown in Sekunden |
 | `info.alarm_circuit_list` · `info.notification_circuit_list` | lesen | offene/meldende Kreise |
+| `info.notification_circuit_changes` · `status.activation_failed` | lesen | quittierbare Meldung (zeigt „Quittieren") |
 | `info.log` · `info.log_today` · `info.wrong_password` | lesen | Log + PIN-Fehler |
 | `zone.<one\|two\|three>` · `zone.<…>_on_off` | lesen/schreiben | Zonen-Status + Ein/Aus |
 | `presence.on_off` | lesen/schreiben | Anwesenheit |

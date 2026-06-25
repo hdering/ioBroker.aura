@@ -1335,6 +1335,7 @@ export const en: Record<TranslationKey, string> = {
     'alarm.activatingIn': 'Arming in',
     'alarm.silentIn': 'Silent alarm in',
     'alarm.openCircuits': 'Open',
+    'alarm.changesPending': 'Monitored circuit changed',
     'alarm.quit': 'Acknowledge',
     'alarm.quitChanges': 'Acknowledge changes',
     'alarm.today': 'Today',

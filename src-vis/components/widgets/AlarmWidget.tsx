@@ -62,6 +62,8 @@ interface AlarmData {
     alarmCircuitList: string;
     notificationCircuitList: string;
     sharpInsideCircuitList: string;
+    notificationChanges: boolean;
+    activationFailed: boolean;
     wrongPassword: boolean;
     logLast: string;
     logToday: string;
@@ -83,6 +85,8 @@ const DEFAULT_DATA: AlarmData = {
     alarmCircuitList: '',
     notificationCircuitList: '',
     sharpInsideCircuitList: '',
+    notificationChanges: false,
+    activationFailed: false,
     wrongPassword: false,
     logLast: '',
     logToday: '',
@@ -113,6 +117,8 @@ function useAlarmData(prefix: string): AlarmData {
             ['info.alarm_circuit_list', 'alarmCircuitList'],
             ['info.notification_circuit_list', 'notificationCircuitList'],
             ['info.sharp_inside_circuit_list', 'sharpInsideCircuitList'],
+            ['info.notification_circuit_changes', 'notificationChanges'],
+            ['status.activation_failed', 'activationFailed'],
             ['info.wrong_password', 'wrongPassword'],
             ['info.log', 'logLast'],
             ['info.log_today', 'logToday'],
@@ -273,6 +279,9 @@ export function AlarmWidget({ config }: WidgetProps) {
 
     const stateInfo = STATE_INFO[data.stateCode] ?? STATE_INFO[0];
     const triggered = data.burglar || data.silent || data.siren;
+    // States that `use.quit_changes` actually resets — only show the acknowledge
+    // button when one of these is set, otherwise pressing it has no visible effect.
+    const canQuit = data.activationFailed || data.notificationChanges;
 
     // Visual scaling
     const fsBase = 13 * sizeScale;
@@ -591,6 +600,7 @@ export function AlarmWidget({ config }: WidgetProps) {
                 </div>
             )}
 
+            {/* Open alarm circuits — live status, cannot be acknowledged away */}
             {showCircuits && data.alarmCircuitList && (
                 <div
                     className="flex items-start rounded-lg shrink-0"
@@ -607,14 +617,37 @@ export function AlarmWidget({ config }: WidgetProps) {
                     <span className="flex-1">
                         {t('alarm.openCircuits') as string}: {data.alarmCircuitList}
                     </span>
+                </div>
+            )}
+
+            {/* Acknowledgeable notice (failed activation / circuit change) — pressing
+                quit_changes resets exactly these flags, so the block then disappears */}
+            {showCircuits && canQuit && (
+                <div
+                    className="flex items-start rounded-lg shrink-0"
+                    style={{
+                        padding: `${4 * sizeScale}px ${8 * sizeScale}px`,
+                        background: '#f9731622',
+                        border: '1px solid #f9731655',
+                        color: '#f97316',
+                        fontSize: fsSmall,
+                        gap: 6 * sizeScale,
+                    }}
+                >
+                    <Bell size={Math.round(13 * sizeScale)} className="mt-0.5 shrink-0" />
+                    <span className="flex-1 min-w-0" style={{ overflowWrap: 'anywhere' }}>
+                        {data.activationFailed
+                            ? (t('alarm.state.activationFail') as string)
+                            : data.notificationCircuitList || (t('alarm.changesPending') as string)}
+                    </span>
                     <button
                         onClick={doQuit}
-                        className="rounded inline-flex items-center gap-1"
+                        className="rounded inline-flex items-center gap-1 shrink-0"
                         style={{
                             padding: `${2 * sizeScale}px ${6 * sizeScale}px`,
                             fontSize: fsTiny,
-                            color: '#ef4444',
-                            border: '1px solid #ef444499',
+                            color: '#f97316',
+                            border: '1px solid #f9731699',
                             background: 'transparent',
                         }}
                         title={t('alarm.quitChanges') as string}
@@ -625,7 +658,8 @@ export function AlarmWidget({ config }: WidgetProps) {
                 </div>
             )}
 
-            {showCircuits && !data.alarmCircuitList && data.notificationCircuitList && (
+            {/* Passive notification list (nothing to acknowledge) */}
+            {showCircuits && !data.alarmCircuitList && !canQuit && data.notificationCircuitList && (
                 <div
                     className="flex items-center rounded-lg shrink-0"
                     style={{

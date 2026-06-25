@@ -1337,6 +1337,7 @@ export const de = {
     'alarm.activatingIn': 'Scharf in',
     'alarm.silentIn': 'Stiller Alarm in',
     'alarm.openCircuits': 'Offen',
+    'alarm.changesPending': 'Meldung im Überwachungskreis',
     'alarm.quit': 'Quittieren',
     'alarm.quitChanges': 'Veränderungen quittieren',
     'alarm.today': 'Heute',
