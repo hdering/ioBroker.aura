@@ -419,8 +419,10 @@ export function WeatherWidget({ config }: WidgetProps) {
     const scale = scaleAuto * fontScale;
     const fs = (rem: number) => `${rem * scale}rem`;
     // Warnings stay readable but never balloon with the widget, so two alerts fit
-    // in the reserved/flex area without forcing the widget to be huge.
-    const warnScale = Math.min(scale, 1.1);
+    // in the reserved/flex area without forcing the widget to be huge. A separate
+    // user factor (`warningsScale`) lets them be enlarged independently.
+    const warningsScale = (opts.warningsScale as number) || 1;
+    const warnScale = Math.min(scale, 1.1) * warningsScale;
 
     // ── Local temperature sensor ──────────────────────────────────────────────
     const { value: localTempRaw } = useDatapoint(localTempDp);

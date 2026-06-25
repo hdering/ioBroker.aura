@@ -754,6 +754,8 @@ export const en: Record<TranslationKey, string> = {
     'wf.weather.localTempPh': 'e.g. hm-rpc.0.xxx.TEMPERATURE',
     'wf.weather.showWarnings': 'Show weather warnings (DWD)',
     'wf.weather.warningsHint': 'Requires lat/lon • Germany only',
+    'wf.weather.warningsScale': 'Warnings size',
+    'wf.weather.warningsScaleHint': '1 = default. >1 enlarges the warnings independently.',
     'wf.weather.showRainProb': 'Show rain probability',
     'wf.weather.showRainAmount': 'Show rain amount (mm)',
     'wf.weather.showCloudCover': 'Show cloud cover',

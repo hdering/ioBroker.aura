@@ -1683,6 +1683,7 @@ function WeatherConfigSection({ o, set, onOpenPicker, onOpenAdapterPicker, layou
     const feelsLikeStyle = (o.feelsLikeStyle as 'text' | 'icon' | 'hidden') ?? 'text';
     const tempFontSize = (o.tempFontSize as number) ?? 0;
     const fontScale = (o.fontScale as number) ?? 1;
+    const warningsScale = (o.warningsScale as number) ?? 1;
     const forecastRowGap = (o.forecastRowGap as number) ?? 0;
     const forecastWrap = (o.forecastWrap as boolean) ?? false;
     const tempThresholds = (o.forecastTempThresholds as [number, string][] | undefined) ?? [];
@@ -1805,6 +1806,26 @@ function WeatherConfigSection({ o, set, onOpenPicker, onOpenAdapterPicker, layou
                     />
                 </button>
             </div>
+            {showWarnings && (
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.weather.warningsScale')}
+                    </label>
+                    <input
+                        type="number"
+                        min={0.5}
+                        max={5}
+                        step={0.05}
+                        value={warningsScale}
+                        onChange={(e) => set({ warningsScale: Number(e.target.value) || undefined })}
+                        className={iCls}
+                        style={iSty}
+                    />
+                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                        {t('wf.weather.warningsScaleHint')}
+                    </p>
+                </div>
+            )}
 
             {/* ── Local temperature sensor ── */}
             <div>

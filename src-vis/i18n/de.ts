@@ -755,6 +755,8 @@ export const de = {
     'wf.weather.localTempPh': 'z.B. hm-rpc.0.xxx.TEMPERATURE',
     'wf.weather.showWarnings': 'Wetterwarnungen anzeigen (DWD)',
     'wf.weather.warningsHint': 'Benötigt Breitengrad + Längengrad • Nur Deutschland',
+    'wf.weather.warningsScale': 'Größe der Warnungen',
+    'wf.weather.warningsScaleHint': '1 = Standard. >1 vergrößert die Warnungen separat.',
     'wf.weather.showRainProb': 'Regenwahrscheinlichkeit anzeigen',
     'wf.weather.showRainAmount': 'Regenmenge (mm) anzeigen',
     'wf.weather.showCloudCover': 'Bewölkung anzeigen',
