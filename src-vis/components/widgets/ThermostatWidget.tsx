@@ -312,19 +312,14 @@ export function ThermostatWidget({ config }: WidgetProps) {
                 <div className="flex items-center justify-between flex-1">
                     <div className="aura-widget-value">
                         {showSetpoint && (
-                            <>
-                                <p className="text-xl font-bold leading-none" style={{ color: valueColor }}>
-                                    {formatNum(target, decimals)}°C
-                                </p>
-                                <p className="text-sm font-light" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('thermo.setPoint')}
-                                </p>
-                            </>
+                            <p className="text-xl font-bold leading-none" style={{ color: valueColor }}>
+                                {t('thermo.setPoint')}: {formatNum(target, decimals)}°C
+                            </p>
                         )}
                         {showActualTemp && actual !== null && (
                             <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
                                 {t('thermo.actual')}:{' '}
-                                <span style={{ color: 'var(--text-primary)' }}>{formatNum(actual, decimals)}°CC</span>
+                                <span style={{ color: 'var(--text-primary)' }}>{formatNum(actual, decimals)}°C</span>
                             </p>
                         )}
                     </div>
