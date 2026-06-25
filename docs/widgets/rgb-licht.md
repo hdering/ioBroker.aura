@@ -1,6 +1,6 @@
 # RGB-Licht
 
-Steuert Helligkeit, Farbe, Lichtwärme und Effekte einer Lampe in einem Widget. Unterstützt HSV-, RGB- und HmIP-Color-Datenpunkte. Die Steuerelemente werden über eine Tab-Leiste umgeschaltet; eine optionale Preset-Palette bietet Schnellzugriff auf Farben.
+Steuert Helligkeit, Farbe, Lichtwärme und Effekte einer Lampe in einem Widget. Unterstützt HSV-, RGB-, Hex- und HmIP-Color-Datenpunkte. Die Steuerelemente werden über eine Tab-Leiste umgeschaltet; eine optionale Preset-Palette bietet Schnellzugriff auf Farben.
 
 ## Datenpunkt
 
@@ -12,6 +12,7 @@ Je nach Funktion werden verschiedene Datenpunkte verwendet. `colorMode` bestimmt
 | `switchDp` | nein | `boolean` | separater An/Aus-DP; ohne ihn schaltet die Helligkeit auf `min` / `max` |
 | `hueDp` / `saturationDp` | nein | `number` | bei `colorMode: hsv` |
 | `rDp` / `gDp` / `bDp` | nein | `number` | bei `colorMode: rgb` |
+| `colorHexDp` | nein | `string` | einzelner Hex-String (`#RRGGBB`) bei `colorMode: hex` |
 | `colorDp` | nein | `number` | einzelner HmIP-Color-Integer bei `colorMode: hm-color` |
 | `temperatureDp` | nein | `number` | Farbtemperatur in Kelvin |
 | `effectDp` | nein | — | Effekt-Auswahl |
@@ -55,7 +56,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 | Option | Standard | |
 | --- | --- | --- |
-| `colorMode` | `none` | `none` · `hsv` · `rgb` · `hm-color` |
+| `colorMode` | `none` | `none` · `hsv` · `rgb` · `hex` · `hm-color` |
 | `colorWheelStyle` | `disc` | `disc` (Scheibe) · `ring` (Ring) |
 | `colorWheelSize` | `240` | max. px (80–400) |
 | `showPalette` | `true` | Preset-Farbpalette anzeigen |

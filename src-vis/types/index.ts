@@ -87,7 +87,7 @@ export type WidgetLayout =
 // ── Light widget option types ─────────────────────────────────────────────────
 
 /** Which DPs the widget uses for color. */
-export type LightColorMode = 'hsv' | 'rgb' | 'hm-color' | 'none';
+export type LightColorMode = 'hsv' | 'rgb' | 'hex' | 'hm-color' | 'none';
 
 /** Tab identifiers inside the light widget. */
 export type LightTab = 'power' | 'brightness' | 'color' | 'temperature' | 'effects';

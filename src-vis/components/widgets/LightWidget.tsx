@@ -58,7 +58,8 @@ function hsvToHex(h: number, s: number, v: number): string {
 }
 
 function hexToRgb(hex: string): [number, number, number] | null {
-    const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+    // Accept "#RRGGBB", "RRGGBB" and "0xRRGGBB" (case-insensitive).
+    const m = /^(?:#|0x)?([0-9a-f]{6})$/i.exec(hex.trim());
     if (!m) return null;
     const n = parseInt(m[1], 16);
     return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
@@ -451,6 +452,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     const gDp = (o.gDp as string | undefined) || '';
     const bDp = (o.bDp as string | undefined) || '';
     const colorDp = (o.colorDp as string | undefined) || ''; // HmIP single integer
+    const colorHexDp = (o.colorHexDp as string | undefined) || ''; // single "#RRGGBB" string
     const temperatureDp = (o.temperatureDp as string | undefined) || '';
     const effectDp = (o.effectDp as string | undefined) || '';
 
@@ -471,6 +473,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     const gVal = useNum(gDp);
     const bVal = useNum(bDp);
     const colorVal = useNum(colorDp);
+    const hexVal = useStr(colorHexDp);
     const ctVal = useNum(temperatureDp);
     const effectVal = useStr(effectDp);
 
@@ -488,13 +491,17 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
             }
             return { hue: 0, sat: 0 };
         }
+        if (colorMode === 'hex') {
+            const hsv = hexVal ? hexToHsv(hexVal) : null;
+            return hsv ? { hue: hsv[0], sat: hsv[1] } : { hue: 0, sat: 0 };
+        }
         if (colorMode === 'hm-color') {
             if (colorVal == null) return { hue: 0, sat: 0 };
             if (colorVal >= hmWhiteValue) return { hue: 0, sat: 0 }; // white mode
             return { hue: (colorVal / 199) * 360, sat: 1 };
         }
         return { hue: 0, sat: 0 };
-    }, [colorMode, hueVal, satVal, rVal, gVal, bVal, colorVal, satMax, hmWhiteValue]);
+    }, [colorMode, hueVal, satVal, rVal, gVal, bVal, colorVal, hexVal, satMax, hmWhiteValue]);
 
     // Drag state for smooth UI without flooding ioBroker
     const [dragBri, setDragBri] = useState<number | null>(null);
@@ -543,6 +550,8 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
                 if (rDp) setState(rDp, r);
                 if (gDp) setState(gDp, g);
                 if (bDp) setState(bDp, b);
+            } else if (colorMode === 'hex') {
+                if (colorHexDp) setState(colorHexDp, hsvToHex(h, s, 1).toUpperCase());
             } else if (colorMode === 'hm-color') {
                 if (colorDp) {
                     const v = clamp(Math.round((h / 360) * 199), 0, 199);
@@ -550,7 +559,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
                 }
             }
         },
-        [colorMode, hueDp, saturationDp, rDp, gDp, bDp, colorDp, satMax, setState],
+        [colorMode, hueDp, saturationDp, rDp, gDp, bDp, colorDp, colorHexDp, satMax, setState],
     );
 
     const writeCT = useCallback(

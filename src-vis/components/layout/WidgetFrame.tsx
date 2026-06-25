@@ -5067,6 +5067,7 @@ export function WidgetFrame({
         | 'light_gDp'
         | 'light_bDp'
         | 'light_colorDp'
+        | 'light_colorHexDp'
         | 'light_temperatureDp'
         | 'light_effectDp'
         | 'weather_adapterPath'
@@ -11226,6 +11227,7 @@ export function WidgetFrame({
                                         | 'light_gDp'
                                         | 'light_bDp'
                                         | 'light_colorDp'
+                                        | 'light_colorHexDp'
                                         | 'light_temperatureDp'
                                         | 'light_effectDp',
                                     placeholder = 'optional',
@@ -11395,6 +11397,7 @@ export function WidgetFrame({
                                                         { val: 'none', label: 'Keine Farbe' },
                                                         { val: 'hsv', label: 'HSV (Hue + Sat)' },
                                                         { val: 'rgb', label: 'RGB (3 DPs)' },
+                                                        { val: 'hex', label: 'Hex (#RRGGBB)' },
                                                         { val: 'hm-color', label: 'HmIP Color (0–200)' },
                                                     ] as const
                                                 ).map(({ val, label }) => (
@@ -11465,6 +11468,17 @@ export function WidgetFrame({
                                                     {dpRow('bDp', 'light_bDp')}
                                                 </div>
                                             </>
+                                        )}
+                                        {colorMode === 'hex' && (
+                                            <div>
+                                                <label className="text-[11px] mb-1 block" style={hint}>
+                                                    Hex-Farb-DP (string, z.B. #0000FF)
+                                                </label>
+                                                {dpRow('colorHexDp', 'light_colorHexDp', 'z.B. …RGB')}
+                                                <p className="text-[10px] mt-1" style={hint}>
+                                                    Schreibt #RRGGBB in Großbuchstaben; liest #/0x sowie groß/klein.
+                                                </p>
+                                            </div>
                                         )}
                                         {colorMode === 'hm-color' && (
                                             <div>
@@ -15411,6 +15425,8 @@ export function WidgetFrame({
                             onConfigChange({ ...config, options: { ...config.options, bDp: id } });
                         } else if (pickerTarget === 'light_colorDp') {
                             onConfigChange({ ...config, options: { ...config.options, colorDp: id } });
+                        } else if (pickerTarget === 'light_colorHexDp') {
+                            onConfigChange({ ...config, options: { ...config.options, colorHexDp: id } });
                         } else if (pickerTarget === 'light_temperatureDp') {
                             onConfigChange({ ...config, options: { ...config.options, temperatureDp: id } });
                         } else if (pickerTarget === 'light_effectDp') {
