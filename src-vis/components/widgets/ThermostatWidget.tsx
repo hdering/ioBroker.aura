@@ -313,7 +313,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                     <div className="aura-widget-value">
                         {showSetpoint && (
                             <p className="text-xl font-bold leading-none" style={{ color: valueColor }}>
-                                {t('thermo.setPoint')}: {formatNum(target, decimals)}°C
+                                {formatNum(target, decimals)}°C
                             </p>
                         )}
                         {showActualTemp && actual !== null && (
