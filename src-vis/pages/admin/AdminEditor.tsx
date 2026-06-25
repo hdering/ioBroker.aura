@@ -1210,6 +1210,17 @@ const TabBar = memo(function TabBar() {
 
     const settingsTab = tabs.find((t) => t.id === settingsTabId);
 
+    // Re-clamp left against the panel's *current* width so expanding the conditions
+    // (256 → 500px) on a far-right tab can't push the rules off the right edge.
+    const panelWidth = conditionsOpen ? 500 : 256;
+    const panelLeft = Math.max(
+        8,
+        Math.min(
+            panelPos.left,
+            (typeof window !== 'undefined' ? window.innerWidth : panelPos.left + panelWidth) - panelWidth - 12,
+        ),
+    );
+
     return (
         <>
             <div
@@ -1402,8 +1413,8 @@ const TabBar = memo(function TabBar() {
                             className="aura-scroll fixed z-[999] rounded-xl shadow-2xl p-3 space-y-3 overflow-y-auto"
                             style={{
                                 top: panelPos.top,
-                                left: panelPos.left,
-                                width: conditionsOpen ? 500 : 256,
+                                left: panelLeft,
+                                width: panelWidth,
                                 maxHeight: `calc(100vh - ${panelPos.top + 12}px)`,
                                 background: 'var(--app-surface)',
                                 border: '1px solid var(--app-border)',
