@@ -1,5 +1,13 @@
 # Changelog (older entries)
 
+## 0.9.290 (2026-06-20)
+- fix(lint): auto-fix mixed typographic quotes
+- chore(deps): keep suncalc only in dependencies (backend runtime require)
+- feat(universal-widget): deprecate standalone Button (DP) cell type
+- feat(universal-widget): add button control mode to switch (DP) cell
+- style(prettier): auto-format code files
+- fix(timers): compute astro times with bundled suncalc instead of host getAstroDate
+
 ## 0.9.289 (2026-06-20)
 - fix(settings): let device and backup lists grow together symmetrically
 - fix(settings): let the backup list grow with its content
