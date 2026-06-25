@@ -520,7 +520,10 @@ export function TabBar({
     // stays inside the viewport instead of being cut off on the right edge.
     const panelLeft = Math.max(
         8,
-        Math.min(panelPos.left, (typeof window !== 'undefined' ? window.innerWidth : panelPos.left + panelWidth) - panelWidth - 8),
+        Math.min(
+            panelPos.left,
+            (typeof window !== 'undefined' ? window.innerWidth : panelPos.left + panelWidth) - panelWidth - 8,
+        ),
     );
     const settingsPanel =
         settingsTabId && settingsTab
