@@ -192,6 +192,35 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.10.3-next.8 (2026-06-25) — next/test release
+- chore(build): rebuild www frontend bundle
+- feat(light): add hex color mode for single #RRGGBB string datapoints
+- chore(build): rebuild www frontend bundle
+- fix(light): power entry toggles directly instead of duplicating switch
+- style(list): collapse multi-line label attributes to satisfy prettier
+- feat(list): per-entry icon-switch icons and confirmation prompt
+- chore(build): rebuild www frontend bundle
+- feat(weather): add separate size factor for warnings
+- chore(build): rebuild www frontend bundle
+- fix(weather): give warnings their own flex/scroll region, stop them inflating
+- fix(weather): size warnings into auto-scale baseline so they fit without scroll
+- fix(weather): render DWD warning content instead of empty yellow box
+- fix(adapter-status): show schedule-mode adapters as 'scheduled' not 'stopped'
+- chore(build): rebuild www frontend bundle
+- fix(editor): keep tab settings panel on-screen when conditions expand
+- style(tabbar): wrap Math.min args per prettier
+- chore(build): rebuild www frontend bundle
+- fix(tabbar): keep settings panel on-screen for far-right tabs
+- chore(build): rebuild www frontend bundle
+- fix(chart): show full German unit word for custom range button
+- chore(build): rebuild www frontend bundle
+- feat(group): per-group option to keep grid layout on mobile
+- fix(group): fill and scroll inside fixed-height containers on mobile
+- chore(build): rebuild www frontend bundle
+- style(prettier): auto-format code files
+- fix(panels): prevent viewport collapse in mobile portrait layout
+
+
 ### 0.10.3-next.7 (2026-06-25) — next/test release
 - chore(build): rebuild www frontend bundle
 - fix(light): power entry toggles directly instead of duplicating switch
@@ -409,6 +438,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
