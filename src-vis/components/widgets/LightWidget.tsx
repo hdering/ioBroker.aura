@@ -618,14 +618,21 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
         return allowedTabs;
     }, [allowedTabs, layout, effectDp]);
 
+    // The "power" entry in the pill is a direct on/off toggle, NOT a view that
+    // occupies the main control area. View tabs (brightness/color/…) are the only
+    // ones the main area cycles through. Only when there is no other control to
+    // show (switch-only widget) does power become the main view.
+    const viewTabs = useMemo(() => tabs.filter((t) => t !== 'power'), [tabs]);
+    const mainTabs = viewTabs.length ? viewTabs : tabs;
+
     const initialTab: LightTab =
-        (o.activeTab as LightTab | undefined) && tabs.includes(o.activeTab as LightTab)
+        (o.activeTab as LightTab | undefined) && mainTabs.includes(o.activeTab as LightTab)
             ? (o.activeTab as LightTab)
-            : (tabs[0] ?? 'brightness');
+            : (mainTabs[0] ?? 'brightness');
     const [activeTab, setActiveTab] = useState<LightTab>(initialTab);
     useEffect(() => {
-        if (!tabs.includes(activeTab)) setActiveTab(tabs[0] ?? 'brightness');
-    }, [tabs, activeTab]);
+        if (!mainTabs.includes(activeTab)) setActiveTab(mainTabs[0] ?? 'brightness');
+    }, [mainTabs, activeTab]);
     const persistTab = useCallback(
         (tab: LightTab) => {
             setActiveTab(tab);
@@ -856,14 +863,17 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
                     >
                         {tabs.map((t) => {
                             const TabIcon = TAB_META[t].icon;
-                            const active = activeTab === t;
+                            // Power acts as a direct toggle (reflecting on/off) whenever there
+                            // is a separate view to keep above; otherwise it is the main view.
+                            const isPowerToggle = t === 'power' && viewTabs.length > 0;
+                            const active = isPowerToggle ? isOn : activeTab === t;
                             return (
                                 <button
                                     key={t}
-                                    onClick={() => persistTab(t)}
+                                    onClick={() => (isPowerToggle ? togglePower() : persistTab(t))}
                                     className="nodrag w-8 h-8 rounded-full flex items-center justify-center transition-colors"
                                     style={{
-                                        background: active ? '#1a1a1a' : 'transparent',
+                                        background: active ? (isPowerToggle ? accent : '#1a1a1a') : 'transparent',
                                         color: active ? '#fff' : 'var(--text-secondary)',
                                     }}
                                 >
