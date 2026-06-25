@@ -41,6 +41,8 @@
     "build:adapter": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint --cache src-vis main.js",
+    "format": "prettier --write src-vis main.js",
+    "format:check": "prettier --check src-vis main.js",
     "test": "node test/adapter.test.js",
     "test:package": "node test/adapter.test.js",
     "test:integration": "node test/adapter.test.js",
