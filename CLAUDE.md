@@ -84,6 +84,10 @@ Whenever you make a decision, identify a task, note a next step, fact, or blocke
 - `files` lists the files this decision/task relates to (can be empty)
 - Log immediately when the item arises  - not at session end
 
+## Release Notes (Changelog Highlights)
+
+When the user requests a **user-facing change** (a feature, fix, or visible behavior change), append one short **English** bullet describing it to `RELEASE_NOTES.md` in the project root — in addition to the code commit. `release.ps1` turns these bullets into the ioBroker changelog (admin news + README) at release time and resets the file after the next stable release. If `RELEASE_NOTES.md` holds only `#`-comment lines, the release falls back to filtered feat/fix commit subjects. English only (the release linter rejects German). Skip purely internal changes (refactors, build/CI, dep bumps).
+
 ## Session End
 
 When the user signals they are done (e.g. "bye", "done", "wrap up", "end session"), proactively update `CONTEXT.md` in the project root with:
