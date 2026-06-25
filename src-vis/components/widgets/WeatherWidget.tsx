@@ -402,20 +402,25 @@ export function WeatherWidget({ config }: WidgetProps) {
     }, [layout]);
     // Scale from the limiting dimension so content never overflows the widget.
     // Height baseline includes header (~64px) + per-row (~22px) for shown
-    // forecast rows + optional title row (~22px) + warnings block. Width baseline
-    // ~260px. The warnings estimate must be in the baseline too — otherwise the
-    // scale overshoots and the warnings get pushed off the bottom behind a
-    // scrollbar (each alert box ≈ 46px at scale 1; "no warnings" line ≈ 22px).
+    // forecast rows + optional title row (~22px). Width baseline ~260px.
+    // When warnings are shown we reserve a fixed slice of the baseline for them
+    // (so the weather block can't claim the full height) and cap the scale lower
+    // — the warnings live in their own flex region that grows with the widget and
+    // scrolls internally, rather than being inflated by the global scale.
     const titleRowH = showTitle || showIcon ? 22 : 0;
     const headerH = showWeather ? 64 : 0;
     const fcRows = showWeather && showForecast ? forecastDays : 0;
-    const warnH = showWarnings ? (warnings.length > 0 ? warnings.length * 46 : 22) + 8 : 0;
-    const baseContentH = Math.max(60, titleRowH + headerH + fcRows * 22 + warnH + 8);
+    const warnReserve = showWarnings ? 110 : 0; // ≈ room for two compact alert boxes
+    const baseContentH = Math.max(60, titleRowH + headerH + fcRows * 22 + warnReserve + 8);
     const scaleW = size.w / 260;
     const scaleH = size.h / baseContentH;
-    const scaleAuto = Math.max(0.55, Math.min(2.4, Math.min(scaleW, scaleH)));
+    const scaleCap = showWarnings ? 1.5 : 2.4; // keep the weather block from eating the warnings' space
+    const scaleAuto = Math.max(0.55, Math.min(scaleCap, Math.min(scaleW, scaleH)));
     const scale = scaleAuto * fontScale;
     const fs = (rem: number) => `${rem * scale}rem`;
+    // Warnings stay readable but never balloon with the widget, so two alerts fit
+    // in the reserved/flex area without forcing the widget to be huge.
+    const warnScale = Math.min(scale, 1.1);
 
     // ── Local temperature sensor ──────────────────────────────────────────────
     const { value: localTempRaw } = useDatapoint(localTempDp);
@@ -529,7 +534,7 @@ export function WeatherWidget({ config }: WidgetProps) {
                         {locationName}
                     </div>
                 )}
-                <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} scale={scale} />
+                <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} scale={warnScale} />
             </div>
         );
     }
@@ -967,8 +972,8 @@ export function WeatherWidget({ config }: WidgetProps) {
                     </span>
                 </div>
                 {showWarnings && (
-                    <div className="shrink-0">
-                        <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} scale={scale} />
+                    <div className="shrink-0 min-h-0 aura-scroll overflow-auto">
+                        <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} scale={warnScale} />
                     </div>
                 )}
             </div>
@@ -998,8 +1003,14 @@ export function WeatherWidget({ config }: WidgetProps) {
     }
 
     // ── DEFAULT / CARD ────────────────────────────────────────────────────────
+    // With warnings the card itself does NOT scroll — the warnings region below
+    // is the only scroller — so the last alert can never be clipped a few px by
+    // the card's own overflow. Without warnings, keep the card scrollable.
     return (
-        <div ref={containerRef} className="aura-widget-row aura-scroll flex flex-col h-full gap-2 overflow-auto">
+        <div
+            ref={containerRef}
+            className={`aura-widget-row flex flex-col h-full gap-2 ${showWarnings ? 'overflow-hidden' : 'aura-scroll overflow-auto'}`}
+        >
             {(showTitle || showIcon) && (
                 <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                     {showIcon && (
@@ -1072,10 +1083,10 @@ export function WeatherWidget({ config }: WidgetProps) {
             {/* ── Forecast ── */}
             {forecastRows && <div className="shrink-0">{forecastRows}</div>}
 
-            {/* ── Weather warnings ── */}
+            {/* ── Weather warnings — own flex region: grows with the widget, scrolls internally ── */}
             {showWarnings && (
-                <div className="shrink-0">
-                    <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} scale={scale} />
+                <div className="flex-1 min-h-0 aura-scroll overflow-auto">
+                    <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} scale={warnScale} />
                 </div>
             )}
         </div>
