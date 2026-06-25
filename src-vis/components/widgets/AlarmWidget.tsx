@@ -346,9 +346,7 @@ export function AlarmWidget({ config }: WidgetProps) {
             active: data.stateCode === 1,
             color: '#3b82f6',
             label: t('alarm.mode.sharp') as string,
-            Icon: ({ size, color }: { size?: number; color?: string }) => (
-                <ShieldCheck size={size} color={color} />
-            ),
+            Icon: ({ size, color }: { size?: number; color?: string }) => <ShieldCheck size={size} color={color} />,
             onClick: () => writeUseList(USE_LIST.sharp),
             disabled: !data.enableable && data.stateCode !== 1,
         },
@@ -925,22 +923,11 @@ export function AlarmConfig({
                     <Toggle label={t('alarm.cfg.showHeader') as string} k="showHeader" def={true} />
                     <Toggle label={t('alarm.cfg.showModes') as string} k="showModes" def={true} />
                     {(o.showModes as boolean | undefined) !== false && (
-                        <div
-                            className="ml-3 pl-3 space-y-2 border-l"
-                            style={{ borderColor: 'var(--app-border)' }}
-                        >
+                        <div className="ml-3 pl-3 space-y-2 border-l" style={{ borderColor: 'var(--app-border)' }}>
                             <Toggle label={t('alarm.cfg.showModeOff') as string} k="showModeOff" def={true} />
                             <Toggle label={t('alarm.cfg.showModeSharp') as string} k="showModeSharp" def={true} />
-                            <Toggle
-                                label={t('alarm.cfg.showModeInside') as string}
-                                k="showModeInside"
-                                def={true}
-                            />
-                            <Toggle
-                                label={t('alarm.cfg.showModeNight') as string}
-                                k="showModeNight"
-                                def={true}
-                            />
+                            <Toggle label={t('alarm.cfg.showModeInside') as string} k="showModeInside" def={true} />
+                            <Toggle label={t('alarm.cfg.showModeNight') as string} k="showModeNight" def={true} />
                         </div>
                     )}
                     <Toggle label={t('alarm.cfg.showDelay') as string} k="showDelay" def={true} />
