@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.292 (2026-06-20)
+- fix(group-defs): actually run gcGroupDefs to clean orphaned defs
+- fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children
+
 ## 0.9.291 (2026-06-20)
 - fix(broken-dp): deep-link group/panels and nested-group children to editor
 
