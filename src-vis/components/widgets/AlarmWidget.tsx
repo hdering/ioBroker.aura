@@ -240,6 +240,10 @@ export function AlarmWidget({ config }: WidgetProps) {
     const iconSize = (o.iconSize as number) || 20;
     const showHeader = o.showHeader !== false;
     const showModes = o.showModes !== false;
+    const showModeOff = o.showModeOff !== false;
+    const showModeSharp = o.showModeSharp !== false;
+    const showModeInside = o.showModeInside !== false;
+    const showModeNight = o.showModeNight !== false;
     const showCountdown = o.showCountdown !== false;
     const showCircuits = o.showCircuits !== false;
     const showZones = o.showZones !== false;
@@ -308,6 +312,54 @@ export function AlarmWidget({ config }: WidgetProps) {
     // ── render ────────────────────────────────────────────────────────────────
 
     const logEntries = useMemo(() => parseLogToday(data.logToday, logLines), [data.logToday, logLines]);
+
+    // Visible mode buttons (each can be individually hidden via config)
+    type ModeDef = {
+        key: string;
+        active: boolean;
+        color: string;
+        label: string;
+        Icon: React.ComponentType<{ size?: number; color?: string }>;
+        onClick: () => void;
+        disabled?: boolean;
+    };
+    const modeButtons: ModeDef[] = [
+        showModeOff && {
+            key: 'off',
+            active: data.stateCode === 0,
+            color: '#10b981',
+            label: t('alarm.mode.off') as string,
+            Icon: ({ size, color }: { size?: number; color?: string }) => <ShieldOff size={size} color={color} />,
+            onClick: doDisarm,
+        },
+        showModeSharp && {
+            key: 'sharp',
+            active: data.stateCode === 1,
+            color: '#3b82f6',
+            label: t('alarm.mode.sharp') as string,
+            Icon: ({ size, color }: { size?: number; color?: string }) => (
+                <ShieldCheck size={size} color={color} />
+            ),
+            onClick: () => writeUseList(USE_LIST.sharp),
+            disabled: !data.enableable && data.stateCode !== 1,
+        },
+        showModeInside && {
+            key: 'inside',
+            active: data.stateCode === 2 || data.sharpInside,
+            color: '#06b6d4',
+            label: t('alarm.mode.inside') as string,
+            Icon: ({ size, color }: { size?: number; color?: string }) => <Lock size={size} color={color} />,
+            onClick: doSharpInside,
+        },
+        showModeNight && {
+            key: 'night',
+            active: data.stateCode === 4 || data.sleep,
+            color: '#6366f1',
+            label: t('alarm.mode.night') as string,
+            Icon: ({ size, color }: { size?: number; color?: string }) => <Moon size={size} color={color} />,
+            onClick: doNightRest,
+        },
+    ].filter(Boolean) as ModeDef[];
 
     // Trigger overlay color tinting
     const cardTint = triggered
@@ -445,53 +497,30 @@ export function AlarmWidget({ config }: WidgetProps) {
                     )}
                 </div>
             ) : (
-                showModes && (
+                showModes &&
+                modeButtons.length > 0 && (
                     <div
                         className="grid shrink-0"
                         style={{
-                            gridTemplateColumns: compactMode
-                                ? 'repeat(2, minmax(0, 1fr))'
-                                : 'repeat(4, minmax(0, 1fr))',
+                            gridTemplateColumns: `repeat(${
+                                compactMode ? Math.min(2, modeButtons.length) : modeButtons.length
+                            }, minmax(0, 1fr))`,
                             gap: 6 * sizeScale,
                         }}
                     >
-                        <ModeButton
-                            active={data.stateCode === 0}
-                            color="#10b981"
-                            label={t('alarm.mode.off') as string}
-                            Icon={({ size, color }) => <ShieldOff size={size} color={color} />}
-                            onClick={doDisarm}
-                            fontSize={fsModeLabel}
-                            iconSize={fsModeIcon}
-                        />
-                        <ModeButton
-                            active={data.stateCode === 1}
-                            color="#3b82f6"
-                            label={t('alarm.mode.sharp') as string}
-                            Icon={({ size, color }) => <ShieldCheck size={size} color={color} />}
-                            onClick={() => writeUseList(USE_LIST.sharp)}
-                            disabled={!data.enableable && data.stateCode !== 1}
-                            fontSize={fsModeLabel}
-                            iconSize={fsModeIcon}
-                        />
-                        <ModeButton
-                            active={data.stateCode === 2 || data.sharpInside}
-                            color="#06b6d4"
-                            label={t('alarm.mode.inside') as string}
-                            Icon={({ size, color }) => <Lock size={size} color={color} />}
-                            onClick={doSharpInside}
-                            fontSize={fsModeLabel}
-                            iconSize={fsModeIcon}
-                        />
-                        <ModeButton
-                            active={data.stateCode === 4 || data.sleep}
-                            color="#6366f1"
-                            label={t('alarm.mode.night') as string}
-                            Icon={({ size, color }) => <Moon size={size} color={color} />}
-                            onClick={doNightRest}
-                            fontSize={fsModeLabel}
-                            iconSize={fsModeIcon}
-                        />
+                        {modeButtons.map((m) => (
+                            <ModeButton
+                                key={m.key}
+                                active={m.active}
+                                color={m.color}
+                                label={m.label}
+                                Icon={m.Icon}
+                                onClick={m.onClick}
+                                disabled={m.disabled}
+                                fontSize={fsModeLabel}
+                                iconSize={fsModeIcon}
+                            />
+                        ))}
                     </div>
                 )
             )}
@@ -858,6 +887,25 @@ export function AlarmConfig({
                 <div className="space-y-2">
                     <Toggle label={t('alarm.cfg.showHeader') as string} k="showHeader" def={true} />
                     <Toggle label={t('alarm.cfg.showModes') as string} k="showModes" def={true} />
+                    {(o.showModes as boolean | undefined) !== false && (
+                        <div
+                            className="ml-3 pl-3 space-y-2 border-l"
+                            style={{ borderColor: 'var(--app-border)' }}
+                        >
+                            <Toggle label={t('alarm.cfg.showModeOff') as string} k="showModeOff" def={true} />
+                            <Toggle label={t('alarm.cfg.showModeSharp') as string} k="showModeSharp" def={true} />
+                            <Toggle
+                                label={t('alarm.cfg.showModeInside') as string}
+                                k="showModeInside"
+                                def={true}
+                            />
+                            <Toggle
+                                label={t('alarm.cfg.showModeNight') as string}
+                                k="showModeNight"
+                                def={true}
+                            />
+                        </div>
+                    )}
                     <Toggle label={t('alarm.cfg.showDelay') as string} k="showDelay" def={true} />
                     <Toggle label={t('alarm.cfg.showCountdown') as string} k="showCountdown" def={true} />
                     <Toggle label={t('alarm.cfg.showCircuits') as string} k="showCircuits" def={true} />
