@@ -383,6 +383,10 @@ export function WeatherWidget({ config }: WidgetProps) {
     const forecastRowGap = (opts.forecastRowGap as number) || 0; // rem; 0 = default (0.375)
     const forecastWrap = (opts.forecastWrap as boolean) ?? false;
 
+    // ── DWD warnings state (declared here so the height baseline can size them) ─
+    const [warnings, setWarnings] = useState<DwdWarning[]>([]);
+    const [warningsLoading, setWarnLoading] = useState(false);
+
     // ── Responsive sizing: scale font/icon/bar with widget dimensions ────────
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({ w: 260, h: 200 });
@@ -398,11 +402,15 @@ export function WeatherWidget({ config }: WidgetProps) {
     }, [layout]);
     // Scale from the limiting dimension so content never overflows the widget.
     // Height baseline includes header (~64px) + per-row (~22px) for shown
-    // forecast rows + optional title row (~22px). Width baseline ~260px.
+    // forecast rows + optional title row (~22px) + warnings block. Width baseline
+    // ~260px. The warnings estimate must be in the baseline too — otherwise the
+    // scale overshoots and the warnings get pushed off the bottom behind a
+    // scrollbar (each alert box ≈ 46px at scale 1; "no warnings" line ≈ 22px).
     const titleRowH = showTitle || showIcon ? 22 : 0;
     const headerH = showWeather ? 64 : 0;
     const fcRows = showWeather && showForecast ? forecastDays : 0;
-    const baseContentH = Math.max(60, titleRowH + headerH + fcRows * 22 + 8);
+    const warnH = showWarnings ? (warnings.length > 0 ? warnings.length * 46 : 22) + 8 : 0;
+    const baseContentH = Math.max(60, titleRowH + headerH + fcRows * 22 + warnH + 8);
     const scaleW = size.w / 260;
     const scaleH = size.h / baseContentH;
     const scaleAuto = Math.max(0.55, Math.min(2.4, Math.min(scaleW, scaleH)));
@@ -477,10 +485,7 @@ export function WeatherWidget({ config }: WidgetProps) {
     const loading: boolean = useAdapter ? adapter.loading : onlineLoading;
     const error: boolean = useAdapter ? adapter.error : onlineError;
 
-    // ── DWD warnings (Brightsky) ──────────────────────────────────────────────
-    const [warnings, setWarnings] = useState<DwdWarning[]>([]);
-    const [warningsLoading, setWarnLoading] = useState(false);
-
+    // ── DWD warnings (Brightsky) — fetch (state declared above for scaling) ───
     useEffect(() => {
         if (!showWarnings) {
             setWarnings([]);
