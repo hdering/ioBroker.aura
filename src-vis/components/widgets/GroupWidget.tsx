@@ -358,7 +358,11 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // ── Mobile layout ──────────────────────────────────────────────────────────
     if (isMobile) {
         return (
-            <div className="aura-widget-row relative flex flex-col" {...dragHandlers}>
+            // h-full so a group nested in a fixed-height container (e.g. a panels
+            // slide) fills it and scrolls internally instead of overflowing. At the
+            // top level the mobile-stack wrapper is auto-height, so h-full resolves
+            // to content height and the page still scrolls as before.
+            <div className="aura-widget-row relative flex flex-col h-full min-h-0" {...dragHandlers}>
                 {isDragOver && (
                     <div
                         className="nodrag pointer-events-none absolute inset-0 z-20 rounded-[inherit] border-2 border-dashed flex items-center justify-center"
