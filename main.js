@@ -1113,9 +1113,10 @@ class Aura extends utils.Adapter {
                     targetReqUrl = `${base}?sid=${sid}${extra ? `&${extra}` : ''}`;
                     injected = true;
                 }
-                // Diagnostic: shows what the backend actually receives. Remove once
-                // the pure-ws "No sid found" issue is confirmed resolved in the field.
-                this.log.info(
+                // Diagnostic (debug-level): shows what the backend actually receives
+                // for each WS upgrade — useful when chasing "No sid found" / protocol
+                // mismatches. Enable the adapter's debug log level to see it.
+                this.log.debug(
                     `aura: WS upgrade in="${req.url}" pure=${isPureWs} sid="${parsedUrl.searchParams.get('sid') ?? ''}" injected=${injected} -> "${targetReqUrl}"`,
                 );
                 proxyWebSocket(
