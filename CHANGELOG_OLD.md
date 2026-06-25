@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.293 (2026-06-22)
+- chore(io-package): remove licenseInformation to skip admin license dialog
+
 ## 0.9.292 (2026-06-20)
 - fix(group-defs): actually run gcGroupDefs to clean orphaned defs
 - fix(broken-dp): skip orphaned group defs, deep-link popup-hosted children
