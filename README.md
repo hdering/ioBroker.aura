@@ -192,6 +192,35 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.10.2-next.7 (2026-06-25) — next/test release
+- chore(build): rebuild www frontend bundle
+- style(prettier): auto-format code files
+- Merge pull request #382 from hdering/fix/pure-ws-sid-diag
+- fix(proxy): inject sid also when empty + log WS upgrades (pure-ws diag)
+- chore(build): rebuild www frontend bundle
+- Merge pull request #381 from hdering/fix/pure-ws-ensure-sid
+- fix(proxy): guarantee a sid on pure-ws root upgrades (fixes 5s reconnect loop)
+- chore(build): rebuild www frontend bundle
+- style(prettier): auto-format code files
+- Merge pull request #380 from hdering/fix/adaptive-forwarded-for
+- fix(proxy): only forward X-Forwarded-For for engine.io socket modes
+- chore(build): rebuild www frontend bundle
+- Merge pull request #369 from hdering/fix/proxy-x-forwarded-for
+- feat(proxy): forward X-Forwarded-For/Proto to the socket backend
+- chore(build): rebuild www frontend bundle
+- Merge pull request #368 from hdering/fix/pin-zustand-v4-prod-loop
+- fix(deps): pin zustand to v4 — v5 causes prod-only infinite render loop
+- chore(build): rebuild www frontend bundle
+- Merge pull request #359 from hdering/fix/force-websockets-transport
+- fix(socket): connect websocket-first so "Force web sockets" works
+- chore(deps): bump actions/checkout from 6 to 7 (#356)
+- chore(deps): bump zustand to v5 and migrate equality-fn store hooks (#358)
+- chore(build): rebuild www frontend bundle
+- chore(deps-dev): bump typescript from 5.9.3 to 6.0.3 (#330)
+- chore(deps): bump @iobroker/adapter-core from 3.3.2 to 3.4.1 (#331)
+- chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327)
+
+
 ### 0.10.2-next.6 (2026-06-24) — next/test release
 - chore(build): rebuild www frontend bundle
 - Merge pull request #381 from hdering/fix/pure-ws-ensure-sid
@@ -351,11 +380,6 @@ Release v0.10.1-beta.0
 - fix(timers): compute astro times with bundled suncalc instead of host getAstroDate
 
 
-### 0.9.289 (2026-06-20)
-- fix(settings): let device and backup lists grow together symmetrically
-- fix(settings): let the backup list grow with its content
-
-
 ## License
 
 MIT License
@@ -367,6 +391,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

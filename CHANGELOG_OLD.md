@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.289 (2026-06-20)
+- fix(settings): let device and backup lists grow together symmetrically
+- fix(settings): let the backup list grow with its content
+
 ## 0.9.288 (2026-06-20)
 - style(prettier): auto-format code files
 - fix(settings): let the device list fill the full card height
