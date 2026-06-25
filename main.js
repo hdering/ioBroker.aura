@@ -1106,7 +1106,9 @@ class Aura extends utils.Adapter {
                 if (isPureWs && !parsedUrl.searchParams.get('sid')) {
                     const sid = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
                     const base = req.url.split('?')[0] || '/';
-                    const rest = parsedUrl.search ? parsedUrl.search.replace(/^\?/, '').replace(/(^|&)sid=([^&]*)/, '') : '';
+                    const rest = parsedUrl.search
+                        ? parsedUrl.search.replace(/^\?/, '').replace(/(^|&)sid=([^&]*)/, '')
+                        : '';
                     const extra = rest.replace(/^&/, '');
                     targetReqUrl = `${base}?sid=${sid}${extra ? `&${extra}` : ''}`;
                     injected = true;
