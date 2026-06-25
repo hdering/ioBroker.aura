@@ -312,8 +312,10 @@ export function TabBar({
         tabs.map((tab, idx) => (
             <TabConditionWrapper key={tab.id} tab={tab}>
                 {({ cssVars, effect, hidden }) => {
-                    // Frontend or readonly preview: hide disabled / condition-hidden tabs
-                    if (readonly && (tab.disabled || hidden)) return null;
+                    // Frontend or readonly preview: hide disabled / hidden / condition-hidden tabs
+                    // (hidden tabs stay reachable via their direct slug URL — they are only
+                    //  removed from the tab bar, not from the layout)
+                    if (readonly && (tab.disabled || tab.hidden || hidden)) return null;
 
                     const isActive = tab.id === activeTabId;
                     const ts = tabStyle(isActive, tbSettings);
@@ -600,6 +602,22 @@ export function TabBar({
                                   <span
                                       className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
                                       style={{ left: settingsTab.disabled ? '18px' : '2px' }}
+                                  />
+                              </button>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                              <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                  {t('tabBar.hidden')}
+                              </label>
+                              <button
+                                  onClick={() => updateTab(settingsTabId, { hidden: !settingsTab.hidden })}
+                                  className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                  style={{ background: settingsTab.hidden ? 'var(--accent)' : 'var(--app-border)' }}
+                              >
+                                  <span
+                                      className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                      style={{ left: settingsTab.hidden ? '18px' : '2px' }}
                                   />
                               </button>
                           </div>

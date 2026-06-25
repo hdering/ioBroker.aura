@@ -1520,6 +1520,22 @@ const TabBar = memo(function TabBar() {
                                     />
                                 </button>
                             </div>
+
+                            <div className="flex items-center justify-between">
+                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('editor.tabMgmt.hidden')}
+                                </label>
+                                <button
+                                    onClick={() => updateTab(settingsTabId, { hidden: !settingsTab.hidden })}
+                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                    style={{ background: settingsTab.hidden ? 'var(--accent)' : 'var(--app-border)' }}
+                                >
+                                    <span
+                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                        style={{ left: settingsTab.hidden ? '18px' : '2px' }}
+                                    />
+                                </button>
+                            </div>
                             <div>
                                 <div className="flex items-center justify-between mb-1.5">
                                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>

@@ -293,11 +293,12 @@ export default function App() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [layout?.id, layout?.tabs, tabSlug]);
 
-    // If active tab is disabled, jump to the first non-disabled tab
+    // If active tab is disabled, jump to the first visible (non-disabled, non-hidden) tab.
+    // Hidden tabs are intentionally not bounced: they stay reachable via their direct slug URL.
     useEffect(() => {
         const active = tabs.find((t) => t.id === activeTabId);
         if (!active || !active.disabled) return;
-        const next = tabs.find((t) => !t.disabled);
+        const next = tabs.find((t) => !t.disabled && !t.hidden) ?? tabs.find((t) => !t.disabled);
         if (next) setActiveTabId(next.id);
     }, [tabs, activeTabId]);
 

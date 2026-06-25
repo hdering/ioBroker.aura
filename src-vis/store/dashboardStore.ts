@@ -93,6 +93,7 @@ export interface Tab {
     icon?: string; // icon name from WIDGET_ICON_MAP
     hideLabel?: boolean; // show only icon, hide text
     disabled?: boolean; // hidden in frontend, shown grayed-out in editor
+    hidden?: boolean; // removed from the tab bar, but still reachable via its direct slug URL
     conditions?: WidgetCondition[]; // DP-based style/visibility conditions for tab button
 }
 
@@ -205,7 +206,7 @@ interface DashboardState {
     renameTab: (id: string, name: string) => void;
     updateTab: (
         id: string,
-        patch: Partial<Pick<Tab, 'name' | 'slug' | 'icon' | 'hideLabel' | 'disabled' | 'conditions'>>,
+        patch: Partial<Pick<Tab, 'name' | 'slug' | 'icon' | 'hideLabel' | 'disabled' | 'hidden' | 'conditions'>>,
     ) => void;
     setTabSlug: (id: string, slug: string) => void;
     setActiveTab: (id: string) => void;
