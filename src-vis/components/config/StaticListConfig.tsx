@@ -401,10 +401,7 @@ function EntryRow({
                     {isSwitch && (entry.switchStyle ?? 'slide') === 'icon' && (
                         <div className="grid grid-cols-2 gap-1.5">
                             <div>
-                                <label
-                                    className="text-[9px] block mb-0.5"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
+                                <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                     Icon AN
                                 </label>
                                 <div className="relative">
@@ -439,10 +436,7 @@ function EntryRow({
                                 </div>
                             </div>
                             <div>
-                                <label
-                                    className="text-[9px] block mb-0.5"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
+                                <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                     Icon AUS
                                 </label>
                                 <div className="relative">
