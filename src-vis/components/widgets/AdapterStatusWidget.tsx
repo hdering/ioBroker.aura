@@ -13,12 +13,13 @@ import { NS } from '../../utils/namespace';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-type FilterMode = 'all' | 'enabled' | 'running' | 'stopped' | 'disabled' | 'updates';
+type FilterMode = 'all' | 'enabled' | 'running' | 'scheduled' | 'stopped' | 'disabled' | 'updates';
 
 const FILTER_LABELS: Record<FilterMode, string> = {
     all: 'Alle',
     enabled: 'Aktiv',
     running: 'Läuft',
+    scheduled: 'Geplant',
     stopped: 'Gestoppt',
     disabled: 'Deaktiviert',
     updates: 'Updates',
@@ -33,6 +34,7 @@ interface AdapterInstance {
     title: string; // common.title / common.titleLang
     host: string; // common.host
     enabled: boolean; // common.enabled
+    mode: string; // common.mode — "daemon" | "schedule" | "subscribe" | "once" | "extension"
     version: string; // common.version
     icon?: string; // common.extIcon / common.icon
 }
@@ -106,6 +108,10 @@ function InstanceRow({
     const isAlive = alive === true;
     const enabled = inst.enabled;
     const hasUpdate = !!updateInfo;
+    // Schedule-mode adapters (cron, e.g. ical/openweathermap) only report alive=true
+    // for the brief moment their job runs — the rest of the time alive=false is normal,
+    // so they must not be labelled "gestoppt".
+    const scheduled = inst.mode === 'schedule';
 
     // Status pill text + color
     let statusLabel: string;
@@ -116,6 +122,9 @@ function InstanceRow({
     } else if (isAlive) {
         statusLabel = 'läuft';
         statusColor = '#22c55e';
+    } else if (scheduled) {
+        statusLabel = 'geplant';
+        statusColor = '#3b82f6';
     } else {
         statusLabel = 'gestoppt';
         statusColor = '#ef4444';
@@ -306,6 +315,7 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
                     title: resolveTitle(row.value, rest),
                     host: (c as { host?: string }).host ?? '',
                     enabled: c.enabled === true,
+                    mode: (c as { mode?: string }).mode ?? 'daemon',
                     version: (c as { version?: string }).version ?? '',
                     icon: (c as { extIcon?: string; icon?: string }).extIcon ?? (c as { icon?: string }).icon,
                 });
@@ -386,9 +396,11 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
         const lc = query.trim().toLowerCase();
         let arr = instances.filter((inst) => {
             const aliveSt = states[`system.adapter.${inst.id}.alive`]?.val === true;
+            const isScheduled = inst.mode === 'schedule';
             if (filter === 'enabled' && !inst.enabled) return false;
             if (filter === 'running' && !aliveSt) return false;
-            if (filter === 'stopped' && (aliveSt || !inst.enabled)) return false;
+            if (filter === 'scheduled' && (!isScheduled || !inst.enabled)) return false;
+            if (filter === 'stopped' && (aliveSt || !inst.enabled || isScheduled)) return false;
             if (filter === 'disabled' && inst.enabled) return false;
             if (filter === 'updates' && !updates[inst.adapter]) return false;
             if (lc && !inst.id.toLowerCase().includes(lc) && !inst.title.toLowerCase().includes(lc)) return false;
@@ -408,6 +420,7 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
 
     const counts = useMemo(() => {
         let running = 0,
+            scheduled = 0,
             stopped = 0,
             disabled = 0,
             hasUpdate = 0;
@@ -417,10 +430,11 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
                 continue;
             }
             if (states[`system.adapter.${inst.id}.alive`]?.val === true) running++;
+            else if (inst.mode === 'schedule') scheduled++;
             else stopped++;
             if (updates[inst.adapter]) hasUpdate++;
         }
-        return { running, stopped, disabled, hasUpdate, total: instances.length };
+        return { running, scheduled, stopped, disabled, hasUpdate, total: instances.length };
     }, [instances, states, updates]);
 
     return (
@@ -455,6 +469,12 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
                     <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#22c55e' }} />
                     {counts.running}
                 </span>
+                {counts.scheduled > 0 && (
+                    <span className="flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#3b82f6' }} />
+                        {counts.scheduled}
+                    </span>
+                )}
                 <span className="flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#ef4444' }} />
                     {counts.stopped}
@@ -480,16 +500,18 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
                             f === 'all'
                                 ? counts.total
                                 : f === 'enabled'
-                                  ? counts.running + counts.stopped
+                                  ? counts.running + counts.scheduled + counts.stopped
                                   : f === 'running'
                                     ? counts.running
-                                    : f === 'stopped'
-                                      ? counts.stopped
-                                      : f === 'disabled'
-                                        ? counts.disabled
-                                        : f === 'updates'
-                                          ? counts.hasUpdate
-                                          : 0;
+                                    : f === 'scheduled'
+                                      ? counts.scheduled
+                                      : f === 'stopped'
+                                        ? counts.stopped
+                                        : f === 'disabled'
+                                          ? counts.disabled
+                                          : f === 'updates'
+                                            ? counts.hasUpdate
+                                            : 0;
                         return (
                             <button
                                 key={f}

@@ -10720,6 +10720,7 @@ export function WidgetFrame({
                                                 <option value="all">Alle anzeigen</option>
                                                 <option value="enabled">Nur aktivierte</option>
                                                 <option value="running">Nur laufende</option>
+                                                <option value="scheduled">Nur geplante</option>
                                                 <option value="stopped">Nur gestoppte</option>
                                                 <option value="disabled">Nur deaktivierte</option>
                                                 <option value="updates">Nur mit Update</option>
