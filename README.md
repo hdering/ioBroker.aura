@@ -192,6 +192,22 @@ npm run build:adapter
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.10.3-next.4 (2026-06-25) — next/test release
+- chore(build): rebuild www frontend bundle
+- fix(editor): keep tab settings panel on-screen when conditions expand
+- style(tabbar): wrap Math.min args per prettier
+- chore(build): rebuild www frontend bundle
+- fix(tabbar): keep settings panel on-screen for far-right tabs
+- chore(build): rebuild www frontend bundle
+- fix(chart): show full German unit word for custom range button
+- chore(build): rebuild www frontend bundle
+- feat(group): per-group option to keep grid layout on mobile
+- fix(group): fill and scroll inside fixed-height containers on mobile
+- chore(build): rebuild www frontend bundle
+- style(prettier): auto-format code files
+- fix(panels): prevent viewport collapse in mobile portrait layout
+
+
 ### 0.10.3-next.3 (2026-06-25) — next/test release
 - style(tabbar): wrap Math.min args per prettier
 - chore(build): rebuild www frontend bundle
@@ -322,6 +338,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
