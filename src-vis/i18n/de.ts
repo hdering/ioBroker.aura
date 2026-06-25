@@ -606,6 +606,9 @@ export const de = {
     'wf.edit.group.autoShrink': 'Bei versteckten Widgets schrumpfen',
     'wf.edit.group.autoShrinkHint':
         'Sind Kind-Widgets per Bedingung ausgeblendet, verkleinert sich die Gruppe auf die sichtbaren Inhalte (nur im Frontend).',
+    'wf.edit.group.mobileKeepGrid': 'Raster auf dem Smartphone beibehalten',
+    'wf.edit.group.mobileKeepGridHint':
+        'Standardmäßig werden Widgets auf dem Smartphone untereinander gestapelt. Aktiviert bleibt die nebeneinander-Anordnung wie in der normalen Ansicht erhalten, nur verkleinert.',
     'wf.edit.position': 'Position',
     'wf.edit.posLeft': 'Links',
     'wf.edit.posCenter': 'Mitte',

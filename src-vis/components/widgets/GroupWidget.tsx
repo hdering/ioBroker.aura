@@ -183,9 +183,24 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
     if (configLayout === 'custom') return <CustomGridView config={config} value="" />;
 
-    const isMobile = !editMode && dashboardIsMobile;
+    // Mobile layout: 'stack' (default) drops children into a single column;
+    // 'keep' preserves the desktop side-by-side grid, scaled down to fit the
+    // phone width (so a compact 2D arrangement doesn't blow up vertically).
+    const mobileLayout = (config.options?.mobileLayout as string | undefined) ?? 'stack';
+    const keepGrid = !editMode && dashboardIsMobile && mobileLayout === 'keep';
+    const isMobile = !editMode && dashboardIsMobile && !keepGrid;
 
-    const cols = !isMobile && width > 0 ? Math.max(2, Math.floor((width - gridGap) / (cellSize + gridGap))) : 4;
+    // Column span the children were designed for — used by keepGrid so the grid
+    // isn't clamped/reflowed on a narrow phone, just uniformly scaled.
+    const designCols = Math.max(2, ...gridChildren.map((c) => c.gridPos.x + c.gridPos.w));
+    const cols = keepGrid
+        ? designCols
+        : !isMobile && width > 0
+          ? Math.max(2, Math.floor((width - gridGap) / (cellSize + gridGap)))
+          : 4;
+    // keepGrid uses square cells (rowHeight = colWidth) so width AND height scale
+    // together, faithfully reproducing the desktop arrangement at phone size.
+    const rowHeight = keepGrid && width > 0 ? Math.max(8, Math.floor((width - gridGap * (cols - 1)) / cols)) : cellSize;
 
     const setChildren = (next: WidgetConfig[]) => useGroupDefsStore.getState().setDef(defId, next);
 
@@ -442,7 +457,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     <ReactGridLayout
                         layout={layout}
                         cols={cols}
-                        rowHeight={cellSize}
+                        rowHeight={rowHeight}
                         width={width}
                         isDraggable={editMode}
                         isResizable={editMode}

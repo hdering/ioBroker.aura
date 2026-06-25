@@ -606,6 +606,9 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.group.autoShrink': 'Shrink when widgets are hidden',
     'wf.edit.group.autoShrinkHint':
         'When child widgets are hidden by a condition, the group shrinks to fit the visible content (frontend only).',
+    'wf.edit.group.mobileKeepGrid': 'Keep grid layout on mobile',
+    'wf.edit.group.mobileKeepGridHint':
+        'By default widgets are stacked in a single column on mobile. When enabled, the side-by-side arrangement from the normal view is kept, just scaled down.',
     'wf.edit.position': 'Position',
     'wf.edit.posLeft': 'Left',
     'wf.edit.posCenter': 'Center',

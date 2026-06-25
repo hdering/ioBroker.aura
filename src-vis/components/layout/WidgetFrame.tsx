@@ -2444,7 +2444,16 @@ function CameraSlotEditorRow({ slot, idx, label, cCls, cSty, onChange, onRemove,
     );
 }
 
-function GroupMobileOrderPanel({ defId }: { defId: string }) {
+function GroupMobileOrderPanel({
+    defId,
+    keepGrid,
+    onKeepGridChange,
+}: {
+    defId: string;
+    keepGrid: boolean;
+    onKeepGridChange: (v: boolean) => void;
+}) {
+    const t = useT();
     const children = useGroupDefsStore((s) => s.defs[defId] ?? []);
     const setChildren = (next: WidgetConfig[]) => useGroupDefsStore.getState().setDef(defId, next);
     const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -2487,74 +2496,113 @@ function GroupMobileOrderPanel({ defId }: { defId: string }) {
     };
 
     return (
-        <div className="rounded-lg overflow-hidden min-w-[260px]" style={{ border: '1px solid var(--app-border)' }}>
-            {sorted.map((child, i) => (
-                <div
-                    key={child.id}
-                    draggable
-                    onDragStart={() => setDragIdx(i)}
-                    onDragOver={(e) => {
-                        e.preventDefault();
-                        setOverIdx(i);
-                    }}
-                    onDragLeave={() => setOverIdx(null)}
-                    onDrop={() => handleDrop(i)}
-                    onDragEnd={() => {
-                        setDragIdx(null);
-                        setOverIdx(null);
-                    }}
-                    className="flex items-center gap-1.5 px-2 py-1.5 select-none"
-                    style={{
-                        background:
-                            dragIdx === i
-                                ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
-                                : overIdx === i
-                                  ? 'color-mix(in srgb, var(--accent) 6%, var(--app-bg))'
-                                  : 'var(--app-bg)',
-                        borderBottom: '1px solid var(--app-border)',
-                        borderLeft: overIdx === i ? '2px solid var(--accent)' : '2px solid transparent',
-                        opacity: dragIdx === i ? 0.5 : 1,
-                        cursor: 'grab',
-                    }}
-                >
-                    <GripVertical size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-                    <span
-                        className="text-xs font-mono w-4 shrink-0 text-center"
-                        style={{ color: 'var(--text-secondary)' }}
-                    >
-                        {i + 1}
-                    </span>
-                    <span className="flex-1 text-xs truncate" style={{ color: 'var(--text-primary)' }}>
-                        {child.title || child.type}
-                    </span>
-                    <div className="flex flex-col gap-0.5 shrink-0">
-                        <button
-                            onClick={() => moveItem(i, i - 1)}
-                            disabled={i === 0}
-                            className="w-5 h-4 flex items-center justify-center rounded text-[9px] hover:opacity-80 disabled:opacity-20"
-                            style={{
-                                background: 'var(--app-surface)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                        >
-                            ▲
-                        </button>
-                        <button
-                            onClick={() => moveItem(i, i + 1)}
-                            disabled={i === sorted.length - 1}
-                            className="w-5 h-4 flex items-center justify-center rounded text-[9px] hover:opacity-80 disabled:opacity-20"
-                            style={{
-                                background: 'var(--app-surface)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                        >
-                            ▼
-                        </button>
-                    </div>
+        <div className="min-w-[260px] space-y-2.5">
+            {/* Keep desktop grid on mobile — when on, the per-item order below is
+                irrelevant, so the reorder list is disabled/greyed out. */}
+            <div
+                className="flex items-center justify-between gap-2 rounded-lg px-3 py-2.5"
+                style={{
+                    background: 'color-mix(in srgb, var(--accent) 10%, var(--app-bg))',
+                    border: '1px solid var(--app-border)',
+                }}
+            >
+                <div>
+                    <label className="text-[11px] font-medium" style={{ color: 'var(--text-primary)' }}>
+                        {t('wf.edit.group.mobileKeepGrid')}
+                    </label>
+                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        {t('wf.edit.group.mobileKeepGridHint')}
+                    </p>
                 </div>
-            ))}
+                <button
+                    onClick={() => onKeepGridChange(!keepGrid)}
+                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                    style={{ background: keepGrid ? 'var(--accent)' : 'var(--app-border)' }}
+                >
+                    <span
+                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                        style={{ left: keepGrid ? '18px' : '2px' }}
+                    />
+                </button>
+            </div>
+
+            <div
+                className="rounded-lg overflow-hidden"
+                style={{
+                    border: '1px solid var(--app-border)',
+                    opacity: keepGrid ? 0.4 : 1,
+                    pointerEvents: keepGrid ? 'none' : undefined,
+                }}
+                aria-disabled={keepGrid}
+            >
+                {sorted.map((child, i) => (
+                    <div
+                        key={child.id}
+                        draggable={!keepGrid}
+                        onDragStart={() => setDragIdx(i)}
+                        onDragOver={(e) => {
+                            e.preventDefault();
+                            setOverIdx(i);
+                        }}
+                        onDragLeave={() => setOverIdx(null)}
+                        onDrop={() => handleDrop(i)}
+                        onDragEnd={() => {
+                            setDragIdx(null);
+                            setOverIdx(null);
+                        }}
+                        className="flex items-center gap-1.5 px-2 py-1.5 select-none"
+                        style={{
+                            background:
+                                dragIdx === i
+                                    ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
+                                    : overIdx === i
+                                      ? 'color-mix(in srgb, var(--accent) 6%, var(--app-bg))'
+                                      : 'var(--app-bg)',
+                            borderBottom: '1px solid var(--app-border)',
+                            borderLeft: overIdx === i ? '2px solid var(--accent)' : '2px solid transparent',
+                            opacity: dragIdx === i ? 0.5 : 1,
+                            cursor: 'grab',
+                        }}
+                    >
+                        <GripVertical size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                        <span
+                            className="text-xs font-mono w-4 shrink-0 text-center"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            {i + 1}
+                        </span>
+                        <span className="flex-1 text-xs truncate" style={{ color: 'var(--text-primary)' }}>
+                            {child.title || child.type}
+                        </span>
+                        <div className="flex flex-col gap-0.5 shrink-0">
+                            <button
+                                onClick={() => moveItem(i, i - 1)}
+                                disabled={i === 0}
+                                className="w-5 h-4 flex items-center justify-center rounded text-[9px] hover:opacity-80 disabled:opacity-20"
+                                style={{
+                                    background: 'var(--app-surface)',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            >
+                                ▲
+                            </button>
+                            <button
+                                onClick={() => moveItem(i, i + 1)}
+                                disabled={i === sorted.length - 1}
+                                className="w-5 h-4 flex items-center justify-center rounded text-[9px] hover:opacity-80 disabled:opacity-20"
+                                style={{
+                                    background: 'var(--app-surface)',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            >
+                                ▼
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
@@ -15806,7 +15854,16 @@ export function WidgetFrame({
             {/* Conditions Modal */}
             {openPanel === 'group-mobile-order' && groupDefId && (
                 <CenteredModal title={t('group.mobileOrder')} onClose={() => openPanelFor(null)}>
-                    <GroupMobileOrderPanel defId={groupDefId} />
+                    <GroupMobileOrderPanel
+                        defId={groupDefId}
+                        keepGrid={config.options?.mobileLayout === 'keep'}
+                        onKeepGridChange={(v) =>
+                            onConfigChange({
+                                ...config,
+                                options: { ...config.options, mobileLayout: v ? 'keep' : 'stack' },
+                            })
+                        }
+                    />
                 </CenteredModal>
             )}
 
