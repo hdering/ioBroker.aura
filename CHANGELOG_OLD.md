@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.291 (2026-06-20)
+- fix(broken-dp): deep-link group/panels and nested-group children to editor
+
 ## 0.9.290 (2026-06-20)
 - fix(lint): auto-fix mixed typographic quotes
 - chore(deps): keep suncalc only in dependencies (backend runtime require)
