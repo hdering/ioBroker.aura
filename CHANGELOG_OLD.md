@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.294 (2026-06-22)
+- fix(reset): wipe backend config states on "reset everything", not just localStorage
+
 ## 0.9.293 (2026-06-22)
 - chore(io-package): remove licenseInformation to skip admin license dialog
 
