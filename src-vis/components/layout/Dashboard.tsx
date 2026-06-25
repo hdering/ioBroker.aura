@@ -258,10 +258,15 @@ export function Dashboard({
                                                             key={w.id}
                                                             style={
                                                                 w.type === 'group' ||
-                                                                w.type === 'panels' ||
                                                                 w.type === 'mediaplayer'
                                                                     ? undefined
                                                                     : {
+                                                                          // 'panels' is a fixed-viewport carousel: its
+                                                                          // slide track is absolutely positioned, so with
+                                                                          // auto height the flex-1 viewport collapses to 0
+                                                                          // (only title + dots show). It needs a definite
+                                                                          // height like a normal widget — unlike group/
+                                                                          // mediaplayer which size to their stacked content.
                                                                           height:
                                                                               w.gridPos.h * cellSize +
                                                                               (w.gridPos.h - 1) * MARGIN,
