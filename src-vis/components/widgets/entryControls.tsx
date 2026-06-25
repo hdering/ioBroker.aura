@@ -14,6 +14,8 @@ import { useRef } from 'react';
 import { ChevronUp, ChevronDown, Square, Minus, Plus } from 'lucide-react';
 import type { ioBrokerState } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { useConfirmAction } from '../../hooks/useConfirmAction';
+import { ConfirmOverlay } from './ConfirmOverlay';
 
 export type EntryDisplayType = 'auto' | 'switch' | 'slider' | 'value' | 'shutter' | 'stepper' | 'buttons' | 'momentary';
 
@@ -29,6 +31,10 @@ export interface EntryPreset {
 /** Per-entry control config — mixed into StaticListEntry and AutoListEntry. */
 export interface EntryControlConfig {
     displayType?: EntryDisplayType;
+    /** Switch-like controls (switch, momentary): require a confirmation tap before writing. */
+    confirm?: boolean;
+    /** Custom prompt shown in the confirmation overlay. Falls back to a default text. */
+    confirmText?: string;
     // ── shutter ──────────────────────────────────────────────────────────────
     /**
      * Shutter control model:
@@ -260,6 +266,7 @@ export function MomentaryButton({
     icon?: string;
 }) {
     const pendingRef = useRef(false);
+    const btnRef = useRef<HTMLButtonElement>(null);
     const pulse = parseWrite(entry.pulseValue, true);
     const reset = entry.pulseReset ?? false;
     const resetVal = parseWrite(entry.pulseResetValue, false);
@@ -276,14 +283,27 @@ export function MomentaryButton({
             }, delay);
         }
     };
+    const { run, pending, confirm, cancel } = useConfirmAction(press, !!entry.confirm);
     return (
-        <button
-            onClick={press}
-            className="shrink-0 flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg transition-transform active:scale-95"
-            style={{ background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
-        >
-            {Icon && <Icon size={13} />}
-            {entry.pulseLabel || 'Auslösen'}
-        </button>
+        <>
+            <button
+                ref={btnRef}
+                onClick={run}
+                className="shrink-0 flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg transition-transform active:scale-95"
+                style={{ background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
+            >
+                {Icon && <Icon size={13} />}
+                {entry.pulseLabel || 'Auslösen'}
+            </button>
+            {pending && (
+                <ConfirmOverlay
+                    popup
+                    anchorRef={btnRef}
+                    text={entry.confirmText}
+                    onConfirm={confirm}
+                    onCancel={cancel}
+                />
+            )}
+        </>
     );
 }

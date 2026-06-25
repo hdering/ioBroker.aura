@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Filter, List, Power } from 'lucide-react';
 import { useIoBroker, getObjectViewDirect } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
@@ -31,6 +31,7 @@ import {
     NON_TOGGLE_DISPLAY_TYPES,
     type EntryControlConfig,
 } from './entryControls';
+import { ConfirmOverlay } from './ConfirmOverlay';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -59,6 +60,10 @@ export interface StaticListEntry extends EntryControlConfig {
     fontSize?: number;
     /** When switch is shown: 'slide' = toggle (default), 'icon' = clickable power icon. */
     switchStyle?: 'slide' | 'icon';
+    /** Icon-style switch only: icon shown in the on/true/>0 state. Falls back to Power. */
+    trueIcon?: string;
+    /** Icon-style switch only: icon shown in the off/false/0 state. Falls back to Power. */
+    falseIcon?: string;
     /** Show last-change timestamp under this entry. */
     showLastChange?: boolean;
 }
@@ -189,22 +194,52 @@ function EntryValue({
     const switchStyle = entry.switchStyle ?? 'slide';
     const thresholdColor = getThresholdColor(val, entry.colorThresholds ?? globalThresholds);
 
-    // Reusable: power icon as toggle (used when switchStyle === 'icon')
-    const renderIconToggle = (active: boolean, onClick: () => void) => (
-        <button
-            onClick={writable ? onClick : undefined}
-            className="shrink-0 flex items-center justify-center"
-            style={{
-                color: active ? activeColor : inactiveColor,
-                cursor: writable ? 'pointer' : 'default',
-                background: 'transparent',
-                padding: 2,
+    // Optional confirmation before a switch-like write (like the Switch widget).
+    // The pending action is captured and only run once the user confirms.
+    const [pendingWrite, setPendingWrite] = useState<(() => void) | null>(null);
+    const confirmAnchorRef = useRef<HTMLButtonElement>(null);
+    const guardWrite = (action: () => void) => () => {
+        if (entry.confirm) setPendingWrite(() => action);
+        else action();
+    };
+    const confirmOverlay = pendingWrite ? (
+        <ConfirmOverlay
+            popup
+            anchorRef={confirmAnchorRef}
+            text={entry.confirmText}
+            onConfirm={() => {
+                pendingWrite();
+                setPendingWrite(null);
             }}
-            aria-pressed={active}
-        >
-            <Power size={entry.iconSize ?? 22} strokeWidth={active ? 2.5 : 1.75} />
-        </button>
-    );
+            onCancel={() => setPendingWrite(null)}
+        />
+    ) : null;
+
+    // Reusable: clickable icon as toggle (used when switchStyle === 'icon').
+    // The on/off states can each use their own configured icon; both fall back
+    // to the Lucide power icon when none is set.
+    const renderIconToggle = (active: boolean, onClick: () => void) => {
+        const ToggleIcon = getWidgetIcon(active ? entry.trueIcon : entry.falseIcon, Power);
+        return (
+            <>
+                <button
+                    ref={confirmAnchorRef}
+                    onClick={writable ? guardWrite(onClick) : undefined}
+                    className="shrink-0 flex items-center justify-center"
+                    style={{
+                        color: active ? activeColor : inactiveColor,
+                        cursor: writable ? 'pointer' : 'default',
+                        background: 'transparent',
+                        padding: 2,
+                    }}
+                    aria-pressed={active}
+                >
+                    <ToggleIcon size={entry.iconSize ?? 22} strokeWidth={active ? 2.5 : 1.75} />
+                </button>
+                {confirmOverlay}
+            </>
+        );
+    };
 
     // Rich control types — rendered by the shared entry-control components.
     if (displayType === 'shutter') return <ShutterControl entry={entry} val={val} setState={setState} />;
@@ -279,17 +314,21 @@ function EntryValue({
         if (hasLabels) {
             const fill = forcedOn ? activeColor : inactiveColor;
             return (
-                <button
-                    onClick={writable ? writeToggle : undefined}
-                    className="shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium"
-                    style={{
-                        background: `color-mix(in srgb, ${fill} 18%, transparent)`,
-                        color: fill,
-                        cursor: writable ? 'pointer' : 'default',
-                    }}
-                >
-                    {forcedOn ? trueLabel || 'AN' : falseLabel || 'AUS'}
-                </button>
+                <>
+                    <button
+                        ref={confirmAnchorRef}
+                        onClick={writable ? guardWrite(writeToggle) : undefined}
+                        className="shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium"
+                        style={{
+                            background: `color-mix(in srgb, ${fill} 18%, transparent)`,
+                            color: fill,
+                            cursor: writable ? 'pointer' : 'default',
+                        }}
+                    >
+                        {forcedOn ? trueLabel || 'AN' : falseLabel || 'AUS'}
+                    </button>
+                    {confirmOverlay}
+                </>
             );
         }
         if (!writable) {
@@ -306,16 +345,20 @@ function EntryValue({
             );
         }
         return (
-            <button
-                onClick={writeToggle}
-                className="shrink-0 relative w-9 h-[18px] rounded-full transition-colors"
-                style={{ background: forcedOn ? activeColor : 'var(--app-border)' }}
-            >
-                <span
-                    className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
-                    style={{ left: forcedOn ? 'calc(100% - 16px)' : '2px' }}
-                />
-            </button>
+            <>
+                <button
+                    ref={confirmAnchorRef}
+                    onClick={guardWrite(writeToggle)}
+                    className="shrink-0 relative w-9 h-[18px] rounded-full transition-colors"
+                    style={{ background: forcedOn ? activeColor : 'var(--app-border)' }}
+                >
+                    <span
+                        className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
+                        style={{ left: forcedOn ? 'calc(100% - 16px)' : '2px' }}
+                    />
+                </button>
+                {confirmOverlay}
+            </>
         );
     }
 
