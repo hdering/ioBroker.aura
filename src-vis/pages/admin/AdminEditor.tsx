@@ -1458,85 +1458,6 @@ const TabBar = memo(function TabBar() {
                                 />
                             </div>
                             <div>
-                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.tabMgmt.slug')}
-                                </label>
-                                <div className="flex items-center gap-1">
-                                    <span
-                                        className="text-[11px] font-mono shrink-0"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
-                                        /tab/
-                                    </span>
-                                    <input
-                                        type="text"
-                                        value={settingsTab.slug ?? settingsTab.id}
-                                        onChange={(e) => {
-                                            const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
-                                            if (val) setTabSlug(settingsTabId, val);
-                                        }}
-                                        className="flex-1 text-xs font-mono rounded-lg px-2.5 py-2 focus:outline-none"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            color: 'var(--text-primary)',
-                                            border: '1px solid var(--app-border)',
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.tabMgmt.hideLabel')}
-                                </label>
-                                <button
-                                    onClick={() => updateTab(settingsTabId, { hideLabel: !settingsTab.hideLabel })}
-                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                    style={{
-                                        background: settingsTab.hideLabel ? 'var(--accent)' : 'var(--app-border)',
-                                    }}
-                                >
-                                    <span
-                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                        style={{ left: settingsTab.hideLabel ? '18px' : '2px' }}
-                                    />
-                                </button>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.tabMgmt.disabled')}
-                                </label>
-                                <button
-                                    onClick={() => {
-                                        const nonDisabledCount = tabs.filter((t) => !t.disabled).length;
-                                        if (!settingsTab.disabled && nonDisabledCount <= 1) return;
-                                        updateTab(settingsTabId, { disabled: !settingsTab.disabled });
-                                    }}
-                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                    style={{ background: settingsTab.disabled ? 'var(--accent)' : 'var(--app-border)' }}
-                                >
-                                    <span
-                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                        style={{ left: settingsTab.disabled ? '18px' : '2px' }}
-                                    />
-                                </button>
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.tabMgmt.hidden')}
-                                </label>
-                                <button
-                                    onClick={() => updateTab(settingsTabId, { hidden: !settingsTab.hidden })}
-                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                    style={{ background: settingsTab.hidden ? 'var(--accent)' : 'var(--app-border)' }}
-                                >
-                                    <span
-                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                        style={{ left: settingsTab.hidden ? '18px' : '2px' }}
-                                    />
-                                </button>
-                            </div>
-                            <div>
                                 <div className="flex items-center justify-between mb-1.5">
                                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                         {t('editor.tabMgmt.icon')}
@@ -1583,9 +1504,110 @@ const TabBar = memo(function TabBar() {
                                     </span>
                                 </button>
                             </div>
+                            <div>
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('editor.tabMgmt.slug')}
+                                </label>
+                                <div className="flex items-center gap-1">
+                                    <span
+                                        className="text-[11px] font-mono shrink-0"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        /tab/
+                                    </span>
+                                    <input
+                                        type="text"
+                                        value={settingsTab.slug ?? settingsTab.id}
+                                        onChange={(e) => {
+                                            const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                                            if (val) setTabSlug(settingsTabId, val);
+                                        }}
+                                        className="flex-1 text-xs font-mono rounded-lg px-2.5 py-2 focus:outline-none"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            color: 'var(--text-primary)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('editor.tabMgmt.hideLabel')}
+                                </label>
+                                <button
+                                    onClick={() => updateTab(settingsTabId, { hideLabel: !settingsTab.hideLabel })}
+                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                    style={{
+                                        background: settingsTab.hideLabel ? 'var(--accent)' : 'var(--app-border)',
+                                    }}
+                                >
+                                    <span
+                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                        style={{ left: settingsTab.hideLabel ? '18px' : '2px' }}
+                                    />
+                                </button>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('editor.tabMgmt.hidden')}
+                                </label>
+                                <button
+                                    onClick={() => updateTab(settingsTabId, { hidden: !settingsTab.hidden })}
+                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                    style={{ background: settingsTab.hidden ? 'var(--accent)' : 'var(--app-border)' }}
+                                >
+                                    <span
+                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                        style={{ left: settingsTab.hidden ? '18px' : '2px' }}
+                                    />
+                                </button>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('editor.tabMgmt.disabled')}
+                                </label>
+                                <button
+                                    onClick={() => {
+                                        const nonDisabledCount = tabs.filter((t) => !t.disabled).length;
+                                        if (!settingsTab.disabled && nonDisabledCount <= 1) return;
+                                        updateTab(settingsTabId, { disabled: !settingsTab.disabled });
+                                    }}
+                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                    style={{ background: settingsTab.disabled ? 'var(--accent)' : 'var(--app-border)' }}
+                                >
+                                    <span
+                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                        style={{ left: settingsTab.disabled ? '18px' : '2px' }}
+                                    />
+                                </button>
+                            </div>
 
-                            {/* ── Conditions section ──────────────────────────────────────── */}
+                            {/* ── Export tab ──────────────────────────────────────────────── */}
                             <div className="border-t pt-2" style={{ borderColor: 'var(--app-border)' }}>
+                                <button
+                                    onClick={() => exportTab(settingsTab)}
+                                    className="flex items-center gap-1.5 w-full px-2.5 py-2 rounded-lg text-xs hover:opacity-80 transition-opacity"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        border: '1px solid var(--app-border)',
+                                        color: 'var(--text-secondary)',
+                                    }}
+                                >
+                                    <Download size={11} />
+                                    {t('tabBar.exportTab')}
+                                </button>
+                            </div>
+
+                            {/* ── Conditions section (highlighted, like widget Darstellung) ── */}
+                            <div
+                                className="rounded-lg px-2.5 py-2"
+                                style={{
+                                    background:
+                                        'color-mix(in srgb, var(--accent-yellow, #eab308) 7%, var(--app-bg))',
+                                    border: '1px solid color-mix(in srgb, var(--accent-yellow, #eab308) 26%, var(--app-border))',
+                                }}
+                            >
                                 <button
                                     className="flex items-center gap-1.5 w-full text-left hover:opacity-80"
                                     onClick={() => setConditionsOpen((o) => !o)}
@@ -1619,22 +1641,6 @@ const TabBar = memo(function TabBar() {
                                         />
                                     </div>
                                 )}
-                            </div>
-
-                            {/* ── Export tab ──────────────────────────────────────────────── */}
-                            <div className="border-t pt-2" style={{ borderColor: 'var(--app-border)' }}>
-                                <button
-                                    onClick={() => exportTab(settingsTab)}
-                                    className="flex items-center gap-1.5 w-full px-2.5 py-2 rounded-lg text-xs hover:opacity-80 transition-opacity"
-                                    style={{
-                                        background: 'var(--app-bg)',
-                                        border: '1px solid var(--app-border)',
-                                        color: 'var(--text-secondary)',
-                                    }}
-                                >
-                                    <Download size={11} />
-                                    {t('tabBar.exportTab')}
-                                </button>
                             </div>
                         </div>
                     </>,
