@@ -4,36 +4,6 @@
 
 📖 **[Documentation](https://hdering.github.io/ioBroker.aura/)** – widgets, settings, screenshots
 
-> **Beta** – The project is under active development. Bugs and breaking changes are possible.
-
----
-
-## Features
-
-- **Flexible grid layout** with drag & drop
-- **Multiple tabs / pages** per dashboard
-- **Themes:** Dark, Light, Catppuccin (Latte, Frappé, Macchiato, Mocha), Apple Liquid Glass and more
-- **Full admin interface** – no YAML, no JSON editing required
-- **Responsive** – works on tablet, smartphone and desktop
-
-### Widgets
-
-| Widget | Description |
-|--------|-------------|
-| Switch | On/Off toggle |
-| Dimmer | Brightness slider |
-| Thermostat | Target / actual temperature |
-| Gauge | Round gauge with color zones |
-| Fill level | Tank / water / gas level – vertical or horizontal |
-| Chart | Line, bar, pie chart (ECharts) |
-| Calendar | iCal / Google Calendar |
-| Weather | Current weather data |
-| Clock | Analog or digital |
-| iFrame / Camera | Embed any URL |
-| EVCC | Wallbox, solar, battery storage |
-| Waste collection | Which bin needs to go out? |
-| Group | Nested widgets |
-
 ---
 
 ## Installation
@@ -113,54 +83,6 @@ restriction entirely.
 
 ---
 
-## Widget Notes
-
-### Camera widget
-
-#### Stream URL types
-
-The camera widget auto-detects the stream type based on the URL:
-
-| URL pattern | Rendering | Notes |
-|---|---|---|
-| `*.html` / `*.htm` | `<iframe>` | Works with go2rtc `stream.html`, any HTML-based player |
-| `rtsp://` / `rtsps://` | Hint message | RTSP is not supported natively in browsers – use go2rtc as a proxy and enter the MJPEG URL instead |
-| everything else | `<img>` | MJPEG (refresh interval = 0) or periodic snapshot |
-
-**go2rtc MJPEG URL:** `http://<host>:1984/api/stream.mjpeg?src=<stream-name>`
-
-#### Mixed Content (HTTP stream in HTTPS dashboard)
-
-If Aura is served over **HTTPS** and the camera URL is **HTTP**, browsers apply mixed content rules:
-
-| Client | Behaviour |
-|---|---|
-| Desktop Chrome / Firefox | Usually allows passive content (`<img>` MJPEG), may block `<iframe>` |
-| Chrome on Android | Allows passive mixed content |
-| **Android WebView** (Fully Kiosk, custom apps) | **Blocks all mixed content by default** |
-| Safari / iOS | Blocks active mixed content (`<iframe>`) |
-
-**Fixes:**
-- **Fully Kiosk Browser:** Settings → Advanced Web Settings → **Allow Mixed Content** ✓
-- **Clean solution:** serve go2rtc behind a reverse proxy with HTTPS so the camera URL is also `https://`
-- **Quick workaround:** open Aura via `http://` instead of `https://` in the kiosk browser (only if your network is trusted)
-
-The widget config panel shows a warning automatically when a `http://` stream URL is detected while Aura is running on `https://`.
-
-#### Wake-up datapoint (battery cameras, e.g. Eufy)
-
-Some cameras (e.g. Eufy) need an explicit activation signal before the stream is available. Configure an ioBroker datapoint in the widget settings – the widget sends `true` when the stream should start and `false` when it stops.
-
-Three trigger modes are available:
-
-| Mode | When is `true` sent? |
-|---|---|
-| Automatisch | On page load |
-| Bei Sicht | When the widget scrolls into the viewport |
-| Bei Klick | When the user taps the widget placeholder |
-
----
-
 ## Bugs & Feature Requests
 
 Please report directly as a GitHub issue:
@@ -169,22 +91,20 @@ Please report directly as a GitHub issue:
 
 ---
 
-## Development
+## Versioning
 
-Install dependencies:
-```bash
-npm install
-```
+Aura uses a simple scheme so you can tell stable releases from test builds at a glance:
 
-Start dev server (connects to ioBroker via proxy):
-```bash
-npm run dev
-```
+| Version | Meaning |
+|---------|---------|
+| `0.10.1` | **Latest** – a stable release. This is what ioBroker shows and installs by default. |
+| `0.10.2-next1`, `0.10.2-next2`, … | **Test builds** for the upcoming `0.10.2` release. Pre-releases, published for testing only. |
 
-Production build:
-```bash
-npm run build:adapter
-```
+- **Plain numbers** (`0.10.1`, `0.10.2`, …) are stable. Only these appear directly in ioBroker.
+- A **`-nextN` suffix** marks a pre-release. The number counts the test builds leading up to the next stable version (`next1`, `next2`, …).
+- Pre-releases are **not** offered automatically in ioBroker; you only get them if you explicitly install that version.
+
+Once a `-nextN` build is confirmed stable, it is published as the matching plain version (e.g. `0.10.2`) and becomes the new Latest.
 
 ---
 
