@@ -20,6 +20,7 @@ import {
     ChevronRight,
     Download,
     Eye,
+    EyeOff,
 } from 'lucide-react';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { Icon } from '@iconify/react';
@@ -1329,6 +1330,17 @@ const TabBar = memo(function TabBar() {
                                         >
                                             {tab.name}
                                         </button>
+                                        {tab.hidden && !tab.disabled && (
+                                            <span
+                                                title={t('editor.tabMgmt.hidden')}
+                                                style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                                            >
+                                                <EyeOff
+                                                    size={11}
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                />
+                                            </span>
+                                        )}
                                         <button
                                             ref={(el) => {
                                                 if (el) settingsBtnRefs.current.set(tab.id, el);
