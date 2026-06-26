@@ -99,14 +99,15 @@ Aura uses a simple scheme so you can tell stable releases from test builds at a 
 
 | Version | Meaning |
 |---------|---------|
-| `0.10.1` | **Latest** – a stable release. This is what ioBroker shows and installs by default. |
 | `0.10.2-next1`, `0.10.2-next2`, … | **Test builds** for the upcoming `0.10.2` release. Pre-releases, published for testing only. |
+| `0.10.1` in the **Latest** repo | A published release in ioBroker's *Latest* repository. Available to everyone, but still on probation — not yet promoted to *Stable*. |
+| `0.10.1` in the **Stable** repo | The same version after it has proven itself error-free in the field. This is the truly stable build. |
 
-- **Plain numbers** (`0.10.1`, `0.10.2`, …) are stable. Only these appear directly in ioBroker.
-- A **`-nextN` suffix** marks a pre-release. The number counts the test builds leading up to the next stable version (`next1`, `next2`, …).
-- Pre-releases are **not** offered automatically in ioBroker; you only get them if you explicitly install that version.
+- A **`-nextN` suffix** marks a pre-release. The number counts the test builds leading up to the next plain version (`next1`, `next2`, …). Pre-releases are **not** offered automatically in ioBroker; you only get them if you explicitly install that version.
+- A **plain number** (`0.10.1`, `0.10.2`, …) is first published to ioBroker's **Latest** repository. This makes it generally available, but *Latest* is the proving ground — one step before truly stable.
+- Once a *Latest* release has run long enough with no errors reported, the **same version** is promoted to the **Stable** repository. Only then is it considered fully stable.
 
-Once a `-nextN` build is confirmed stable, it is published as the matching plain version (e.g. `0.10.2`) and becomes the new Latest.
+So the path of any release is: `-nextN` test build → **Latest** (published, on probation) → **Stable** (promoted once confirmed error-free).
 
 ---
 
