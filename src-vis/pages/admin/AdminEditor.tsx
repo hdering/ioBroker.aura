@@ -1446,10 +1446,7 @@ const TabBar = memo(function TabBar() {
                                 </button>
                             </div>
                             <div className="flex items-center gap-2">
-                                <label
-                                    className="text-[11px] shrink-0 w-16"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
+                                <label className="text-[11px] shrink-0 w-16" style={{ color: 'var(--text-secondary)' }}>
                                     {t('editor.tabMgmt.name')}
                                 </label>
                                 <input
@@ -1473,10 +1470,7 @@ const TabBar = memo(function TabBar() {
                                 />
                             </div>
                             <div className="flex items-center gap-2">
-                                <label
-                                    className="text-[11px] shrink-0 w-16"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
+                                <label className="text-[11px] shrink-0 w-16" style={{ color: 'var(--text-secondary)' }}>
                                     {t('editor.tabMgmt.icon')}
                                 </label>
                                 <button
@@ -1522,10 +1516,7 @@ const TabBar = memo(function TabBar() {
                                 )}
                             </div>
                             <div className="flex items-center gap-2">
-                                <label
-                                    className="text-[11px] shrink-0 w-16"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
+                                <label className="text-[11px] shrink-0 w-16" style={{ color: 'var(--text-secondary)' }}>
                                     {t('editor.tabMgmt.slug')}
                                 </label>
                                 <div
@@ -1627,8 +1618,7 @@ const TabBar = memo(function TabBar() {
                             <div
                                 className="rounded-lg px-2.5 py-2"
                                 style={{
-                                    background:
-                                        'color-mix(in srgb, var(--accent-yellow, #eab308) 7%, var(--app-bg))',
+                                    background: 'color-mix(in srgb, var(--accent-yellow, #eab308) 7%, var(--app-bg))',
                                     border: '1px solid color-mix(in srgb, var(--accent-yellow, #eab308) 26%, var(--app-border))',
                                 }}
                             >
