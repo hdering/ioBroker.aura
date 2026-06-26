@@ -1433,8 +1433,11 @@ const TabBar = memo(function TabBar() {
                                     <X size={12} style={{ color: 'var(--text-secondary)' }} />
                                 </button>
                             </div>
-                            <div>
-                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            <div className="flex items-center gap-2">
+                                <label
+                                    className="text-[11px] shrink-0"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
                                     {t('editor.tabMgmt.name')}
                                 </label>
                                 <input
@@ -1449,7 +1452,7 @@ const TabBar = memo(function TabBar() {
                                             updateTab(settingsTabId, { name: newName });
                                         }
                                     }}
-                                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                    className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-2 focus:outline-none"
                                     style={{
                                         background: 'var(--app-bg)',
                                         color: 'var(--text-primary)',
@@ -1457,24 +1460,16 @@ const TabBar = memo(function TabBar() {
                                     }}
                                 />
                             </div>
-                            <div>
-                                <div className="flex items-center justify-between mb-1.5">
-                                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                        {t('editor.tabMgmt.icon')}
-                                    </label>
-                                    {settingsTab.icon && (
-                                        <button
-                                            onClick={() => updateTab(settingsTabId, { icon: undefined })}
-                                            className="text-[10px] hover:opacity-70"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            {t('editor.tabMgmt.remove')}
-                                        </button>
-                                    )}
-                                </div>
+                            <div className="flex items-center gap-2">
+                                <label
+                                    className="text-[11px] shrink-0"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    {t('editor.tabMgmt.icon')}
+                                </label>
                                 <button
                                     onClick={() => setIconPickerTabId(settingsTabId)}
-                                    className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-xs transition-colors hover:opacity-80"
+                                    className="flex-1 min-w-0 flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs transition-colors hover:opacity-80"
                                     style={{
                                         background: 'var(--app-bg)',
                                         border: '1px solid var(--app-border)',
@@ -1503,6 +1498,15 @@ const TabBar = memo(function TabBar() {
                                         {settingsTab.icon ?? t('editor.tabMgmt.selectIcon')}
                                     </span>
                                 </button>
+                                {settingsTab.icon && (
+                                    <button
+                                        onClick={() => updateTab(settingsTabId, { icon: undefined })}
+                                        className="text-[10px] shrink-0 hover:opacity-70"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        {t('editor.tabMgmt.remove')}
+                                    </button>
+                                )}
                             </div>
                             <div>
                                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
