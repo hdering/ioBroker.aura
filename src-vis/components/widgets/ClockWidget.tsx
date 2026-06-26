@@ -1,6 +1,6 @@
 import { useState, useEffect, type CSSProperties, type ReactNode } from 'react';
 import { Clock, Sunrise, Sunset, MapPin, CalendarDays } from 'lucide-react';
-import SunCalc from 'suncalc';
+import * as SunCalc from 'suncalc';
 import type { WidgetProps } from '../../types';
 import { useT } from '../../i18n';
 import { useSystemConfig } from '../../hooks/useSystemConfig';

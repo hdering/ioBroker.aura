@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 
 - Adapter now requires admin >= 7.8.23
+- Clock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)
