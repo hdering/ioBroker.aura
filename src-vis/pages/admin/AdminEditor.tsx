@@ -1513,10 +1513,11 @@ const TabBar = memo(function TabBar() {
                                 {settingsTab.icon && (
                                     <button
                                         onClick={() => updateTab(settingsTabId, { icon: undefined })}
-                                        className="text-[10px] shrink-0 hover:opacity-70"
+                                        title={t('editor.tabMgmt.remove')}
+                                        className="shrink-0 p-1 rounded hover:opacity-70"
                                         style={{ color: 'var(--text-secondary)' }}
                                     >
-                                        {t('editor.tabMgmt.remove')}
+                                        <X size={12} />
                                     </button>
                                 )}
                             </div>
