@@ -20,66 +20,68 @@ Install Aura via ioBroker Admin:
 
 After installation, create a new **Aura** instance (if not done automatically).
 
-### Step 3 – Configure web adapter
+### Step 3 – Configure the instance
 
-Open ioBroker Admin → Instances → **web.0** → Settings and set:
+Aura runs its **own web server** (frontend + built-in iframe proxy) and connects to an existing
+`iobroker.web` instance only for the socket.io data connection. Open the **Aura** instance settings:
 
-| Setting | Value |
-|---------|-------|
-| **socket.io** | **integrated** |
+| Setting | Default | Meaning |
+|---------|---------|---------|
+| **Port** | `8095` | Port of Aura's HTTP server (frontend + iframe proxy) |
+| **ioBroker socket port** | `8082` | Port of the `iobroker.web` instance that provides the socket.io connection |
+| **Web adapter uses HTTPS** | off | Enable if that web instance runs HTTPS |
 
-> **Important:** The default value "socket.io" uses the separate `iobroker.socketio` adapter on port 8084.
-> Aura requires socket.io on the **same port** as the web adapter (integrated mode) so that both
-> plain HTTP access and HTTPS via reverse proxy work with a single connection endpoint.
-
-### Step 3b – (Optional) Dedicated web instance for proxy
-
-Aura loads a proxy extension into a web adapter instance to enable the **iframe X-Frame-Options bypass** feature. By default no web instance is configured (proxy disabled).
-
-> **Tip:** If you configure `web.0` as the proxy target, stopping or restarting aura will also restart `web.0` — taking down VIS, Material UI etc. To avoid this, create a dedicated instance:
->
-> 1. Admin → **Adapters** → **web** → **+** → create `web.1`, set port to e.g. `8083`.
-> 2. In **aura** admin → **"Web instance for proxy"** → select `system.adapter.web.1` → save.
+> **Requirement:** A running `iobroker.web` (or `iobroker.socketio`) instance must serve socket.io on
+> the configured socket port. The stock `web.0` with **socket.io = integrated** provides this on
+> port `8082` (the default). Aura auto-detects the matching instance and proxies the connection
+> internally, so no `/aura/` path or web extension is needed anymore.
 
 ### Step 4 – Open dashboard
 
 The dashboard is available at:
 
 ```
-http://<iobroker-ip>:8082/aura/
+http://<iobroker-ip>:8095/
 ```
 
 The admin interface at:
 
 ```
-http://<iobroker-ip>:8082/aura/#/admin
+http://<iobroker-ip>:8095/#/admin
 ```
 
 ---
 
 ## HTTPS / Reverse Proxy
 
-Aura works behind a reverse proxy (e.g. **nginx**, **Nginx Proxy Manager**, **Caddy**) with a
-valid TLS certificate (e.g. Let's Encrypt). The web adapter socket.io must be set to **integrated**
-(see Step 3) so that `/socket.io/` and `/aura/` are served from the same port.
+Aura can serve HTTPS in two ways.
 
-### Nginx Proxy Manager – example configuration
+### Option A – Built-in TLS
+
+Enable **Use HTTPS** in the Aura instance settings and select the certificates (loaded from ioBroker
+`system.certificates`). Aura's own server then serves `https://<iobroker-ip>:8095/`.
+
+> The default self-signed certificate triggers a browser warning. For a clean setup use proper
+> certificates (e.g. Let's Encrypt) or put Aura behind a reverse proxy (Option B).
+
+### Option B – Reverse proxy
+
+Point a reverse proxy (e.g. **nginx**, **Nginx Proxy Manager**, **Caddy**) with a valid TLS
+certificate at Aura's port. Aura proxies the socket.io connection to the web instance internally, so
+a single forwarded port is enough.
+
+#### Nginx Proxy Manager – example configuration
 
 | Field | Value |
 |-------|-------|
 | Forward Scheme | `http` |
 | Forward Hostname / IP | `<iobroker-ip>` |
-| Forward Port | `8082` |
+| Forward Port | `8095` |
 | Websockets Support | enabled |
 
-No additional custom nginx directives are needed when socket.io is set to **integrated**.
-
-### Why not use the ioBroker web adapter's built-in HTTPS?
-
-When the web adapter itself terminates TLS (self-signed certificate), browsers block programmatic
-WebSocket connections (`wss://`) from JavaScript even after the user accepted the HTTPS warning in
-the browser. A reverse proxy with a CA-signed certificate (e.g. Let's Encrypt) avoids this
-restriction entirely.
+> **Alternative topology:** If you instead proxy `/socket.io/` and `/echarts/` directly to the web
+> adapter port, set **ioBroker socket URL (override)** in the Aura settings to your public URL
+> (e.g. `https://your-domain.com`) so the frontend connects socket.io to the right endpoint.
 
 ---
 
