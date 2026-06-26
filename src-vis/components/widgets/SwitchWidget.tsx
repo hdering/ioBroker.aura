@@ -108,7 +108,7 @@ export function SwitchWidget({ config }: WidgetProps) {
                                 }}
                             >
                                 <span
-                                    className="absolute top-0.5 w-4 h-4 rounded-full shadow transition-transform"
+                                    className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full shadow transition-transform"
                                     style={{
                                         left: isOn ? '22px' : '2px',
                                         background: 'var(--switch-thumb-color, #fff)',
@@ -210,7 +210,7 @@ export function SwitchWidget({ config }: WidgetProps) {
                         }}
                     >
                         <span
-                            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`}
+                            className={`absolute top-1/2 -translate-y-1/2 left-0.5 w-5 h-5 rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`}
                             style={{ background: 'var(--switch-thumb-color, #fff)' }}
                         />
                     </button>
@@ -278,7 +278,7 @@ export function SwitchWidget({ config }: WidgetProps) {
                         }}
                     >
                         <span
-                            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-6' : 'translate-x-0'}`}
+                            className={`absolute top-1/2 -translate-y-1/2 left-0.5 w-5 h-5 rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-6' : 'translate-x-0'}`}
                             style={{ background: 'var(--switch-thumb-color, #fff)' }}
                         />
                     </button>

@@ -130,7 +130,7 @@ export function DimmerWidget({ config }: WidgetProps) {
             }}
         >
             <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`}
+                className={`absolute top-1/2 -translate-y-1/2 left-0.5 w-5 h-5 rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`}
                 style={{ background: 'var(--switch-thumb-color, #fff)' }}
             />
         </button>
