@@ -1435,7 +1435,7 @@ const TabBar = memo(function TabBar() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <label
-                                    className="text-[11px] shrink-0"
+                                    className="text-[11px] shrink-0 w-16"
                                     style={{ color: 'var(--text-secondary)' }}
                                 >
                                     {t('editor.tabMgmt.name')}
@@ -1462,7 +1462,7 @@ const TabBar = memo(function TabBar() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <label
-                                    className="text-[11px] shrink-0"
+                                    className="text-[11px] shrink-0 w-16"
                                     style={{ color: 'var(--text-secondary)' }}
                                 >
                                     {t('editor.tabMgmt.icon')}
@@ -1508,11 +1508,20 @@ const TabBar = memo(function TabBar() {
                                     </button>
                                 )}
                             </div>
-                            <div>
-                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            <div className="flex items-center gap-2">
+                                <label
+                                    className="text-[11px] shrink-0 w-16"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
                                     {t('editor.tabMgmt.slug')}
                                 </label>
-                                <div className="flex items-center gap-1">
+                                <div
+                                    className="flex-1 min-w-0 flex items-center gap-1 rounded-lg px-2.5 py-2"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                >
                                     <span
                                         className="text-[11px] font-mono shrink-0"
                                         style={{ color: 'var(--text-secondary)' }}
@@ -1526,11 +1535,9 @@ const TabBar = memo(function TabBar() {
                                             const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
                                             if (val) setTabSlug(settingsTabId, val);
                                         }}
-                                        className="flex-1 text-xs font-mono rounded-lg px-2.5 py-2 focus:outline-none"
+                                        className="flex-1 min-w-0 text-xs font-mono bg-transparent focus:outline-none"
                                         style={{
-                                            background: 'var(--app-bg)',
                                             color: 'var(--text-primary)',
-                                            border: '1px solid var(--app-border)',
                                         }}
                                     />
                                 </div>
