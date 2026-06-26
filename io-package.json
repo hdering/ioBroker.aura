@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.11.0",
+    "version": "0.11.1",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.11.1": {
+        "en": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
+        "de": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
+        "ru": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
+        "pt": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
+        "nl": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
+        "fr": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
+        "it": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
+        "es": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
+        "pl": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
+        "uk": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
+        "zh-cn": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low"
+      },
       "0.11.0": {
         "en": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)",
         "de": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)",
