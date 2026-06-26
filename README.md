@@ -113,8 +113,6 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 ## Changelog
 
-_Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
-
 ### 0.11.1 (2026-06-26)
 - Switch / Dimmer - toggle knob now vertically centered instead of sitting too low
 
