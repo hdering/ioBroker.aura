@@ -4,6 +4,3 @@
 #   <Widget type> - <what changed>          e.g.  Thermostat - target temperature now shown inline
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
-
-- Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section
-- Editor - tabs hidden from the tab bar now show an eye-off icon in the tab list

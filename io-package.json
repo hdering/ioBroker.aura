@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.10.4",
+    "version": "0.10.5",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.10.5": {
+        "en": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
+        "de": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
+        "ru": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
+        "pt": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
+        "nl": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
+        "fr": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
+        "it": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
+        "es": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
+        "pl": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
+        "uk": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
+        "zh-cn": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list"
+      },
       "0.10.4": {
         "en": "fix(thermostat): drop \"Soll:\" label from target temperature\nfix(thermostat): inline \"Soll:\" label and fix doubled °CC unit",
         "de": "fix(thermostat): drop \"Soll:\" label from target temperature\nfix(thermostat): inline \"Soll:\" label and fix doubled °CC unit",
