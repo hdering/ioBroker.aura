@@ -207,6 +207,8 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - test: drop licenseInformation from required io-package fields
 - fix(backup): keep change-comment after reload by falling back to ioBroker cache
 
+[Older changelogs can be found there](CHANGELOG_OLD.md)
+
 
 ## License
 
