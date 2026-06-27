@@ -5283,6 +5283,7 @@ export function WidgetFrame({
     // Ebene 1: built-in default for known widget types (dimmer, thermostat, …)
     const popupTypeDefaults = usePopupConfigStore((s) => s.typeDefaults);
     const popupTypeDefaultLayouts = usePopupConfigStore((s) => s.typeDefaultLayouts);
+    const popupRemovedTypeDefaults = usePopupConfigStore((s) => s.removedBuiltinTypeDefaults);
     const storedClickAction = config.options?.clickAction as ClickAction | undefined;
     const rawClickAction = storedClickAction ?? { kind: 'none' as const };
     const clickAction: ClickAction = (() => {
@@ -5295,8 +5296,13 @@ export function WidgetFrame({
                     return { kind: 'popup-view', viewId };
                 }
             }
-            const builtIn = defaultActionForConfig(config);
-            if (builtIn) return builtIn;
+            // Ebene 1 only applies while the admin hasn't explicitly removed the
+            // builtin type default — otherwise removing it in the backend would
+            // have no effect (the hardcoded fallback would keep re-linking it).
+            if (!popupRemovedTypeDefaults.includes(config.type)) {
+                const builtIn = defaultActionForConfig(config);
+                if (builtIn) return builtIn;
+            }
         }
         return rawClickAction;
     })();

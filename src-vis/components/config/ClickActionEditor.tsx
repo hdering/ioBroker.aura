@@ -216,18 +216,22 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
 
     const popupViews = usePopupConfigStore((s) => s.views);
     const popupTypeDefaults = usePopupConfigStore((s) => s.typeDefaults);
+    const popupRemovedTypeDefaults = usePopupConfigStore((s) => s.removedBuiltinTypeDefaults);
 
     // Resolution order when no explicit action is stored:
     //   1. Admin-configured type default (dynamic — admin edits propagate live)
-    //   2. Built-in default for known widget types (dimmer, thermostat, …)
+    //   2. Built-in default for known widget types (dimmer, thermostat, …),
+    //      unless the admin explicitly removed that type default in the backend
     //   3. 'none'
+    const typeDefaultRemoved = popupRemovedTypeDefaults.includes(config.type);
     const typeDefaultViewId = !storedAction ? popupTypeDefaults[config.type] : undefined;
-    const builtInDefault = !storedAction && !typeDefaultViewId ? defaultActionForConfig(config) : null;
+    const builtInDefault =
+        !storedAction && !typeDefaultViewId && !typeDefaultRemoved ? defaultActionForConfig(config) : null;
     const action: ClickAction = storedAction ??
         (typeDefaultViewId ? { kind: 'popup-view' as const, viewId: typeDefaultViewId } : null) ??
         builtInDefault ?? { kind: 'none' as const };
     const isTypeDefaultActive = !!typeDefaultViewId;
-    const hasFallback = !!popupTypeDefaults[config.type] || !!defaultActionForConfig(config);
+    const hasFallback = !!popupTypeDefaults[config.type] || (!typeDefaultRemoved && !!defaultActionForConfig(config));
 
     const isPopup = action.kind.startsWith('popup-');
 
