@@ -1060,12 +1060,24 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
     const entries = cell.entries ?? [];
     const currentStr = value === null || value === undefined ? '' : String(value);
     const current = entries.find((e) => e.value === currentStr);
+    const selRef = useRef<HTMLSelectElement>(null);
     const onPick = (raw: string) => {
         if (raw === 'true') return setValue(true);
         if (raw === 'false') return setValue(false);
         const n = Number(raw);
         if (raw !== '' && Number.isFinite(n)) return setValue(n);
         setValue(raw);
+    };
+    // Native <select> fires onChange only on a *real* value change, so re-picking
+    // the already-selected entry would be a no-op and never write. Blank the DOM
+    // value right before the dropdown opens (mousedown covers mouse+touch) so any
+    // pick — including the current one — counts as a change and re-sends the write,
+    // matching the EnumWidget Auswahlfeld. Restore on blur if closed without a pick.
+    const armReselect = () => {
+        if (selRef.current) selRef.current.value = '';
+    };
+    const restoreValue = () => {
+        if (selRef.current) selRef.current.value = current?.value ?? '';
     };
     const showLabel = cell.showSelectedLabel === true;
     const hideSelect = cell.hideSelect === true;
@@ -1123,7 +1135,10 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
                     style={{ minWidth: 0, flex: showLabel ? '0 1 auto' : '1 1 auto' }}
                 >
                     <select
+                        ref={selRef}
                         value={current?.value ?? ''}
+                        onMouseDown={armReselect}
+                        onBlur={restoreValue}
                         onChange={(e) => onPick(e.target.value)}
                         className="nodrag rounded-lg pl-2 pr-6 py-1 focus:outline-none appearance-none truncate w-full"
                         style={{
