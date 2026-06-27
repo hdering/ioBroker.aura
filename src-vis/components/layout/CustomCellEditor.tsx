@@ -705,6 +705,13 @@ export function CustomCellEditor({
                             className="flex-1 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
                             style={inputSty}
                         />
+                        <button
+                            onClick={onOpenDpPicker}
+                            className="text-xs px-2 py-1.5 rounded-lg shrink-0"
+                            style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
+                        >
+                            <Database size={12} />
+                        </button>
                         <JsonPathButton value={cell.dpId} onChange={(ref) => onChange({ dpId: ref })} size={12} />
                         {(cell.type === 'dp' || cell.type === 'progress') && (
                             <ValueTransformButton
@@ -721,13 +728,6 @@ export function CustomCellEditor({
                                 size={12}
                             />
                         )}
-                        <button
-                            onClick={onOpenDpPicker}
-                            className="text-xs px-2 py-1.5 rounded-lg shrink-0"
-                            style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
-                        >
-                            <Database size={12} />
-                        </button>
                     </div>
                 </div>
             )}

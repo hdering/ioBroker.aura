@@ -7756,6 +7756,18 @@ export function WidgetFrame({
                                                 border: '1px solid var(--app-border)',
                                             }}
                                         />
+                                        <button
+                                            onClick={() => setPickerTarget('datapoint')}
+                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-secondary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                            title={t('wf.edit.fromIoBroker')}
+                                        >
+                                            <Database size={13} />
+                                        </button>
                                         <JsonPathButton
                                             value={config.datapoint}
                                             onChange={(ref) => onConfigChange({ ...config, datapoint: ref })}
@@ -7776,18 +7788,6 @@ export function WidgetFrame({
                                                 }
                                             />
                                         )}
-                                        <button
-                                            onClick={() => setPickerTarget('datapoint')}
-                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                            style={{
-                                                background: 'var(--app-bg)',
-                                                color: 'var(--text-secondary)',
-                                                border: '1px solid var(--app-border)',
-                                            }}
-                                            title={t('wf.edit.fromIoBroker')}
-                                        >
-                                            <Database size={13} />
-                                        </button>
                                     </div>
                                 </div>
                             )}
@@ -13992,10 +13992,6 @@ export function WidgetFrame({
                                                         className={`flex-1 ${stInputCls} min-w-0`}
                                                         style={stInputStyle}
                                                     />
-                                                    <JsonPathButton
-                                                        value={o.batteryDp as string}
-                                                        onChange={(ref) => setO({ batteryDp: ref || undefined })}
-                                                    />
                                                     <button
                                                         onClick={() => setPickerTarget('status_batteryDp')}
                                                         className="px-2 rounded-lg hover:opacity-80 shrink-0"
@@ -14004,9 +14000,14 @@ export function WidgetFrame({
                                                             color: 'var(--text-secondary)',
                                                             border: '1px solid var(--app-border)',
                                                         }}
+                                                        title={t('wf.edit.fromIoBroker')}
                                                     >
                                                         <Database size={13} />
                                                     </button>
+                                                    <JsonPathButton
+                                                        value={o.batteryDp as string}
+                                                        onChange={(ref) => setO({ batteryDp: ref || undefined })}
+                                                    />
                                                 </div>
                                             </div>
                                             {/* Battery config (shown only when batteryDp is set) */}
@@ -14125,10 +14126,6 @@ export function WidgetFrame({
                                                         className={`flex-1 ${stInputCls} min-w-0`}
                                                         style={stInputStyle}
                                                     />
-                                                    <JsonPathButton
-                                                        value={o.unreachDp as string}
-                                                        onChange={(ref) => setO({ unreachDp: ref || undefined })}
-                                                    />
                                                     <button
                                                         onClick={() => setPickerTarget('status_unreachDp')}
                                                         className="px-2 rounded-lg hover:opacity-80 shrink-0"
@@ -14137,9 +14134,14 @@ export function WidgetFrame({
                                                             color: 'var(--text-secondary)',
                                                             border: '1px solid var(--app-border)',
                                                         }}
+                                                        title={t('wf.edit.fromIoBroker')}
                                                     >
                                                         <Database size={13} />
                                                     </button>
+                                                    <JsonPathButton
+                                                        value={o.unreachDp as string}
+                                                        onChange={(ref) => setO({ unreachDp: ref || undefined })}
+                                                    />
                                                 </div>
                                             </div>
                                             {/* Reach config (shown only when unreachDp is set) */}
@@ -14320,12 +14322,6 @@ export function WidgetFrame({
                                                             border: '1px solid var(--app-border)',
                                                         }}
                                                     />
-                                                    <JsonPathButton
-                                                        value={config.datapoint ?? ''}
-                                                        onChange={(ref) =>
-                                                            onConfigChange({ ...config, datapoint: ref })
-                                                        }
-                                                    />
                                                     <button
                                                         onClick={() => setPickerTarget('universal-dp')}
                                                         className="px-2 rounded-lg hover:opacity-80 shrink-0"
@@ -14338,6 +14334,12 @@ export function WidgetFrame({
                                                     >
                                                         <Database size={13} />
                                                     </button>
+                                                    <JsonPathButton
+                                                        value={config.datapoint ?? ''}
+                                                        onChange={(ref) =>
+                                                            onConfigChange({ ...config, datapoint: ref })
+                                                        }
+                                                    />
                                                 </div>
                                                 <p
                                                     className="text-[10px] leading-tight"
