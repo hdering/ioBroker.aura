@@ -1,3 +1,4 @@
+import { Database } from 'lucide-react';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 
 interface Props {
@@ -50,14 +51,15 @@ export function HtmlConfig({ options: o, onChange, onOpenPicker }: Props) {
                     <button
                         type="button"
                         onClick={onOpenPicker}
-                        className="px-2 rounded-lg shrink-0"
+                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
                         style={{
                             background: 'var(--app-bg)',
                             color: 'var(--text-secondary)',
                             border: '1px solid var(--app-border)',
                         }}
+                        title="Aus ioBroker wählen"
                     >
-                        …
+                        <Database size={13} />
                     </button>
                 </div>
                 <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>

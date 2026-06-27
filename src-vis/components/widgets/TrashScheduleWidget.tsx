@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Truck, CalendarCheck2 } from 'lucide-react';
+import { Truck, CalendarCheck2, Database } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { DatapointPicker } from '../config/DatapointPicker';
 import type { WidgetProps, WidgetConfig } from '../../types';
@@ -464,8 +464,9 @@ export function TrashScheduleConfig({
                                 color: 'var(--text-secondary)',
                                 border: '1px solid var(--app-border)',
                             }}
+                            title="Aus ioBroker wählen"
                         >
-                            ⊕
+                            <Database size={13} />
                         </button>
                     </div>
                 </div>

@@ -207,20 +207,28 @@ function EntryRow({
                     className="px-2.5 pb-2.5 pt-1 space-y-1"
                     style={{ borderTop: '1px solid var(--app-border)', background: 'var(--app-surface)' }}
                 >
-                    <button
-                        onClick={() => setDpPickerOpen(true)}
-                        title="Datenpunkt ändern"
-                        className="w-full flex items-center gap-1 text-[9px] font-mono mb-1 rounded px-1.5 py-0.5 hover:opacity-80 text-left"
-                        style={{
-                            color: 'var(--text-secondary)',
-                            background: 'var(--app-bg)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                    >
-                        <Database size={9} className="shrink-0" />
-                        <span className="truncate flex-1">{entry.id}</span>
-                        <span className="shrink-0 opacity-70">Ändern</span>
-                    </button>
+                    <div className="flex gap-1 items-center mb-1">
+                        <input
+                            type="text"
+                            value={entry.id ?? ''}
+                            onChange={(e) => onUpdate({ id: e.target.value })}
+                            placeholder="Datenpunkt-ID"
+                            className={`flex-1 ${iCls} min-w-0`}
+                            style={iSty}
+                        />
+                        <button
+                            onClick={() => setDpPickerOpen(true)}
+                            title="Aus ioBroker wählen"
+                            className="px-2 rounded hover:opacity-80 shrink-0 flex items-center"
+                            style={{
+                                color: 'var(--text-secondary)',
+                                background: 'var(--app-bg)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            <Database size={13} />
+                        </button>
+                    </div>
                     {/* Icon (kompakt) + Bezeichnung + Einheit in einer Zeile */}
                     <div className="flex items-end gap-1.5">
                         <div className="shrink-0">

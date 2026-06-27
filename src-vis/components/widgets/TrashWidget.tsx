@@ -14,6 +14,7 @@ import {
     Battery,
     TreeDeciduous,
     Truck,
+    Database,
     type LucideIcon,
 } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
@@ -416,12 +417,13 @@ export function TrashConfig({
                                         onClick={() => setPickerBinId(bin.id)}
                                         className="px-2 rounded-lg shrink-0 hover:opacity-80 text-[11px]"
                                         style={{
-                                            background: 'var(--app-bg)',
+                                            background: 'var(--app-surface, var(--app-bg))',
                                             color: 'var(--text-secondary)',
                                             border: '1px solid var(--app-border)',
                                         }}
+                                        title="Aus ioBroker wählen"
                                     >
-                                        ⊕
+                                        <Database size={13} />
                                     </button>
                                 </div>
                             </div>

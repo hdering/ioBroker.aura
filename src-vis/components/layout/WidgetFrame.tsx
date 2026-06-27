@@ -1843,14 +1843,15 @@ function WeatherConfigSection({ o, set, onOpenPicker, onOpenAdapterPicker, layou
                     />
                     <button
                         onClick={onOpenPicker}
-                        className="text-xs px-2.5 rounded-lg shrink-0"
+                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
                         style={{
                             background: 'var(--app-bg)',
                             color: 'var(--text-secondary)',
                             border: '1px solid var(--app-border)',
                         }}
+                        title={t('wf.edit.fromIoBroker')}
                     >
-                        …
+                        <Database size={13} />
                     </button>
                 </div>
                 {(o.localTempDatapoint as string) && (
@@ -3392,10 +3393,11 @@ function MediaplayerEditPanel({
                                     onClick={() => onOpenChipPicker(idx)}
                                     className="px-2 rounded-lg hover:opacity-80 shrink-0"
                                     style={{
-                                        background: 'var(--app-bg)',
+                                        background: 'var(--app-surface, var(--app-bg))',
                                         color: 'var(--text-secondary)',
                                         border: '1px solid var(--app-border)',
                                     }}
+                                    title={t('wf.edit.fromIoBroker')}
                                 >
                                     <Database size={13} />
                                 </button>
@@ -3829,10 +3831,11 @@ function ChipsEditPanel({
                                         onClick={() => onOpenChipPicker(idx)}
                                         className="px-2 rounded-lg hover:opacity-80 shrink-0"
                                         style={{
-                                            background: 'var(--app-bg)',
+                                            background: 'var(--app-surface, var(--app-bg))',
                                             color: 'var(--text-secondary)',
                                             border: '1px solid var(--app-border)',
                                         }}
+                                        title={tHook('wf.edit.fromIoBroker')}
                                     >
                                         <Database size={13} />
                                     </button>
@@ -4523,10 +4526,11 @@ function CarouselEditPanel({
                                                     onClick={() => onOpenItemDpPicker(idx)}
                                                     className="px-2 rounded-lg hover:opacity-80 shrink-0"
                                                     style={{
-                                                        background: 'var(--app-bg)',
+                                                        background: 'var(--app-surface, var(--app-bg))',
                                                         color: 'var(--text-secondary)',
                                                         border: '1px solid var(--app-border)',
                                                     }}
+                                                    title={tHook('wf.edit.fromIoBroker')}
                                                 >
                                                     <Database size={13} />
                                                 </button>
@@ -9391,14 +9395,15 @@ export function WidgetFrame({
                                                     <button
                                                         type="button"
                                                         onClick={() => setPickerTarget('camera_urlDp')}
-                                                        className="px-2 rounded-lg shrink-0"
+                                                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
                                                         style={{
                                                             background: 'var(--app-bg)',
                                                             color: 'var(--text-secondary)',
                                                             border: '1px solid var(--app-border)',
                                                         }}
+                                                        title={t('wf.edit.fromIoBroker')}
                                                     >
-                                                        …
+                                                        <Database size={13} />
                                                     </button>
                                                 </div>
                                             </div>
@@ -10052,8 +10057,9 @@ export function WidgetFrame({
                                                             color: 'var(--text-secondary)',
                                                             border: '1px solid var(--app-border)',
                                                         }}
+                                                        title={t('wf.edit.fromIoBroker')}
                                                     >
-                                                        …
+                                                        <Database size={13} />
                                                     </button>
                                                 </div>
                                             </div>
