@@ -1056,11 +1056,11 @@ function StateTextCellView({
 /** Dropdown bound to a DP — maps DP values to labels (mini enum widget per cell). */
 function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
     const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
+    const selRef = useRef<HTMLSelectElement>(null);
     if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
     const entries = cell.entries ?? [];
     const currentStr = value === null || value === undefined ? '' : String(value);
     const current = entries.find((e) => e.value === currentStr);
-    const selRef = useRef<HTMLSelectElement>(null);
     const onPick = (raw: string) => {
         if (raw === 'true') return setValue(true);
         if (raw === 'false') return setValue(false);
