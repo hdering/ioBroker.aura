@@ -207,7 +207,7 @@ function EntryRow({
                     className="px-2.5 pb-2.5 pt-1 space-y-1"
                     style={{ borderTop: '1px solid var(--app-border)', background: 'var(--app-surface)' }}
                 >
-                    <div className="flex gap-1 items-center mb-1">
+                    <div className="flex gap-1 mb-1">
                         <input
                             type="text"
                             value={entry.id ?? ''}
@@ -219,7 +219,7 @@ function EntryRow({
                         <button
                             onClick={() => setDpPickerOpen(true)}
                             title="Aus ioBroker wählen"
-                            className="px-2 rounded hover:opacity-80 shrink-0 flex items-center"
+                            className="px-2 rounded hover:opacity-80 shrink-0 flex items-center justify-center"
                             style={{
                                 color: 'var(--text-secondary)',
                                 background: 'var(--app-bg)',

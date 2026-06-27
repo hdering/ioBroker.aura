@@ -3380,7 +3380,7 @@ function MediaplayerEditPanel({
                                     <Trash2 size={12} />
                                 </button>
                             </div>
-                            <div className="flex gap-1 items-center">
+                            <div className="flex gap-1">
                                 <input
                                     type="text"
                                     value={chip.dp}
@@ -3393,7 +3393,7 @@ function MediaplayerEditPanel({
                                     onClick={() => onOpenChipPicker(idx)}
                                     className="px-2 rounded-lg hover:opacity-80 shrink-0"
                                     style={{
-                                        background: 'var(--app-surface, var(--app-bg))',
+                                        background: 'var(--app-bg)',
                                         color: 'var(--text-secondary)',
                                         border: '1px solid var(--app-border)',
                                     }}
@@ -3818,7 +3818,7 @@ function ChipsEditPanel({
                                 >
                                     Schreib-DP — beim Klick wird der Wert auf diesen DP geschrieben
                                 </label>
-                                <div className="flex gap-1 items-center">
+                                <div className="flex gap-1">
                                     <input
                                         type="text"
                                         value={chip.dp}
@@ -3831,7 +3831,7 @@ function ChipsEditPanel({
                                         onClick={() => onOpenChipPicker(idx)}
                                         className="px-2 rounded-lg hover:opacity-80 shrink-0"
                                         style={{
-                                            background: 'var(--app-surface, var(--app-bg))',
+                                            background: 'var(--app-bg)',
                                             color: 'var(--text-secondary)',
                                             border: '1px solid var(--app-border)',
                                         }}
@@ -4513,7 +4513,7 @@ function CarouselEditPanel({
                                             >
                                                 {tHook('carousel.items.dp' as never)}
                                             </label>
-                                            <div className="flex gap-1 items-center">
+                                            <div className="flex gap-1">
                                                 <input
                                                     type="text"
                                                     value={item.dp}
@@ -4526,7 +4526,7 @@ function CarouselEditPanel({
                                                     onClick={() => onOpenItemDpPicker(idx)}
                                                     className="px-2 rounded-lg hover:opacity-80 shrink-0"
                                                     style={{
-                                                        background: 'var(--app-surface, var(--app-bg))',
+                                                        background: 'var(--app-bg)',
                                                         color: 'var(--text-secondary)',
                                                         border: '1px solid var(--app-border)',
                                                     }}
