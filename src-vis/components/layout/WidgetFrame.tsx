@@ -4986,7 +4986,7 @@ export function WidgetFrame({
     // grows taller than the viewport and the lower entries become unreachable.
     // Lay the targets out in 2–3 columns (wider menu) once there are enough of them.
     const targetCount = moveTargets.length + popupViewTargets.length;
-    const targetCols = targetCount > 16 ? 3 : targetCount > 7 ? 2 : 1;
+    const targetCols = targetCount > 6 ? 3 : 1;
     const targetGridStyle: React.CSSProperties =
         targetCols > 1 ? { display: 'grid', gridTemplateColumns: `repeat(${targetCols}, minmax(120px, 1fr))` } : {};
 
