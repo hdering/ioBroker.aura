@@ -4989,6 +4989,18 @@ export function WidgetFrame({
     const targetCols = targetCount > 6 ? 3 : 1;
     const targetGridStyle: React.CSSProperties =
         targetCols > 1 ? { display: 'grid', gridTemplateColumns: `repeat(${targetCols}, minmax(120px, 1fr))` } : {};
+    // Section header (per layout / popup-views): accent top rule + tint so the groups
+    // visually stand apart from one another in the copy/move submenu. Layouts use the
+    // blue accent, popup-views a green one so the two kinds of target are distinct.
+    const makeHeaderStyle = (c: string): React.CSSProperties => ({
+        gridColumn: '1 / -1',
+        background: `${c}1a`,
+        color: c,
+        borderTop: `2px solid ${c}`,
+        borderBottom: '1px solid var(--app-border)',
+    });
+    const targetHeaderStyle = makeHeaderStyle('var(--accent)');
+    const popupHeaderStyle = makeHeaderStyle('var(--accent-green)');
 
     // Stable reference: never create a new [] on every render (would cause infinite effect loop)
     const conditions = (config.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
@@ -5912,8 +5924,8 @@ export function WidgetFrame({
                                     }}
                                     className="w-full text-left px-3 py-1.5 text-xs hover:opacity-80 transition-opacity"
                                     style={{
-                                        background: 'var(--app-bg)',
-                                        color: 'var(--accent)',
+                                        background: 'var(--accent-yellow)1a',
+                                        color: 'var(--accent-yellow)',
                                         gridColumn: '1 / -1',
                                         borderBottom: '1px solid var(--app-border)',
                                         fontWeight: 500,
@@ -5930,12 +5942,7 @@ export function WidgetFrame({
                                                 {moveLayoutCount > 1 && (
                                                     <p
                                                         className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
-                                                        style={{
-                                                            background: 'var(--app-surface)',
-                                                            color: 'var(--text-secondary)',
-                                                            gridColumn: '1 / -1',
-                                                            borderBottom: '1px solid var(--app-border)',
-                                                        }}
+                                                        style={targetHeaderStyle}
                                                     >
                                                         {layoutName}
                                                     </p>
@@ -5970,12 +5977,7 @@ export function WidgetFrame({
                                     <>
                                         <p
                                             className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
-                                            style={{
-                                                background: 'var(--app-surface)',
-                                                color: 'var(--text-secondary)',
-                                                gridColumn: '1 / -1',
-                                                borderBottom: '1px solid var(--app-border)',
-                                            }}
+                                            style={popupHeaderStyle}
                                         >
                                             {t('wf.menu.popupViews')}
                                         </p>
@@ -6040,12 +6042,7 @@ export function WidgetFrame({
                                                         {moveLayoutCount > 1 && (
                                                             <p
                                                                 className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
-                                                                style={{
-                                                                    background: 'var(--app-surface)',
-                                                                    color: 'var(--text-secondary)',
-                                                                    gridColumn: '1 / -1',
-                                                                    borderBottom: '1px solid var(--app-border)',
-                                                                }}
+                                                                style={targetHeaderStyle}
                                                             >
                                                                 {layoutName}
                                                             </p>
@@ -6084,12 +6081,7 @@ export function WidgetFrame({
                                             <>
                                                 <p
                                                     className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
-                                                    style={{
-                                                        background: 'var(--app-surface)',
-                                                        color: 'var(--text-secondary)',
-                                                        gridColumn: '1 / -1',
-                                                        borderBottom: '1px solid var(--app-border)',
-                                                    }}
+                                                    style={popupHeaderStyle}
                                                 >
                                                     {t('wf.menu.popupViews')}
                                                 </p>
