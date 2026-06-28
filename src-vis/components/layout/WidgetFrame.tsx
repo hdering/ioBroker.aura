@@ -1563,13 +1563,23 @@ function PortalDropdown({
     anchorRef,
     onClose,
     children,
+    pinLeft = false,
 }: {
     anchorRef: React.RefObject<HTMLElement>;
     onClose: () => void;
     children: React.ReactNode;
+    /**
+     * When true, keep the panel's left edge where it was established while narrow and
+     * let it grow rightwards (used while a copy/move submenu is expanded), instead of
+     * the default right-alignment which would make a wider panel grow further left.
+     */
+    pinLeft?: boolean;
 }) {
     const portalTarget = usePortalTarget();
     const panelRef = useRef<HTMLDivElement>(null);
+    // Left position captured while the panel is narrow; reused so a widening submenu
+    // grows to the right rather than to the left.
+    const pinnedLeftRef = useRef<number | null>(null);
 
     // Re-clamp after every render so expanding submenus don't overflow the viewport
     useLayoutEffect(() => {
@@ -1583,7 +1593,15 @@ function PortalDropdown({
         const vh = window.innerHeight;
         const GAP = 4;
 
-        let left = anchorRect.right - panelRect.width;
+        let left;
+        if (pinLeft && pinnedLeftRef.current != null) {
+            // Submenu expanded: hold the previously captured left edge and grow right.
+            left = pinnedLeftRef.current;
+        } else {
+            // Narrow: right-align under the anchor and remember this left for later.
+            left = anchorRect.right - panelRect.width;
+            pinnedLeftRef.current = left;
+        }
         if (left < GAP) left = GAP;
         if (left + panelRect.width > vw - GAP) left = vw - GAP - panelRect.width;
 
@@ -4964,6 +4982,14 @@ export function WidgetFrame({
         (a, b) => a.length === b.length && a.every((ai, i) => ai.id === b[i].id && ai.name === b[i].name),
     );
 
+    // When the widget can be copied/moved into many tabs, a single-column submenu
+    // grows taller than the viewport and the lower entries become unreachable.
+    // Lay the targets out in 2–3 columns (wider menu) once there are enough of them.
+    const targetCount = moveTargets.length + popupViewTargets.length;
+    const targetCols = targetCount > 16 ? 3 : targetCount > 7 ? 2 : 1;
+    const targetGridStyle: React.CSSProperties =
+        targetCols > 1 ? { display: 'grid', gridTemplateColumns: `repeat(${targetCols}, minmax(120px, 1fr))` } : {};
+
     // Stable reference: never create a new [] on every render (would cause infinite effect loop)
     const conditions = (config.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
 
@@ -5644,6 +5670,7 @@ export function WidgetFrame({
                 <PortalDropdown
                     anchorRef={menuBtnRef as React.RefObject<HTMLElement>}
                     onClose={() => openPanelFor(null)}
+                    pinLeft={(showCopyMenu || showMoveMenu) && targetCols > 1}
                 >
                     <div className="p-1 flex flex-col gap-0.5 min-w-[170px]">
                         {/* Bearbeiten */}
@@ -5871,7 +5898,7 @@ export function WidgetFrame({
                         {showCopyMenu && (moveTargets.length > 0 || popupViewTargets.length > 0) && (
                             <div
                                 className="mx-1 mb-0.5 rounded-md overflow-hidden"
-                                style={{ border: '1px solid var(--app-border)' }}
+                                style={{ border: '1px solid var(--app-border)', ...targetGridStyle }}
                             >
                                 {/* Same tab: duplicate */}
                                 <button
@@ -5887,7 +5914,7 @@ export function WidgetFrame({
                                     style={{
                                         background: 'var(--app-bg)',
                                         color: 'var(--accent)',
-                                        display: 'block',
+                                        gridColumn: '1 / -1',
                                         borderBottom: '1px solid var(--app-border)',
                                         fontWeight: 500,
                                     }}
@@ -5899,13 +5926,14 @@ export function WidgetFrame({
                                     ([layoutId, layoutName]) => {
                                         const targets = moveTargets.filter((m) => m.layoutId === layoutId);
                                         return (
-                                            <div key={layoutId}>
+                                            <React.Fragment key={layoutId}>
                                                 {moveLayoutCount > 1 && (
                                                     <p
                                                         className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
                                                         style={{
                                                             background: 'var(--app-surface)',
                                                             color: 'var(--text-secondary)',
+                                                            gridColumn: '1 / -1',
                                                             borderBottom: '1px solid var(--app-border)',
                                                         }}
                                                     >
@@ -5923,29 +5951,29 @@ export function WidgetFrame({
                                                             });
                                                             openPanelFor(null);
                                                         }}
-                                                        className="w-full text-left px-3 py-1.5 text-xs hover:opacity-80 transition-opacity"
+                                                        className="w-full text-left px-3 py-1.5 text-xs hover:opacity-80 transition-opacity truncate"
                                                         style={{
                                                             background: 'var(--app-bg)',
                                                             color: 'var(--text-primary)',
-                                                            display: 'block',
                                                             borderBottom: '1px solid var(--app-border)',
                                                         }}
                                                     >
                                                         {m.tabName}
                                                     </button>
                                                 ))}
-                                            </div>
+                                            </React.Fragment>
                                         );
                                     },
                                 )}
                                 {/* Popup-Views – copy the widget into a custom popup view */}
                                 {popupViewTargets.length > 0 && (
-                                    <div>
+                                    <>
                                         <p
                                             className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
                                             style={{
                                                 background: 'var(--app-surface)',
                                                 color: 'var(--text-secondary)',
+                                                gridColumn: '1 / -1',
                                                 borderBottom: '1px solid var(--app-border)',
                                             }}
                                         >
@@ -5962,18 +5990,17 @@ export function WidgetFrame({
                                                     });
                                                     openPanelFor(null);
                                                 }}
-                                                className="w-full text-left px-3 py-1.5 text-xs hover:opacity-80 transition-opacity"
+                                                className="w-full text-left px-3 py-1.5 text-xs hover:opacity-80 transition-opacity truncate"
                                                 style={{
                                                     background: 'var(--app-bg)',
                                                     color: 'var(--text-primary)',
-                                                    display: 'block',
                                                     borderBottom: '1px solid var(--app-border)',
                                                 }}
                                             >
                                                 {pv.name}
                                             </button>
                                         ))}
-                                    </div>
+                                    </>
                                 )}
                             </div>
                         )}
@@ -6003,19 +6030,20 @@ export function WidgetFrame({
                                 {showMoveMenu && (
                                     <div
                                         className="mx-1 mb-0.5 rounded-md overflow-hidden"
-                                        style={{ border: '1px solid var(--app-border)' }}
+                                        style={{ border: '1px solid var(--app-border)', ...targetGridStyle }}
                                     >
                                         {[...new Map(moveTargets.map((m) => [m.layoutId, m.layoutName])).entries()].map(
                                             ([layoutId, layoutName]) => {
                                                 const targets = moveTargets.filter((m) => m.layoutId === layoutId);
                                                 return (
-                                                    <div key={layoutId}>
+                                                    <React.Fragment key={layoutId}>
                                                         {moveLayoutCount > 1 && (
                                                             <p
                                                                 className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
                                                                 style={{
                                                                     background: 'var(--app-surface)',
                                                                     color: 'var(--text-secondary)',
+                                                                    gridColumn: '1 / -1',
                                                                     borderBottom: '1px solid var(--app-border)',
                                                                 }}
                                                             >
@@ -6037,29 +6065,29 @@ export function WidgetFrame({
                                                                     );
                                                                     openPanelFor(null);
                                                                 }}
-                                                                className="w-full text-left px-3 py-1.5 text-xs hover:opacity-80 transition-opacity"
+                                                                className="w-full text-left px-3 py-1.5 text-xs hover:opacity-80 transition-opacity truncate"
                                                                 style={{
                                                                     background: 'var(--app-bg)',
                                                                     color: 'var(--text-primary)',
-                                                                    display: 'block',
                                                                     borderBottom: '1px solid var(--app-border)',
                                                                 }}
                                                             >
                                                                 {m.tabName}
                                                             </button>
                                                         ))}
-                                                    </div>
+                                                    </React.Fragment>
                                                 );
                                             },
                                         )}
                                         {/* Popup-Views – move the widget into a custom popup view */}
                                         {popupViewTargets.length > 0 && (
-                                            <div>
+                                            <>
                                                 <p
                                                     className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
                                                     style={{
                                                         background: 'var(--app-surface)',
                                                         color: 'var(--text-secondary)',
+                                                        gridColumn: '1 / -1',
                                                         borderBottom: '1px solid var(--app-border)',
                                                     }}
                                                 >
@@ -6081,18 +6109,17 @@ export function WidgetFrame({
                                                             );
                                                             openPanelFor(null);
                                                         }}
-                                                        className="w-full text-left px-3 py-1.5 text-xs hover:opacity-80 transition-opacity"
+                                                        className="w-full text-left px-3 py-1.5 text-xs hover:opacity-80 transition-opacity truncate"
                                                         style={{
                                                             background: 'var(--app-bg)',
                                                             color: 'var(--text-primary)',
-                                                            display: 'block',
                                                             borderBottom: '1px solid var(--app-border)',
                                                         }}
                                                     >
                                                         {pv.name}
                                                     </button>
                                                 ))}
-                                            </div>
+                                            </>
                                         )}
                                     </div>
                                 )}
