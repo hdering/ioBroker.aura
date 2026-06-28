@@ -62,6 +62,25 @@ export function __devInjectState(id: string, state: ioBrokerState): void {
     subscribers.get(id)?.forEach((fn) => fn(state));
 }
 
+// DEV-only stubs for the screenshot harness. When set, the matching Direct*
+// functions short-circuit with fabricated data instead of a socket round-trip —
+// so history charts, adapter/script/log lists etc. render offline & side-effect
+// free. Returning `undefined` from the sendTo stub means "not handled, fall
+// through to the real socket". Not wired up in production builds.
+let devHistoryGen: ((id: string, opts: { start: number; end: number; count?: number }) => HistoryEntry[]) | null = null;
+let devObjectView: ((type: string, startkey: string, endkey: string) => ObjectViewResult | undefined) | null = null;
+let devSendTo: ((target: string, command: string, payload: unknown) => unknown) | null = null;
+
+export function __devSetHistoryGen(fn: typeof devHistoryGen): void {
+    devHistoryGen = fn;
+}
+export function __devSetObjectView(fn: typeof devObjectView): void {
+    devObjectView = fn;
+}
+export function __devSetSendTo(fn: typeof devSendTo): void {
+    devSendTo = fn;
+}
+
 // Optimistic writes: when enabled, setState reflects the written value locally
 // (cache + subscribers) immediately, instead of waiting for ioBroker to echo a
 // stateChange back. Synced from the frontend setting via setOptimisticEcho().
@@ -454,6 +473,11 @@ export function getHistoryDirect(
         aggregate?: 'none' | 'average' | 'min' | 'max' | 'minmax' | 'total' | 'count' | 'first' | 'last';
     },
 ): Promise<HistoryEntry[]> {
+    if (devHistoryGen) {
+        return Promise.resolve(
+            devHistoryGen(id, { start: opts.start, end: opts.end ?? Date.now(), count: opts.count }),
+        );
+    }
     return new Promise((resolve) => {
         getSocket().emit(
             'getHistory',
@@ -550,6 +574,10 @@ export function sendToDirect<T = unknown>(
     payload: unknown,
     timeoutMs = 30000,
 ): Promise<T | { __timeout: true } | string | null> {
+    if (devSendTo) {
+        const handled = devSendTo(target, command, payload);
+        if (handled !== undefined) return Promise.resolve((handled as T) ?? null);
+    }
     return new Promise((resolve) => {
         let settled = false;
         const done = (v: T | { __timeout: true } | string | null) => {
@@ -687,6 +715,10 @@ export function getObjectViewDirect(
     startkey = '',
     endkey = '\u9999',
 ): Promise<ObjectViewResult> {
+    if (devObjectView) {
+        const handled = devObjectView(type, startkey, endkey);
+        if (handled !== undefined) return Promise.resolve(handled);
+    }
     return new Promise((resolve) => {
         getSocket().emit(
             'getObjectView',

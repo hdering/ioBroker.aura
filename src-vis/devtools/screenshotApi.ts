@@ -12,11 +12,19 @@
 //
 // Stripped from production: only imported from main.tsx under import.meta.env.DEV.
 
-import { __devInjectState } from '../hooks/useIoBroker';
+import {
+    __devInjectState,
+    __devSetHistoryGen,
+    __devSetObjectView,
+    __devSetSendTo,
+    getStateFromCache,
+    type HistoryEntry,
+} from '../hooks/useIoBroker';
 import { useDashboardStore, type DashboardLayout } from '../store/dashboardStore';
+import { useGroupDefsStore } from '../store/groupDefsStore';
 import { useThemeStore } from '../store/themeStore';
 import { withSuppressedDirty, setScreenshotMode } from '../store/persistManager';
-import type { WidgetConfig, ioBrokerState } from '../types';
+import type { WidgetConfig, ioBrokerState, ObjectViewResult } from '../types';
 
 type MockValue = boolean | number | string | null | Partial<ioBrokerState>;
 
@@ -40,6 +48,28 @@ export interface ShowWidgetsOptions {
 
 const DEMO_LAYOUT_ID = 'screenshot-demo';
 const DEMO_TAB_ID = 'screenshot-tab';
+
+// Fabricate a smooth, deterministic history series centred on the datapoint's
+// current cached value, so chart/echart widgets render a believable curve from
+// injected state alone (no history adapter behind the dev proxy).
+function genHistory(id: string, opts: { start: number; end: number; count?: number }): HistoryEntry[] {
+    const cur = getStateFromCache(id);
+    const center = typeof cur?.val === 'number' ? cur.val : 50;
+    const amp = Math.max(Math.abs(center) * 0.14, 2);
+    let seed = 0;
+    for (let i = 0; i < id.length; i++) seed = (seed * 31 + id.charCodeAt(i)) >>> 0;
+    const phase = ((seed % 1000) / 1000) * Math.PI * 2;
+    const n = 64;
+    const span = Math.max(opts.end - opts.start, 1);
+    const out: HistoryEntry[] = [];
+    for (let i = 0; i <= n; i++) {
+        const ts = Math.round(opts.start + (span * i) / n);
+        const x = (i / n) * Math.PI * 4 + phase;
+        const wobble = Math.sin(x) * amp + Math.sin(x * 2.7 + seed) * amp * 0.35 + Math.sin(x * 0.5) * amp * 0.4;
+        out.push({ ts, val: Math.round((center + wobble) * 100) / 100 });
+    }
+    return out;
+}
 
 function installScreenshotApi(): void {
     setScreenshotMode(true);
@@ -105,6 +135,30 @@ function installScreenshotApi(): void {
                     editMode: payload.editMode ?? false,
                 });
             });
+        },
+
+        /** Populate group/panels children (they live in a separate RAM store, keyed
+         *  by the widget's options.defId). */
+        groupDefs(defs: Record<string, WidgetConfig[]>): void {
+            withSuppressedDirty(() => useGroupDefsStore.setState({ defs, hydrated: true }));
+        },
+
+        /** Turn on fabricated history so chart/echart widgets render curves
+         *  (pass false to restore the real getHistory path). */
+        enableHistory(on = true): void {
+            __devSetHistoryGen(on ? genHistory : null);
+        },
+
+        /** Stub getObjectView per object type: { instance: [{id,value}], script: [...] }.
+         *  Unlisted types resolve empty so nothing real leaks into the demo. */
+        mockObjectView(byType: Record<string, { id: string; value: unknown }[]>): void {
+            __devSetObjectView((type) => ({ rows: byType[type] ?? [] }) as unknown as ObjectViewResult);
+        },
+
+        /** Stub sendTo responses keyed by command, e.g. { getRecentLogs: {...} }.
+         *  Unlisted commands fall through to the real socket. */
+        mockSendTo(byCommand: Record<string, unknown>): void {
+            __devSetSendTo((_t, command) => (command in byCommand ? byCommand[command] : undefined));
         },
     };
 
