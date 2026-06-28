@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.11.4",
+    "version": "0.11.5",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.11.5": {
+        "en": "Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen",
+        "de": "Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen",
+        "ru": "Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen",
+        "pt": "Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen",
+        "nl": "Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen",
+        "fr": "Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen",
+        "it": "Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen",
+        "es": "Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen",
+        "pl": "Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen",
+        "uk": "Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen",
+        "zh-cn": "Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen"
+      },
       "0.11.4": {
         "en": "Popups - removing a widget-type default in the backend now stops auto-linking the built-in popup (e.g. dimmers no longer force the Standard Dimmer popup)",
         "de": "Popups - removing a widget-type default in the backend now stops auto-linking the built-in popup (e.g. dimmers no longer force the Standard Dimmer popup)",
@@ -183,19 +196,6 @@
         "pl": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
         "uk": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
         "zh-cn": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list"
-      },
-      "0.10.4": {
-        "en": "fix(thermostat): drop \"Soll:\" label from target temperature\nfix(thermostat): inline \"Soll:\" label and fix doubled °CC unit",
-        "de": "fix(thermostat): drop \"Soll:\" label from target temperature\nfix(thermostat): inline \"Soll:\" label and fix doubled °CC unit",
-        "ru": "fix(thermostat): drop \"Soll:\" label from target temperature\nfix(thermostat): inline \"Soll:\" label and fix doubled °CC unit",
-        "pt": "fix(thermostat): drop \"Soll:\" label from target temperature\nfix(thermostat): inline \"Soll:\" label and fix doubled °CC unit",
-        "nl": "fix(thermostat): drop \"Soll:\" label from target temperature\nfix(thermostat): inline \"Soll:\" label and fix doubled °CC unit",
-        "fr": "fix(thermostat): drop \"Soll:\" label from target temperature\nfix(thermostat): inline \"Soll:\" label and fix doubled °CC unit",
-        "it": "fix(thermostat): drop \"Soll:\" label from target temperature\nfix(thermostat): inline \"Soll:\" label and fix doubled °CC unit",
-        "es": "fix(thermostat): drop \"Soll:\" label from target temperature\nfix(thermostat): inline \"Soll:\" label and fix doubled °CC unit",
-        "pl": "fix(thermostat): drop \"Soll:\" label from target temperature\nfix(thermostat): inline \"Soll:\" label and fix doubled °CC unit",
-        "uk": "fix(thermostat): drop \"Soll:\" label from target temperature\nfix(thermostat): inline \"Soll:\" label and fix doubled °CC unit",
-        "zh-cn": "fix(thermostat): drop \"Soll:\" label from target temperature\nfix(thermostat): inline \"Soll:\" label and fix doubled °CC unit"
       }
     }
   },
