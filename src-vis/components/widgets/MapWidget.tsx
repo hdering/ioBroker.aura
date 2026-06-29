@@ -1,4 +1,4 @@
-import { Component, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Component, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -298,11 +298,36 @@ export function MapWidget({ config, editMode }: WidgetProps) {
     }, []);
 
     const homePos = o.homeMarkerId ? (positions[o.homeMarkerId] ?? null) : null;
-    const center = o.center ?? DEFAULT_CENTER;
-    const zoom = o.zoom ?? DEFAULT_ZOOM;
+    // Coerce to finite values — a NaN center/zoom (e.g. from a half-edited config)
+    // would put Leaflet into a broken NaN state.
+    const rawCenter = o.center;
+    const center: LatLon =
+        Array.isArray(rawCenter) && Number.isFinite(rawCenter[0]) && Number.isFinite(rawCenter[1])
+            ? [rawCenter[0], rawCenter[1]]
+            : DEFAULT_CENTER;
+    const zoom = Number.isFinite(o.zoom) ? (o.zoom as number) : DEFAULT_ZOOM;
+
+    // Only mount Leaflet once the container has a real size. Initialising the map in
+    // a 0×0 container (e.g. right after an F5 before the dashboard grid has laid out)
+    // leaves its pixel origin NaN — tiles never load and containerPointToLatLng
+    // throws "Invalid LatLng object: (NaN, NaN)" on interaction.
+    const wrapRef = useRef<HTMLDivElement>(null);
+    const [sized, setSized] = useState(false);
+    useEffect(() => {
+        const el = wrapRef.current;
+        if (!el) return;
+        const check = () => {
+            if (el.clientWidth > 0 && el.clientHeight > 0) setSized(true);
+        };
+        check();
+        const ro = new ResizeObserver(check);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, []);
 
     return (
         <div
+            ref={wrapRef}
             style={{
                 position: 'absolute',
                 inset: 0,
@@ -316,37 +341,39 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                 pointerEvents: editMode ? 'none' : 'auto',
             }}
         >
-            <MapErrorBoundary resetKey={tileUrl}>
-                <MapContainer
-                    center={center}
-                    zoom={zoom}
-                    style={{ width: '100%', height: '100%' }}
-                    // Disable interaction in edit mode so the widget can be dragged/resized on the grid.
-                    dragging={!editMode}
-                    scrollWheelZoom={!editMode}
-                    doubleClickZoom={!editMode}
-                    touchZoom={!editMode}
-                    zoomControl={!editMode}
-                    attributionControl
-                >
-                    {/* No key here on purpose: react-leaflet updates the url in place via
+            {sized && (
+                <MapErrorBoundary resetKey={tileUrl}>
+                    <MapContainer
+                        center={center}
+                        zoom={zoom}
+                        style={{ width: '100%', height: '100%' }}
+                        // Disable interaction in edit mode so the widget can be dragged/resized on the grid.
+                        dragging={!editMode}
+                        scrollWheelZoom={!editMode}
+                        doubleClickZoom={!editMode}
+                        touchZoom={!editMode}
+                        zoomControl={!editMode}
+                        attributionControl
+                    >
+                        {/* No key here on purpose: react-leaflet updates the url in place via
                         setUrl. Remounting the layer triggers Leaflet onAdd → _resetView,
                         which can throw "infinite number of tiles" and crash the tree. */}
-                    <TileLayer url={tileUrl} attribution={attribution} maxZoom={maxZoom} />
-                    <ResizeHandler />
-                    <FollowMarkers positions={positions} enabled={followMarkers} />
-                    {markers.map((m) => (
-                        <MarkerLayer
-                            key={m.id}
-                            marker={m}
-                            homePos={homePos}
-                            isHome={m.id === o.homeMarkerId}
-                            showDistance={showDistance}
-                            onResolve={onResolve}
-                        />
-                    ))}
-                </MapContainer>
-            </MapErrorBoundary>
+                        <TileLayer url={tileUrl} attribution={attribution} maxZoom={maxZoom} />
+                        <ResizeHandler />
+                        <FollowMarkers positions={positions} enabled={followMarkers} />
+                        {markers.map((m) => (
+                            <MarkerLayer
+                                key={m.id}
+                                marker={m}
+                                homePos={homePos}
+                                isHome={m.id === o.homeMarkerId}
+                                showDistance={showDistance}
+                                onResolve={onResolve}
+                            />
+                        ))}
+                    </MapContainer>
+                </MapErrorBoundary>
+            )}
         </div>
     );
 }
