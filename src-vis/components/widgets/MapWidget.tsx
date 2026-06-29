@@ -199,22 +199,33 @@ function FollowMarkers({ positions, enabled }: { positions: Record<string, LatLo
     const key = list.map((p) => `${p[0].toFixed(4)},${p[1].toFixed(4)}`).join('|');
     useEffect(() => {
         if (!enabled || list.length === 0) return;
+        let cancelled = false;
         const fit = () => {
-            // Guard against a not-yet-laid-out (0×0) container — calling setView/fitBounds
-            // then makes Leaflet try to load an infinite number of tiles and throw.
+            if (cancelled || !map) return;
+            // Guard against a not-yet-laid-out container: getSize() returns 0 (or NaN)
+            // before layout, and a NaN/0 size or zoom makes Leaflet try to load an
+            // infinite number of tiles and throw.
             const size = map.getSize();
-            if (size.x === 0 || size.y === 0) return;
-            if (list.length === 1) {
-                map.setView(list[0], Math.max(map.getZoom(), 13));
-            } else {
-                map.fitBounds(L.latLngBounds(list as L.LatLngTuple[]), { padding: [30, 30], maxZoom: 16 });
+            if (!size.x || !size.y) return;
+            try {
+                if (list.length === 1) {
+                    const cur = map.getZoom();
+                    const z = Number.isFinite(cur) ? Math.max(cur, 13) : DEFAULT_ZOOM;
+                    map.setView(list[0], z);
+                } else {
+                    const bounds = L.latLngBounds(list as L.LatLngTuple[]);
+                    if (bounds.isValid()) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+                }
+            } catch {
+                // Transient layout/zoom race — the 'resize' handler below retries.
             }
         };
-        fit();
-        // Once the container gets a real size (ResizeHandler → invalidateSize fires 'resize'),
-        // run the fit again so the initial 0-size skip above is recovered.
+        // whenReady defers until the map is initialised; 'resize' re-fits once the
+        // container reaches its real size (ResizeHandler → invalidateSize fires it).
+        map.whenReady(fit);
         map.on('resize', fit);
         return () => {
+            cancelled = true;
             map.off('resize', fit);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
