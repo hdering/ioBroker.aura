@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Component, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -233,6 +233,44 @@ function FollowMarkers({ positions, enabled }: { positions: Record<string, LatLo
     return null;
 }
 
+/**
+ * Contains Leaflet exceptions (e.g. the "infinite number of tiles" thrown from
+ * deep inside onAdd/_resetView during a layout race) so they can never take down
+ * the whole frontend. Resets automatically when `resetKey` changes.
+ */
+class MapErrorBoundary extends Component<{ resetKey: string; children: ReactNode }, { failed: boolean }> {
+    state = { failed: false };
+    static getDerivedStateFromError() {
+        return { failed: true };
+    }
+    componentDidUpdate(prev: { resetKey: string }) {
+        if (prev.resetKey !== this.props.resetKey && this.state.failed) {
+            this.setState({ failed: false });
+        }
+    }
+    render() {
+        if (this.state.failed) {
+            return (
+                <div
+                    style={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 12,
+                        color: 'var(--text-secondary)',
+                        background: 'var(--app-bg)',
+                    }}
+                >
+                    Karte konnte nicht geladen werden
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
+
 export function MapWidget({ config, editMode }: WidgetProps) {
     const o = (config.options ?? {}) as MapOptions;
     const markers = useMemo<MapMarker[]>(() => (Array.isArray(o.markers) ? o.markers : []), [o.markers]);
@@ -278,33 +316,37 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                 pointerEvents: editMode ? 'none' : 'auto',
             }}
         >
-            <MapContainer
-                center={center}
-                zoom={zoom}
-                style={{ width: '100%', height: '100%' }}
-                // Disable interaction in edit mode so the widget can be dragged/resized on the grid.
-                dragging={!editMode}
-                scrollWheelZoom={!editMode}
-                doubleClickZoom={!editMode}
-                touchZoom={!editMode}
-                zoomControl={!editMode}
-                attributionControl
-            >
-                {/* key forces a fresh tile layer when the style/URL changes */}
-                <TileLayer key={tileUrl} url={tileUrl} attribution={attribution} maxZoom={maxZoom} />
-                <ResizeHandler />
-                <FollowMarkers positions={positions} enabled={followMarkers} />
-                {markers.map((m) => (
-                    <MarkerLayer
-                        key={m.id}
-                        marker={m}
-                        homePos={homePos}
-                        isHome={m.id === o.homeMarkerId}
-                        showDistance={showDistance}
-                        onResolve={onResolve}
-                    />
-                ))}
-            </MapContainer>
+            <MapErrorBoundary resetKey={tileUrl}>
+                <MapContainer
+                    center={center}
+                    zoom={zoom}
+                    style={{ width: '100%', height: '100%' }}
+                    // Disable interaction in edit mode so the widget can be dragged/resized on the grid.
+                    dragging={!editMode}
+                    scrollWheelZoom={!editMode}
+                    doubleClickZoom={!editMode}
+                    touchZoom={!editMode}
+                    zoomControl={!editMode}
+                    attributionControl
+                >
+                    {/* No key here on purpose: react-leaflet updates the url in place via
+                        setUrl. Remounting the layer triggers Leaflet onAdd → _resetView,
+                        which can throw "infinite number of tiles" and crash the tree. */}
+                    <TileLayer url={tileUrl} attribution={attribution} maxZoom={maxZoom} />
+                    <ResizeHandler />
+                    <FollowMarkers positions={positions} enabled={followMarkers} />
+                    {markers.map((m) => (
+                        <MarkerLayer
+                            key={m.id}
+                            marker={m}
+                            homePos={homePos}
+                            isHome={m.id === o.homeMarkerId}
+                            showDistance={showDistance}
+                            onResolve={onResolve}
+                        />
+                    ))}
+                </MapContainer>
+            </MapErrorBoundary>
         </div>
     );
 }
