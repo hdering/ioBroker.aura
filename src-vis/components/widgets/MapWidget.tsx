@@ -99,11 +99,16 @@ function MarkerLayer({
             return;
         }
         let cancelled = false;
-        void geocodeAddress(marker.address).then((p) => {
-            if (!cancelled) setGeoPos(p);
-        });
+        const address = marker.address;
+        // Debounce so typing an address in the editor doesn't fire a request per keystroke.
+        const handle = setTimeout(() => {
+            void geocodeAddress(address).then((p) => {
+                if (!cancelled) setGeoPos(p);
+            });
+        }, 600);
         return () => {
             cancelled = true;
+            clearTimeout(handle);
         };
     }, [marker.mode, marker.address]);
 

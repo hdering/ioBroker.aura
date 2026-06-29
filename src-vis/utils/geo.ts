@@ -46,6 +46,28 @@ function num(v: unknown): number | null {
 const geocodeCache = new Map<string, LatLon | null>();
 const geocodeInflight = new Map<string, Promise<LatLon | null>>();
 
+// Nominatim allows at most ~1 request/second. Serialize all geocode requests
+// through a single chain with a minimum gap so concurrent markers (or a re-render
+// burst) never trip its 429 rate limiter.
+const MIN_GAP_MS = 1100;
+let geocodeChain: Promise<unknown> = Promise.resolve();
+let lastGeocodeAt = 0;
+
+function schedule<T>(fn: () => Promise<T>): Promise<T> {
+    const run = geocodeChain.then(async () => {
+        const wait = lastGeocodeAt + MIN_GAP_MS - Date.now();
+        if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+        lastGeocodeAt = Date.now();
+        return fn();
+    });
+    // Keep the chain alive regardless of individual failures.
+    geocodeChain = run.then(
+        () => undefined,
+        () => undefined,
+    );
+    return run;
+}
+
 export async function geocodeAddress(address: string): Promise<LatLon | null> {
     const q = address.trim();
     if (!q) return null;
@@ -53,27 +75,28 @@ export async function geocodeAddress(address: string): Promise<LatLon | null> {
     const existing = geocodeInflight.get(q);
     if (existing) return existing;
 
-    const req = (async (): Promise<LatLon | null> => {
+    const req = schedule(async (): Promise<LatLon | null> => {
         try {
             // Nominatim sends no CORS headers and requires an identifying User-Agent,
             // so go through Aura's same-origin /proxy (available in dev and prod) which
             // adds the User-Agent and pipes the JSON response through unchanged.
             const target = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`;
             const res = await fetch(`/proxy?url=${encodeURIComponent(target)}`);
+            // Don't cache transient failures (e.g. 429) — allow a later retry.
             if (!res.ok) return null;
             const data = (await res.json()) as Array<{ lat?: string; lon?: string }>;
             const hit = Array.isArray(data) ? data[0] : null;
             const lat = hit ? Number(hit.lat) : NaN;
             const lon = hit ? Number(hit.lon) : NaN;
             const pos: LatLon | null = Number.isFinite(lat) && Number.isFinite(lon) ? [lat, lon] : null;
-            geocodeCache.set(q, pos);
+            geocodeCache.set(q, pos); // cache resolved hits and confirmed "no match"
             return pos;
         } catch {
             return null;
         } finally {
             geocodeInflight.delete(q);
         }
-    })();
+    });
 
     geocodeInflight.set(q, req);
     return req;
