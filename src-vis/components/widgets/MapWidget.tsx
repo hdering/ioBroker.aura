@@ -1,4 +1,4 @@
-import { Component, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -233,67 +233,6 @@ function FollowMarkers({ positions, enabled }: { positions: Record<string, LatLo
     return null;
 }
 
-/**
- * Contains Leaflet exceptions (e.g. the "infinite number of tiles" thrown from
- * deep inside onAdd/_resetView during a layout race) so they can never take down
- * the whole frontend. Resets automatically when `resetKey` changes.
- */
-class MapErrorBoundary extends Component<
-    { resetKey: string; children: ReactNode },
-    { failed: boolean; nonce: number; attempts: number }
-> {
-    state = { failed: false, nonce: 0, attempts: 0 };
-    private timer: ReturnType<typeof setTimeout> | undefined;
-    static getDerivedStateFromError() {
-        return { failed: true };
-    }
-    componentDidCatch() {
-        // Leaflet can throw transiently while the container is still settling
-        // (e.g. "infinite number of tiles" during onAdd). Remount the map a moment
-        // later — by then layout is stable — instead of giving up. Cap the attempts.
-        if (this.state.attempts < 5) {
-            this.timer = setTimeout(() => {
-                this.setState((s) => ({ failed: false, nonce: s.nonce + 1, attempts: s.attempts + 1 }));
-            }, 400);
-        }
-    }
-    componentDidUpdate(prev: { resetKey: string }) {
-        if (prev.resetKey !== this.props.resetKey && this.state.attempts !== 0) {
-            // A deliberate config change (e.g. style switch) — reset the retry budget.
-            this.setState({ failed: false, attempts: 0 });
-        }
-    }
-    componentWillUnmount() {
-        clearTimeout(this.timer);
-    }
-    render() {
-        if (this.state.failed) {
-            return (
-                <div
-                    style={{
-                        position: 'absolute',
-                        inset: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 12,
-                        color: 'var(--text-secondary)',
-                        background: 'var(--app-bg)',
-                    }}
-                >
-                    Karte konnte nicht geladen werden
-                </div>
-            );
-        }
-        // key forces a fresh MapContainer on each retry so Leaflet re-initialises cleanly.
-        return (
-            <div key={this.state.nonce} style={{ position: 'absolute', inset: 0 }}>
-                {this.props.children}
-            </div>
-        );
-    }
-}
-
 export function MapWidget({ config, editMode }: WidgetProps) {
     const o = (config.options ?? {}) as MapOptions;
     const markers = useMemo<MapMarker[]>(() => (Array.isArray(o.markers) ? o.markers : []), [o.markers]);
@@ -301,7 +240,6 @@ export function MapWidget({ config, editMode }: WidgetProps) {
     // A custom tile URL always wins; otherwise use the selected style preset.
     const tileUrl = o.tileUrl || preset.url;
     const attribution = o.tileUrl ? (o.tileAttribution ?? '') : preset.attribution;
-    const maxZoom = preset.maxZoom;
     const followMarkers = o.followMarkers ?? true;
     const showDistance = !!o.showDistance;
 
@@ -330,27 +268,8 @@ export function MapWidget({ config, editMode }: WidgetProps) {
             : DEFAULT_CENTER;
     const zoom = Number.isFinite(o.zoom) ? (o.zoom as number) : DEFAULT_ZOOM;
 
-    // Only mount Leaflet once the container has a real size. Initialising the map in
-    // a 0×0 container (e.g. right after an F5 before the dashboard grid has laid out)
-    // leaves its pixel origin NaN — tiles never load and containerPointToLatLng
-    // throws "Invalid LatLng object: (NaN, NaN)" on interaction.
-    const wrapRef = useRef<HTMLDivElement>(null);
-    const [sized, setSized] = useState(false);
-    useEffect(() => {
-        const el = wrapRef.current;
-        if (!el) return;
-        const check = () => {
-            if (el.clientWidth > 0 && el.clientHeight > 0) setSized(true);
-        };
-        check();
-        const ro = new ResizeObserver(check);
-        ro.observe(el);
-        return () => ro.disconnect();
-    }, []);
-
     return (
         <div
-            ref={wrapRef}
             style={{
                 position: 'absolute',
                 inset: 0,
@@ -364,8 +283,8 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                 pointerEvents: editMode ? 'none' : 'auto',
             }}
         >
-            {sized && (
-                <MapErrorBoundary resetKey={tileUrl}>
+            {
+                <div style={{ position: 'absolute', inset: 0 }}>
                     <MapContainer
                         center={center}
                         zoom={zoom}
@@ -376,12 +295,11 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                         doubleClickZoom={!editMode}
                         touchZoom={!editMode}
                         zoomControl={!editMode}
-                        attributionControl
                     >
                         {/* No key here on purpose: react-leaflet updates the url in place via
                         setUrl. Remounting the layer triggers Leaflet onAdd → _resetView,
                         which can throw "infinite number of tiles" and crash the tree. */}
-                        <TileLayer url={tileUrl} attribution={attribution} maxZoom={maxZoom} />
+                        <TileLayer url={tileUrl} attribution={attribution} />
                         <ResizeHandler />
                         <FollowMarkers positions={positions} enabled={followMarkers} />
                         {markers.map((m) => (
@@ -395,8 +313,8 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                             />
                         ))}
                     </MapContainer>
-                </MapErrorBoundary>
-            )}
+                </div>
+            }
         </div>
     );
 }
