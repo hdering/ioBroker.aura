@@ -1043,6 +1043,7 @@ export const de = {
     'widget.enum': 'Auswahlfeld',
     'widget.carousel': 'Karussell',
     'widget.input': 'Eingabefeld',
+    'widget.map': 'Karte',
 
     // ── Weather Widget ────────────────────────────────────────────────────────────
     'weather.sunny': 'Sonnig',

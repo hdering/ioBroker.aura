@@ -53,6 +53,7 @@ import {
     TextCursorInput,
     GalleryHorizontal,
     GalleryThumbnails,
+    MapPin,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -738,6 +739,20 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'special',
         mock: { t: 'Alarmanlage', v: 'Deaktiviert' },
         hint: 'ioBroker.alarm-Adapter steuern — Scharf/Inside/Nacht, Zonen, PIN-Entwaffnung, Tages-Log',
+    },
+    {
+        type: 'map',
+        label: 'Karte',
+        shortLabel: 'Karte',
+        Icon: MapPin,
+        iconName: 'MapPin',
+        color: '#16a34a',
+        defaultW: 14,
+        defaultH: 8,
+        addMode: 'free',
+        widgetGroup: 'special',
+        mock: { t: 'Karte', v: '📍' },
+        hint: 'Positionen (Auto, Kind, …) aus Datenpunkten auf einer OpenStreetMap-Karte anzeigen – optional mit Entfernung',
     },
     {
         type: 'carousel',

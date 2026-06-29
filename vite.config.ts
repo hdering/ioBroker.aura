@@ -233,6 +233,7 @@ export default defineConfig({
           if (!id.includes('node_modules')) return undefined;
           if (id.includes('/echarts/') || id.includes('/echarts-for-react/') || id.includes('/zrender/')) return 'echarts';
           if (id.includes('/recharts/') || id.includes('/d3-')) return 'recharts';
+          if (id.includes('/leaflet/') || id.includes('/react-leaflet/') || id.includes('/@react-leaflet/')) return 'leaflet';
           if (id.includes('/react-grid-layout/') || id.includes('/react-resizable/') || id.includes('/react-draggable/')) return 'grid';
           if (id.includes('/ical.js/')) return 'ical';
           if (id.includes('/dompurify/')) return 'dompurify';

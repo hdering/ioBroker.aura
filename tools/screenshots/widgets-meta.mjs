@@ -119,6 +119,8 @@ export const WIDGETS = [
       hint: 'Live-Log-Stream aller Adapter — Filter nach Schweregrad, Adapter und Freitext.', runtime: null },
     { type: 'alarm', slug: 'alarmanlage', label: 'Alarmanlage', group: 'special',
       hint: 'ioBroker.alarm-Adapter steuern — Scharf/Inside/Nacht, Zonen, PIN, Tages-Log.', runtime: null },
+    { type: 'map', slug: 'karte', label: 'Karte', group: 'special',
+      hint: 'Positionen (Auto, Kind, …) aus Datenpunkten auf einer OpenStreetMap-Karte anzeigen – optional mit Entfernung.', runtime: null },
     { type: 'carousel', slug: 'karussell', label: 'Karussell', group: 'special',
       hint: 'Horizontal scrollbare Chip-Liste – pro Item Datenpunkt + eigene Klick-Aktion.', runtime: null },
 

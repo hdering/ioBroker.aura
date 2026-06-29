@@ -61,7 +61,8 @@ export type WidgetType =
     | 'scriptstatus'
     | 'adapterlogs'
     | 'input'
-    | 'alarm';
+    | 'alarm'
+    | 'map';
 
 export type WidgetLayout =
     | 'default'
