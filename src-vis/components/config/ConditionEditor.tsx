@@ -34,7 +34,7 @@ const inputStyle: React.CSSProperties = {
 };
 const cls = 'text-xs rounded-lg px-2 py-1.5 focus:outline-none';
 
-function newClause(): ConditionClause {
+export function newClause(): ConditionClause {
     return { datapoint: '', operator: '==', value: '' };
 }
 
@@ -51,7 +51,7 @@ function newCondition(): WidgetCondition {
 
 // ── Clause row ────────────────────────────────────────────────────────────────
 
-function ClauseRow({
+export function ClauseRow({
     clause,
     isFirst,
     logic,
@@ -224,7 +224,7 @@ function ClauseRow({
 
 // ── Color field ───────────────────────────────────────────────────────────────
 
-function ColorField({
+export function ColorField({
     label,
     value,
     onChange,

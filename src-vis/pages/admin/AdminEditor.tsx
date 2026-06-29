@@ -28,6 +28,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { IconPickerModal } from '../../components/config/IconPickerModal';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { ConditionEditor } from '../../components/config/ConditionEditor';
+import { BadgeEditor } from '../../components/config/BadgeEditor';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useGroupStore } from '../../store/groupStore';
 import { Dashboard } from '../../components/layout/Dashboard';
@@ -1178,6 +1179,7 @@ const TabBar = memo(function TabBar() {
     const [settingsTabId, setSettingsTabId] = useState<string | null>(null);
     const [panelPos, setPanelPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
     const [conditionsOpen, setConditionsOpen] = useState(false);
+    const [tabBadgesOpen, setTabBadgesOpen] = useState(false);
     const [iconPickerTabId, setIconPickerTabId] = useState<string | null>(null);
     const settingsBtnRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
     const [tabDragIdx, setTabDragIdx] = useState<number | null>(null);
@@ -1204,7 +1206,10 @@ const TabBar = memo(function TabBar() {
         const left = Math.min(rect.left, window.innerWidth - panelW - 12);
         setPanelPos({ top: rect.bottom + 6, left: Math.max(8, left) });
         setSettingsTabId((prev) => {
-            if (prev !== tabId) setConditionsOpen(false);
+            if (prev !== tabId) {
+                setConditionsOpen(false);
+                setTabBadgesOpen(false);
+            }
             return prev === tabId ? null : tabId;
         });
     };
@@ -1213,7 +1218,7 @@ const TabBar = memo(function TabBar() {
 
     // Re-clamp left against the panel's *current* width so expanding the conditions
     // (256 → 500px) on a far-right tab can't push the rules off the right edge.
-    const panelWidth = conditionsOpen ? 500 : 256;
+    const panelWidth = conditionsOpen || tabBadgesOpen ? 500 : 256;
     const panelLeft = Math.max(
         8,
         Math.min(
@@ -1653,6 +1658,90 @@ const TabBar = memo(function TabBar() {
                                             context="tab"
                                             style={{ width: '100%', padding: 0 }}
                                         />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* ── Badges section ──────────────────────────────────────────── */}
+                            <div
+                                className="rounded-lg px-2.5 py-2"
+                                style={{
+                                    background: 'color-mix(in srgb, var(--accent-yellow, #eab308) 7%, var(--app-bg))',
+                                    border: '1px solid color-mix(in srgb, var(--accent-yellow, #eab308) 26%, var(--app-border))',
+                                }}
+                            >
+                                <button
+                                    className="flex items-center gap-1.5 w-full text-left hover:opacity-80"
+                                    onClick={() => setTabBadgesOpen((o) => !o)}
+                                >
+                                    <span style={{ color: 'var(--text-secondary)' }}>
+                                        {tabBadgesOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                                    </span>
+                                    <span
+                                        className="text-[11px] font-medium"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        {t('tabBar.badges')}
+                                        {(settingsTab.badges?.length ?? 0) > 0 && (
+                                            <span
+                                                className="ml-1.5 px-1 rounded-full text-[9px]"
+                                                style={{ background: 'var(--accent)22', color: 'var(--accent)' }}
+                                            >
+                                                {settingsTab.badges!.length}
+                                            </span>
+                                        )}
+                                    </span>
+                                </button>
+
+                                {tabBadgesOpen && (
+                                    <div className="mt-2 space-y-2">
+                                        <BadgeEditor
+                                            badges={settingsTab.badges ?? []}
+                                            onChange={(next) => updateTab(settingsTabId, { badges: next })}
+                                            style={{ width: '100%', padding: 0 }}
+                                        />
+                                        <div
+                                            className="flex items-center justify-between pt-2 border-t"
+                                            style={{ borderColor: 'var(--app-border)' }}
+                                        >
+                                            <div>
+                                                <p
+                                                    className="text-[11px] font-medium"
+                                                    style={{ color: 'var(--text-primary)' }}
+                                                >
+                                                    {t('badge.tabAggregate')}
+                                                </p>
+                                                <p
+                                                    className="text-[9px] mt-0.5"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {t('badge.tabAggregateHint')}
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() =>
+                                                    updateTab(settingsTabId, {
+                                                        badgeAggregate: {
+                                                            ...settingsTab.badgeAggregate,
+                                                            enabled: !(settingsTab.badgeAggregate?.enabled ?? false),
+                                                        },
+                                                    })
+                                                }
+                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                style={{
+                                                    background: settingsTab.badgeAggregate?.enabled
+                                                        ? 'var(--accent)'
+                                                        : 'var(--app-border)',
+                                                }}
+                                            >
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{
+                                                        left: settingsTab.badgeAggregate?.enabled ? '18px' : '2px',
+                                                    }}
+                                                />
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                             </div>

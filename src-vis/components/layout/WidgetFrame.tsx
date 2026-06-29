@@ -21,6 +21,7 @@ import {
     GripVertical,
     MousePointerClick,
     FolderOpen,
+    BadgeCheck,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { setDragBridge } from '../../utils/dragBridge';
@@ -44,6 +45,7 @@ import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import type {
     WidgetConfig,
     WidgetCondition,
+    BadgeDef,
     CustomCell,
     CustomGridDef,
     WidgetType,
@@ -54,6 +56,9 @@ import { DEFAULT_CUSTOM_GRID, DEFAULT_UNIVERSAL_GRID, normalizeGrid } from '../w
 import { DEFAULT_KNOB_GRID, KnobWidget } from '../widgets/KnobWidget';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
+import { BadgeEditor } from '../config/BadgeEditor';
+import { BadgeOverlay } from '../widgets/BadgeOverlay';
+import { useBadges } from '../../hooks/useBadges';
 import { getObjectDirect, subscribeStateDirect, getStateDirect } from '../../hooks/useIoBroker';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
 import { detectMediaDevices, type DetectedMediaDevice } from '../../utils/mediaDeviceDetectors';
@@ -156,6 +161,7 @@ import { usePopupConfigStore, BUILTIN_VIEW_IDS } from '../../store/popupConfigSt
 
 // Stable empty array – avoids creating a new reference on every render when no conditions are set
 const NO_CONDITIONS: WidgetCondition[] = [];
+const NO_BADGES: BadgeDef[] = [];
 
 // ── Edit-Dialog Template (siehe widget-config-template.md) ──────────────────
 // Single source of truth for "which widget gets which visible-field toggle in
@@ -4936,9 +4942,9 @@ export function WidgetFrame({
         if (!isFocused) return;
         queueMicrotask(() => focusRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     }, [isFocused]);
-    const [openPanel, setOpenPanel] = useState<'menu' | 'edit' | 'conditions' | 'action' | 'group-mobile-order' | null>(
-        null,
-    );
+    const [openPanel, setOpenPanel] = useState<
+        'menu' | 'edit' | 'conditions' | 'badges' | 'action' | 'group-mobile-order' | null
+    >(null);
     const [popupOpen, setPopupOpen] = useState(false);
     const [idCopied, setIdCopied] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(false);
@@ -5030,6 +5036,10 @@ export function WidgetFrame({
 
     // Evaluate conditions against live ioBroker values
     const conditionResult = useConditionStyle(conditions, config.id);
+
+    // Badges (overlay indicators) — stable reference like conditions above
+    const badges = (config.options?.badges as BadgeDef[] | undefined) ?? NO_BADGES;
+    const resolvedBadges = useBadges(badges);
 
     // Register/release this widget in the panel coordinator.
     // NOTE: do NOT clean the reflow-hidden registry here — when a widget moves
@@ -5677,6 +5687,9 @@ export function WidgetFrame({
                     );
                 })()}
 
+            {/* Badge overlay — sits on the widget edge/corner */}
+            <BadgeOverlay badges={resolvedBadges} />
+
             {/* Options Menu Dropdown */}
             {openPanel === 'menu' && menuBtnRef.current && (
                 <PortalDropdown
@@ -5721,6 +5734,33 @@ export function WidgetFrame({
                                     style={{ background: 'var(--accent)22', color: 'var(--accent)' }}
                                 >
                                     {conditions.length}
+                                </span>
+                            )}
+                        </button>
+
+                        {/* Badges */}
+                        <button
+                            onClick={() => {
+                                openPanelFor('badges');
+                                setConfirmDelete(false);
+                            }}
+                            className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity"
+                            style={{ color: 'var(--text-primary)' }}
+                        >
+                            <BadgeCheck
+                                size={13}
+                                style={{
+                                    color: badges.length > 0 ? 'var(--accent)' : 'var(--text-secondary)',
+                                    flexShrink: 0,
+                                }}
+                            />
+                            {t('wf.menu.badges')}
+                            {badges.length > 0 && (
+                                <span
+                                    className="ml-auto text-[11px] px-1.5 py-0.5 rounded-full"
+                                    style={{ background: 'var(--accent)22', color: 'var(--accent)' }}
+                                >
+                                    {badges.length}
                                 </span>
                             )}
                         </button>
@@ -15945,6 +15985,15 @@ export function WidgetFrame({
                         onChange={(next) =>
                             onConfigChange({ ...config, options: { ...config.options, conditions: next } })
                         }
+                    />
+                </CenteredModal>
+            )}
+
+            {openPanel === 'badges' && (
+                <CenteredModal title={t('wf.menu.badges')} onClose={() => openPanelFor(null)} wide>
+                    <BadgeEditor
+                        badges={badges}
+                        onChange={(next) => onConfigChange({ ...config, options: { ...config.options, badges: next } })}
                     />
                 </CenteredModal>
             )}

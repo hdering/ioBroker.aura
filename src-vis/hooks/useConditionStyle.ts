@@ -1,7 +1,8 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useIoBroker, getStateFromCache } from './useIoBroker';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
-import type { WidgetCondition, ConditionClause, ConditionStyle } from '../types';
+import { evaluateCondition } from '../utils/conditionEval';
+import type { WidgetCondition, ConditionStyle } from '../types';
 
 // ── Debug logging ─────────────────────────────────────────────────────────────
 // End-user opt-in. Enable from DevTools console:
@@ -67,48 +68,6 @@ if (typeof window !== 'undefined') {
         _condDebug = false;
         console.log('[cond] debug disabled');
     };
-}
-
-// ── Evaluation ────────────────────────────────────────────────────────────────
-
-function evaluateClause(clause: ConditionClause, raw: unknown, values: Map<string, unknown>): boolean {
-    const str = String(raw ?? '');
-    const num = Number(raw);
-
-    // Resolve the comparison value: static string vs second datapoint
-    const isDpCompare = clause.valueType === 'datapoint';
-    const cmpRaw: unknown = isDpCompare ? (values.get(clause.value) ?? null) : clause.value;
-    const cmpStr = isDpCompare ? String(cmpRaw ?? '') : clause.value;
-    const cmpNum = Number(cmpRaw);
-
-    switch (clause.operator) {
-        case '==':
-            return str === cmpStr;
-        case '!=':
-            return str !== cmpStr;
-        case '>':
-            return !isNaN(num) && !isNaN(cmpNum) && num > cmpNum;
-        case '>=':
-            return !isNaN(num) && !isNaN(cmpNum) && num >= cmpNum;
-        case '<':
-            return !isNaN(num) && !isNaN(cmpNum) && num < cmpNum;
-        case '<=':
-            return !isNaN(num) && !isNaN(cmpNum) && num <= cmpNum;
-        case 'true':
-            return raw === true || raw === 1 || str === 'true' || str === '1';
-        case 'false':
-            return raw === false || raw === 0 || str === 'false' || str === '0';
-        case 'contains':
-            return str.includes(cmpStr);
-        default:
-            return false;
-    }
-}
-
-function evaluateCondition(cond: WidgetCondition, values: Map<string, unknown>): boolean {
-    if (!cond.clauses.length) return false;
-    const results = cond.clauses.map((c) => evaluateClause(c, values.get(c.datapoint) ?? null, values));
-    return cond.logic === 'AND' ? results.every(Boolean) : results.some(Boolean);
 }
 
 // ── CSS var mapping ───────────────────────────────────────────────────────────

@@ -12,7 +12,12 @@ import { useT } from '../../i18n';
 import { subscribeStateDirect } from '../../hooks/useIoBroker';
 import { applyCustomFormat, fmtTime, fmtDate } from '../../utils/clockUtils';
 import { useTabConditionStyle } from '../../hooks/useTabConditionStyle';
+import { useBadges, useTabBadgeAggregate } from '../../hooks/useBadges';
 import { ConditionEditor } from '../config/ConditionEditor';
+import { BadgeEditor } from '../config/BadgeEditor';
+import { BadgeOverlay } from '../widgets/BadgeOverlay';
+import type { BadgeCorner, BadgeSize } from '../../types';
+import type { ResolvedBadge } from '../../hooks/useBadges';
 
 interface TabBarProps {
     readonly?: boolean;
@@ -171,6 +176,27 @@ function TabConditionWrapper({
     return <>{children(result)}</>;
 }
 
+// ── Tab badges — own badges + optional aggregate count of child widgets ────────
+
+function TabBadges({ tab }: { tab: Tab }) {
+    const own = useBadges(tab.badges);
+    const aggEnabled = tab.badgeAggregate?.enabled ?? false;
+    const aggCount = useTabBadgeAggregate(aggEnabled ? tab.widgets : undefined);
+
+    const badges: ResolvedBadge[] = [...own];
+    if (aggEnabled && aggCount > 0) {
+        badges.push({
+            id: `__agg_${tab.id}`,
+            style: 'count',
+            corner: (tab.badgeAggregate?.corner as BadgeCorner) ?? 'top-right',
+            color: tab.badgeAggregate?.color,
+            size: (tab.badgeAggregate?.size as BadgeSize) ?? 'md',
+            text: String(aggCount),
+        });
+    }
+    return <BadgeOverlay badges={badges} />;
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export function TabBar({
@@ -219,6 +245,7 @@ export function TabBar({
     const [settingsTabId, setSettingsTabId] = useState<string | null>(null);
     const [panelPos, setPanelPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
     const [conditionsOpen, setConditionsOpen] = useState(false);
+    const [badgesOpen, setBadgesOpen] = useState(false);
     const [iconPickerTabId, setIconPickerTabId] = useState<string | null>(null);
     const settingsBtnRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
@@ -510,6 +537,8 @@ export function TabBar({
                                         ✕
                                     </button>
                                 ))}
+
+                            <TabBadges tab={tab} />
                         </div>
                     );
                 }}
@@ -517,7 +546,7 @@ export function TabBar({
         ));
 
     // ── Tab settings portal ──────────────────────────────────────────────────────
-    const panelWidth = conditionsOpen ? 500 : 256;
+    const panelWidth = conditionsOpen || badgesOpen ? 500 : 256;
     // Clamp left so a far-right tab's panel (esp. the wide 500px conditions view)
     // stays inside the viewport instead of being cut off on the right edge.
     const panelLeft = Math.max(
@@ -700,6 +729,80 @@ export function TabBar({
                                           context="tab"
                                           style={{ width: '100%', padding: 0 }}
                                       />
+                                  </div>
+                              )}
+                          </div>
+
+                          {/* ── Badges section ──────────────────────────────────────────── */}
+                          <div className="border-t pt-2" style={{ borderColor: 'var(--app-border)' }}>
+                              <button
+                                  className="flex items-center gap-1.5 w-full text-left hover:opacity-80"
+                                  onClick={() => setBadgesOpen((o) => !o)}
+                              >
+                                  <span style={{ color: 'var(--text-secondary)' }}>
+                                      {badgesOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                                  </span>
+                                  <span className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+                                      {t('tabBar.badges')}
+                                      {(settingsTab.badges?.length ?? 0) > 0 && (
+                                          <span
+                                              className="ml-1.5 px-1 rounded-full text-[9px]"
+                                              style={{ background: 'var(--accent)22', color: 'var(--accent)' }}
+                                          >
+                                              {settingsTab.badges!.length}
+                                          </span>
+                                      )}
+                                  </span>
+                              </button>
+
+                              {badgesOpen && (
+                                  <div className="mt-2 space-y-2">
+                                      <BadgeEditor
+                                          badges={settingsTab.badges ?? []}
+                                          onChange={(next) => updateTab(settingsTabId, { badges: next })}
+                                          style={{ width: '100%', padding: 0 }}
+                                      />
+                                      {/* Aggregate count of widgets with an active badge */}
+                                      <div
+                                          className="flex items-center justify-between pt-2 border-t"
+                                          style={{ borderColor: 'var(--app-border)' }}
+                                      >
+                                          <div>
+                                              <p
+                                                  className="text-[11px] font-medium"
+                                                  style={{ color: 'var(--text-primary)' }}
+                                              >
+                                                  {t('badge.tabAggregate')}
+                                              </p>
+                                              <p
+                                                  className="text-[9px] mt-0.5"
+                                                  style={{ color: 'var(--text-secondary)' }}
+                                              >
+                                                  {t('badge.tabAggregateHint')}
+                                              </p>
+                                          </div>
+                                          <button
+                                              onClick={() =>
+                                                  updateTab(settingsTabId, {
+                                                      badgeAggregate: {
+                                                          ...settingsTab.badgeAggregate,
+                                                          enabled: !(settingsTab.badgeAggregate?.enabled ?? false),
+                                                      },
+                                                  })
+                                              }
+                                              className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                              style={{
+                                                  background: settingsTab.badgeAggregate?.enabled
+                                                      ? 'var(--accent)'
+                                                      : 'var(--app-border)',
+                                              }}
+                                          >
+                                              <span
+                                                  className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                  style={{ left: settingsTab.badgeAggregate?.enabled ? '18px' : '2px' }}
+                                              />
+                                          </button>
+                                      </div>
                                   </div>
                               )}
                           </div>

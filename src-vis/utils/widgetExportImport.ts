@@ -138,7 +138,7 @@ export function importTab(raw: unknown): Omit<Tab, 'id'> | null {
         setDef(defIdMap[oldId], remapWidgets(children as WidgetConfig[]));
     }
 
-    const { name, slug, icon, hideLabel, disabled, conditions } = tab;
+    const { name, slug, icon, hideLabel, disabled, conditions, badges, badgeAggregate } = tab;
     return {
         name,
         slug: slug ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
@@ -147,6 +147,8 @@ export function importTab(raw: unknown): Omit<Tab, 'id'> | null {
         ...(hideLabel !== undefined ? { hideLabel } : {}),
         ...(disabled !== undefined ? { disabled } : {}),
         ...(conditions ? { conditions } : {}),
+        ...(badges ? { badges } : {}),
+        ...(badgeAggregate ? { badgeAggregate } : {}),
     };
 }
 

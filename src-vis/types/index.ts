@@ -370,3 +370,33 @@ export interface WidgetCondition {
     hideWidget?: boolean; // hide the widget when condition is true
     reflow?: boolean; // if hiding: remove from grid so other widgets slide up
 }
+
+// ── Badges ──────────────────────────────────────────────────────────────────
+// Small overlay indicators that sit on the edge/corner of a widget, group or
+// tab. A badge is a self-contained element (not a condition effect): it can be
+// always visible, or gated by an optional condition that reuses ConditionClause.
+
+export type BadgeStyle = 'dot' | 'count' | 'label';
+export type BadgeCorner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+export type BadgeSize = 'sm' | 'md' | 'lg';
+
+export interface BadgeDef {
+    id: string;
+    style: BadgeStyle;
+    corner: BadgeCorner; // which edge/corner the badge sits on
+    color?: string; // dot/pill colour (CSS); falls back to var(--accent)
+    size?: BadgeSize; // dot/text size, default 'md'
+    dp?: string; // 'count': datapoint ref (supports JSON path) whose live value is shown
+    label?: string; // 'label': fixed text
+    icon?: string; // 'label': optional Iconify id
+    visibility?: 'always' | 'condition'; // default 'always'
+    logic?: 'AND' | 'OR'; // combine clauses when visibility === 'condition'
+    clauses?: ConditionClause[]; // visibility clauses (reuses the condition shape)
+}
+
+export interface BadgeAggregate {
+    enabled: boolean;
+    corner?: BadgeCorner;
+    color?: string;
+    size?: BadgeSize;
+}

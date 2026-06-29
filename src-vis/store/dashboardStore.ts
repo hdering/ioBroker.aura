@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { managedStorage, flushKey, withSuppressedDirty } from './persistManager';
 import { useGroupDefsStore, newGroupDefId, cloneGroupDef } from './groupDefsStore';
 import { slugify } from '../utils/slugify';
-import type { WidgetConfig, WidgetCondition } from '../types';
+import type { WidgetConfig, WidgetCondition, BadgeDef, BadgeAggregate } from '../types';
 import type { AllVars } from '../themes';
 
 // ── Tab bar items (clock / datapoint / static text) ───────────────────────────
@@ -95,6 +95,8 @@ export interface Tab {
     disabled?: boolean; // hidden in frontend, shown grayed-out in editor
     hidden?: boolean; // removed from the tab bar, but still reachable via its direct slug URL
     conditions?: WidgetCondition[]; // DP-based style/visibility conditions for tab button
+    badges?: BadgeDef[]; // own overlay badges on the tab button
+    badgeAggregate?: BadgeAggregate; // auto-count of widgets on this tab that show a badge
 }
 
 export interface DashboardLayout {
@@ -206,7 +208,20 @@ interface DashboardState {
     renameTab: (id: string, name: string) => void;
     updateTab: (
         id: string,
-        patch: Partial<Pick<Tab, 'name' | 'slug' | 'icon' | 'hideLabel' | 'disabled' | 'hidden' | 'conditions'>>,
+        patch: Partial<
+            Pick<
+                Tab,
+                | 'name'
+                | 'slug'
+                | 'icon'
+                | 'hideLabel'
+                | 'disabled'
+                | 'hidden'
+                | 'conditions'
+                | 'badges'
+                | 'badgeAggregate'
+            >
+        >,
     ) => void;
     setTabSlug: (id: string, slug: string) => void;
     setActiveTab: (id: string) => void;
