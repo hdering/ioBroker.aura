@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.12.1",
+    "version": "0.13.0",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.13.0": {
+        "en": "🌟 New feature: Map - new widget: plot positions (car, person, …) from lat/lon or JSON datapoints, fixed coordinates, or a plain address on an OpenStreetMap map, with optional distance from a reference point\n🌟 New feature: Map - choose a map style: standard map, satellite, or terrain/topo",
+        "de": "🌟 New feature: Map - new widget: plot positions (car, person, …) from lat/lon or JSON datapoints, fixed coordinates, or a plain address on an OpenStreetMap map, with optional distance from a reference point\n🌟 New feature: Map - choose a map style: standard map, satellite, or terrain/topo",
+        "ru": "🌟 New feature: Map - new widget: plot positions (car, person, …) from lat/lon or JSON datapoints, fixed coordinates, or a plain address on an OpenStreetMap map, with optional distance from a reference point\n🌟 New feature: Map - choose a map style: standard map, satellite, or terrain/topo",
+        "pt": "🌟 New feature: Map - new widget: plot positions (car, person, …) from lat/lon or JSON datapoints, fixed coordinates, or a plain address on an OpenStreetMap map, with optional distance from a reference point\n🌟 New feature: Map - choose a map style: standard map, satellite, or terrain/topo",
+        "nl": "🌟 New feature: Map - new widget: plot positions (car, person, …) from lat/lon or JSON datapoints, fixed coordinates, or a plain address on an OpenStreetMap map, with optional distance from a reference point\n🌟 New feature: Map - choose a map style: standard map, satellite, or terrain/topo",
+        "fr": "🌟 New feature: Map - new widget: plot positions (car, person, …) from lat/lon or JSON datapoints, fixed coordinates, or a plain address on an OpenStreetMap map, with optional distance from a reference point\n🌟 New feature: Map - choose a map style: standard map, satellite, or terrain/topo",
+        "it": "🌟 New feature: Map - new widget: plot positions (car, person, …) from lat/lon or JSON datapoints, fixed coordinates, or a plain address on an OpenStreetMap map, with optional distance from a reference point\n🌟 New feature: Map - choose a map style: standard map, satellite, or terrain/topo",
+        "es": "🌟 New feature: Map - new widget: plot positions (car, person, …) from lat/lon or JSON datapoints, fixed coordinates, or a plain address on an OpenStreetMap map, with optional distance from a reference point\n🌟 New feature: Map - choose a map style: standard map, satellite, or terrain/topo",
+        "pl": "🌟 New feature: Map - new widget: plot positions (car, person, …) from lat/lon or JSON datapoints, fixed coordinates, or a plain address on an OpenStreetMap map, with optional distance from a reference point\n🌟 New feature: Map - choose a map style: standard map, satellite, or terrain/topo",
+        "uk": "🌟 New feature: Map - new widget: plot positions (car, person, …) from lat/lon or JSON datapoints, fixed coordinates, or a plain address on an OpenStreetMap map, with optional distance from a reference point\n🌟 New feature: Map - choose a map style: standard map, satellite, or terrain/topo",
+        "zh-cn": "🌟 New feature: Map - new widget: plot positions (car, person, …) from lat/lon or JSON datapoints, fixed coordinates, or a plain address on an OpenStreetMap map, with optional distance from a reference point\n🌟 New feature: Map - choose a map style: standard map, satellite, or terrain/topo"
+      },
       "0.12.1": {
         "en": "Release v0.12.1",
         "de": "Release v0.12.1",
@@ -183,19 +196,6 @@
         "pl": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
         "uk": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
         "zh-cn": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low"
-      },
-      "0.11.0": {
-        "en": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)",
-        "de": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)",
-        "ru": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)",
-        "pt": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)",
-        "nl": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)",
-        "fr": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)",
-        "it": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)",
-        "es": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)",
-        "pl": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)",
-        "uk": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)",
-        "zh-cn": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)"
       }
     }
   },
