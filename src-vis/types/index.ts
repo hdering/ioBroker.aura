@@ -378,7 +378,7 @@ export interface WidgetCondition {
 
 export type BadgeStyle = 'dot' | 'count' | 'label';
 export type BadgeCorner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
-export type BadgeSize = 'sm' | 'md' | 'lg';
+export type BadgeSize = 'sm' | 'md' | 'lg' | number; // preset or explicit pixel size
 
 export interface BadgeDef {
     id: string;
@@ -389,7 +389,7 @@ export interface BadgeDef {
     dp?: string; // 'count': datapoint ref (supports JSON path) whose live value is shown
     label?: string; // 'label': fixed text
     icon?: string; // 'label': optional Iconify id
-    visibility?: 'always' | 'condition'; // default 'always'
+    visibility?: 'always' | 'nonzero' | 'condition'; // default 'always'; 'nonzero' = show when dp is active (>0 / true / non-empty)
     logic?: 'AND' | 'OR'; // combine clauses when visibility === 'condition'
     clauses?: ConditionClause[]; // visibility clauses (reuses the condition shape)
 }

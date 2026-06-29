@@ -5,8 +5,18 @@ import type { BadgeStyle, BadgeSize } from '../../types';
 // Style reference: the small circular status badges in StatusBadges.tsx /
 // useStatusFields.tsx (ring against the surface, CSS-var colours).
 
-const DOT_PX: Record<BadgeSize, number> = { sm: 8, md: 12, lg: 16 };
-const TEXT_PX: Record<BadgeSize, number> = { sm: 9, md: 11, lg: 13 };
+const DOT_PRESET: Record<'sm' | 'md' | 'lg', number> = { sm: 8, md: 12, lg: 16 };
+const TEXT_PRESET: Record<'sm' | 'md' | 'lg', number> = { sm: 9, md: 11, lg: 13 };
+
+/** Dot diameter in px for a size (preset name or explicit number). */
+export function badgeDotPx(size: BadgeSize | undefined): number {
+    return typeof size === 'number' ? size : DOT_PRESET[size ?? 'md'];
+}
+
+/** Text/icon font size in px for a size (preset name or explicit number). */
+export function badgeTextPx(size: BadgeSize | undefined): number {
+    return typeof size === 'number' ? size : TEXT_PRESET[size ?? 'md'];
+}
 
 // A 2px ring in the surface colour lets the badge read cleanly even when it
 // straddles the widget border.
@@ -28,7 +38,7 @@ export function Badge({
     const c = color || 'var(--accent)';
 
     if (style === 'dot') {
-        const d = DOT_PX[size];
+        const d = badgeDotPx(size);
         return (
             <span
                 style={{
@@ -43,7 +53,7 @@ export function Badge({
         );
     }
 
-    const fs = TEXT_PX[size];
+    const fs = badgeTextPx(size);
     return (
         <span
             style={{

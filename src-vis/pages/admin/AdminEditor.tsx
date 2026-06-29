@@ -1666,8 +1666,8 @@ const TabBar = memo(function TabBar() {
                             <div
                                 className="rounded-lg px-2.5 py-2"
                                 style={{
-                                    background: 'color-mix(in srgb, var(--accent-yellow, #eab308) 7%, var(--app-bg))',
-                                    border: '1px solid color-mix(in srgb, var(--accent-yellow, #eab308) 26%, var(--app-border))',
+                                    background: 'color-mix(in srgb, #6366f1 7%, var(--app-bg))',
+                                    border: '1px solid color-mix(in srgb, #6366f1 26%, var(--app-border))',
                                 }}
                             >
                                 <button

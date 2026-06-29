@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useIoBroker, getStateFromCache } from './useIoBroker';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
 import { evaluateCondition } from '../utils/conditionEval';
+import { isActiveVal } from '../utils/groupTargets';
 import type { BadgeDef, BadgeStyle, BadgeCorner, BadgeSize, WidgetCondition, WidgetConfig } from '../types';
 
 export interface ResolvedBadge {
@@ -22,7 +23,8 @@ const EMPTY: ResolvedBadge[] = [];
 function badgeDpRefs(badges: BadgeDef[]): string[] {
     const ids = new Set<string>();
     for (const b of badges) {
-        if (b.style === 'count' && b.dp) ids.add(b.dp);
+        // The count value and the 'nonzero' visibility test both read b.dp.
+        if ((b.style === 'count' || b.visibility === 'nonzero') && b.dp) ids.add(b.dp);
         if (b.visibility === 'condition') {
             for (const cl of b.clauses ?? []) {
                 if (cl.datapoint) ids.add(cl.datapoint);
@@ -45,11 +47,17 @@ function seedFromCache(refs: string[], values: Map<string, unknown>): void {
 }
 
 function badgeVisible(b: BadgeDef, values: Map<string, unknown>): boolean {
-    if (b.visibility !== 'condition') return true;
-    const clauses = b.clauses ?? [];
-    if (!clauses.length) return true;
-    const cond: WidgetCondition = { id: b.id, logic: b.logic ?? 'AND', clauses, style: {} };
-    return evaluateCondition(cond, values);
+    if (b.visibility === 'nonzero') {
+        if (!b.dp) return false; // no datapoint to test → nothing to show
+        return isActiveVal(values.get(b.dp) as never);
+    }
+    if (b.visibility === 'condition') {
+        const clauses = b.clauses ?? [];
+        if (!clauses.length) return true;
+        const cond: WidgetCondition = { id: b.id, logic: b.logic ?? 'AND', clauses, style: {} };
+        return evaluateCondition(cond, values);
+    }
+    return true; // 'always' (default)
 }
 
 function formatValue(v: unknown): string {

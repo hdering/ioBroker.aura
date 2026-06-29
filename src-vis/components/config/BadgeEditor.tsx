@@ -5,8 +5,8 @@ import { DatapointPicker } from './DatapointPicker';
 import { JsonPathButton } from './JsonPathButton';
 import { IconPickerModal } from './IconPickerModal';
 import { ClauseRow, ColorField, newClause } from './ConditionEditor';
-import { Badge } from '../common/Badge';
-import type { BadgeDef, BadgeStyle, BadgeCorner, BadgeSize, ConditionClause } from '../../types';
+import { Badge, badgeDotPx, badgeTextPx } from '../common/Badge';
+import type { BadgeDef, BadgeStyle, BadgeCorner, ConditionClause } from '../../types';
 import { useT } from '../../i18n';
 
 const inputStyle: React.CSSProperties = {
@@ -27,12 +27,6 @@ const CORNERS: { value: BadgeCorner; labelKey: string }[] = [
     { value: 'bottom-left', labelKey: 'badge.cornerBL' },
     { value: 'bottom-right', labelKey: 'badge.cornerBR' },
 ];
-const SIZES: { value: BadgeSize; labelKey: string }[] = [
-    { value: 'sm', labelKey: 'badge.sizeSm' },
-    { value: 'md', labelKey: 'badge.sizeMd' },
-    { value: 'lg', labelKey: 'badge.sizeLg' },
-];
-
 export function newBadge(): BadgeDef {
     return { id: `badge-${Date.now()}`, style: 'dot', corner: 'top-right', visibility: 'always' };
 }
@@ -135,25 +129,29 @@ function BadgeRule({
                                 </option>
                             ))}
                         </select>
-                        <select
-                            value={badge.size ?? 'md'}
-                            onChange={(e) => update({ size: e.target.value as BadgeSize })}
+                        <input
+                            type="number"
+                            min={4}
+                            max={64}
+                            value={badge.style === 'dot' ? badgeDotPx(badge.size) : badgeTextPx(badge.size)}
+                            onChange={(e) => {
+                                const v = e.target.value;
+                                update({ size: v === '' ? undefined : Number(v) });
+                            }}
                             className={`${cls} shrink-0`}
                             style={{ ...inputStyle, width: '88px' }}
-                        >
-                            {SIZES.map((s) => (
-                                <option key={s.value} value={s.value}>
-                                    {t(s.labelKey as Parameters<typeof t>[0])}
-                                </option>
-                            ))}
-                        </select>
+                            title={t('badge.sizePx')}
+                        />
+                        <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                            px
+                        </span>
                     </div>
 
                     {/* Colour */}
                     <ColorField label={t('badge.color')} value={badge.color} onChange={(v) => update({ color: v })} />
 
-                    {/* Count: datapoint */}
-                    {badge.style === 'count' && (
+                    {/* Datapoint — drives the count value and/or the 'nonzero' visibility test */}
+                    {(badge.style === 'count' || badge.visibility === 'nonzero') && (
                         <div className="flex items-center gap-2">
                             <label className="text-[10px] w-16 shrink-0" style={{ color: 'var(--text-secondary)' }}>
                                 {t('badge.datapoint')}
@@ -249,9 +247,16 @@ function BadgeRule({
                             style={inputStyle}
                         >
                             <option value="always">{t('badge.visAlways')}</option>
+                            <option value="nonzero">{t('badge.visNonzero')}</option>
                             <option value="condition">{t('badge.visCondition')}</option>
                         </select>
                     </div>
+
+                    {badge.visibility === 'nonzero' && (
+                        <p className="text-[9px] pl-3" style={{ color: 'var(--text-secondary)' }}>
+                            {t('badge.visNonzeroHint')}
+                        </p>
+                    )}
 
                     {condVisible && (
                         <div className="space-y-1.5 pl-3 border-l-2" style={{ borderColor: 'var(--accent)44' }}>
