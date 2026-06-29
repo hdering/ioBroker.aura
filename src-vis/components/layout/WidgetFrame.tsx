@@ -6308,6 +6308,7 @@ export function WidgetFrame({
                             config.type !== 'scriptstatus' &&
                             config.type !== 'adapterlogs' &&
                             config.type !== 'alarm' &&
+                            config.type !== 'map' &&
                             (() => {
                                 const activeLayout = config.layout ?? 'default';
                                 const layouts: { value: string; label: string }[] =
