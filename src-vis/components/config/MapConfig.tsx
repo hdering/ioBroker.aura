@@ -1,6 +1,12 @@
 import { Database, Plus, Trash2, MapPin } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
-import type { MapMarker, MapMarkerMode } from '../widgets/MapWidget';
+import type { MapMarker, MapMarkerMode, MapStyle } from '../widgets/MapWidget';
+
+const MAP_STYLES: { value: MapStyle; label: string }[] = [
+    { value: 'standard', label: 'Karte' },
+    { value: 'satellite', label: 'Satellit' },
+    { value: 'terrain', label: 'Gelände / Topo' },
+];
 
 interface Props {
     config: WidgetConfig;
@@ -315,6 +321,31 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp }: Props) {
                     />
                 </div>
             )}
+
+            {/* ── Map style ── */}
+            <div>
+                <label className={lblCls} style={lblSty}>
+                    Kartentyp
+                </label>
+                <select
+                    value={(o.mapStyle as MapStyle | undefined) ?? 'standard'}
+                    onChange={(e) => set({ mapStyle: e.target.value as MapStyle })}
+                    className={iCls}
+                    style={iSty}
+                    disabled={!!o.tileUrl}
+                >
+                    {MAP_STYLES.map((s) => (
+                        <option key={s.value} value={s.value}>
+                            {s.label}
+                        </option>
+                    ))}
+                </select>
+                {!!o.tileUrl && (
+                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                        Eigene Tile-URL ist gesetzt und überschreibt den Kartentyp.
+                    </p>
+                )}
+            </div>
 
             {/* ── Distance ── */}
             <div className="flex items-center justify-between">

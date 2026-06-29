@@ -7781,7 +7781,8 @@ export function WidgetFrame({
                             config.type !== 'adapterstatus' &&
                             config.type !== 'scriptstatus' &&
                             config.type !== 'adapterlogs' &&
-                            config.type !== 'alarm' && (
+                            config.type !== 'alarm' &&
+                            config.type !== 'map' && (
                                 <div>
                                     <label
                                         className="text-[11px] mb-1 block"

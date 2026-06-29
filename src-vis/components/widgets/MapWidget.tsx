@@ -28,19 +28,38 @@ export interface MapMarker {
     color?: string;
 }
 
+export type MapStyle = 'standard' | 'satellite' | 'terrain';
+
 interface MapOptions {
     markers?: MapMarker[];
     center?: LatLon;
     zoom?: number;
     followMarkers?: boolean;
+    mapStyle?: MapStyle;
+    /** Custom tile URL — overrides mapStyle when set. */
     tileUrl?: string;
     tileAttribution?: string;
     showDistance?: boolean;
     homeMarkerId?: string;
 }
 
-const DEFAULT_TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-const DEFAULT_ATTRIBUTION = '&copy; OpenStreetMap';
+/** Free tile presets (no API key required). */
+export const TILE_PRESETS: Record<MapStyle, { url: string; attribution: string; maxZoom?: number }> = {
+    standard: {
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        attribution: '&copy; OpenStreetMap',
+    },
+    satellite: {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attribution: '&copy; Esri, Maxar, Earthstar Geographics',
+    },
+    terrain: {
+        url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+        attribution: '&copy; OpenStreetMap, SRTM &middot; OpenTopoMap',
+        maxZoom: 17,
+    },
+};
+
 const DEFAULT_CENTER: LatLon = [51.1657, 10.4515]; // Germany
 const DEFAULT_ZOOM = 6;
 
@@ -180,11 +199,24 @@ function FollowMarkers({ positions, enabled }: { positions: Record<string, LatLo
     const key = list.map((p) => `${p[0].toFixed(4)},${p[1].toFixed(4)}`).join('|');
     useEffect(() => {
         if (!enabled || list.length === 0) return;
-        if (list.length === 1) {
-            map.setView(list[0], Math.max(map.getZoom(), 13));
-        } else {
-            map.fitBounds(L.latLngBounds(list as L.LatLngTuple[]), { padding: [30, 30], maxZoom: 16 });
-        }
+        const fit = () => {
+            // Guard against a not-yet-laid-out (0×0) container — calling setView/fitBounds
+            // then makes Leaflet try to load an infinite number of tiles and throw.
+            const size = map.getSize();
+            if (size.x === 0 || size.y === 0) return;
+            if (list.length === 1) {
+                map.setView(list[0], Math.max(map.getZoom(), 13));
+            } else {
+                map.fitBounds(L.latLngBounds(list as L.LatLngTuple[]), { padding: [30, 30], maxZoom: 16 });
+            }
+        };
+        fit();
+        // Once the container gets a real size (ResizeHandler → invalidateSize fires 'resize'),
+        // run the fit again so the initial 0-size skip above is recovered.
+        map.on('resize', fit);
+        return () => {
+            map.off('resize', fit);
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [key, enabled]);
     return null;
@@ -193,8 +225,11 @@ function FollowMarkers({ positions, enabled }: { positions: Record<string, LatLo
 export function MapWidget({ config, editMode }: WidgetProps) {
     const o = (config.options ?? {}) as MapOptions;
     const markers = useMemo<MapMarker[]>(() => (Array.isArray(o.markers) ? o.markers : []), [o.markers]);
-    const tileUrl = o.tileUrl || DEFAULT_TILE_URL;
-    const attribution = o.tileAttribution ?? DEFAULT_ATTRIBUTION;
+    const preset = TILE_PRESETS[o.mapStyle ?? 'standard'] ?? TILE_PRESETS.standard;
+    // A custom tile URL always wins; otherwise use the selected style preset.
+    const tileUrl = o.tileUrl || preset.url;
+    const attribution = o.tileUrl ? (o.tileAttribution ?? '') : preset.attribution;
+    const maxZoom = preset.maxZoom;
     const followMarkers = o.followMarkers ?? true;
     const showDistance = !!o.showDistance;
 
@@ -218,7 +253,20 @@ export function MapWidget({ config, editMode }: WidgetProps) {
     const zoom = o.zoom ?? DEFAULT_ZOOM;
 
     return (
-        <div style={{ position: 'absolute', inset: 0, borderRadius: 'inherit', overflow: 'hidden' }}>
+        <div
+            style={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: 'inherit',
+                overflow: 'hidden',
+                // Numeric z-index establishes a stacking context so Leaflet's internal
+                // panes (z-index up to ~700) stay contained and don't paint over the
+                // frame's edit chrome (z-10/20). In edit mode let clicks/drag pass
+                // through so the "edit widget" button and grid dragging keep working.
+                zIndex: 0,
+                pointerEvents: editMode ? 'none' : 'auto',
+            }}
+        >
             <MapContainer
                 center={center}
                 zoom={zoom}
@@ -231,7 +279,8 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                 zoomControl={!editMode}
                 attributionControl
             >
-                <TileLayer url={tileUrl} attribution={attribution} />
+                {/* key forces a fresh tile layer when the style/URL changes */}
+                <TileLayer key={tileUrl} url={tileUrl} attribution={attribution} maxZoom={maxZoom} />
                 <ResizeHandler />
                 <FollowMarkers positions={positions} enabled={followMarkers} />
                 {markers.map((m) => (
