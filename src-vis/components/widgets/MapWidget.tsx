@@ -217,16 +217,16 @@ function FollowMarkers({ positions, enabled }: { positions: Record<string, LatLo
                     if (bounds.isValid()) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
                 }
             } catch {
-                // Transient layout/zoom race — the 'resize' handler below retries.
+                // Transient layout/zoom race — re-fit happens when positions change.
             }
         };
-        // whenReady defers until the map is initialised; 'resize' re-fits once the
-        // container reaches its real size (ResizeHandler → invalidateSize fires it).
+        // Fit once the map is ready and again whenever marker positions change (the
+        // effect re-runs because `key` is in the deps). Deliberately NOT tied to the
+        // map 'resize' event — re-setting the view on every resize aborts in-flight
+        // tile requests and leaves the map blank.
         map.whenReady(fit);
-        map.on('resize', fit);
         return () => {
             cancelled = true;
-            map.off('resize', fit);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [key, enabled]);
@@ -238,15 +238,33 @@ function FollowMarkers({ positions, enabled }: { positions: Record<string, LatLo
  * deep inside onAdd/_resetView during a layout race) so they can never take down
  * the whole frontend. Resets automatically when `resetKey` changes.
  */
-class MapErrorBoundary extends Component<{ resetKey: string; children: ReactNode }, { failed: boolean }> {
-    state = { failed: false };
+class MapErrorBoundary extends Component<
+    { resetKey: string; children: ReactNode },
+    { failed: boolean; nonce: number; attempts: number }
+> {
+    state = { failed: false, nonce: 0, attempts: 0 };
+    private timer: ReturnType<typeof setTimeout> | undefined;
     static getDerivedStateFromError() {
         return { failed: true };
     }
-    componentDidUpdate(prev: { resetKey: string }) {
-        if (prev.resetKey !== this.props.resetKey && this.state.failed) {
-            this.setState({ failed: false });
+    componentDidCatch() {
+        // Leaflet can throw transiently while the container is still settling
+        // (e.g. "infinite number of tiles" during onAdd). Remount the map a moment
+        // later — by then layout is stable — instead of giving up. Cap the attempts.
+        if (this.state.attempts < 5) {
+            this.timer = setTimeout(() => {
+                this.setState((s) => ({ failed: false, nonce: s.nonce + 1, attempts: s.attempts + 1 }));
+            }, 400);
         }
+    }
+    componentDidUpdate(prev: { resetKey: string }) {
+        if (prev.resetKey !== this.props.resetKey && this.state.attempts !== 0) {
+            // A deliberate config change (e.g. style switch) — reset the retry budget.
+            this.setState({ failed: false, attempts: 0 });
+        }
+    }
+    componentWillUnmount() {
+        clearTimeout(this.timer);
     }
     render() {
         if (this.state.failed) {
@@ -267,7 +285,12 @@ class MapErrorBoundary extends Component<{ resetKey: string; children: ReactNode
                 </div>
             );
         }
-        return this.props.children;
+        // key forces a fresh MapContainer on each retry so Leaflet re-initialises cleanly.
+        return (
+            <div key={this.state.nonce} style={{ position: 'absolute', inset: 0 }}>
+                {this.props.children}
+            </div>
+        );
     }
 }
 
