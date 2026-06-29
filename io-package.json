@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.12.0",
+    "version": "0.12.1",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,18 +106,18 @@
       }
     ],
     "news": {
-      "0.12.0": {
-        "en": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
-        "de": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
-        "ru": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
-        "pt": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
-        "nl": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
-        "fr": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
-        "it": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
-        "es": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
-        "pl": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
-        "uk": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
-        "zh-cn": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge"
+      "0.12.1": {
+        "en": "Release v0.12.1",
+        "de": "Release v0.12.1",
+        "ru": "Release v0.12.1",
+        "pt": "Release v0.12.1",
+        "nl": "Release v0.12.1",
+        "fr": "Release v0.12.1",
+        "it": "Release v0.12.1",
+        "es": "Release v0.12.1",
+        "pl": "Release v0.12.1",
+        "uk": "Release v0.12.1",
+        "zh-cn": "Release v0.12.1"
       },
       "0.11.5": {
         "en": "Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen",
