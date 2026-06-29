@@ -55,8 +55,11 @@ export async function geocodeAddress(address: string): Promise<LatLon | null> {
 
     const req = (async (): Promise<LatLon | null> => {
         try {
-            const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`;
-            const res = await fetch(url, { headers: { Accept: 'application/json' } });
+            // Nominatim sends no CORS headers and requires an identifying User-Agent,
+            // so go through Aura's same-origin /proxy (available in dev and prod) which
+            // adds the User-Agent and pipes the JSON response through unchanged.
+            const target = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`;
+            const res = await fetch(`/proxy?url=${encodeURIComponent(target)}`);
             if (!res.ok) return null;
             const data = (await res.json()) as Array<{ lat?: string; lon?: string }>;
             const hit = Array.isArray(data) ? data[0] : null;
