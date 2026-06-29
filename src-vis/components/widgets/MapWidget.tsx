@@ -4,9 +4,9 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
-import { extractLatLon, haversineKm, formatDistance, type LatLon } from '../../utils/geo';
+import { extractLatLon, geocodeAddress, haversineKm, formatDistance, type LatLon } from '../../utils/geo';
 
-export type MapMarkerMode = 'json' | 'latlon' | 'static';
+export type MapMarkerMode = 'json' | 'latlon' | 'static' | 'address';
 
 export interface MapMarker {
     id: string;
@@ -22,6 +22,8 @@ export interface MapMarker {
     /** Fixed coordinates (mode = 'static'). */
     lat?: number;
     lon?: number;
+    /** Free-text address, geocoded via OpenStreetMap (mode = 'address'). */
+    address?: string;
     emoji?: string;
     color?: string;
 }
@@ -89,6 +91,22 @@ function MarkerLayer({
     const latDp = useDatapoint(marker.mode === 'latlon' ? (marker.latDp ?? '') : '');
     const lonDp = useDatapoint(marker.mode === 'latlon' ? (marker.lonDp ?? '') : '');
 
+    // Address mode: geocode the free-text address (cached) into coordinates.
+    const [geoPos, setGeoPos] = useState<LatLon | null>(null);
+    useEffect(() => {
+        if (marker.mode !== 'address' || !marker.address?.trim()) {
+            setGeoPos(null);
+            return;
+        }
+        let cancelled = false;
+        void geocodeAddress(marker.address).then((p) => {
+            if (!cancelled) setGeoPos(p);
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [marker.mode, marker.address]);
+
     const pos = useMemo<LatLon | null>(() => {
         if (marker.mode === 'static') {
             return Number.isFinite(marker.lat) && Number.isFinite(marker.lon)
@@ -101,9 +119,12 @@ function MarkerLayer({
             const lo = Number(lonDp.value);
             return Number.isFinite(la) && Number.isFinite(lo) ? [la, lo] : null;
         }
+        if (marker.mode === 'address') {
+            return geoPos;
+        }
         // json
         return extractLatLon(jsonState.state?.val, marker.latPath, marker.lonPath);
-    }, [marker, jsonState.state?.val, latDp.value, lonDp.value]);
+    }, [marker, jsonState.state?.val, latDp.value, lonDp.value, geoPos]);
 
     useEffect(() => {
         onResolve(marker.id, pos);

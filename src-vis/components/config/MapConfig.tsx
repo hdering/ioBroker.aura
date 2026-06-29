@@ -37,6 +37,7 @@ const MODE_LABELS: { value: MapMarkerMode; label: string }[] = [
     { value: 'json', label: 'JSON-/Objekt-DP (lat/lon)' },
     { value: 'latlon', label: 'Zwei DPs (Lat + Lon)' },
     { value: 'static', label: 'Feste Koordinaten' },
+    { value: 'address', label: 'Adresse' },
 ];
 
 function genId(): string {
@@ -214,6 +215,23 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp }: Props) {
                                         onPick={() => onPickMarkerDp(idx, 'lonDp')}
                                     />
                                 </div>
+                            )}
+
+                            {m.mode === 'address' && (
+                                <>
+                                    <input
+                                        type="text"
+                                        value={m.address ?? ''}
+                                        onChange={(e) => patchMarker(idx, { address: e.target.value || undefined })}
+                                        placeholder="z.B. Marienplatz 1, München"
+                                        className={iCls}
+                                        style={iSty}
+                                    />
+                                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                                        Wird per OpenStreetMap (Nominatim) in Koordinaten umgewandelt – feste Position,
+                                        keine Live-Verfolgung.
+                                    </p>
+                                </>
                             )}
 
                             {m.mode === 'static' && (

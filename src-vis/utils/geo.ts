@@ -38,6 +38,44 @@ function num(v: unknown): number | null {
     return null;
 }
 
+// ── Geocoding (address → coordinates) ──────────────────────────────────────
+// Resolved via OpenStreetMap Nominatim (no API key). Results are cached per
+// address for the session and in-flight requests are de-duplicated so the same
+// address is never geocoded twice — keeping us well within Nominatim's usage
+// policy for the handful of static addresses a dashboard typically holds.
+const geocodeCache = new Map<string, LatLon | null>();
+const geocodeInflight = new Map<string, Promise<LatLon | null>>();
+
+export async function geocodeAddress(address: string): Promise<LatLon | null> {
+    const q = address.trim();
+    if (!q) return null;
+    if (geocodeCache.has(q)) return geocodeCache.get(q) ?? null;
+    const existing = geocodeInflight.get(q);
+    if (existing) return existing;
+
+    const req = (async (): Promise<LatLon | null> => {
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`;
+            const res = await fetch(url, { headers: { Accept: 'application/json' } });
+            if (!res.ok) return null;
+            const data = (await res.json()) as Array<{ lat?: string; lon?: string }>;
+            const hit = Array.isArray(data) ? data[0] : null;
+            const lat = hit ? Number(hit.lat) : NaN;
+            const lon = hit ? Number(hit.lon) : NaN;
+            const pos: LatLon | null = Number.isFinite(lat) && Number.isFinite(lon) ? [lat, lon] : null;
+            geocodeCache.set(q, pos);
+            return pos;
+        } catch {
+            return null;
+        } finally {
+            geocodeInflight.delete(q);
+        }
+    })();
+
+    geocodeInflight.set(q, req);
+    return req;
+}
+
 const LAT_KEYS = ['lat', 'latitude', 'Latitude', 'LAT'];
 const LON_KEYS = ['lon', 'lng', 'long', 'longitude', 'Longitude', 'LON', 'LNG'];
 
