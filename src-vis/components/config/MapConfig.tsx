@@ -228,7 +228,7 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp }: Props) {
                                         style={iSty}
                                     />
                                     <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                                        Wird per OpenStreetMap (Nominatim) in Koordinaten umgewandelt – feste Position,
+                                        Wird per OpenStreetMap (Photon) in Koordinaten umgewandelt – feste Position,
                                         keine Live-Verfolgung.
                                     </p>
                                 </>

@@ -46,10 +46,11 @@ function num(v: unknown): number | null {
 const geocodeCache = new Map<string, LatLon | null>();
 const geocodeInflight = new Map<string, Promise<LatLon | null>>();
 
-// Nominatim allows at most ~1 request/second. Serialize all geocode requests
-// through a single chain with a minimum gap so concurrent markers (or a re-render
-// burst) never trip its 429 rate limiter.
-const MIN_GAP_MS = 1100;
+// Geocoding uses Photon (komoot) — OSM-based, free, no API key, and far more
+// tolerant of dev/usage bursts than Nominatim (which 429-blocks an IP after a
+// few rapid requests). Requests are still serialized through a single chain with
+// a small gap to stay polite.
+const MIN_GAP_MS = 500;
 let geocodeChain: Promise<unknown> = Promise.resolve();
 let lastGeocodeAt = 0;
 
@@ -77,17 +78,17 @@ export async function geocodeAddress(address: string): Promise<LatLon | null> {
 
     const req = schedule(async (): Promise<LatLon | null> => {
         try {
-            // Nominatim sends no CORS headers and requires an identifying User-Agent,
-            // so go through Aura's same-origin /proxy (available in dev and prod) which
-            // adds the User-Agent and pipes the JSON response through unchanged.
-            const target = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`;
+            // Go through Aura's same-origin /proxy (dev + prod) to sidestep any CORS
+            // concern and pipe the JSON response through unchanged.
+            const target = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=1`;
             const res = await fetch(`/proxy?url=${encodeURIComponent(target)}`);
-            // Don't cache transient failures (e.g. 429) — allow a later retry.
+            // Don't cache transient failures (e.g. 429/5xx) — allow a later retry.
             if (!res.ok) return null;
-            const data = (await res.json()) as Array<{ lat?: string; lon?: string }>;
-            const hit = Array.isArray(data) ? data[0] : null;
-            const lat = hit ? Number(hit.lat) : NaN;
-            const lon = hit ? Number(hit.lon) : NaN;
+            const data = (await res.json()) as { features?: Array<{ geometry?: { coordinates?: number[] } }> };
+            // Photon returns GeoJSON: coordinates are [lon, lat].
+            const coords = data.features?.[0]?.geometry?.coordinates;
+            const lon = coords ? Number(coords[0]) : NaN;
+            const lat = coords ? Number(coords[1]) : NaN;
             const pos: LatLon | null = Number.isFinite(lat) && Number.isFinite(lon) ? [lat, lon] : null;
             geocodeCache.set(q, pos); // cache resolved hits and confirmed "no match"
             return pos;
