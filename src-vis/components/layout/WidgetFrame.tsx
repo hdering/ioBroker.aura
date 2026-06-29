@@ -7197,90 +7197,104 @@ export function WidgetFrame({
                                                 </div>
                                             );
                                         })()}
-                                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                            {t('wf.edit.showLastChange')}
-                                        </label>
-                                        <button
-                                            onClick={() => setO({ showLastChange: !showLastChange })}
-                                            className="relative w-9 h-5 rounded-full transition-colors"
-                                            style={{
-                                                background: showLastChange ? 'var(--accent)' : 'var(--app-border)',
-                                            }}
-                                        >
-                                            <span
-                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                style={{ left: showLastChange ? '18px' : '2px' }}
-                                            />
-                                        </button>
-                                    </div>
-                                    {showLastChange && (
-                                        <div className="flex items-center gap-2">
-                                            <label
-                                                className="text-[11px] shrink-0"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                            >
-                                                {t('wf.edit.position')}
-                                            </label>
-                                            <div className="flex gap-1">
-                                                {(['left', 'center', 'right'] as const).map((p) => {
-                                                    const lbls: Record<string, string> = {
-                                                        left: t('wf.edit.posLeft'),
-                                                        center: t('wf.edit.posCenter'),
-                                                        right: t('wf.edit.posRight'),
-                                                    };
-                                                    const active = lastChangePos === p;
-                                                    return (
-                                                        <button
-                                                            key={p}
-                                                            onClick={() => setO({ lastChangePosition: p })}
-                                                            className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
-                                                            style={{
-                                                                background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                                                color: active ? '#fff' : 'var(--text-secondary)',
-                                                                border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                            }}
-                                                        >
-                                                            {lbls[p]}
-                                                        </button>
-                                                    );
-                                                })}
+                                    {/* "Last change" makes no sense for a map (no single value) — hide it. */}
+                                    {config.type !== 'map' && (
+                                        <>
+                                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                            <div className="flex items-center justify-between">
+                                                <label
+                                                    className="text-[11px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {t('wf.edit.showLastChange')}
+                                                </label>
+                                                <button
+                                                    onClick={() => setO({ showLastChange: !showLastChange })}
+                                                    className="relative w-9 h-5 rounded-full transition-colors"
+                                                    style={{
+                                                        background: showLastChange
+                                                            ? 'var(--accent)'
+                                                            : 'var(--app-border)',
+                                                    }}
+                                                >
+                                                    <span
+                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                        style={{ left: showLastChange ? '18px' : '2px' }}
+                                                    />
+                                                </button>
                                             </div>
-                                        </div>
-                                    )}
-                                    {showLastChange && !config.datapoint && (
-                                        <div>
-                                            <label
-                                                className="text-[11px] mb-1 block"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                            >
-                                                Datenpunkt{' '}
-                                                <span style={{ opacity: 0.6 }}>
-                                                    (für Zeitstempel, da kein Haupt-Datenpunkt)
-                                                </span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={(o.lastChangeDatapoint as string) ?? ''}
-                                                onChange={(e) =>
-                                                    onConfigChange({
-                                                        ...config,
-                                                        options: {
-                                                            ...o,
-                                                            lastChangeDatapoint: e.target.value || undefined,
-                                                        },
-                                                    })
-                                                }
-                                                placeholder="z.B. evcc.0.status.pvPower"
-                                                className="w-full text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none"
-                                                style={{
-                                                    background: 'var(--app-bg)',
-                                                    color: 'var(--text-primary)',
-                                                    border: '1px solid var(--app-border)',
-                                                }}
-                                            />
-                                        </div>
+                                            {showLastChange && (
+                                                <div className="flex items-center gap-2">
+                                                    <label
+                                                        className="text-[11px] shrink-0"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {t('wf.edit.position')}
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        {(['left', 'center', 'right'] as const).map((p) => {
+                                                            const lbls: Record<string, string> = {
+                                                                left: t('wf.edit.posLeft'),
+                                                                center: t('wf.edit.posCenter'),
+                                                                right: t('wf.edit.posRight'),
+                                                            };
+                                                            const active = lastChangePos === p;
+                                                            return (
+                                                                <button
+                                                                    key={p}
+                                                                    onClick={() => setO({ lastChangePosition: p })}
+                                                                    className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                                                    style={{
+                                                                        background: active
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-bg)',
+                                                                        color: active
+                                                                            ? '#fff'
+                                                                            : 'var(--text-secondary)',
+                                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                    }}
+                                                                >
+                                                                    {lbls[p]}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {showLastChange && !config.datapoint && (
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Datenpunkt{' '}
+                                                        <span style={{ opacity: 0.6 }}>
+                                                            (für Zeitstempel, da kein Haupt-Datenpunkt)
+                                                        </span>
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={(o.lastChangeDatapoint as string) ?? ''}
+                                                        onChange={(e) =>
+                                                            onConfigChange({
+                                                                ...config,
+                                                                options: {
+                                                                    ...o,
+                                                                    lastChangeDatapoint: e.target.value || undefined,
+                                                                },
+                                                            })
+                                                        }
+                                                        placeholder="z.B. evcc.0.status.pvPower"
+                                                        className="w-full text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none"
+                                                        style={{
+                                                            background: 'var(--app-bg)',
+                                                            color: 'var(--text-primary)',
+                                                            border: '1px solid var(--app-border)',
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </details>
