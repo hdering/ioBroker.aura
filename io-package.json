@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.11.5",
+    "version": "0.12.0",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.12.0": {
+        "en": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
+        "de": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
+        "ru": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
+        "pt": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
+        "nl": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
+        "fr": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
+        "it": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
+        "es": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
+        "pl": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
+        "uk": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge",
+        "zh-cn": "🌟 New feature: Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position\n🌟 New feature: Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge"
+      },
       "0.11.5": {
         "en": "Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen",
         "de": "Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen",
@@ -183,19 +196,6 @@
         "pl": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)",
         "uk": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)",
         "zh-cn": "Adapter now requires admin >= 7.8.23\nClock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)"
-      },
-      "0.10.5": {
-        "en": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
-        "de": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
-        "ru": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
-        "pt": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
-        "nl": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
-        "fr": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
-        "it": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
-        "es": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
-        "pl": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
-        "uk": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list",
-        "zh-cn": "Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section\nEditor - tabs hidden from the tab bar now show an eye-off icon in the tab list"
       }
     }
   },
