@@ -1,0 +1,58 @@
+name: Bug report
+description: Report a problem with the Aura dashboard
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What went wrong, and what did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Click ...
+        3. See error
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag & drop images here. A screenshot of the problem helps a lot.
+    validations:
+      required: false
+
+  - type: textarea
+    id: widget-export
+    attributes:
+      label: Widget export (optional)
+      description: >
+        If the problem is about a specific widget, export it
+        (widget menu → Export) and paste the JSON here.
+      render: json
+    validations:
+      required: false
+
+  - type: input
+    id: aura-version
+    attributes:
+      label: Aura version
+      placeholder: e.g. 0.11.1
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser / OS / device, and js-controller version if relevant.
+      placeholder: e.g. Chrome 126 on Windows 11
+    validations:
+      required: false
