@@ -326,17 +326,27 @@ export default function App() {
     // Idle-return: switch to default tab after configured inactivity period
     const idleReturnEnabled = frontend.idleReturnEnabled;
     const idleReturnDelay = frontend.idleReturnDelay ?? 30;
-    const idleReturnTargetRef = useRef<string>('');
-    idleReturnTargetRef.current = layout?.defaultTabId ?? tabs[0]?.id ?? '';
+    // Jump back to the default tab via the URL (not setActiveTabId directly).
+    // Driving the route slug keeps it in sync with activeTabId exactly like a
+    // manual tab click does. Setting activeTabId alone left the slug pointing at
+    // the previously-viewed tab, so re-clicking that tab was a no-op navigation
+    // (slug unchanged → sync effect never fired) and the tab bar felt dead until
+    // the user clicked a different tab first. Kept in a ref so the timer always
+    // sees the latest layout/route without re-subscribing the listeners.
+    const idleReturnNavRef = useRef<() => void>(() => {});
+    idleReturnNavRef.current = () => {
+        const defaultId = layout?.defaultTabId ?? tabs[0]?.id ?? '';
+        if (!defaultId || defaultId === activeTabId) return;
+        const defaultTab = tabs.find((t) => t.id === defaultId);
+        const slug = defaultTab?.slug ?? defaultId;
+        navigate(layoutSlug ? `/view/${layoutSlug}/tab/${slug}` : `/tab/${slug}`);
+    };
     useEffect(() => {
         if (!idleReturnEnabled) return;
         let timer: ReturnType<typeof setTimeout>;
         const reset = () => {
             clearTimeout(timer);
-            timer = setTimeout(() => {
-                const defaultId = idleReturnTargetRef.current;
-                if (defaultId) setActiveTabId((current) => (current !== defaultId ? defaultId : current));
-            }, idleReturnDelay * 1000);
+            timer = setTimeout(() => idleReturnNavRef.current(), idleReturnDelay * 1000);
         };
         const events = ['pointermove', 'keydown', 'touchstart', 'click'] as const;
         events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
