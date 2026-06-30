@@ -909,6 +909,80 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                     />
                 </button>
             </div>
+            <div>
+                <div className="flex items-center justify-between">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        Nach Raum gruppieren
+                    </label>
+                    <button
+                        onClick={() => setOpts({ groupByRoom: !(opts.groupByRoom ?? false) })}
+                        className="relative w-9 h-5 rounded-full transition-colors"
+                        style={{ background: (opts.groupByRoom ?? false) ? 'var(--accent)' : 'var(--app-border)' }}
+                    >
+                        <span
+                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
+                            style={{ left: (opts.groupByRoom ?? false) ? '18px' : '2px' }}
+                        />
+                    </button>
+                </div>
+                {opts.groupByRoom && (
+                    <div className="mt-1.5">
+                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Überschrift ohne Raum
+                        </label>
+                        <input
+                            className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                            placeholder="Ohne Raum"
+                            value={opts.noRoomLabel ?? ''}
+                            onChange={(e) => setOpts({ noRoomLabel: e.target.value || undefined })}
+                        />
+                        <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                            Raumname wird als Abschnitts-Überschrift angezeigt; DPs darunter gruppiert.
+                        </p>
+                        <div className="mt-2">
+                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                Überschrift – Schriftgröße (px)
+                            </label>
+                            <input
+                                type="number"
+                                min={8}
+                                max={32}
+                                className="w-full text-[10px] rounded px-2 py-1 focus:outline-none tabular-nums"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                                placeholder="10"
+                                value={opts.roomHeaderFontSize ?? ''}
+                                onChange={(e) => {
+                                    const n = parseInt(e.target.value, 10);
+                                    setOpts({ roomHeaderFontSize: isFinite(n) && n > 0 ? n : undefined });
+                                }}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5 mt-1.5">
+                            <ColorField
+                                label="Überschrift – Textfarbe"
+                                value={opts.roomHeaderColor}
+                                fallback="#94a3b8"
+                                onChange={(v) => setOpts({ roomHeaderColor: v })}
+                            />
+                            <ColorField
+                                label="Überschrift – Hintergrund"
+                                value={opts.roomHeaderBg}
+                                fallback="#1f2937"
+                                onChange={(v) => setOpts({ roomHeaderBg: v })}
+                            />
+                        </div>
+                    </div>
+                )}
+            </div>
             <div className="flex items-center justify-between">
                 <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                     DP-ID anzeigen

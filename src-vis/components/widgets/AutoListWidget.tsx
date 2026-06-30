@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { Fragment, useEffect, useMemo, useState, useCallback } from 'react';
 import { RefreshCw, Filter, List } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { getObjectViewDirect, useIoBroker } from '../../hooks/useIoBroker';
@@ -67,6 +67,16 @@ export interface AutoListOptions extends GroupActionConfigOpts {
     decimals?: number;
     showRoom?: boolean;
     showId?: boolean;
+    /** Group entries by their (first) room, rendering the room name as a section heading. */
+    groupByRoom?: boolean;
+    /** Heading text for entries that have no room assigned. Default 'Ohne Raum'. */
+    noRoomLabel?: string;
+    /** Font size of room section headings in px. Default 10. */
+    roomHeaderFontSize?: number;
+    /** Text color of room section headings. Default var(--text-secondary). */
+    roomHeaderColor?: string;
+    /** Background color of room section headings. Default a faint tint. */
+    roomHeaderBg?: string;
     filterRelevant?: boolean;
     /** 'all' = show everything (default), 'active' = only on/> 0, 'inactive' = only off/0 */
     valueFilter?: 'all' | 'active' | 'inactive';
@@ -669,6 +679,25 @@ function CardEntryValue({
     );
 }
 
+// ── Room section heading (used when groupByRoom is on) ────────────────────────
+
+function RoomHeader({ room, style }: { room: string; style?: React.CSSProperties }) {
+    return (
+        <div
+            className="aura-room-header px-3 py-1 text-[10px] font-semibold uppercase tracking-wide truncate"
+            style={{
+                color: 'var(--text-secondary)',
+                background: 'color-mix(in srgb, var(--text-secondary) 8%, transparent)',
+                borderTop: '1px solid var(--widget-border)',
+                borderBottom: '1px solid var(--widget-border)',
+                ...style,
+            }}
+        >
+            {room}
+        </div>
+    );
+}
+
 // ── Main Widget ───────────────────────────────────────────────────────────────
 
 export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps) {
@@ -680,6 +709,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const { subscribe, setState, getState } = useIoBroker();
     const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
     const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
+    const [resolvedRooms, setResolvedRooms] = useState<Record<string, string[]>>({});
     const [syncing, setSyncing] = useState(false);
     const [showFilter, setShowFilter] = useState(false);
     const [lastChangedTs, setLastChangedTs] = useState(0);
@@ -708,12 +738,18 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
             }),
         );
         ensureDatapointCache().then((cache) => {
-            const updates: Record<string, string> = {};
-            for (const e of entries.filter((en) => !en.label)) {
+            const nameUpdates: Record<string, string> = {};
+            const roomUpdates: Record<string, string[]> = {};
+            for (const e of entries) {
                 const found = cache.find((c) => c.id === e.id);
-                if (found?.name) updates[e.id] = found.name;
+                if (!found) continue;
+                if (!e.label && found.name) nameUpdates[e.id] = found.name;
+                // Resolve rooms live so grouping reflects current enum assignments even when
+                // the stored entry was added without rooms (e.g. via the datapoint picker).
+                if (found.rooms?.length) roomUpdates[e.id] = found.rooms;
             }
-            if (Object.keys(updates).length > 0) setResolvedNames((prev) => ({ ...prev, ...updates }));
+            if (Object.keys(nameUpdates).length > 0) setResolvedNames((prev) => ({ ...prev, ...nameUpdates }));
+            if (Object.keys(roomUpdates).length > 0) setResolvedRooms((prev) => ({ ...prev, ...roomUpdates }));
         });
         return () => unsubs.forEach((u) => u());
     }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -815,6 +851,32 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         }
         return result;
     }, [entries, states, effectiveFilter, opts.sortBy, opts.sortOrder, opts.sortBy2, opts.sortOrder2, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ── Room grouping ────────────────────────────────────────────────────────────
+    // Partition the (already filtered + sorted) entries by their first room. The
+    // room name is rendered as a section heading; entries without a room fall into
+    // a trailing bucket labelled noRoomLabel. Returns null when grouping is off.
+    const groupByRoom = !!opts.groupByRoom;
+    const roomSections = useMemo<{ room: string; entries: AutoListEntry[] }[] | null>(() => {
+        if (!groupByRoom) return null;
+        const NO_ROOM = ' '; // sorts/keys the no-room bucket without clashing with a real room
+        const map = new Map<string, AutoListEntry[]>();
+        for (const e of visibleEntries) {
+            const rooms = resolvedRooms[e.id] ?? e.rooms;
+            const key = rooms?.[0] ?? NO_ROOM;
+            const arr = map.get(key);
+            if (arr) arr.push(e);
+            else map.set(key, [e]);
+        }
+        const noRoomLabel = opts.noRoomLabel || 'Ohne Raum';
+        return [...map.keys()]
+            .sort((a, b) => {
+                if (a === NO_ROOM) return 1;
+                if (b === NO_ROOM) return -1;
+                return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+            })
+            .map((key) => ({ room: key === NO_ROOM ? noRoomLabel : key, entries: map.get(key)! }));
+    }, [groupByRoom, visibleEntries, resolvedRooms, opts.noRoomLabel]);
 
     // Count published to ioBroker state = view-mode count using the frontend valueFilter,
     // independent from backendValueFilter (which only affects the editor preview).
@@ -1072,6 +1134,19 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const valueMaxPct = 100 - labelMinPct;
     const labelContainerStyle: React.CSSProperties | undefined = wrap ? { minWidth: `${labelMinPct}%` } : undefined;
 
+    // When grouping is off, render everything as one section with no heading (room=null).
+    const sections: { room: string | null; entries: AutoListEntry[] }[] = roomSections ?? [
+        { room: null, entries: visibleEntries },
+    ];
+
+    // Configurable look of the room section headings (merged into each call site's style;
+    // empty values fall back to the RoomHeader component defaults).
+    const roomHeaderStyle: React.CSSProperties = {
+        ...(opts.roomHeaderColor ? { color: opts.roomHeaderColor } : {}),
+        ...(opts.roomHeaderBg ? { background: opts.roomHeaderBg } : {}),
+        ...(opts.roomHeaderFontSize ? { fontSize: `${opts.roomHeaderFontSize}px` } : {}),
+    };
+
     // ── ANZAHL (count) — zeigt nur die Anzahl der Einträge ────────────────────
     if (layout === 'count') {
         const count = effectiveFilter === 'all' ? entries.length : visibleEntries.length;
@@ -1104,76 +1179,91 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                 {header}
                 {empty}
                 {visibleEntries.length > 0 && (
-                    <div
-                        className="aura-scroll flex-1 overflow-auto min-h-0 p-2"
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns: `repeat(auto-fill, minmax(${opts.cardMinWidth ?? 90}px, 1fr))`,
-                            gap: 6,
-                            alignContent: 'start',
-                        }}
-                    >
-                        {visibleEntries.map((entry) => {
-                            const state = states[entry.id] ?? null;
-                            const val = state?.val ?? null;
-                            const label = getLabel(entry);
-                            const eOn = isActive(val);
-                            const entryActiveColor = entry.activeColor || globalActiveColor;
-                            const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
-                            const stateBg =
-                                (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg) ||
-                                'var(--app-bg)';
-                            const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
-                            return (
+                    <div className="aura-scroll flex-1 overflow-auto min-h-0 p-2 flex flex-col gap-2">
+                        {sections.map((sec) => (
+                            <div key={sec.room ?? '__all'}>
+                                {sec.room != null && (
+                                    <RoomHeader room={sec.room} style={{ ...roomHeaderStyle, marginBottom: 6 }} />
+                                )}
                                 <div
-                                    key={entry.id}
-                                    className="rounded-xl p-2.5 flex flex-col gap-2 relative"
-                                    style={{ background: stateBg, border: '1px solid var(--widget-border)' }}
+                                    style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: `repeat(auto-fill, minmax(${opts.cardMinWidth ?? 90}px, 1fr))`,
+                                        gap: 6,
+                                        alignContent: 'start',
+                                    }}
                                 >
-                                    <span
-                                        className={`text-[10px] leading-tight ${labelWrapCls}`}
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
-                                        {label}
-                                    </span>
-                                    <div className="flex items-center justify-center">
-                                        <CardEntryValue
-                                            entry={entry}
-                                            val={val}
-                                            writable={entry.writable !== false}
-                                            setState={setState}
-                                            thresholds={globalThresholds}
-                                            decimals={decimals}
-                                            activeColor={entryActiveColor}
-                                            inactiveColor={entryInactiveColor}
-                                            trueText={opts.trueText}
-                                            falseText={opts.falseText}
-                                            wrap={wrap}
-                                            valueMaxPct={valueMaxPct}
-                                        />
-                                    </div>
-                                    {opts.showRoom && entry.rooms?.length ? (
-                                        <span
-                                            className="text-[9px] truncate opacity-50"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            {entry.rooms.join(', ')}
-                                        </span>
-                                    ) : null}
-                                    {lcTs > 0 && (
-                                        <div
-                                            className="aura-last-change text-[9px] truncate text-center"
-                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                        >
-                                            {formatLastChange(
-                                                t as (k: string, v?: Record<string, string | number>) => string,
-                                                lcTs,
-                                            )}
-                                        </div>
-                                    )}
+                                    {sec.entries.map((entry) => {
+                                        const state = states[entry.id] ?? null;
+                                        const val = state?.val ?? null;
+                                        const label = getLabel(entry);
+                                        const eOn = isActive(val);
+                                        const entryActiveColor = entry.activeColor || globalActiveColor;
+                                        const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
+                                        const stateBg =
+                                            (eOn
+                                                ? entry.activeBg || globalActiveBg
+                                                : entry.inactiveBg || globalInactiveBg) || 'var(--app-bg)';
+                                        const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
+                                        return (
+                                            <div
+                                                key={entry.id}
+                                                className="rounded-xl p-2.5 flex flex-col gap-2 relative"
+                                                style={{
+                                                    background: stateBg,
+                                                    border: '1px solid var(--widget-border)',
+                                                }}
+                                            >
+                                                <span
+                                                    className={`text-[10px] leading-tight ${labelWrapCls}`}
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {label}
+                                                </span>
+                                                <div className="flex items-center justify-center">
+                                                    <CardEntryValue
+                                                        entry={entry}
+                                                        val={val}
+                                                        writable={entry.writable !== false}
+                                                        setState={setState}
+                                                        thresholds={globalThresholds}
+                                                        decimals={decimals}
+                                                        activeColor={entryActiveColor}
+                                                        inactiveColor={entryInactiveColor}
+                                                        trueText={opts.trueText}
+                                                        falseText={opts.falseText}
+                                                        wrap={wrap}
+                                                        valueMaxPct={valueMaxPct}
+                                                    />
+                                                </div>
+                                                {opts.showRoom && entry.rooms?.length ? (
+                                                    <span
+                                                        className="text-[9px] truncate opacity-50"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {entry.rooms.join(', ')}
+                                                    </span>
+                                                ) : null}
+                                                {lcTs > 0 && (
+                                                    <div
+                                                        className="aura-last-change text-[9px] truncate text-center"
+                                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                    >
+                                                        {formatLastChange(
+                                                            t as (
+                                                                k: string,
+                                                                v?: Record<string, string | number>,
+                                                            ) => string,
+                                                            lcTs,
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
-                            );
-                        })}
+                            </div>
+                        ))}
                     </div>
                 )}
                 {lcOverlay}
@@ -1192,65 +1282,79 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                         className="aura-scroll flex-1 overflow-auto min-h-0"
                         style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignContent: 'start' }}
                     >
-                        {visibleEntries.map((entry, i) => {
-                            const state = states[entry.id] ?? null;
-                            const val = state?.val ?? null;
-                            const label = getLabel(entry);
-                            const isRight = i % 2 === 1;
-                            const eOn = isActive(val);
-                            const entryActiveColor = entry.activeColor || globalActiveColor;
-                            const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
-                            const stateBg = eOn
-                                ? entry.activeBg || globalActiveBg
-                                : entry.inactiveBg || globalInactiveBg;
-                            const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
-                            return (
-                                <div
-                                    key={entry.id}
-                                    className={`flex gap-1.5 px-2 py-1.5 ${wrap ? 'items-start' : 'items-center'}`}
-                                    style={{
-                                        background: stateBg,
-                                        borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
-                                        borderLeft:
-                                            showDividers && isRight ? '1px solid var(--widget-border)' : undefined,
-                                    }}
-                                >
-                                    <div className="flex-1 min-w-0" style={labelContainerStyle}>
-                                        <span
-                                            className={`block text-[11px] ${labelWrapCls}`}
-                                            style={{ color: 'var(--text-primary)' }}
+                        {sections.map((sec) => (
+                            <Fragment key={sec.room ?? '__all'}>
+                                {sec.room != null && (
+                                    <RoomHeader room={sec.room} style={{ ...roomHeaderStyle, gridColumn: '1 / -1' }} />
+                                )}
+                                {sec.entries.map((entry, i) => {
+                                    const state = states[entry.id] ?? null;
+                                    const val = state?.val ?? null;
+                                    const label = getLabel(entry);
+                                    const isRight = i % 2 === 1;
+                                    const eOn = isActive(val);
+                                    const entryActiveColor = entry.activeColor || globalActiveColor;
+                                    const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
+                                    const stateBg = eOn
+                                        ? entry.activeBg || globalActiveBg
+                                        : entry.inactiveBg || globalInactiveBg;
+                                    const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
+                                    return (
+                                        <div
+                                            key={entry.id}
+                                            className={`flex gap-1.5 px-2 py-1.5 ${wrap ? 'items-start' : 'items-center'}`}
+                                            style={{
+                                                background: stateBg,
+                                                borderBottom: showDividers
+                                                    ? '1px solid var(--widget-border)'
+                                                    : undefined,
+                                                borderLeft:
+                                                    showDividers && isRight
+                                                        ? '1px solid var(--widget-border)'
+                                                        : undefined,
+                                            }}
                                         >
-                                            {label}
-                                        </span>
-                                        {lcTs > 0 && (
-                                            <span
-                                                className="aura-last-change block text-[8px] truncate"
-                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                            >
-                                                {formatLastChange(
-                                                    t as (k: string, v?: Record<string, string | number>) => string,
-                                                    lcTs,
+                                            <div className="flex-1 min-w-0" style={labelContainerStyle}>
+                                                <span
+                                                    className={`block text-[11px] ${labelWrapCls}`}
+                                                    style={{ color: 'var(--text-primary)' }}
+                                                >
+                                                    {label}
+                                                </span>
+                                                {lcTs > 0 && (
+                                                    <span
+                                                        className="aura-last-change block text-[8px] truncate"
+                                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                    >
+                                                        {formatLastChange(
+                                                            t as (
+                                                                k: string,
+                                                                v?: Record<string, string | number>,
+                                                            ) => string,
+                                                            lcTs,
+                                                        )}
+                                                    </span>
                                                 )}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <EntryValue
-                                        entry={entry}
-                                        val={val}
-                                        writable={entry.writable !== false}
-                                        setState={setState}
-                                        thresholds={globalThresholds}
-                                        decimals={decimals}
-                                        activeColor={entryActiveColor}
-                                        inactiveColor={entryInactiveColor}
-                                        trueText={opts.trueText}
-                                        falseText={opts.falseText}
-                                        wrap={wrap}
-                                        valueMaxPct={valueMaxPct}
-                                    />
-                                </div>
-                            );
-                        })}
+                                            </div>
+                                            <EntryValue
+                                                entry={entry}
+                                                val={val}
+                                                writable={entry.writable !== false}
+                                                setState={setState}
+                                                thresholds={globalThresholds}
+                                                decimals={decimals}
+                                                activeColor={entryActiveColor}
+                                                inactiveColor={entryInactiveColor}
+                                                trueText={opts.trueText}
+                                                falseText={opts.falseText}
+                                                wrap={wrap}
+                                                valueMaxPct={valueMaxPct}
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </Fragment>
+                        ))}
                     </div>
                 )}
                 {lcOverlay}
@@ -1266,84 +1370,99 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                 {empty}
                 {visibleEntries.length > 0 && (
                     <div className="aura-scroll flex-1 overflow-auto min-h-0 p-2 flex flex-wrap gap-1.5 content-start">
-                        {visibleEntries.map((entry) => {
-                            const state = states[entry.id] ?? null;
-                            const val = state?.val ?? null;
-                            const label = getLabel(entry);
-                            const writable = entry.writable !== false;
-                            // Rich controls have no compact pill form — show their value, no toggle.
-                            const lockValue = !!entry.displayType && NON_TOGGLE_DISPLAY_TYPES.has(entry.displayType);
-                            const trueLabel = entry.trueLabel ?? opts.trueText;
-                            const falseLabel = entry.falseLabel ?? opts.falseText;
-                            const hasLabels = !!(trueLabel || falseLabel);
-                            const isBool = typeof val === 'boolean';
-                            const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
-                            const on = val === true || val === 1;
-                            const roleDisplay = isBoolLike && !hasLabels ? getRoleDisplay(entry.role, val) : null;
-                            const valueStr = roleDisplay
-                                ? roleDisplay.label
-                                : isBoolLike && hasLabels
-                                  ? on
-                                      ? trueLabel || 'AN'
-                                      : falseLabel || 'AUS'
-                                  : val != null
-                                    ? `${String(val)}${entry.unit ? `\u202f${entry.unit}` : ''}`
-                                    : '–';
-                            const entryActiveColor = entry.activeColor || globalActiveColor;
-                            const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
-                            const eOn = isActive(val);
-                            const stateBg = eOn
-                                ? entry.activeBg || globalActiveBg
-                                : entry.inactiveBg || globalInactiveBg;
-                            const pillColor = roleDisplay
-                                ? roleDisplay.color
-                                : isBoolLike && on
-                                  ? entryActiveColor
-                                  : hasLabels
-                                    ? entryInactiveColor
-                                    : null;
-                            const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
-                            const lcText =
-                                lcTs > 0
-                                    ? formatLastChange(
-                                          t as (k: string, v?: Record<string, string | number>) => string,
-                                          lcTs,
-                                      )
-                                    : '';
+                        {sections.map((sec) => (
+                            <Fragment key={sec.room ?? '__all'}>
+                                {sec.room != null && (
+                                    <RoomHeader
+                                        room={sec.room}
+                                        style={{ ...roomHeaderStyle, flexBasis: '100%', width: '100%' }}
+                                    />
+                                )}
+                                {sec.entries.map((entry) => {
+                                    const state = states[entry.id] ?? null;
+                                    const val = state?.val ?? null;
+                                    const label = getLabel(entry);
+                                    const writable = entry.writable !== false;
+                                    // Rich controls have no compact pill form — show their value, no toggle.
+                                    const lockValue =
+                                        !!entry.displayType && NON_TOGGLE_DISPLAY_TYPES.has(entry.displayType);
+                                    const trueLabel = entry.trueLabel ?? opts.trueText;
+                                    const falseLabel = entry.falseLabel ?? opts.falseText;
+                                    const hasLabels = !!(trueLabel || falseLabel);
+                                    const isBool = typeof val === 'boolean';
+                                    const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
+                                    const on = val === true || val === 1;
+                                    const roleDisplay =
+                                        isBoolLike && !hasLabels ? getRoleDisplay(entry.role, val) : null;
+                                    const valueStr = roleDisplay
+                                        ? roleDisplay.label
+                                        : isBoolLike && hasLabels
+                                          ? on
+                                              ? trueLabel || 'AN'
+                                              : falseLabel || 'AUS'
+                                          : val != null
+                                            ? `${String(val)}${entry.unit ? `\u202f${entry.unit}` : ''}`
+                                            : '–';
+                                    const entryActiveColor = entry.activeColor || globalActiveColor;
+                                    const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
+                                    const eOn = isActive(val);
+                                    const stateBg = eOn
+                                        ? entry.activeBg || globalActiveBg
+                                        : entry.inactiveBg || globalInactiveBg;
+                                    const pillColor = roleDisplay
+                                        ? roleDisplay.color
+                                        : isBoolLike && on
+                                          ? entryActiveColor
+                                          : hasLabels
+                                            ? entryInactiveColor
+                                            : null;
+                                    const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
+                                    const lcText =
+                                        lcTs > 0
+                                            ? formatLastChange(
+                                                  t as (k: string, v?: Record<string, string | number>) => string,
+                                                  lcTs,
+                                              )
+                                            : '';
 
-                            return (
-                                <button
-                                    key={entry.id}
-                                    onClick={() => {
-                                        if (!writable || roleDisplay || lockValue) return;
-                                        if (isBool) setState(entry.id, !on);
-                                        else if (isBoolLike) setState(entry.id, on ? 0 : 1);
-                                    }}
-                                    title={lcText || undefined}
-                                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors hover:opacity-80"
-                                    style={{
-                                        background:
-                                            stateBg ??
-                                            (pillColor
-                                                ? `color-mix(in srgb, ${pillColor} 12%, transparent)`
-                                                : 'var(--app-bg)'),
-                                        color: pillColor ?? 'var(--text-secondary)',
-                                        border: `1px solid ${stateBg ? 'transparent' : pillColor ? `color-mix(in srgb, ${pillColor} 34%, transparent)` : 'var(--widget-border)'}`,
-                                        cursor: isBoolLike && writable && !roleDisplay ? 'pointer' : 'default',
-                                    }}
-                                >
-                                    <span className="opacity-70 truncate" style={{ maxWidth: 80 }}>
-                                        {label}
-                                    </span>
-                                    <span
-                                        className="font-semibold tabular-nums"
-                                        style={{ color: isBoolLike || roleDisplay ? 'inherit' : 'var(--text-primary)' }}
-                                    >
-                                        {valueStr}
-                                    </span>
-                                </button>
-                            );
-                        })}
+                                    return (
+                                        <button
+                                            key={entry.id}
+                                            onClick={() => {
+                                                if (!writable || roleDisplay || lockValue) return;
+                                                if (isBool) setState(entry.id, !on);
+                                                else if (isBoolLike) setState(entry.id, on ? 0 : 1);
+                                            }}
+                                            title={lcText || undefined}
+                                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors hover:opacity-80"
+                                            style={{
+                                                background:
+                                                    stateBg ??
+                                                    (pillColor
+                                                        ? `color-mix(in srgb, ${pillColor} 12%, transparent)`
+                                                        : 'var(--app-bg)'),
+                                                color: pillColor ?? 'var(--text-secondary)',
+                                                border: `1px solid ${stateBg ? 'transparent' : pillColor ? `color-mix(in srgb, ${pillColor} 34%, transparent)` : 'var(--widget-border)'}`,
+                                                cursor: isBoolLike && writable && !roleDisplay ? 'pointer' : 'default',
+                                            }}
+                                        >
+                                            <span className="opacity-70 truncate" style={{ maxWidth: 80 }}>
+                                                {label}
+                                            </span>
+                                            <span
+                                                className="font-semibold tabular-nums"
+                                                style={{
+                                                    color:
+                                                        isBoolLike || roleDisplay ? 'inherit' : 'var(--text-primary)',
+                                                }}
+                                            >
+                                                {valueStr}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </Fragment>
+                        ))}
                     </div>
                 )}
                 {lcOverlay}
@@ -1358,74 +1477,84 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
             {empty}
             {visibleEntries.length > 0 && (
                 <div className="aura-scroll flex-1 overflow-auto min-h-0">
-                    {visibleEntries.map((entry) => {
-                        const state = states[entry.id] ?? null;
-                        const val = state?.val ?? null;
-                        const label = getLabel(entry);
-                        const roomLabel = entry.rooms?.join(', ');
-                        const eOn = isActive(val);
-                        const entryActiveColor = entry.activeColor || globalActiveColor;
-                        const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
-                        const stateBg = eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg;
-                        const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
-                        return (
-                            <div
-                                key={entry.id}
-                                className={`flex gap-2 px-3 py-2 ${wrap ? 'items-start' : 'items-center'}`}
-                                style={{
-                                    background: stateBg,
-                                    borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
-                                }}
-                            >
-                                <div className="flex-1 min-w-0" style={labelContainerStyle}>
-                                    <div className={`text-xs ${labelWrapCls}`} style={{ color: 'var(--text-primary)' }}>
-                                        {label}
-                                    </div>
-                                    {opts.showRoom && (roomLabel || entry.id) && (
-                                        <div
-                                            className="text-[10px] truncate"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            {roomLabel || entry.id}
-                                        </div>
-                                    )}
-                                    {opts.showId && (
-                                        <div
-                                            className="text-[9px] truncate font-mono"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            {entry.id}
-                                        </div>
-                                    )}
-                                    {lcTs > 0 && (
-                                        <div
-                                            className="aura-last-change text-[9px] truncate"
-                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                        >
-                                            {formatLastChange(
-                                                t as (k: string, v?: Record<string, string | number>) => string,
-                                                lcTs,
+                    {sections.map((sec) => (
+                        <Fragment key={sec.room ?? '__all'}>
+                            {sec.room != null && <RoomHeader room={sec.room} style={roomHeaderStyle} />}
+                            {sec.entries.map((entry) => {
+                                const state = states[entry.id] ?? null;
+                                const val = state?.val ?? null;
+                                const label = getLabel(entry);
+                                const roomLabel = entry.rooms?.join(', ');
+                                const eOn = isActive(val);
+                                const entryActiveColor = entry.activeColor || globalActiveColor;
+                                const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
+                                const stateBg = eOn
+                                    ? entry.activeBg || globalActiveBg
+                                    : entry.inactiveBg || globalInactiveBg;
+                                const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
+                                return (
+                                    <div
+                                        key={entry.id}
+                                        className={`flex gap-2 px-3 py-2 ${wrap ? 'items-start' : 'items-center'}`}
+                                        style={{
+                                            background: stateBg,
+                                            borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
+                                        }}
+                                    >
+                                        <div className="flex-1 min-w-0" style={labelContainerStyle}>
+                                            <div
+                                                className={`text-xs ${labelWrapCls}`}
+                                                style={{ color: 'var(--text-primary)' }}
+                                            >
+                                                {label}
+                                            </div>
+                                            {opts.showRoom && (roomLabel || entry.id) && (
+                                                <div
+                                                    className="text-[10px] truncate"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {roomLabel || entry.id}
+                                                </div>
+                                            )}
+                                            {opts.showId && (
+                                                <div
+                                                    className="text-[9px] truncate font-mono"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {entry.id}
+                                                </div>
+                                            )}
+                                            {lcTs > 0 && (
+                                                <div
+                                                    className="aura-last-change text-[9px] truncate"
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                >
+                                                    {formatLastChange(
+                                                        t as (k: string, v?: Record<string, string | number>) => string,
+                                                        lcTs,
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
-                                    )}
-                                </div>
-                                <EntryValue
-                                    entry={entry}
-                                    val={val}
-                                    writable={entry.writable !== false}
-                                    setState={setState}
-                                    thresholds={globalThresholds}
-                                    decimals={decimals}
-                                    activeColor={entryActiveColor}
-                                    inactiveColor={entryInactiveColor}
-                                    trueText={opts.trueText}
-                                    falseText={opts.falseText}
-                                    wrap={wrap}
-                                    valueMaxPct={valueMaxPct}
-                                />
-                            </div>
-                        );
-                    })}
+                                        <EntryValue
+                                            entry={entry}
+                                            val={val}
+                                            writable={entry.writable !== false}
+                                            setState={setState}
+                                            thresholds={globalThresholds}
+                                            decimals={decimals}
+                                            activeColor={entryActiveColor}
+                                            inactiveColor={entryInactiveColor}
+                                            trueText={opts.trueText}
+                                            falseText={opts.falseText}
+                                            wrap={wrap}
+                                            valueMaxPct={valueMaxPct}
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </Fragment>
+                    ))}
                 </div>
             )}
             {lcOverlay}
