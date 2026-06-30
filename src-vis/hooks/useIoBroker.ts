@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ioBrokerState, ObjectViewResult } from '../types';
 import { version as appVersion } from '../../package.json';
+import { splitDpRef, resolveDpValue } from '../utils/dpRef';
 
 interface IoBrokerSocket {
     connected: boolean;
@@ -523,6 +524,23 @@ export function subscribeStateDirect(id: string, callback: (state: ioBrokerState
             }
         }
     };
+}
+
+/**
+ * Subscribe to a datapoint reference that may carry a JSON-path suffix
+ * (`<stateId>?<path>`). The socket subscription always runs against the bare
+ * state ID; the callback receives the value addressed by the path (or the raw
+ * value when the ref has no path). Non-hook counterpart to useDatapoint, used
+ * by the direct subscribers that render a user-configured datapoint value.
+ */
+export function subscribeDpValue(
+    ref: string,
+    callback: (value: ioBrokerState['val'], state: ioBrokerState) => void,
+): () => void {
+    const { id, path } = splitDpRef(ref);
+    return subscribeStateDirect(id, (state) => {
+        callback(resolveDpValue(state?.val, path) as ioBrokerState['val'], state);
+    });
 }
 
 /** Get the current state of a datapoint without a React hook. */

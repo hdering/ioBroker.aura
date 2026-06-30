@@ -9,7 +9,7 @@ import { useConfigStore } from '../../store/configStore';
 import { Icon } from '@iconify/react';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { useT } from '../../i18n';
-import { subscribeStateDirect } from '../../hooks/useIoBroker';
+import { subscribeDpValue } from '../../hooks/useIoBroker';
 import { applyCustomFormat, fmtTime, fmtDate } from '../../utils/clockUtils';
 import { useTabConditionStyle } from '../../hooks/useTabConditionStyle';
 import { useBadges, useTabBadgeAggregate } from '../../hooks/useBadges';
@@ -90,8 +90,8 @@ function TabBarDatapointItem({ item }: { item: TabBarItem }) {
     const [val, setVal] = useState<string>('…');
     useEffect(() => {
         if (!item.datapointId) return;
-        const unsub = subscribeStateDirect(item.datapointId, (state) => {
-            setVal(state?.val != null ? String(state.val) : '–');
+        const unsub = subscribeDpValue(item.datapointId, (value) => {
+            setVal(value != null ? String(value) : '–');
         });
         return unsub;
     }, [item.datapointId]);

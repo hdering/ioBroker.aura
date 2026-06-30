@@ -6,6 +6,7 @@ import {
     setStateDirect,
     getStateDirect,
     subscribeStateDirect,
+    subscribeDpValue,
     prefetchStates,
     setOptimisticEcho,
 } from './hooks/useIoBroker';
@@ -102,8 +103,8 @@ function HeaderDatapoint({ id, template }: { id: string; template?: string }) {
     const [val, setVal] = useState<string>('…');
     useEffect(() => {
         if (!id) return;
-        const unsub = subscribeStateDirect(id, (state) => {
-            setVal(state?.val != null ? String(state.val) : '–');
+        const unsub = subscribeDpValue(id, (value) => {
+            setVal(value != null ? String(value) : '–');
         });
         return unsub;
     }, [id]);

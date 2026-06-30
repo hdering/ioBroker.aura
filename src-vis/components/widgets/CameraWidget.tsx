@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Camera, BatteryMedium, Thermometer, Shield, Activity, Building2, RefreshCw, Maximize2, X } from 'lucide-react';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { WidgetProps, ioBrokerState } from '../../types';
-import { setStateDirect, subscribeStateDirect } from '../../hooks/useIoBroker';
+import { setStateDirect, subscribeDpValue } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
 
 // ── Exported types (used by WidgetFrame config) ───────────────────────────────
@@ -632,7 +632,7 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
         if (!allDpKey) return;
         const ids = allDpKey.split(',').filter(Boolean);
         const unsubs = ids.map((id) =>
-            subscribeStateDirect(id, (state) => setDpValues((prev) => ({ ...prev, [id]: state.val }))),
+            subscribeDpValue(id, (value) => setDpValues((prev) => ({ ...prev, [id]: value }))),
         );
         return () => unsubs.forEach((fn) => fn());
     }, [allDpKey]);

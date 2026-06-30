@@ -5303,7 +5303,7 @@ export function WidgetFrame({
     const [, forceRedraw] = useState(0);
 
     useEffect(() => {
-        const id = (config.options?.lastChangeDatapoint as string | undefined) || config.datapoint;
+        const id = baseDpId((config.options?.lastChangeDatapoint as string | undefined) || config.datapoint);
         if (!id) return;
 
         getStateDirect(id).then((s) => {
