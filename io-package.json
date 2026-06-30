@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.13.0",
+    "version": "0.14.0",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.14.0": {
+        "en": "🌟 New feature: Dynamic List - optionally group datapoints by room with the room name as a section heading\n🌟 New feature: Dynamic List - room section headings now support custom font size, text color and background color\nTabs - fix tab switching needing multiple clicks after auto-return to the default tab\nGeneral - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown",
+        "de": "🌟 New feature: Dynamic List - optionally group datapoints by room with the room name as a section heading\n🌟 New feature: Dynamic List - room section headings now support custom font size, text color and background color\nTabs - fix tab switching needing multiple clicks after auto-return to the default tab\nGeneral - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown",
+        "ru": "🌟 New feature: Dynamic List - optionally group datapoints by room with the room name as a section heading\n🌟 New feature: Dynamic List - room section headings now support custom font size, text color and background color\nTabs - fix tab switching needing multiple clicks after auto-return to the default tab\nGeneral - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown",
+        "pt": "🌟 New feature: Dynamic List - optionally group datapoints by room with the room name as a section heading\n🌟 New feature: Dynamic List - room section headings now support custom font size, text color and background color\nTabs - fix tab switching needing multiple clicks after auto-return to the default tab\nGeneral - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown",
+        "nl": "🌟 New feature: Dynamic List - optionally group datapoints by room with the room name as a section heading\n🌟 New feature: Dynamic List - room section headings now support custom font size, text color and background color\nTabs - fix tab switching needing multiple clicks after auto-return to the default tab\nGeneral - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown",
+        "fr": "🌟 New feature: Dynamic List - optionally group datapoints by room with the room name as a section heading\n🌟 New feature: Dynamic List - room section headings now support custom font size, text color and background color\nTabs - fix tab switching needing multiple clicks after auto-return to the default tab\nGeneral - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown",
+        "it": "🌟 New feature: Dynamic List - optionally group datapoints by room with the room name as a section heading\n🌟 New feature: Dynamic List - room section headings now support custom font size, text color and background color\nTabs - fix tab switching needing multiple clicks after auto-return to the default tab\nGeneral - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown",
+        "es": "🌟 New feature: Dynamic List - optionally group datapoints by room with the room name as a section heading\n🌟 New feature: Dynamic List - room section headings now support custom font size, text color and background color\nTabs - fix tab switching needing multiple clicks after auto-return to the default tab\nGeneral - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown",
+        "pl": "🌟 New feature: Dynamic List - optionally group datapoints by room with the room name as a section heading\n🌟 New feature: Dynamic List - room section headings now support custom font size, text color and background color\nTabs - fix tab switching needing multiple clicks after auto-return to the default tab\nGeneral - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown",
+        "uk": "🌟 New feature: Dynamic List - optionally group datapoints by room with the room name as a section heading\n🌟 New feature: Dynamic List - room section headings now support custom font size, text color and background color\nTabs - fix tab switching needing multiple clicks after auto-return to the default tab\nGeneral - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown",
+        "zh-cn": "🌟 New feature: Dynamic List - optionally group datapoints by room with the room name as a section heading\n🌟 New feature: Dynamic List - room section headings now support custom font size, text color and background color\nTabs - fix tab switching needing multiple clicks after auto-return to the default tab\nGeneral - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown"
+      },
       "0.13.0": {
         "en": "🌟 New feature: Map - new widget: plot positions (car, person, …) from lat/lon or JSON datapoints, fixed coordinates, or a plain address on an OpenStreetMap map, with optional distance from a reference point\n🌟 New feature: Map - choose a map style: standard map, satellite, or terrain/topo",
         "de": "🌟 New feature: Map - new widget: plot positions (car, person, …) from lat/lon or JSON datapoints, fixed coordinates, or a plain address on an OpenStreetMap map, with optional distance from a reference point\n🌟 New feature: Map - choose a map style: standard map, satellite, or terrain/topo",
@@ -183,19 +196,6 @@
         "pl": "Universal widget - select cell now re-sends the value when the already-selected entry is picked again",
         "uk": "Universal widget - select cell now re-sends the value when the already-selected entry is picked again",
         "zh-cn": "Universal widget - select cell now re-sends the value when the already-selected entry is picked again"
-      },
-      "0.11.1": {
-        "en": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
-        "de": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
-        "ru": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
-        "pt": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
-        "nl": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
-        "fr": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
-        "it": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
-        "es": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
-        "pl": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
-        "uk": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low",
-        "zh-cn": "Switch / Dimmer - toggle knob now vertically centered instead of sitting too low"
       }
     }
   },

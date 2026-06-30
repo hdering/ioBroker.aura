@@ -4,7 +4,3 @@
 #   <Widget type> - <what changed>          e.g.  Thermostat - target temperature now shown inline
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
-Dynamic List - optionally group datapoints by room with the room name as a section heading
-Dynamic List - room section headings now support custom font size, text color and background color
-Tabs - fix tab switching needing multiple clicks after auto-return to the default tab
-General - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown
