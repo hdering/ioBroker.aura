@@ -1,5 +1,6 @@
 import type { WidgetConfig } from '../../types';
 import type { StatusOverviewOptions } from '../../utils/statusOverview';
+import { useConfigStore } from '../../store/configStore';
 
 interface Props {
     config: WidgetConfig;
@@ -40,6 +41,11 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
     const o = (config.options ?? {}) as StatusOverviewOptions;
     const set = (patch: Partial<StatusOverviewOptions>) =>
         onConfigChange({ ...config, options: { ...config.options, ...patch } });
+
+    // Reachability escape hatch is global (device-level), not per-widget.
+    const offlineExtraPatterns = useConfigStore((s) => s.frontend.offlineExtraPatterns);
+    const offlineInvert = useConfigStore((s) => s.frontend.offlineInvert);
+    const updateFrontend = useConfigStore((s) => s.updateFrontend);
 
     const lightScope = o.lightRoleScope ?? 'light';
 
@@ -134,6 +140,37 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             label="Nur Schalter in Funktion „Licht“"
                         />
                     )}
+                </div>
+            )}
+
+            {/* ── Reachability (global escape hatch) ── */}
+            {o.catUnreach !== false && (
+                <div className="space-y-2 pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
+                    <span className={sectionTitleCls} style={labelStyle}>
+                        Erreichbarkeit (global)
+                    </span>
+                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                        UNREACH/offline/reachable/connected werden automatisch erkannt (STICKY_UNREACH wird ignoriert).
+                        Nur für Sonderfälle: zusätzliche Offline-Datenpunkte. Gilt für alle Widgets.
+                    </p>
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            Zusätzliche Offline-Datenpunkte (Muster, Text oder /regex/)
+                        </label>
+                        <input
+                            type="text"
+                            value={offlineExtraPatterns}
+                            onChange={(e) => updateFrontend({ offlineExtraPatterns: e.target.value })}
+                            placeholder=".UNREACHABLE, /\\.offline$/"
+                            className={inputCls}
+                            style={inputStyle}
+                        />
+                    </div>
+                    <Toggle
+                        checked={offlineInvert}
+                        onChange={(v) => updateFrontend({ offlineInvert: v })}
+                        label="Bei diesen Mustern bedeutet FALSE = offline"
+                    />
                 </div>
             )}
 

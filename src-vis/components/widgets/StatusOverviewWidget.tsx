@@ -78,10 +78,16 @@ function jumpToWidgetForDp(dpId: string): void {
 }
 
 export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
-    const opts = useMemo(() => (config.options ?? {}) as StatusOverviewOptions, [config.options]);
     const { subscribe, getState } = useIoBroker();
     const overrides = useConfigStore((s) => s.frontend.batteryTypeOverrides);
     const hiddenDevices = useConfigStore((s) => s.frontend.batteryHiddenDevices) ?? EMPTY_HIDDEN;
+    // Global reachability escape hatch — merged into the effective options.
+    const offlineExtraPatterns = useConfigStore((s) => s.frontend.offlineExtraPatterns);
+    const offlineInvert = useConfigStore((s) => s.frontend.offlineInvert);
+    const opts = useMemo(
+        () => ({ ...((config.options ?? {}) as StatusOverviewOptions), offlineExtraPatterns, offlineInvert }),
+        [config.options, offlineExtraPatterns, offlineInvert],
+    );
     const layout = config.layout ?? 'default';
     const hiddenKey = hiddenDevices.join(',');
     const hiddenSet = useMemo(() => new Set(hiddenDevices), [hiddenKey]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -117,6 +123,8 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         opts.filterAdapters,
         opts.excludeIds,
         opts.excludeIdPatterns,
+        opts.offlineExtraPatterns,
+        opts.offlineInvert,
     ]);
     useEffect(() => {
         let cancelled = false;

@@ -80,6 +80,14 @@ export interface FrontendSettings {
      * positives or devices the user does not want tracked. Managed on Admin → Batterien.
      */
     batteryHiddenDevices: string[];
+    /**
+     * Reachability escape hatch for the Statusübersicht widget (global, applies to all such
+     * widgets). Extra datapoint id patterns (text or /regex/) to treat as offline indicators
+     * when the built-in heuristic misses them; `offlineInvert` flips the semantics for those
+     * DPs (value FALSE means offline).
+     */
+    offlineExtraPatterns: string;
+    offlineInvert: boolean;
 }
 
 interface ConfigState {
@@ -135,6 +143,8 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     adminBaseUrl: '',
     batteryTypeOverrides: {},
     batteryHiddenDevices: [],
+    offlineExtraPatterns: '',
+    offlineInvert: false,
 };
 
 export const useConfigStore = create<ConfigState>()(

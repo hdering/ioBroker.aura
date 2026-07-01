@@ -41,8 +41,16 @@ const LOWBAT_ID_FRAGMENTS = ['lowbat', 'low_bat', 'battery_low', 'batterylow'];
 const UNREACH_ID_FRAGMENTS = ['unreach', 'offline'];
 
 /** True when a role means "reachable" (online=true) rather than "unreachable" (offline=true). */
+/** Roles where a truthy value means ONLINE (so offline = !value). */
 function isReachableRole(r: string): boolean {
-    return r === 'indicator.reachable' || r.endsWith('.reachable') || r === 'reachable' || r === 'indicator.connected';
+    return (
+        r === 'reachable' ||
+        r === 'connected' ||
+        r === 'available' ||
+        r.endsWith('.reachable') ||
+        r.endsWith('.connected') ||
+        r.endsWith('.available')
+    );
 }
 
 /** True when a role marks a smoke/fire/water/flood safety alarm. */
@@ -74,6 +82,9 @@ export interface StatusOverviewOptions {
     // Lights
     lightRoleScope?: 'light' | 'all'; // 'light' = only switch.light (default); 'all' = also switch/switch.power
     lightsOnlyFunction?: boolean; // when scope 'all', require a "Licht"/"Light" function enum
+    // Reachability (global escape hatch — merged from config store)
+    offlineExtraPatterns?: string; // extra DP id patterns to treat as offline indicators (text or /regex/)
+    offlineInvert?: boolean; // for those extra DPs: true = value FALSE means offline (reachable semantics)
     // Scope (comma-separated). Empty = no restriction.
     filterRooms?: string; // room labels
     filterFuncs?: string; // function labels
@@ -117,11 +128,15 @@ export function categoryOf(dp: DatapointEntry, opts: StatusOverviewOptions): Cat
     if (opts.catWindow !== false) {
         if (r === 'sensor.window' || r === 'window' || r === 'sensor.door' || r === 'door') return 'window';
     }
-    // Skip the latching STICKY_UNREACH twin — it stays true after any past outage, so it
-    // would both duplicate the live UNREACH and wrongly flag currently-reachable devices.
-    if (opts.catUnreach !== false && !id.includes('sticky')) {
-        if (r === 'indicator.unreach' || r.endsWith('.unreach') || isReachableRole(r)) return 'unreach';
-        if (dp.type === 'boolean' && UNREACH_ID_FRAGMENTS.some((f) => id.includes(f))) return 'unreach';
+    if (opts.catUnreach !== false) {
+        // Explicit user patterns win (even the sticky twin, if the user really wants it).
+        if (matchesOfflineExtra(dp, opts)) return 'unreach';
+        // Skip the latching STICKY_UNREACH twin — it stays true after any past outage, so it
+        // would both duplicate the live UNREACH and wrongly flag currently-reachable devices.
+        if (!id.includes('sticky')) {
+            if (r === 'indicator.unreach' || r.endsWith('.unreach') || isReachableRole(r)) return 'unreach';
+            if (dp.type === 'boolean' && UNREACH_ID_FRAGMENTS.some((f) => id.includes(f))) return 'unreach';
+        }
     }
     if (opts.catBattery !== false) {
         if (r === 'value.battery' && dp.type === 'number') return 'battery';
@@ -146,6 +161,12 @@ function matchLight(dp: DatapointEntry, opts: StatusOverviewOptions): boolean {
         return true;
     }
     return false;
+}
+
+/** User-defined extra offline-indicator DPs (global escape hatch). */
+function matchesOfflineExtra(dp: DatapointEntry, opts: StatusOverviewOptions): boolean {
+    const patterns = splitList(opts.offlineExtraPatterns);
+    return patterns.length > 0 && patterns.some((p) => matchesIdPattern(dp.id, p));
 }
 
 function splitList(csv?: string): string[] {
@@ -238,7 +259,11 @@ export function evaluateItem(
 
     if (cat === 'unreach') {
         const r = (dp.role ?? '').toLowerCase();
-        const offline = isReachableRole(r) ? !isOn(val) : isOn(val);
+        // Reachable/connected/available roles → true means online. User extra-pattern DPs
+        // follow offlineInvert (true = value FALSE means offline). Everything else (UNREACH,
+        // offline indicators) → true means offline.
+        const reachSemantics = isReachableRole(r) || (opts.offlineInvert === true && matchesOfflineExtra(dp, opts));
+        const offline = reachSemantics ? !isOn(val) : isOn(val);
         if (!offline) return ok('Online');
         return { ...base, severity: 'warn', label: 'Offline', color: SEVERITY_COLOR.warn };
     }
