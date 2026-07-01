@@ -202,13 +202,13 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     Batterietypen
                 </span>
                 <Toggle
-                    checked={!!o.batteryTypeEnabled}
-                    onChange={(v) => set({ batteryTypeEnabled: v })}
-                    label="Batterietyp neben schwachen Batterien anzeigen"
+                    checked={o.batteryTypeEnabled !== false}
+                    onChange={(v) => set({ batteryTypeEnabled: v ? undefined : false })}
+                    label="Batterietyp & Anzahl neben schwachen Batterien anzeigen"
                 />
                 <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                    Typen werden automatisch erkannt. Zuordnung &amp; Einkaufsliste unter Admin → Batterien; das Layout
-                    „Batterie-Inventar“ zeigt alle Batteriegeräte gruppiert nach Typ.
+                    Typen werden automatisch erkannt (falls bekannt). Zuordnung &amp; Übersicht aller Batteriegeräte
+                    unter Admin → Batterien.
                 </p>
             </div>
 

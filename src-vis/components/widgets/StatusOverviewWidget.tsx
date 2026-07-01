@@ -3,13 +3,10 @@ import {
     ShieldCheck,
     TriangleAlert,
     BatteryLow,
-    Battery,
     DoorOpen,
     Lightbulb,
     WifiOff,
     Siren,
-    ShoppingCart,
-    HelpCircle,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
@@ -157,7 +154,8 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
 
     // ── Battery type resolution (device model → library, manual override first) ──
     const batteryCandidates = useMemo(() => candidates.filter((c) => c.cat === 'battery'), [candidates]);
-    const wantBatteryTypes = layout === 'inventory' || opts.batteryTypeEnabled === true;
+    // Show battery type/quantity next to low batteries by default; opt out with batteryTypeEnabled=false.
+    const wantBatteryTypes = opts.batteryTypeEnabled !== false;
     // Device-id resolution is also needed (without the library) when devices are hidden.
     const needBatteryMeta = wantBatteryTypes || hiddenDevices.length > 0;
     const batteryCandKey = batteryCandidates.map((c) => c.dp.id).join(',');
@@ -231,44 +229,6 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         return out;
     }, [candidates, states, opts, sortBy, batteryInfo, hiddenSet]);
 
-    // ── Battery inventory (ALL battery devices, grouped by type) ────────────────
-    const inventory = useMemo(() => {
-        // De-dupe by device (a device may expose several battery DPs).
-        const byDevice = new Map<string, { name: string; type: string | null; quantity: number }>();
-        for (const c of batteryCandidates) {
-            const info = batteryInfo[c.dp.id];
-            const deviceId = info?.deviceId ?? c.dp.id;
-            if (hiddenSet.has(deviceId)) continue;
-            if (byDevice.has(deviceId)) continue;
-            byDevice.set(deviceId, {
-                name: info?.deviceName ?? c.dp.name,
-                type: info?.type ?? null,
-                quantity: info?.quantity ?? 1,
-            });
-        }
-        const groups = new Map<string, { type: string | null; devices: string[]; totalQty: number }>();
-        for (const d of byDevice.values()) {
-            const key = d.type ?? ' unknown';
-            let g = groups.get(key);
-            if (!g) {
-                g = { type: d.type, devices: [], totalQty: 0 };
-                groups.set(key, g);
-            }
-            g.devices.push(d.name);
-            g.totalQty += d.quantity;
-        }
-        const list = [...groups.values()].sort((a, b) => {
-            if ((a.type === null) !== (b.type === null)) return a.type === null ? 1 : -1; // unknown last
-            return (a.type ?? '').localeCompare(b.type ?? '', 'de');
-        });
-        list.forEach((g) => g.devices.sort((a, b) => a.localeCompare(b, 'de')));
-        const shopping = list
-            .filter((g) => g.type)
-            .map((g) => `${g.totalQty}× ${g.type}`)
-            .join(', ');
-        return { list, shopping, deviceCount: byDevice.size };
-    }, [batteryCandidates, batteryInfo, hiddenSet]);
-
     const total = items.length;
     const hasCrit = items.some((i) => i.severity === 'crit');
     const enabledCats = CATEGORY_ORDER.filter(
@@ -321,108 +281,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         );
     }
 
-    // ── inventory layout: ALL battery devices grouped by type + shopping list ────
-    if (layout === 'inventory') {
-        const empty = batteryCandidates.length === 0;
-        return (
-            <div className="h-full w-full flex flex-col min-h-0">
-                <div className="flex items-center justify-between gap-2 mb-1.5 shrink-0">
-                    {showTitle ? (
-                        <p
-                            className="aura-widget-title text-xs font-semibold truncate"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            {config.title}
-                        </p>
-                    ) : (
-                        <span />
-                    )}
-                    {!empty && (
-                        <span
-                            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold shrink-0"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                background:
-                                    'color-mix(in srgb, var(--text-secondary) 12%, var(--widget-bg, var(--app-surface)))',
-                            }}
-                        >
-                            <Battery size={12} />
-                            {inventory.deviceCount} {inventory.deviceCount === 1 ? 'Gerät' : 'Geräte'}
-                        </span>
-                    )}
-                </div>
-
-                {empty ? (
-                    <div className="flex-1 min-h-0 flex items-center justify-center text-center px-2">
-                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            Keine Batteriegeräte gefunden.
-                        </p>
-                    </div>
-                ) : (
-                    <div className="flex-1 min-h-0 overflow-y-auto pr-0.5">
-                        {inventory.list.map((g) => {
-                            const known = g.type !== null;
-                            const color = known ? SEVERITY_COLOR.warn : 'var(--text-secondary)';
-                            return (
-                                <div key={g.type ?? '__unknown'} className="mb-2 last:mb-0">
-                                    <div className="flex items-center gap-1.5 mb-0.5">
-                                        {known ? (
-                                            <Battery size={13} style={{ color }} />
-                                        ) : (
-                                            <HelpCircle size={13} style={{ color }} />
-                                        )}
-                                        <span
-                                            className="text-xs font-semibold"
-                                            style={{ color: 'var(--text-primary)' }}
-                                        >
-                                            {known ? g.type : 'Unbekannt'}
-                                        </span>
-                                        <span className="text-xs font-semibold" style={{ color }}>
-                                            ×{g.totalQty}
-                                        </span>
-                                        {g.devices.length !== g.totalQty && (
-                                            <span
-                                                className="text-[11px]"
-                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                            >
-                                                ({g.devices.length} {g.devices.length === 1 ? 'Gerät' : 'Geräte'})
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p
-                                        className="text-[11px] leading-snug pl-[19px]"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
-                                        {known
-                                            ? g.devices.join(' · ')
-                                            : `${g.devices.join(' · ')} — im Editor zuordnen`}
-                                    </p>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-
-                {!empty && inventory.shopping && (
-                    <div
-                        className="shrink-0 mt-1.5 pt-1.5 flex items-center gap-1.5 text-[11px]"
-                        style={{ borderTop: '1px solid var(--app-border)', color: 'var(--text-secondary)' }}
-                    >
-                        <ShoppingCart size={12} className="shrink-0" />
-                        <span className="min-w-0">
-                            <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-                                Nachkaufen:{' '}
-                            </span>
-                            {inventory.shopping}
-                        </span>
-                    </div>
-                )}
-            </div>
-        );
-    }
-
     const Row = ({ item }: { item: StatusItem }) => {
-        const batteryType = item.category === 'battery' ? batteryInfo[item.id]?.type : null;
+        const bi = item.category === 'battery' ? batteryInfo[item.id] : undefined;
+        const batteryLabel = bi?.type ? `${bi.quantity > 1 ? `${bi.quantity}× ` : ''}${bi.type}` : null;
         const { Icon } = CATEGORY_META[item.category];
         const sub = [item.room, item.category === 'window' && item.lc ? formatSince(item.lc) : null]
             .filter(Boolean)
@@ -441,9 +302,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                 </span>
                 <span className="text-xs font-semibold shrink-0" style={{ color: item.color }}>
                     {item.label}
-                    {batteryType && (
+                    {batteryLabel && (
                         <span className="ml-1 font-normal opacity-60" style={{ color: 'var(--text-secondary)' }}>
-                            · {batteryType}
+                            · {batteryLabel}
                         </span>
                     )}
                 </span>
