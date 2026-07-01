@@ -5400,7 +5400,7 @@ export function WidgetFrame({
                 return;
             }
             case 'link-widget':
-                useNavigationStore.getState().navigateTo(clickAction.layoutId, clickAction.tabId);
+                useNavigationStore.getState().navigateTo(clickAction.layoutId, clickAction.tabId, clickAction.widgetId);
                 return;
             default:
                 setPopupOpen(true);

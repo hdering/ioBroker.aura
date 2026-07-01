@@ -23,6 +23,7 @@ import { getTheme } from './themes';
 import { useGroupStore } from './store/groupStore';
 import { loadConfigFromIoBroker, applyRaw } from './utils/configLoader';
 import { Dashboard } from './components/layout/Dashboard';
+import { FocusedWidgetContext } from './contexts/FocusedWidgetContext';
 import { TabBar } from './components/layout/TabBar';
 import { LayoutDrawer } from './components/layout/LayoutDrawer';
 import { useIframeStore } from './store/iframeStore';
@@ -360,6 +361,8 @@ export default function App() {
     // Handle widget click-action tab/layout navigation
     const consumeNav = useNavigationStore((s) => s.consume);
     const pendingNav = useNavigationStore((s) => s.pending);
+    const focusWidgetId = useNavigationStore((s) => s.focusWidgetId);
+    const setFocusWidget = useNavigationStore((s) => s.setFocusWidget);
     useEffect(() => {
         if (!pendingNav) return;
         const nav = consumeNav();
@@ -377,8 +380,20 @@ export default function App() {
         } else {
             navigate(`/tab/${tabSl}`);
         }
+        // Sprung: Widget — pulse-highlight the target widget once the tab is shown.
+        // WidgetFrame reads FocusedWidgetContext and applies the highlight while it
+        // matches its config.id; setting it after the route switch also scrolls it
+        // into view on the freshly mounted tab.
+        if (nav.widgetId) setFocusWidget(nav.widgetId);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingNav]);
+
+    // Clear the widget highlight after the pulse animation has had time to play.
+    useEffect(() => {
+        if (!focusWidgetId) return;
+        const tid = setTimeout(() => setFocusWidget(null), 3500);
+        return () => clearTimeout(tid);
+    }, [focusWidgetId, setFocusWidget]);
 
     // Sync cross-tab localStorage changes (admin panel → frontend)
     useEffect(() => {
@@ -711,7 +726,9 @@ export default function App() {
                 }
             />
             <div className="flex-1 min-h-0 flex flex-col">
-                <Dashboard readonly viewTabs={tabs} viewActiveTabId={activeTabId} layoutId={layout?.id} />
+                <FocusedWidgetContext.Provider value={focusWidgetId}>
+                    <Dashboard readonly viewTabs={tabs} viewActiveTabId={activeTabId} layoutId={layout?.id} />
+                </FocusedWidgetContext.Provider>
             </div>
         </div>
     );
