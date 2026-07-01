@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ShieldCheck, TriangleAlert, BatteryLow, DoorOpen, Lightbulb, type LucideIcon } from 'lucide-react';
+import {
+    ShieldCheck,
+    TriangleAlert,
+    BatteryLow,
+    DoorOpen,
+    Lightbulb,
+    WifiOff,
+    Siren,
+    type LucideIcon,
+} from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
@@ -19,7 +28,9 @@ import {
 
 /** Per-category icon + label used in section headers and rows. */
 const CATEGORY_META: Record<CategoryKey, { Icon: LucideIcon; label: string }> = {
+    alarm: { Icon: Siren, label: 'Rauch & Wasser' },
     window: { Icon: DoorOpen, label: 'Fenster & Türen' },
+    unreach: { Icon: WifiOff, label: 'Nicht erreichbar' },
     battery: { Icon: BatteryLow, label: 'Batterien' },
     light: { Icon: Lightbulb, label: 'Lichter' },
 };
@@ -70,6 +81,8 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         opts.catBattery,
         opts.catWindow,
         opts.catLight,
+        opts.catUnreach,
+        opts.catAlarm,
         opts.includeLowbatBoolean,
         opts.lightRoleScope,
         opts.lightsOnlyFunction,
@@ -133,7 +146,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         (c) =>
             (c === 'battery' && opts.catBattery !== false) ||
             (c === 'window' && opts.catWindow !== false) ||
-            (c === 'light' && opts.catLight !== false),
+            (c === 'light' && opts.catLight !== false) ||
+            (c === 'unreach' && opts.catUnreach !== false) ||
+            (c === 'alarm' && opts.catAlarm !== false),
     );
 
     const showTitle = opts.showTitle !== false && !!config.title;

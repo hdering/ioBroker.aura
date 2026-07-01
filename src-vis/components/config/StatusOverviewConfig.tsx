@@ -65,6 +65,16 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     onChange={(v) => set({ catLight: v })}
                     label="Eingeschaltete Lichter"
                 />
+                <Toggle
+                    checked={o.catAlarm !== false}
+                    onChange={(v) => set({ catAlarm: v })}
+                    label="Rauch- & Wasser-Alarme"
+                />
+                <Toggle
+                    checked={o.catUnreach !== false}
+                    onChange={(v) => set({ catUnreach: v })}
+                    label="Nicht erreichbar / offline"
+                />
             </div>
 
             {/* ── Battery ── */}

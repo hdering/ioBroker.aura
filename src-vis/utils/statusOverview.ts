@@ -15,9 +15,10 @@ import type { DatapointEntry } from '../hooks/useDatapointList';
 import { getRoleDisplay } from './listEntryDisplay';
 
 export type Severity = 'crit' | 'warn' | 'ok';
-export type CategoryKey = 'battery' | 'window' | 'light';
+export type CategoryKey = 'battery' | 'window' | 'light' | 'unreach' | 'alarm';
 
-export const CATEGORY_ORDER: CategoryKey[] = ['window', 'battery', 'light'];
+// Ordered by urgency: safety alarms and open contacts first, maintenance last.
+export const CATEGORY_ORDER: CategoryKey[] = ['alarm', 'window', 'unreach', 'battery', 'light'];
 
 /** Severity colours as theme tokens so the widget adapts to every theme. */
 export const SEVERITY_COLOR: Record<Severity, string> = {
@@ -36,6 +37,25 @@ export function isOn(val: unknown): boolean {
 /** Lower-cased id fragments that mark a boolean low-battery indicator (mirror dpTemplates). */
 const LOWBAT_ID_FRAGMENTS = ['lowbat', 'low_bat', 'battery_low', 'batterylow'];
 
+/** Lower-cased id fragments that mark a boolean unreachable/offline indicator (mirror dpTemplates). */
+const UNREACH_ID_FRAGMENTS = ['unreach', 'offline'];
+
+/** True when a role means "reachable" (online=true) rather than "unreachable" (offline=true). */
+function isReachableRole(r: string): boolean {
+    return r === 'indicator.reachable' || r.endsWith('.reachable') || r === 'reachable' || r === 'indicator.connected';
+}
+
+/** True when a role marks a smoke/fire/water/flood safety alarm. */
+function isAlarmRole(r: string): boolean {
+    return (
+        r.startsWith('sensor.alarm') ||
+        r.includes('smoke') ||
+        r.includes('fire') ||
+        r.includes('flood') ||
+        r.includes('leak')
+    );
+}
+
 function isLightFunc(label: string): boolean {
     const f = label.toLowerCase();
     return f.includes('licht') || f.includes('light') || f.includes('lamp');
@@ -46,6 +66,8 @@ export interface StatusOverviewOptions {
     catBattery?: boolean;
     catWindow?: boolean;
     catLight?: boolean;
+    catUnreach?: boolean;
+    catAlarm?: boolean;
     // Battery
     batteryThreshold?: number; // % (default 20)
     includeLowbatBoolean?: boolean; // also match boolean LOWBAT-style DPs (default true)
@@ -83,8 +105,13 @@ export function categoryOf(dp: DatapointEntry, opts: StatusOverviewOptions): Cat
     const r = (dp.role ?? '').toLowerCase();
     const id = dp.id.toLowerCase();
 
+    if (opts.catAlarm !== false && isAlarmRole(r)) return 'alarm';
     if (opts.catWindow !== false) {
         if (r === 'sensor.window' || r === 'window' || r === 'sensor.door' || r === 'door') return 'window';
+    }
+    if (opts.catUnreach !== false) {
+        if (r === 'indicator.unreach' || isReachableRole(r)) return 'unreach';
+        if (dp.type === 'boolean' && UNREACH_ID_FRAGMENTS.some((f) => id.includes(f))) return 'unreach';
     }
     if (opts.catBattery !== false) {
         if (r === 'value.battery' && dp.type === 'number') return 'battery';
@@ -190,6 +217,19 @@ export function evaluateItem(
     if (cat === 'light') {
         if (!isOn(val)) return null;
         return { ...base, severity: 'warn', label: 'An', color: SEVERITY_COLOR.warn };
+    }
+
+    if (cat === 'unreach') {
+        const r = (dp.role ?? '').toLowerCase();
+        const offline = isReachableRole(r) ? !isOn(val) : isOn(val);
+        if (!offline) return null;
+        return { ...base, severity: 'warn', label: 'Offline', color: SEVERITY_COLOR.warn };
+    }
+
+    if (cat === 'alarm') {
+        if (!isOn(val)) return null;
+        const rd = getRoleDisplay(dp.role, val);
+        return { ...base, severity: 'crit', label: rd?.label ?? 'Alarm!', color: rd?.color ?? SEVERITY_COLOR.crit };
     }
 
     return null;
