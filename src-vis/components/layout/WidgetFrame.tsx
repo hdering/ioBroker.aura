@@ -6691,6 +6691,18 @@ export function WidgetFrame({
                                                                                                         ),
                                                                                                     },
                                                                                                     {
+                                                                                                        value: 'card',
+                                                                                                        label: t(
+                                                                                                            'wf.edit.layout.card',
+                                                                                                        ),
+                                                                                                    },
+                                                                                                    {
+                                                                                                        value: 'minimal',
+                                                                                                        label: t(
+                                                                                                            'wf.edit.layout.minimal',
+                                                                                                        ),
+                                                                                                    },
+                                                                                                    {
                                                                                                         value: 'count',
                                                                                                         label: 'Anzahl',
                                                                                                     },

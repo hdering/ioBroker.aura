@@ -217,6 +217,43 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                 <span className={sectionTitleCls} style={labelStyle}>
                     Anzeige
                 </span>
+                <div>
+                    <label className={labelCls} style={labelStyle}>
+                        Welche Geräte anzeigen
+                    </label>
+                    <select
+                        value={o.valueFilter ?? 'alerts'}
+                        onChange={(e) => set({ valueFilter: e.target.value as 'alerts' | 'all' })}
+                        className={inputCls}
+                        style={inputStyle}
+                    >
+                        <option value="alerts">Nur Auffällige (z. B. schwache Batterie)</option>
+                        <option value="all">Alle gefundenen Geräte</option>
+                    </select>
+                </div>
+                <div>
+                    <label className={labelCls} style={labelStyle}>
+                        Hervorhebungsfarbe (Auffällige)
+                    </label>
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="color"
+                            value={o.alertColor || '#f59e0b'}
+                            onChange={(e) => set({ alertColor: e.target.value })}
+                            className="w-8 h-7 rounded cursor-pointer p-0.5"
+                            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                        />
+                        {o.alertColor && (
+                            <button
+                                onClick={() => set({ alertColor: undefined })}
+                                className="text-[11px] hover:opacity-80"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                ↩ Standard (nach Dringlichkeit)
+                            </button>
+                        )}
+                    </div>
+                </div>
                 <Toggle
                     checked={!!o.showOkCategories}
                     onChange={(v) => set({ showOkCategories: v })}

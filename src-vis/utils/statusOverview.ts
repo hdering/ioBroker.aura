@@ -83,6 +83,8 @@ export interface StatusOverviewOptions {
     // Battery type
     batteryTypeEnabled?: boolean; // show physical battery type (· CR2032) next to low batteries
     // Display
+    valueFilter?: 'alerts' | 'all'; // 'alerts' = only devices needing attention (default); 'all' = every found device
+    alertColor?: string; // highlight colour for devices in an attention state (default: per-severity)
     showTitle?: boolean; // show the widget title in the header (default true)
     showOkCategories?: boolean; // also list categories with no alerts (default false)
     allClearText?: string;
@@ -190,8 +192,10 @@ export function passesScope(dp: DatapointEntry, opts: StatusOverviewOptions): bo
 }
 
 /**
- * Given a candidate's category and its live value, returns a StatusItem when it is
- * currently in an attention state, or null when it's fine.
+ * Given a candidate's category and its live value, returns a StatusItem.
+ * By default only devices needing attention are returned (null otherwise). Pass
+ * `includeOk` to also return healthy devices (severity 'ok') — used by the "show all"
+ * value filter. The OK color is muted; the widget applies the alert highlight colour.
  */
 export function evaluateItem(
     dp: DatapointEntry,
@@ -199,42 +203,47 @@ export function evaluateItem(
     cat: CategoryKey,
     opts: StatusOverviewOptions,
     lc?: number,
+    includeOk = false,
 ): StatusItem | null {
     const base = { id: dp.id, name: dp.name, room: dp.rooms[0], category: cat, lc };
+    const OK = 'var(--text-secondary)';
+    const ok = (label: string): StatusItem | null => (includeOk ? { ...base, severity: 'ok', label, color: OK } : null);
 
     if (cat === 'battery') {
         const r = (dp.role ?? '').toLowerCase();
         const isPercent = r === 'value.battery' || dp.type === 'number';
         if (isPercent) {
             const num = typeof val === 'number' ? val : parseFloat(String(val ?? ''));
-            if (isNaN(num) || num > (opts.batteryThreshold ?? 20)) return null;
+            if (isNaN(num)) return ok('–');
+            if (num > (opts.batteryThreshold ?? 20)) return ok(`${Math.round(num)} %`);
             return { ...base, severity: 'warn', label: `${Math.round(num)} %`, color: SEVERITY_COLOR.warn };
         }
-        if (!isOn(val)) return null; // boolean LOWBAT: truthy = low
+        if (!isOn(val)) return ok('OK'); // boolean LOWBAT: truthy = low
         return { ...base, severity: 'warn', label: 'schwach', color: SEVERITY_COLOR.warn };
     }
 
     if (cat === 'window') {
-        if (!isOn(val)) return null;
         const rd = getRoleDisplay(dp.role, val);
+        if (!isOn(val))
+            return includeOk ? { ...base, severity: 'ok', label: rd?.label ?? 'Geschlossen', color: OK } : null;
         return { ...base, severity: 'crit', label: rd?.label ?? 'Offen', color: rd?.color ?? SEVERITY_COLOR.crit };
     }
 
     if (cat === 'light') {
-        if (!isOn(val)) return null;
+        if (!isOn(val)) return ok('Aus');
         return { ...base, severity: 'warn', label: 'An', color: SEVERITY_COLOR.warn };
     }
 
     if (cat === 'unreach') {
         const r = (dp.role ?? '').toLowerCase();
         const offline = isReachableRole(r) ? !isOn(val) : isOn(val);
-        if (!offline) return null;
+        if (!offline) return ok('Online');
         return { ...base, severity: 'warn', label: 'Offline', color: SEVERITY_COLOR.warn };
     }
 
     if (cat === 'alarm') {
-        if (!isOn(val)) return null;
         const rd = getRoleDisplay(dp.role, val);
+        if (!isOn(val)) return includeOk ? { ...base, severity: 'ok', label: rd?.label ?? 'OK', color: OK } : null;
         return { ...base, severity: 'crit', label: rd?.label ?? 'Alarm!', color: rd?.color ?? SEVERITY_COLOR.crit };
     }
 

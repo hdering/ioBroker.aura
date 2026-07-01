@@ -211,14 +211,15 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
 
     // ── Evaluate → attention items ─────────────────────────────────────────────
     const sortBy = opts.sortBy ?? 'severity';
+    const showAll = opts.valueFilter === 'all';
     const items = useMemo<StatusItem[]>(() => {
         const out: StatusItem[] = [];
         for (const c of candidates) {
             const s = states[c.dp.id];
             if (s === undefined) continue; // not loaded yet
-            const item = evaluateItem(c.dp, s?.val ?? null, c.cat, opts, s?.lc && s.lc > 0 ? s.lc : s?.ts);
+            const item = evaluateItem(c.dp, s?.val ?? null, c.cat, opts, s?.lc && s.lc > 0 ? s.lc : s?.ts, showAll);
             if (!item) continue;
-            // Hidden battery devices never count as attention.
+            // Hidden battery devices never appear.
             if (c.cat === 'battery') {
                 const did = batteryInfo[c.dp.id]?.deviceId;
                 if (did && hiddenSet.has(did)) continue;
@@ -227,10 +228,13 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         }
         out.sort((a, b) => compareItems(a, b, sortBy));
         return out;
-    }, [candidates, states, opts, sortBy, batteryInfo, hiddenSet]);
+    }, [candidates, states, opts, sortBy, showAll, batteryInfo, hiddenSet]);
 
-    const total = items.length;
+    // Alerts drive the chip / all-clear; "all" mode additionally lists healthy devices.
+    const total = items.reduce((n, i) => (i.severity !== 'ok' ? n + 1 : n), 0);
     const hasCrit = items.some((i) => i.severity === 'crit');
+    // Highlight colour for a device in an attention state (configurable).
+    const alertColorFor = (item: StatusItem) => (item.severity !== 'ok' ? opts.alertColor || item.color : item.color);
     const enabledCats = CATEGORY_ORDER.filter(
         (c) =>
             (c === 'battery' && opts.catBattery !== false) ||
@@ -281,26 +285,33 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         );
     }
 
-    const Row = ({ item }: { item: StatusItem }) => {
+    const batteryLabelFor = (item: StatusItem) => {
         const bi = item.category === 'battery' ? batteryInfo[item.id] : undefined;
-        const batteryLabel = bi?.type ? `${bi.quantity > 1 ? `${bi.quantity}× ` : ''}${bi.type}` : null;
+        return bi?.type ? `${bi.quantity > 1 ? `${bi.quantity}× ` : ''}${bi.type}` : null;
+    };
+
+    const Row = ({ item }: { item: StatusItem }) => {
+        const batteryLabel = batteryLabelFor(item);
+        const color = alertColorFor(item);
+        const alert = item.severity !== 'ok';
         const { Icon } = CATEGORY_META[item.category];
         const sub = [item.room, item.category === 'window' && item.lc ? formatSince(item.lc) : null]
             .filter(Boolean)
             .join(' · ');
         return (
             <div
-                className={`flex items-center gap-2 py-1 min-w-0 ${rowClickable ? 'cursor-pointer rounded-md -mx-1 px-1 hover:bg-[var(--app-bg)]' : ''}`}
+                className={`flex items-center gap-2 py-1 px-1 -mx-1 rounded-md min-w-0 ${rowClickable ? 'cursor-pointer hover:bg-[var(--app-bg)]' : ''}`}
+                style={alert ? { background: `color-mix(in srgb, ${color} 12%, transparent)` } : undefined}
                 onClick={rowClickable ? () => jumpToWidgetForDp(item.id) : undefined}
                 data-widget-interactive={rowClickable ? '' : undefined}
                 title={rowClickable ? 'Zum Gerät springen' : undefined}
             >
-                <Icon size={14} style={{ color: item.color }} />
+                <Icon size={14} style={{ color }} />
                 <span className="flex-1 min-w-0 truncate text-xs" style={{ color: 'var(--text-primary)' }}>
                     {item.name}
                     {sub && <span className="ml-1 opacity-50">· {sub}</span>}
                 </span>
-                <span className="text-xs font-semibold shrink-0" style={{ color: item.color }}>
+                <span className="text-xs font-semibold shrink-0" style={{ color }}>
                     {item.label}
                     {batteryLabel && (
                         <span className="ml-1 font-normal opacity-60" style={{ color: 'var(--text-secondary)' }}>
@@ -312,24 +323,124 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         );
     };
 
-    // ── all-clear (the intended normal state) ───────────────────────────────────
-    const allClear = total === 0 && !opts.showOkCategories;
+    const header = (
+        <div className="flex items-center justify-between gap-2 mb-1.5 shrink-0">
+            {showTitle ? (
+                <p
+                    className="aura-widget-title text-xs font-semibold truncate"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    {config.title}
+                </p>
+            ) : (
+                <span />
+            )}
+            {chip}
+        </div>
+    );
+
+    // ── card layout: grid of tiles (mirrors the static-list card layout) ─────────
+    if (layout === 'card') {
+        return (
+            <div className="h-full w-full flex flex-col min-h-0">
+                {header}
+                <div
+                    className="flex-1 min-h-0 overflow-y-auto"
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))',
+                        gap: 6,
+                        alignContent: 'start',
+                    }}
+                >
+                    {items.map((item) => {
+                        const color = alertColorFor(item);
+                        const alert = item.severity !== 'ok';
+                        const { Icon } = CATEGORY_META[item.category];
+                        const batteryLabel = batteryLabelFor(item);
+                        return (
+                            <div
+                                key={item.id}
+                                className={`rounded-xl p-2 flex flex-col gap-1 ${rowClickable ? 'cursor-pointer' : ''}`}
+                                style={{
+                                    background: alert
+                                        ? `color-mix(in srgb, ${color} 14%, var(--widget-bg, var(--app-surface)))`
+                                        : 'var(--app-bg)',
+                                    border: `1px solid ${alert ? `color-mix(in srgb, ${color} 40%, transparent)` : 'var(--widget-border)'}`,
+                                }}
+                                onClick={rowClickable ? () => jumpToWidgetForDp(item.id) : undefined}
+                                data-widget-interactive={rowClickable ? '' : undefined}
+                                title={rowClickable ? 'Zum Gerät springen' : undefined}
+                            >
+                                <span
+                                    className="flex items-center gap-1 text-[10px] leading-tight"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    <Icon size={11} className="shrink-0" style={{ color }} />
+                                    <span className="truncate">{item.name}</span>
+                                </span>
+                                <span className="text-sm font-bold leading-none" style={{ color }}>
+                                    {item.label}
+                                </span>
+                                {batteryLabel && (
+                                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                        {batteryLabel}
+                                    </span>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+
+    // ── minimal layout: inline pills (mirrors the static-list badges layout) ─────
+    if (layout === 'minimal') {
+        return (
+            <div className="h-full w-full flex flex-col min-h-0">
+                {header}
+                <div className="flex-1 min-h-0 overflow-y-auto flex flex-wrap gap-1.5 content-start">
+                    {items.map((item) => {
+                        const color = alertColorFor(item);
+                        const alert = item.severity !== 'ok';
+                        const { Icon } = CATEGORY_META[item.category];
+                        const batteryLabel = batteryLabelFor(item);
+                        return (
+                            <span
+                                key={item.id}
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium ${rowClickable ? 'cursor-pointer hover:opacity-80' : ''}`}
+                                style={{
+                                    background: alert
+                                        ? `color-mix(in srgb, ${color} 14%, transparent)`
+                                        : 'var(--app-bg)',
+                                    color: alert ? color : 'var(--text-primary)',
+                                    border: `1px solid ${alert ? `color-mix(in srgb, ${color} 34%, transparent)` : 'var(--widget-border)'}`,
+                                }}
+                                onClick={rowClickable ? () => jumpToWidgetForDp(item.id) : undefined}
+                                data-widget-interactive={rowClickable ? '' : undefined}
+                                title={rowClickable ? 'Zum Gerät springen' : undefined}
+                            >
+                                <Icon size={11} className="shrink-0" style={{ color }} />
+                                <span className="truncate max-w-[120px]">{item.name}</span>
+                                <span className="font-semibold" style={{ color }}>
+                                    {item.label}
+                                    {batteryLabel ? ` · ${batteryLabel}` : ''}
+                                </span>
+                            </span>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+
+    // ── all-clear (the intended normal state) — only when filtering to alerts ────
+    const allClear = total === 0 && !showAll && !opts.showOkCategories;
 
     return (
         <div className="h-full w-full flex flex-col min-h-0">
-            <div className="flex items-center justify-between gap-2 mb-1.5 shrink-0">
-                {showTitle ? (
-                    <p
-                        className="aura-widget-title text-xs font-semibold truncate"
-                        style={{ color: 'var(--text-secondary)' }}
-                    >
-                        {config.title}
-                    </p>
-                ) : (
-                    <span />
-                )}
-                {chip}
-            </div>
+            {header}
 
             {allClear ? (
                 <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-1.5 text-center px-2">
@@ -349,15 +460,14 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                           enabledCats.map((cat) => {
                               const catItems = items.filter((i) => i.category === cat);
                               if (catItems.length === 0 && !opts.showOkCategories) return null;
+                              const catAlerts = catItems.reduce((n, i) => (i.severity !== 'ok' ? n + 1 : n), 0);
                               const { Icon, label } = CATEGORY_META[cat];
                               return (
                                   <div key={cat} className="mb-1.5 last:mb-0">
                                       <div className="flex items-center gap-1.5 mt-1 mb-0.5">
                                           <Icon
                                               size={12}
-                                              style={{
-                                                  color: catItems.length ? SEVERITY_COLOR.warn : SEVERITY_COLOR.ok,
-                                              }}
+                                              style={{ color: catAlerts ? SEVERITY_COLOR.warn : SEVERITY_COLOR.ok }}
                                           />
                                           <span
                                               className="text-[11px] font-semibold uppercase tracking-wide"
@@ -365,12 +475,12 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                           >
                                               {label}
                                           </span>
-                                          {catItems.length > 0 ? (
+                                          {catAlerts > 0 ? (
                                               <span
                                                   className="text-[11px] font-semibold"
                                                   style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                                               >
-                                                  {catItems.length}
+                                                  {catAlerts}
                                               </span>
                                           ) : (
                                               <ShieldCheck size={11} style={{ color: SEVERITY_COLOR.ok }} />
