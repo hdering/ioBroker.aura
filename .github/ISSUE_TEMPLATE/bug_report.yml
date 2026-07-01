@@ -6,33 +6,14 @@ body:
     id: what-happened
     attributes:
       label: What happened?
-      description: What went wrong, and what did you expect instead?
+      description: Describe the problem. Drag & drop screenshots here — they help a lot.
     validations:
       required: true
 
   - type: textarea
-    id: steps
-    attributes:
-      label: Steps to reproduce
-      placeholder: |
-        1. Open ...
-        2. Click ...
-        3. See error
-    validations:
-      required: false
-
-  - type: textarea
-    id: screenshots
-    attributes:
-      label: Screenshots
-      description: Drag & drop images here. A screenshot of the problem helps a lot.
-    validations:
-      required: false
-
-  - type: textarea
     id: widget-export
     attributes:
-      label: Widget export (optional)
+      label: Widget export
       description: >
         If the problem is about a specific widget, export it
         (widget menu → Export) and paste the JSON here.
@@ -45,14 +26,5 @@ body:
     attributes:
       label: Aura version
       placeholder: e.g. 0.11.1
-    validations:
-      required: true
-
-  - type: input
-    id: environment
-    attributes:
-      label: Environment
-      description: Browser / OS / device, and js-controller version if relevant.
-      placeholder: e.g. Chrome 126 on Windows 11
     validations:
       required: false

@@ -1,0 +1,11 @@
+name: Feature request
+description: Suggest an idea for the Aura dashboard
+labels: [enhancement]
+body:
+  - type: textarea
+    id: feature
+    attributes:
+      label: What would you like?
+      description: Describe the feature or improvement. Screenshots or mockups welcome.
+    validations:
+      required: true

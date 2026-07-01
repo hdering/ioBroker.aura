@@ -1,5 +1,1 @@
 blank_issues_enabled: false
-contact_links:
-  - name: Question / discussion
-    url: https://github.com/hdering/ioBroker.aura/discussions
-    about: For usage questions and ideas, please use Discussions instead of an issue.
