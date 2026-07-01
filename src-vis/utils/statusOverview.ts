@@ -1,0 +1,210 @@
+/**
+ * Pure helpers for the Statusübersicht ("Home Health" / attention panel) widget.
+ *
+ * The widget scans the datapoint cache for a small set of "problem" categories and,
+ * per live value, decides whether a datapoint currently needs attention. This module
+ * holds the framework-free logic: category detection (structural, from the DP cache),
+ * scope filtering, and per-value evaluation. The React widget owns discovery + live
+ * subscriptions and calls into these helpers.
+ *
+ * Reuses conventions from listEntryDisplay (getRoleDisplay for window/door labels) and
+ * StatusBadges (percent-vs-boolean battery + threshold). BATTERY sibling id fragments
+ * mirror dpTemplates.BATTERY_NAMES (kept local — that const is not exported).
+ */
+import type { DatapointEntry } from '../hooks/useDatapointList';
+import { getRoleDisplay } from './listEntryDisplay';
+
+export type Severity = 'crit' | 'warn' | 'ok';
+export type CategoryKey = 'battery' | 'window' | 'light';
+
+export const CATEGORY_ORDER: CategoryKey[] = ['window', 'battery', 'light'];
+
+/** Severity colours as theme tokens so the widget adapts to every theme. */
+export const SEVERITY_COLOR: Record<Severity, string> = {
+    crit: 'var(--badge-crit, var(--accent-red, #ef4444))',
+    warn: 'var(--badge-warn, #f59e0b)',
+    ok: 'var(--badge-ok, var(--accent-green, #22c55e))',
+};
+
+/** Truthy check for boolean-ish states — mirror of the private isOn() in listEntryDisplay. */
+export function isOn(val: unknown): boolean {
+    if (val === true || val === 1) return true;
+    if (typeof val === 'string') return val !== '' && val !== '0' && val.toLowerCase() !== 'false';
+    return false;
+}
+
+/** Lower-cased id fragments that mark a boolean low-battery indicator (mirror dpTemplates). */
+const LOWBAT_ID_FRAGMENTS = ['lowbat', 'low_bat', 'battery_low', 'batterylow'];
+
+function isLightFunc(label: string): boolean {
+    const f = label.toLowerCase();
+    return f.includes('licht') || f.includes('light') || f.includes('lamp');
+}
+
+export interface StatusOverviewOptions {
+    // Categories (default: all on)
+    catBattery?: boolean;
+    catWindow?: boolean;
+    catLight?: boolean;
+    // Battery
+    batteryThreshold?: number; // % (default 20)
+    includeLowbatBoolean?: boolean; // also match boolean LOWBAT-style DPs (default true)
+    // Lights
+    lightRoleScope?: 'light' | 'all'; // 'light' = only switch.light (default); 'all' = also switch/switch.power
+    lightsOnlyFunction?: boolean; // when scope 'all', require a "Licht"/"Light" function enum
+    // Scope (comma-separated). Empty = no restriction.
+    filterRooms?: string; // room labels
+    filterFuncs?: string; // function labels
+    filterAdapters?: string; // adapter.instance prefixes, e.g. "zigbee.0"
+    excludeIds?: string[];
+    excludeIdPatterns?: string; // comma list: plain substring or /regex/flags
+    // Display
+    showTitle?: boolean; // show the widget title in the header (default true)
+    showOkCategories?: boolean; // also list categories with no alerts (default false)
+    allClearText?: string;
+    sortBy?: 'severity' | 'room'; // default 'severity'
+    rowClick?: 'none' | 'jump'; // click a row → jump to a widget bound to that DP (default 'jump')
+}
+
+/** One datapoint currently in an attention state. */
+export interface StatusItem {
+    id: string;
+    name: string;
+    room?: string;
+    category: CategoryKey;
+    severity: Severity;
+    label: string; // status text, e.g. "12 %", "Geöffnet", "An"
+    color: string;
+    lc?: number; // last change (unix ms), for "seit …"
+}
+
+/** Returns the category a datapoint could belong to (structural match), or null. */
+export function categoryOf(dp: DatapointEntry, opts: StatusOverviewOptions): CategoryKey | null {
+    const r = (dp.role ?? '').toLowerCase();
+    const id = dp.id.toLowerCase();
+
+    if (opts.catWindow !== false) {
+        if (r === 'sensor.window' || r === 'window' || r === 'sensor.door' || r === 'door') return 'window';
+    }
+    if (opts.catBattery !== false) {
+        if (r === 'value.battery' && dp.type === 'number') return 'battery';
+        if (r === 'indicator.lowbat' || r === 'indicator.battery') return 'battery';
+        if (
+            opts.includeLowbatBoolean !== false &&
+            dp.type === 'boolean' &&
+            LOWBAT_ID_FRAGMENTS.some((f) => id.includes(f))
+        )
+            return 'battery';
+    }
+    if (opts.catLight !== false && matchLight(dp, opts)) return 'light';
+
+    return null;
+}
+
+function matchLight(dp: DatapointEntry, opts: StatusOverviewOptions): boolean {
+    const r = (dp.role ?? '').toLowerCase();
+    if (r === 'switch.light') return true;
+    if ((opts.lightRoleScope ?? 'light') === 'all' && (r === 'switch' || r === 'switch.power')) {
+        if (opts.lightsOnlyFunction) return dp.funcs.some(isLightFunc);
+        return true;
+    }
+    return false;
+}
+
+function splitList(csv?: string): string[] {
+    return (csv ?? '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+}
+
+function matchesIdPattern(id: string, pattern: string): boolean {
+    const p = pattern.trim();
+    if (!p) return false;
+    if (p.startsWith('/')) {
+        const lastSlash = p.lastIndexOf('/');
+        const body = p.slice(1, lastSlash > 0 ? lastSlash : undefined);
+        const flags = lastSlash > 0 ? p.slice(lastSlash + 1) : 'i';
+        try {
+            return new RegExp(body, flags || 'i').test(id);
+        } catch {
+            return false;
+        }
+    }
+    return id.toLowerCase().includes(p.toLowerCase());
+}
+
+/** Applies the user's scope + exclusion filters to a candidate datapoint. */
+export function passesScope(dp: DatapointEntry, opts: StatusOverviewOptions): boolean {
+    if (opts.excludeIds?.includes(dp.id)) return false;
+
+    const excludePatterns = splitList(opts.excludeIdPatterns);
+    if (excludePatterns.some((p) => matchesIdPattern(dp.id, p))) return false;
+
+    const rooms = splitList(opts.filterRooms);
+    if (rooms.length && !dp.rooms.some((r) => rooms.includes(r))) return false;
+
+    const funcs = splitList(opts.filterFuncs);
+    if (funcs.length && !dp.funcs.some((f) => funcs.includes(f))) return false;
+
+    const adapters = splitList(opts.filterAdapters);
+    if (adapters.length) {
+        const dot2 = dp.id.indexOf('.', dp.id.indexOf('.') + 1);
+        const prefix = dot2 !== -1 ? dp.id.slice(0, dot2) : dp.id;
+        if (!adapters.some((a) => prefix === a || dp.id.startsWith(a))) return false;
+    }
+    return true;
+}
+
+/**
+ * Given a candidate's category and its live value, returns a StatusItem when it is
+ * currently in an attention state, or null when it's fine.
+ */
+export function evaluateItem(
+    dp: DatapointEntry,
+    val: unknown,
+    cat: CategoryKey,
+    opts: StatusOverviewOptions,
+    lc?: number,
+): StatusItem | null {
+    const base = { id: dp.id, name: dp.name, room: dp.rooms[0], category: cat, lc };
+
+    if (cat === 'battery') {
+        const r = (dp.role ?? '').toLowerCase();
+        const isPercent = r === 'value.battery' || dp.type === 'number';
+        if (isPercent) {
+            const num = typeof val === 'number' ? val : parseFloat(String(val ?? ''));
+            if (isNaN(num) || num > (opts.batteryThreshold ?? 20)) return null;
+            return { ...base, severity: 'warn', label: `${Math.round(num)} %`, color: SEVERITY_COLOR.warn };
+        }
+        if (!isOn(val)) return null; // boolean LOWBAT: truthy = low
+        return { ...base, severity: 'warn', label: 'schwach', color: SEVERITY_COLOR.warn };
+    }
+
+    if (cat === 'window') {
+        if (!isOn(val)) return null;
+        const rd = getRoleDisplay(dp.role, val);
+        return { ...base, severity: 'crit', label: rd?.label ?? 'Offen', color: rd?.color ?? SEVERITY_COLOR.crit };
+    }
+
+    if (cat === 'light') {
+        if (!isOn(val)) return null;
+        return { ...base, severity: 'warn', label: 'An', color: SEVERITY_COLOR.warn };
+    }
+
+    return null;
+}
+
+const SEVERITY_RANK: Record<Severity, number> = { crit: 0, warn: 1, ok: 2 };
+
+/** Sort comparator for status items: by severity (crit first) then name, or by room then name. */
+export function compareItems(a: StatusItem, b: StatusItem, sortBy: 'severity' | 'room'): number {
+    if (sortBy === 'room') {
+        const ra = a.room ?? '￿';
+        const rb = b.room ?? '￿';
+        if (ra !== rb) return ra.localeCompare(rb, 'de');
+        return a.name.localeCompare(b.name, 'de');
+    }
+    if (a.severity !== b.severity) return SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity];
+    return a.name.localeCompare(b.name, 'de');
+}

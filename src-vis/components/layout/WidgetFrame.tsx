@@ -66,6 +66,7 @@ import { WIDGET_REGISTRY, WIDGET_GROUPS, WIDGET_BY_TYPE } from '../../widgetRegi
 import { detectType } from '../../utils/widgetDetection';
 import { DP_TEMPLATES, findMainDpForSecondary, autoDetectStatusDps, autoDetectLightDps } from '../../utils/dpTemplates';
 import { AutoListConfig } from '../config/AutoListConfig';
+import { StatusOverviewConfig } from '../config/StatusOverviewConfig';
 import { StaticListConfig } from '../config/StaticListConfig';
 import { GroupActionConfig } from '../config/GroupActionConfig';
 import {
@@ -126,6 +127,7 @@ import { FillWidget } from '../widgets/FillWidget';
 import { TrashWidget, TrashConfig } from '../widgets/TrashWidget';
 import { TrashScheduleWidget, TrashScheduleConfig } from '../widgets/TrashScheduleWidget';
 import { AutoListWidget } from '../widgets/AutoListWidget';
+import { StatusOverviewWidget } from '../widgets/StatusOverviewWidget';
 import { ShutterWidget } from '../widgets/ShutterWidget';
 import { JsonTableWidget } from '../widgets/JsonTableWidget';
 import { WindowContactWidget, WC_PRESETS, WC_PRESET_LABELS } from '../widgets/WindowContactWidget';
@@ -257,6 +259,7 @@ const NO_CUSTOM_LAYOUT_TYPES: WidgetType[] = [
     'adapterlogs',
     'alarm',
     'map',
+    'statusoverview',
 ];
 
 // ── Global custom-cell clipboard (shared across all WidgetFrames) ───────────
@@ -330,6 +333,7 @@ function getWidgetMap() {
         input: InputWidget,
         alarm: AlarmWidget,
         map: MapWidget,
+        statusoverview: StatusOverviewWidget,
     } as const;
 }
 
@@ -6245,7 +6249,8 @@ export function WidgetFrame({
                         config.type === 'autolist' ||
                         config.type === 'list' ||
                         config.type === 'trash' ||
-                        config.type === 'trashSchedule'
+                        config.type === 'trashSchedule' ||
+                        config.type === 'statusoverview'
                     }
                     storageKey="aura.widget.editModalSize"
                     onClose={() => openPanelFor(null)}
@@ -6670,62 +6675,82 @@ export function WidgetFrame({
                                                                                                       label: 'Custom',
                                                                                                   },
                                                                                               ]
-                                                                                            : [
-                                                                                                  {
-                                                                                                      value: 'default',
-                                                                                                      label: t(
-                                                                                                          'wf.edit.layout.standard',
-                                                                                                      ),
-                                                                                                  },
-                                                                                                  {
-                                                                                                      value: 'card',
-                                                                                                      label: t(
-                                                                                                          'wf.edit.layout.card',
-                                                                                                      ),
-                                                                                                  },
-                                                                                                  {
-                                                                                                      value: 'compact',
-                                                                                                      label: t(
-                                                                                                          'wf.edit.layout.compact',
-                                                                                                      ),
-                                                                                                  },
-                                                                                                  {
-                                                                                                      value: 'minimal',
-                                                                                                      label: t(
-                                                                                                          'wf.edit.layout.minimal',
-                                                                                                      ),
-                                                                                                  },
-                                                                                                  ...(config.type ===
-                                                                                                  'calendar'
-                                                                                                      ? [
-                                                                                                            {
-                                                                                                                value: 'agenda',
-                                                                                                                label: t(
-                                                                                                                    'wf.edit.layout.agenda',
-                                                                                                                ),
-                                                                                                            },
-                                                                                                        ]
-                                                                                                      : []),
-                                                                                                  ...(config.type ===
-                                                                                                  'autolist'
-                                                                                                      ? [
-                                                                                                            {
-                                                                                                                value: 'count',
-                                                                                                                label: 'Anzahl',
-                                                                                                            },
-                                                                                                        ]
-                                                                                                      : []),
-                                                                                                  ...(!NO_CUSTOM_LAYOUT_TYPES.includes(
-                                                                                                      config.type,
-                                                                                                  )
-                                                                                                      ? [
-                                                                                                            {
-                                                                                                                value: 'custom',
-                                                                                                                label: 'Custom',
-                                                                                                            },
-                                                                                                        ]
-                                                                                                      : []),
-                                                                                              ];
+                                                                                            : config.type ===
+                                                                                                'statusoverview'
+                                                                                              ? [
+                                                                                                    {
+                                                                                                        value: 'default',
+                                                                                                        label: t(
+                                                                                                            'wf.edit.layout.standard',
+                                                                                                        ),
+                                                                                                    },
+                                                                                                    {
+                                                                                                        value: 'compact',
+                                                                                                        label: t(
+                                                                                                            'wf.edit.layout.compact',
+                                                                                                        ),
+                                                                                                    },
+                                                                                                    {
+                                                                                                        value: 'count',
+                                                                                                        label: 'Anzahl',
+                                                                                                    },
+                                                                                                ]
+                                                                                              : [
+                                                                                                    {
+                                                                                                        value: 'default',
+                                                                                                        label: t(
+                                                                                                            'wf.edit.layout.standard',
+                                                                                                        ),
+                                                                                                    },
+                                                                                                    {
+                                                                                                        value: 'card',
+                                                                                                        label: t(
+                                                                                                            'wf.edit.layout.card',
+                                                                                                        ),
+                                                                                                    },
+                                                                                                    {
+                                                                                                        value: 'compact',
+                                                                                                        label: t(
+                                                                                                            'wf.edit.layout.compact',
+                                                                                                        ),
+                                                                                                    },
+                                                                                                    {
+                                                                                                        value: 'minimal',
+                                                                                                        label: t(
+                                                                                                            'wf.edit.layout.minimal',
+                                                                                                        ),
+                                                                                                    },
+                                                                                                    ...(config.type ===
+                                                                                                    'calendar'
+                                                                                                        ? [
+                                                                                                              {
+                                                                                                                  value: 'agenda',
+                                                                                                                  label: t(
+                                                                                                                      'wf.edit.layout.agenda',
+                                                                                                                  ),
+                                                                                                              },
+                                                                                                          ]
+                                                                                                        : []),
+                                                                                                    ...(config.type ===
+                                                                                                    'autolist'
+                                                                                                        ? [
+                                                                                                              {
+                                                                                                                  value: 'count',
+                                                                                                                  label: 'Anzahl',
+                                                                                                              },
+                                                                                                          ]
+                                                                                                        : []),
+                                                                                                    ...(!NO_CUSTOM_LAYOUT_TYPES.includes(
+                                                                                                        config.type,
+                                                                                                    )
+                                                                                                        ? [
+                                                                                                              {
+                                                                                                                  value: 'custom',
+                                                                                                                  label: 'Custom',
+                                                                                                              },
+                                                                                                          ]
+                                                                                                        : []),
+                                                                                                ];
                                 return (
                                     <div className="flex items-center gap-1 flex-wrap">
                                         <span
@@ -7783,7 +7808,8 @@ export function WidgetFrame({
                             config.type !== 'scriptstatus' &&
                             config.type !== 'adapterlogs' &&
                             config.type !== 'alarm' &&
-                            config.type !== 'map' && (
+                            config.type !== 'map' &&
+                            config.type !== 'statusoverview' && (
                                 <div>
                                     <label
                                         className="text-[11px] mb-1 block"
@@ -9965,6 +9991,11 @@ export function WidgetFrame({
                         {/* ── AutoList config ── */}
                         {config.type === 'autolist' && (
                             <AutoListConfig config={config} onConfigChange={onConfigChange} />
+                        )}
+
+                        {/* ── Status overview config ── */}
+                        {config.type === 'statusoverview' && (
+                            <StatusOverviewConfig config={config} onConfigChange={onConfigChange} />
                         )}
 
                         {/* ── Static List config ── */}

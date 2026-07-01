@@ -62,7 +62,8 @@ export type WidgetType =
     | 'adapterlogs'
     | 'input'
     | 'alarm'
-    | 'map';
+    | 'map'
+    | 'statusoverview';
 
 export type WidgetLayout =
     | 'default'

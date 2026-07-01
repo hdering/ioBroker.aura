@@ -44,6 +44,8 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
         case 'alarm':
         case 'map':
             return ['default'];
+        case 'statusoverview':
+            return ['default', 'compact', 'count'];
         case 'chart':
             return ['default', 'card'];
         case 'mediaplayer':
