@@ -74,6 +74,12 @@ export interface FrontendSettings {
      * Statusübersicht widget. A device's battery type is a property of the device, not of a widget.
      */
     batteryTypeOverrides: Record<string, { type: string; quantity?: number }>;
+    /**
+     * Battery devices to ignore everywhere (inventory, low-battery warnings, stats).
+     * Stored as resolved device ids (same key as batteryTypeOverrides). For false
+     * positives or devices the user does not want tracked. Managed on Admin → Batterien.
+     */
+    batteryHiddenDevices: string[];
 }
 
 interface ConfigState {
@@ -128,6 +134,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     superAdminKey: '',
     adminBaseUrl: '',
     batteryTypeOverrides: {},
+    batteryHiddenDevices: [],
 };
 
 export const useConfigStore = create<ConfigState>()(

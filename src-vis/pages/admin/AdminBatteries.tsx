@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BatteryFull, HelpCircle, Search, Wand2, Hand } from 'lucide-react';
+import { BatteryFull, HelpCircle, Search, Wand2, Hand, Eye, EyeOff } from 'lucide-react';
 import { useConfigStore } from '../../store/configStore';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { categoryOf } from '../../utils/statusOverview';
 import {
     loadDeviceModelIndex,
     loadBatteryLibrary,
-    matchBatteryType,
+    autoBatteryType,
     resolveDeviceIdForDp,
     BATTERY_TYPES,
     type BatteryLibIndex,
@@ -64,16 +64,34 @@ function StatCard({
 }
 
 const EMPTY_OVERRIDES: Record<string, { type: string; quantity?: number }> = {};
+const EMPTY_HIDDEN: string[] = [];
+
+/** Readable model string: drop cryptic vendor codes (e.g. zigbee "_TZ3000_…"). */
+function formatModel(d: DeviceRow): string {
+    const readableMfr = d.manufacturer && !d.manufacturer.startsWith('_') ? d.manufacturer : undefined;
+    const primary = d.model || d.modelId;
+    return [readableMfr, primary].filter(Boolean).join(' · ') || '—';
+}
 
 export function AdminBatteries() {
-    // Coalesce: configs persisted before this field existed rehydrate without it.
+    // Coalesce: configs persisted before these fields existed rehydrate without them.
     const overrides = useConfigStore((s) => s.frontend.batteryTypeOverrides) ?? EMPTY_OVERRIDES;
+    const hiddenDevices = useConfigStore((s) => s.frontend.batteryHiddenDevices) ?? EMPTY_HIDDEN;
     const updateFrontend = useConfigStore((s) => s.updateFrontend);
 
     const [devices, setDevices] = useState<DeviceRow[]>([]);
     const [lib, setLib] = useState<BatteryLibIndex | null>(null);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [showHidden, setShowHidden] = useState(false);
+
+    const hiddenSet = useMemo(() => new Set(hiddenDevices), [hiddenDevices]);
+    const toggleHidden = (deviceId: string) => {
+        const set = new Set(hiddenDevices);
+        if (set.has(deviceId)) set.delete(deviceId);
+        else set.add(deviceId);
+        updateFrontend({ batteryHiddenDevices: [...set] });
+    };
 
     useEffect(() => {
         let cancelled = false;
@@ -91,7 +109,7 @@ export function AdminBatteries() {
                 const deviceId = resolveDeviceIdForDp(dp.id, index);
                 if (byDevice.has(deviceId)) continue;
                 const dm: DeviceModel | undefined = index.get(deviceId);
-                const auto = dm ? matchBatteryType(dm, library) : null;
+                const auto = autoBatteryType(deviceId, dm, library);
                 byDevice.set(deviceId, {
                     deviceId,
                     name: dm?.name || dp.name,
@@ -120,17 +138,20 @@ export function AdminBatteries() {
         updateFrontend({ batteryTypeOverrides: next });
     };
 
+    const activeDevices = useMemo(() => devices.filter((d) => !hiddenSet.has(d.deviceId)), [devices, hiddenSet]);
+    const hiddenList = useMemo(() => devices.filter((d) => hiddenSet.has(d.deviceId)), [devices, hiddenSet]);
+
     const stats = useMemo(() => {
         let auto = 0,
             manual = 0,
             unknown = 0;
-        for (const d of devices) {
+        for (const d of activeDevices) {
             if (overrides[d.deviceId]?.type) manual++;
             else if (d.autoType) auto++;
             else unknown++;
         }
-        return { total: devices.length, auto, manual, unknown };
-    }, [devices, overrides]);
+        return { total: activeDevices.length, auto, manual, unknown };
+    }, [activeDevices, overrides]);
 
     const libResults = useMemo(() => {
         if (!lib) return [];
@@ -146,6 +167,100 @@ export function AdminBatteries() {
             : src;
         return filtered.slice(0, 100);
     }, [lib, search]);
+
+    const renderDeviceRow = (d: DeviceRow) => {
+        const hidden = hiddenSet.has(d.deviceId);
+        const ov = overrides[d.deviceId];
+        const type = ov?.type ?? d.autoType;
+        const source = ov?.type ? 'manuell' : d.autoType ? 'auto' : '—';
+        const qty = ov?.quantity ?? (ov?.type ? 1 : d.autoQty);
+        return (
+            <tr key={d.deviceId} style={{ borderTop: '1px solid var(--app-border)', opacity: hidden ? 0.5 : 1 }}>
+                <td className="py-1.5 pr-3" style={{ color: 'var(--text-primary)' }}>
+                    {d.name}
+                    {d.room && <span className="ml-1 opacity-50">{d.room}</span>}
+                </td>
+                <td className="py-1.5 pr-3 font-mono" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                    {formatModel(d)}
+                </td>
+                <td className="py-1.5 pr-3 font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {type ?? <span style={{ color: 'var(--accent-red)' }}>?</span>}
+                </td>
+                <td className="py-1.5 pr-3">
+                    <span
+                        className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                        style={{
+                            color:
+                                source === 'manuell'
+                                    ? 'var(--accent-yellow, #f59e0b)'
+                                    : source === 'auto'
+                                      ? 'var(--accent-green)'
+                                      : 'var(--text-secondary)',
+                            background:
+                                source === '—'
+                                    ? 'transparent'
+                                    : `color-mix(in srgb, currentColor 15%, var(--app-surface))`,
+                        }}
+                    >
+                        {source === 'manuell' ? <Hand size={9} /> : source === 'auto' ? <Wand2 size={9} /> : null}
+                        {source}
+                    </span>
+                </td>
+                <td className="py-1.5 pr-3">
+                    <select
+                        value={ov?.type ?? ''}
+                        onChange={(e) => setOverride(d.deviceId, e.target.value || null, ov?.quantity)}
+                        className={inputCls}
+                        style={inputStyle}
+                    >
+                        <option value="">— Auto{d.autoType ? ` (${d.autoType})` : ''} —</option>
+                        {BATTERY_TYPES.map((bt) => (
+                            <option key={bt} value={bt}>
+                                {bt}
+                            </option>
+                        ))}
+                    </select>
+                </td>
+                <td className="py-1.5 pr-3">
+                    <input
+                        type="number"
+                        min={1}
+                        max={20}
+                        value={qty}
+                        disabled={!ov?.type}
+                        onChange={(e) => setOverride(d.deviceId, ov?.type ?? null, Number(e.target.value) || 1)}
+                        className={inputCls}
+                        style={{ ...inputStyle, width: 56, opacity: ov?.type ? 1 : 0.5 }}
+                        title={ov?.type ? 'Anzahl Batterien' : 'Erst Typ zuordnen'}
+                    />
+                </td>
+                <td className="py-1.5">
+                    <button
+                        onClick={() => toggleHidden(d.deviceId)}
+                        className="p-1 rounded hover:opacity-80"
+                        style={{ color: 'var(--text-secondary)' }}
+                        title={hidden ? 'Wieder einblenden' : 'Ausblenden / ignorieren'}
+                    >
+                        {hidden ? <Eye size={14} /> : <EyeOff size={14} />}
+                    </button>
+                </td>
+            </tr>
+        );
+    };
+
+    const tableHead = (
+        <thead>
+            <tr style={{ color: 'var(--text-secondary)', textAlign: 'left' }}>
+                <th className="py-1.5 pr-3 font-medium">Gerät</th>
+                <th className="py-1.5 pr-3 font-medium">Erkanntes Modell</th>
+                <th className="py-1.5 pr-3 font-medium">Typ</th>
+                <th className="py-1.5 pr-3 font-medium">Quelle</th>
+                <th className="py-1.5 pr-3 font-medium">Zuordnen</th>
+                <th className="py-1.5 pr-3 font-medium">Anzahl</th>
+                <th className="py-1.5 font-medium" />
+            </tr>
+        </thead>
+    );
 
     return (
         <div className="p-8 space-y-8">
@@ -187,113 +302,28 @@ export function AdminBatteries() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-xs" style={{ borderCollapse: 'collapse' }}>
-                            <thead>
-                                <tr style={{ color: 'var(--text-secondary)', textAlign: 'left' }}>
-                                    <th className="py-1.5 pr-3 font-medium">Gerät</th>
-                                    <th className="py-1.5 pr-3 font-medium">Erkanntes Modell</th>
-                                    <th className="py-1.5 pr-3 font-medium">Typ</th>
-                                    <th className="py-1.5 pr-3 font-medium">Quelle</th>
-                                    <th className="py-1.5 pr-3 font-medium">Zuordnen</th>
-                                    <th className="py-1.5 font-medium">Anzahl</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {devices.map((d) => {
-                                    const ov = overrides[d.deviceId];
-                                    const type = ov?.type ?? d.autoType;
-                                    const source = ov?.type ? 'manuell' : d.autoType ? 'auto' : '—';
-                                    const qty = ov?.quantity ?? (ov?.type ? 1 : d.autoQty);
-                                    return (
-                                        <tr key={d.deviceId} style={{ borderTop: '1px solid var(--app-border)' }}>
-                                            <td className="py-1.5 pr-3" style={{ color: 'var(--text-primary)' }}>
-                                                {d.name}
-                                                {d.room && <span className="ml-1 opacity-50">{d.room}</span>}
-                                            </td>
-                                            <td
-                                                className="py-1.5 pr-3 font-mono"
-                                                style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
-                                            >
-                                                {[
-                                                    d.manufacturer,
-                                                    d.model,
-                                                    d.modelId && d.modelId !== d.model ? d.modelId : null,
-                                                ]
-                                                    .filter(Boolean)
-                                                    .join(' · ') || '—'}
-                                            </td>
-                                            <td
-                                                className="py-1.5 pr-3 font-semibold"
-                                                style={{ color: 'var(--text-primary)' }}
-                                            >
-                                                {type ?? <span style={{ color: 'var(--accent-red)' }}>?</span>}
-                                            </td>
-                                            <td className="py-1.5 pr-3">
-                                                <span
-                                                    className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
-                                                    style={{
-                                                        color:
-                                                            source === 'manuell'
-                                                                ? 'var(--accent-yellow, #f59e0b)'
-                                                                : source === 'auto'
-                                                                  ? 'var(--accent-green)'
-                                                                  : 'var(--text-secondary)',
-                                                        background:
-                                                            source === '—'
-                                                                ? 'transparent'
-                                                                : `color-mix(in srgb, currentColor 15%, var(--app-surface))`,
-                                                    }}
-                                                >
-                                                    {source === 'manuell' ? (
-                                                        <Hand size={9} />
-                                                    ) : source === 'auto' ? (
-                                                        <Wand2 size={9} />
-                                                    ) : null}
-                                                    {source}
-                                                </span>
-                                            </td>
-                                            <td className="py-1.5 pr-3">
-                                                <select
-                                                    value={ov?.type ?? ''}
-                                                    onChange={(e) =>
-                                                        setOverride(d.deviceId, e.target.value || null, ov?.quantity)
-                                                    }
-                                                    className={inputCls}
-                                                    style={inputStyle}
-                                                >
-                                                    <option value="">
-                                                        — Auto{d.autoType ? ` (${d.autoType})` : ''} —
-                                                    </option>
-                                                    {BATTERY_TYPES.map((bt) => (
-                                                        <option key={bt} value={bt}>
-                                                            {bt}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </td>
-                                            <td className="py-1.5">
-                                                <input
-                                                    type="number"
-                                                    min={1}
-                                                    max={20}
-                                                    value={qty}
-                                                    disabled={!ov?.type}
-                                                    onChange={(e) =>
-                                                        setOverride(
-                                                            d.deviceId,
-                                                            ov?.type ?? null,
-                                                            Number(e.target.value) || 1,
-                                                        )
-                                                    }
-                                                    className={inputCls}
-                                                    style={{ ...inputStyle, width: 56, opacity: ov?.type ? 1 : 0.5 }}
-                                                    title={ov?.type ? 'Anzahl Batterien' : 'Erst Typ zuordnen'}
-                                                />
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
+                            {tableHead}
+                            <tbody>{activeDevices.map(renderDeviceRow)}</tbody>
                         </table>
+
+                        {hiddenList.length > 0 && (
+                            <div className="mt-3">
+                                <button
+                                    onClick={() => setShowHidden((v) => !v)}
+                                    className="inline-flex items-center gap-1.5 text-xs hover:opacity-80"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    <EyeOff size={13} />
+                                    {hiddenList.length} ausgeblendet{showHidden ? ' — verbergen' : ' — anzeigen'}
+                                </button>
+                                {showHidden && (
+                                    <table className="w-full text-xs mt-2" style={{ borderCollapse: 'collapse' }}>
+                                        {tableHead}
+                                        <tbody>{hiddenList.map(renderDeviceRow)}</tbody>
+                                    </table>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

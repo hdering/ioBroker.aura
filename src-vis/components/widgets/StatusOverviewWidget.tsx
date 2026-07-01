@@ -22,8 +22,11 @@ import {
     loadDeviceModelIndex,
     loadBatteryLibrary,
     resolveBatteryType,
+    resolveDeviceIdForDp,
     type BatteryResolution,
 } from '../../utils/batteryLibrary';
+
+const EMPTY_HIDDEN: string[] = [];
 import {
     categoryOf,
     passesScope,
@@ -81,7 +84,10 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     const opts = useMemo(() => (config.options ?? {}) as StatusOverviewOptions, [config.options]);
     const { subscribe, getState } = useIoBroker();
     const overrides = useConfigStore((s) => s.frontend.batteryTypeOverrides);
+    const hiddenDevices = useConfigStore((s) => s.frontend.batteryHiddenDevices) ?? EMPTY_HIDDEN;
     const layout = config.layout ?? 'default';
+    const hiddenKey = hiddenDevices.join(',');
+    const hiddenSet = useMemo(() => new Set(hiddenDevices), [hiddenKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const [candidates, setCandidates] = useState<Candidate[]>([]);
     const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
@@ -152,43 +158,58 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     // ── Battery type resolution (device model → library, manual override first) ──
     const batteryCandidates = useMemo(() => candidates.filter((c) => c.cat === 'battery'), [candidates]);
     const wantBatteryTypes = layout === 'inventory' || opts.batteryTypeEnabled === true;
+    // Device-id resolution is also needed (without the library) when devices are hidden.
+    const needBatteryMeta = wantBatteryTypes || hiddenDevices.length > 0;
     const batteryCandKey = batteryCandidates.map((c) => c.dp.id).join(',');
     const overridesKey = JSON.stringify(overrides ?? {});
     useEffect(() => {
-        if (!wantBatteryTypes || batteryCandidates.length === 0) {
+        if (!needBatteryMeta || batteryCandidates.length === 0) {
             setBatteryInfo({});
             return;
         }
         let cancelled = false;
-        Promise.all([loadDeviceModelIndex(), loadBatteryLibrary()]).then(([index, lib]) => {
-            if (cancelled) return;
-            const info: Record<
-                string,
-                {
-                    deviceId: string;
-                    type: string | null;
-                    quantity: number;
-                    deviceName: string;
-                    source: BatteryResolution['source'];
+        Promise.all([loadDeviceModelIndex(), wantBatteryTypes ? loadBatteryLibrary() : Promise.resolve(null)]).then(
+            ([index, lib]) => {
+                if (cancelled) return;
+                const info: Record<
+                    string,
+                    {
+                        deviceId: string;
+                        type: string | null;
+                        quantity: number;
+                        deviceName: string;
+                        source: BatteryResolution['source'];
+                    }
+                > = {};
+                for (const c of batteryCandidates) {
+                    if (lib) {
+                        const r = resolveBatteryType(c.dp.id, index, lib, overrides);
+                        info[c.dp.id] = {
+                            deviceId: r.deviceId,
+                            type: r.type,
+                            quantity: r.quantity,
+                            deviceName: index.get(r.deviceId)?.name || c.dp.name,
+                            source: r.source,
+                        };
+                    } else {
+                        const deviceId = resolveDeviceIdForDp(c.dp.id, index);
+                        info[c.dp.id] = {
+                            deviceId,
+                            type: null,
+                            quantity: 1,
+                            deviceName: index.get(deviceId)?.name || c.dp.name,
+                            source: null,
+                        };
+                    }
                 }
-            > = {};
-            for (const c of batteryCandidates) {
-                const r = resolveBatteryType(c.dp.id, index, lib, overrides);
-                info[c.dp.id] = {
-                    deviceId: r.deviceId,
-                    type: r.type,
-                    quantity: r.quantity,
-                    deviceName: index.get(r.deviceId)?.name || c.dp.name,
-                    source: r.source,
-                };
-            }
-            setBatteryInfo(info);
-        });
+                setBatteryInfo(info);
+            },
+        );
         return () => {
             cancelled = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [batteryCandKey, wantBatteryTypes, overridesKey]);
+    }, [batteryCandKey, needBatteryMeta, wantBatteryTypes, overridesKey]);
 
     // ── Evaluate → attention items ─────────────────────────────────────────────
     const sortBy = opts.sortBy ?? 'severity';
@@ -198,11 +219,17 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
             const s = states[c.dp.id];
             if (s === undefined) continue; // not loaded yet
             const item = evaluateItem(c.dp, s?.val ?? null, c.cat, opts, s?.lc && s.lc > 0 ? s.lc : s?.ts);
-            if (item) out.push(item);
+            if (!item) continue;
+            // Hidden battery devices never count as attention.
+            if (c.cat === 'battery') {
+                const did = batteryInfo[c.dp.id]?.deviceId;
+                if (did && hiddenSet.has(did)) continue;
+            }
+            out.push(item);
         }
         out.sort((a, b) => compareItems(a, b, sortBy));
         return out;
-    }, [candidates, states, opts, sortBy]);
+    }, [candidates, states, opts, sortBy, batteryInfo, hiddenSet]);
 
     // ── Battery inventory (ALL battery devices, grouped by type) ────────────────
     const inventory = useMemo(() => {
@@ -211,6 +238,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         for (const c of batteryCandidates) {
             const info = batteryInfo[c.dp.id];
             const deviceId = info?.deviceId ?? c.dp.id;
+            if (hiddenSet.has(deviceId)) continue;
             if (byDevice.has(deviceId)) continue;
             byDevice.set(deviceId, {
                 name: info?.deviceName ?? c.dp.name,
@@ -239,7 +267,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
             .map((g) => `${g.totalQty}× ${g.type}`)
             .join(', ');
         return { list, shopping, deviceCount: byDevice.size };
-    }, [batteryCandidates, batteryInfo]);
+    }, [batteryCandidates, batteryInfo, hiddenSet]);
 
     const total = items.length;
     const hasCrit = items.some((i) => i.severity === 'crit');
