@@ -117,8 +117,10 @@ export function categoryOf(dp: DatapointEntry, opts: StatusOverviewOptions): Cat
     if (opts.catWindow !== false) {
         if (r === 'sensor.window' || r === 'window' || r === 'sensor.door' || r === 'door') return 'window';
     }
-    if (opts.catUnreach !== false) {
-        if (r === 'indicator.unreach' || isReachableRole(r)) return 'unreach';
+    // Skip the latching STICKY_UNREACH twin — it stays true after any past outage, so it
+    // would both duplicate the live UNREACH and wrongly flag currently-reachable devices.
+    if (opts.catUnreach !== false && !id.includes('sticky')) {
+        if (r === 'indicator.unreach' || r.endsWith('.unreach') || isReachableRole(r)) return 'unreach';
         if (dp.type === 'boolean' && UNREACH_ID_FRAGMENTS.some((f) => id.includes(f))) return 'unreach';
     }
     if (opts.catBattery !== false) {
