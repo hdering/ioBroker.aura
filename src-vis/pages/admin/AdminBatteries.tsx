@@ -17,7 +17,9 @@ interface DeviceRow {
     deviceId: string;
     name: string;
     room?: string;
+    manufacturer?: string;
     model?: string;
+    modelId?: string;
     autoType: string | null;
     autoQty: number;
 }
@@ -94,7 +96,9 @@ export function AdminBatteries() {
                     deviceId,
                     name: dm?.name || dp.name,
                     room: dp.rooms[0],
-                    model: dm?.model || dm?.modelId,
+                    manufacturer: dm?.manufacturer,
+                    model: dm?.model,
+                    modelId: dm?.modelId,
                     autoType: auto?.batteryType ?? null,
                     autoQty: auto?.quantity ?? 1,
                 });
@@ -186,6 +190,7 @@ export function AdminBatteries() {
                             <thead>
                                 <tr style={{ color: 'var(--text-secondary)', textAlign: 'left' }}>
                                     <th className="py-1.5 pr-3 font-medium">Gerät</th>
+                                    <th className="py-1.5 pr-3 font-medium">Erkanntes Modell</th>
                                     <th className="py-1.5 pr-3 font-medium">Typ</th>
                                     <th className="py-1.5 pr-3 font-medium">Quelle</th>
                                     <th className="py-1.5 pr-3 font-medium">Zuordnen</th>
@@ -202,11 +207,19 @@ export function AdminBatteries() {
                                         <tr key={d.deviceId} style={{ borderTop: '1px solid var(--app-border)' }}>
                                             <td className="py-1.5 pr-3" style={{ color: 'var(--text-primary)' }}>
                                                 {d.name}
-                                                {(d.room || d.model) && (
-                                                    <span className="ml-1 opacity-50">
-                                                        {[d.room, d.model].filter(Boolean).join(' · ')}
-                                                    </span>
-                                                )}
+                                                {d.room && <span className="ml-1 opacity-50">{d.room}</span>}
+                                            </td>
+                                            <td
+                                                className="py-1.5 pr-3 font-mono"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
+                                            >
+                                                {[
+                                                    d.manufacturer,
+                                                    d.model,
+                                                    d.modelId && d.modelId !== d.model ? d.modelId : null,
+                                                ]
+                                                    .filter(Boolean)
+                                                    .join(' · ') || '—'}
                                             </td>
                                             <td
                                                 className="py-1.5 pr-3 font-semibold"
