@@ -437,7 +437,7 @@ export const de = {
     'theme.vars.elGauge': 'Tachometer',
     'theme.vars.elClimate': 'Klima',
     'theme.vars.elChip': 'Chips',
-    'theme.vars.elBadge': 'Status-Abzeichen',
+    'theme.vars.elBadge': 'Marker',
     'theme.vars.elLight': 'Licht',
     'theme.vars.elNav': 'Navigation',
     'theme.vars.elOnBg': 'An-Hintergrund',
@@ -585,7 +585,7 @@ export const de = {
     // ── WidgetFrame menu & edit modal ─────────────────────────────────────────────
     'wf.menu.edit': 'Bearbeiten',
     'wf.menu.conditions': 'Bedingungen',
-    'wf.menu.badges': 'Badges',
+    'wf.menu.badges': 'Marker',
     'wf.menu.export': 'Exportieren',
     'wf.menu.copy': 'Kopieren',
     'wf.menu.copyHere': 'Hier duplizieren',
@@ -814,7 +814,7 @@ export const de = {
     'tabBar.disabled': 'Tab deaktiviert',
     'tabBar.hidden': 'Aus Tab-Leiste ausblenden',
     'tabBar.conditions': 'Bedingungen',
-    'tabBar.badges': 'Badges',
+    'tabBar.badges': 'Marker',
     'tabBar.hideTabOnCond': 'Tab verbergen wenn Bedingung zutrifft',
     'tabBar.icon': 'Icon',
     'tabBar.selectIcon': 'Icon auswählen…',
@@ -898,11 +898,11 @@ export const de = {
     'cond.noRules': 'Noch keine Regeln. Erstelle eine Regel um loszulegen.',
     'cond.newRule': 'Neue Regel',
 
-    // ── Badges ───────────────────────────────────────────────────────────────────
-    'badge.rules': 'Badges',
+    // ── Marker ───────────────────────────────────────────────────────────────────
+    'badge.rules': 'Marker',
     'badge.rulesHint': 'Kleine Indikatoren am Rand des Elements',
-    'badge.noRules': 'Noch keine Badges. Füge eines hinzu um loszulegen.',
-    'badge.newRule': 'Neues Badge',
+    'badge.noRules': 'Noch keine Marker. Füge einen hinzu um loszulegen.',
+    'badge.newRule': 'Neuer Marker',
     'badge.style': 'Stil',
     'badge.styleDot': 'Punkt',
     'badge.styleCount': 'Anzahl (Datenpunkt)',
@@ -923,7 +923,7 @@ export const de = {
     'badge.visNonzeroHint': 'Sichtbar solange der Datenpunkt aktiv ist (> 0, true oder nicht leer)',
     'badge.visCondition': 'Wenn Bedingung erfüllt',
     'badge.tabAggregate': 'Aggregat-Anzahl',
-    'badge.tabAggregateHint': 'Zeigt, wie viele Widgets in diesem Tab gerade ein Badge haben',
+    'badge.tabAggregateHint': 'Zeigt, wie viele Widgets in diesem Tab gerade einen Marker haben',
 
     // ── EChartConfig ─────────────────────────────────────────────────────────────
     'echart.deleteSeries': 'Serie löschen',
