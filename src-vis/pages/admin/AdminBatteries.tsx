@@ -1,0 +1,349 @@
+import { useEffect, useMemo, useState } from 'react';
+import { BatteryFull, HelpCircle, Search, Wand2, Hand } from 'lucide-react';
+import { useConfigStore } from '../../store/configStore';
+import { ensureDatapointCache } from '../../hooks/useDatapointList';
+import { categoryOf } from '../../utils/statusOverview';
+import {
+    loadDeviceModelIndex,
+    loadBatteryLibrary,
+    matchBatteryType,
+    resolveDeviceIdForDp,
+    BATTERY_TYPES,
+    type BatteryLibIndex,
+    type DeviceModel,
+} from '../../utils/batteryLibrary';
+
+interface DeviceRow {
+    deviceId: string;
+    name: string;
+    room?: string;
+    model?: string;
+    autoType: string | null;
+    autoQty: number;
+}
+
+const cardStyle: React.CSSProperties = { background: 'var(--app-surface)', border: '1px solid var(--app-border)' };
+const inputCls = 'text-xs rounded-lg px-2 py-1.5 focus:outline-none';
+const inputStyle: React.CSSProperties = {
+    background: 'var(--app-bg)',
+    color: 'var(--text-primary)',
+    border: '1px solid var(--app-border)',
+};
+
+function StatCard({
+    label,
+    value,
+    icon: Icon,
+    color,
+}: {
+    label: string;
+    value: number;
+    icon: React.ElementType;
+    color: string;
+}) {
+    return (
+        <div className="rounded-xl p-4" style={cardStyle}>
+            <div className="flex items-center justify-between mb-2">
+                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    {label}
+                </span>
+                <div
+                    className="w-7 h-7 rounded-lg flex items-center justify-center"
+                    style={{ background: `${color}22` }}
+                >
+                    <Icon size={14} style={{ color }} />
+                </div>
+            </div>
+            <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                {value}
+            </p>
+        </div>
+    );
+}
+
+export function AdminBatteries() {
+    const overrides = useConfigStore((s) => s.frontend.batteryTypeOverrides);
+    const updateFrontend = useConfigStore((s) => s.updateFrontend);
+
+    const [devices, setDevices] = useState<DeviceRow[]>([]);
+    const [lib, setLib] = useState<BatteryLibIndex | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState('');
+
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            const [cache, index, library] = await Promise.all([
+                ensureDatapointCache(),
+                loadDeviceModelIndex(),
+                loadBatteryLibrary(),
+            ]);
+            if (cancelled) return;
+            const battOpts = { catWindow: false, catLight: false, catUnreach: false, catAlarm: false } as const;
+            const byDevice = new Map<string, DeviceRow>();
+            for (const dp of cache) {
+                if (categoryOf(dp, battOpts) !== 'battery') continue;
+                const deviceId = resolveDeviceIdForDp(dp.id, index);
+                if (byDevice.has(deviceId)) continue;
+                const dm: DeviceModel | undefined = index.get(deviceId);
+                const auto = dm ? matchBatteryType(dm, library) : null;
+                byDevice.set(deviceId, {
+                    deviceId,
+                    name: dm?.name || dp.name,
+                    room: dp.rooms[0],
+                    model: dm?.model || dm?.modelId,
+                    autoType: auto?.batteryType ?? null,
+                    autoQty: auto?.quantity ?? 1,
+                });
+            }
+            const list = [...byDevice.values()].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+            setDevices(list);
+            setLib(library);
+            setLoading(false);
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const setOverride = (deviceId: string, type: string | null, quantity?: number) => {
+        const next = { ...overrides };
+        if (!type) delete next[deviceId];
+        else next[deviceId] = { type, ...(quantity && quantity > 1 ? { quantity } : {}) };
+        updateFrontend({ batteryTypeOverrides: next });
+    };
+
+    const stats = useMemo(() => {
+        let auto = 0,
+            manual = 0,
+            unknown = 0;
+        for (const d of devices) {
+            if (overrides[d.deviceId]?.type) manual++;
+            else if (d.autoType) auto++;
+            else unknown++;
+        }
+        return { total: devices.length, auto, manual, unknown };
+    }, [devices, overrides]);
+
+    const libResults = useMemo(() => {
+        if (!lib) return [];
+        const q = search.trim().toLowerCase();
+        const src = lib.entries;
+        const filtered = q
+            ? src.filter(
+                  (e) =>
+                      e.manufacturer.toLowerCase().includes(q) ||
+                      e.model.toLowerCase().includes(q) ||
+                      (e.modelId ?? '').toLowerCase().includes(q),
+              )
+            : src;
+        return filtered.slice(0, 100);
+    }, [lib, search]);
+
+    return (
+        <div className="p-8 space-y-8">
+            <div>
+                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                    Batterien
+                </h1>
+                <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                    Batterietypen deiner Geräte – automatisch erkannt, manuell korrigierbar.
+                </p>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard label="Batteriegeräte" value={stats.total} icon={BatteryFull} color="var(--accent)" />
+                <StatCard label="Automatisch erkannt" value={stats.auto} icon={Wand2} color="var(--accent-green)" />
+                <StatCard
+                    label="Manuell zugeordnet"
+                    value={stats.manual}
+                    icon={Hand}
+                    color="var(--accent-yellow, #f59e0b)"
+                />
+                <StatCard label="Unbekannt" value={stats.unknown} icon={HelpCircle} color="var(--accent-red)" />
+            </div>
+
+            {/* My devices */}
+            <div className="rounded-xl p-5" style={cardStyle}>
+                <h2 className="font-semibold text-sm mb-3" style={{ color: 'var(--text-primary)' }}>
+                    Meine Geräte
+                </h2>
+                {loading ? (
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                        Lade Geräte …
+                    </p>
+                ) : devices.length === 0 ? (
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                        Keine Batteriegeräte gefunden.
+                    </p>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-xs" style={{ borderCollapse: 'collapse' }}>
+                            <thead>
+                                <tr style={{ color: 'var(--text-secondary)', textAlign: 'left' }}>
+                                    <th className="py-1.5 pr-3 font-medium">Gerät</th>
+                                    <th className="py-1.5 pr-3 font-medium">Typ</th>
+                                    <th className="py-1.5 pr-3 font-medium">Quelle</th>
+                                    <th className="py-1.5 pr-3 font-medium">Zuordnen</th>
+                                    <th className="py-1.5 font-medium">Anzahl</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {devices.map((d) => {
+                                    const ov = overrides[d.deviceId];
+                                    const type = ov?.type ?? d.autoType;
+                                    const source = ov?.type ? 'manuell' : d.autoType ? 'auto' : '—';
+                                    const qty = ov?.quantity ?? (ov?.type ? 1 : d.autoQty);
+                                    return (
+                                        <tr key={d.deviceId} style={{ borderTop: '1px solid var(--app-border)' }}>
+                                            <td className="py-1.5 pr-3" style={{ color: 'var(--text-primary)' }}>
+                                                {d.name}
+                                                {(d.room || d.model) && (
+                                                    <span className="ml-1 opacity-50">
+                                                        {[d.room, d.model].filter(Boolean).join(' · ')}
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td
+                                                className="py-1.5 pr-3 font-semibold"
+                                                style={{ color: 'var(--text-primary)' }}
+                                            >
+                                                {type ?? <span style={{ color: 'var(--accent-red)' }}>?</span>}
+                                            </td>
+                                            <td className="py-1.5 pr-3">
+                                                <span
+                                                    className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                                                    style={{
+                                                        color:
+                                                            source === 'manuell'
+                                                                ? 'var(--accent-yellow, #f59e0b)'
+                                                                : source === 'auto'
+                                                                  ? 'var(--accent-green)'
+                                                                  : 'var(--text-secondary)',
+                                                        background:
+                                                            source === '—'
+                                                                ? 'transparent'
+                                                                : `color-mix(in srgb, currentColor 15%, var(--app-surface))`,
+                                                    }}
+                                                >
+                                                    {source === 'manuell' ? (
+                                                        <Hand size={9} />
+                                                    ) : source === 'auto' ? (
+                                                        <Wand2 size={9} />
+                                                    ) : null}
+                                                    {source}
+                                                </span>
+                                            </td>
+                                            <td className="py-1.5 pr-3">
+                                                <select
+                                                    value={ov?.type ?? ''}
+                                                    onChange={(e) =>
+                                                        setOverride(d.deviceId, e.target.value || null, ov?.quantity)
+                                                    }
+                                                    className={inputCls}
+                                                    style={inputStyle}
+                                                >
+                                                    <option value="">
+                                                        — Auto{d.autoType ? ` (${d.autoType})` : ''} —
+                                                    </option>
+                                                    {BATTERY_TYPES.map((bt) => (
+                                                        <option key={bt} value={bt}>
+                                                            {bt}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </td>
+                                            <td className="py-1.5">
+                                                <input
+                                                    type="number"
+                                                    min={1}
+                                                    max={20}
+                                                    value={qty}
+                                                    disabled={!ov?.type}
+                                                    onChange={(e) =>
+                                                        setOverride(
+                                                            d.deviceId,
+                                                            ov?.type ?? null,
+                                                            Number(e.target.value) || 1,
+                                                        )
+                                                    }
+                                                    className={inputCls}
+                                                    style={{ ...inputStyle, width: 56, opacity: ov?.type ? 1 : 0.5 }}
+                                                    title={ov?.type ? 'Anzahl Batterien' : 'Erst Typ zuordnen'}
+                                                />
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            {/* Library browser (read-only) */}
+            <div className="rounded-xl p-5" style={cardStyle}>
+                <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+                    <h2 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                        Batterie-Datenbank
+                    </h2>
+                    <div className="flex items-center gap-2 rounded-lg px-2" style={inputStyle}>
+                        <Search size={13} style={{ color: 'var(--text-secondary)' }} />
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Hersteller / Modell suchen …"
+                            className="text-xs py-1.5 bg-transparent focus:outline-none"
+                            style={{ color: 'var(--text-primary)', minWidth: 200 }}
+                        />
+                    </div>
+                </div>
+                <div className="overflow-x-auto" style={{ maxHeight: 360, overflowY: 'auto' }}>
+                    <table className="w-full text-xs" style={{ borderCollapse: 'collapse' }}>
+                        <thead>
+                            <tr style={{ color: 'var(--text-secondary)', textAlign: 'left' }}>
+                                <th className="py-1.5 pr-3 font-medium">Hersteller</th>
+                                <th className="py-1.5 pr-3 font-medium">Modell</th>
+                                <th className="py-1.5 pr-3 font-medium">Modell-ID</th>
+                                <th className="py-1.5 pr-3 font-medium">Typ</th>
+                                <th className="py-1.5 font-medium">Anzahl</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {libResults.map((e, i) => (
+                                <tr key={i} style={{ borderTop: '1px solid var(--app-border)' }}>
+                                    <td className="py-1 pr-3" style={{ color: 'var(--text-secondary)' }}>
+                                        {e.manufacturer}
+                                    </td>
+                                    <td className="py-1 pr-3" style={{ color: 'var(--text-primary)' }}>
+                                        {e.model}
+                                    </td>
+                                    <td
+                                        className="py-1 pr-3 font-mono"
+                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                    >
+                                        {e.modelId ?? ''}
+                                    </td>
+                                    <td className="py-1 pr-3 font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                        {e.batteryType}
+                                    </td>
+                                    <td className="py-1" style={{ color: 'var(--text-secondary)' }}>
+                                        {e.quantity ?? 1}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                <p className="text-[11px] mt-2" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                    {lib
+                        ? `${lib.entries.length} Einträge · Aura-Batterie-DB v${lib.sourceVersion} (${lib.snapshotDate})`
+                        : 'Lade Datenbank …'}
+                    {search && ` · ${libResults.length} Treffer (max. 100)`}
+                </p>
+            </div>
+        </div>
+    );
+}

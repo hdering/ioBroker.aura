@@ -196,6 +196,22 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                 </div>
             </div>
 
+            {/* ── Battery type ── */}
+            <div className="space-y-2 pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
+                <span className={sectionTitleCls} style={labelStyle}>
+                    Batterietypen
+                </span>
+                <Toggle
+                    checked={!!o.batteryTypeEnabled}
+                    onChange={(v) => set({ batteryTypeEnabled: v })}
+                    label="Batterietyp neben schwachen Batterien anzeigen"
+                />
+                <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                    Typen werden automatisch erkannt. Zuordnung &amp; Einkaufsliste unter Admin → Batterien; das Layout
+                    „Batterie-Inventar“ zeigt alle Batteriegeräte gruppiert nach Typ.
+                </p>
+            </div>
+
             {/* ── Display ── */}
             <div className="space-y-2 pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
                 <span className={sectionTitleCls} style={labelStyle}>

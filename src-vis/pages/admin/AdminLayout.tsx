@@ -22,6 +22,7 @@ import {
     Code2,
     MonitorSmartphone,
     AlertTriangle,
+    BatteryFull,
 } from 'lucide-react';
 import { useAuthStore, logout } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
@@ -280,6 +281,7 @@ export function AdminLayout() {
         { to: '/admin/editor', label: t('admin.nav.editor'), icon: PenSquare },
         { to: '/admin/popups', label: t('admin.nav.popups'), icon: AppWindow },
         { to: '/admin/widgets', label: t('admin.nav.widgets'), icon: Layers },
+        { to: '/admin/batteries', label: t('admin.nav.batteries'), icon: BatteryFull },
         { to: '/admin/layouts', label: t('admin.nav.layouts'), icon: Layers2 },
         { to: '/admin/frontend', label: t('admin.nav.frontend'), icon: MonitorSmartphone },
         { to: '/admin/css-js', label: t('admin.nav.cssjs'), icon: Code2 },

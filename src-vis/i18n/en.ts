@@ -38,6 +38,7 @@ export const en: Record<TranslationKey, string> = {
     'admin.nav.frontend': 'Frontend',
     'admin.nav.cssjs': 'CSS & JS',
     'admin.nav.widgets': 'Widgets',
+    'admin.nav.batteries': 'Batteries',
     'admin.nav.popups': 'Popups',
     'admin.nav.theme': 'Theme & CSS',
     'admin.nav.settings': 'Settings',

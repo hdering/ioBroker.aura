@@ -68,6 +68,12 @@ export interface FrontendSettings {
      * Example: "http://192.168.188.168:8081"
      */
     adminBaseUrl: string;
+    /**
+     * Global per-device battery-type assignments (resolved deviceId → type + optional quantity).
+     * Overrides library auto-detection. Edited on the Admin → Batterien page, read by the
+     * Statusübersicht widget. A device's battery type is a property of the device, not of a widget.
+     */
+    batteryTypeOverrides: Record<string, { type: string; quantity?: number }>;
 }
 
 interface ConfigState {
@@ -121,6 +127,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     optimisticUpdates: true,
     superAdminKey: '',
     adminBaseUrl: '',
+    batteryTypeOverrides: {},
 };
 
 export const useConfigStore = create<ConfigState>()(

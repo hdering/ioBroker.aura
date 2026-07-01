@@ -80,6 +80,8 @@ export interface StatusOverviewOptions {
     filterAdapters?: string; // adapter.instance prefixes, e.g. "zigbee.0"
     excludeIds?: string[];
     excludeIdPatterns?: string; // comma list: plain substring or /regex/flags
+    // Battery type
+    batteryTypeEnabled?: boolean; // show physical battery type (· CR2032) next to low batteries
     // Display
     showTitle?: boolean; // show the widget title in the header (default true)
     showOkCategories?: boolean; // also list categories with no alerts (default false)
@@ -98,6 +100,10 @@ export interface StatusItem {
     label: string; // status text, e.g. "12 %", "Geöffnet", "An"
     color: string;
     lc?: number; // last change (unix ms), for "seit …"
+    // Battery-type enrichment (attached by the widget, not by evaluateItem)
+    deviceId?: string;
+    batteryType?: string;
+    batteryQuantity?: number;
 }
 
 /** Returns the category a datapoint could belong to (structural match), or null. */

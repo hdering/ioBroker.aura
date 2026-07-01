@@ -6694,6 +6694,10 @@ export function WidgetFrame({
                                                                                                         value: 'count',
                                                                                                         label: 'Anzahl',
                                                                                                     },
+                                                                                                    {
+                                                                                                        value: 'inventory',
+                                                                                                        label: 'Batterie-Inventar',
+                                                                                                    },
                                                                                                 ]
                                                                                               : [
                                                                                                     {

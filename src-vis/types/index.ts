@@ -78,6 +78,7 @@ export type WidgetLayout =
     | 'loadpoints'
     | 'custom'
     | 'count'
+    | 'inventory'
     | 'light-all'
     | 'light-brightness'
     | 'light-color'
@@ -306,6 +307,8 @@ export interface ioBrokerObject {
         members?: string[]; // enum.rooms / enum.functions member IDs
         custom?: Record<string, { enabled?: boolean } | null>;
     };
+    /** Adapter-specific fields (device model/manufacturer, etc.). Shape varies per adapter. */
+    native?: Record<string, unknown>;
 }
 
 export interface ObjectViewResult {
