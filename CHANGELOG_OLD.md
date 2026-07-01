@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.9.295 (2026-06-22)
+- test: drop licenseInformation from required io-package fields
+- fix(backup): keep change-comment after reload by falling back to ioBroker cache
+
+[Older changelogs can be found there](CHANGELOG_OLD.md)
+
 ## 0.9.294 (2026-06-22)
 - fix(reset): wipe backend config states on "reset everything", not just localStorage
 

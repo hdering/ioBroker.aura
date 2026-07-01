@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.14.0",
+    "version": "0.14.1",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.14.1": {
+        "en": "Badges - renamed to \"Marker\" in the German UI",
+        "de": "Badges - renamed to \"Marker\" in the German UI",
+        "ru": "Badges - renamed to \"Marker\" in the German UI",
+        "pt": "Badges - renamed to \"Marker\" in the German UI",
+        "nl": "Badges - renamed to \"Marker\" in the German UI",
+        "fr": "Badges - renamed to \"Marker\" in the German UI",
+        "it": "Badges - renamed to \"Marker\" in the German UI",
+        "es": "Badges - renamed to \"Marker\" in the German UI",
+        "pl": "Badges - renamed to \"Marker\" in the German UI",
+        "uk": "Badges - renamed to \"Marker\" in the German UI",
+        "zh-cn": "Badges - renamed to \"Marker\" in the German UI"
+      },
       "0.14.0": {
         "en": "🌟 New feature: Dynamic List - optionally group datapoints by room with the room name as a section heading\n🌟 New feature: Dynamic List - room section headings now support custom font size, text color and background color\nTabs - fix tab switching needing multiple clicks after auto-return to the default tab\nGeneral - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown",
         "de": "🌟 New feature: Dynamic List - optionally group datapoints by room with the room name as a section heading\n🌟 New feature: Dynamic List - room section headings now support custom font size, text color and background color\nTabs - fix tab switching needing multiple clicks after auto-return to the default tab\nGeneral - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown",
@@ -183,19 +196,6 @@
         "pl": "Widget editor - datapoint buttons reordered to \"from ioBroker\", \"JSON path\", \"transform\"\nWidget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)",
         "uk": "Widget editor - datapoint buttons reordered to \"from ioBroker\", \"JSON path\", \"transform\"\nWidget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)",
         "zh-cn": "Widget editor - datapoint buttons reordered to \"from ioBroker\", \"JSON path\", \"transform\"\nWidget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)"
-      },
-      "0.11.2": {
-        "en": "Universal widget - select cell now re-sends the value when the already-selected entry is picked again",
-        "de": "Universal widget - select cell now re-sends the value when the already-selected entry is picked again",
-        "ru": "Universal widget - select cell now re-sends the value when the already-selected entry is picked again",
-        "pt": "Universal widget - select cell now re-sends the value when the already-selected entry is picked again",
-        "nl": "Universal widget - select cell now re-sends the value when the already-selected entry is picked again",
-        "fr": "Universal widget - select cell now re-sends the value when the already-selected entry is picked again",
-        "it": "Universal widget - select cell now re-sends the value when the already-selected entry is picked again",
-        "es": "Universal widget - select cell now re-sends the value when the already-selected entry is picked again",
-        "pl": "Universal widget - select cell now re-sends the value when the already-selected entry is picked again",
-        "uk": "Universal widget - select cell now re-sends the value when the already-selected entry is picked again",
-        "zh-cn": "Universal widget - select cell now re-sends the value when the already-selected entry is picked again"
       }
     }
   },
