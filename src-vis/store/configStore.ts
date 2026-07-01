@@ -145,6 +145,21 @@ export const useConfigStore = create<ConfigState>()(
                     return { widgetDefaults: next };
                 }),
         }),
-        { name: 'aura-config', storage: createJSONStorage(() => managedStorage) },
+        {
+            name: 'aura-config',
+            storage: createJSONStorage(() => managedStorage),
+            // Deep-merge persisted `frontend` onto DEFAULT_FRONTEND so configs saved
+            // before a new setting was added still get its default (zustand's default
+            // merge is shallow and would drop newly-added keys → undefined at runtime).
+            merge: (persisted, current) => {
+                const p = (persisted ?? {}) as Partial<ConfigState>;
+                return {
+                    ...current,
+                    ...p,
+                    frontend: { ...DEFAULT_FRONTEND, ...(p.frontend ?? {}) },
+                    widgetDefaults: p.widgetDefaults ?? current.widgetDefaults,
+                };
+            },
+        },
     ),
 );

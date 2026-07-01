@@ -61,8 +61,11 @@ function StatCard({
     );
 }
 
+const EMPTY_OVERRIDES: Record<string, { type: string; quantity?: number }> = {};
+
 export function AdminBatteries() {
-    const overrides = useConfigStore((s) => s.frontend.batteryTypeOverrides);
+    // Coalesce: configs persisted before this field existed rehydrate without it.
+    const overrides = useConfigStore((s) => s.frontend.batteryTypeOverrides) ?? EMPTY_OVERRIDES;
     const updateFrontend = useConfigStore((s) => s.updateFrontend);
 
     const [devices, setDevices] = useState<DeviceRow[]>([]);
