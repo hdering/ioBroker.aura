@@ -192,8 +192,18 @@ function ResizeHandler() {
     return null;
 }
 
-/** Auto-fits the view to all resolved markers when "follow markers" is enabled. */
-function FollowMarkers({ positions, enabled }: { positions: Record<string, LatLon>; enabled: boolean }) {
+/** Auto-fits the view to all resolved markers when "follow markers" is enabled.
+ *  `maxZoom`, when configured, caps how far the auto-fit zooms in (and is the
+ *  target zoom for the single-marker case); undefined keeps the built-in defaults. */
+function FollowMarkers({
+    positions,
+    enabled,
+    maxZoom,
+}: {
+    positions: Record<string, LatLon>;
+    enabled: boolean;
+    maxZoom?: number;
+}) {
     const map = useMap();
     const list = Object.values(positions);
     const key = list.map((p) => `${p[0].toFixed(4)},${p[1].toFixed(4)}`).join('|');
@@ -207,14 +217,18 @@ function FollowMarkers({ positions, enabled }: { positions: Record<string, LatLo
             // infinite number of tiles and throw.
             const size = map.getSize();
             if (!size.x || !size.y) return;
+            const hasMax = Number.isFinite(maxZoom);
             try {
                 if (list.length === 1) {
+                    // Prefer the configured zoom; otherwise keep the previous "zoom in
+                    // to at least 13" behavior so a lone marker isn't lost in the world view.
                     const cur = map.getZoom();
-                    const z = Number.isFinite(cur) ? Math.max(cur, 13) : DEFAULT_ZOOM;
+                    const z = hasMax ? (maxZoom as number) : Number.isFinite(cur) ? Math.max(cur, 13) : DEFAULT_ZOOM;
                     map.setView(list[0], z);
                 } else {
                     const bounds = L.latLngBounds(list as L.LatLngTuple[]);
-                    if (bounds.isValid()) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+                    if (bounds.isValid())
+                        map.fitBounds(bounds, { padding: [30, 30], maxZoom: hasMax ? (maxZoom as number) : 16 });
                 }
             } catch {
                 // Transient layout/zoom race — re-fit happens when positions change.
@@ -229,7 +243,7 @@ function FollowMarkers({ positions, enabled }: { positions: Record<string, LatLo
             cancelled = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [key, enabled]);
+    }, [key, enabled, maxZoom]);
     return null;
 }
 
@@ -267,6 +281,9 @@ export function MapWidget({ config, editMode }: WidgetProps) {
             ? [rawCenter[0], rawCenter[1]]
             : DEFAULT_CENTER;
     const zoom = Number.isFinite(o.zoom) ? (o.zoom as number) : DEFAULT_ZOOM;
+    // Only pass a follow-mode zoom cap when the user actually configured one, so
+    // an unset zoom keeps the built-in auto-fit behavior.
+    const followMaxZoom = Number.isFinite(o.zoom) ? (o.zoom as number) : undefined;
 
     return (
         <div
@@ -301,7 +318,7 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                         which can throw "infinite number of tiles" and crash the tree. */}
                         <TileLayer url={tileUrl} attribution={attribution} />
                         <ResizeHandler />
-                        <FollowMarkers positions={positions} enabled={followMarkers} />
+                        <FollowMarkers positions={positions} enabled={followMarkers} maxZoom={followMaxZoom} />
                         {markers.map((m) => (
                             <MarkerLayer
                                 key={m.id}

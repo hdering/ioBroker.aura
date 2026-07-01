@@ -309,7 +309,7 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp }: Props) {
             </div>
 
             {!followMarkers && (
-                <div className="grid grid-cols-3 gap-1">
+                <div className="grid grid-cols-2 gap-1">
                     <input
                         type="number"
                         step="any"
@@ -334,18 +334,30 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp }: Props) {
                         className={iCls}
                         style={iSty}
                     />
-                    <input
-                        type="number"
-                        min={1}
-                        max={19}
-                        value={(o.zoom as number | undefined) ?? 6}
-                        onChange={(e) => set({ zoom: Number(e.target.value) })}
-                        placeholder="Zoom"
-                        className={iCls}
-                        style={iSty}
-                    />
                 </div>
             )}
+
+            {/* ── Zoom level (fixed zoom when not following; max zoom cap when following) ── */}
+            <div>
+                <label className={lblCls} style={lblSty}>
+                    {followMarkers ? 'Maximale Zoomstufe (1–19)' : 'Zoomstufe (1–19)'}
+                </label>
+                <input
+                    type="number"
+                    min={1}
+                    max={19}
+                    value={(o.zoom as number | undefined) ?? ''}
+                    onChange={(e) => set({ zoom: e.target.value === '' ? undefined : Number(e.target.value) })}
+                    placeholder={followMarkers ? 'automatisch' : '6'}
+                    className={iCls}
+                    style={iSty}
+                />
+                <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                    {followMarkers
+                        ? 'Begrenzt, wie weit beim automatischen Zentrieren hineingezoomt wird. Leer = automatisch.'
+                        : 'Feste Zoomstufe der Karte. Höher = näher.'}
+                </p>
+            </div>
 
             {/* ── Distance ── */}
             <div className="flex items-center justify-between">
