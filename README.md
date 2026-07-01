@@ -115,6 +115,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.14.2 (2026-07-01)
+- Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)
+- Click action "Jump: Widget" now pulse-highlights and scrolls to the target widget after switching tabs
+- Badges - renamed to "Marker" in the German UI
+
+
 ### 0.14.1 (2026-07-01)
 - Badges - renamed to "Marker" in the German UI
 
@@ -250,10 +256,6 @@ Release v0.12.1
 - fix(value-widget): match custom-layout font sizes to other layouts
 
 
-### 0.9.296 (2026-06-22)
-- fix(reset): land on backend overview after reset, not the frontend
-
-
 ## License
 
 MIT License
@@ -265,6 +267,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

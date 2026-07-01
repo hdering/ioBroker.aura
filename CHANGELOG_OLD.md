@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.296 (2026-06-22)
+- fix(reset): land on backend overview after reset, not the frontend
+
 ## 0.9.295 (2026-06-22)
 - test: drop licenseInformation from required io-package fields
 - fix(backup): keep change-comment after reload by falling back to ioBroker cache

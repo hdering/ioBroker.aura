@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.14.1",
+    "version": "0.14.2",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.14.2": {
+        "en": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
+        "de": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
+        "ru": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
+        "pt": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
+        "nl": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
+        "fr": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
+        "it": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
+        "es": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
+        "pl": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
+        "uk": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
+        "zh-cn": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI"
+      },
       "0.14.1": {
         "en": "Badges - renamed to \"Marker\" in the German UI",
         "de": "Badges - renamed to \"Marker\" in the German UI",
@@ -183,19 +196,6 @@
         "pl": "Popups - removing a widget-type default in the backend now stops auto-linking the built-in popup (e.g. dimmers no longer force the Standard Dimmer popup)",
         "uk": "Popups - removing a widget-type default in the backend now stops auto-linking the built-in popup (e.g. dimmers no longer force the Standard Dimmer popup)",
         "zh-cn": "Popups - removing a widget-type default in the backend now stops auto-linking the built-in popup (e.g. dimmers no longer force the Standard Dimmer popup)"
-      },
-      "0.11.3": {
-        "en": "Widget editor - datapoint buttons reordered to \"from ioBroker\", \"JSON path\", \"transform\"\nWidget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)",
-        "de": "Widget editor - datapoint buttons reordered to \"from ioBroker\", \"JSON path\", \"transform\"\nWidget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)",
-        "ru": "Widget editor - datapoint buttons reordered to \"from ioBroker\", \"JSON path\", \"transform\"\nWidget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)",
-        "pt": "Widget editor - datapoint buttons reordered to \"from ioBroker\", \"JSON path\", \"transform\"\nWidget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)",
-        "nl": "Widget editor - datapoint buttons reordered to \"from ioBroker\", \"JSON path\", \"transform\"\nWidget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)",
-        "fr": "Widget editor - datapoint buttons reordered to \"from ioBroker\", \"JSON path\", \"transform\"\nWidget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)",
-        "it": "Widget editor - datapoint buttons reordered to \"from ioBroker\", \"JSON path\", \"transform\"\nWidget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)",
-        "es": "Widget editor - datapoint buttons reordered to \"from ioBroker\", \"JSON path\", \"transform\"\nWidget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)",
-        "pl": "Widget editor - datapoint buttons reordered to \"from ioBroker\", \"JSON path\", \"transform\"\nWidget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)",
-        "uk": "Widget editor - datapoint buttons reordered to \"from ioBroker\", \"JSON path\", \"transform\"\nWidget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)",
-        "zh-cn": "Widget editor - datapoint buttons reordered to \"from ioBroker\", \"JSON path\", \"transform\"\nWidget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)"
       }
     }
   },
