@@ -363,6 +363,10 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     onChange={(v) => set({ showOkCategories: v })}
                     label="Auch Kategorien ohne Hinweise zeigen"
                 />
+                <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                    Standardmäßig werden Kategorien ohne Auffälligkeiten ausgeblendet. Aktiviert erscheint jede aktive
+                    Kategorie mit einem „ok"-Häkchen, auch wenn dort gerade nichts anliegt (nur Layout Standard).
+                </p>
                 <div>
                     <label className={labelCls} style={labelStyle}>
                         Sortierung
@@ -376,20 +380,10 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         <option value="severity">Nach Dringlichkeit</option>
                         <option value="room">Nach Raum</option>
                     </select>
-                </div>
-                <div>
-                    <label className={labelCls} style={labelStyle}>
-                        Klick auf Zeile
-                    </label>
-                    <select
-                        value={o.rowClick ?? 'jump'}
-                        onChange={(e) => set({ rowClick: e.target.value as 'none' | 'jump' })}
-                        className={inputCls}
-                        style={inputStyle}
-                    >
-                        <option value="jump">Zum Gerät springen</option>
-                        <option value="none">Keine Aktion</option>
-                    </select>
+                    <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                        Dringlichkeit: kritisch zuerst (offene Fenster, Rauch/Wasser), dann Warnungen (schwache
+                        Batterien, Lichter, offline), dann OK — innerhalb gleich sortiert nach Name.
+                    </p>
                 </div>
                 <div>
                     <label className={labelCls} style={labelStyle}>
