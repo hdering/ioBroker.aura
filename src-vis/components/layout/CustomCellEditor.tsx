@@ -7,13 +7,14 @@
  * via the callbacks in props — this component never holds picker state itself.
  */
 import React, { useState } from 'react';
-import { Database, FolderOpen, HelpCircle, type LucideIcon } from 'lucide-react';
+import { Database, FolderOpen, HelpCircle, Plus, type LucideIcon } from 'lucide-react';
 import { JsonPathButton } from '../config/JsonPathButton';
 import type { CustomCell, WidgetType } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { FORMAT_LABELS, type DateOutputFormat } from '../widgets/DatePickerWidget';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ValueTransformButton } from '../config/ValueTransformButton';
+import { getObjectDirect } from '../../hooks/useIoBroker';
 
 export const CELL_LABELS: Record<string, string> = {
     empty: '–',
@@ -455,6 +456,45 @@ export function CustomCellEditor({
     onOpenImagePicker,
 }: CustomCellEditorProps) {
     const [entryIconPicker, setEntryIconPicker] = useState<number | null>(null);
+    const [importStatus, setImportStatus] = useState<string | null>(null);
+    const [importing, setImporting] = useState(false);
+
+    // Select cell: import DP-value → label pairs from the datapoint's common.states.
+    const importSelectStates = async () => {
+        if (!cell.dpId) {
+            setImportStatus('Keine Datenpunkt-ID');
+            return;
+        }
+        setImporting(true);
+        setImportStatus(null);
+        try {
+            const obj = await getObjectDirect(cell.dpId);
+            const states = (obj?.common as { states?: Record<string, string> | string } | undefined)?.states;
+            let parsed: Record<string, string> | null = null;
+            if (typeof states === 'object' && states) {
+                parsed = states as Record<string, string>;
+            } else if (typeof states === 'string') {
+                // legacy "0:zu;1:auf" format
+                parsed = {};
+                states.split(';').forEach((pair) => {
+                    const [k, v] = pair.split(':');
+                    if (k !== undefined && v !== undefined) parsed![k.trim()] = v.trim();
+                });
+            }
+            if (!parsed || Object.keys(parsed).length === 0) {
+                setImportStatus('Keine common.states am Datenpunkt');
+                return;
+            }
+            const imported = Object.entries(parsed).map(([k, v]) => ({ value: String(k), label: String(v) }));
+            onChange({ entries: imported });
+            setImportStatus(`${imported.length} Einträge importiert`);
+        } catch (err) {
+            setImportStatus('Fehler beim Lesen des DP');
+            console.error('[CustomCellEditor] states import failed', err);
+        } finally {
+            setImporting(false);
+        }
+    };
     return (
         <>
             <p className="text-[10px] font-medium" style={{ color: 'var(--text-secondary)' }}>
@@ -729,6 +769,27 @@ export function CustomCellEditor({
                             />
                         )}
                     </div>
+                    {cell.type === 'select' && (
+                        <div className="flex items-center gap-2 mt-1">
+                            <button
+                                onClick={importSelectStates}
+                                disabled={importing || !cell.dpId}
+                                className="text-[11px] px-2 py-1 rounded-lg hover:opacity-80 disabled:opacity-40"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            >
+                                {importing ? 'Lese …' : 'Aus common.states importieren'}
+                            </button>
+                            {importStatus && (
+                                <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {importStatus}
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -1729,17 +1790,10 @@ export function CustomCellEditor({
                     return (
                         <>
                             <div>
-                                <div className="flex items-center justify-between mb-1">
+                                <div className="mb-1">
                                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                         Einträge ({entries.length})
                                     </label>
-                                    <button
-                                        onClick={addEntry}
-                                        className="text-[10px] px-2 py-1 rounded"
-                                        style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
-                                    >
-                                        + Neu
-                                    </button>
                                 </div>
                                 {entries.length === 0 && (
                                     <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
@@ -1759,14 +1813,6 @@ export function CustomCellEditor({
                                                     placeholder="Wert"
                                                     className="text-xs rounded-lg px-2 py-1 focus:outline-none"
                                                     style={{ ...inputSty, width: 60, flexShrink: 0 }}
-                                                />
-                                                <input
-                                                    type="text"
-                                                    value={e.label}
-                                                    onChange={(ev) => patchEntry(i, { label: ev.target.value })}
-                                                    placeholder="Label"
-                                                    className="flex-1 text-xs rounded-lg px-2 py-1 focus:outline-none"
-                                                    style={inputSty}
                                                 />
                                                 <button
                                                     onClick={() => setEntryIconPicker(i)}
@@ -1798,6 +1844,14 @@ export function CustomCellEditor({
                                                         ×
                                                     </button>
                                                 )}
+                                                <input
+                                                    type="text"
+                                                    value={e.label}
+                                                    onChange={(ev) => patchEntry(i, { label: ev.target.value })}
+                                                    placeholder="Label"
+                                                    className="flex-1 text-xs rounded-lg px-2 py-1 focus:outline-none"
+                                                    style={inputSty}
+                                                />
                                                 <input
                                                     type="color"
                                                     value={e.color && e.color.startsWith('#') ? e.color : '#ffffff'}
@@ -1859,6 +1913,17 @@ export function CustomCellEditor({
                                         );
                                     })}
                                 </div>
+                                <button
+                                    onClick={addEntry}
+                                    className="w-full mt-1 text-[11px] py-1.5 rounded-lg hover:opacity-80 flex items-center justify-center gap-1"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px dashed var(--app-border)',
+                                    }}
+                                >
+                                    <Plus size={12} /> Einträge hinzufügen
+                                </button>
                                 {entryIconPicker !== null && entries[entryIconPicker] && (
                                     <IconPickerModal
                                         current={entries[entryIconPicker].icon ?? ''}
