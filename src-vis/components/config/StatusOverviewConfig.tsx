@@ -431,7 +431,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         />
                         <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
                             Platzhalter: &lt;Raum&gt;, &lt;Gerät&gt;, &lt;DPName&gt;, &lt;Name&gt;, &lt;ID&gt;.
-                            Beispiel: „&lt;Raum&gt; &lt;Gerät&gt;".
+                            Beispiel: „&lt;Raum&gt; &lt;Gerät&gt;“.
                         </p>
                     </div>
                     <Toggle
@@ -441,7 +441,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     />
                     <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
                         Standardmäßig werden Kategorien ohne Auffälligkeiten ausgeblendet. Aktiviert erscheint jede
-                        aktive Kategorie mit einem „ok"-Häkchen, auch wenn dort gerade nichts anliegt (nur Layout
+                        aktive Kategorie mit einem „ok“-Häkchen, auch wenn dort gerade nichts anliegt (nur Layout
                         Standard).
                     </p>
                     <div>

@@ -261,7 +261,7 @@ export function AdminBatteries() {
         const extra = unknownDevices.length > 25 ? `\n… und ${unknownDevices.length - 25} weitere.` : '';
         const body =
             `Folgende Batteriegeräte werden nicht automatisch erkannt. Bitte Batterietyp + Anzahl zur Datenbank hinzufügen.\n` +
-            `(Bei „Modell: ?" bitte den Gerätetyp ergänzen, z. B. HmIP-WTH-2.)\n\n${lines.join('\n\n')}${extra}\n`;
+            `(Bei „Modell: ?“ bitte den Gerätetyp ergänzen, z. B. HmIP-WTH-2.)\n\n${lines.join('\n\n')}${extra}\n`;
         const title = 'Batterie-Datenbank: nicht erkannte Geräte';
         return `https://github.com/hdering/ioBroker.aura/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
     }, [unknownDevices]);
