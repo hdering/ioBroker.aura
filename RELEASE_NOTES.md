@@ -6,7 +6,8 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 Status overview - new widget that automatically surfaces low batteries, open windows, lights left on, unreachable/offline devices and smoke/water alarms, with an "all clear" state and click-to-jump to the device
 Status overview - low batteries now show their battery type and count (e.g. "2× AA") when known; can be turned off per widget
-Status overview - added Card and Minimal layouts, an option to show all found devices (not just those needing attention), and a configurable highlight color for devices in an alert state
+Status overview - added Card and Minimal layouts, an option to show all found devices (not just those needing attention), and a per-category highlight color (set in each category's settings)
+Status overview - configurable device name pattern (tokens <Raum> <Gerät> <DPName> <Name> <ID>) to shorten long datapoint names
 Status overview - the Card layout tile size is now configurable
 Status overview - unreachable detection now ignores the latching STICKY_UNREACH twin (kept the live UNREACH), so reachable devices are no longer wrongly listed as offline
 Status overview - broader reachability detection (unreach/reachable/connected/available roles with correct online/offline meaning) plus an optional setting for extra offline datapoints

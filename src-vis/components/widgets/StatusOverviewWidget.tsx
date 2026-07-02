@@ -58,6 +58,28 @@ function formatSince(lc: number): string {
     return `seit ${d} d`;
 }
 
+/**
+ * Format a device label from a per-widget template. Tokens (case-insensitive):
+ *   <Raum> room · <Gerät>/<Geraet> device part (before " › ") · <DPName> datapoint leaf ·
+ *   <Name> full composed name · <ID> full datapoint id.
+ * Empty pattern → the composed name unchanged.
+ */
+function formatItemName(item: StatusItem, pattern?: string): string {
+    if (!pattern) return item.name;
+    const parts = item.name.split(' › ');
+    const device = parts[0] || item.name;
+    const dpName = item.id.split('.').pop() || (parts.length > 1 ? parts[parts.length - 1] : item.name);
+    const out = pattern
+        .replace(/<Raum>/gi, item.room ?? '')
+        .replace(/<Ger(?:ä|ae)t>/gi, device)
+        .replace(/<DPName>/gi, dpName)
+        .replace(/<Name>/gi, item.name)
+        .replace(/<ID>/gi, item.id)
+        .replace(/\s+/g, ' ')
+        .trim();
+    return out || item.name;
+}
+
 /** Candidate = a datapoint that structurally belongs to a category; alert state is decided live. */
 interface Candidate {
     dp: DatapointEntry;
@@ -243,8 +265,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     // Alerts drive the chip / all-clear; "all" mode additionally lists healthy devices.
     const total = items.reduce((n, i) => (i.severity !== 'ok' ? n + 1 : n), 0);
     const hasCrit = items.some((i) => i.severity === 'crit');
-    // Highlight colour for a device in an attention state (configurable).
-    const alertColorFor = (item: StatusItem) => (item.severity !== 'ok' ? opts.alertColor || item.color : item.color);
+    // Highlight colour for a device in an attention state (per-category, else per-severity).
+    const alertColorFor = (item: StatusItem) =>
+        item.severity !== 'ok' ? opts.categoryColors?.[item.category] || item.color : item.color;
     const enabledCats = CATEGORY_ORDER.filter(
         (c) =>
             (c === 'battery' && opts.catBattery !== false) ||
@@ -318,7 +341,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
             >
                 <Icon size={14} style={{ color }} />
                 <span className="flex-1 min-w-0 truncate text-xs" style={{ color: 'var(--text-primary)' }}>
-                    {item.name}
+                    {formatItemName(item, opts.namePattern)}
                     {sub && <span className="ml-1 opacity-50">· {sub}</span>}
                 </span>
                 <span className="text-xs font-semibold shrink-0" style={{ color }}>
@@ -387,7 +410,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                     style={{ color: 'var(--text-secondary)' }}
                                 >
                                     <Icon size={11} className="shrink-0" style={{ color }} />
-                                    <span className="truncate">{item.name}</span>
+                                    <span className="truncate">{formatItemName(item, opts.namePattern)}</span>
                                 </span>
                                 <span className="text-sm font-bold leading-none" style={{ color }}>
                                     {item.label}
@@ -432,7 +455,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                 title={rowClickable ? 'Zum Gerät springen' : undefined}
                             >
                                 <Icon size={11} className="shrink-0" style={{ color }} />
-                                <span className="truncate max-w-[120px]">{item.name}</span>
+                                <span className="truncate max-w-[120px]">{formatItemName(item, opts.namePattern)}</span>
                                 <span className="font-semibold" style={{ color }}>
                                     {item.label}
                                     {batteryLabel ? ` · ${batteryLabel}` : ''}

@@ -2,7 +2,7 @@ import { lazy, Suspense, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ChevronDown } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
-import type { StatusOverviewOptions } from '../../utils/statusOverview';
+import type { StatusOverviewOptions, CategoryKey } from '../../utils/statusOverview';
 import { useConfigStore } from '../../store/configStore';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 
@@ -109,6 +109,49 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
 
     const lightScope = o.lightRoleScope ?? 'light';
 
+    // Default highlight colour per category (severity): crit = red, warn = amber.
+    const DEFAULT_CAT_HEX: Record<CategoryKey, string> = {
+        window: '#ef4444',
+        alarm: '#ef4444',
+        battery: '#f59e0b',
+        light: '#f59e0b',
+        unreach: '#f59e0b',
+    };
+    const setCatColor = (cat: CategoryKey, color: string | null) => {
+        const next = { ...(o.categoryColors ?? {}) };
+        if (color) next[cat] = color;
+        else delete next[cat];
+        set({ categoryColors: next });
+    };
+    const CatColor = ({ cat }: { cat: CategoryKey }) => {
+        const custom = o.categoryColors?.[cat];
+        return (
+            <div>
+                <label className={labelCls} style={labelStyle}>
+                    Hervorhebungsfarbe
+                </label>
+                <div className="flex items-center gap-2">
+                    <input
+                        type="color"
+                        value={custom || DEFAULT_CAT_HEX[cat]}
+                        onChange={(e) => setCatColor(cat, e.target.value)}
+                        className="w-8 h-7 rounded cursor-pointer p-0.5"
+                        style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                    />
+                    {custom && (
+                        <button
+                            onClick={() => setCatColor(cat, null)}
+                            className="text-[11px] hover:opacity-80"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            ↩ Standard
+                        </button>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="space-y-4">
             {/* ── Categories (each with its own settings, shown when enabled) ── */}
@@ -122,6 +165,11 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     onChange={(v) => set({ catWindow: v })}
                     label="Offene Fenster & Türen"
                 />
+                {o.catWindow !== false && (
+                    <div className="ml-1 pl-3 pb-1" style={{ borderLeft: '2px solid var(--app-border)' }}>
+                        <CatColor cat="window" />
+                    </div>
+                )}
 
                 <Toggle
                     checked={o.catBattery !== false}
@@ -167,6 +215,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             Batterietypen zuordnen →
                         </button>
                         {showBatteries && <BatteryAssignModal onClose={() => setShowBatteries(false)} />}
+                        <CatColor cat="battery" />
                     </div>
                 )}
 
@@ -198,6 +247,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                 label="Nur Schalter in Funktion „Licht“"
                             />
                         )}
+                        <CatColor cat="light" />
                     </div>
                 )}
 
@@ -206,6 +256,11 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     onChange={(v) => set({ catAlarm: v })}
                     label="Rauch- & Wasser-Alarme"
                 />
+                {o.catAlarm !== false && (
+                    <div className="ml-1 pl-3 pb-1" style={{ borderLeft: '2px solid var(--app-border)' }}>
+                        <CatColor cat="alarm" />
+                    </div>
+                )}
 
                 <Toggle
                     checked={o.catUnreach !== false}
@@ -237,6 +292,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             onChange={(v) => updateFrontend({ offlineInvert: v })}
                             label="Bei diesen Mustern bedeutet FALSE = offline"
                         />
+                        <CatColor cat="unreach" />
                     </div>
                 )}
             </div>
@@ -357,26 +413,20 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     </div>
                     <div>
                         <label className={labelCls} style={labelStyle}>
-                            Hervorhebungsfarbe (Auffällige)
+                            Namensmuster (leer = Standard)
                         </label>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="color"
-                                value={o.alertColor || '#f59e0b'}
-                                onChange={(e) => set({ alertColor: e.target.value })}
-                                className="w-8 h-7 rounded cursor-pointer p-0.5"
-                                style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-                            />
-                            {o.alertColor && (
-                                <button
-                                    onClick={() => set({ alertColor: undefined })}
-                                    className="text-[11px] hover:opacity-80"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
-                                    ↩ Standard (nach Dringlichkeit)
-                                </button>
-                            )}
-                        </div>
+                        <input
+                            type="text"
+                            value={o.namePattern ?? ''}
+                            onChange={(e) => set({ namePattern: e.target.value || undefined })}
+                            placeholder="<Raum> <Gerät>"
+                            className={inputCls}
+                            style={inputStyle}
+                        />
+                        <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                            Platzhalter: &lt;Raum&gt;, &lt;Gerät&gt;, &lt;DPName&gt;, &lt;Name&gt;, &lt;ID&gt;.
+                            Beispiel: „&lt;Raum&gt; &lt;Gerät&gt;".
+                        </p>
                     </div>
                     <Toggle
                         checked={!!o.showOkCategories}
