@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.9.297 (2026-06-22)
+- fix(custom-grid): align default custom-layout font sizes across all widgets
+- fix(value-widget): match custom-layout font sizes to other layouts
+
 ## 0.9.296 (2026-06-22)
 - fix(reset): land on backend overview after reset, not the frontend
 

@@ -4,4 +4,3 @@
 #   <Widget type> - <what changed>          e.g.  Thermostat - target temperature now shown inline
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
-🌟 **New feature:** Status overview - new widget that automatically surfaces low batteries, open windows, lights left on, unreachable/offline devices and smoke/water alarms, with an "all clear" state and click-to-jump to the affected device; offers list/Card/Minimal layouts with per-category colors, shows battery type and count, uses robust reachability detection, and includes a battery-type assignment page to identify and manage battery devices
