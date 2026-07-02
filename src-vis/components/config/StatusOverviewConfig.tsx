@@ -1,6 +1,56 @@
+import { lazy, Suspense, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import type { StatusOverviewOptions } from '../../utils/statusOverview';
 import { useConfigStore } from '../../store/configStore';
+import { usePortalTarget } from '../../contexts/PortalTargetContext';
+
+// Lazy so the ~battery admin page stays out of the config chunk until opened.
+const AdminBatteries = lazy(() =>
+    import('../../pages/admin/AdminBatteries').then((m) => ({ default: m.AdminBatteries })),
+);
+
+/** Near-fullscreen popup that hosts the battery-type assignment page. */
+function BatteryAssignModal({ onClose }: { onClose: () => void }) {
+    const portalTarget = usePortalTarget();
+    return createPortal(
+        <div
+            className="fixed inset-0 flex items-center justify-center p-3"
+            style={{ zIndex: 10000 }}
+            onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+        >
+            <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.6)' }} />
+            <div
+                className="relative w-full h-full rounded-xl shadow-2xl overflow-auto"
+                style={{ maxWidth: 1100, maxHeight: '94vh', background: 'var(--app-surface)' }}
+            >
+                <button
+                    onClick={onClose}
+                    className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-lg hover:opacity-80"
+                    style={{
+                        background: 'var(--app-bg)',
+                        border: '1px solid var(--app-border)',
+                        color: 'var(--text-secondary)',
+                    }}
+                    title="Schließen"
+                >
+                    <X size={16} />
+                </button>
+                <Suspense
+                    fallback={
+                        <div className="p-8 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            Lädt …
+                        </div>
+                    }
+                >
+                    <AdminBatteries />
+                </Suspense>
+            </div>
+        </div>,
+        portalTarget ?? document.body,
+    );
+}
 
 interface Props {
     config: WidgetConfig;
@@ -41,6 +91,8 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
     const o = (config.options ?? {}) as StatusOverviewOptions;
     const set = (patch: Partial<StatusOverviewOptions>) =>
         onConfigChange({ ...config, options: { ...config.options, ...patch } });
+
+    const [showBatteries, setShowBatteries] = useState(false);
 
     // Reachability escape hatch is global (device-level), not per-widget.
     const offlineExtraPatterns = useConfigStore((s) => s.frontend.offlineExtraPatterns);
@@ -244,9 +296,16 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     label="Batterietyp & Anzahl neben schwachen Batterien anzeigen"
                 />
                 <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                    Typen werden automatisch erkannt (falls bekannt). Zuordnung &amp; Übersicht aller Batteriegeräte
-                    unter Admin → Batterien.
+                    Typen werden automatisch erkannt (falls bekannt). Nicht erkannte Geräte manuell zuordnen:
                 </p>
+                <button
+                    onClick={() => setShowBatteries(true)}
+                    className="inline-flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
+                    style={{ background: 'var(--accent)', color: '#fff' }}
+                >
+                    Batterietypen zuordnen →
+                </button>
+                {showBatteries && <BatteryAssignModal onClose={() => setShowBatteries(false)} />}
             </div>
 
             {/* ── Display ── */}

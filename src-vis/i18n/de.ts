@@ -36,7 +36,6 @@ export const de = {
     'admin.nav.frontend': 'Frontend',
     'admin.nav.cssjs': 'CSS & JS',
     'admin.nav.widgets': 'Widgets',
-    'admin.nav.batteries': 'Batterien',
     'admin.nav.popups': 'Popups',
     'admin.nav.theme': 'Theme & CSS',
     'admin.nav.settings': 'Einstellungen',

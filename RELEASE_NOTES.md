@@ -9,7 +9,7 @@ Status overview - low batteries now show their battery type and count (e.g. "2×
 Status overview - added Card and Minimal layouts, an option to show all found devices (not just those needing attention), and a configurable highlight color for devices in an alert state
 Status overview - unreachable detection now ignores the latching STICKY_UNREACH twin (kept the live UNREACH), so reachable devices are no longer wrongly listed as offline
 Status overview - broader reachability detection (unreach/reachable/connected/available roles with correct online/offline meaning) plus an optional setting for extra offline datapoints
-Batteries - new admin page listing every battery device with its detected type and coverage stats, a searchable battery database, and per-device manual assignment
+Batteries - battery-type assignment page (device list, coverage stats, searchable database, per-device assignment) is opened from the status-overview widget's settings instead of a permanent admin menu entry
 Batteries - hide/ignore individual battery devices (false positives) so they no longer appear in the inventory, warnings or stats
 Batteries - generic "Akku" type for built-in rechargeables; eufy (eusec) cameras are auto-detected as rechargeable
 Batteries - clearer detected-model column (drops cryptic vendor codes) and correct model for devices with channels (e.g. HomeMatic)
