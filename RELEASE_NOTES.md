@@ -12,5 +12,5 @@ Status overview - broader reachability detection (unreach/reachable/connected/av
 Batteries - battery-type assignment page (device list, coverage stats, searchable database, per-device assignment) is opened from the status-overview widget's settings instead of a permanent admin menu entry
 Batteries - hide/ignore individual battery devices (false positives) so they no longer appear in the inventory, warnings or stats
 Batteries - generic "Akku" type for built-in rechargeables; eufy (eusec) cameras are auto-detected as rechargeable
-Batteries - clearer detected-model column (drops cryptic vendor codes) and correct model for devices with channels (e.g. HomeMatic)
-Batteries - the battery database shows readable brand names (e.g. Tuya) instead of raw Zigbee vendor codes, and unrecognized devices can be reported via a pre-filled GitHub issue
+Batteries - clearer detected-model column (drops cryptic vendor codes); correct model for devices with channels, including HomeMatic/HomeMatic IP (reads the device type even when it's on the device object)
+Batteries - the battery database shows readable brand names (e.g. Tuya) instead of raw Zigbee vendor codes; unrecognized devices can be reported via a pre-filled GitHub issue that includes model, role and datapoint details

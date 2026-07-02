@@ -8,6 +8,7 @@ import {
     loadBatteryLibrary,
     autoBatteryType,
     resolveDeviceIdForDp,
+    fetchDeviceModelForDp,
     BATTERY_TYPES,
     type BatteryLibIndex,
     type DeviceModel,
@@ -20,6 +21,8 @@ interface DeviceRow {
     manufacturer?: string;
     model?: string;
     modelId?: string;
+    dpId: string; // the battery datapoint that produced this row (for the report)
+    role?: string;
     autoType: string | null;
     autoQty: number;
 }
@@ -128,6 +131,8 @@ export function AdminBatteries() {
                     manufacturer: dm?.manufacturer,
                     model: dm?.model,
                     modelId: dm?.modelId,
+                    dpId: dp.id,
+                    role: dp.role,
                     autoType: auto?.batteryType ?? null,
                     autoQty: auto?.quantity ?? 1,
                 });
@@ -136,6 +141,40 @@ export function AdminBatteries() {
             setDevices(list);
             setLib(library);
             setLoading(false);
+
+            // Enrich rows the bulk index couldn't model (e.g. HomeMatic IP) by fetching the
+            // device object directly, then re-run auto-detection with the recovered model.
+            const needModel = list.filter((r) => !r.model && !r.modelId);
+            if (needModel.length > 0) {
+                await Promise.all(
+                    needModel.map(async (r) => {
+                        const m = await fetchDeviceModelForDp(r.dpId);
+                        if (!m) return;
+                        if (m.name) r.name = m.name; // prefer the real device name over "LOW_BAT" etc.
+                        if (!m.model && !m.modelId) return;
+                        r.manufacturer = m.manufacturer ?? r.manufacturer;
+                        r.model = m.model;
+                        r.modelId = m.modelId;
+                        const auto = autoBatteryType(
+                            r.deviceId,
+                            {
+                                id: r.deviceId,
+                                name: r.name,
+                                kind: 'device',
+                                manufacturer: m.manufacturer,
+                                model: m.model,
+                                modelId: m.modelId,
+                            },
+                            library,
+                        );
+                        if (auto) {
+                            r.autoType = auto.batteryType;
+                            r.autoQty = auto.quantity;
+                        }
+                    }),
+                );
+                if (!cancelled) setDevices([...list]);
+            }
         })();
         return () => {
             cancelled = true;
@@ -172,18 +211,24 @@ export function AdminBatteries() {
     const reportUrl = useMemo(() => {
         if (unknownDevices.length === 0) return '';
         const lines = unknownDevices.slice(0, 25).map((d) => {
-            const info = [
-                d.manufacturer && `Hersteller: ${d.manufacturer}`,
-                (d.model || d.modelId) && `Modell: ${d.model || d.modelId}`,
-                d.modelId && d.modelId !== d.model && `Modell-ID: ${d.modelId}`,
-                `DP: ${d.deviceId}`,
+            const adapter = d.deviceId.split('.').slice(0, 2).join('.');
+            const detail = [
+                `Hersteller: ${d.manufacturer || '?'}`,
+                `Modell: ${d.model || d.modelId || '?'}`,
+                d.modelId && d.modelId !== d.model ? `Modell-ID: ${d.modelId}` : null,
+                `Rolle: ${d.role || '?'}`,
+                `Datenpunkt: ${d.dpId}`,
+                `Adapter: ${adapter}`,
             ]
                 .filter(Boolean)
-                .join(', ');
-            return `- ${d.name} (${info})`;
+                .map((s) => `    ${s}`)
+                .join('\n');
+            return `- ${d.name}\n${detail}`;
         });
         const extra = unknownDevices.length > 25 ? `\n… und ${unknownDevices.length - 25} weitere.` : '';
-        const body = `Folgende Batteriegeräte werden nicht automatisch erkannt. Bitte Batterietyp + Anzahl zur Datenbank hinzufügen:\n\n${lines.join('\n')}${extra}\n`;
+        const body =
+            `Folgende Batteriegeräte werden nicht automatisch erkannt. Bitte Batterietyp + Anzahl zur Datenbank hinzufügen.\n` +
+            `(Bei „Modell: ?" bitte den Gerätetyp ergänzen, z. B. HmIP-WTH-2.)\n\n${lines.join('\n\n')}${extra}\n`;
         const title = 'Batterie-Datenbank: nicht erkannte Geräte';
         return `https://github.com/hdering/ioBroker.aura/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
     }, [unknownDevices]);
