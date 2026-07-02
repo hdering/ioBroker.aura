@@ -111,151 +111,135 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
 
     return (
         <div className="space-y-4">
-            {/* ── Categories ── */}
-            <div className="space-y-2">
+            {/* ── Categories (each with its own settings, shown when enabled) ── */}
+            <div className="space-y-2.5">
                 <span className={sectionTitleCls} style={labelStyle}>
                     Kategorien
                 </span>
+
                 <Toggle
                     checked={o.catWindow !== false}
                     onChange={(v) => set({ catWindow: v })}
                     label="Offene Fenster & Türen"
                 />
+
                 <Toggle
                     checked={o.catBattery !== false}
                     onChange={(v) => set({ catBattery: v })}
                     label="Schwache Batterien"
                 />
+                {o.catBattery !== false && (
+                    <div className="ml-1 pl-3 space-y-2 pb-1" style={{ borderLeft: '2px solid var(--app-border)' }}>
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Warnschwelle (% – darunter gilt als schwach)
+                            </label>
+                            <input
+                                type="number"
+                                min={1}
+                                max={100}
+                                value={o.batteryThreshold ?? 20}
+                                onChange={(e) =>
+                                    set({ batteryThreshold: e.target.value ? Number(e.target.value) : undefined })
+                                }
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <Toggle
+                            checked={o.includeLowbatBoolean !== false}
+                            onChange={(v) => set({ includeLowbatBoolean: v })}
+                            label="Boolesche LOWBAT-Datenpunkte einbeziehen"
+                        />
+                        <Toggle
+                            checked={o.batteryTypeEnabled !== false}
+                            onChange={(v) => set({ batteryTypeEnabled: v ? undefined : false })}
+                            label="Batterietyp & Anzahl anzeigen"
+                        />
+                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                            Typen werden automatisch erkannt (falls bekannt). Nicht erkannte Geräte manuell zuordnen:
+                        </p>
+                        <button
+                            onClick={() => setShowBatteries(true)}
+                            className="inline-flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
+                            style={{ background: 'var(--accent)', color: '#fff' }}
+                        >
+                            Batterietypen zuordnen →
+                        </button>
+                        {showBatteries && <BatteryAssignModal onClose={() => setShowBatteries(false)} />}
+                    </div>
+                )}
+
                 <Toggle
                     checked={o.catLight !== false}
                     onChange={(v) => set({ catLight: v })}
                     label="Eingeschaltete Lichter"
                 />
+                {o.catLight !== false && (
+                    <div className="ml-1 pl-3 space-y-2 pb-1" style={{ borderLeft: '2px solid var(--app-border)' }}>
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Welche Schalter zählen als Licht?
+                            </label>
+                            <select
+                                value={lightScope}
+                                onChange={(e) => set({ lightRoleScope: e.target.value as 'light' | 'all' })}
+                                className={inputCls}
+                                style={inputStyle}
+                            >
+                                <option value="light">Nur Lichter (Rolle switch.light)</option>
+                                <option value="all">Alle Schalter (switch, switch.power)</option>
+                            </select>
+                        </div>
+                        {lightScope === 'all' && (
+                            <Toggle
+                                checked={!!o.lightsOnlyFunction}
+                                onChange={(v) => set({ lightsOnlyFunction: v })}
+                                label="Nur Schalter in Funktion „Licht“"
+                            />
+                        )}
+                    </div>
+                )}
+
                 <Toggle
                     checked={o.catAlarm !== false}
                     onChange={(v) => set({ catAlarm: v })}
                     label="Rauch- & Wasser-Alarme"
                 />
+
                 <Toggle
                     checked={o.catUnreach !== false}
                     onChange={(v) => set({ catUnreach: v })}
                     label="Nicht erreichbar / offline"
                 />
-            </div>
-
-            {/* ── Battery type ── */}
-            <div className="space-y-2 pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
-                <span className={sectionTitleCls} style={labelStyle}>
-                    Batterietypen
-                </span>
-                <Toggle
-                    checked={o.batteryTypeEnabled !== false}
-                    onChange={(v) => set({ batteryTypeEnabled: v ? undefined : false })}
-                    label="Batterietyp & Anzahl neben schwachen Batterien anzeigen"
-                />
-                <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                    Typen werden automatisch erkannt (falls bekannt). Nicht erkannte Geräte manuell zuordnen:
-                </p>
-                <button
-                    onClick={() => setShowBatteries(true)}
-                    className="inline-flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
-                    style={{ background: 'var(--accent)', color: '#fff' }}
-                >
-                    Batterietypen zuordnen →
-                </button>
-                {showBatteries && <BatteryAssignModal onClose={() => setShowBatteries(false)} />}
-            </div>
-
-            {/* ── Battery ── */}
-            {o.catBattery !== false && (
-                <div className="space-y-2 pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
-                    <span className={sectionTitleCls} style={labelStyle}>
-                        Batterien
-                    </span>
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Warnschwelle (% – darunter gilt als schwach)
-                        </label>
-                        <input
-                            type="number"
-                            min={1}
-                            max={100}
-                            value={o.batteryThreshold ?? 20}
-                            onChange={(e) =>
-                                set({ batteryThreshold: e.target.value ? Number(e.target.value) : undefined })
-                            }
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                    </div>
-                    <Toggle
-                        checked={o.includeLowbatBoolean !== false}
-                        onChange={(v) => set({ includeLowbatBoolean: v })}
-                        label="Boolesche LOWBAT-Datenpunkte einbeziehen"
-                    />
-                </div>
-            )}
-
-            {/* ── Lights ── */}
-            {o.catLight !== false && (
-                <div className="space-y-2 pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
-                    <span className={sectionTitleCls} style={labelStyle}>
-                        Lichter
-                    </span>
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Welche Schalter zählen als Licht?
-                        </label>
-                        <select
-                            value={lightScope}
-                            onChange={(e) => set({ lightRoleScope: e.target.value as 'light' | 'all' })}
-                            className={inputCls}
-                            style={inputStyle}
-                        >
-                            <option value="light">Nur Lichter (Rolle switch.light)</option>
-                            <option value="all">Alle Schalter (switch, switch.power)</option>
-                        </select>
-                    </div>
-                    {lightScope === 'all' && (
+                {o.catUnreach !== false && (
+                    <div className="ml-1 pl-3 space-y-2 pb-1" style={{ borderLeft: '2px solid var(--app-border)' }}>
+                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                            UNREACH/offline/reachable/connected werden automatisch erkannt (STICKY_UNREACH wird
+                            ignoriert). Nur für Sonderfälle: zusätzliche Offline-Datenpunkte. Gilt global für alle
+                            Widgets.
+                        </p>
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Zusätzliche Offline-Datenpunkte (Muster, Text oder /regex/)
+                            </label>
+                            <input
+                                type="text"
+                                value={offlineExtraPatterns}
+                                onChange={(e) => updateFrontend({ offlineExtraPatterns: e.target.value })}
+                                placeholder=".UNREACHABLE, /\\.offline$/"
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                        </div>
                         <Toggle
-                            checked={!!o.lightsOnlyFunction}
-                            onChange={(v) => set({ lightsOnlyFunction: v })}
-                            label="Nur Schalter in Funktion „Licht“"
-                        />
-                    )}
-                </div>
-            )}
-
-            {/* ── Reachability (global escape hatch) ── */}
-            {o.catUnreach !== false && (
-                <div className="space-y-2 pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
-                    <span className={sectionTitleCls} style={labelStyle}>
-                        Erreichbarkeit (global)
-                    </span>
-                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                        UNREACH/offline/reachable/connected werden automatisch erkannt (STICKY_UNREACH wird ignoriert).
-                        Nur für Sonderfälle: zusätzliche Offline-Datenpunkte. Gilt für alle Widgets.
-                    </p>
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Zusätzliche Offline-Datenpunkte (Muster, Text oder /regex/)
-                        </label>
-                        <input
-                            type="text"
-                            value={offlineExtraPatterns}
-                            onChange={(e) => updateFrontend({ offlineExtraPatterns: e.target.value })}
-                            placeholder=".UNREACHABLE, /\\.offline$/"
-                            className={inputCls}
-                            style={inputStyle}
+                            checked={offlineInvert}
+                            onChange={(v) => updateFrontend({ offlineInvert: v })}
+                            label="Bei diesen Mustern bedeutet FALSE = offline"
                         />
                     </div>
-                    <Toggle
-                        checked={offlineInvert}
-                        onChange={(v) => updateFrontend({ offlineInvert: v })}
-                        label="Bei diesen Mustern bedeutet FALSE = offline"
-                    />
-                </div>
-            )}
+                )}
+            </div>
 
             {/* ── Scope ── */}
             <div className="space-y-2 pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
