@@ -63,6 +63,25 @@ function str(s: ioBrokerState | null | undefined): string {
     return String(s.val);
 }
 
+// The open-meteo-weather adapter emits forecast dates as a localized string
+// ("16.06.2026", DD.MM.YYYY) rather than the ISO "YYYY-MM-DD" the REST API uses.
+// `new Date("16.06.2026")` is not a valid Date string, so it parses to Invalid
+// Date (→ NaN weekday) on some engines and gets heuristically mis-parsed on
+// others (month/day swapped → jumbled, repeating weekday labels). Normalize to
+// ISO so the shared render code (dayName, tomorrow, per-day fields) works.
+function toIsoDate(raw: string): string {
+    const s = raw.trim();
+    // Already ISO (YYYY-MM-DD, optionally with a time component) → keep as-is.
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s;
+    // German/European DD.MM.YYYY (or D.M.YYYY) → YYYY-MM-DD.
+    const m = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(s);
+    if (m) {
+        const [, d, mo, y] = m;
+        return `${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    }
+    return s;
+}
+
 function assemble(prefix: string, states: Map<string, ioBrokerState | null>): AdapterWeatherData | null {
     const cur = (f: string) => states.get(`${prefix}.weather.current.${f}`) ?? null;
     const day = (i: number, f: string) => states.get(`${prefix}.weather.forecast.day${i}.${f}`) ?? null;
@@ -86,7 +105,7 @@ function assemble(prefix: string, states: Map<string, ioBrokerState | null>): Ad
         const tMax = num(day(i, 'temperature_2m_max'));
         const tMin = num(day(i, 'temperature_2m_min'));
         if (!t || wc === undefined || tMax === undefined || tMin === undefined) break;
-        daily.time.push(t);
+        daily.time.push(toIsoDate(t));
         daily.weather_code.push(wc);
         daily.temperature_2m_max.push(tMax);
         daily.temperature_2m_min.push(tMin);

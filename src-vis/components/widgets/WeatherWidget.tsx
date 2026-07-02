@@ -271,6 +271,13 @@ function getTempBarColor(temp: number, thresholds?: [number, string][]): string 
     return chosen;
 }
 
+// Rain amount as a short string: whole "0" for dry days (no noisy "0.0"),
+// one decimal otherwise. Used everywhere a mm value is shown so the forecast
+// column stays consistent instead of dropping the amount on dry days.
+function fmtRainMm(v: number): string {
+    return v > 0 ? v.toFixed(1) : '0';
+}
+
 const SEVERITY_COLOR: Record<Severity, string> = {
     minor: '#f59e0b',
     moderate: '#f97316',
@@ -652,10 +659,10 @@ export function WeatherWidget({ config }: WidgetProps) {
                             {showRainProb && fc.rainProb !== undefined && fc.rainProb !== null && (
                                 <span>💧{fc.rainProb}%</span>
                             )}
-                            {showRainAmount && fc.rainSum !== undefined && fc.rainSum !== null && fc.rainSum > 0 && (
+                            {showRainAmount && fc.rainSum !== undefined && fc.rainSum !== null && (
                                 <span>
                                     {showRainProb ? ' ' : ''}
-                                    {fc.rainSum.toFixed(1)}mm
+                                    {fmtRainMm(fc.rainSum)}mm
                                 </span>
                             )}
                         </span>
@@ -787,7 +794,7 @@ export function WeatherWidget({ config }: WidgetProps) {
         const fmtRainLine = (rp?: number | null, rs?: number | null): string => {
             const parts: string[] = [];
             if (rp !== undefined && rp !== null) parts.push(`${rp}%`);
-            if (rs !== undefined && rs !== null && rs > 0) parts.push(`${rs.toFixed(1)} mm`);
+            if (rs !== undefined && rs !== null) parts.push(`${fmtRainMm(rs)} mm`);
             return parts.length ? `💧 ${parts.join(' · ')}` : '';
         };
         const cellEmoji = <span style={{ fontSize: '2.4em', lineHeight: 1 }}>{info.emoji}</span>;
@@ -825,7 +832,7 @@ export function WeatherWidget({ config }: WidgetProps) {
             perDayFields[`tempMin${i}`] = `${tMin}°`;
             perDayFields[`tempRange${i}`] = `${tMin}° / ${tMax}°`;
             perDayFields[`rainProb${i}`] = rp !== undefined && rp !== null ? `${rp}%` : '';
-            perDayFields[`rainSum${i}`] = rs !== undefined && rs !== null && rs > 0 ? `${rs.toFixed(1)} mm` : '';
+            perDayFields[`rainSum${i}`] = rs !== undefined && rs !== null ? `${fmtRainMm(rs)} mm` : '';
             perDayFields[`rainLine${i}`] = fmtRainLine(rp, rs);
             perDayComponents[`weather-icon-day-${i}`] = (
                 <span style={{ fontSize: '2.4em', lineHeight: 1 }}>{di.emoji}</span>
@@ -944,7 +951,7 @@ export function WeatherWidget({ config }: WidgetProps) {
                         tomorrowMin !== null && tomorrowMax !== null ? `${tomorrowMin}° / ${tomorrowMax}°` : '',
                     rainProbTomorrow: tomorrowRainP !== undefined && tomorrowRainP !== null ? `${tomorrowRainP}%` : '',
                     rainSumTomorrow:
-                        tomorrowRainS !== undefined && tomorrowRainS !== null ? `${tomorrowRainS.toFixed(1)} mm` : '',
+                        tomorrowRainS !== undefined && tomorrowRainS !== null ? `${fmtRainMm(tomorrowRainS)} mm` : '',
                     rainLineTomorrow: fmtRainLine(tomorrowRainP, tomorrowRainS),
                     ...perDayFields,
                 }}
