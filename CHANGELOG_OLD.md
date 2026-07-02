@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.9.299 (2026-06-22)
+- fix(io-package): restore required common.licenseInformation (E1015/E1105)
+
 ## 0.9.298 (2026-06-22)
 - fix(backup): decode binary .gz reads so backups aren't reported empty
 
