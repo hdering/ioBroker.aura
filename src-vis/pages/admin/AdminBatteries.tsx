@@ -38,6 +38,20 @@ function friendlyManufacturer(mfr: string): string {
     return m;
 }
 
+/**
+ * Dedup key that collapses the SAME physical device seen under multiple adapter instances.
+ * HomeMatic IP devices are often exposed by both the HmIP and the classic HM instance
+ * (hm-rpc.1 + hm-rpc.2) — same serial (3rd id segment), so key on that regardless of instance.
+ * Other adapters key on the full device id (no cross-instance merge → no false positives).
+ */
+function deviceGroupKey(deviceId: string): string {
+    const parts = deviceId.split('.');
+    if ((parts[0] === 'hm-rpc' || parts[0] === 'hmip' || parts[0] === 'homematic') && parts.length >= 3) {
+        return `homematic::${parts[2]}`;
+    }
+    return deviceId;
+}
+
 const cardStyle: React.CSSProperties = { background: 'var(--app-surface)', border: '1px solid var(--app-border)' };
 const inputCls = 'text-xs rounded-lg px-2 py-1.5 focus:outline-none';
 const inputStyle: React.CSSProperties = {
@@ -139,7 +153,22 @@ export function AdminBatteries() {
                 });
             }
             const list = [...byDevice.values()].sort((a, b) => a.name.localeCompare(b.name, 'de'));
-            setDevices(list);
+
+            // Collapse the same physical device seen under multiple instances (HmIP + classic HM),
+            // keeping the copy that actually resolves a battery type/model.
+            const rowScore = (r: DeviceRow) =>
+                overrides[r.deviceId]?.type ? 3 : r.autoType ? 2 : r.model || r.modelId ? 1 : 0;
+            const dedupe = (rows: DeviceRow[]) => {
+                const best = new Map<string, DeviceRow>();
+                for (const r of rows) {
+                    const k = deviceGroupKey(r.deviceId);
+                    const cur = best.get(k);
+                    if (!cur || rowScore(r) > rowScore(cur)) best.set(k, r);
+                }
+                return [...best.values()].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+            };
+
+            setDevices(dedupe(list));
             setLib(library);
             setLoading(false);
 
@@ -174,12 +203,14 @@ export function AdminBatteries() {
                         }
                     }),
                 );
-                if (!cancelled) setDevices([...list]);
+                if (!cancelled) setDevices(dedupe(list));
             }
         })();
         return () => {
             cancelled = true;
         };
+        // Discovery runs once; overrides are only used for dedup preference at load time.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const setOverride = (deviceId: string, type: string | null, quantity?: number) => {
