@@ -143,6 +143,29 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                 />
             </div>
 
+            {/* ── Battery type ── */}
+            <div className="space-y-2 pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
+                <span className={sectionTitleCls} style={labelStyle}>
+                    Batterietypen
+                </span>
+                <Toggle
+                    checked={o.batteryTypeEnabled !== false}
+                    onChange={(v) => set({ batteryTypeEnabled: v ? undefined : false })}
+                    label="Batterietyp & Anzahl neben schwachen Batterien anzeigen"
+                />
+                <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                    Typen werden automatisch erkannt (falls bekannt). Nicht erkannte Geräte manuell zuordnen:
+                </p>
+                <button
+                    onClick={() => setShowBatteries(true)}
+                    className="inline-flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
+                    style={{ background: 'var(--accent)', color: '#fff' }}
+                >
+                    Batterietypen zuordnen →
+                </button>
+                {showBatteries && <BatteryAssignModal onClose={() => setShowBatteries(false)} />}
+            </div>
+
             {/* ── Battery ── */}
             {o.catBattery !== false && (
                 <div className="space-y-2 pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
@@ -291,29 +314,6 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         style={inputStyle}
                     />
                 </div>
-            </div>
-
-            {/* ── Battery type ── */}
-            <div className="space-y-2 pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
-                <span className={sectionTitleCls} style={labelStyle}>
-                    Batterietypen
-                </span>
-                <Toggle
-                    checked={o.batteryTypeEnabled !== false}
-                    onChange={(v) => set({ batteryTypeEnabled: v ? undefined : false })}
-                    label="Batterietyp & Anzahl neben schwachen Batterien anzeigen"
-                />
-                <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                    Typen werden automatisch erkannt (falls bekannt). Nicht erkannte Geräte manuell zuordnen:
-                </p>
-                <button
-                    onClick={() => setShowBatteries(true)}
-                    className="inline-flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
-                    style={{ background: 'var(--accent)', color: '#fff' }}
-                >
-                    Batterietypen zuordnen →
-                </button>
-                {showBatteries && <BatteryAssignModal onClose={() => setShowBatteries(false)} />}
             </div>
 
             {/* ── Display ── */}
