@@ -115,6 +115,14 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.15.3 (2026-07-02)
+- Weather - fix jumbled/incorrect forecast weekday labels when using adapter data source (open-meteo-weather emits DD.MM.YYYY dates)
+- Weather - forecast now shows rain amount consistently (0 mm on dry days) instead of hiding it, so the column no longer looks ragged
+- fix(lint): wrap German typographic quotes in StatusOverviewConfig JSX
+- Auswahlfeld - current selection can now be shown as text, icon, or icon + text; entries gained per-entry icons and a compact single-row editor. The Universal widget's DP-select cell matches this: import entries from the datapoint's common.states, per-entry icons, and a tidied entry row
+- 🌟 **New feature:** Status overview - new widget that automatically surfaces low batteries, open windows, lights left on, unreachable/offline devices and smoke/water alarms, with an "all clear" state and click-to-jump to the affected device; offers list/Card/Minimal layouts with per-category colors, shows battery type and count, uses robust reachability detection, and includes a battery-type assignment page to identify and manage battery devices
+
+
 ### 0.15.2 (2026-07-02)
 - fix(lint): wrap German typographic quotes in StatusOverviewConfig JSX
 - Auswahlfeld - current selection can now be shown as text, icon, or icon + text; entries gained per-entry icons and a compact single-row editor. The Universal widget's DP-select cell matches this: import entries from the datapoint's common.states, per-entry icons, and a tidied entry row
@@ -251,13 +259,6 @@ Release v0.12.1
 - chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327)
 
 
-### 0.10.0 (2026-06-24) — beta/test release
-- Merge pull request #357 from hdering/pr218-pure-ws-followup
-- fix(socket): resolve no-use-before-define in load guard
-- fix(socket): dev-proxy pure-ws root upgrade + socket-lib load guard
-- Support pure WebSocket transport (load socket.io client at runtime)
-
-
 ## License
 
 MIT License
@@ -269,6 +270,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

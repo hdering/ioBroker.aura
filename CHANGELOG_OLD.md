@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.10.0 (2026-06-24) — beta/test release
+- Merge pull request #357 from hdering/pr218-pure-ws-followup
+- fix(socket): resolve no-use-before-define in load guard
+- fix(socket): dev-proxy pure-ws root upgrade + socket-lib load guard
+- Support pure WebSocket transport (load socket.io client at runtime)
+
 ## 0.9.299 (2026-06-22)
 - fix(io-package): restore required common.licenseInformation (E1015/E1105)
 
