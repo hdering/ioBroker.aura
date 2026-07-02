@@ -178,21 +178,24 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                 />
                 {o.catBattery !== false && (
                     <div className="ml-1 pl-3 space-y-2 pb-1" style={{ borderLeft: '2px solid var(--app-border)' }}>
-                        <div>
-                            <label className={labelCls} style={labelStyle}>
-                                Warnschwelle (% – darunter gilt als schwach)
-                            </label>
-                            <input
-                                type="number"
-                                min={1}
-                                max={100}
-                                value={o.batteryThreshold ?? 20}
-                                onChange={(e) =>
-                                    set({ batteryThreshold: e.target.value ? Number(e.target.value) : undefined })
-                                }
-                                className={inputCls}
-                                style={inputStyle}
-                            />
+                        <div className="flex gap-3 items-start">
+                            <div className="flex-1">
+                                <label className={labelCls} style={labelStyle}>
+                                    Warnschwelle (%)
+                                </label>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    max={100}
+                                    value={o.batteryThreshold ?? 20}
+                                    onChange={(e) =>
+                                        set({ batteryThreshold: e.target.value ? Number(e.target.value) : undefined })
+                                    }
+                                    className={inputCls}
+                                    style={inputStyle}
+                                />
+                            </div>
+                            <CatColor cat="battery" />
                         </div>
                         <Toggle
                             checked={o.includeLowbatBoolean !== false}
@@ -215,7 +218,6 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             Batterietypen zuordnen →
                         </button>
                         {showBatteries && <BatteryAssignModal onClose={() => setShowBatteries(false)} />}
-                        <CatColor cat="battery" />
                     </div>
                 )}
 
@@ -226,19 +228,22 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                 />
                 {o.catLight !== false && (
                     <div className="ml-1 pl-3 space-y-2 pb-1" style={{ borderLeft: '2px solid var(--app-border)' }}>
-                        <div>
-                            <label className={labelCls} style={labelStyle}>
-                                Welche Schalter zählen als Licht?
-                            </label>
-                            <select
-                                value={lightScope}
-                                onChange={(e) => set({ lightRoleScope: e.target.value as 'light' | 'all' })}
-                                className={inputCls}
-                                style={inputStyle}
-                            >
-                                <option value="light">Nur Lichter (Rolle switch.light)</option>
-                                <option value="all">Alle Schalter (switch, switch.power)</option>
-                            </select>
+                        <div className="flex gap-3 items-start">
+                            <div className="flex-1">
+                                <label className={labelCls} style={labelStyle}>
+                                    Welche Schalter zählen als Licht?
+                                </label>
+                                <select
+                                    value={lightScope}
+                                    onChange={(e) => set({ lightRoleScope: e.target.value as 'light' | 'all' })}
+                                    className={inputCls}
+                                    style={inputStyle}
+                                >
+                                    <option value="light">Nur Lichter (Rolle switch.light)</option>
+                                    <option value="all">Alle Schalter (switch, switch.power)</option>
+                                </select>
+                            </div>
+                            <CatColor cat="light" />
                         </div>
                         {lightScope === 'all' && (
                             <Toggle
@@ -247,7 +252,6 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                 label="Nur Schalter in Funktion „Licht“"
                             />
                         )}
-                        <CatColor cat="light" />
                     </div>
                 )}
 
@@ -274,25 +278,27 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             ignoriert). Nur für Sonderfälle: zusätzliche Offline-Datenpunkte. Gilt global für alle
                             Widgets.
                         </p>
-                        <div>
-                            <label className={labelCls} style={labelStyle}>
-                                Zusätzliche Offline-Datenpunkte (Muster, Text oder /regex/)
-                            </label>
-                            <input
-                                type="text"
-                                value={offlineExtraPatterns}
-                                onChange={(e) => updateFrontend({ offlineExtraPatterns: e.target.value })}
-                                placeholder=".UNREACHABLE, /\\.offline$/"
-                                className={inputCls}
-                                style={inputStyle}
-                            />
+                        <div className="flex gap-3 items-start">
+                            <div className="flex-1">
+                                <label className={labelCls} style={labelStyle}>
+                                    Zusätzliche Offline-Datenpunkte (Muster, Text oder /regex/)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={offlineExtraPatterns}
+                                    onChange={(e) => updateFrontend({ offlineExtraPatterns: e.target.value })}
+                                    placeholder=".UNREACHABLE, /\\.offline$/"
+                                    className={inputCls}
+                                    style={inputStyle}
+                                />
+                            </div>
+                            <CatColor cat="unreach" />
                         </div>
                         <Toggle
                             checked={offlineInvert}
                             onChange={(v) => updateFrontend({ offlineInvert: v })}
                             label="Bei diesen Mustern bedeutet FALSE = offline"
                         />
-                        <CatColor cat="unreach" />
                     </div>
                 )}
             </div>
