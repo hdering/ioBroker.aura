@@ -1,5 +1,37 @@
 # Changelog (older entries)
 
+## 0.10.2 (2026-06-25)
+- chore(build): rebuild www frontend bundle
+- chore(build): rebuild www frontend bundle
+- Merge pull request #383 from hdering/chore/ws-upgrade-log-debug
+- chore(proxy): lower WS-upgrade diagnostic log to debug level
+- chore(build): rebuild www frontend bundle
+- style(prettier): auto-format code files
+- Merge pull request #382 from hdering/fix/pure-ws-sid-diag
+- fix(proxy): inject sid also when empty + log WS upgrades (pure-ws diag)
+- chore(build): rebuild www frontend bundle
+- Merge pull request #381 from hdering/fix/pure-ws-ensure-sid
+- fix(proxy): guarantee a sid on pure-ws root upgrades (fixes 5s reconnect loop)
+- chore(build): rebuild www frontend bundle
+- style(prettier): auto-format code files
+- Merge pull request #380 from hdering/fix/adaptive-forwarded-for
+- fix(proxy): only forward X-Forwarded-For for engine.io socket modes
+- chore(build): rebuild www frontend bundle
+- Merge pull request #369 from hdering/fix/proxy-x-forwarded-for
+- feat(proxy): forward X-Forwarded-For/Proto to the socket backend
+- chore(build): rebuild www frontend bundle
+- Merge pull request #368 from hdering/fix/pin-zustand-v4-prod-loop
+- fix(deps): pin zustand to v4 — v5 causes prod-only infinite render loop
+- chore(build): rebuild www frontend bundle
+- Merge pull request #359 from hdering/fix/force-websockets-transport
+- fix(socket): connect websocket-first so "Force web sockets" works
+- chore(deps): bump actions/checkout from 6 to 7 (#356)
+- chore(deps): bump zustand to v5 and migrate equality-fn store hooks (#358)
+- chore(build): rebuild www frontend bundle
+- chore(deps-dev): bump typescript from 5.9.3 to 6.0.3 (#330)
+- chore(deps): bump @iobroker/adapter-core from 3.3.2 to 3.4.1 (#331)
+- chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327)
+
 ## 0.10.0 (2026-06-24) — beta/test release
 - Merge pull request #357 from hdering/pr218-pure-ws-followup
 - fix(socket): resolve no-use-before-define in load guard

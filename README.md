@@ -115,6 +115,15 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.15.4 (2026-07-02)
+- Tabs - badges are no longer clipped by the header
+- Weather - fix jumbled/incorrect forecast weekday labels when using adapter data source (open-meteo-weather emits DD.MM.YYYY dates)
+- Weather - forecast now shows rain amount consistently (0 mm on dry days) instead of hiding it, so the column no longer looks ragged
+- fix(lint): wrap German typographic quotes in StatusOverviewConfig JSX
+- Auswahlfeld - current selection can now be shown as text, icon, or icon + text; entries gained per-entry icons and a compact single-row editor. The Universal widget's DP-select cell matches this: import entries from the datapoint's common.states, per-entry icons, and a tidied entry row
+- 🌟 **New feature:** Status overview - new widget that automatically surfaces low batteries, open windows, lights left on, unreachable/offline devices and smoke/water alarms, with an "all clear" state and click-to-jump to the affected device; offers list/Card/Minimal layouts with per-category colors, shows battery type and count, uses robust reachability detection, and includes a battery-type assignment page to identify and manage battery devices
+
+
 ### 0.15.3 (2026-07-02)
 - Weather - fix jumbled/incorrect forecast weekday labels when using adapter data source (open-meteo-weather emits DD.MM.YYYY dates)
 - Weather - forecast now shows rain amount consistently (0 mm on dry days) instead of hiding it, so the column no longer looks ragged
@@ -226,39 +235,6 @@ Release v0.12.1
 - fix(panels): prevent viewport collapse in mobile portrait layout
 
 
-### 0.10.2 (2026-06-25)
-- chore(build): rebuild www frontend bundle
-- chore(build): rebuild www frontend bundle
-- Merge pull request #383 from hdering/chore/ws-upgrade-log-debug
-- chore(proxy): lower WS-upgrade diagnostic log to debug level
-- chore(build): rebuild www frontend bundle
-- style(prettier): auto-format code files
-- Merge pull request #382 from hdering/fix/pure-ws-sid-diag
-- fix(proxy): inject sid also when empty + log WS upgrades (pure-ws diag)
-- chore(build): rebuild www frontend bundle
-- Merge pull request #381 from hdering/fix/pure-ws-ensure-sid
-- fix(proxy): guarantee a sid on pure-ws root upgrades (fixes 5s reconnect loop)
-- chore(build): rebuild www frontend bundle
-- style(prettier): auto-format code files
-- Merge pull request #380 from hdering/fix/adaptive-forwarded-for
-- fix(proxy): only forward X-Forwarded-For for engine.io socket modes
-- chore(build): rebuild www frontend bundle
-- Merge pull request #369 from hdering/fix/proxy-x-forwarded-for
-- feat(proxy): forward X-Forwarded-For/Proto to the socket backend
-- chore(build): rebuild www frontend bundle
-- Merge pull request #368 from hdering/fix/pin-zustand-v4-prod-loop
-- fix(deps): pin zustand to v4 — v5 causes prod-only infinite render loop
-- chore(build): rebuild www frontend bundle
-- Merge pull request #359 from hdering/fix/force-websockets-transport
-- fix(socket): connect websocket-first so "Force web sockets" works
-- chore(deps): bump actions/checkout from 6 to 7 (#356)
-- chore(deps): bump zustand to v5 and migrate equality-fn store hooks (#358)
-- chore(build): rebuild www frontend bundle
-- chore(deps-dev): bump typescript from 5.9.3 to 6.0.3 (#330)
-- chore(deps): bump @iobroker/adapter-core from 3.3.2 to 3.4.1 (#331)
-- chore(deps): bump ioBroker/testing-action-check from 1 to 2 (#327)
-
-
 ## License
 
 MIT License
@@ -270,6 +246,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
