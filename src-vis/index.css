@@ -135,6 +135,21 @@ body,
     background: transparent;
 }
 
+/* Tab-bar scroll rows use overflow-x:auto for horizontal tab scrolling, which
+   the browser forces to clip the vertical axis too — cutting off corner badges
+   that overflow toward the header sitting flush above. The symmetric padding
+   gives those badges room to overflow without being clipped; the equal negative
+   margin cancels the padding's effect on layout, so the bar height and its
+   neighbours (header above, dashboard below) stay put. Badges therefore render
+   over the header instead of being cut. Height/gap of inner content (tabs,
+   dividers) is set on a nested row so this padding never stretches them. */
+.aura-badge-room {
+    padding-top: 14px;
+    padding-bottom: 14px;
+    margin-top: -14px;
+    margin-bottom: -14px;
+}
+
 /* Hide-scrollbar utility — used by the carousel widget when options.hideScrollbar is set */
 .aura-no-scrollbar {
     scrollbar-width: none;

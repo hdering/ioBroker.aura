@@ -4,7 +4,9 @@ import type { ResolvedBadge } from '../../hooks/useBadges';
 
 // Overlays resolved badges on the four corners of a widget/group. Each badge
 // sits ON the edge (centred on the corner, overflowing outward), so the host
-// container must not clip overflow (.aura-widget is overflow-visible).
+// container must not clip overflow (.aura-widget is overflow-visible; the tab
+// bar rows use .aura-badge-room to keep their overflow-x:auto scroll from
+// clipping the badges vertically — see index.css).
 
 const CORNERS: BadgeCorner[] = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 

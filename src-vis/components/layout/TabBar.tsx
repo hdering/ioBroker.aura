@@ -877,43 +877,52 @@ export function TabBar({
                     }}
                 >
                     {/* Zone 1: left items + tabs when alignment=left */}
-                    <div className="aura-scroll flex items-center gap-1 px-2 overflow-x-auto" style={{ minWidth: 0 }}>
-                        {headerSlot}
-                        {leftItems.map(renderTabBarItem)}
-                        {tabsAlignment === 'left' && leftItems.length > 0 && (
-                            <div
-                                className="w-px self-stretch mx-1 shrink-0"
-                                style={{ background: 'var(--app-border)' }}
-                            />
-                        )}
-                        {tabsAlignment === 'left' && renderTabs()}
-                        {tabsAlignment === 'left' && addTabBtn}
+                    <div
+                        className="aura-scroll aura-badge-room flex items-center overflow-x-auto"
+                        style={{ minWidth: 0 }}
+                    >
+                        <div className="flex items-center gap-1 px-2">
+                            {headerSlot}
+                            {leftItems.map(renderTabBarItem)}
+                            {tabsAlignment === 'left' && leftItems.length > 0 && (
+                                <div
+                                    className="w-px self-stretch mx-1 shrink-0"
+                                    style={{ background: 'var(--app-border)' }}
+                                />
+                            )}
+                            {tabsAlignment === 'left' && renderTabs()}
+                            {tabsAlignment === 'left' && addTabBtn}
+                        </div>
                     </div>
 
                     {/* Zone 2: center items + tabs when alignment=center */}
-                    <div className="aura-scroll flex items-center justify-center gap-1 px-2 overflow-x-auto shrink-0">
-                        {tabsAlignment === 'center' && renderTabs()}
-                        {tabsAlignment === 'center' && addTabBtn}
-                        {tabsAlignment === 'center' && centerItems.length > 0 && (
-                            <div
-                                className="w-px self-stretch mx-2 shrink-0"
-                                style={{ background: 'var(--app-border)' }}
-                            />
-                        )}
-                        {centerItems.map(renderTabBarItem)}
+                    <div className="aura-scroll aura-badge-room flex items-center justify-center overflow-x-auto shrink-0">
+                        <div className="flex items-center gap-1 px-2">
+                            {tabsAlignment === 'center' && renderTabs()}
+                            {tabsAlignment === 'center' && addTabBtn}
+                            {tabsAlignment === 'center' && centerItems.length > 0 && (
+                                <div
+                                    className="w-px self-stretch mx-2 shrink-0"
+                                    style={{ background: 'var(--app-border)' }}
+                                />
+                            )}
+                            {centerItems.map(renderTabBarItem)}
+                        </div>
                     </div>
 
                     {/* Zone 3: right items + tabs when alignment=right */}
-                    <div className="aura-scroll flex items-center justify-end gap-1 px-2 overflow-x-auto shrink-0">
-                        {tabsAlignment === 'right' && renderTabs()}
-                        {tabsAlignment === 'right' && addTabBtn}
-                        {tabsAlignment === 'right' && rightItems.length > 0 && (
-                            <div
-                                className="w-px self-stretch mx-2 shrink-0"
-                                style={{ background: 'var(--app-border)' }}
-                            />
-                        )}
-                        {rightItems.map(renderTabBarItem)}
+                    <div className="aura-scroll aura-badge-room flex items-center justify-end overflow-x-auto shrink-0">
+                        <div className="flex items-center gap-1 px-2">
+                            {tabsAlignment === 'right' && renderTabs()}
+                            {tabsAlignment === 'right' && addTabBtn}
+                            {tabsAlignment === 'right' && rightItems.length > 0 && (
+                                <div
+                                    className="w-px self-stretch mx-2 shrink-0"
+                                    style={{ background: 'var(--app-border)' }}
+                                />
+                            )}
+                            {rightItems.map(renderTabBarItem)}
+                        </div>
                     </div>
                 </div>
                 {settingsPanel}
@@ -925,17 +934,21 @@ export function TabBar({
     // Simple layout: alignment=left, no center/right items
     return (
         <>
-            <div
-                className="aura-tabs aura-scroll flex items-center gap-1 px-4 overflow-x-auto shrink-0"
-                style={containerStyle}
-            >
-                {headerSlot}
-                {leftItems.map(renderTabBarItem)}
-                {leftItems.length > 0 && (
-                    <div className="w-px self-stretch mx-1 shrink-0" style={{ background: 'var(--app-border)' }} />
-                )}
-                {renderTabs()}
-                {addTabBtn}
+            <div className="aura-tabs shrink-0 flex" style={containerStyle}>
+                <div className="aura-scroll aura-badge-room flex items-center overflow-x-auto flex-1 min-w-0">
+                    <div className="flex items-center gap-1 px-4">
+                        {headerSlot}
+                        {leftItems.map(renderTabBarItem)}
+                        {leftItems.length > 0 && (
+                            <div
+                                className="w-px self-stretch mx-1 shrink-0"
+                                style={{ background: 'var(--app-border)' }}
+                            />
+                        )}
+                        {renderTabs()}
+                        {addTabBtn}
+                    </div>
+                </div>
             </div>
             {settingsPanel}
             {iconPickerModal}
