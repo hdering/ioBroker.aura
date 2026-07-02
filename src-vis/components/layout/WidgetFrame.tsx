@@ -7038,6 +7038,41 @@ export function WidgetFrame({
                                             </div>
                                         );
                                     })}
+                                    {config.type === 'enum' && o.showValue !== false && (
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                                                Anzeige aktuelle Auswahl
+                                            </span>
+                                            <div
+                                                className="flex rounded-lg overflow-hidden shrink-0"
+                                                style={{ border: '1px solid var(--app-border)' }}
+                                            >
+                                                {(
+                                                    [
+                                                        { key: 'text', label: 'Text' },
+                                                        { key: 'icon-text', label: 'Icon + Text' },
+                                                        { key: 'icon', label: 'Icon' },
+                                                    ] as const
+                                                ).map(({ key, label }) => {
+                                                    const active = ((o.entryDisplay as string) ?? 'text') === key;
+                                                    return (
+                                                        <button
+                                                            key={key}
+                                                            onClick={() => setO({ entryDisplay: key })}
+                                                            className="text-[10px] px-2 py-1 transition-colors"
+                                                            style={{
+                                                                background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                                color: active ? '#fff' : 'var(--text-secondary)',
+                                                                border: 'none',
+                                                            }}
+                                                        >
+                                                            {label}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
                                     {config.type !== 'stateimage' && (
                                         <>
                                             <div className="h-px" style={{ background: 'var(--app-border)' }} />

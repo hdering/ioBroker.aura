@@ -100,6 +100,8 @@ export function EnumWidget({ config }: WidgetProps) {
     const showIcon = o.showIcon !== false;
     const showValue = o.showValue !== false; // current label
     const showSelect = o.showSelect !== false; // dropdown
+    // How the current selection is rendered: plain text, icon + text, or icon only.
+    const entryDisplay = (o.entryDisplay as 'text' | 'icon-text' | 'icon' | undefined) ?? 'text';
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const iconSize = (o.iconSize as number) || 20;
     const entries = (o.entries as EnumEntry[] | undefined) ?? [];
@@ -114,22 +116,67 @@ export function EnumWidget({ config }: WidgetProps) {
         setState(config.datapoint, parseValue(raw));
     };
 
-    // Render the current selection: rich content if a known entry is selected,
-    // otherwise the raw value / placeholder.
-    const renderCurrent = (className: string, style: React.CSSProperties) =>
-        current ? (
-            <EnumEntryLabel entry={current} className={className} style={style} />
-        ) : (
+    // Render the current selection honoring the entryDisplay option
+    // (text / icon+text / icon). Legacy rich entries (image/HTML) always render
+    // via their own mode; plain text/icon entries follow entryDisplay.
+    const renderCurrent = (className: string, style: React.CSSProperties) => {
+        if (!current) {
+            return (
+                <span className={className} style={style}>
+                    {currentLabel}
+                </span>
+            );
+        }
+        const rm = entryRenderMode(current);
+        if (rm === 'image' || rm === 'html') {
+            return <EnumEntryLabel entry={current} className={className} style={style} />;
+        }
+        const CurIcon = current.icon ? getWidgetIcon(current.icon, ListChecks) : null;
+        const wantIcon = (entryDisplay === 'icon' || entryDisplay === 'icon-text') && !!CurIcon;
+        const wantText = entryDisplay === 'text' || entryDisplay === 'icon-text' || !wantIcon;
+        const color = (style.color as string) ?? currentColor ?? 'var(--text-primary)';
+        if (wantIcon && !wantText && CurIcon) {
+            return <CurIcon size={current.size ?? 22} className={className} style={{ ...style, color }} />;
+        }
+        if (wantIcon && wantText && CurIcon) {
+            return (
+                <span
+                    className={className}
+                    style={{ ...style, display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0 }}
+                >
+                    <CurIcon size={current.size ?? 18} style={{ color, flexShrink: 0 }} />
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
+                        {current.label || '–'}
+                    </span>
+                </span>
+            );
+        }
+        return (
             <span className={className} style={style}>
-                {currentLabel}
+                {current.label || currentLabel}
             </span>
         );
+    };
+
+    // Dropdown option content: icon + label when an entry has an icon, otherwise
+    // its own rich render mode.
+    const renderOption = (e: EnumEntry) => {
+        const rm = entryRenderMode(e);
+        if (rm !== 'text' || !e.icon) return <EnumEntryLabel entry={e} />;
+        const OptIcon = getWidgetIcon(e.icon, ListChecks);
+        return (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: e.color }}>
+                <OptIcon size={16} style={{ color: e.color, flexShrink: 0 }} />
+                <span>{e.label || e.value}</span>
+            </span>
+        );
+    };
 
     const selectEl = showSelect ? (
         <HtmlSelect
             value={current?.value ?? ''}
             onPick={onPick}
-            entries={entries.map((e) => ({ value: e.value, content: <EnumEntryLabel entry={e} /> }))}
+            entries={entries.map((e) => ({ value: e.value, content: renderOption(e) }))}
         />
     ) : null;
 
