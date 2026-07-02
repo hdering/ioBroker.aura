@@ -358,7 +358,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                     className="flex-1 min-h-0 overflow-y-auto"
                     style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))',
+                        gridTemplateColumns: `repeat(auto-fill, minmax(${opts.cardMinWidth ?? 96}px, 1fr))`,
                         gap: 6,
                         alignContent: 'start',
                     }}

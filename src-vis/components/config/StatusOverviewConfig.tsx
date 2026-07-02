@@ -322,6 +322,25 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     />
                 </summary>
                 <div className="space-y-2 mt-2">
+                    {config.layout === 'card' && (
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Kartengröße (min. Breite in px)
+                            </label>
+                            <input
+                                type="number"
+                                min={60}
+                                max={400}
+                                step={10}
+                                value={o.cardMinWidth ?? 96}
+                                onChange={(e) =>
+                                    set({ cardMinWidth: e.target.value ? Number(e.target.value) : undefined })
+                                }
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                        </div>
+                    )}
                     <div>
                         <label className={labelCls} style={labelStyle}>
                             Welche Geräte anzeigen

@@ -96,6 +96,7 @@ export interface StatusOverviewOptions {
     // Display
     valueFilter?: 'alerts' | 'all'; // 'alerts' = only devices needing attention (default); 'all' = every found device
     alertColor?: string; // highlight colour for devices in an attention state (default: per-severity)
+    cardMinWidth?: number; // card layout: min tile width in px (default 96)
     showTitle?: boolean; // show the widget title in the header (default true)
     showOkCategories?: boolean; // also list categories with no alerts (default false)
     allClearText?: string;
