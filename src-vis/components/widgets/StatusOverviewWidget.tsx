@@ -26,6 +26,7 @@ import {
 const EMPTY_HIDDEN: string[] = [];
 import {
     categoryOf,
+    collectHmBatterySerials,
     passesScope,
     evaluateItem,
     compareItems,
@@ -130,9 +131,10 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         let cancelled = false;
         ensureDatapointCache().then((cache) => {
             if (cancelled) return;
+            const hmBatterySerials = collectHmBatterySerials(cache);
             const found: Candidate[] = [];
             for (const dp of cache) {
-                const cat = categoryOf(dp, opts);
+                const cat = categoryOf(dp, opts, hmBatterySerials);
                 if (!cat) continue;
                 if (!passesScope(dp, opts)) continue;
                 found.push({ dp, cat });

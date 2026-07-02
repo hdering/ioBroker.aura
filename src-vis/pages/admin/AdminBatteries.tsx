@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { BatteryFull, HelpCircle, Search, Wand2, Hand, Eye, EyeOff, Bug } from 'lucide-react';
 import { useConfigStore } from '../../store/configStore';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
-import { categoryOf } from '../../utils/statusOverview';
+import { categoryOf, collectHmBatterySerials } from '../../utils/statusOverview';
 import {
     loadDeviceModelIndex,
     loadBatteryLibrary,
@@ -132,9 +132,10 @@ export function AdminBatteries() {
             ]);
             if (cancelled) return;
             const battOpts = { catWindow: false, catLight: false, catUnreach: false, catAlarm: false } as const;
+            const hmBatterySerials = collectHmBatterySerials(cache);
             const byDevice = new Map<string, DeviceRow>();
             for (const dp of cache) {
-                if (categoryOf(dp, battOpts) !== 'battery') continue;
+                if (categoryOf(dp, battOpts, hmBatterySerials) !== 'battery') continue;
                 const deviceId = resolveDeviceIdForDp(dp.id, index);
                 if (byDevice.has(deviceId)) continue;
                 const dm: DeviceModel | undefined = index.get(deviceId);

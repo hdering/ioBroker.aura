@@ -119,8 +119,42 @@ export interface StatusItem {
     batteryQuantity?: number;
 }
 
-/** Returns the category a datapoint could belong to (structural match), or null. */
-export function categoryOf(dp: DatapointEntry, opts: StatusOverviewOptions): CategoryKey | null {
+const HM_ADAPTERS = new Set(['hm-rpc', 'hmip', 'homematic']);
+
+/** HomeMatic serial key (adapter.instance.serial, lowercased) — stable across channels. */
+function hmSerialKey(id: string): string {
+    return id.split('.').slice(0, 3).join('.').toLowerCase();
+}
+
+/**
+ * Collects HomeMatic devices that are actually battery-powered: they expose an
+ * OPERATING_VOLTAGE datapoint (or a value.battery). Mains-powered HomeMatic actuators
+ * (HM-LC-Sw…, dimmers, …) also carry a LOWBAT flag but no voltage — so LOWBAT alone must
+ * not qualify them. Returns a set of serial keys; pass it to categoryOf to gate LOWBAT.
+ */
+export function collectHmBatterySerials(cache: DatapointEntry[]): Set<string> {
+    const set = new Set<string>();
+    for (const dp of cache) {
+        const adapter = dp.id.split('.')[0] ?? '';
+        if (!HM_ADAPTERS.has(adapter)) continue;
+        const r = (dp.role ?? '').toLowerCase();
+        if (dp.id.toLowerCase().includes('operating_voltage') || r === 'value.battery') {
+            set.add(hmSerialKey(dp.id));
+        }
+    }
+    return set;
+}
+
+/**
+ * Returns the category a datapoint could belong to (structural match), or null.
+ * `hmBatterySerials` (from collectHmBatterySerials) gates HomeMatic LOWBAT detection so
+ * mains devices are not treated as battery devices. When omitted, LOWBAT always qualifies.
+ */
+export function categoryOf(
+    dp: DatapointEntry,
+    opts: StatusOverviewOptions,
+    hmBatterySerials?: Set<string>,
+): CategoryKey | null {
     const r = (dp.role ?? '').toLowerCase();
     const id = dp.id.toLowerCase();
 
@@ -140,13 +174,17 @@ export function categoryOf(dp: DatapointEntry, opts: StatusOverviewOptions): Cat
     }
     if (opts.catBattery !== false) {
         if (r === 'value.battery' && dp.type === 'number') return 'battery';
-        if (r === 'indicator.lowbat' || r === 'indicator.battery') return 'battery';
+        // LOWBAT: HomeMatic mains devices also expose it → require a real battery signal
+        // (OPERATING_VOLTAGE) for HomeMatic before trusting LOWBAT.
+        const isHm = HM_ADAPTERS.has(id.split('.')[0] ?? '');
+        const hmOk = !isHm || !hmBatterySerials || hmBatterySerials.has(hmSerialKey(id));
+        if (r === 'indicator.lowbat' || r === 'indicator.battery') return hmOk ? 'battery' : null;
         if (
             opts.includeLowbatBoolean !== false &&
             dp.type === 'boolean' &&
             LOWBAT_ID_FRAGMENTS.some((f) => id.includes(f))
         )
-            return 'battery';
+            return hmOk ? 'battery' : null;
     }
     if (opts.catLight !== false && matchLight(dp, opts)) return 'light';
 

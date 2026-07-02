@@ -16,3 +16,4 @@ Batteries - clearer detected-model column (drops cryptic vendor codes); correct 
 Batteries - the battery database shows readable brand names (e.g. Tuya) instead of raw Zigbee vendor codes; unrecognized devices can be reported via a pre-filled GitHub issue that includes model, role and datapoint details
 Batteries - optional "show datapoint" toggle in the device list to identify devices by their datapoint id when the name/model isn't enough
 Batteries - HomeMatic IP devices exposed by both the HmIP and the classic HM instance (hm-rpc.1 + hm-rpc.2) are no longer listed twice — the copy that resolves a battery type is kept
+Batteries - mains-powered HomeMatic devices (e.g. switch/dimmer actuators) that only carry a LOWBAT flag are no longer treated as battery devices (require a real battery signal); Worx robotic mowers are detected as rechargeable
