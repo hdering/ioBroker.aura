@@ -98,6 +98,7 @@ export function AdminBatteries() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [showHidden, setShowHidden] = useState(false);
+    const [showDp, setShowDp] = useState(false);
 
     const hiddenSet = useMemo(() => new Set(hiddenDevices), [hiddenDevices]);
     const toggleHidden = (deviceId: string) => {
@@ -260,6 +261,14 @@ export function AdminBatteries() {
                 <td className="py-1.5 pr-3" style={{ color: 'var(--text-primary)' }}>
                     {d.name}
                     {d.room && <span className="ml-1 opacity-50">{d.room}</span>}
+                    {showDp && (
+                        <div
+                            className="text-[10px] font-mono break-all"
+                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                        >
+                            {d.dpId}
+                        </div>
+                    )}
                 </td>
                 <td className="py-1.5 pr-3 font-mono" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
                     {formatModel(d)}
@@ -401,9 +410,18 @@ export function AdminBatteries() {
 
             {/* My devices */}
             <div className="rounded-xl p-5" style={cardStyle}>
-                <h2 className="font-semibold text-sm mb-3" style={{ color: 'var(--text-primary)' }}>
-                    Meine Geräte
-                </h2>
+                <div className="flex items-center justify-between mb-3">
+                    <h2 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                        Meine Geräte
+                    </h2>
+                    <label
+                        className="flex items-center gap-1.5 text-xs cursor-pointer select-none"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
+                        <input type="checkbox" checked={showDp} onChange={(e) => setShowDp(e.target.checked)} />
+                        Datenpunkt anzeigen
+                    </label>
+                </div>
                 {loading ? (
                     <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                         Lade Geräte …

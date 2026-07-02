@@ -14,3 +14,4 @@ Batteries - hide/ignore individual battery devices (false positives) so they no 
 Batteries - generic "Akku" type for built-in rechargeables; eufy (eusec) cameras are auto-detected as rechargeable
 Batteries - clearer detected-model column (drops cryptic vendor codes); correct model for devices with channels, including HomeMatic/HomeMatic IP (reads the device type even when it's on the device object)
 Batteries - the battery database shows readable brand names (e.g. Tuya) instead of raw Zigbee vendor codes; unrecognized devices can be reported via a pre-filled GitHub issue that includes model, role and datapoint details
+Batteries - optional "show datapoint" toggle in the device list to identify devices by their datapoint id when the name/model isn't enough
