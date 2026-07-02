@@ -20,6 +20,22 @@ interface Props {
     onConfigChange: (config: WidgetConfig) => void;
 }
 
+/** Small on/off switch matching the config-panel style. */
+function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
+    return (
+        <button
+            onClick={onClick}
+            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+            style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}
+        >
+            <span
+                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                style={{ left: on ? '14px' : '2px' }}
+            />
+        </button>
+    );
+}
+
 export function EnumConfig({ config, onConfigChange }: Props) {
     const o = config.options ?? {};
     const setO = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -238,6 +254,55 @@ export function EnumConfig({ config, onConfigChange }: Props) {
                 >
                     <Plus size={12} /> Eintrag hinzufügen
                 </button>
+            </div>
+
+            {/* ── Anzeige-Optionen (wie im Universal-Widget) ── */}
+            <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        Aktuelles Label anzeigen
+                    </label>
+                    <Toggle on={o.showValue !== false} onClick={() => setO({ showValue: !(o.showValue !== false) })} />
+                </div>
+                <div className="flex items-center justify-between">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        Dropdown ausblenden (nur Einträge)
+                    </label>
+                    <Toggle on={o.showSelect === false} onClick={() => setO({ showSelect: o.showSelect === false })} />
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        Anzeige aktueller Eintrag
+                    </label>
+                    <div
+                        className="flex rounded-lg overflow-hidden shrink-0"
+                        style={{ border: '1px solid var(--app-border)' }}
+                    >
+                        {(
+                            [
+                                { key: 'text', label: 'Text' },
+                                { key: 'icon-text', label: 'Icon + Text' },
+                                { key: 'icon', label: 'Icon' },
+                            ] as const
+                        ).map(({ key, label }) => {
+                            const active = ((o.entryDisplay as string) ?? 'text') === key;
+                            return (
+                                <button
+                                    key={key}
+                                    onClick={() => setO({ entryDisplay: key })}
+                                    className="text-[10px] px-2 py-1 transition-colors"
+                                    style={{
+                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                        color: active ? '#fff' : 'var(--text-secondary)',
+                                        border: 'none',
+                                    }}
+                                >
+                                    {label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
             </div>
 
             {iconPickerIdx !== null && entries[iconPickerIdx] && (

@@ -199,10 +199,8 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
         { key: 'showValue', label: 'Wert' },
         { key: 'showUnit', label: 'Einheit' },
     ],
-    enum: [
-        { key: 'showValue', label: 'Aktuelle Auswahl' },
-        { key: 'showSelect', label: 'Dropdown' },
-    ],
+    // enum: current-selection / dropdown / display-mode toggles live in EnumConfig
+    // (below the entries), matching the universal widget's DP-Auswahlfeld cell editor.
     climate: [
         { key: 'showActualTemp', label: 'Ist-Temperatur' },
         { key: 'showTargetTemp', label: 'Soll-Temperatur' },
@@ -7038,41 +7036,6 @@ export function WidgetFrame({
                                             </div>
                                         );
                                     })}
-                                    {config.type === 'enum' && o.showValue !== false && (
-                                        <div className="flex items-center justify-between gap-2">
-                                            <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                                                Anzeige aktuelle Auswahl
-                                            </span>
-                                            <div
-                                                className="flex rounded-lg overflow-hidden shrink-0"
-                                                style={{ border: '1px solid var(--app-border)' }}
-                                            >
-                                                {(
-                                                    [
-                                                        { key: 'text', label: 'Text' },
-                                                        { key: 'icon-text', label: 'Icon + Text' },
-                                                        { key: 'icon', label: 'Icon' },
-                                                    ] as const
-                                                ).map(({ key, label }) => {
-                                                    const active = ((o.entryDisplay as string) ?? 'text') === key;
-                                                    return (
-                                                        <button
-                                                            key={key}
-                                                            onClick={() => setO({ entryDisplay: key })}
-                                                            className="text-[10px] px-2 py-1 transition-colors"
-                                                            style={{
-                                                                background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                                                color: active ? '#fff' : 'var(--text-secondary)',
-                                                                border: 'none',
-                                                            }}
-                                                        >
-                                                            {label}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    )}
                                     {config.type !== 'stateimage' && (
                                         <>
                                             <div className="h-px" style={{ background: 'var(--app-border)' }} />
