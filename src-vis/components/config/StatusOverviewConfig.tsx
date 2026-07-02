@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import type { StatusOverviewOptions } from '../../utils/statusOverview';
 import { useConfigStore } from '../../store/configStore';
@@ -241,148 +241,167 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                 )}
             </div>
 
-            {/* ── Scope ── */}
-            <div className="space-y-2 pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
-                <span className={sectionTitleCls} style={labelStyle}>
-                    Einschränkung (optional)
-                </span>
-                <div>
-                    <label className={labelCls} style={labelStyle}>
-                        Räume (Komma-getrennt, leer = alle)
-                    </label>
-                    <input
-                        type="text"
-                        value={o.filterRooms ?? ''}
-                        onChange={(e) => set({ filterRooms: e.target.value || undefined })}
-                        placeholder="z. B. Wohnzimmer, Küche"
-                        className={inputCls}
-                        style={inputStyle}
+            {/* ── Scope (collapsed by default) ── */}
+            <details className="group pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
+                <summary className="flex items-center justify-between cursor-pointer list-none">
+                    <span className={sectionTitleCls} style={labelStyle}>
+                        Einschränkung (optional)
+                    </span>
+                    <ChevronDown
+                        size={13}
+                        className="transition-transform group-open:rotate-180"
+                        style={{ color: 'var(--text-secondary)' }}
                     />
-                </div>
-                <div>
-                    <label className={labelCls} style={labelStyle}>
-                        Funktionen (Komma-getrennt)
-                    </label>
-                    <input
-                        type="text"
-                        value={o.filterFuncs ?? ''}
-                        onChange={(e) => set({ filterFuncs: e.target.value || undefined })}
-                        placeholder="z. B. Licht, Fenster"
-                        className={inputCls}
-                        style={inputStyle}
-                    />
-                </div>
-                <div>
-                    <label className={labelCls} style={labelStyle}>
-                        Adapter (Komma-getrennt, z. B. zigbee.0)
-                    </label>
-                    <input
-                        type="text"
-                        value={o.filterAdapters ?? ''}
-                        onChange={(e) => set({ filterAdapters: e.target.value || undefined })}
-                        placeholder="zigbee.0, hm-rpc.0"
-                        className={inputCls}
-                        style={inputStyle}
-                    />
-                </div>
-                <div>
-                    <label className={labelCls} style={labelStyle}>
-                        Ausschluss-Muster (Text oder /regex/)
-                    </label>
-                    <input
-                        type="text"
-                        value={o.excludeIdPatterns ?? ''}
-                        onChange={(e) => set({ excludeIdPatterns: e.target.value || undefined })}
-                        placeholder=".info., _REMOTE_"
-                        className={inputCls}
-                        style={inputStyle}
-                    />
-                </div>
-            </div>
-
-            {/* ── Display ── */}
-            <div className="space-y-2 pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
-                <span className={sectionTitleCls} style={labelStyle}>
-                    Anzeige
-                </span>
-                <div>
-                    <label className={labelCls} style={labelStyle}>
-                        Welche Geräte anzeigen
-                    </label>
-                    <select
-                        value={o.valueFilter ?? 'alerts'}
-                        onChange={(e) => set({ valueFilter: e.target.value as 'alerts' | 'all' })}
-                        className={inputCls}
-                        style={inputStyle}
-                    >
-                        <option value="alerts">Nur Auffällige (z. B. schwache Batterie)</option>
-                        <option value="all">Alle gefundenen Geräte</option>
-                    </select>
-                </div>
-                <div>
-                    <label className={labelCls} style={labelStyle}>
-                        Hervorhebungsfarbe (Auffällige)
-                    </label>
-                    <div className="flex items-center gap-2">
+                </summary>
+                <div className="space-y-2 mt-2">
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            Räume (Komma-getrennt, leer = alle)
+                        </label>
                         <input
-                            type="color"
-                            value={o.alertColor || '#f59e0b'}
-                            onChange={(e) => set({ alertColor: e.target.value })}
-                            className="w-8 h-7 rounded cursor-pointer p-0.5"
-                            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                            type="text"
+                            value={o.filterRooms ?? ''}
+                            onChange={(e) => set({ filterRooms: e.target.value || undefined })}
+                            placeholder="z. B. Wohnzimmer, Küche"
+                            className={inputCls}
+                            style={inputStyle}
                         />
-                        {o.alertColor && (
-                            <button
-                                onClick={() => set({ alertColor: undefined })}
-                                className="text-[11px] hover:opacity-80"
-                                style={{ color: 'var(--text-secondary)' }}
-                            >
-                                ↩ Standard (nach Dringlichkeit)
-                            </button>
-                        )}
+                    </div>
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            Funktionen (Komma-getrennt)
+                        </label>
+                        <input
+                            type="text"
+                            value={o.filterFuncs ?? ''}
+                            onChange={(e) => set({ filterFuncs: e.target.value || undefined })}
+                            placeholder="z. B. Licht, Fenster"
+                            className={inputCls}
+                            style={inputStyle}
+                        />
+                    </div>
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            Adapter (Komma-getrennt, z. B. zigbee.0)
+                        </label>
+                        <input
+                            type="text"
+                            value={o.filterAdapters ?? ''}
+                            onChange={(e) => set({ filterAdapters: e.target.value || undefined })}
+                            placeholder="zigbee.0, hm-rpc.0"
+                            className={inputCls}
+                            style={inputStyle}
+                        />
+                    </div>
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            Ausschluss-Muster (Text oder /regex/)
+                        </label>
+                        <input
+                            type="text"
+                            value={o.excludeIdPatterns ?? ''}
+                            onChange={(e) => set({ excludeIdPatterns: e.target.value || undefined })}
+                            placeholder=".info., _REMOTE_"
+                            className={inputCls}
+                            style={inputStyle}
+                        />
                     </div>
                 </div>
-                <Toggle
-                    checked={!!o.showOkCategories}
-                    onChange={(v) => set({ showOkCategories: v })}
-                    label="Auch Kategorien ohne Hinweise zeigen"
-                />
-                <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                    Standardmäßig werden Kategorien ohne Auffälligkeiten ausgeblendet. Aktiviert erscheint jede aktive
-                    Kategorie mit einem „ok"-Häkchen, auch wenn dort gerade nichts anliegt (nur Layout Standard).
-                </p>
-                <div>
-                    <label className={labelCls} style={labelStyle}>
-                        Sortierung
-                    </label>
-                    <select
-                        value={o.sortBy ?? 'severity'}
-                        onChange={(e) => set({ sortBy: e.target.value as 'severity' | 'room' })}
-                        className={inputCls}
-                        style={inputStyle}
-                    >
-                        <option value="severity">Nach Dringlichkeit</option>
-                        <option value="room">Nach Raum</option>
-                    </select>
-                    <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                        Dringlichkeit: kritisch zuerst (offene Fenster, Rauch/Wasser), dann Warnungen (schwache
-                        Batterien, Lichter, offline), dann OK — innerhalb gleich sortiert nach Name.
-                    </p>
-                </div>
-                <div>
-                    <label className={labelCls} style={labelStyle}>
-                        Text bei „Alles in Ordnung“
-                    </label>
-                    <input
-                        type="text"
-                        value={o.allClearText ?? ''}
-                        onChange={(e) => set({ allClearText: e.target.value || undefined })}
-                        placeholder="Alles in Ordnung"
-                        className={inputCls}
-                        style={inputStyle}
+            </details>
+
+            {/* ── Display (collapsed by default) ── */}
+            <details className="group pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
+                <summary className="flex items-center justify-between cursor-pointer list-none">
+                    <span className={sectionTitleCls} style={labelStyle}>
+                        Anzeige
+                    </span>
+                    <ChevronDown
+                        size={13}
+                        className="transition-transform group-open:rotate-180"
+                        style={{ color: 'var(--text-secondary)' }}
                     />
+                </summary>
+                <div className="space-y-2 mt-2">
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            Welche Geräte anzeigen
+                        </label>
+                        <select
+                            value={o.valueFilter ?? 'alerts'}
+                            onChange={(e) => set({ valueFilter: e.target.value as 'alerts' | 'all' })}
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            <option value="alerts">Nur Auffällige (z. B. schwache Batterie)</option>
+                            <option value="all">Alle gefundenen Geräte</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            Hervorhebungsfarbe (Auffällige)
+                        </label>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="color"
+                                value={o.alertColor || '#f59e0b'}
+                                onChange={(e) => set({ alertColor: e.target.value })}
+                                className="w-8 h-7 rounded cursor-pointer p-0.5"
+                                style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                            />
+                            {o.alertColor && (
+                                <button
+                                    onClick={() => set({ alertColor: undefined })}
+                                    className="text-[11px] hover:opacity-80"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    ↩ Standard (nach Dringlichkeit)
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                    <Toggle
+                        checked={!!o.showOkCategories}
+                        onChange={(v) => set({ showOkCategories: v })}
+                        label="Auch Kategorien ohne Hinweise zeigen"
+                    />
+                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                        Standardmäßig werden Kategorien ohne Auffälligkeiten ausgeblendet. Aktiviert erscheint jede
+                        aktive Kategorie mit einem „ok"-Häkchen, auch wenn dort gerade nichts anliegt (nur Layout
+                        Standard).
+                    </p>
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            Sortierung
+                        </label>
+                        <select
+                            value={o.sortBy ?? 'severity'}
+                            onChange={(e) => set({ sortBy: e.target.value as 'severity' | 'room' })}
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            <option value="severity">Nach Dringlichkeit</option>
+                            <option value="room">Nach Raum</option>
+                        </select>
+                        <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                            Dringlichkeit: kritisch zuerst (offene Fenster, Rauch/Wasser), dann Warnungen (schwache
+                            Batterien, Lichter, offline), dann OK — innerhalb gleich sortiert nach Name.
+                        </p>
+                    </div>
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            Text bei „Alles in Ordnung“
+                        </label>
+                        <input
+                            type="text"
+                            value={o.allClearText ?? ''}
+                            onChange={(e) => set({ allClearText: e.target.value || undefined })}
+                            placeholder="Alles in Ordnung"
+                            className={inputCls}
+                            style={inputStyle}
+                        />
+                    </div>
                 </div>
-            </div>
+            </details>
         </div>
     );
 }
