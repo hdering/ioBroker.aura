@@ -22,30 +22,38 @@ function BatteryAssignModal({ onClose }: { onClose: () => void }) {
         >
             <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.6)' }} />
             <div
-                className="relative w-full h-full rounded-xl shadow-2xl overflow-auto"
+                className="relative w-full h-full rounded-xl shadow-2xl flex flex-col overflow-hidden"
                 style={{ maxWidth: 1100, maxHeight: '94vh', background: 'var(--app-surface)' }}
             >
-                <button
-                    onClick={onClose}
-                    className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-lg hover:opacity-80"
-                    style={{
-                        background: 'var(--app-bg)',
-                        border: '1px solid var(--app-border)',
-                        color: 'var(--text-secondary)',
-                    }}
-                    title="Schließen"
+                {/* Fixed top bar — the close button stays visible while the content scrolls. */}
+                <div
+                    className="shrink-0 flex items-center justify-end px-3 py-2"
+                    style={{ borderBottom: '1px solid var(--app-border)' }}
                 >
-                    <X size={16} />
-                </button>
-                <Suspense
-                    fallback={
-                        <div className="p-8 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                            Lädt …
-                        </div>
-                    }
-                >
-                    <AdminBatteries />
-                </Suspense>
+                    <button
+                        onClick={onClose}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:opacity-80"
+                        style={{
+                            background: 'var(--app-bg)',
+                            border: '1px solid var(--app-border)',
+                            color: 'var(--text-secondary)',
+                        }}
+                        title="Schließen"
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
+                <div className="flex-1 min-h-0 overflow-auto">
+                    <Suspense
+                        fallback={
+                            <div className="p-8 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                Lädt …
+                            </div>
+                        }
+                    >
+                        <AdminBatteries />
+                    </Suspense>
+                </div>
             </div>
         </div>,
         portalTarget ?? document.body,

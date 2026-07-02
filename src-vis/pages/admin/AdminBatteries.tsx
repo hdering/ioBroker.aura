@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BatteryFull, HelpCircle, Search, Wand2, Hand, Eye, EyeOff } from 'lucide-react';
+import { BatteryFull, HelpCircle, Search, Wand2, Hand, Eye, EyeOff, Bug } from 'lucide-react';
 import { useConfigStore } from '../../store/configStore';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { categoryOf } from '../../utils/statusOverview';
@@ -22,6 +22,17 @@ interface DeviceRow {
     modelId?: string;
     autoType: string | null;
     autoQty: number;
+}
+
+/**
+ * Map cryptic Zigbee vendor codes (as HA/ZHA report them) to a readable brand.
+ * The model stays as-is — for these devices the raw Zigbee id is the only identifier.
+ */
+function friendlyManufacturer(mfr: string): string {
+    const m = mfr.trim();
+    if (/^_ty|^_tz/i.test(m)) return 'Tuya';
+    if (/^lumi/i.test(m)) return 'Aqara/Xiaomi';
+    return m;
 }
 
 const cardStyle: React.CSSProperties = { background: 'var(--app-surface)', border: '1px solid var(--app-border)' };
@@ -153,6 +164,30 @@ export function AdminBatteries() {
         return { total: activeDevices.length, auto, manual, unknown };
     }, [activeDevices, overrides]);
 
+    // Devices with no known battery type — offer to report them so they can be added centrally.
+    const unknownDevices = useMemo(
+        () => activeDevices.filter((d) => !overrides[d.deviceId]?.type && !d.autoType),
+        [activeDevices, overrides],
+    );
+    const reportUrl = useMemo(() => {
+        if (unknownDevices.length === 0) return '';
+        const lines = unknownDevices.slice(0, 25).map((d) => {
+            const info = [
+                d.manufacturer && `Hersteller: ${d.manufacturer}`,
+                (d.model || d.modelId) && `Modell: ${d.model || d.modelId}`,
+                d.modelId && d.modelId !== d.model && `Modell-ID: ${d.modelId}`,
+                `DP: ${d.deviceId}`,
+            ]
+                .filter(Boolean)
+                .join(', ');
+            return `- ${d.name} (${info})`;
+        });
+        const extra = unknownDevices.length > 25 ? `\n… und ${unknownDevices.length - 25} weitere.` : '';
+        const body = `Folgende Batteriegeräte werden nicht automatisch erkannt. Bitte Batterietyp + Anzahl zur Datenbank hinzufügen:\n\n${lines.join('\n')}${extra}\n`;
+        const title = 'Batterie-Datenbank: nicht erkannte Geräte';
+        return `https://github.com/hdering/ioBroker.aura/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+    }, [unknownDevices]);
+
     const libResults = useMemo(() => {
         if (!lib) return [];
         const q = search.trim().toLowerCase();
@@ -161,6 +196,7 @@ export function AdminBatteries() {
             ? src.filter(
                   (e) =>
                       e.manufacturer.toLowerCase().includes(q) ||
+                      friendlyManufacturer(e.manufacturer).toLowerCase().includes(q) ||
                       e.model.toLowerCase().includes(q) ||
                       (e.modelId ?? '').toLowerCase().includes(q),
               )
@@ -286,6 +322,38 @@ export function AdminBatteries() {
                 <StatCard label="Unbekannt" value={stats.unknown} icon={HelpCircle} color="var(--accent-red)" />
             </div>
 
+            {/* Report unrecognized devices → GitHub (prefilled) */}
+            {unknownDevices.length > 0 && (
+                <div
+                    className="rounded-xl p-4 flex items-start gap-3"
+                    style={{
+                        background: 'color-mix(in srgb, var(--accent) 8%, var(--app-surface))',
+                        border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)',
+                    }}
+                >
+                    <HelpCircle size={18} className="shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                            {unknownDevices.length} {unknownDevices.length === 1 ? 'Gerät wird' : 'Geräte werden'} nicht
+                            automatisch erkannt
+                        </p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Du kannst den Typ unten manuell zuordnen. Damit das Gerät künftig für alle automatisch
+                            erkannt wird, melde es bitte – die Geräteinfos sind im Issue vorausgefüllt.
+                        </p>
+                        <a
+                            href={reportUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium rounded-lg px-2.5 py-1.5 hover:opacity-80 transition-opacity"
+                            style={{ background: 'var(--accent)', color: '#fff' }}
+                        >
+                            <Bug size={13} /> Nicht erkannte Geräte melden →
+                        </a>
+                    </div>
+                </div>
+            )}
+
             {/* My devices */}
             <div className="rounded-xl p-5" style={cardStyle}>
                 <h2 className="font-semibold text-sm mb-3" style={{ color: 'var(--text-primary)' }}>
@@ -360,8 +428,12 @@ export function AdminBatteries() {
                         <tbody>
                             {libResults.map((e, i) => (
                                 <tr key={i} style={{ borderTop: '1px solid var(--app-border)' }}>
-                                    <td className="py-1 pr-3" style={{ color: 'var(--text-secondary)' }}>
-                                        {e.manufacturer}
+                                    <td
+                                        className="py-1 pr-3"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                        title={e.manufacturer}
+                                    >
+                                        {friendlyManufacturer(e.manufacturer)}
                                     </td>
                                     <td className="py-1 pr-3" style={{ color: 'var(--text-primary)' }}>
                                         {e.model}

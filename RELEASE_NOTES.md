@@ -13,3 +13,4 @@ Batteries - battery-type assignment page (device list, coverage stats, searchabl
 Batteries - hide/ignore individual battery devices (false positives) so they no longer appear in the inventory, warnings or stats
 Batteries - generic "Akku" type for built-in rechargeables; eufy (eusec) cameras are auto-detected as rechargeable
 Batteries - clearer detected-model column (drops cryptic vendor codes) and correct model for devices with channels (e.g. HomeMatic)
+Batteries - the battery database shows readable brand names (e.g. Tuya) instead of raw Zigbee vendor codes, and unrecognized devices can be reported via a pre-filled GitHub issue
