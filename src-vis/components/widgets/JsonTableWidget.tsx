@@ -154,6 +154,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     const showSearch = (opts.showSearch as boolean) ?? false;
     const fontSize = (opts.fontSize as number) ?? 12;
     const autoHeight = (opts.autoHeight as boolean) ?? false;
+    const transparent = !!opts.transparent;
     const showTitle = opts.showTitle !== false;
     const showIcon = opts.showIcon !== false;
     const iconSize = (opts.iconSize as number) || 20;
@@ -361,7 +362,10 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
             {showSearch && (
                 <div
                     className="shrink-0 flex items-center gap-1 px-2 rounded-lg"
-                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                    style={{
+                        background: transparent ? 'transparent' : 'var(--app-bg)',
+                        border: '1px solid var(--app-border)',
+                    }}
                 >
                     <Search size={11} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
                     <input
@@ -395,7 +399,11 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                         className="text-left whitespace-nowrap sticky top-0"
                                         style={{
                                             padding: `${Math.round(fs * 0.4)}px ${Math.round(fs * 0.6)}px`,
-                                            background: firstColHeader && ci === 0 ? firstColBg : headerBg,
+                                            background: transparent
+                                                ? 'transparent'
+                                                : firstColHeader && ci === 0
+                                                  ? firstColBg
+                                                  : headerBg,
                                             color: firstColHeader && ci === 0 ? firstColColor : headerColor,
                                             fontWeight: 600,
                                             borderBottom: '2px solid var(--app-border)',

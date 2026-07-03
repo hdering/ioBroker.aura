@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 
 Script status - list entries, filter buttons and search box now respect transparent mode
+JSON table - header and search box now respect transparent mode
