@@ -13,6 +13,7 @@ import type { WidgetConfig } from '../../types';
 import { type EnumEntry } from '../widgets/EnumWidget';
 import { getObjectDirect } from '../../hooks/useIoBroker';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { ColorPicker } from '../common/ColorPicker';
 import { IconPickerModal } from './IconPickerModal';
 
 interface Props {
@@ -187,10 +188,9 @@ export function EnumConfig({ config, onConfigChange }: Props) {
                                 style={iSty}
                             />
                             {/* Farbe */}
-                            <input
-                                type="color"
+                            <ColorPicker
                                 value={entry.color ?? '#666666'}
-                                onChange={(e) => update(idx, { color: e.target.value })}
+                                onChange={(v) => update(idx, { color: v })}
                                 title="Farbe (Text/Icon, optional)"
                                 className="shrink-0 rounded cursor-pointer"
                                 style={{

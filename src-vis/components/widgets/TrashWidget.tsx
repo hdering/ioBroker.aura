@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { DatapointPicker } from '../config/DatapointPicker';
+import { ColorPicker } from '../common/ColorPicker';
 import type { WidgetProps, WidgetConfig } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 
@@ -381,10 +382,9 @@ export function TrashConfig({
                                     Farbe
                                 </label>
                                 <div className="flex gap-2 items-center">
-                                    <input
-                                        type="color"
+                                    <ColorPicker
                                         value={bin.color}
-                                        onChange={(e) => updateBin(bin.id, { color: e.target.value })}
+                                        onChange={(v) => updateBin(bin.id, { color: v })}
                                         className="w-9 h-8 rounded cursor-pointer shrink-0"
                                         style={{ border: '1px solid var(--app-border)', padding: '2px' }}
                                     />

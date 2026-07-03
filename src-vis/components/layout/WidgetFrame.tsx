@@ -35,6 +35,7 @@ import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { baseDpId } from '../../utils/dpRef';
 import { JsonPathButton } from '../config/JsonPathButton';
+import { ColorPicker } from '../common/ColorPicker';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useStoreWithEqualityFn } from 'zustand/traditional';
@@ -400,10 +401,9 @@ function CalendarEditPanel({
                         style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
                     >
                         <div className="flex items-center gap-1.5">
-                            <input
-                                type="color"
+                            <ColorPicker
                                 value={src.color}
-                                onChange={(e) => updateSource(src.id, { color: e.target.value })}
+                                onChange={(v) => updateSource(src.id, { color: v })}
                                 className="w-5 h-5 rounded cursor-pointer border-0 p-0 shrink-0"
                                 title={t('wf.cal.changeColor')}
                             />
@@ -457,10 +457,9 @@ function CalendarEditPanel({
                         style={inputStyle}
                     />
                     <div className="flex gap-1.5">
-                        <input
-                            type="color"
+                        <ColorPicker
                             value={newColor}
-                            onChange={(e) => setNewColor(e.target.value)}
+                            onChange={(v) => setNewColor(v)}
                             className="w-8 h-8 rounded cursor-pointer border-0 p-0 shrink-0"
                         />
                         <input
@@ -641,10 +640,9 @@ function CalendarEditPanel({
                             <label className="text-[11px] flex-1" style={{ color: 'var(--text-secondary)' }}>
                                 Hervorhebungsfarbe
                             </label>
-                            <input
-                                type="color"
+                            <ColorPicker
                                 value={(o.highlightColor as string) || '#f59e0b'}
-                                onChange={(e) => setOpts({ highlightColor: e.target.value })}
+                                onChange={(v) => setOpts({ highlightColor: v })}
                                 className="w-8 h-6 rounded cursor-pointer p-0.5"
                                 style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
                             />
@@ -1010,10 +1008,9 @@ function ChartHistoryConfig({
                         Linie / Fläche
                     </span>
                     <div className="flex items-center gap-1.5">
-                        <input
-                            type="color"
+                        <ColorPicker
                             value={(o.lineColor as string | undefined) ?? '#3b82f6'}
-                            onChange={(e) => set({ lineColor: e.target.value })}
+                            onChange={(v) => set({ lineColor: v })}
                             className="w-7 h-7 rounded cursor-pointer border-0 p-0"
                             style={{ background: 'none' }}
                         />
@@ -1031,12 +1028,11 @@ function ChartHistoryConfig({
                         Durchschnittslinie
                     </span>
                     <div className="flex items-center gap-1.5">
-                        <input
-                            type="color"
+                        <ColorPicker
                             value={
                                 (o.avgColor as string | undefined) ?? (o.lineColor as string | undefined) ?? '#3b82f6'
                             }
-                            onChange={(e) => set({ avgColor: e.target.value })}
+                            onChange={(v) => set({ avgColor: v })}
                             className="w-7 h-7 rounded cursor-pointer border-0 p-0"
                             style={{ background: 'none' }}
                         />
@@ -1301,10 +1297,9 @@ function ClimateConfig({
                     Diagrammfarbe
                 </span>
                 <div className="flex items-center gap-1.5">
-                    <input
-                        type="color"
+                    <ColorPicker
                         value={(o.lineColor as string | undefined) ?? '#06b6d4'}
-                        onChange={(e) => set({ lineColor: e.target.value })}
+                        onChange={(v) => set({ lineColor: v })}
                         className="w-7 h-7 rounded cursor-pointer border-0 p-0"
                         style={{ background: 'none' }}
                     />
@@ -1721,11 +1716,6 @@ function WeatherConfigSection({ o, set, onOpenPicker, onOpenAdapterPicker, layou
     const tempThresholds = (o.forecastTempThresholds as [number, string][] | undefined) ?? [];
     const setTempThresholds = (next: [number, string][]) =>
         set({ forecastTempThresholds: next.length ? next : undefined });
-    const toHex = (c: string) => {
-        const m = c.match(/#[0-9a-fA-F]{6}/);
-        return m ? m[0] : '#fde047';
-    };
-
     const dataSource = (o.dataSource as 'online' | 'adapter') ?? 'online';
     const adapterPath = (o.adapterLocationPath as string) ?? '';
     const segBtnBase = 'flex-1 text-[11px] py-1.5 rounded-md transition-colors';
@@ -2260,12 +2250,12 @@ function WeatherConfigSection({ o, set, onOpenPicker, onOpenAdapterPicker, layou
                                     >
                                         ×
                                     </button>
-                                    <input
-                                        type="color"
-                                        value={toHex(color)}
-                                        onChange={(e) => {
+                                    <ColorPicker
+                                        value={color}
+                                        fallback={'#fde047'}
+                                        onChange={(v) => {
                                             const n = [...tempThresholds];
-                                            n[i] = [thresh, e.target.value];
+                                            n[i] = [thresh, v];
                                             setTempThresholds(n);
                                         }}
                                         className="w-8 h-7 rounded cursor-pointer shrink-0"
@@ -2854,10 +2844,9 @@ function SliderEditPanel({
                             {t('sl.style.color' as never)}
                         </label>
                         <div className="flex gap-1 items-center">
-                            <input
-                                type="color"
+                            <ColorPicker
                                 value={(o.color as string) || '#3b82f6'}
-                                onChange={(e) => setO({ color: e.target.value })}
+                                onChange={(v) => setO({ color: v })}
                                 className="w-8 h-7 rounded cursor-pointer border-0 p-0"
                                 style={{ background: 'none' }}
                             />
@@ -4587,18 +4576,16 @@ function CarouselEditPanel({
                                                     className={`flex-1 ${sInputCls} min-w-0`}
                                                     style={sInputStyle}
                                                 />
-                                                <input
-                                                    type="color"
+                                                <ColorPicker
                                                     value={item.bgColor ?? '#000000'}
-                                                    onChange={(e) => updateItem(item.id, { bgColor: e.target.value })}
+                                                    onChange={(v) => updateItem(item.id, { bgColor: v })}
                                                     title={tHook('carousel.items.bgColor' as never)}
                                                     className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
                                                     style={{ background: 'var(--app-bg)' }}
                                                 />
-                                                <input
-                                                    type="color"
+                                                <ColorPicker
                                                     value={item.textColor ?? '#ffffff'}
-                                                    onChange={(e) => updateItem(item.id, { textColor: e.target.value })}
+                                                    onChange={(v) => updateItem(item.id, { textColor: v })}
                                                     title={tHook('carousel.items.textColor' as never)}
                                                     className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
                                                     style={{ background: 'var(--app-bg)' }}
@@ -4641,22 +4628,16 @@ function CarouselEditPanel({
                                                     className={`flex-1 ${sInputCls} min-w-0`}
                                                     style={sInputStyle}
                                                 />
-                                                <input
-                                                    type="color"
+                                                <ColorPicker
                                                     value={item.bgColorInactive ?? '#000000'}
-                                                    onChange={(e) =>
-                                                        updateItem(item.id, { bgColorInactive: e.target.value })
-                                                    }
+                                                    onChange={(v) => updateItem(item.id, { bgColorInactive: v })}
                                                     title={tHook('carousel.items.bgColor' as never)}
                                                     className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
                                                     style={{ background: 'var(--app-bg)' }}
                                                 />
-                                                <input
-                                                    type="color"
+                                                <ColorPicker
                                                     value={item.textColorInactive ?? '#ffffff'}
-                                                    onChange={(e) =>
-                                                        updateItem(item.id, { textColorInactive: e.target.value })
-                                                    }
+                                                    onChange={(v) => updateItem(item.id, { textColorInactive: v })}
                                                     title={tHook('carousel.items.textColor' as never)}
                                                     className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
                                                     style={{ background: 'var(--app-bg)' }}
@@ -7388,15 +7369,14 @@ export function WidgetFrame({
                                         </label>
                                         {type === 'color' ? (
                                             <div className="flex gap-1">
-                                                <input
-                                                    type="color"
+                                                <ColorPicker
                                                     value={overrides?.[key] ?? '#3b82f6'}
-                                                    onChange={(e) =>
+                                                    onChange={(v) =>
                                                         onConfigChange({
                                                             ...config,
                                                             options: {
                                                                 ...config.options,
-                                                                styleOverride: { ...overrides, [key]: e.target.value },
+                                                                styleOverride: { ...overrides, [key]: v },
                                                             },
                                                         })
                                                     }
@@ -8265,12 +8245,9 @@ export function WidgetFrame({
                                                                         />
                                                                     )}
                                                                 </div>
-                                                                <input
-                                                                    type="color"
+                                                                <ColorPicker
                                                                     value={color}
-                                                                    onChange={(e) =>
-                                                                        set({ [optColorKey]: e.target.value })
-                                                                    }
+                                                                    onChange={(v) => set({ [optColorKey]: v })}
                                                                     title={`Farbe ${stateLabel}`}
                                                                     className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
                                                                     style={{
@@ -8720,12 +8697,9 @@ export function WidgetFrame({
                                                                     >
                                                                         ×
                                                                     </button>
-                                                                    <input
-                                                                        type="color"
+                                                                    <ColorPicker
                                                                         value={zone.color}
-                                                                        onChange={(e) =>
-                                                                            updateZone(i, { color: e.target.value })
-                                                                        }
+                                                                        onChange={(v) => updateZone(i, { color: v })}
                                                                         className="w-8 h-7 rounded cursor-pointer shrink-0"
                                                                         style={{
                                                                             border: '1px solid var(--app-border)',
@@ -8804,10 +8778,9 @@ export function WidgetFrame({
                                         </div>
                                         {!colorZones && (
                                             <div className="flex items-center gap-2">
-                                                <input
-                                                    type="color"
+                                                <ColorPicker
                                                     value={(o.pointer1Color as string) ?? '#6366f1'}
-                                                    onChange={(e) => set({ pointer1Color: e.target.value })}
+                                                    onChange={(v) => set({ pointer1Color: v })}
                                                     className="w-8 h-7 rounded cursor-pointer shrink-0"
                                                     style={{ border: '1px solid var(--app-border)', padding: '1px' }}
                                                 />
@@ -8866,10 +8839,9 @@ export function WidgetFrame({
                                         </div>
                                         {(o.pointer2Datapoint as string) && (
                                             <div className="flex items-center gap-2">
-                                                <input
-                                                    type="color"
+                                                <ColorPicker
                                                     value={(o.pointer2Color as string) ?? '#f97316'}
-                                                    onChange={(e) => set({ pointer2Color: e.target.value })}
+                                                    onChange={(v) => set({ pointer2Color: v })}
                                                     className="w-8 h-7 rounded cursor-pointer shrink-0"
                                                     style={{ border: '1px solid var(--app-border)', padding: '1px' }}
                                                 />
@@ -8928,10 +8900,9 @@ export function WidgetFrame({
                                         </div>
                                         {(o.pointer3Datapoint as string) && (
                                             <div className="flex items-center gap-2">
-                                                <input
-                                                    type="color"
+                                                <ColorPicker
                                                     value={(o.pointer3Color as string) ?? '#8b5cf6'}
-                                                    onChange={(e) => set({ pointer3Color: e.target.value })}
+                                                    onChange={(v) => set({ pointer3Color: v })}
                                                     className="w-8 h-7 rounded cursor-pointer shrink-0"
                                                     style={{ border: '1px solid var(--app-border)', padding: '1px' }}
                                                 />
@@ -9231,10 +9202,9 @@ export function WidgetFrame({
                                                     </div>
                                                 )}
                                                 <div className="flex items-center gap-2">
-                                                    <input
-                                                        type="color"
+                                                    <ColorPicker
                                                         value={(o.color as string) ?? (isScale ? '#1da7e0' : '#6366f1')}
-                                                        onChange={(e) => set({ color: e.target.value })}
+                                                        onChange={(v) => set({ color: v })}
                                                         className="w-8 h-7 rounded cursor-pointer shrink-0"
                                                         style={{
                                                             border: '1px solid var(--app-border)',
@@ -10752,12 +10722,9 @@ export function WidgetFrame({
                                                                     >
                                                                         ×
                                                                     </button>
-                                                                    <input
-                                                                        type="color"
+                                                                    <ColorPicker
                                                                         value={zone.color}
-                                                                        onChange={(e) =>
-                                                                            updateZone(i, { color: e.target.value })
-                                                                        }
+                                                                        onChange={(v) => updateZone(i, { color: v })}
                                                                         className="w-8 h-7 rounded cursor-pointer shrink-0"
                                                                         style={{
                                                                             border: '1px solid var(--app-border)',
@@ -11830,12 +11797,11 @@ export function WidgetFrame({
                                                                 className={`${lInputCls}`}
                                                                 style={{ ...lInputStyle, width: 70 }}
                                                             />
-                                                            <input
-                                                                type="color"
+                                                            <ColorPicker
                                                                 value={eff.color || '#888888'}
-                                                                onChange={(e) => {
+                                                                onChange={(v) => {
                                                                     const next = [...effects];
-                                                                    next[i] = { ...next[i], color: e.target.value };
+                                                                    next[i] = { ...next[i], color: v };
                                                                     setO({ effects: next });
                                                                 }}
                                                                 className="w-7 h-7 rounded cursor-pointer shrink-0"
@@ -11896,14 +11862,13 @@ export function WidgetFrame({
                                                 {Array.from({ length: 8 }).map((_, i) => {
                                                     const hex = presets[i] ?? '#888888';
                                                     return (
-                                                        <input
+                                                        <ColorPicker
                                                             key={i}
-                                                            type="color"
                                                             value={hex}
-                                                            onChange={(e) => {
+                                                            onChange={(v) => {
                                                                 const next = [...presets];
                                                                 while (next.length < 8) next.push('#888888');
-                                                                next[i] = e.target.value;
+                                                                next[i] = v;
                                                                 setO({ colorPresets: next });
                                                             }}
                                                             className="w-full h-8 rounded cursor-pointer"
@@ -12162,12 +12127,9 @@ export function WidgetFrame({
                                                                         />
                                                                     )}
                                                                 </div>
-                                                                <input
-                                                                    type="color"
+                                                                <ColorPicker
                                                                     value={color}
-                                                                    onChange={(e) =>
-                                                                        setO({ [optColorKey]: e.target.value })
-                                                                    }
+                                                                    onChange={(v) => setO({ [optColorKey]: v })}
                                                                     title={`Farbe ${stateLabel}`}
                                                                     className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
                                                                     style={{
@@ -12798,14 +12760,6 @@ export function WidgetFrame({
                                         </div>
                                         {/* Farben */}
                                         {(() => {
-                                            // type="color" needs a hex; preset defaults may be CSS vars
-                                            const VAR_HEX: Record<string, string> = {
-                                                'var(--accent-green)': '#22c55e',
-                                                'var(--accent-red, #ef4444)': '#ef4444',
-                                                'var(--text-secondary)': '#9ca3af',
-                                            };
-                                            const toHex = (c: string) =>
-                                                c.startsWith('#') ? c : (VAR_HEX[c] ?? '#9ca3af');
                                             const renderColor = (
                                                 key: 'colorOn' | 'colorOff',
                                                 labelText: string,
@@ -12822,10 +12776,10 @@ export function WidgetFrame({
                                                             {labelText}
                                                         </label>
                                                         <div className="flex items-center gap-1">
-                                                            <input
-                                                                type="color"
-                                                                value={toHex(current)}
-                                                                onChange={(e) => setO({ [key]: e.target.value })}
+                                                            <ColorPicker
+                                                                value={current}
+                                                                fallback={'#9ca3af'}
+                                                                onChange={(v) => setO({ [key]: v })}
                                                                 className="w-8 h-7 rounded cursor-pointer shrink-0"
                                                                 style={{
                                                                     border: '1px solid var(--app-border)',
@@ -12970,10 +12924,9 @@ export function WidgetFrame({
                                                             />
                                                         )}
                                                     </div>
-                                                    <input
-                                                        type="color"
+                                                    <ColorPicker
                                                         value={currentColor}
-                                                        onChange={(e) => setO({ [`${st}Color`]: e.target.value })}
+                                                        onChange={(v) => setO({ [`${st}Color`]: v })}
                                                         title="Farbe"
                                                         className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
                                                         style={{
@@ -13334,10 +13287,9 @@ export function WidgetFrame({
                                                             />
                                                         )}
                                                     </div>
-                                                    <input
-                                                        type="color"
+                                                    <ColorPicker
                                                         value={currentColor}
-                                                        onChange={(e) => setO({ [`${prefix}Color`]: e.target.value })}
+                                                        onChange={(v) => setO({ [`${prefix}Color`]: v })}
                                                         title="Farbe"
                                                         className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
                                                         style={{
@@ -13878,10 +13830,9 @@ export function WidgetFrame({
                                             >
                                                 Button-Farbe
                                             </label>
-                                            <input
-                                                type="color"
+                                            <ColorPicker
                                                 value={(o.buttonColor as string) || '#0ea5e9'}
-                                                onChange={(e) => setO({ buttonColor: e.target.value })}
+                                                onChange={(v) => setO({ buttonColor: v })}
                                                 className="w-8 h-7 rounded cursor-pointer p-0.5"
                                                 style={{
                                                     background: 'var(--app-bg)',
@@ -13980,10 +13931,9 @@ export function WidgetFrame({
                                             >
                                                 Farbe
                                             </label>
-                                            <input
-                                                type="color"
+                                            <ColorPicker
                                                 value={(o.buttonColor as string) || '#6366f1'}
-                                                onChange={(e) => setO({ buttonColor: e.target.value })}
+                                                onChange={(v) => setO({ buttonColor: v })}
                                                 className="w-8 h-7 rounded cursor-pointer p-0.5"
                                                 style={{
                                                     background: 'var(--app-bg)',
@@ -15094,10 +15044,6 @@ export function WidgetFrame({
                                         ...config,
                                         options: { ...config.options, colorThresholds: next.length ? next : undefined },
                                     });
-                                const toHex = (c: string) => {
-                                    const m = c.match(/#[0-9a-fA-F]{6}/);
-                                    return m ? m[0] : '#22c55e';
-                                };
                                 return (
                                     <div
                                         style={{
@@ -15145,12 +15091,12 @@ export function WidgetFrame({
                                                     >
                                                         ×
                                                     </button>
-                                                    <input
-                                                        type="color"
-                                                        value={toHex(color)}
-                                                        onChange={(e) => {
+                                                    <ColorPicker
+                                                        value={color}
+                                                        fallback={'#22c55e'}
+                                                        onChange={(v) => {
                                                             const n = [...thresholds];
-                                                            n[i] = [thresh, e.target.value];
+                                                            n[i] = [thresh, v];
                                                             setThresholds(n);
                                                         }}
                                                         className="w-8 h-7 rounded cursor-pointer shrink-0"

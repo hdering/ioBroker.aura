@@ -5,6 +5,7 @@ import type { WidgetConfig } from '../../types';
 import type { StatusOverviewOptions, CategoryKey } from '../../utils/statusOverview';
 import { useConfigStore } from '../../store/configStore';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
+import { ColorPicker } from '../common/ColorPicker';
 
 // Lazy so the ~battery admin page stays out of the config chunk until opened.
 const AdminBatteries = lazy(() =>
@@ -131,10 +132,9 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     Hervorhebungsfarbe
                 </label>
                 <div className="flex items-center gap-2">
-                    <input
-                        type="color"
+                    <ColorPicker
                         value={custom || DEFAULT_CAT_HEX[cat]}
-                        onChange={(e) => setCatColor(cat, e.target.value)}
+                        onChange={(v) => setCatColor(cat, v)}
                         className="w-8 h-7 rounded cursor-pointer p-0.5"
                         style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
                     />

@@ -1,4 +1,5 @@
 import { Database, Plus, Trash2, MapPin } from 'lucide-react';
+import { ColorPicker } from '../common/ColorPicker';
 import type { WidgetConfig } from '../../types';
 import type {
     MapMarker,
@@ -203,10 +204,9 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                                     style={iSty}
                                     title="Emoji"
                                 />
-                                <input
-                                    type="color"
+                                <ColorPicker
                                     value={m.color ?? '#2563eb'}
-                                    onChange={(e) => patchMarker(idx, { color: e.target.value })}
+                                    onChange={(v) => patchMarker(idx, { color: v })}
                                     className="w-8 h-8 rounded-lg cursor-pointer shrink-0"
                                     style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
                                     title="Farbe"
@@ -400,10 +400,9 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                                             style={iSty}
                                             title="Emoji"
                                         />
-                                        <input
-                                            type="color"
+                                        <ColorPicker
                                             value={v.color ?? '#2563eb'}
-                                            onChange={(e) => patchQuickView(idx, { color: e.target.value })}
+                                            onChange={(val) => patchQuickView(idx, { color: val })}
                                             className="w-8 h-8 rounded-lg cursor-pointer shrink-0"
                                             style={{
                                                 background: 'var(--app-bg)',

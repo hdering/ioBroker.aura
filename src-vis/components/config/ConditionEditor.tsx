@@ -4,6 +4,7 @@ import { DatapointPicker } from './DatapointPicker';
 import { JsonPathButton } from './JsonPathButton';
 import type { WidgetCondition, ConditionClause, ConditionOperator, ConditionStyle } from '../../types';
 import { useT, t } from '../../i18n';
+import { ColorPicker } from '../common/ColorPicker';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -238,10 +239,9 @@ export function ColorField({
             <label className="text-[10px] w-16 shrink-0 truncate" style={{ color: 'var(--text-secondary)' }}>
                 {label}
             </label>
-            <input
-                type="color"
+            <ColorPicker
                 value={value ?? '#3b82f6'}
-                onChange={(e) => onChange(e.target.value)}
+                onChange={(v) => onChange(v)}
                 className="w-6 h-6 rounded cursor-pointer border-0 p-0 shrink-0"
                 title={label}
             />

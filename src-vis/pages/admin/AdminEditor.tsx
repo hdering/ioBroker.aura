@@ -35,6 +35,7 @@ import { Dashboard } from '../../components/layout/Dashboard';
 import { FocusedWidgetContext } from '../../contexts/FocusedWidgetContext';
 import { TabWizard } from '../../components/config/TabWizard';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
+import { ColorPicker } from '../../components/common/ColorPicker';
 import type { WidgetConfig, WidgetType, WidgetLayout } from '../../types';
 import { WIDGET_REGISTRY, WIDGET_BY_TYPE, getEffectiveSize } from '../../widgetRegistry';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
@@ -845,10 +846,9 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                                         className={`flex-1 min-w-0 ${inputCls}`}
                                         style={inputStyle}
                                     />
-                                    <input
-                                        type="color"
+                                    <ColorPicker
                                         value={calColor}
-                                        onChange={(e) => setCalColor(e.target.value)}
+                                        onChange={(v) => setCalColor(v)}
                                         className="w-10 h-10 rounded-xl cursor-pointer border-0 p-0.5 shrink-0"
                                         style={{ border: '1px solid var(--app-border)' }}
                                     />

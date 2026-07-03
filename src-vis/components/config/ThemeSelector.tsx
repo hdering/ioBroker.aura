@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useThemeStore } from '../../store/themeStore';
 import { THEMES, getTheme, type ThemeVars } from '../../themes';
+import { ColorPicker } from '../common/ColorPicker';
 
 const VAR_LABELS: Partial<Record<keyof ThemeVars, string>> = {
     '--app-bg': 'App Hintergrund',
@@ -125,10 +126,9 @@ export function ThemeSelector() {
                                         </label>
                                         <div className="flex-1 flex gap-1">
                                             {isColorVal && (
-                                                <input
-                                                    type="color"
+                                                <ColorPicker
                                                     value={currentVal.startsWith('#') ? currentVal : '#3b82f6'}
-                                                    onChange={(e) => setCustomVar(key, e.target.value)}
+                                                    onChange={(v) => setCustomVar(key, v)}
                                                     className="w-7 h-7 rounded cursor-pointer border-0 p-0"
                                                     style={{ background: 'none' }}
                                                 />

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, ChevronUp, ChevronDown, RefreshCw } from 'lucide-react';
 import type { JsonColumnDef } from '../widgets/JsonTableWidget';
+import { ColorPicker } from '../common/ColorPicker';
 import { getStateDirect } from '../../hooks/useIoBroker';
 
 interface Props {
@@ -165,12 +166,11 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
             {boolOpt('showHeader', true) && (
                 <>
                     <div className="flex items-center gap-2">
-                        <input
-                            type="color"
+                        <ColorPicker
                             value={
                                 (o.headerBg as string | undefined)?.startsWith('#') ? (o.headerBg as string) : '#6366f1'
                             }
-                            onChange={(e) => set({ headerBg: e.target.value })}
+                            onChange={(v) => set({ headerBg: v })}
                             className="w-8 h-7 rounded cursor-pointer shrink-0"
                             style={{ border: '1px solid var(--app-border)', padding: '1px' }}
                         />
@@ -189,14 +189,13 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <input
-                            type="color"
+                        <ColorPicker
                             value={
                                 (o.headerColor as string | undefined)?.startsWith('#')
                                     ? (o.headerColor as string)
                                     : '#ffffff'
                             }
-                            onChange={(e) => set({ headerColor: e.target.value })}
+                            onChange={(v) => set({ headerColor: v })}
                             className="w-8 h-7 rounded cursor-pointer shrink-0"
                             style={{ border: '1px solid var(--app-border)', padding: '1px' }}
                         />
@@ -232,14 +231,13 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
             {firstColHeader && (
                 <>
                     <div className="flex items-center gap-2">
-                        <input
-                            type="color"
+                        <ColorPicker
                             value={
                                 (o.firstColBg as string | undefined)?.startsWith('#')
                                     ? (o.firstColBg as string)
                                     : '#1e1e2e'
                             }
-                            onChange={(e) => set({ firstColBg: e.target.value })}
+                            onChange={(v) => set({ firstColBg: v })}
                             className="w-8 h-7 rounded cursor-pointer shrink-0"
                             style={{ border: '1px solid var(--app-border)', padding: '1px' }}
                         />
@@ -258,14 +256,13 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <input
-                            type="color"
+                        <ColorPicker
                             value={
                                 (o.firstColColor as string | undefined)?.startsWith('#')
                                     ? (o.firstColColor as string)
                                     : '#8b8b9e'
                             }
-                            onChange={(e) => set({ firstColColor: e.target.value })}
+                            onChange={(v) => set({ firstColColor: v })}
                             className="w-8 h-7 rounded cursor-pointer shrink-0"
                             style={{ border: '1px solid var(--app-border)', padding: '1px' }}
                         />

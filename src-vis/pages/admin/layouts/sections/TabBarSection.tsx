@@ -8,6 +8,7 @@ import {
 } from '../../../../store/dashboardStore';
 import { useConfigStore } from '../../../../store/configStore';
 import { useT } from '../../../../i18n';
+import { ColorPicker } from '../../../../components/common/ColorPicker';
 
 // ── OverrideDot ───────────────────────────────────────────────────────────────
 // Small marker shown next to a field that overrides the global value (layout scope).
@@ -47,10 +48,9 @@ function ColorInput({
                 <OverrideDot show={overridden} title={overrideTitle} />
             </label>
             <div className="flex items-center gap-1.5">
-                <input
-                    type="color"
+                <ColorPicker
                     value={isHex ? value : '#888888'}
-                    onChange={(e) => onChange(e.target.value)}
+                    onChange={(v) => onChange(v)}
                     className="w-8 h-7 rounded cursor-pointer border-0 p-0.5 shrink-0"
                     style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
                 />

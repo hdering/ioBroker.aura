@@ -9,6 +9,7 @@ import { Database, X, ChevronRight, Settings2, GripVertical, Plus } from 'lucide
 import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../types';
 import type { StaticListEntry, StaticListOptions } from '../widgets/ListWidget';
+import { ColorPicker } from '../common/ColorPicker';
 import { DatapointPicker } from './DatapointPicker';
 import { EntryControlsConfig } from './EntryControlsConfig';
 import { IconPickerModal } from './IconPickerModal';
@@ -39,10 +40,9 @@ function ColorField({
                 {label}
             </label>
             <div className="flex items-center gap-1">
-                <input
-                    type="color"
+                <ColorPicker
                     value={value?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? fallback}
-                    onChange={(e) => onChange(e.target.value)}
+                    onChange={(v) => onChange(v)}
                     className="w-7 h-6 rounded cursor-pointer shrink-0"
                     style={{ border: '1px solid var(--app-border)', padding: '1px' }}
                 />
@@ -618,12 +618,11 @@ function EntryRow({
                                     >
                                         ×
                                     </button>
-                                    <input
-                                        type="color"
+                                    <ColorPicker
                                         value={color.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#22c55e'}
-                                        onChange={(e) => {
+                                        onChange={(v) => {
                                             const n = [...(entry.colorThresholds ?? [])];
-                                            n[i] = [thresh, e.target.value];
+                                            n[i] = [thresh, v];
                                             onUpdate({ colorThresholds: n });
                                         }}
                                         className="w-7 h-6 rounded cursor-pointer shrink-0"

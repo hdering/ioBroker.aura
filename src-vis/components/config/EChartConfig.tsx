@@ -7,6 +7,7 @@ import { detectHistoryAdapters, RANGE_LABELS, type DetectedAdapter } from '../..
 import type { EChartSeriesConfig, EChartTimeRange } from '../../hooks/useMultiSeriesData';
 import { useT, t } from '../../i18n';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { ColorPicker } from '../common/ColorPicker';
 
 interface EChartConfigProps {
     config: WidgetConfig;
@@ -384,10 +385,9 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                 {t('echart.color')}
                                             </label>
                                             <div className="flex gap-1.5 items-center">
-                                                <input
-                                                    type="color"
+                                                <ColorPicker
                                                     value={s.color ?? '#3b82f6'}
-                                                    onChange={(e) => updateSeries(s.id, { color: e.target.value })}
+                                                    onChange={(v) => updateSeries(s.id, { color: v })}
                                                     className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent"
                                                 />
                                                 <input

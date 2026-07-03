@@ -15,6 +15,7 @@ import { FORMAT_LABELS, type DateOutputFormat } from '../widgets/DatePickerWidge
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ValueTransformButton } from '../config/ValueTransformButton';
 import { getObjectDirect } from '../../hooks/useIoBroker';
+import { ColorPicker } from '../common/ColorPicker';
 
 export const CELL_LABELS: Record<string, string> = {
     empty: '–',
@@ -923,14 +924,13 @@ export function CustomCellEditor({
                                             >
                                                 Farbe AN
                                             </label>
-                                            <input
-                                                type="color"
+                                            <ColorPicker
                                                 value={
                                                     cell.trueColor && cell.trueColor.startsWith('#')
                                                         ? cell.trueColor
                                                         : '#22c55e'
                                                 }
-                                                onChange={(e) => onChange({ trueColor: e.target.value })}
+                                                onChange={(v) => onChange({ trueColor: v })}
                                                 className="w-full h-7 rounded cursor-pointer border-0 p-0"
                                             />
                                         </div>
@@ -941,14 +941,13 @@ export function CustomCellEditor({
                                             >
                                                 Farbe AUS
                                             </label>
-                                            <input
-                                                type="color"
+                                            <ColorPicker
                                                 value={
                                                     cell.falseColor && cell.falseColor.startsWith('#')
                                                         ? cell.falseColor
                                                         : '#6b7280'
                                                 }
-                                                onChange={(e) => onChange({ falseColor: e.target.value })}
+                                                onChange={(v) => onChange({ falseColor: v })}
                                                 className="w-full h-7 rounded cursor-pointer border-0 p-0"
                                             />
                                         </div>
@@ -1005,14 +1004,13 @@ export function CustomCellEditor({
                                                 Hintergrundfarbe
                                             </label>
                                             <div className="flex items-center gap-1">
-                                                <input
-                                                    type="color"
+                                                <ColorPicker
                                                     value={
                                                         cell.color && cell.color.startsWith('#')
                                                             ? cell.color
                                                             : '#3b82f6'
                                                     }
-                                                    onChange={(e) => onChange({ color: e.target.value })}
+                                                    onChange={(v) => onChange({ color: v })}
                                                     className="flex-1 h-7 rounded cursor-pointer border-0 p-0"
                                                 />
                                                 <button
@@ -1035,14 +1033,13 @@ export function CustomCellEditor({
                                             >
                                                 Textfarbe
                                             </label>
-                                            <input
-                                                type="color"
+                                            <ColorPicker
                                                 value={
                                                     cell.buttonTextColor && cell.buttonTextColor.startsWith('#')
                                                         ? cell.buttonTextColor
                                                         : '#ffffff'
                                                 }
-                                                onChange={(e) => onChange({ buttonTextColor: e.target.value })}
+                                                onChange={(v) => onChange({ buttonTextColor: v })}
                                                 className="w-full h-7 rounded cursor-pointer border-0 p-0"
                                             />
                                         </div>
@@ -1498,14 +1495,13 @@ export function CustomCellEditor({
                                     >
                                         Farbe an
                                     </label>
-                                    <input
-                                        type="color"
+                                    <ColorPicker
                                         value={
                                             cell.trueColor && cell.trueColor.startsWith('#')
                                                 ? cell.trueColor
                                                 : '#22c55e'
                                         }
-                                        onChange={(e) => onChange({ trueColor: e.target.value })}
+                                        onChange={(v) => onChange({ trueColor: v })}
                                         className="w-full h-7 rounded cursor-pointer border-0 p-0"
                                     />
                                 </div>
@@ -1516,14 +1512,13 @@ export function CustomCellEditor({
                                     >
                                         Farbe aus
                                     </label>
-                                    <input
-                                        type="color"
+                                    <ColorPicker
                                         value={
                                             cell.falseColor && cell.falseColor.startsWith('#')
                                                 ? cell.falseColor
                                                 : '#64748b'
                                         }
-                                        onChange={(e) => onChange({ falseColor: e.target.value })}
+                                        onChange={(v) => onChange({ falseColor: v })}
                                         className="w-full h-7 rounded cursor-pointer border-0 p-0"
                                     />
                                 </div>
@@ -1749,10 +1744,9 @@ export function CustomCellEditor({
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                                 Farbe an
                             </label>
-                            <input
-                                type="color"
+                            <ColorPicker
                                 value={cell.trueColor && cell.trueColor.startsWith('#') ? cell.trueColor : '#22c55e'}
-                                onChange={(e) => onChange({ trueColor: e.target.value })}
+                                onChange={(v) => onChange({ trueColor: v })}
                                 className="w-full h-7 rounded cursor-pointer border-0 p-0"
                             />
                         </div>
@@ -1760,10 +1754,9 @@ export function CustomCellEditor({
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                                 Farbe aus
                             </label>
-                            <input
-                                type="color"
+                            <ColorPicker
                                 value={cell.falseColor && cell.falseColor.startsWith('#') ? cell.falseColor : '#64748b'}
-                                onChange={(e) => onChange({ falseColor: e.target.value })}
+                                onChange={(v) => onChange({ falseColor: v })}
                                 className="w-full h-7 rounded cursor-pointer border-0 p-0"
                             />
                         </div>
@@ -1852,10 +1845,9 @@ export function CustomCellEditor({
                                                     className="flex-1 text-xs rounded-lg px-2 py-1 focus:outline-none"
                                                     style={inputSty}
                                                 />
-                                                <input
-                                                    type="color"
+                                                <ColorPicker
                                                     value={e.color && e.color.startsWith('#') ? e.color : '#ffffff'}
-                                                    onChange={(ev) => patchEntry(i, { color: ev.target.value })}
+                                                    onChange={(v) => patchEntry(i, { color: v })}
                                                     title="Farbe (optional)"
                                                     className="h-7 w-7 rounded cursor-pointer border-0 p-0 shrink-0"
                                                 />
@@ -2408,10 +2400,9 @@ export function CustomCellEditor({
                         <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
                             Farbe
                         </label>
-                        <input
-                            type="color"
+                        <ColorPicker
                             value={cell.color && cell.color.startsWith('#') ? cell.color : '#ffffff'}
-                            onChange={(e) => onChange({ color: e.target.value })}
+                            onChange={(v) => onChange({ color: v })}
                             className="w-8 h-7 rounded cursor-pointer border-0 p-0"
                             style={{ background: 'none' }}
                         />

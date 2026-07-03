@@ -2,6 +2,7 @@ import { useThemeStore } from '../../../../store/themeStore';
 import { useDashboardStore } from '../../../../store/dashboardStore';
 import { getTheme, ELEMENT_VAR_FALLBACKS, type ThemeVars, type AllVars } from '../../../../themes';
 import { useT } from '../../../../i18n';
+import { ColorPicker } from '../../../../components/common/ColorPicker';
 
 const VAR_GROUPS: { labelKey: string; keys: (keyof AllVars)[] }[] = [
     { labelKey: 'theme.vars.app', keys: ['--app-bg', '--app-surface', '--app-border'] },
@@ -232,10 +233,9 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
                                         </label>
                                         <div className="flex items-center gap-1.5 flex-1 min-w-0">
                                             {isColor(current) && (
-                                                <input
-                                                    type="color"
+                                                <ColorPicker
                                                     value={current.startsWith('#') ? current : '#000000'}
-                                                    onChange={(e) => setThemeVar(key, e.target.value)}
+                                                    onChange={(v) => setThemeVar(key, v)}
                                                     className="w-8 h-8 rounded-lg cursor-pointer border-0 p-0.5 shrink-0"
                                                     style={{
                                                         background: 'var(--app-bg)',
