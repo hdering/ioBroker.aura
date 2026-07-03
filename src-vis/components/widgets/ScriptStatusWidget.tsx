@@ -413,7 +413,11 @@ export function ScriptStatusWidget({ config }: WidgetProps) {
                                 onClick={() => setFilter(f)}
                                 className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
                                 style={{
-                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                    background: active
+                                        ? 'var(--accent)'
+                                        : transparent
+                                          ? 'transparent'
+                                          : 'var(--app-bg)',
                                     color: active ? '#fff' : 'var(--text-secondary)',
                                     border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
                                 }}
@@ -428,7 +432,7 @@ export function ScriptStatusWidget({ config }: WidgetProps) {
                             onChange={(e) => setGroupFilter(e.target.value)}
                             className="text-[10px] px-2 py-0.5 rounded-full"
                             style={{
-                                background: 'var(--app-bg)',
+                                background: transparent ? 'transparent' : 'var(--app-bg)',
                                 color: 'var(--text-secondary)',
                                 border: '1px solid var(--app-border)',
                             }}
@@ -448,7 +452,10 @@ export function ScriptStatusWidget({ config }: WidgetProps) {
             {showSearch && scripts.length > 5 && (
                 <div
                     className="flex items-center gap-1 shrink-0 rounded-md px-2 py-1"
-                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                    style={{
+                        background: transparent ? 'transparent' : 'var(--app-bg)',
+                        border: '1px solid var(--app-border)',
+                    }}
                 >
                     <Search size={12} style={{ color: 'var(--text-secondary)' }} />
                     <input

@@ -5,4 +5,4 @@
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 
-Script status - list entries now respect transparent mode
+Script status - list entries, filter buttons and search box now respect transparent mode
