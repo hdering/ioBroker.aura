@@ -107,6 +107,14 @@ export function combineColor(hex6: string, alpha: number): string {
     return `${base}${a}`;
 }
 
+/** True once `raw` is a fully-typed colour worth applying live (not a partial). */
+function isCompleteColor(raw: string): boolean {
+    const v = (raw ?? '').trim();
+    if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(v)) return true;
+    if (/^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(,\s*[\d.]+\s*)?\)$/i.test(v)) return true;
+    return false;
+}
+
 export function ColorPicker({
     value,
     onChange,
@@ -294,7 +302,12 @@ function ColorPopover({
                 <input
                     type="text"
                     value={hexText}
-                    onChange={(e) => setHexText(e.target.value)}
+                    onChange={(e) => {
+                        const raw = e.target.value;
+                        setHexText(raw);
+                        // Apply immediately once a complete colour is typed.
+                        if (isCompleteColor(raw)) commitHex(raw);
+                    }}
                     onBlur={(e) => commitHex(e.target.value)}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') commitHex((e.target as HTMLInputElement).value);
