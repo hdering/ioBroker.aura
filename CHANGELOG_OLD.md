@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.11.2 (2026-06-27)
+- Universal widget - select cell now re-sends the value when the already-selected entry is picked again
+
 ## 0.11.1 (2026-06-26)
 - Switch / Dimmer - toggle knob now vertically centered instead of sitting too low
 
