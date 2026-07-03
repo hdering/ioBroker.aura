@@ -259,8 +259,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 gridPos: {
                     x: 0,
                     y: maxY,
-                    w: meta?.defaultW ?? bridge.widget.gridPos.w,
-                    h: meta?.defaultH ?? bridge.widget.gridPos.h,
+                    // Keep the widget's current size when dropped into a group;
+                    // fall back to the type default only if the source has no size.
+                    w: bridge.widget.gridPos.w ?? meta?.defaultW ?? 2,
+                    h: bridge.widget.gridPos.h ?? meta?.defaultH ?? 2,
                 },
             },
         ]);
