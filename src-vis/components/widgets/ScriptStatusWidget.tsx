@@ -85,6 +85,8 @@ function ScriptRow({
     showEngine,
     compact,
     transparent,
+    striped,
+    index,
     onToggle,
 }: {
     script: ScriptInstance;
@@ -94,6 +96,8 @@ function ScriptRow({
     showEngine: boolean;
     compact: boolean;
     transparent: boolean;
+    striped: boolean;
+    index: number;
     onToggle: (script: ScriptInstance, next: boolean) => void;
 }) {
     const [busy, setBusy] = useState(false);
@@ -104,6 +108,17 @@ function ScriptRow({
 
     // Hide buttons completely when neither action is permitted.
     const canToggle = enabled ? allowStop : allowStart;
+
+    // Zebra rows drop the per-card border and alternate a subtle tint, matching
+    // the JSON-table widget; otherwise keep the bordered card look.
+    const rowBg = striped
+        ? index % 2 === 1
+            ? 'color-mix(in srgb, var(--app-bg) 60%, transparent)'
+            : 'transparent'
+        : transparent
+          ? 'transparent'
+          : 'var(--app-bg)';
+    const rowBorder = striped || transparent ? 'transparent' : 'var(--app-border)';
 
     const runToggle = async () => {
         if (busy) return;
@@ -117,10 +132,10 @@ function ScriptRow({
 
     return (
         <div
-            className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs"
+            className={`flex items-center gap-2 px-2 py-1.5 text-xs ${striped ? '' : 'rounded-md'}`}
             style={{
-                background: transparent ? 'transparent' : 'var(--app-bg)',
-                border: `1px solid ${transparent ? 'transparent' : 'var(--app-border)'}`,
+                background: rowBg,
+                border: `1px solid ${rowBorder}`,
             }}
         >
             {/* Status dot */}
@@ -205,6 +220,7 @@ export function ScriptStatusWidget({ config }: WidgetProps) {
     const allowStart = !!o.allowStart;
     const allowStop = !!o.allowStop;
     const transparent = !!o.transparent;
+    const striped = o.striped !== false;
 
     const { connected } = useIoBroker();
 
@@ -488,7 +504,7 @@ export function ScriptStatusWidget({ config }: WidgetProps) {
             )}
 
             {/* List */}
-            <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-1 pr-1">
+            <div className={`flex-1 min-h-0 overflow-y-auto flex flex-col ${striped ? 'gap-0' : 'gap-1'} pr-1`}>
                 {visible.length === 0 ? (
                     <div
                         className="flex flex-col items-center justify-center h-full text-[11px] gap-1"
@@ -508,7 +524,7 @@ export function ScriptStatusWidget({ config }: WidgetProps) {
                         )}
                     </div>
                 ) : (
-                    visible.map((s) => (
+                    visible.map((s, i) => (
                         <ScriptRow
                             key={s.id}
                             script={s}
@@ -518,6 +534,8 @@ export function ScriptStatusWidget({ config }: WidgetProps) {
                             showEngine={showEngine}
                             compact={compact}
                             transparent={transparent}
+                            striped={striped}
+                            index={i}
                             onToggle={toggleScript}
                         />
                     ))

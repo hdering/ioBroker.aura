@@ -62,6 +62,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
     const showFilter = o.showFilter !== false;
     const showControls = o.showControls !== false;
     const transparent = !!o.transparent;
+    const striped = o.striped !== false;
     const compact = !!o.compact;
     const bufferSize = Math.max(50, Math.min(5000, (o.bufferSize as number) || DEFAULT_BUFFER));
     const visibleLimit = Math.max(20, Math.min(bufferSize, (o.visibleLimit as number) || DEFAULT_VISIBLE));
@@ -452,7 +453,10 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                                     <tr
                                         key={`${e.seq ?? e.ts}-${i}`}
                                         style={{
-                                            background: i % 2 === 0 || transparent ? 'transparent' : 'var(--app-bg)',
+                                            background:
+                                                striped && !transparent && i % 2 === 1
+                                                    ? 'color-mix(in srgb, var(--app-bg) 60%, transparent)'
+                                                    : 'transparent',
                                         }}
                                     >
                                         <td

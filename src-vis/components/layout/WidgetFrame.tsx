@@ -10912,6 +10912,12 @@ export function WidgetFrame({
                                             def={false}
                                             hint="Untertitel/Beschreibung ausblenden"
                                         />
+                                        <Toggle
+                                            label="Zebra-Streifen"
+                                            k="striped"
+                                            def={true}
+                                            hint="Zeilen abwechselnd einfärben statt als Karten"
+                                        />
                                         <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
                                         <Toggle
                                             label="Neustart erlauben"
@@ -11082,6 +11088,12 @@ export function WidgetFrame({
                                             k="compact"
                                             def={false}
                                             hint="Pfad-Zeile ausblenden"
+                                        />
+                                        <Toggle
+                                            label="Zebra-Streifen"
+                                            k="striped"
+                                            def={true}
+                                            hint="Zeilen abwechselnd einfärben statt als Karten"
                                         />
                                         <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
                                         <Toggle
@@ -11301,6 +11313,12 @@ export function WidgetFrame({
                                             k="newestFirst"
                                             def={true}
                                             hint="Aus: neueste Meldung unten"
+                                        />
+                                        <Toggle
+                                            label="Zebra-Streifen"
+                                            k="striped"
+                                            def={true}
+                                            hint="Zeilen abwechselnd einfärben"
                                         />
                                     </>
                                 );
