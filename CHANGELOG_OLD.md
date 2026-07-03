@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.11.3 (2026-06-27)
+- Widget editor - datapoint buttons reordered to "from ioBroker", "JSON path", "transform"
+- Widget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)
+
 ## 0.11.2 (2026-06-27)
 - Universal widget - select cell now re-sends the value when the already-selected entry is picked again
 
