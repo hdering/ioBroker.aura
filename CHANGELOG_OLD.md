@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.11.1 (2026-06-26)
+- Switch / Dimmer - toggle knob now vertically centered instead of sitting too low
+
 ## 0.11.0 (2026-06-26)
 - Adapter now requires admin >= 7.8.23
 - Clock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)
