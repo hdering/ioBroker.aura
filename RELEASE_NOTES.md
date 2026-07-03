@@ -8,3 +8,4 @@
 Script status - list entries, filter buttons and search box now respect transparent mode
 JSON table - header and search box now respect transparent mode
 Adapter logs - filter buttons, source buttons and search box now respect transparent mode
+Adapter status - filter buttons, search box and instance rows now respect transparent mode

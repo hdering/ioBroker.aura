@@ -89,6 +89,7 @@ function InstanceRow({
     allowUpdate,
     showVersion,
     compact,
+    transparent,
     onRestart,
     onUpdate,
 }: {
@@ -100,6 +101,7 @@ function InstanceRow({
     allowUpdate: boolean;
     showVersion: boolean;
     compact: boolean;
+    transparent: boolean;
     onRestart: (inst: AdapterInstance) => void;
     onUpdate: (inst: AdapterInstance) => void;
 }) {
@@ -152,7 +154,10 @@ function InstanceRow({
     return (
         <div
             className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs"
-            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+            style={{
+                background: transparent ? 'transparent' : 'var(--app-bg)',
+                border: `1px solid ${transparent ? 'transparent' : 'var(--app-border)'}`,
+            }}
         >
             {/* Status dot */}
             <span
@@ -267,6 +272,7 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
     const showFilter = o.showFilter !== false;
     const defaultFilter = (o.filterMode as FilterMode) ?? 'all';
     const compact = !!o.compact;
+    const transparent = !!o.transparent;
     const sortBy = (o.sortBy as 'name' | 'status') ?? 'name';
 
     const { connected } = useIoBroker();
@@ -518,7 +524,11 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
                                 onClick={() => setFilter(f)}
                                 className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
                                 style={{
-                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                    background: active
+                                        ? 'var(--accent)'
+                                        : transparent
+                                          ? 'transparent'
+                                          : 'var(--app-bg)',
                                     color: active ? '#fff' : 'var(--text-secondary)',
                                     border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
                                 }}
@@ -534,7 +544,10 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
             {showSearch && instances.length > 5 && (
                 <div
                     className="flex items-center gap-1 shrink-0 rounded-md px-2 py-1"
-                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                    style={{
+                        background: transparent ? 'transparent' : 'var(--app-bg)',
+                        border: '1px solid var(--app-border)',
+                    }}
                 >
                     <Search size={12} style={{ color: 'var(--text-secondary)' }} />
                     <input
@@ -598,6 +611,7 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
                             allowUpdate={allowUpdate}
                             showVersion={showVersion}
                             compact={compact}
+                            transparent={transparent}
                             onRestart={restartInstance}
                             onUpdate={installUpdate}
                         />
