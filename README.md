@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.17.5 (2026-07-03)
+- Groups - widgets keep their current size when dropped into a group instead of resetting to the type default
+
+
 ### 0.17.4 (2026-07-03)
 - Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)
 
@@ -213,10 +217,6 @@ Release v0.12.1
 - Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen
 
 
-### 0.11.4 (2026-06-27)
-- Popups - removing a widget-type default in the backend now stops auto-linking the built-in popup (e.g. dimmers no longer force the Standard Dimmer popup)
-
-
 ## License
 
 MIT License
@@ -228,6 +228,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.17.4",
+    "version": "0.17.5",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.17.5": {
+        "en": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
+        "de": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
+        "ru": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
+        "pt": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
+        "nl": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
+        "fr": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
+        "it": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
+        "es": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
+        "pl": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
+        "uk": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
+        "zh-cn": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default"
+      },
       "0.17.4": {
         "en": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)",
         "de": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)",
@@ -183,19 +196,6 @@
         "pl": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
         "uk": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
         "zh-cn": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner"
-      },
-      "0.15.5": {
-        "en": "Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured",
-        "de": "Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured",
-        "ru": "Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured",
-        "pt": "Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured",
-        "nl": "Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured",
-        "fr": "Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured",
-        "it": "Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured",
-        "es": "Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured",
-        "pl": "Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured",
-        "uk": "Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured",
-        "zh-cn": "Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured"
       }
     }
   },

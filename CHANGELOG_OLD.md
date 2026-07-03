@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.11.4 (2026-06-27)
+- Popups - removing a widget-type default in the backend now stops auto-linking the built-in popup (e.g. dimmers no longer force the Standard Dimmer popup)
+
 ## 0.11.3 (2026-06-27)
 - Widget editor - datapoint buttons reordered to "from ioBroker", "JSON path", "transform"
 - Widget editor - unified the datapoint picker icon across all widgets (HTML, iframe, camera, carousel, chips, weather, trash, static list)
