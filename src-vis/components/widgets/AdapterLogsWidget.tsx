@@ -61,6 +61,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
     const showSearch = o.showSearch !== false;
     const showFilter = o.showFilter !== false;
     const showControls = o.showControls !== false;
+    const transparent = !!o.transparent;
     const compact = !!o.compact;
     const bufferSize = Math.max(50, Math.min(5000, (o.bufferSize as number) || DEFAULT_BUFFER));
     const visibleLimit = Math.max(20, Math.min(bufferSize, (o.visibleLimit as number) || DEFAULT_VISIBLE));
@@ -310,7 +311,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                                 onClick={() => toggleLevel(s)}
                                 className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
                                 style={{
-                                    background: active ? color : 'var(--app-bg)',
+                                    background: active ? color : transparent ? 'transparent' : 'var(--app-bg)',
                                     color: active ? '#fff' : 'var(--text-secondary)',
                                     border: `1px solid ${active ? color : 'var(--app-border)'}`,
                                 }}
@@ -326,7 +327,12 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                                 onClick={() => setSelectedAdapters(new Set())}
                                 className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
                                 style={{
-                                    background: selectedAdapters.size === 0 ? 'var(--accent)' : 'var(--app-bg)',
+                                    background:
+                                        selectedAdapters.size === 0
+                                            ? 'var(--accent)'
+                                            : transparent
+                                              ? 'transparent'
+                                              : 'var(--app-bg)',
                                     color: selectedAdapters.size === 0 ? '#fff' : 'var(--text-secondary)',
                                     border: `1px solid ${
                                         selectedAdapters.size === 0 ? 'var(--accent)' : 'var(--app-border)'
@@ -344,7 +350,11 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                                         onClick={() => toggleAdapter(a)}
                                         className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
                                         style={{
-                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            background: active
+                                                ? 'var(--accent)'
+                                                : transparent
+                                                  ? 'transparent'
+                                                  : 'var(--app-bg)',
                                             color: active ? '#fff' : 'var(--text-secondary)',
                                             border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
                                         }}
@@ -363,7 +373,10 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
             {showSearch && (
                 <div
                     className="flex items-center gap-1 shrink-0 rounded-md px-2 py-1"
-                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                    style={{
+                        background: transparent ? 'transparent' : 'var(--app-bg)',
+                        border: '1px solid var(--app-border)',
+                    }}
                 >
                     <Search size={12} style={{ color: 'var(--text-secondary)' }} />
                     <input
