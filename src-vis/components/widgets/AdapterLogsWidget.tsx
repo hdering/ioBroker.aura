@@ -454,7 +454,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                                         key={`${e.seq ?? e.ts}-${i}`}
                                         style={{
                                             background:
-                                                striped && !transparent && i % 2 === 1
+                                                striped && i % 2 === 1
                                                     ? 'color-mix(in srgb, var(--app-bg) 60%, transparent)'
                                                     : 'transparent',
                                         }}
