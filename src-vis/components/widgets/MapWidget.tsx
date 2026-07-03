@@ -30,6 +30,38 @@ export interface MapMarker {
 
 export type MapStyle = 'standard' | 'satellite' | 'terrain';
 
+/** A quick-access chip that recenters the map on a configured position.
+ *  The target position resolves the same way a marker does (JSON DP, two DPs,
+ *  static coordinates, or a geocoded address). `mode` defaults to 'static' so
+ *  chips created before modes existed (bare lat/lon) keep working. */
+export interface MapQuickView {
+    id: string;
+    label?: string;
+    mode?: MapMarkerMode;
+    /** JSON / object DP holding the position (mode = 'json'). */
+    jsonDp?: string;
+    latPath?: string;
+    lonPath?: string;
+    /** Separate numeric DPs (mode = 'latlon'). */
+    latDp?: string;
+    lonDp?: string;
+    /** Fixed coordinates (mode = 'static'). */
+    lat?: number;
+    lon?: number;
+    /** Free-text address, geocoded via OpenStreetMap (mode = 'address'). */
+    address?: string;
+    /** Target zoom when jumping; keeps the current zoom when unset. */
+    zoom?: number;
+    emoji?: string;
+    color?: string;
+}
+
+/** Where the quick-access chips are rendered relative to the map. */
+export type MapChipsPosition = 'overlay' | 'below';
+
+/** Which corner the overlay chips are anchored to (only for `chipsPosition === 'overlay'`). */
+export type MapChipsCorner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+
 interface MapOptions {
     markers?: MapMarker[];
     center?: LatLon;
@@ -41,6 +73,9 @@ interface MapOptions {
     tileAttribution?: string;
     showDistance?: boolean;
     homeMarkerId?: string;
+    quickViews?: MapQuickView[];
+    chipsPosition?: MapChipsPosition;
+    chipsCorner?: MapChipsCorner;
 }
 
 /** Free tile presets (no API key required). */
@@ -88,10 +123,90 @@ function buildIcon(marker: MapMarker): L.DivIcon {
     });
 }
 
+/** The position-relevant subset shared by markers and quick-access chips. */
+interface PositionSpec {
+    mode?: MapMarkerMode;
+    jsonDp?: string;
+    latPath?: string;
+    lonPath?: string;
+    latDp?: string;
+    lonDp?: string;
+    lat?: number;
+    lon?: number;
+    address?: string;
+}
+
 /**
- * Resolves a single marker's live coordinates from its datapoint(s) and renders a
- * Leaflet marker. All three hooks are always called (with '' for unused modes) so the
- * hook count stays constant even when the marker mode changes via the config editor.
+ * Resolves live coordinates from a spec's datapoint(s)/address/static fields.
+ * All three DP hooks are always called (with '' for unused modes) so the hook
+ * count stays constant even when the mode changes via the config editor.
+ * Shared by both markers and quick-access chips.
+ */
+function useResolvedPosition(spec: PositionSpec): LatLon | null {
+    const mode = spec.mode ?? 'static';
+    const jsonState = useDatapoint(mode === 'json' ? (spec.jsonDp ?? '') : '');
+    const latDp = useDatapoint(mode === 'latlon' ? (spec.latDp ?? '') : '');
+    const lonDp = useDatapoint(mode === 'latlon' ? (spec.lonDp ?? '') : '');
+
+    // Address mode: geocode the free-text address (cached) into coordinates.
+    const [geoPos, setGeoPos] = useState<LatLon | null>(null);
+    useEffect(() => {
+        if (mode !== 'address' || !spec.address?.trim()) {
+            setGeoPos(null);
+            return;
+        }
+        let cancelled = false;
+        const address = spec.address;
+        // Debounce so typing an address in the editor doesn't fire a request per keystroke.
+        const handle = setTimeout(() => {
+            void geocodeAddress(address).then((p) => {
+                if (!cancelled) setGeoPos(p);
+            });
+        }, 600);
+        return () => {
+            cancelled = true;
+            clearTimeout(handle);
+        };
+    }, [mode, spec.address]);
+
+    return useMemo<LatLon | null>(() => {
+        if (mode === 'static') {
+            return Number.isFinite(spec.lat) && Number.isFinite(spec.lon)
+                ? [spec.lat as number, spec.lon as number]
+                : null;
+        }
+        if (mode === 'latlon') {
+            if (latDp.value == null || latDp.value === '' || lonDp.value == null || lonDp.value === '') return null;
+            const la = Number(latDp.value);
+            const lo = Number(lonDp.value);
+            return Number.isFinite(la) && Number.isFinite(lo) ? [la, lo] : null;
+        }
+        if (mode === 'address') {
+            return geoPos;
+        }
+        // json
+        return extractLatLon(jsonState.state?.val, spec.latPath, spec.lonPath);
+    }, [mode, spec.lat, spec.lon, spec.latPath, spec.lonPath, jsonState.state?.val, latDp.value, lonDp.value, geoPos]);
+}
+
+/** Resolves a chip's live position (no visible output) and reports it upward. */
+function QuickViewResolver({
+    view,
+    onResolve,
+}: {
+    view: MapQuickView;
+    onResolve: (id: string, pos: LatLon | null) => void;
+}) {
+    const pos = useResolvedPosition(view);
+    useEffect(() => {
+        onResolve(view.id, pos);
+        return () => onResolve(view.id, null);
+    }, [view.id, pos, onResolve]);
+    return null;
+}
+
+/**
+ * Resolves a single marker's live coordinates and renders a Leaflet marker.
  */
 function MarkerLayer({
     marker,
@@ -106,49 +221,7 @@ function MarkerLayer({
     showDistance: boolean;
     onResolve: (id: string, pos: LatLon | null) => void;
 }) {
-    const jsonState = useDatapoint(marker.mode === 'json' ? (marker.jsonDp ?? '') : '');
-    const latDp = useDatapoint(marker.mode === 'latlon' ? (marker.latDp ?? '') : '');
-    const lonDp = useDatapoint(marker.mode === 'latlon' ? (marker.lonDp ?? '') : '');
-
-    // Address mode: geocode the free-text address (cached) into coordinates.
-    const [geoPos, setGeoPos] = useState<LatLon | null>(null);
-    useEffect(() => {
-        if (marker.mode !== 'address' || !marker.address?.trim()) {
-            setGeoPos(null);
-            return;
-        }
-        let cancelled = false;
-        const address = marker.address;
-        // Debounce so typing an address in the editor doesn't fire a request per keystroke.
-        const handle = setTimeout(() => {
-            void geocodeAddress(address).then((p) => {
-                if (!cancelled) setGeoPos(p);
-            });
-        }, 600);
-        return () => {
-            cancelled = true;
-            clearTimeout(handle);
-        };
-    }, [marker.mode, marker.address]);
-
-    const pos = useMemo<LatLon | null>(() => {
-        if (marker.mode === 'static') {
-            return Number.isFinite(marker.lat) && Number.isFinite(marker.lon)
-                ? [marker.lat as number, marker.lon as number]
-                : null;
-        }
-        if (marker.mode === 'latlon') {
-            if (latDp.value == null || latDp.value === '' || lonDp.value == null || lonDp.value === '') return null;
-            const la = Number(latDp.value);
-            const lo = Number(lonDp.value);
-            return Number.isFinite(la) && Number.isFinite(lo) ? [la, lo] : null;
-        }
-        if (marker.mode === 'address') {
-            return geoPos;
-        }
-        // json
-        return extractLatLon(jsonState.state?.val, marker.latPath, marker.lonPath);
-    }, [marker, jsonState.state?.val, latDp.value, lonDp.value, geoPos]);
+    const pos = useResolvedPosition(marker);
 
     useEffect(() => {
         onResolve(marker.id, pos);
@@ -247,6 +320,54 @@ function FollowMarkers({
     return null;
 }
 
+/** Recenters the map when a quick-access chip is clicked. Re-runs on every
+ *  click (the `nonce` changes) even if the same chip is tapped twice. */
+function FlyToController({ target }: { target: { pos: LatLon; zoom?: number; nonce: number } | null }) {
+    const map = useMap();
+    useEffect(() => {
+        if (!target) return;
+        // Guard against a not-yet-laid-out container (getSize() ~0) which would
+        // make Leaflet try to load an infinite number of tiles and throw.
+        const size = map.getSize();
+        if (!size.x || !size.y) return;
+        const cur = map.getZoom();
+        const z = Number.isFinite(target.zoom) ? (target.zoom as number) : Number.isFinite(cur) ? cur : DEFAULT_ZOOM;
+        try {
+            map.flyTo(target.pos, z, { duration: 0.6 });
+        } catch {
+            // Transient layout/zoom race — the next click will retry.
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [target?.nonce]);
+    return null;
+}
+
+/** A single quick-access chip pill. */
+function QuickChip({ view, onJump }: { view: MapQuickView; onJump: (v: MapQuickView) => void }) {
+    const color = view.color || 'var(--accent)';
+    return (
+        <button
+            type="button"
+            onClick={(e) => {
+                e.stopPropagation();
+                onJump(view);
+            }}
+            className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium whitespace-nowrap shrink-0 hover:opacity-85 transition-opacity"
+            style={{
+                background: 'var(--widget-bg)',
+                color: 'var(--text-primary)',
+                border: `1px solid ${color}`,
+                boxShadow: '0 1px 3px rgba(0,0,0,.25)',
+                cursor: 'pointer',
+            }}
+            title={view.label || 'Position'}
+        >
+            {view.emoji && <span style={{ lineHeight: 1 }}>{view.emoji}</span>}
+            <span className="truncate max-w-[120px]">{view.label || 'Position'}</span>
+        </button>
+    );
+}
+
 export function MapWidget({ config, editMode }: WidgetProps) {
     const o = (config.options ?? {}) as MapOptions;
     const markers = useMemo<MapMarker[]>(() => (Array.isArray(o.markers) ? o.markers : []), [o.markers]);
@@ -256,6 +377,49 @@ export function MapWidget({ config, editMode }: WidgetProps) {
     const attribution = o.tileUrl ? (o.tileAttribution ?? '') : preset.attribution;
     const followMarkers = o.followMarkers ?? true;
     const showDistance = !!o.showDistance;
+
+    // Quick-access chips: show every configured entry so the user always gets
+    // visual feedback; the jump itself is guarded against missing coordinates.
+    const quickViews = useMemo<MapQuickView[]>(() => (Array.isArray(o.quickViews) ? o.quickViews : []), [o.quickViews]);
+    const chipsPosition: MapChipsPosition = o.chipsPosition === 'below' ? 'below' : 'overlay';
+    const chipsCorner: MapChipsCorner = (['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const).includes(
+        o.chipsCorner as MapChipsCorner,
+    )
+        ? (o.chipsCorner as MapChipsCorner)
+        : 'top-right';
+    const hasChips = quickViews.length > 0;
+    const chipsBelow = hasChips && chipsPosition === 'below';
+
+    // Live positions resolved for each chip (from DP / address / static coords).
+    const [chipPositions, setChipPositions] = useState<Record<string, LatLon>>({});
+    const onResolveChip = useCallback((id: string, pos: LatLon | null) => {
+        setChipPositions((prev) => {
+            if (!pos) {
+                if (!(id in prev)) return prev;
+                const next = { ...prev };
+                delete next[id];
+                return next;
+            }
+            const cur = prev[id];
+            if (cur && cur[0] === pos[0] && cur[1] === pos[1]) return prev;
+            return { ...prev, [id]: pos };
+        });
+    }, []);
+
+    const [flyTarget, setFlyTarget] = useState<{ pos: LatLon; zoom?: number; nonce: number } | null>(null);
+    const onJump = useCallback(
+        (v: MapQuickView) => {
+            const pos = chipPositions[v.id];
+            if (!pos) return; // position not resolved yet (DP empty, address pending, coords missing)
+            const z = Number(v.zoom);
+            setFlyTarget((prev) => ({
+                pos,
+                zoom: Number.isFinite(z) ? z : undefined,
+                nonce: (prev?.nonce ?? 0) + 1,
+            }));
+        },
+        [chipPositions],
+    );
 
     const [positions, setPositions] = useState<Record<string, LatLon>>({});
     const onResolve = useCallback((id: string, pos: LatLon | null) => {
@@ -298,40 +462,103 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                 // through so the "edit widget" button and grid dragging keep working.
                 zIndex: 0,
                 pointerEvents: editMode ? 'none' : 'auto',
+                // When chips sit below the map, lay out map + chip bar as a column.
+                display: chipsBelow ? 'flex' : undefined,
+                flexDirection: chipsBelow ? 'column' : undefined,
             }}
         >
-            {
-                <div style={{ position: 'absolute', inset: 0 }}>
-                    <MapContainer
-                        center={center}
-                        zoom={zoom}
-                        style={{ width: '100%', height: '100%' }}
-                        // Disable interaction in edit mode so the widget can be dragged/resized on the grid.
-                        dragging={!editMode}
-                        scrollWheelZoom={!editMode}
-                        doubleClickZoom={!editMode}
-                        touchZoom={!editMode}
-                        zoomControl={!editMode}
-                    >
-                        {/* No key here on purpose: react-leaflet updates the url in place via
+            {/* Non-visual resolvers keep each chip's live position up to date. */}
+            {quickViews.map((v) => (
+                <QuickViewResolver key={v.id} view={v} onResolve={onResolveChip} />
+            ))}
+
+            <div
+                style={
+                    chipsBelow ? { position: 'relative', flex: 1, minHeight: 0 } : { position: 'absolute', inset: 0 }
+                }
+            >
+                <MapContainer
+                    center={center}
+                    zoom={zoom}
+                    style={{ width: '100%', height: '100%' }}
+                    // Disable interaction in edit mode so the widget can be dragged/resized on the grid.
+                    dragging={!editMode}
+                    scrollWheelZoom={!editMode}
+                    doubleClickZoom={!editMode}
+                    touchZoom={!editMode}
+                    zoomControl={!editMode}
+                >
+                    {/* No key here on purpose: react-leaflet updates the url in place via
                         setUrl. Remounting the layer triggers Leaflet onAdd → _resetView,
                         which can throw "infinite number of tiles" and crash the tree. */}
-                        <TileLayer url={tileUrl} attribution={attribution} />
-                        <ResizeHandler />
-                        <FollowMarkers positions={positions} enabled={followMarkers} maxZoom={followMaxZoom} />
-                        {markers.map((m) => (
-                            <MarkerLayer
-                                key={m.id}
-                                marker={m}
-                                homePos={homePos}
-                                isHome={m.id === o.homeMarkerId}
-                                showDistance={showDistance}
-                                onResolve={onResolve}
-                            />
-                        ))}
-                    </MapContainer>
+                    <TileLayer url={tileUrl} attribution={attribution} />
+                    <ResizeHandler />
+                    <FollowMarkers positions={positions} enabled={followMarkers} maxZoom={followMaxZoom} />
+                    <FlyToController target={flyTarget} />
+                    {markers.map((m) => (
+                        <MarkerLayer
+                            key={m.id}
+                            marker={m}
+                            homePos={homePos}
+                            isHome={m.id === o.homeMarkerId}
+                            showDistance={showDistance}
+                            onResolve={onResolve}
+                        />
+                    ))}
+                </MapContainer>
+
+                {/* Overlay chips float over the map, anchored to the configured corner.
+                    The top-left corner is nudged right (non-edit mode) to clear the zoom control. */}
+                {hasChips &&
+                    chipsPosition === 'overlay' &&
+                    (() => {
+                        const isTop = chipsCorner === 'top-left' || chipsCorner === 'top-right';
+                        const isLeft = chipsCorner === 'top-left' || chipsCorner === 'bottom-left';
+                        const cornerStyle: React.CSSProperties = {
+                            position: 'absolute',
+                            [isTop ? 'top' : 'bottom']: 6,
+                            // Clear the top-left zoom control only when the chips sit there.
+                            [isLeft ? 'left' : 'right']: isLeft && chipsCorner === 'top-left' && !editMode ? 44 : 6,
+                            maxWidth: 'calc(100% - 12px)',
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 4,
+                            justifyContent: isLeft ? 'flex-start' : 'flex-end',
+                            zIndex: 1000,
+                            pointerEvents: 'none',
+                        };
+                        return (
+                            <div style={cornerStyle}>
+                                {/* Chips themselves re-enable pointer events; the wrapper stays click-through. */}
+                                {quickViews.map((v) => (
+                                    <div key={v.id} style={{ pointerEvents: 'auto' }}>
+                                        <QuickChip view={v} onJump={onJump} />
+                                    </div>
+                                ))}
+                            </div>
+                        );
+                    })()}
+            </div>
+
+            {/* Chip bar below the map (camera-widget style). */}
+            {chipsBelow && (
+                <div
+                    style={{
+                        flexShrink: 0,
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 6,
+                        padding: 6,
+                        overflow: 'auto',
+                        background: 'var(--widget-bg)',
+                        borderTop: '1px solid var(--app-border)',
+                    }}
+                >
+                    {quickViews.map((v) => (
+                        <QuickChip key={v.id} view={v} onJump={onJump} />
+                    ))}
                 </div>
-            }
+            )}
         </div>
     );
 }
