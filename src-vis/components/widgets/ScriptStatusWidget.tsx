@@ -84,6 +84,7 @@ function ScriptRow({
     allowStop,
     showEngine,
     compact,
+    transparent,
     onToggle,
 }: {
     script: ScriptInstance;
@@ -92,6 +93,7 @@ function ScriptRow({
     allowStop: boolean;
     showEngine: boolean;
     compact: boolean;
+    transparent: boolean;
     onToggle: (script: ScriptInstance, next: boolean) => void;
 }) {
     const [busy, setBusy] = useState(false);
@@ -116,7 +118,10 @@ function ScriptRow({
     return (
         <div
             className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs"
-            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+            style={{
+                background: transparent ? 'transparent' : 'var(--app-bg)',
+                border: `1px solid ${transparent ? 'transparent' : 'var(--app-border)'}`,
+            }}
         >
             {/* Status dot */}
             <span
@@ -199,6 +204,7 @@ export function ScriptStatusWidget({ config }: WidgetProps) {
     const searchScope = (o.searchScope as 'name' | 'path' | 'both') ?? 'both';
     const allowStart = !!o.allowStart;
     const allowStop = !!o.allowStop;
+    const transparent = !!o.transparent;
 
     const { connected } = useIoBroker();
 
@@ -504,6 +510,7 @@ export function ScriptStatusWidget({ config }: WidgetProps) {
                             allowStop={allowStop}
                             showEngine={showEngine}
                             compact={compact}
+                            transparent={transparent}
                             onToggle={toggleScript}
                         />
                     ))
