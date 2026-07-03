@@ -84,7 +84,10 @@ export function useConfigSync(
                 // change because it falls inside the 5 s window).
                 if (isSavingRecently(key, incoming)) return;
                 if (applyOneState(key, incoming)) {
-                    rehydrateAll(false);
+                    // include global settings so a live change to defaultDecimals
+                    // (etc.) reaches the store, not just localStorage — otherwise
+                    // it only takes effect after a reload.
+                    rehydrateAll(true);
                     discardPendingKey(key);
                 }
             }),
@@ -115,7 +118,8 @@ export function useConfigSync(
         ).then((results) => {
             const appliedKeys = results.filter((k): k is Exclude<SyncStoreKey, 'aura-group-defs'> => k !== null);
             if (appliedKeys.length > 0) {
-                rehydrateAll(false);
+                // include global settings — see subscribe path above.
+                rehydrateAll(true);
                 appliedKeys.forEach((k) => discardPendingKey(k));
             }
         });

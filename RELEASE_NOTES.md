@@ -4,3 +4,4 @@
 #   <Widget type> - <what changed>          e.g.  Thermostat - target temperature now shown inline
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
+- Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured

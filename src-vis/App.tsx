@@ -447,8 +447,12 @@ export default function App() {
         if (!connected || ioBrokerConfigLoaded.current) return;
         ioBrokerConfigLoaded.current = true;
         // Frontend is read-only: ignore _dirty flags (any "dirty" here is just
-        // navigation state — remote always wins).
-        void loadConfigFromIoBroker(false, { ignoreDirty: true }).finally(() => {
+        // navigation state — remote always wins). includeGlobalSettings=true so
+        // defaultDecimals (and other global settings) come from ioBroker rather
+        // than each browser's stale localStorage — otherwise a browser that never
+        // had the setting written locally renders with the store default (e.g.
+        // 2 decimals) while another shows the configured 0.
+        void loadConfigFromIoBroker(true, { ignoreDirty: true }).finally(() => {
             markGroupDefsHydrated(); // unblock group-defs saves even if remote was empty
             discardPending();
         });
