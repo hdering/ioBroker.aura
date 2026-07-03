@@ -240,9 +240,10 @@ function normalizeAlert(a: RawDwdAlert, lang: Language): DwdWarning {
 type TFn = (key: Parameters<ReturnType<typeof useT>>[0], vars?: Record<string, string | number>) => string;
 
 function getWeatherInfo(code: number, t: TFn): { desc: string; emoji: string } {
+    // WMO weather codes (Open-Meteo): 0 clear, 1 mainly clear, 2 partly cloudy, 3 overcast.
     if (code === 0) return { desc: t('weather.sunny'), emoji: '☀️' };
-    if (code === 1) return { desc: t('weather.partlyCloudy'), emoji: '🌤️' };
-    if (code === 2) return { desc: t('weather.cloudy'), emoji: '⛅' };
+    if (code === 1) return { desc: t('weather.mainlyClear'), emoji: '🌤️' };
+    if (code === 2) return { desc: t('weather.partlyCloudy'), emoji: '⛅' };
     if (code === 3) return { desc: t('weather.overcast'), emoji: '☁️' };
     if (code === 45 || code === 48) return { desc: t('weather.fog'), emoji: '🌫️' };
     if (code >= 51 && code <= 55) return { desc: t('weather.drizzle'), emoji: '🌦️' };

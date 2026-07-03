@@ -1045,6 +1045,7 @@ export const en: Record<TranslationKey, string> = {
 
     // ── Weather Widget ────────────────────────────────────────────────────────────
     'weather.sunny': 'Sunny',
+    'weather.mainlyClear': 'Mainly Clear',
     'weather.partlyCloudy': 'Partly Cloudy',
     'weather.cloudy': 'Cloudy',
     'weather.overcast': 'Overcast',

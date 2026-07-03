@@ -1047,6 +1047,7 @@ export const de = {
 
     // ── Weather Widget ────────────────────────────────────────────────────────────
     'weather.sunny': 'Sonnig',
+    'weather.mainlyClear': 'Überwiegend klar',
     'weather.partlyCloudy': 'Leicht bewölkt',
     'weather.cloudy': 'Bewölkt',
     'weather.overcast': 'Bedeckt',
