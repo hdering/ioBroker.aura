@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.10.5 (2026-06-26)
+- Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section
+- Editor - tabs hidden from the tab bar now show an eye-off icon in the tab list
+
 ## 0.10.4 (2026-06-25)
 - fix(thermostat): drop "Soll:" label from target temperature
 - fix(thermostat): inline "Soll:" label and fix doubled °CC unit
