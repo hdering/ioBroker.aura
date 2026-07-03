@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.10.4 (2026-06-25)
+- fix(thermostat): drop "Soll:" label from target temperature
+- fix(thermostat): inline "Soll:" label and fix doubled °CC unit
+
 ## 0.10.3 (2026-06-25)
 - feat(tabs): add "hide from tab bar" option (still reachable via direct link)
 - fix(alarm): make acknowledge (quit_changes) button actually clear state

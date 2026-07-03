@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.16.0 (2026-07-03)
+- 🌟 **New feature:** Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner
+
+
 ### 0.15.5 (2026-07-03)
 - Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured
 
@@ -213,11 +217,6 @@ Release v0.12.1
 - Editor - tabs hidden from the tab bar now show an eye-off icon in the tab list
 
 
-### 0.10.4 (2026-06-25)
-- fix(thermostat): drop "Soll:" label from target temperature
-- fix(thermostat): inline "Soll:" label and fix doubled °CC unit
-
-
 ## License
 
 MIT License
@@ -229,6 +228,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

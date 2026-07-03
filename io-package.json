@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.15.5",
+    "version": "0.16.0",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
@@ -106,6 +106,19 @@
       }
     ],
     "news": {
+      "0.16.0": {
+        "en": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
+        "de": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
+        "ru": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
+        "pt": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
+        "nl": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
+        "fr": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
+        "it": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
+        "es": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
+        "pl": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
+        "uk": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
+        "zh-cn": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner"
+      },
       "0.15.5": {
         "en": "Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured",
         "de": "Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured",
@@ -183,19 +196,6 @@
         "pl": "🌟 New feature: Status overview - new widget that automatically surfaces low batteries, open windows, lights left on, unreachable/offline devices and smoke/water alarms, with an \"all clear\" state and click-to-jump to the affected device; offers list/Card/Minimal layouts with per-category colors, shows battery type and count, uses robust reachability detection, and includes a battery-type assignment page to identify and manage battery devices",
         "uk": "🌟 New feature: Status overview - new widget that automatically surfaces low batteries, open windows, lights left on, unreachable/offline devices and smoke/water alarms, with an \"all clear\" state and click-to-jump to the affected device; offers list/Card/Minimal layouts with per-category colors, shows battery type and count, uses robust reachability detection, and includes a battery-type assignment page to identify and manage battery devices",
         "zh-cn": "🌟 New feature: Status overview - new widget that automatically surfaces low batteries, open windows, lights left on, unreachable/offline devices and smoke/water alarms, with an \"all clear\" state and click-to-jump to the affected device; offers list/Card/Minimal layouts with per-category colors, shows battery type and count, uses robust reachability detection, and includes a battery-type assignment page to identify and manage battery devices"
-      },
-      "0.14.2": {
-        "en": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
-        "de": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
-        "ru": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
-        "pt": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
-        "nl": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
-        "fr": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
-        "it": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
-        "es": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
-        "pl": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
-        "uk": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI",
-        "zh-cn": "Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)\nClick action \"Jump: Widget\" now pulse-highlights and scrolls to the target widget after switching tabs\nBadges - renamed to \"Marker\" in the German UI"
       }
     }
   },
