@@ -430,7 +430,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                         <thead
                             className="sticky top-0 z-10"
                             style={{
-                                background: 'var(--app-surface)',
+                                background: transparent ? 'transparent' : 'var(--app-surface)',
                                 color: 'var(--text-secondary)',
                                 borderBottom: '1px solid var(--app-border)',
                             }}
