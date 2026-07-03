@@ -451,7 +451,9 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                                 return (
                                     <tr
                                         key={`${e.seq ?? e.ts}-${i}`}
-                                        style={{ background: i % 2 === 0 ? 'transparent' : 'var(--app-bg)' }}
+                                        style={{
+                                            background: i % 2 === 0 || transparent ? 'transparent' : 'var(--app-bg)',
+                                        }}
                                     >
                                         <td
                                             className="px-1.5 py-0.5 align-top whitespace-nowrap"
