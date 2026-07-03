@@ -1,5 +1,25 @@
 # Changelog (older entries)
 
+## 0.10.3 (2026-06-25)
+- feat(tabs): add "hide from tab bar" option (still reachable via direct link)
+- fix(alarm): make acknowledge (quit_changes) button actually clear state
+- fix(alarm): wrap long log entries instead of truncating
+- feat(alarm): allow hiding individual mode buttons (off/sharp/inside/night)
+- feat(light): add hex color mode for single #RRGGBB string datapoints
+- fix(light): power entry toggles directly instead of duplicating switch
+- feat(list): per-entry icon-switch icons and confirmation prompt
+- feat(weather): add separate size factor for warnings
+- fix(weather): give warnings their own flex/scroll region, stop them inflating
+- fix(weather): size warnings into auto-scale baseline so they fit without scroll
+- fix(weather): render DWD warning content instead of empty yellow box
+- fix(adapter-status): show schedule-mode adapters as 'scheduled' not 'stopped'
+- fix(editor): keep tab settings panel on-screen when conditions expand
+- fix(tabbar): keep settings panel on-screen for far-right tabs
+- fix(chart): show full German unit word for custom range button
+- feat(group): per-group option to keep grid layout on mobile
+- fix(group): fill and scroll inside fixed-height containers on mobile
+- fix(panels): prevent viewport collapse in mobile portrait layout
+
 ## 0.10.2 (2026-06-25)
 - chore(build): rebuild www frontend bundle
 - chore(build): rebuild www frontend bundle
