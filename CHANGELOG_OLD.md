@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.11.0 (2026-06-26)
+- Adapter now requires admin >= 7.8.23
+- Clock / astro timers - more accurate sunrise/sunset times (suncalc 2.0)
+
 ## 0.10.5 (2026-06-26)
 - Editor - reordered tab settings (Name, Icon, URL slug, options, export, conditions) and highlighted the conditions section
 - Editor - tabs hidden from the tab bar now show an eye-off icon in the tab list
