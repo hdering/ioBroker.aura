@@ -491,6 +491,15 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         label="Anzahl der Hinweise anzeigen (oben rechts)"
                     />
                     <Toggle
+                        checked={!!o.autoHeight}
+                        onChange={(v) => set({ autoHeight: v })}
+                        label="Höhe automatisch an Inhalt anpassen"
+                    />
+                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                        Das Widget wird so hoch wie sein Inhalt, statt eine feste Höhe zu füllen. Die eingestellte Höhe
+                        wird dann automatisch überschrieben und lässt sich nicht mehr manuell ändern.
+                    </p>
+                    <Toggle
                         checked={!!o.showOkCategories}
                         onChange={(v) => set({ showOkCategories: v })}
                         label="Auch Kategorien ohne Hinweise zeigen"

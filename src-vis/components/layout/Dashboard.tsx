@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { useIframeStore, type IframeFullscreenData } from '../../store/iframeStore';
+import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { WidgetFrame } from './WidgetFrame';
 import { useReflowHiddenIds, useConditionReflowIds } from '../../hooks/useConditionStyle';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
@@ -46,6 +47,9 @@ export function Dashboard({
     const settings = useEffectiveSettings(effectiveLayoutId);
 
     const cellSize = settings.gridRowHeight ?? 20;
+    const widgetPadding = settings.widgetPadding ?? 16;
+    // Measured content heights for auto-height widgets (RAM-only, per widget id).
+    const autoHeights = useAutoHeightStore((s) => s.heights);
     const snapX = settings.gridSnapX ?? settings.gridRowHeight ?? 20;
     const MARGIN = settings.gridGap ?? DEFAULT_MARGIN;
     const groupDefs = useGroupDefsStore((s) => s.defs);
@@ -269,7 +273,9 @@ export function Dashboard({
                                                             (w.type === 'weather' &&
                                                                 wl !== 'custom' &&
                                                                 wl !== 'minimal' &&
-                                                                wl !== 'compact');
+                                                                wl !== 'compact') ||
+                                                            (w.type === 'statusoverview' &&
+                                                                w.options?.autoHeight === true);
                                                         return (
                                                             <div
                                                                 key={w.id}
@@ -430,6 +436,21 @@ export function Dashboard({
                                                 minH = Math.min(minH, h); // never let RGL clamp back up
                                             }
                                         }
+                                        // Content auto-height (e.g. Statusübersicht): size the item to the
+                                        // widget's measured content instead of the stored height. The widget
+                                        // reports its content px; add the frame chrome (padding top+bottom + border).
+                                        if (w.type === 'statusoverview' && w.options?.autoHeight === true) {
+                                            const px = autoHeights[w.id];
+                                            if (px && px > 0) {
+                                                const total = px + widgetPadding * 2 + 2;
+                                                const rows = Math.max(
+                                                    1,
+                                                    Math.ceil((total + MARGIN) / (cellSize + MARGIN)),
+                                                );
+                                                h = rows;
+                                                minH = Math.min(minH, h);
+                                            }
+                                        }
                                         return {
                                             i: w.id,
                                             x: Math.min(w.gridPos.x ?? 0, effectiveCols - 1),
@@ -446,10 +467,13 @@ export function Dashboard({
                                             if (reflowHiddenIds.has(w.id)) return w;
                                             const pos = newLayout.find((l) => l.i === w.id);
                                             if (!pos) return w;
-                                            // Auto-shrink groups render at a condition-derived height that is
-                                            // NOT stored — keep the canonical gridPos.h so a transient shrunk
-                                            // value can't get persisted on an unrelated drag/resize.
-                                            const h = w.type === 'group' && w.options?.autoShrink ? w.gridPos.h : pos.h;
+                                            // Auto-shrink groups and content auto-height widgets render at a
+                                            // derived height that is NOT stored — keep the canonical gridPos.h so
+                                            // a transient value can't get persisted on an unrelated drag/resize.
+                                            const derivedH =
+                                                (w.type === 'group' && w.options?.autoShrink) ||
+                                                (w.type === 'statusoverview' && w.options?.autoHeight === true);
+                                            const h = derivedH ? w.gridPos.h : pos.h;
                                             return { ...w, gridPos: { x: pos.x, y: pos.y, w: pos.w, h } };
                                         });
 

@@ -103,6 +103,7 @@ export interface StatusOverviewOptions {
     namePattern?: string; // device label template, tokens <Raum> <Gerät> <DPName> <Name> <ID>
     showTitle?: boolean; // show the widget title in the header (default true)
     showCount?: boolean; // show the hint-count chip in the header top-right (default true)
+    autoHeight?: boolean; // size the widget to its content in the stacked/mobile view (default false)
     showOkCategories?: boolean; // also list categories with no alerts (default false)
     allClearText?: string;
     sortBy?: 'severity' | 'room'; // default 'severity'

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     ShieldCheck,
     TriangleAlert,
@@ -15,6 +15,7 @@ import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapo
 import { useDashboardStore } from '../../store/dashboardStore';
 import { useNavigationStore } from '../../store/navigationStore';
 import { useConfigStore } from '../../store/configStore';
+import { useAutoHeightStore } from '../../store/autoHeightStore';
 import {
     loadDeviceModelIndex,
     loadBatteryLibrary,
@@ -282,6 +283,41 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
 
     const showTitle = opts.showTitle !== false && !!config.title;
     const showCount = opts.showCount !== false;
+    // Auto-height: size to content (used in the stacked/mobile view). Drops the
+    // fixed-box fill (h-full/flex-1/overflow) so the widget grows with its content.
+    const autoHeight = opts.autoHeight === true;
+    const rootCls = autoHeight ? 'w-full flex flex-col' : 'h-full w-full flex flex-col min-h-0';
+    const scrollCls = autoHeight ? 'overflow-visible' : 'flex-1 min-h-0 overflow-y-auto';
+
+    // Auto-height: measure the rendered content and publish it so the Dashboard can
+    // size the grid item to fit (desktop grid) instead of using the stored height.
+    const widgetId = config.id;
+    const roRef = useRef<ResizeObserver | null>(null);
+    const measureRef = useCallback(
+        (el: HTMLDivElement | null) => {
+            if (roRef.current) {
+                roRef.current.disconnect();
+                roRef.current = null;
+            }
+            if (!el || !autoHeight) {
+                useAutoHeightStore.getState().clear(widgetId);
+                return;
+            }
+            const report = () => useAutoHeightStore.getState().setHeight(widgetId, el.offsetHeight);
+            report();
+            const ro = new ResizeObserver(report);
+            ro.observe(el);
+            roRef.current = ro;
+        },
+        [autoHeight, widgetId],
+    );
+    useEffect(
+        () => () => {
+            roRef.current?.disconnect();
+            useAutoHeightStore.getState().clear(widgetId);
+        },
+        [widgetId],
+    );
     const rowClickable = (opts.rowClick ?? 'jump') === 'jump';
 
     // ── Attention chip (the one "loud" element) ────────────────────────────────
@@ -308,7 +344,10 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     // ── count layout: just the chip, centered ──────────────────────────────────
     if (layout === 'count') {
         return (
-            <div className="h-full w-full flex flex-col items-center justify-center gap-1">
+            <div
+                ref={measureRef}
+                className={`${autoHeight ? 'w-full py-2' : 'h-full w-full'} flex flex-col items-center justify-center gap-1`}
+            >
                 {showTitle && (
                     <p
                         className="aura-widget-title text-xs font-semibold truncate"
@@ -380,10 +419,10 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     // ── card layout: grid of tiles (mirrors the static-list card layout) ─────────
     if (layout === 'card') {
         return (
-            <div className="h-full w-full flex flex-col min-h-0">
+            <div ref={measureRef} className={rootCls}>
                 {header}
                 <div
-                    className="flex-1 min-h-0 overflow-y-auto"
+                    className={scrollCls}
                     style={{
                         display: 'grid',
                         gridTemplateColumns: `repeat(auto-fill, minmax(${opts.cardMinWidth ?? 96}px, 1fr))`,
@@ -438,9 +477,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     // ── minimal layout: inline pills (mirrors the static-list badges layout) ─────
     if (layout === 'minimal') {
         return (
-            <div className="h-full w-full flex flex-col min-h-0">
+            <div ref={measureRef} className={rootCls}>
                 {header}
-                <div className="flex-1 min-h-0 overflow-y-auto flex flex-wrap gap-1.5 content-start">
+                <div className={`${scrollCls} flex flex-wrap gap-1.5 content-start`}>
                     {items.map((item) => {
                         const color = alertColorFor(item);
                         const customBg = alertBgFor(item);
@@ -480,11 +519,13 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     const allClear = total === 0 && !showAll && !opts.showOkCategories;
 
     return (
-        <div className="h-full w-full flex flex-col min-h-0">
+        <div ref={measureRef} className={rootCls}>
             {header}
 
             {allClear ? (
-                <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-1.5 text-center px-2">
+                <div
+                    className={`${autoHeight ? 'py-6' : 'flex-1 min-h-0'} flex flex-col items-center justify-center gap-1.5 text-center px-2`}
+                >
                     <ShieldCheck size={22} style={{ color: SEVERITY_COLOR.ok }} />
                     <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                         {opts.allClearText || 'Alles in Ordnung'}
@@ -494,7 +535,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                     </p>
                 </div>
             ) : (
-                <div className="flex-1 min-h-0 overflow-y-auto pr-0.5">
+                <div className={`${scrollCls} pr-0.5`}>
                     {layout === 'compact'
                         ? items.map((item) => <Row key={item.id} item={item} />)
                         : // default: grouped by category
