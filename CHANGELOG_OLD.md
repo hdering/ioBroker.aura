@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.12.0 (2026-06-29)
+- 🌟 **New feature:** Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position
+- 🌟 **New feature:** Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge
+
 ## 0.11.5 (2026-06-28)
 - Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen
 

@@ -115,6 +115,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.18.1 (2026-07-04)
+- Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)
+- Universal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode
+- Input field - add a number input type with optional Min/Max/Step
+
+
 ### 0.18.0 (2026-07-04)
 - Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts
 - General - adapter readme link now points to the online documentation instead of a dead iobroker.net page
@@ -214,11 +220,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 Release v0.12.1
 
 
-### 0.12.0 (2026-06-29)
-- 🌟 **New feature:** Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position
-- 🌟 **New feature:** Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge
-
-
 ## License
 
 MIT License
@@ -230,6 +231,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

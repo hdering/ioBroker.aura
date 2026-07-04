@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.18.0",
+    "version": "0.18.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.18.1": {
+        "en": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
+        "de": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
+        "ru": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
+        "pt": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
+        "nl": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
+        "fr": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
+        "it": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
+        "es": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
+        "pl": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
+        "uk": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
+        "zh-cn": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step"
+      },
       "0.18.0": {
         "en": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
         "de": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
@@ -184,19 +197,6 @@
         "pl": "feat(config): apply typed hex color live in ColorPicker",
         "uk": "feat(config): apply typed hex color live in ColorPicker",
         "zh-cn": "feat(config): apply typed hex color live in ColorPicker"
-      },
-      "0.17.0": {
-        "en": "🌟 New feature: Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings).",
-        "de": "🌟 New feature: Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings).",
-        "ru": "🌟 New feature: Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings).",
-        "pt": "🌟 New feature: Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings).",
-        "nl": "🌟 New feature: Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings).",
-        "fr": "🌟 New feature: Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings).",
-        "it": "🌟 New feature: Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings).",
-        "es": "🌟 New feature: Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings).",
-        "pl": "🌟 New feature: Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings).",
-        "uk": "🌟 New feature: Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings).",
-        "zh-cn": "🌟 New feature: Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings)."
       }
     }
   },
