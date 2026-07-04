@@ -873,17 +873,13 @@ function StepperCellView({
 /** Free text / number input bound to a DP. Writes on Enter / blur. */
 function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
     const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
+    const inputRef = useRef<HTMLInputElement | null>(null);
     const isNumber = cell.inputMode === 'number';
     const externalStr = value == null ? '' : String(value);
     const [draft, setDraft] = useState(externalStr);
     const [focused, setFocused] = useState(false);
-    useEffect(() => {
-        if (!focused) setDraft(externalStr);
-    }, [externalStr, focused]);
 
-    if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
-
-    const commit = () => {
+    const doCommit = () => {
         if (isNumber) {
             if (draft === '') return;
             const n = Number(draft);
@@ -895,6 +891,21 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
             setValue(draft);
         }
     };
+    // Optional security confirmation before writing.
+    const { run: runCommit, pending, confirm, cancel } = useConfirmAction(doCommit, !!cell.confirmAction);
+    const commit = () => {
+        // Skip no-op writes (and the confirmation popup) when nothing changed.
+        if (draft === externalStr) return;
+        runCommit();
+    };
+
+    // Keep the local draft while the field is focused or a confirmation is
+    // pending; otherwise sync it to the external DP value.
+    useEffect(() => {
+        if (!focused && !pending) setDraft(externalStr);
+    }, [externalStr, focused, pending]);
+
+    if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
 
     const inputSty: React.CSSProperties = {
         background: 'var(--app-bg)',
@@ -917,6 +928,7 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
             style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}
         >
             <input
+                ref={inputRef}
                 type={isNumber ? 'number' : 'text'}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
@@ -937,6 +949,15 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
                 className="nodrag focus:outline-none"
                 style={inputSty}
             />
+            {pending && (
+                <ConfirmOverlay
+                    popup
+                    anchorRef={inputRef}
+                    text={cell.confirmText}
+                    onConfirm={confirm}
+                    onCancel={cancel}
+                />
+            )}
             {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
         </div>
     );
