@@ -268,6 +268,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     // Highlight colour for a device in an attention state (per-category, else per-severity).
     const alertColorFor = (item: StatusItem) =>
         item.severity !== 'ok' ? opts.categoryColors?.[item.category] || item.color : item.color;
+    // Free-choice background for an attention row/tile (solid), else undefined → default tint.
+    const alertBgFor = (item: StatusItem) =>
+        item.severity !== 'ok' ? opts.categoryBgColors?.[item.category] : undefined;
     const enabledCats = CATEGORY_ORDER.filter(
         (c) =>
             (c === 'battery' && opts.catBattery !== false) ||
@@ -326,6 +329,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     const Row = ({ item }: { item: StatusItem }) => {
         const batteryLabel = batteryLabelFor(item);
         const color = alertColorFor(item);
+        const customBg = alertBgFor(item);
         const alert = item.severity !== 'ok';
         const { Icon } = CATEGORY_META[item.category];
         const sub = [item.room, item.category === 'window' && item.lc ? formatSince(item.lc) : null]
@@ -334,7 +338,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         return (
             <div
                 className={`flex items-center gap-2 py-1 px-1 -mx-1 rounded-md min-w-0 ${rowClickable ? 'cursor-pointer hover:bg-[var(--app-bg)]' : ''}`}
-                style={alert ? { background: `color-mix(in srgb, ${color} 12%, transparent)` } : undefined}
+                style={alert ? { background: customBg ?? `color-mix(in srgb, ${color} 12%, transparent)` } : undefined}
                 onClick={rowClickable ? () => jumpToWidgetForDp(item.id) : undefined}
                 data-widget-interactive={rowClickable ? '' : undefined}
                 title={rowClickable ? 'Zum Gerät springen' : undefined}
@@ -388,6 +392,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                 >
                     {items.map((item) => {
                         const color = alertColorFor(item);
+                        const customBg = alertBgFor(item);
                         const alert = item.severity !== 'ok';
                         const { Icon } = CATEGORY_META[item.category];
                         const batteryLabel = batteryLabelFor(item);
@@ -397,7 +402,8 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                 className={`rounded-xl p-2 flex flex-col gap-1 ${rowClickable ? 'cursor-pointer' : ''}`}
                                 style={{
                                     background: alert
-                                        ? `color-mix(in srgb, ${color} 14%, var(--widget-bg, var(--app-surface)))`
+                                        ? (customBg ??
+                                          `color-mix(in srgb, ${color} 14%, var(--widget-bg, var(--app-surface)))`)
                                         : 'var(--app-bg)',
                                     border: `1px solid ${alert ? `color-mix(in srgb, ${color} 40%, transparent)` : 'var(--widget-border)'}`,
                                 }}
@@ -436,6 +442,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                 <div className="flex-1 min-h-0 overflow-y-auto flex flex-wrap gap-1.5 content-start">
                     {items.map((item) => {
                         const color = alertColorFor(item);
+                        const customBg = alertBgFor(item);
                         const alert = item.severity !== 'ok';
                         const { Icon } = CATEGORY_META[item.category];
                         const batteryLabel = batteryLabelFor(item);
@@ -445,7 +452,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                 className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium ${rowClickable ? 'cursor-pointer hover:opacity-80' : ''}`}
                                 style={{
                                     background: alert
-                                        ? `color-mix(in srgb, ${color} 14%, transparent)`
+                                        ? (customBg ?? `color-mix(in srgb, ${color} 14%, transparent)`)
                                         : 'var(--app-bg)',
                                     color: alert ? color : 'var(--text-primary)',
                                     border: `1px solid ${alert ? `color-mix(in srgb, ${color} 34%, transparent)` : 'var(--widget-border)'}`,

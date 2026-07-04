@@ -124,29 +124,64 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         else delete next[cat];
         set({ categoryColors: next });
     };
+    const setCatBg = (cat: CategoryKey, color: string | null) => {
+        const next = { ...(o.categoryBgColors ?? {}) };
+        if (color) next[cat] = color;
+        else delete next[cat];
+        set({ categoryBgColors: next });
+    };
     const CatColor = ({ cat }: { cat: CategoryKey }) => {
         const custom = o.categoryColors?.[cat];
+        const customBg = o.categoryBgColors?.[cat];
         return (
-            <div>
-                <label className={labelCls} style={labelStyle}>
-                    Hervorhebungsfarbe
-                </label>
-                <div className="flex items-center gap-2">
-                    <ColorPicker
-                        value={custom || DEFAULT_CAT_HEX[cat]}
-                        onChange={(v) => setCatColor(cat, v)}
-                        className="w-8 h-7 rounded cursor-pointer p-0.5"
-                        style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-                    />
-                    {custom && (
-                        <button
-                            onClick={() => setCatColor(cat, null)}
-                            className="text-[11px] hover:opacity-80"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            ↩ Standard
-                        </button>
-                    )}
+            <div className="flex gap-4">
+                <div>
+                    <label className={labelCls} style={labelStyle}>
+                        Hervorhebungsfarbe
+                    </label>
+                    <div className="flex items-center gap-2">
+                        <ColorPicker
+                            value={custom || DEFAULT_CAT_HEX[cat]}
+                            onChange={(v) => setCatColor(cat, v)}
+                            className="w-8 h-7 rounded cursor-pointer p-0.5"
+                            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                        />
+                        {custom && (
+                            <button
+                                onClick={() => setCatColor(cat, null)}
+                                className="text-[11px] hover:opacity-80"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                ↩ Standard
+                            </button>
+                        )}
+                    </div>
+                </div>
+                <div>
+                    <label className={labelCls} style={labelStyle}>
+                        Hintergrundfarbe
+                    </label>
+                    <div className="flex items-center gap-2">
+                        <ColorPicker
+                            value={customBg || custom || DEFAULT_CAT_HEX[cat]}
+                            onChange={(v) => setCatBg(cat, v)}
+                            className="w-8 h-7 rounded cursor-pointer p-0.5"
+                            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                        />
+                        {customBg ? (
+                            <button
+                                onClick={() => setCatBg(cat, null)}
+                                className="text-[11px] hover:opacity-80"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                ↩ Standard
+                            </button>
+                        ) : (
+                            <span className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                                automatisch
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
         );

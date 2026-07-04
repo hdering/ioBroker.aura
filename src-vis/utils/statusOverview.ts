@@ -97,6 +97,8 @@ export interface StatusOverviewOptions {
     valueFilter?: 'alerts' | 'all'; // 'alerts' = only devices needing attention (default); 'all' = every found device
     /** Per-category highlight colour for devices in an attention state (default: per-severity). */
     categoryColors?: Partial<Record<CategoryKey, string>>;
+    /** Per-category background colour for attention rows/tiles (default: tint of the highlight colour). */
+    categoryBgColors?: Partial<Record<CategoryKey, string>>;
     cardMinWidth?: number; // card layout: min tile width in px (default 96)
     namePattern?: string; // device label template, tokens <Raum> <Gerät> <DPName> <Name> <ID>
     showTitle?: boolean; // show the widget title in the header (default true)
