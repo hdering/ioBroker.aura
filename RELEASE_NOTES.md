@@ -5,3 +5,4 @@
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 Status overview - each category now has a freely selectable background color in addition to the highlight color
+Status overview - enabled categories now group their settings in a card so it is clear which settings belong to which category

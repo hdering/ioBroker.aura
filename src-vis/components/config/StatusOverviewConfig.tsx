@@ -96,6 +96,38 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
     );
 }
 
+/**
+ * Groups a category toggle with its own settings into one card. When the category is
+ * enabled the toggle becomes the card header and its settings sit in the same bordered
+ * box, so it is visually obvious the settings belong to that category.
+ */
+function CatSection({
+    checked,
+    onChange,
+    label,
+    children,
+}: {
+    checked: boolean;
+    onChange: (v: boolean) => void;
+    label: string;
+    children?: React.ReactNode;
+}) {
+    return (
+        <div
+            className="rounded-lg transition-colors"
+            style={{
+                background: checked ? 'var(--app-bg)' : 'transparent',
+                border: `1px solid ${checked ? 'var(--app-border)' : 'transparent'}`,
+            }}
+        >
+            <div className="px-2.5 py-2">
+                <Toggle checked={checked} onChange={onChange} label={label} />
+            </div>
+            {checked && children && <div className="px-2.5 pb-2.5 space-y-2">{children}</div>}
+        </div>
+    );
+}
+
 export function StatusOverviewConfig({ config, onConfigChange }: Props) {
     const o = (config.options ?? {}) as StatusOverviewOptions;
     const set = (patch: Partial<StatusOverviewOptions>) =>
@@ -195,147 +227,131 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     Kategorien
                 </span>
 
-                <Toggle
+                <CatSection
                     checked={o.catWindow !== false}
                     onChange={(v) => set({ catWindow: v })}
                     label="Offene Fenster & Türen"
-                />
-                {o.catWindow !== false && (
-                    <div className="ml-1 pl-3 pb-1" style={{ borderLeft: '2px solid var(--app-border)' }}>
-                        <CatColor cat="window" />
-                    </div>
-                )}
+                >
+                    <CatColor cat="window" />
+                </CatSection>
 
-                <Toggle
+                <CatSection
                     checked={o.catBattery !== false}
                     onChange={(v) => set({ catBattery: v })}
                     label="Schwache Batterien"
-                />
-                {o.catBattery !== false && (
-                    <div className="ml-1 pl-3 space-y-2 pb-1" style={{ borderLeft: '2px solid var(--app-border)' }}>
-                        <div className="flex gap-3 items-start">
-                            <div className="flex-1">
-                                <label className={labelCls} style={labelStyle}>
-                                    Warnschwelle (%)
-                                </label>
-                                <input
-                                    type="number"
-                                    min={1}
-                                    max={100}
-                                    value={o.batteryThreshold ?? 20}
-                                    onChange={(e) =>
-                                        set({ batteryThreshold: e.target.value ? Number(e.target.value) : undefined })
-                                    }
-                                    className={inputCls}
-                                    style={inputStyle}
-                                />
-                            </div>
-                            <CatColor cat="battery" />
+                >
+                    <div className="flex gap-3 items-start">
+                        <div className="flex-1">
+                            <label className={labelCls} style={labelStyle}>
+                                Warnschwelle (%)
+                            </label>
+                            <input
+                                type="number"
+                                min={1}
+                                max={100}
+                                value={o.batteryThreshold ?? 20}
+                                onChange={(e) =>
+                                    set({ batteryThreshold: e.target.value ? Number(e.target.value) : undefined })
+                                }
+                                className={inputCls}
+                                style={inputStyle}
+                            />
                         </div>
-                        <Toggle
-                            checked={o.includeLowbatBoolean !== false}
-                            onChange={(v) => set({ includeLowbatBoolean: v })}
-                            label="Boolesche LOWBAT-Datenpunkte einbeziehen"
-                        />
-                        <Toggle
-                            checked={o.batteryTypeEnabled !== false}
-                            onChange={(v) => set({ batteryTypeEnabled: v ? undefined : false })}
-                            label="Batterietyp & Anzahl anzeigen"
-                        />
-                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                            Typen werden automatisch erkannt (falls bekannt). Nicht erkannte Geräte manuell zuordnen:
-                        </p>
-                        <button
-                            onClick={() => setShowBatteries(true)}
-                            className="inline-flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
-                            style={{ background: 'var(--accent)', color: '#fff' }}
-                        >
-                            Batterietypen zuordnen →
-                        </button>
-                        {showBatteries && <BatteryAssignModal onClose={() => setShowBatteries(false)} />}
+                        <CatColor cat="battery" />
                     </div>
-                )}
+                    <Toggle
+                        checked={o.includeLowbatBoolean !== false}
+                        onChange={(v) => set({ includeLowbatBoolean: v })}
+                        label="Boolesche LOWBAT-Datenpunkte einbeziehen"
+                    />
+                    <Toggle
+                        checked={o.batteryTypeEnabled !== false}
+                        onChange={(v) => set({ batteryTypeEnabled: v ? undefined : false })}
+                        label="Batterietyp & Anzahl anzeigen"
+                    />
+                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                        Typen werden automatisch erkannt (falls bekannt). Nicht erkannte Geräte manuell zuordnen:
+                    </p>
+                    <button
+                        onClick={() => setShowBatteries(true)}
+                        className="inline-flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
+                        style={{ background: 'var(--accent)', color: '#fff' }}
+                    >
+                        Batterietypen zuordnen →
+                    </button>
+                    {showBatteries && <BatteryAssignModal onClose={() => setShowBatteries(false)} />}
+                </CatSection>
 
-                <Toggle
+                <CatSection
                     checked={o.catLight !== false}
                     onChange={(v) => set({ catLight: v })}
                     label="Eingeschaltete Lichter"
-                />
-                {o.catLight !== false && (
-                    <div className="ml-1 pl-3 space-y-2 pb-1" style={{ borderLeft: '2px solid var(--app-border)' }}>
-                        <div className="flex gap-3 items-start">
-                            <div className="flex-1">
-                                <label className={labelCls} style={labelStyle}>
-                                    Welche Schalter zählen als Licht?
-                                </label>
-                                <select
-                                    value={lightScope}
-                                    onChange={(e) => set({ lightRoleScope: e.target.value as 'light' | 'all' })}
-                                    className={inputCls}
-                                    style={inputStyle}
-                                >
-                                    <option value="light">Nur Lichter (Rolle switch.light)</option>
-                                    <option value="all">Alle Schalter (switch, switch.power)</option>
-                                </select>
-                            </div>
-                            <CatColor cat="light" />
+                >
+                    <div className="flex gap-3 items-start">
+                        <div className="flex-1">
+                            <label className={labelCls} style={labelStyle}>
+                                Welche Schalter zählen als Licht?
+                            </label>
+                            <select
+                                value={lightScope}
+                                onChange={(e) => set({ lightRoleScope: e.target.value as 'light' | 'all' })}
+                                className={inputCls}
+                                style={inputStyle}
+                            >
+                                <option value="light">Nur Lichter (Rolle switch.light)</option>
+                                <option value="all">Alle Schalter (switch, switch.power)</option>
+                            </select>
                         </div>
-                        {lightScope === 'all' && (
-                            <Toggle
-                                checked={!!o.lightsOnlyFunction}
-                                onChange={(v) => set({ lightsOnlyFunction: v })}
-                                label={'Nur Schalter in Funktion „Licht“'}
-                            />
-                        )}
+                        <CatColor cat="light" />
                     </div>
-                )}
+                    {lightScope === 'all' && (
+                        <Toggle
+                            checked={!!o.lightsOnlyFunction}
+                            onChange={(v) => set({ lightsOnlyFunction: v })}
+                            label={'Nur Schalter in Funktion „Licht“'}
+                        />
+                    )}
+                </CatSection>
 
-                <Toggle
+                <CatSection
                     checked={o.catAlarm !== false}
                     onChange={(v) => set({ catAlarm: v })}
                     label="Rauch- & Wasser-Alarme"
-                />
-                {o.catAlarm !== false && (
-                    <div className="ml-1 pl-3 pb-1" style={{ borderLeft: '2px solid var(--app-border)' }}>
-                        <CatColor cat="alarm" />
-                    </div>
-                )}
+                >
+                    <CatColor cat="alarm" />
+                </CatSection>
 
-                <Toggle
+                <CatSection
                     checked={o.catUnreach !== false}
                     onChange={(v) => set({ catUnreach: v })}
                     label="Nicht erreichbar / offline"
-                />
-                {o.catUnreach !== false && (
-                    <div className="ml-1 pl-3 space-y-2 pb-1" style={{ borderLeft: '2px solid var(--app-border)' }}>
-                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                            UNREACH/offline/reachable/connected werden automatisch erkannt (STICKY_UNREACH wird
-                            ignoriert). Nur für Sonderfälle: zusätzliche Offline-Datenpunkte. Gilt global für alle
-                            Widgets.
-                        </p>
-                        <div className="flex gap-3 items-start">
-                            <div className="flex-1">
-                                <label className={labelCls} style={labelStyle}>
-                                    Zusätzliche Offline-Datenpunkte (Muster, Text oder /regex/)
-                                </label>
-                                <input
-                                    type="text"
-                                    value={offlineExtraPatterns}
-                                    onChange={(e) => updateFrontend({ offlineExtraPatterns: e.target.value })}
-                                    placeholder=".UNREACHABLE, /\\.offline$/"
-                                    className={inputCls}
-                                    style={inputStyle}
-                                />
-                            </div>
-                            <CatColor cat="unreach" />
+                >
+                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                        UNREACH/offline/reachable/connected werden automatisch erkannt (STICKY_UNREACH wird ignoriert).
+                        Nur für Sonderfälle: zusätzliche Offline-Datenpunkte. Gilt global für alle Widgets.
+                    </p>
+                    <div className="flex gap-3 items-start">
+                        <div className="flex-1">
+                            <label className={labelCls} style={labelStyle}>
+                                Zusätzliche Offline-Datenpunkte (Muster, Text oder /regex/)
+                            </label>
+                            <input
+                                type="text"
+                                value={offlineExtraPatterns}
+                                onChange={(e) => updateFrontend({ offlineExtraPatterns: e.target.value })}
+                                placeholder=".UNREACHABLE, /\\.offline$/"
+                                className={inputCls}
+                                style={inputStyle}
+                            />
                         </div>
-                        <Toggle
-                            checked={offlineInvert}
-                            onChange={(v) => updateFrontend({ offlineInvert: v })}
-                            label="Bei diesen Mustern bedeutet FALSE = offline"
-                        />
+                        <CatColor cat="unreach" />
                     </div>
-                )}
+                    <Toggle
+                        checked={offlineInvert}
+                        onChange={(v) => updateFrontend({ offlineInvert: v })}
+                        label="Bei diesen Mustern bedeutet FALSE = offline"
+                    />
+                </CatSection>
             </div>
 
             {/* ── Scope (collapsed by default) ── */}
