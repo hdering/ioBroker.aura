@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.13.0 (2026-06-29)
+- 🌟 **New feature:** Map - new widget: plot positions (car, person, …) from lat/lon or JSON datapoints, fixed coordinates, or a plain address on an OpenStreetMap map, with optional distance from a reference point
+- 🌟 **New feature:** Map - choose a map style: standard map, satellite, or terrain/topo
+
 ## 0.12.1 (2026-06-29)
 Release v0.12.1
 

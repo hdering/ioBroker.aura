@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.18.2",
+    "version": "0.18.3",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.18.3": {
+        "en": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)",
+        "de": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)",
+        "ru": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)",
+        "pt": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)",
+        "nl": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)",
+        "fr": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)",
+        "it": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)",
+        "es": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)",
+        "pl": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)",
+        "uk": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)",
+        "zh-cn": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)"
+      },
       "0.18.2": {
         "en": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout",
         "de": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout",
@@ -184,19 +197,6 @@
         "pl": "Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows \"Mainly clear\")",
         "uk": "Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows \"Mainly clear\")",
         "zh-cn": "Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows \"Mainly clear\")"
-      },
-      "0.17.2": {
-        "en": "Script status - list entries, filter buttons and search box now respect transparent mode\nJSON table - header and search box now respect transparent mode\nAdapter logs - filter buttons, source buttons, search box, table header and log rows now respect transparent mode\nAdapter status - filter buttons, search box and instance rows now respect transparent mode",
-        "de": "Script status - list entries, filter buttons and search box now respect transparent mode\nJSON table - header and search box now respect transparent mode\nAdapter logs - filter buttons, source buttons, search box, table header and log rows now respect transparent mode\nAdapter status - filter buttons, search box and instance rows now respect transparent mode",
-        "ru": "Script status - list entries, filter buttons and search box now respect transparent mode\nJSON table - header and search box now respect transparent mode\nAdapter logs - filter buttons, source buttons, search box, table header and log rows now respect transparent mode\nAdapter status - filter buttons, search box and instance rows now respect transparent mode",
-        "pt": "Script status - list entries, filter buttons and search box now respect transparent mode\nJSON table - header and search box now respect transparent mode\nAdapter logs - filter buttons, source buttons, search box, table header and log rows now respect transparent mode\nAdapter status - filter buttons, search box and instance rows now respect transparent mode",
-        "nl": "Script status - list entries, filter buttons and search box now respect transparent mode\nJSON table - header and search box now respect transparent mode\nAdapter logs - filter buttons, source buttons, search box, table header and log rows now respect transparent mode\nAdapter status - filter buttons, search box and instance rows now respect transparent mode",
-        "fr": "Script status - list entries, filter buttons and search box now respect transparent mode\nJSON table - header and search box now respect transparent mode\nAdapter logs - filter buttons, source buttons, search box, table header and log rows now respect transparent mode\nAdapter status - filter buttons, search box and instance rows now respect transparent mode",
-        "it": "Script status - list entries, filter buttons and search box now respect transparent mode\nJSON table - header and search box now respect transparent mode\nAdapter logs - filter buttons, source buttons, search box, table header and log rows now respect transparent mode\nAdapter status - filter buttons, search box and instance rows now respect transparent mode",
-        "es": "Script status - list entries, filter buttons and search box now respect transparent mode\nJSON table - header and search box now respect transparent mode\nAdapter logs - filter buttons, source buttons, search box, table header and log rows now respect transparent mode\nAdapter status - filter buttons, search box and instance rows now respect transparent mode",
-        "pl": "Script status - list entries, filter buttons and search box now respect transparent mode\nJSON table - header and search box now respect transparent mode\nAdapter logs - filter buttons, source buttons, search box, table header and log rows now respect transparent mode\nAdapter status - filter buttons, search box and instance rows now respect transparent mode",
-        "uk": "Script status - list entries, filter buttons and search box now respect transparent mode\nJSON table - header and search box now respect transparent mode\nAdapter logs - filter buttons, source buttons, search box, table header and log rows now respect transparent mode\nAdapter status - filter buttons, search box and instance rows now respect transparent mode",
-        "zh-cn": "Script status - list entries, filter buttons and search box now respect transparent mode\nJSON table - header and search box now respect transparent mode\nAdapter logs - filter buttons, source buttons, search box, table header and log rows now respect transparent mode\nAdapter status - filter buttons, search box and instance rows now respect transparent mode"
       }
     }
   },
