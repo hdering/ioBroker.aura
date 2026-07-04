@@ -253,33 +253,51 @@ export function Dashboard({
                                                 </div>
                                             ) : (
                                                 <div className="flex flex-col" style={{ gap: MARGIN }}>
-                                                    {sorted.map((w) => (
-                                                        <div
-                                                            key={w.id}
-                                                            style={
-                                                                w.type === 'group' || w.type === 'mediaplayer'
-                                                                    ? undefined
-                                                                    : {
-                                                                          // 'panels' is a fixed-viewport carousel: its
-                                                                          // slide track is absolutely positioned, so with
-                                                                          // auto height the flex-1 viewport collapses to 0
-                                                                          // (only title + dots show). It needs a definite
-                                                                          // height like a normal widget — unlike group/
-                                                                          // mediaplayer which size to their stacked content.
-                                                                          height:
-                                                                              w.gridPos.h * cellSize +
-                                                                              (w.gridPos.h - 1) * MARGIN,
-                                                                      }
-                                                            }
-                                                        >
-                                                            <WidgetFrame
-                                                                config={w}
-                                                                editMode={editMode}
-                                                                onRemove={removeWidget}
-                                                                onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
-                                                            />
-                                                        </div>
-                                                    ))}
+                                                    {sorted.map((w) => {
+                                                        const wl = w.layout ?? 'default';
+                                                        // Weather's stacking layouts (default/card) top-align their
+                                                        // content and let a responsive scale fill the height. On the
+                                                        // wide desktop grid that scale grows to fill the box, but in the
+                                                        // narrow mobile column the scale is width-bound and stays small,
+                                                        // so a fixed gridPos.h box would show a tall empty gap below the
+                                                        // card. Size to content instead (like group/mediaplayer). Custom
+                                                        // grid needs a definite height (CustomGridView is height:100%);
+                                                        // minimal/compact already center, so they keep a fixed height.
+                                                        const autoHeight =
+                                                            w.type === 'group' ||
+                                                            w.type === 'mediaplayer' ||
+                                                            (w.type === 'weather' &&
+                                                                wl !== 'custom' &&
+                                                                wl !== 'minimal' &&
+                                                                wl !== 'compact');
+                                                        return (
+                                                            <div
+                                                                key={w.id}
+                                                                style={
+                                                                    autoHeight
+                                                                        ? undefined
+                                                                        : {
+                                                                              // 'panels' is a fixed-viewport carousel: its
+                                                                              // slide track is absolutely positioned, so with
+                                                                              // auto height the flex-1 viewport collapses to 0
+                                                                              // (only title + dots show). It needs a definite
+                                                                              // height like a normal widget — unlike group/
+                                                                              // mediaplayer which size to their stacked content.
+                                                                              height:
+                                                                                  w.gridPos.h * cellSize +
+                                                                                  (w.gridPos.h - 1) * MARGIN,
+                                                                          }
+                                                                }
+                                                            >
+                                                                <WidgetFrame
+                                                                    config={w}
+                                                                    editMode={editMode}
+                                                                    onRemove={removeWidget}
+                                                                    onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
+                                                                />
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
                                         </div>
