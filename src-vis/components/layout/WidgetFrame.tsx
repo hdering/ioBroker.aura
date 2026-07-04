@@ -6301,6 +6301,7 @@ export function WidgetFrame({
                             config.type !== 'adapterlogs' &&
                             config.type !== 'alarm' &&
                             config.type !== 'map' &&
+                            config.type !== 'energiebilanz' &&
                             (() => {
                                 const activeLayout = config.layout ?? 'default';
                                 const layouts: { value: string; label: string }[] =

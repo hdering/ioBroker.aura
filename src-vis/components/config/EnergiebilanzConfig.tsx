@@ -216,7 +216,7 @@ function EntryRow({
                             <ColorPicker
                                 value={entry.color ?? DEFAULT_COLORS[0]}
                                 onChange={(v) => onUpdate({ color: v })}
-                                className="rounded cursor-pointer"
+                                className="block rounded cursor-pointer"
                                 style={{ width: 30, height: ROW2_H, border: '1px solid var(--app-border)' }}
                             />
                         </div>
