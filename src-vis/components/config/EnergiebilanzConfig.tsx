@@ -5,11 +5,11 @@
  * datapoint entries. Reuses the DatapointPicker / IconPickerModal / ColorPicker
  * building blocks and the history-adapter detection of the advanced chart config.
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Database, X, Plus, ChevronUp, ChevronDown, Settings2 } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../types';
-import type { EnergyBalanceOptions, EnergyBar } from '../widgets/EnergiebilanzWidget';
+import type { EnergyBalanceOptions, EnergyBar, LegendFormat } from '../widgets/EnergiebilanzWidget';
 import type { EnergyAggregate, EnergyEntry } from '../../hooks/useEnergyBalanceValues';
 import { ColorPicker } from '../common/ColorPicker';
 import { DatapointPicker } from './DatapointPicker';
@@ -18,6 +18,7 @@ import { getObjectDirect } from '../../hooks/useIoBroker';
 import { detectHistoryAdapters, RANGE_LABELS, type DetectedAdapter } from '../../hooks/useChartHistory';
 import type { EChartTimeRange } from '../../hooks/useMultiSeriesData';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
+import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 
 const CHART_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', 'custom'];
@@ -30,6 +31,12 @@ const AGGREGATES: { id: EnergyAggregate; label: string }[] = [
     { id: 'min', label: 'Minimum' },
 ];
 const DEFAULT_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
+const LEGEND_FORMATS: { id: LegendFormat; label: string }[] = [
+    { id: 'icon-value', label: 'Icon + Wert' },
+    { id: 'icon-label-value', label: 'Icon + Bezeichnung + Wert' },
+    { id: 'label-value', label: 'Bezeichnung + Wert' },
+    { id: 'value', label: 'Wert' },
+];
 
 function generateId(): string {
     return Math.random().toString(36).slice(2, 9);
@@ -217,17 +224,40 @@ function EntryRow({
                     <div className="grid grid-cols-2 gap-1.5">
                         <div>
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Dezimalstellen (Global)
+                                Dezimalstellen
                             </label>
-                            <input
-                                type="number"
-                                min={0}
-                                max={5}
-                                value={entry.decimals ?? defaultDecimals}
-                                onChange={(e) => onUpdate({ decimals: Number(e.target.value) })}
-                                className={inputCls}
-                                style={inputStyle}
-                            />
+                            <div className="flex items-center gap-1.5">
+                                <input
+                                    type="number"
+                                    min={0}
+                                    max={5}
+                                    disabled={entry.decimals === undefined}
+                                    value={entry.decimals ?? defaultDecimals}
+                                    onChange={(e) => onUpdate({ decimals: Number(e.target.value) })}
+                                    className={`${inputCls} flex-1 min-w-0`}
+                                    style={{ ...inputStyle, opacity: entry.decimals === undefined ? 0.5 : 1 }}
+                                />
+                                <button
+                                    onClick={() =>
+                                        onUpdate({
+                                            decimals: entry.decimals === undefined ? defaultDecimals : undefined,
+                                        })
+                                    }
+                                    title={
+                                        entry.decimals === undefined
+                                            ? 'Globale Einstellung aktiv – klicken für eigenen Wert'
+                                            : 'Auf globale Einstellung zurücksetzen'
+                                    }
+                                    className="px-1.5 py-1 rounded text-[10px] font-bold shrink-0"
+                                    style={{
+                                        background:
+                                            entry.decimals === undefined ? 'var(--accent)' : 'var(--app-border)',
+                                        color: entry.decimals === undefined ? '#fff' : 'var(--text-secondary)',
+                                    }}
+                                >
+                                    Global
+                                </button>
+                            </div>
                         </div>
                         <div>
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
@@ -302,8 +332,13 @@ function EntryRow({
             {dpOpen && (
                 <DatapointPicker
                     currentValue={entry.datapointId}
-                    onSelect={(id, unit) => {
-                        if (id) onUpdate({ datapointId: id, unit: entry.unit ?? unit ?? undefined });
+                    onSelect={(id, unit, name) => {
+                        if (id) {
+                            const patch: Partial<EnergyEntry> = { datapointId: id };
+                            if (!entry.unit && unit) patch.unit = unit;
+                            if (!entry.label && name) patch.label = applyDpNameFilter(name);
+                            onUpdate(patch);
+                        }
                         setDpOpen(false);
                     }}
                     onClose={() => setDpOpen(false)}
@@ -442,16 +477,24 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
     const { defaultDecimals } = useGlobalSettingsStore();
     const [adapterStates, setAdapterStates] = useState<Record<string, AdapterState>>({});
 
+    // Always-current snapshot of bars so async auto-detection (which resolves out of render
+    // order) builds on the latest value instead of a stale closure and clobbering siblings.
+    const barsRef = useRef(bars);
+    barsRef.current = bars;
+
     const setO = (patch: Partial<EnergyBalanceOptions>) => onConfigChange({ ...config, options: { ...o, ...patch } });
 
-    const setBars = (next: EnergyBar[]) => setO({ bars: next });
+    const setBars = (next: EnergyBar[]) => {
+        barsRef.current = next;
+        setO({ bars: next });
+    };
     const updateBar = (id: string, patch: Partial<EnergyBar>) =>
-        setBars(bars.map((b) => (b.id === id ? { ...b, ...patch } : b)));
-    const removeBar = (id: string) => setBars(bars.filter((b) => b.id !== id));
+        setBars(barsRef.current.map((b) => (b.id === id ? { ...b, ...patch } : b)));
+    const removeBar = (id: string) => setBars(barsRef.current.filter((b) => b.id !== id));
     const addBar = () => {
-        const n = bars.length;
+        const n = barsRef.current.length;
         setBars([
-            ...bars,
+            ...barsRef.current,
             {
                 id: generateId(),
                 title: n === 0 ? 'Produktion' : n === 1 ? 'Verbrauch' : `Balken ${n + 1}`,
@@ -462,8 +505,8 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
     };
     const moveBar = (idx: number, dir: -1 | 1) => {
         const swap = idx + dir;
-        if (swap < 0 || swap >= bars.length) return;
-        const next = [...bars];
+        if (swap < 0 || swap >= barsRef.current.length) return;
+        const next = [...barsRef.current];
         [next[idx], next[swap]] = [next[swap], next[idx]];
         setBars(next);
     };
@@ -472,10 +515,10 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
     const allEntries = bars.flatMap((b) => b.entries ?? []);
     const detectKey = allEntries.map((e) => `${e.id}:${e.datapointId}`).join(',');
 
-    // patch an entry regardless of which bar it lives in
+    // patch an entry regardless of which bar it lives in (reads latest via barsRef)
     const updateBarEntry = (entryId: string, patch: Partial<EnergyEntry>) => {
         setBars(
-            bars.map((b) => ({
+            barsRef.current.map((b) => ({
                 ...b,
                 entries: (b.entries ?? []).map((e) => (e.id === entryId ? { ...e, ...patch } : e)),
             })),
@@ -494,7 +537,7 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                 const adapters = custom ? detectHistoryAdapters(custom as Record<string, { enabled?: boolean }>) : [];
                 setAdapterStates((prev) => ({ ...prev, [entryId]: { adapters, checking: false } }));
                 // Auto-select the sole detected adapter when none is chosen yet.
-                const entry = allEntries.find((e) => e.id === entryId);
+                const entry = barsRef.current.flatMap((b) => b.entries ?? []).find((e) => e.id === entryId);
                 if (adapters.length === 1 && entry && !entry.historyInstance) {
                     updateBarEntry(entryId, { historyInstance: adapters[0].instance });
                 }
@@ -638,6 +681,27 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                     </div>
                 );
             })}
+
+            {/* legend content format */}
+            {o.showLegend !== false && (
+                <div>
+                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                        Legenden-Inhalt
+                    </label>
+                    <select
+                        value={o.legendFormat ?? 'icon-value'}
+                        onChange={(e) => setO({ legendFormat: e.target.value as LegendFormat })}
+                        className={inputCls}
+                        style={inputStyle}
+                    >
+                        {LEGEND_FORMATS.map((f) => (
+                            <option key={f.id} value={f.id}>
+                                {f.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
         </div>
     );
 }

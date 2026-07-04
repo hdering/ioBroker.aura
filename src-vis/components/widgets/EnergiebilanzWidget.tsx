@@ -29,6 +29,9 @@ export interface EnergyBar {
     legendSide?: 'left' | 'right' | 'below';
 }
 
+/** What each legend row shows. Default 'icon-value'. */
+export type LegendFormat = 'value' | 'icon-value' | 'label-value' | 'icon-label-value';
+
 export interface EnergyBalanceOptions {
     bars: EnergyBar[];
     /** Default unit shown after each value + total (per-entry unit overrides). */
@@ -43,6 +46,7 @@ export interface EnergyBalanceOptions {
     showTotals?: boolean;
     showPercent?: boolean;
     showLegend?: boolean;
+    legendFormat?: LegendFormat;
     /** Shared "Darstellung" appearance controls (written by the general config section). */
     icon?: string;
     showIcon?: boolean;
@@ -105,6 +109,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const showTotals = o.showTotals !== false;
     const showPercent = o.showPercent !== false;
     const showLegend = o.showLegend !== false;
+    const legendFormat = o.legendFormat ?? 'icon-value';
     const unit = o.unit ?? 'kWh';
     const decimals = o.decimals ?? defaultDecimals ?? 2;
     const range = o.range ?? '24h';
@@ -180,7 +185,9 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                     for (const c of computed) c.percent = total > 0 ? (c.value / total) * 100 : 0;
 
                     const side = bar.legendSide ?? 'below';
-                    const legend = showLegend ? <Legend items={computed} side={side} fmt={fmt} /> : null;
+                    const legend = showLegend ? (
+                        <Legend items={computed} side={side} format={legendFormat} fmt={fmt} />
+                    ) : null;
                     const stacked = <StackedBar items={computed} total={total} showPercent={showPercent} />;
 
                     return (
@@ -258,14 +265,18 @@ function StackedBar({ items, total, showPercent }: { items: Computed[]; total: n
 function Legend({
     items,
     side,
+    format,
     fmt,
 }: {
     items: Computed[];
     side: 'left' | 'right' | 'below';
+    format: LegendFormat;
     fmt: (v: number, e: EnergyEntry) => string;
 }) {
     const isRight = side === 'right';
     const isBelow = side === 'below';
+    const wantIcon = format === 'icon-value' || format === 'icon-label-value';
+    const wantLabel = format === 'label-value' || format === 'icon-label-value';
     return (
         <div
             className={`flex flex-col justify-center gap-1 min-w-0 ${isBelow ? 'w-full' : ''}`}
@@ -281,7 +292,7 @@ function Legend({
                     }}
                     title={c.entry.label}
                 >
-                    {c.entry.icon && (
+                    {wantIcon && c.entry.icon && (
                         <Icon
                             icon={toIconifyId(c.entry.icon)}
                             width={16}
@@ -289,8 +300,22 @@ function Legend({
                             style={{ color: c.color, flexShrink: 0 }}
                         />
                     )}
+                    {wantLabel && c.entry.label && (
+                        <span
+                            className="truncate"
+                            style={{
+                                color: 'var(--text-secondary)',
+                                fontSize: 12,
+                                flex: isBelow ? undefined : '1 1 0',
+                                minWidth: 0,
+                                textAlign: isRight ? 'right' : 'left',
+                            }}
+                        >
+                            {c.entry.label}
+                        </span>
+                    )}
                     <span
-                        className="truncate"
+                        className="truncate shrink-0"
                         style={{ color: c.color, fontSize: 12, fontWeight: 600, textAlign: isRight ? 'right' : 'left' }}
                     >
                         {fmt(c.value, c.entry)}
