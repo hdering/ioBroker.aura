@@ -16,9 +16,13 @@ export function InputWidget({ config }: WidgetProps) {
     const { setState } = useIoBroker();
 
     const multiline = !!o.multiline;
+    // A textarea is always plain text — number parsing only applies to single-line inputs.
+    const numericInput = o.inputMode === 'number' && !multiline;
+    const numMin = o.min as number | undefined;
+    const numMax = o.max as number | undefined;
+    const numStep = o.step as number | undefined;
     const submitMode = (o.submitMode as SubmitMode) ?? 'submit';
     const placeholder = (o.placeholder as string) ?? '';
-    const maxLength = (o.maxLength as number) || undefined;
     const readOnly = !!o.readOnly;
     const confirmAction = !!o.confirmAction;
     const confirmText = (o.confirmText as string) ?? '';
@@ -49,8 +53,17 @@ export function InputWidget({ config }: WidgetProps) {
     }, [dpString, dirty]);
 
     const writeValue = (v: string) => {
-        setState(config.datapoint, v);
         lastSeenDp.current = v;
+        if (numericInput) {
+            if (v === '') return;
+            const n = Number(v);
+            if (!Number.isFinite(n)) return;
+            const min = numMin ?? -Infinity;
+            const max = numMax ?? Infinity;
+            setState(config.datapoint, Math.max(min, Math.min(max, n)));
+            return;
+        }
+        setState(config.datapoint, v);
     };
 
     const doCommit = () => {
@@ -99,15 +112,11 @@ export function InputWidget({ config }: WidgetProps) {
     };
 
     const inputClass = 'nodrag w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none';
-    // When maxLength is set, cap the visible width to roughly that many characters
-    // (plus padding + border) so the field is no wider than its content can ever be.
-    const inputMaxWidth = maxLength && !multiline ? `calc(${maxLength}ch + 2rem)` : undefined;
     const inputStyle: React.CSSProperties = {
         background: 'var(--app-bg)',
         color: 'var(--text-primary)',
         border: '1px solid var(--app-border)',
         textAlign,
-        maxWidth: inputMaxWidth,
     };
     const justifyForAlign: React.CSSProperties['justifyContent'] =
         textAlign === 'right' ? 'flex-end' : textAlign === 'center' ? 'center' : 'flex-start';
@@ -119,20 +128,21 @@ export function InputWidget({ config }: WidgetProps) {
             value={draft}
             placeholder={placeholder}
             readOnly={readOnly}
-            maxLength={maxLength}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={onKeyDown}
             onBlur={submitMode === 'submit' ? commit : undefined}
         />
     ) : (
         <input
-            type="text"
+            type={numericInput ? 'number' : 'text'}
             className={`aura-widget-action ${inputClass}`}
             style={inputStyle}
             value={draft}
             placeholder={placeholder}
             readOnly={readOnly}
-            maxLength={maxLength}
+            min={numericInput ? numMin : undefined}
+            max={numericInput ? numMax : undefined}
+            step={numericInput ? numStep : undefined}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={onKeyDown}
             onBlur={submitMode === 'submit' ? commit : undefined}

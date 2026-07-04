@@ -14888,11 +14888,11 @@ export function WidgetFrame({
                                 const set = (patch: Record<string, unknown>) =>
                                     onConfigChange({ ...config, options: { ...o, ...patch } });
                                 const multiline = !!o.multiline;
+                                const numericInput = o.inputMode === 'number' && !multiline;
                                 const submitMode = ((o.submitMode as string) ?? 'submit') as 'live' | 'submit';
                                 const readOnly = !!o.readOnly;
                                 const showSubmit = o.showSubmit !== false;
                                 const placeholder = (o.placeholder as string) ?? '';
-                                const maxLength = o.maxLength as number | undefined;
                                 const textAlign = (o.textAlign as 'left' | 'right' | 'center') ?? 'left';
                                 const inputCls3 = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
                                 const inputSty3 = {
@@ -14921,6 +14921,106 @@ export function WidgetFrame({
                                             </label>
                                             <Toggle on={multiline} onClick={() => set({ multiline: !multiline })} />
                                         </div>
+                                        {/* Platzhalter */}
+                                        <div>
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Platzhalter
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={placeholder}
+                                                onChange={(e) => set({ placeholder: e.target.value || undefined })}
+                                                placeholder="z.B. Nachricht eingeben…"
+                                                className={inputCls3}
+                                                style={inputSty3}
+                                            />
+                                        </div>
+                                        {/* Eingabeart — bei Textarea ausgeblendet (immer Text) */}
+                                        {!multiline && (
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Eingabeart
+                                                </label>
+                                                <div className="flex gap-1">
+                                                    {(
+                                                        [
+                                                            { v: 'text', label: 'Text' },
+                                                            { v: 'number', label: 'Zahl' },
+                                                        ] as const
+                                                    ).map(({ v, label }) => {
+                                                        const active = (o.inputMode ?? 'text') === v;
+                                                        return (
+                                                            <button
+                                                                key={v}
+                                                                onClick={() =>
+                                                                    set({
+                                                                        inputMode: v === 'text' ? undefined : v,
+                                                                    })
+                                                                }
+                                                                className="flex-1 text-[10px] py-1.5 px-2 rounded-lg transition-colors"
+                                                                style={{
+                                                                    background: active
+                                                                        ? 'var(--accent)'
+                                                                        : 'var(--app-bg)',
+                                                                    color: active ? '#fff' : 'var(--text-secondary)',
+                                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                }}
+                                                            >
+                                                                {label}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+                                        {/* Zahl-Optionen — visuell als Untergruppe von "Zahl" */}
+                                        {numericInput && (
+                                            <div
+                                                className="flex gap-2"
+                                                style={{
+                                                    borderLeft: '2px solid var(--app-border)',
+                                                    paddingLeft: 10,
+                                                    marginLeft: 2,
+                                                }}
+                                            >
+                                                {(
+                                                    [
+                                                        { key: 'min', label: 'Min', def: '' },
+                                                        { key: 'max', label: 'Max', def: '' },
+                                                        { key: 'step', label: 'Step', def: '1' },
+                                                    ] as const
+                                                ).map(({ key, label, def }) => (
+                                                    <div key={key} className="flex-1">
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            {label}
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            value={(o as Record<string, number | undefined>)[key] ?? ''}
+                                                            onChange={(e) =>
+                                                                set({
+                                                                    [key]: e.target.value
+                                                                        ? Number(e.target.value)
+                                                                        : undefined,
+                                                                })
+                                                            }
+                                                            placeholder={def}
+                                                            className={inputCls3}
+                                                            style={inputSty3}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                         {/* Übertragungs-Modus */}
                                         <div>
                                             <label
@@ -15024,45 +15124,6 @@ export function WidgetFrame({
                                                 )}
                                             </div>
                                         )}
-                                        {/* Platzhalter */}
-                                        <div>
-                                            <label
-                                                className="text-[11px] mb-1 block"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                            >
-                                                Platzhalter
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={placeholder}
-                                                onChange={(e) => set({ placeholder: e.target.value || undefined })}
-                                                placeholder="z.B. Nachricht eingeben…"
-                                                className={inputCls3}
-                                                style={inputSty3}
-                                            />
-                                        </div>
-                                        {/* Maximale Länge */}
-                                        <div>
-                                            <label
-                                                className="text-[11px] mb-1 block"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                            >
-                                                Maximale Länge (leer = unbegrenzt)
-                                            </label>
-                                            <input
-                                                type="number"
-                                                min={1}
-                                                value={maxLength ?? ''}
-                                                onChange={(e) =>
-                                                    set({
-                                                        maxLength: e.target.value ? Number(e.target.value) : undefined,
-                                                    })
-                                                }
-                                                placeholder="unbegrenzt"
-                                                className={inputCls3}
-                                                style={inputSty3}
-                                            />
-                                        </div>
                                         {/* Textausrichtung */}
                                         <div>
                                             <label
