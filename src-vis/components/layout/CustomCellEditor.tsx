@@ -1690,8 +1690,12 @@ export function CustomCellEditor({
                             </div>
                         </div>
                     )}
+                    {/* Zahl-Optionen — visuell als Untergruppe von "Zahl" */}
                     {cell.inputMode === 'number' && !cell.multiline && (
-                        <div className="flex gap-2">
+                        <div
+                            className="flex gap-2"
+                            style={{ borderLeft: '2px solid var(--app-border)', paddingLeft: 10, marginLeft: 2 }}
+                        >
                             {(
                                 [
                                     { key: 'min', label: 'Min', def: '' },
