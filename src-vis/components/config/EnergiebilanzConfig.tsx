@@ -46,6 +46,8 @@ function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
 }
 
+/** Shared control height for the icon/label/unit/color row so they align on one line. */
+const ROW2_H = 28;
 const inputCls = 'w-full text-[11px] rounded px-2 py-1 focus:outline-none';
 const inputStyle = {
     background: 'var(--app-bg)',
@@ -163,7 +165,7 @@ function EntryRow({
                         </div>
                     </div>
 
-                    {/* Row 2: Icon, Bezeichnung, Einheit, Farbe */}
+                    {/* Row 2: Icon, Bezeichnung, Einheit, Farbe — all controls share one height */}
                     <div className="flex items-end gap-1.5">
                         <div>
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
@@ -172,7 +174,7 @@ function EntryRow({
                             <button
                                 onClick={() => setIconOpen(true)}
                                 className="flex items-center justify-center rounded hover:opacity-80"
-                                style={{ ...inputStyle, width: 30, height: 26 }}
+                                style={{ ...inputStyle, width: 30, height: ROW2_H }}
                                 title="Icon wählen"
                             >
                                 {entry.icon ? (
@@ -191,8 +193,8 @@ function EntryRow({
                             <input
                                 value={entry.label ?? ''}
                                 onChange={(e) => onUpdate({ label: e.target.value || undefined })}
-                                className={inputCls}
-                                style={inputStyle}
+                                className={`${inputCls} py-0`}
+                                style={{ ...inputStyle, height: ROW2_H }}
                             />
                         </div>
                         <div style={{ width: 64 }}>
@@ -203,8 +205,8 @@ function EntryRow({
                                 value={entry.unit ?? ''}
                                 placeholder="kWh"
                                 onChange={(e) => onUpdate({ unit: e.target.value || undefined })}
-                                className={inputCls}
-                                style={inputStyle}
+                                className={`${inputCls} py-0`}
+                                style={{ ...inputStyle, height: ROW2_H }}
                             />
                         </div>
                         <div>
@@ -215,7 +217,7 @@ function EntryRow({
                                 value={entry.color ?? DEFAULT_COLORS[0]}
                                 onChange={(v) => onUpdate({ color: v })}
                                 className="rounded cursor-pointer"
-                                style={{ width: 30, height: 26, border: '1px solid var(--app-border)' }}
+                                style={{ width: 30, height: ROW2_H, border: '1px solid var(--app-border)' }}
                             />
                         </div>
                     </div>
