@@ -91,6 +91,7 @@ export const en: Record<TranslationKey, string> = {
 
     'settings.frontend.title': 'Frontend',
     'settings.frontend.layoutDrawer': 'Layout Menu (Hamburger)',
+    'settings.frontend.layoutDrawerHint': 'Only shown when at least 2 layouts are defined.',
     'settings.frontend.layoutDrawerSize': 'Hamburger button size',
     'settings.frontend.layoutDrawerAutoHide': 'Auto-hide',
     'settings.frontend.layoutDrawerAutoHideHint':

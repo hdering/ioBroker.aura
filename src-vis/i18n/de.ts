@@ -89,6 +89,7 @@ export const de = {
 
     'settings.frontend.title': 'Frontend',
     'settings.frontend.layoutDrawer': 'Layout-Menü (Hamburger)',
+    'settings.frontend.layoutDrawerHint': 'Wird nur angezeigt, wenn mindestens 2 Layouts definiert sind.',
     'settings.frontend.layoutDrawerSize': 'Größe des Hamburger-Buttons',
     'settings.frontend.layoutDrawerAutoHide': 'Auto-Ausblenden',
     'settings.frontend.layoutDrawerAutoHideHint':
