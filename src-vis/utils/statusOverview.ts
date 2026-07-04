@@ -102,6 +102,7 @@ export interface StatusOverviewOptions {
     cardMinWidth?: number; // card layout: min tile width in px (default 96)
     namePattern?: string; // device label template, tokens <Raum> <Gerät> <DPName> <Name> <ID>
     showTitle?: boolean; // show the widget title in the header (default true)
+    showCount?: boolean; // show the hint-count chip in the header top-right (default true)
     showOkCategories?: boolean; // also list categories with no alerts (default false)
     allClearText?: string;
     sortBy?: 'severity' | 'room'; // default 'severity'

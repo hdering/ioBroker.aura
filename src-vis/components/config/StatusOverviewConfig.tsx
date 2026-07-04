@@ -486,6 +486,11 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         </p>
                     </div>
                     <Toggle
+                        checked={o.showCount !== false}
+                        onChange={(v) => set({ showCount: v })}
+                        label="Anzahl der Hinweise anzeigen (oben rechts)"
+                    />
+                    <Toggle
                         checked={!!o.showOkCategories}
                         onChange={(v) => set({ showOkCategories: v })}
                         label="Auch Kategorien ohne Hinweise zeigen"

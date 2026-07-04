@@ -281,6 +281,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     );
 
     const showTitle = opts.showTitle !== false && !!config.title;
+    const showCount = opts.showCount !== false;
     const rowClickable = (opts.rowClick ?? 'jump') === 'jump';
 
     // ── Attention chip (the one "loud" element) ────────────────────────────────
@@ -372,7 +373,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
             ) : (
                 <span />
             )}
-            {chip}
+            {showCount && chip}
         </div>
     );
 
