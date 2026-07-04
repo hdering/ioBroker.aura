@@ -42,7 +42,11 @@ export interface EnergyBalanceOptions {
     showBarTitles?: boolean;
     showTotals?: boolean;
     showPercent?: boolean;
+    /** Shared "Darstellung" appearance controls (written by the general config section). */
     icon?: string;
+    showIcon?: boolean;
+    iconSize?: number;
+    titleAlign?: 'left' | 'center' | 'right';
 }
 
 const DEFAULT_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
@@ -102,6 +106,10 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const unit = o.unit ?? 'kWh';
     const decimals = o.decimals ?? defaultDecimals ?? 2;
     const range = o.range ?? '24h';
+    // Honor the shared "Darstellung" appearance controls (icon, hide icon, icon size, align).
+    const showIcon = o.showIcon !== false;
+    const iconSize = (o.iconSize as number) || 18;
+    const titleAlign = (o.titleAlign as 'left' | 'center' | 'right') ?? 'left';
     const WidgetIcon = getWidgetIcon(o.icon, Scale);
 
     const configuredBars = o.bars ?? [];
@@ -138,10 +146,18 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
 
     return (
         <div className="w-full h-full flex flex-col overflow-hidden" style={{ color: 'var(--text-primary)' }}>
-            {showTitle && config.title && (
-                <div className="flex items-center gap-1.5 mb-1 shrink-0" style={{ fontSize: 13, fontWeight: 600 }}>
-                    <WidgetIcon size={16} style={{ color: 'var(--text-secondary)' }} />
-                    <span>{config.title}</span>
+            {showTitle && (config.title || showIcon) && (
+                <div
+                    className="flex items-center gap-1.5 mb-1 shrink-0"
+                    style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        justifyContent:
+                            titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'flex-end' : 'flex-start',
+                    }}
+                >
+                    {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)' }} />}
+                    {config.title && <span>{config.title}</span>}
                 </div>
             )}
 

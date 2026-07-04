@@ -595,7 +595,6 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
             {/* toggles */}
             {(
                 [
-                    ['showTitle', 'Titel anzeigen'],
                     ['showBarTitles', 'Balken-Titel anzeigen'],
                     ['showTotals', 'Summen anzeigen'],
                     ['showPercent', 'Prozent-Labels anzeigen'],

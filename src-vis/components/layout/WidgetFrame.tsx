@@ -7807,7 +7807,8 @@ export function WidgetFrame({
                             config.type !== 'adapterlogs' &&
                             config.type !== 'alarm' &&
                             config.type !== 'map' &&
-                            config.type !== 'statusoverview' && (
+                            config.type !== 'statusoverview' &&
+                            config.type !== 'energiebilanz' && (
                                 <div>
                                     <label
                                         className="text-[11px] mb-1 block"
