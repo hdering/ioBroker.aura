@@ -1631,35 +1631,6 @@ export function CustomCellEditor({
             {/* Input: text / number mode + min/max/step for number */}
             {cell.type === 'input' && (
                 <>
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            Eingabeart
-                        </label>
-                        <div className="flex gap-1">
-                            {(
-                                [
-                                    ['text', 'Text'],
-                                    ['number', 'Zahl'],
-                                ] as const
-                            ).map(([val, lbl]) => {
-                                const active = (cell.inputMode ?? 'text') === val;
-                                return (
-                                    <button
-                                        key={val}
-                                        onClick={() => onChange({ inputMode: val })}
-                                        className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
-                                        style={{
-                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                            color: active ? '#fff' : 'var(--text-secondary)',
-                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                        }}
-                                    >
-                                        {lbl}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
                     <div className="flex items-center justify-between">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                             Mehrzeilig (textarea)
@@ -1688,6 +1659,37 @@ export function CustomCellEditor({
                             style={inputSty}
                         />
                     </div>
+                    {!cell.multiline && (
+                        <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                Eingabeart
+                            </label>
+                            <div className="flex gap-1">
+                                {(
+                                    [
+                                        ['text', 'Text'],
+                                        ['number', 'Zahl'],
+                                    ] as const
+                                ).map(([val, lbl]) => {
+                                    const active = (cell.inputMode ?? 'text') === val;
+                                    return (
+                                        <button
+                                            key={val}
+                                            onClick={() => onChange({ inputMode: val })}
+                                            className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                                            style={{
+                                                background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                color: active ? '#fff' : 'var(--text-secondary)',
+                                                border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                            }}
+                                        >
+                                            {lbl}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
                     {cell.inputMode === 'number' && !cell.multiline && (
                         <div className="flex gap-2">
                             {(
