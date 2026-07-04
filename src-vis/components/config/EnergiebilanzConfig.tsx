@@ -132,20 +132,54 @@ function EntryRow({
 
             {expanded && (
                 <div className="px-1.5 pb-1.5 space-y-1.5">
-                    {/* datapoint */}
-                    <button
-                        onClick={() => setDpOpen(true)}
-                        className="w-full flex items-center gap-1.5 text-[10px] py-1 px-2 rounded hover:opacity-80"
-                        style={{ background: 'var(--accent)', color: '#fff' }}
-                    >
-                        <Database size={11} /> {entry.datapointId ? 'Datenpunkt ändern' : 'Datenpunkt wählen'}
-                    </button>
+                    {/* Row 1: DP path + icon-only picker */}
+                    <div>
+                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Pfad zu Datenpunkt
+                        </label>
+                        <div className="flex items-center gap-1.5">
+                            <input
+                                value={entry.datapointId}
+                                placeholder="z.B. javascript.0.energie.pv"
+                                onChange={(e) => onUpdate({ datapointId: e.target.value })}
+                                className={`${inputCls} font-mono min-w-0`}
+                                style={inputStyle}
+                            />
+                            <button
+                                onClick={() => setDpOpen(true)}
+                                title="Datenpunkt wählen"
+                                className="flex items-center justify-center rounded hover:opacity-80 shrink-0"
+                                style={{ background: 'var(--accent)', color: '#fff', width: 28, height: 26 }}
+                            >
+                                <Database size={13} />
+                            </button>
+                        </div>
+                    </div>
 
-                    <div className="grid grid-cols-2 gap-1.5">
-                        {/* label */}
-                        <div className="col-span-2">
+                    {/* Row 2: Icon, Bezeichnung, Einheit, Farbe */}
+                    <div className="flex items-end gap-1.5">
+                        <div>
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Bezeichnung (optional)
+                                Icon
+                            </label>
+                            <button
+                                onClick={() => setIconOpen(true)}
+                                className="flex items-center justify-center rounded hover:opacity-80"
+                                style={{ ...inputStyle, width: 30, height: 26 }}
+                                title="Icon wählen"
+                            >
+                                {entry.icon ? (
+                                    <Icon icon={toIconifyId(entry.icon)} width={15} height={15} />
+                                ) : (
+                                    <span className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
+                                        …
+                                    </span>
+                                )}
+                            </button>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                Bezeichnung
                             </label>
                             <input
                                 value={entry.label ?? ''}
@@ -154,37 +188,7 @@ function EntryRow({
                                 style={inputStyle}
                             />
                         </div>
-                        {/* icon */}
-                        <div>
-                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Icon
-                            </label>
-                            <button
-                                onClick={() => setIconOpen(true)}
-                                className="w-full flex items-center gap-1.5 text-[10px] py-1 px-2 rounded hover:opacity-80"
-                                style={inputStyle}
-                            >
-                                {entry.icon ? (
-                                    <Icon icon={toIconifyId(entry.icon)} width={14} height={14} />
-                                ) : (
-                                    <span style={{ color: 'var(--text-secondary)' }}>Wählen…</span>
-                                )}
-                            </button>
-                        </div>
-                        {/* color */}
-                        <div>
-                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Farbe
-                            </label>
-                            <ColorPicker
-                                value={entry.color ?? DEFAULT_COLORS[0]}
-                                onChange={(v) => onUpdate({ color: v })}
-                                className="w-full h-6 rounded cursor-pointer"
-                                style={{ border: '1px solid var(--app-border)' }}
-                            />
-                        </div>
-                        {/* unit */}
-                        <div>
+                        <div style={{ width: 64 }}>
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                 Einheit
                             </label>
@@ -196,10 +200,24 @@ function EntryRow({
                                 style={inputStyle}
                             />
                         </div>
-                        {/* decimals */}
                         <div>
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Nachkommastellen
+                                Farbe
+                            </label>
+                            <ColorPicker
+                                value={entry.color ?? DEFAULT_COLORS[0]}
+                                onChange={(v) => onUpdate({ color: v })}
+                                className="rounded cursor-pointer"
+                                style={{ width: 30, height: 26, border: '1px solid var(--app-border)' }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Row 3: Dezimalstellen (Global), Aggregation */}
+                    <div className="grid grid-cols-2 gap-1.5">
+                        <div>
+                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                Dezimalstellen (Global)
                             </label>
                             <input
                                 type="number"
@@ -211,8 +229,7 @@ function EntryRow({
                                 style={inputStyle}
                             />
                         </div>
-                        {/* aggregate */}
-                        <div className="col-span-2">
+                        <div>
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                 Aggregation
                             </label>
@@ -229,44 +246,45 @@ function EntryRow({
                                 ))}
                             </select>
                         </div>
-                        {/* history instance */}
-                        <div className="col-span-2">
-                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                History-Adapter
-                            </label>
-                            {adapters.length > 0 ? (
-                                <select
+                    </div>
+
+                    {/* History adapter */}
+                    <div>
+                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            History-Adapter
+                        </label>
+                        {adapters.length > 0 ? (
+                            <select
+                                value={entry.historyInstance ?? ''}
+                                onChange={(e) => onUpdate({ historyInstance: e.target.value || undefined })}
+                                className={inputCls}
+                                style={inputStyle}
+                            >
+                                <option value="">Auto ({adapters[0].instance})</option>
+                                {adapters.map((a) => (
+                                    <option key={a.instance} value={a.instance}>
+                                        {a.label}
+                                    </option>
+                                ))}
+                            </select>
+                        ) : (
+                            <div className="flex items-center gap-1.5">
+                                <input
                                     value={entry.historyInstance ?? ''}
+                                    placeholder={adapterState?.checking ? 'Suche…' : 'z.B. history.0'}
                                     onChange={(e) => onUpdate({ historyInstance: e.target.value || undefined })}
                                     className={inputCls}
                                     style={inputStyle}
+                                />
+                                <button
+                                    onClick={onRefreshAdapters}
+                                    className="text-[9px] px-1.5 py-1 rounded hover:opacity-70 shrink-0"
+                                    style={inputStyle}
                                 >
-                                    <option value="">Auto ({adapters[0].instance})</option>
-                                    {adapters.map((a) => (
-                                        <option key={a.instance} value={a.instance}>
-                                            {a.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            ) : (
-                                <div className="flex items-center gap-1.5">
-                                    <input
-                                        value={entry.historyInstance ?? ''}
-                                        placeholder={adapterState?.checking ? 'Suche…' : 'z.B. history.0'}
-                                        onChange={(e) => onUpdate({ historyInstance: e.target.value || undefined })}
-                                        className={inputCls}
-                                        style={inputStyle}
-                                    />
-                                    <button
-                                        onClick={onRefreshAdapters}
-                                        className="text-[9px] px-1.5 py-1 rounded hover:opacity-70 shrink-0"
-                                        style={inputStyle}
-                                    >
-                                        Suchen
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                                    Suchen
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
