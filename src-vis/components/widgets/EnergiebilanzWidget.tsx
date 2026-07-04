@@ -304,7 +304,7 @@ function Legend({
                         <span
                             className="truncate"
                             style={{
-                                color: 'var(--text-secondary)',
+                                color: c.color,
                                 fontSize: 12,
                                 flex: isBelow ? undefined : '1 1 0',
                                 minWidth: 0,
