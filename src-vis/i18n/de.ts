@@ -1045,6 +1045,7 @@ export const de = {
     'widget.carousel': 'Karussell',
     'widget.input': 'Eingabefeld',
     'widget.map': 'Karte',
+    'widget.energiebilanz': 'Energiebilanz',
 
     // ── Weather Widget ────────────────────────────────────────────────────────────
     'weather.sunny': 'Sonnig',

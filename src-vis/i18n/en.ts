@@ -1043,6 +1043,7 @@ export const en: Record<TranslationKey, string> = {
     'widget.carousel': 'Carousel',
     'widget.input': 'Input field',
     'widget.map': 'Map',
+    'widget.energiebilanz': 'Energy Balance',
 
     // ── Weather Widget ────────────────────────────────────────────────────────────
     'weather.sunny': 'Sunny',

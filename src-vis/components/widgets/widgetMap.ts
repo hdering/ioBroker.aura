@@ -41,6 +41,7 @@ import { AdapterLogsWidget } from './AdapterLogsWidget';
 import { InputWidget } from './InputWidget';
 import { AlarmWidget } from './AlarmWidget';
 import { ChipsWidget } from './ChipsWidget';
+import { EnergiebilanzWidget } from './EnergiebilanzWidget';
 
 // Chart widgets are heavy (recharts ~380 KB, echarts ~1.1 MB) — lazy-loaded so
 // dashboards without charts skip the cost. Consumers must render these inside
@@ -99,6 +100,7 @@ export function getWidgetMap() {
         input: InputWidget,
         alarm: AlarmWidget,
         chips: ChipsWidget,
+        energiebilanz: EnergiebilanzWidget,
     } as const;
 }
 

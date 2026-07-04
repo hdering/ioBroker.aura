@@ -54,6 +54,7 @@ import {
     GalleryHorizontal,
     GalleryThumbnails,
     MapPin,
+    Scale,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -767,6 +768,20 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'special',
         mock: { t: 'Zuhause', v: '⚠ 3' },
         hint: 'Zeigt automatisch, was Aufmerksamkeit braucht: schwache Batterien, offene Fenster, eingeschaltete Lichter',
+    },
+    {
+        type: 'energiebilanz',
+        label: 'Energiebilanz',
+        shortLabel: 'Energie',
+        Icon: Scale,
+        iconName: 'Scale',
+        color: '#22c55e',
+        defaultW: 8,
+        defaultH: 8,
+        addMode: 'free',
+        widgetGroup: 'special',
+        mock: { t: 'Energiebilanz', v: '📊' },
+        hint: 'Beliebig viele gestapelte Balken (z.B. Produktion/Verbrauch) aus mehreren Datenpunkten mit History-Aggregation',
     },
     {
         type: 'carousel',

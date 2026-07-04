@@ -68,6 +68,7 @@ import { detectType } from '../../utils/widgetDetection';
 import { DP_TEMPLATES, findMainDpForSecondary, autoDetectStatusDps, autoDetectLightDps } from '../../utils/dpTemplates';
 import { AutoListConfig } from '../config/AutoListConfig';
 import { StatusOverviewConfig } from '../config/StatusOverviewConfig';
+import { EnergiebilanzConfig } from '../config/EnergiebilanzConfig';
 import { StaticListConfig } from '../config/StaticListConfig';
 import { GroupActionConfig } from '../config/GroupActionConfig';
 import {
@@ -129,6 +130,7 @@ import { TrashWidget, TrashConfig } from '../widgets/TrashWidget';
 import { TrashScheduleWidget, TrashScheduleConfig } from '../widgets/TrashScheduleWidget';
 import { AutoListWidget } from '../widgets/AutoListWidget';
 import { StatusOverviewWidget } from '../widgets/StatusOverviewWidget';
+import { EnergiebilanzWidget } from '../widgets/EnergiebilanzWidget';
 import { ShutterWidget } from '../widgets/ShutterWidget';
 import { JsonTableWidget } from '../widgets/JsonTableWidget';
 import { WindowContactWidget, WC_PRESETS, WC_PRESET_LABELS } from '../widgets/WindowContactWidget';
@@ -333,6 +335,7 @@ function getWidgetMap() {
         alarm: AlarmWidget,
         map: MapWidget,
         statusoverview: StatusOverviewWidget,
+        energiebilanz: EnergiebilanzWidget,
     } as const;
 }
 
@@ -8410,6 +8413,9 @@ export function WidgetFrame({
                             />
                         )}
                         {config.type === 'echart' && <EChartConfig config={config} onConfigChange={onConfigChange} />}
+                        {config.type === 'energiebilanz' && (
+                            <EnergiebilanzConfig config={config} onConfigChange={onConfigChange} />
+                        )}
                         {config.type === 'evcc' && <EvccConfig config={config} onConfigChange={onConfigChange} />}
 
                         {config.type === 'alarm' && <AlarmConfig config={config} onConfigChange={onConfigChange} />}
