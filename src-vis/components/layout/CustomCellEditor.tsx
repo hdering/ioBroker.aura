@@ -217,17 +217,17 @@ const WIDGET_CELL_OPTS: CellOpt[] = (
 // rendered (and editable) for existing configs; see deprecated option below.
 const OWN_DP_CELL_OPTS: CellOpt[] = (
     [
-        { key: 'datepicker', label: 'Datumswähler (DP)' },
+        { key: 'datepicker', label: 'Datumswähler' },
         { key: 'dp', label: 'Datenpunkt-Wert' },
-        { key: 'input', label: 'Eingabe (DP schreiben)' },
-        { key: 'lastchange', label: 'Letzte Änderung (DP)' },
-        { key: 'progress', label: 'Fortschrittsbalken (DP)' },
-        { key: 'select', label: 'Auswahlfeld (DP)' },
-        { key: 'slider', label: 'Schieberegler (DP)' },
-        { key: 'state-icon', label: 'Status-Icon (DP)' },
-        { key: 'state-text', label: 'Status-Text (DP)' },
-        { key: 'stepper', label: 'Stepper +/− (DP)' },
-        { key: 'switch', label: 'Schalter (DP)' },
+        { key: 'input', label: 'Eingabefeld' },
+        { key: 'lastchange', label: 'Letzte Änderung' },
+        { key: 'progress', label: 'Fortschrittsbalken' },
+        { key: 'select', label: 'Auswahlfeld' },
+        { key: 'slider', label: 'Schieberegler' },
+        { key: 'state-icon', label: 'Status-Icon' },
+        { key: 'state-text', label: 'Status-Text' },
+        { key: 'stepper', label: 'Stepper +/−' },
+        { key: 'switch', label: 'Schalter' },
     ] satisfies CellOpt[]
 ).sort(sortDe);
 
@@ -1357,7 +1357,7 @@ export function CustomCellEditor({
                             border: '1px solid var(--app-border)',
                         }}
                     >
-                        ⚠ Veraltet: stattdessen „Schalter (DP)“ mit Bedienelement „Button“ verwenden.
+                        ⚠ Veraltet: stattdessen „Schalter“ mit Bedienelement „Button“ verwenden.
                     </p>
                     <div>
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
@@ -1838,6 +1838,37 @@ export function CustomCellEditor({
                             </div>
                         </div>
                     )}
+                    {/* Textausrichtung */}
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            Textausrichtung
+                        </label>
+                        <div className="flex gap-1">
+                            {(
+                                [
+                                    ['left', 'Links'],
+                                    ['center', 'Zentriert'],
+                                    ['right', 'Rechts'],
+                                ] as const
+                            ).map(([val, lbl]) => {
+                                const active = (cell.align ?? 'left') === val;
+                                return (
+                                    <button
+                                        key={val}
+                                        onClick={() => onChange({ align: val })}
+                                        className="flex-1 text-[10px] py-1.5 px-2 rounded-lg transition-colors"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {lbl}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </>
             )}
 
