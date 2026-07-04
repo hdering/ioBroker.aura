@@ -873,8 +873,11 @@ function StepperCellView({
 /** Free text / number input bound to a DP. Writes live or on Enter / Send / blur. */
 function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
     const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
-    const inputRef = useRef<HTMLInputElement | null>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
     const isNumber = cell.inputMode === 'number';
+    const multiline = !!cell.multiline;
+    // A textarea is always plain text — number parsing only applies to single-line inputs.
+    const numericInput = isNumber && !multiline;
     const submitMode = (cell.submitMode as 'submit' | 'live' | undefined) ?? 'submit';
     const showSubmit = cell.showSubmit !== false;
     const externalStr = value == null ? '' : String(value);
@@ -893,7 +896,7 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
 
     const writeValue = (v: string) => {
         lastSeen.current = v;
-        if (isNumber) {
+        if (numericInput) {
             if (v === '') return;
             const n = Number(v);
             if (!Number.isFinite(n)) return;
@@ -951,60 +954,82 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
         textAlign: cell.align === 'center' ? 'center' : cell.align === 'right' ? 'right' : 'left',
     };
 
+    const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        if (submitMode === 'live') return;
+        // Enter submits in single-line mode; Ctrl/Cmd+Enter submits in multiline mode.
+        if (e.key === 'Enter' && (!multiline || e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            commit();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            setDraft(lastSeen.current);
+            setDirty(false);
+            (e.currentTarget as HTMLElement).blur();
+        }
+    };
+
+    const submitBtn =
+        submitMode === 'submit' && showSubmit ? (
+            <button
+                type="button"
+                onClick={commit}
+                disabled={!dirty}
+                title="Senden"
+                className="nodrag shrink-0 flex items-center justify-center rounded-lg transition-opacity disabled:opacity-40 hover:opacity-80"
+                style={{
+                    background: dirty ? 'var(--accent)' : 'var(--app-bg)',
+                    color: dirty ? '#fff' : 'var(--text-secondary)',
+                    border: `1px solid ${dirty ? 'var(--accent)' : 'var(--app-border)'}`,
+                    padding: '4px 6px',
+                }}
+            >
+                <Send size={12} />
+            </button>
+        ) : null;
+
     const wrapSty = { ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' };
+    const columnWrap = cell.showLastChange || multiline;
     return (
         <div
+            ref={containerRef}
             className={`aura-custom-cell-${index}`}
-            style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}
+            style={columnWrap ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}
         >
-            <div className="flex items-center gap-1 w-full min-w-0">
-                <input
-                    ref={inputRef}
-                    type={isNumber ? 'number' : 'text'}
-                    value={draft}
-                    onChange={(e) => onChange(e.target.value)}
-                    onBlur={submitMode === 'submit' ? commit : undefined}
-                    onKeyDown={(e) => {
-                        if (submitMode === 'live') return;
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            commit();
-                        } else if (e.key === 'Escape') {
-                            e.preventDefault();
-                            setDraft(lastSeen.current);
-                            setDirty(false);
-                            e.currentTarget.blur();
-                        }
-                    }}
-                    min={isNumber ? cell.min : undefined}
-                    max={isNumber ? cell.max : undefined}
-                    step={isNumber ? cell.step : undefined}
-                    placeholder={cell.text || ''}
-                    className="nodrag focus:outline-none flex-1 min-w-0"
-                    style={inputSty}
-                />
-                {submitMode === 'submit' && showSubmit && (
-                    <button
-                        type="button"
-                        onClick={commit}
-                        disabled={!dirty}
-                        title="Senden"
-                        className="nodrag shrink-0 flex items-center justify-center rounded-lg transition-opacity disabled:opacity-40 hover:opacity-80"
-                        style={{
-                            background: dirty ? 'var(--accent)' : 'var(--app-bg)',
-                            color: dirty ? '#fff' : 'var(--text-secondary)',
-                            border: `1px solid ${dirty ? 'var(--accent)' : 'var(--app-border)'}`,
-                            padding: '4px 6px',
-                        }}
-                    >
-                        <Send size={12} />
-                    </button>
-                )}
-            </div>
+            {multiline ? (
+                <>
+                    <textarea
+                        value={draft}
+                        onChange={(e) => onChange(e.target.value)}
+                        onBlur={submitMode === 'submit' ? commit : undefined}
+                        onKeyDown={onKeyDown}
+                        placeholder={cell.text || ''}
+                        className="nodrag focus:outline-none resize-none flex-1 w-full min-h-0"
+                        style={{ ...inputSty, minHeight: 0 }}
+                    />
+                    {submitBtn && <div className="flex justify-end w-full shrink-0">{submitBtn}</div>}
+                </>
+            ) : (
+                <div className="flex items-center gap-1 w-full min-w-0">
+                    <input
+                        type={numericInput ? 'number' : 'text'}
+                        value={draft}
+                        onChange={(e) => onChange(e.target.value)}
+                        onBlur={submitMode === 'submit' ? commit : undefined}
+                        onKeyDown={onKeyDown}
+                        min={numericInput ? cell.min : undefined}
+                        max={numericInput ? cell.max : undefined}
+                        step={numericInput ? cell.step : undefined}
+                        placeholder={cell.text || ''}
+                        className="nodrag focus:outline-none flex-1 min-w-0"
+                        style={inputSty}
+                    />
+                    {submitBtn}
+                </div>
+            )}
             {pending && (
                 <ConfirmOverlay
                     popup
-                    anchorRef={inputRef}
+                    anchorRef={containerRef}
                     text={cell.confirmText}
                     onConfirm={confirm}
                     onCancel={cancel}

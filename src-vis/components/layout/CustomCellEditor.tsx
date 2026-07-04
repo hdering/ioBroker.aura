@@ -1660,6 +1660,21 @@ export function CustomCellEditor({
                             })}
                         </div>
                     </div>
+                    <div className="flex items-center justify-between">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            Mehrzeilig (textarea)
+                        </label>
+                        <button
+                            onClick={() => onChange({ multiline: cell.multiline ? undefined : true })}
+                            className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                            style={{ background: cell.multiline ? 'var(--accent)' : 'var(--app-border)' }}
+                        >
+                            <span
+                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                style={{ left: cell.multiline ? '18px' : '2px' }}
+                            />
+                        </button>
+                    </div>
                     <div>
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                             Platzhalter
@@ -1673,7 +1688,7 @@ export function CustomCellEditor({
                             style={inputSty}
                         />
                     </div>
-                    {cell.inputMode === 'number' && (
+                    {cell.inputMode === 'number' && !cell.multiline && (
                         <div className="flex gap-2">
                             {(
                                 [
