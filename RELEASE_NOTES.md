@@ -5,3 +5,4 @@
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)
+Universal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, plus an optional Send button

@@ -1705,45 +1705,107 @@ export function CustomCellEditor({
                             ))}
                         </div>
                     )}
+                    {/* Schreib-Modus */}
                     <div>
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <label className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-                                    Sicherheitsabfrage
-                                </label>
-                                <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                                    Bestätigung vor dem Schalten
-                                </p>
-                            </div>
-                            <button
-                                onClick={() => onChange({ confirmAction: !cell.confirmAction })}
-                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                style={{
-                                    background: cell.confirmAction ? 'var(--accent)' : 'var(--app-border)',
-                                }}
-                            >
-                                <span
-                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                    style={{ left: cell.confirmAction ? '18px' : '2px' }}
-                                />
-                            </button>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            Schreib-Modus
+                        </label>
+                        <div className="flex gap-1">
+                            {(
+                                [
+                                    ['submit', 'Nach Bestätigung (Enter / Senden)'],
+                                    ['live', 'Bei jedem Tastenschlag'],
+                                ] as const
+                            ).map(([val, lbl]) => {
+                                const active = (cell.submitMode ?? 'submit') === val;
+                                return (
+                                    <button
+                                        key={val}
+                                        onClick={() => onChange({ submitMode: val === 'submit' ? undefined : val })}
+                                        className="flex-1 text-[10px] py-1.5 px-2 rounded-lg transition-colors"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {lbl}
+                                    </button>
+                                );
+                            })}
                         </div>
-                        {cell.confirmAction && (
-                            <div className="mt-2">
-                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                    Abfragetext (optional)
-                                </label>
-                                <input
-                                    type="text"
-                                    value={cell.confirmText ?? ''}
-                                    onChange={(e) => onChange({ confirmText: e.target.value || undefined })}
-                                    placeholder="Wirklich senden?"
-                                    className={inputCls}
-                                    style={inputSty}
-                                />
-                            </div>
-                        )}
                     </div>
+                    {(cell.submitMode ?? 'submit') === 'submit' && (
+                        <>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                    Senden-Button anzeigen
+                                </label>
+                                <button
+                                    onClick={() =>
+                                        onChange({ showSubmit: cell.showSubmit === false ? undefined : false })
+                                    }
+                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                    style={{
+                                        background: cell.showSubmit !== false ? 'var(--accent)' : 'var(--app-border)',
+                                    }}
+                                >
+                                    <span
+                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                        style={{ left: cell.showSubmit !== false ? '18px' : '2px' }}
+                                    />
+                                </button>
+                            </div>
+                            <div>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <label
+                                            className="text-[11px] font-medium"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            Sicherheitsabfrage
+                                        </label>
+                                        <p
+                                            className="text-[10px]"
+                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                        >
+                                            Bestätigung vor dem Schalten
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => onChange({ confirmAction: !cell.confirmAction })}
+                                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                        style={{
+                                            background: cell.confirmAction ? 'var(--accent)' : 'var(--app-border)',
+                                        }}
+                                    >
+                                        <span
+                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                            style={{ left: cell.confirmAction ? '18px' : '2px' }}
+                                        />
+                                    </button>
+                                </div>
+                                {cell.confirmAction && (
+                                    <div className="mt-2">
+                                        <label
+                                            className="text-[11px] mb-1 block"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            Abfragetext (optional)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={cell.confirmText ?? ''}
+                                            onChange={(e) => onChange({ confirmText: e.target.value || undefined })}
+                                            placeholder="Wirklich senden?"
+                                            className={inputCls}
+                                            style={inputSty}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </>
             )}
 

@@ -241,6 +241,8 @@ export interface CustomCell {
     timeOnly?: boolean; // hide date input, only edit/write time-of-day
     // 'input' type
     inputMode?: 'text' | 'number'; // 'input' cell: which native input variant (default 'text')
+    submitMode?: 'submit' | 'live'; // 'input' cell: write on Enter/Send/blur ('submit', default) or on every keystroke ('live')
+    showSubmit?: boolean; // 'input' cell: show the Send button in submit mode (default true)
     // 'progress' type
     showValue?: boolean; // 'progress' cell: overlay current value/percentage on top of bar
     // 'state-text' type — reuses trueColor/falseColor + color/text styling

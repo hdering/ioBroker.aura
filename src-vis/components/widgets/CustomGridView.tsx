@@ -13,7 +13,7 @@ import { formatNum } from '../../utils/formatValue';
 import { applyValueTransform } from '../../utils/valueTransform';
 import { baseDpId } from '../../utils/dpRef';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { HelpCircle, ChevronDown } from 'lucide-react';
+import { HelpCircle, ChevronDown, Send } from 'lucide-react';
 import { parseValue, formatDate, toDateInputValue, toTimeInputValue, type DateOutputFormat } from './DatePickerWidget';
 import { ConfirmOverlay } from './ConfirmOverlay';
 
@@ -870,40 +870,70 @@ function StepperCellView({
     );
 }
 
-/** Free text / number input bound to a DP. Writes on Enter / blur. */
+/** Free text / number input bound to a DP. Writes live or on Enter / Send / blur. */
 function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
     const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
     const inputRef = useRef<HTMLInputElement | null>(null);
     const isNumber = cell.inputMode === 'number';
+    const submitMode = (cell.submitMode as 'submit' | 'live' | undefined) ?? 'submit';
+    const showSubmit = cell.showSubmit !== false;
     const externalStr = value == null ? '' : String(value);
     const [draft, setDraft] = useState(externalStr);
-    const [focused, setFocused] = useState(false);
+    const [dirty, setDirty] = useState(false);
+    const lastSeen = useRef(externalStr);
 
-    const doCommit = () => {
+    // Sync local draft when the DP changes externally (unless the user is editing
+    // or a confirmation is pending — in which case dirty stays true).
+    useEffect(() => {
+        if (externalStr !== lastSeen.current) {
+            lastSeen.current = externalStr;
+            if (!dirty) setDraft(externalStr);
+        }
+    }, [externalStr, dirty]);
+
+    const writeValue = (v: string) => {
+        lastSeen.current = v;
         if (isNumber) {
-            if (draft === '') return;
-            const n = Number(draft);
+            if (v === '') return;
+            const n = Number(v);
             if (!Number.isFinite(n)) return;
             const min = cell.min ?? -Infinity;
             const max = cell.max ?? Infinity;
             setValue(Math.max(min, Math.min(max, n)));
         } else {
-            setValue(draft);
+            setValue(v);
         }
     };
-    // Optional security confirmation before writing.
-    const { run: runCommit, pending, confirm, cancel } = useConfirmAction(doCommit, !!cell.confirmAction);
+
+    const doCommit = () => {
+        writeValue(draft);
+        setDirty(false);
+    };
+    // Optional security confirmation before writing (only meaningful in submit mode).
+    const {
+        run: runCommit,
+        pending,
+        confirm,
+        cancel,
+    } = useConfirmAction(doCommit, !!cell.confirmAction && submitMode === 'submit');
+
     const commit = () => {
-        // Skip no-op writes (and the confirmation popup) when nothing changed.
-        if (draft === externalStr) return;
+        if (draft === lastSeen.current) {
+            setDirty(false);
+            return;
+        }
         runCommit();
     };
 
-    // Keep the local draft while the field is focused or a confirmation is
-    // pending; otherwise sync it to the external DP value.
-    useEffect(() => {
-        if (!focused && !pending) setDraft(externalStr);
-    }, [externalStr, focused, pending]);
+    const onChange = (v: string) => {
+        setDraft(v);
+        if (submitMode === 'live') {
+            writeValue(v);
+            setDirty(false);
+        } else {
+            setDirty(v !== lastSeen.current);
+        }
+    };
 
     if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
 
@@ -927,28 +957,50 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
             className={`aura-custom-cell-${index}`}
             style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}
         >
-            <input
-                ref={inputRef}
-                type={isNumber ? 'number' : 'text'}
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onFocus={() => setFocused(true)}
-                onBlur={() => {
-                    setFocused(false);
-                    commit();
-                }}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                        e.currentTarget.blur();
-                    }
-                }}
-                min={isNumber ? cell.min : undefined}
-                max={isNumber ? cell.max : undefined}
-                step={isNumber ? cell.step : undefined}
-                placeholder={cell.text || ''}
-                className="nodrag focus:outline-none"
-                style={inputSty}
-            />
+            <div className="flex items-center gap-1 w-full min-w-0">
+                <input
+                    ref={inputRef}
+                    type={isNumber ? 'number' : 'text'}
+                    value={draft}
+                    onChange={(e) => onChange(e.target.value)}
+                    onBlur={submitMode === 'submit' ? commit : undefined}
+                    onKeyDown={(e) => {
+                        if (submitMode === 'live') return;
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            commit();
+                        } else if (e.key === 'Escape') {
+                            e.preventDefault();
+                            setDraft(lastSeen.current);
+                            setDirty(false);
+                            e.currentTarget.blur();
+                        }
+                    }}
+                    min={isNumber ? cell.min : undefined}
+                    max={isNumber ? cell.max : undefined}
+                    step={isNumber ? cell.step : undefined}
+                    placeholder={cell.text || ''}
+                    className="nodrag focus:outline-none flex-1 min-w-0"
+                    style={inputSty}
+                />
+                {submitMode === 'submit' && showSubmit && (
+                    <button
+                        type="button"
+                        onClick={commit}
+                        disabled={!dirty}
+                        title="Senden"
+                        className="nodrag shrink-0 flex items-center justify-center rounded-lg transition-opacity disabled:opacity-40 hover:opacity-80"
+                        style={{
+                            background: dirty ? 'var(--accent)' : 'var(--app-bg)',
+                            color: dirty ? '#fff' : 'var(--text-secondary)',
+                            border: `1px solid ${dirty ? 'var(--accent)' : 'var(--app-border)'}`,
+                            padding: '4px 6px',
+                        }}
+                    >
+                        <Send size={12} />
+                    </button>
+                )}
+            </div>
             {pending && (
                 <ConfirmOverlay
                     popup
