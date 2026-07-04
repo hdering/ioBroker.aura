@@ -42,6 +42,7 @@ export interface EnergyBalanceOptions {
     showBarTitles?: boolean;
     showTotals?: boolean;
     showPercent?: boolean;
+    showLegend?: boolean;
     /** Shared "Darstellung" appearance controls (written by the general config section). */
     icon?: string;
     showIcon?: boolean;
@@ -103,6 +104,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const showBarTitles = o.showBarTitles !== false;
     const showTotals = o.showTotals !== false;
     const showPercent = o.showPercent !== false;
+    const showLegend = o.showLegend !== false;
     const unit = o.unit ?? 'kWh';
     const decimals = o.decimals ?? defaultDecimals ?? 2;
     const range = o.range ?? '24h';
@@ -178,7 +180,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                     for (const c of computed) c.percent = total > 0 ? (c.value / total) * 100 : 0;
 
                     const side = bar.legendSide ?? 'below';
-                    const legend = <Legend items={computed} side={side} fmt={fmt} />;
+                    const legend = showLegend ? <Legend items={computed} side={side} fmt={fmt} /> : null;
                     const stacked = <StackedBar items={computed} total={total} showPercent={showPercent} />;
 
                     return (
@@ -202,7 +204,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                                 {stacked}
                                 {side === 'right' && legend}
                             </div>
-                            {side === 'below' && <div className="shrink-0 mt-1.5 w-full">{legend}</div>}
+                            {side === 'below' && legend && <div className="shrink-0 mt-1.5 w-full">{legend}</div>}
                         </div>
                     );
                 })}

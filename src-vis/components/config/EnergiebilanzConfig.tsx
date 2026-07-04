@@ -598,6 +598,7 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                     ['showBarTitles', 'Balken-Titel anzeigen'],
                     ['showTotals', 'Summen anzeigen'],
                     ['showPercent', 'Prozent-Labels anzeigen'],
+                    ['showLegend', 'Legende anzeigen'],
                 ] as [keyof EnergyBalanceOptions, string][]
             ).map(([key, label]) => {
                 const val = (o[key] as boolean | undefined) !== false;
