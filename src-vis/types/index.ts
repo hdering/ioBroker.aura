@@ -375,7 +375,11 @@ export interface WidgetCondition {
     clauses: ConditionClause[];
     style: ConditionStyle;
     effect?: 'none' | 'pulse' | 'blink';
-    hideWidget?: boolean; // hide the widget when condition is true
+    hideWidget?: boolean; // enable visibility control (see visibilityMode)
+    // Polarity of the visibility control. 'hideOnMatch' (default, back-compat) hides
+    // the widget when the condition is true; 'showOnMatch' shows it only when true
+    // (i.e. hides while the condition is false).
+    visibilityMode?: 'hideOnMatch' | 'showOnMatch';
     reflow?: boolean; // if hiding: remove from grid so other widgets slide up
 }
 

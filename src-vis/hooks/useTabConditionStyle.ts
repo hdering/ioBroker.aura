@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useIoBroker } from './useIoBroker';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
-import { evaluateCondition } from '../utils/conditionEval';
+import { evaluateCondition, conditionHides } from '../utils/conditionEval';
 import type { WidgetCondition, ConditionStyle } from '../types';
 
 function styleToTabVars(style: ConditionStyle): Record<string, string> {
@@ -63,11 +63,12 @@ export function useTabConditionStyle(conditions?: WidgetCondition[]): TabConditi
             let hidden = false;
 
             for (const cond of conds) {
-                if (evaluateCondition(cond, valuesRef.current)) {
+                const matched = evaluateCondition(cond, valuesRef.current);
+                if (matched) {
                     Object.assign(merged, styleToTabVars(cond.style));
                     if (cond.effect && cond.effect !== 'none') effect = cond.effect as 'pulse' | 'blink';
-                    if (cond.hideWidget) hidden = true;
                 }
+                if (conditionHides(cond, matched)) hidden = true;
             }
             setResult((prev) => {
                 if (

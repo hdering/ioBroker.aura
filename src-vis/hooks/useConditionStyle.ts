@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useIoBroker, getStateFromCache } from './useIoBroker';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
-import { evaluateCondition } from '../utils/conditionEval';
+import { evaluateCondition, conditionHides } from '../utils/conditionEval';
 import type { WidgetCondition, ConditionStyle } from '../types';
 
 // ── Debug logging ─────────────────────────────────────────────────────────────
@@ -192,13 +192,14 @@ function computeResult(conditions: WidgetCondition[], values: Map<string, unknow
     let hidden = false;
     let reflow = false;
     for (const cond of conditions) {
-        if (evaluateCondition(cond, values)) {
+        const matched = evaluateCondition(cond, values);
+        if (matched) {
             Object.assign(merged, styleToVars(cond.style));
             if (cond.effect && cond.effect !== 'none') effect = cond.effect as 'pulse' | 'blink';
-            if (cond.hideWidget) {
-                hidden = true;
-                if (cond.reflow) reflow = true;
-            }
+        }
+        if (conditionHides(cond, matched)) {
+            hidden = true;
+            if (cond.reflow) reflow = true;
         }
     }
     return { cssVars: merged, effect, hidden, reflow };

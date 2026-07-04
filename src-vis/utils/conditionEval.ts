@@ -43,3 +43,12 @@ export function evaluateCondition(cond: WidgetCondition, values: Map<string, unk
     const results = cond.clauses.map((c) => evaluateClause(c, values.get(c.datapoint) ?? null, values));
     return cond.logic === 'AND' ? results.every(Boolean) : results.some(Boolean);
 }
+
+// Whether a condition's visibility control currently wants the widget/tab hidden.
+// `hideWidget` gates the whole feature; `visibilityMode` picks the polarity:
+//   'hideOnMatch' (default) — hide when the condition is true
+//   'showOnMatch'           — show only when true, i.e. hide while it is false
+export function conditionHides(cond: WidgetCondition, matched: boolean): boolean {
+    if (!cond.hideWidget) return false;
+    return cond.visibilityMode === 'showOnMatch' ? !matched : matched;
+}

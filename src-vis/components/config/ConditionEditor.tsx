@@ -413,11 +413,13 @@ function ConditionRule({
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>
-                                {context === 'tab' ? t('tabBar.hideTabOnCond') : t('cond.hideWidget')}
+                                {context === 'tab' ? t('cond.controlTabVisibility') : t('cond.controlVisibility')}
                             </p>
-                            {context !== 'tab' && (
+                            {!condition.hideWidget && (
                                 <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('cond.hideWidgetHint')}
+                                    {context === 'tab'
+                                        ? t('cond.controlTabVisibilityHint')
+                                        : t('cond.controlVisibilityHint')}
                                 </p>
                             )}
                         </div>
@@ -438,6 +440,34 @@ function ConditionRule({
                             />
                         </button>
                     </div>
+                    {condition.hideWidget && (
+                        <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-2">
+                                <label className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('cond.mode')}
+                                </label>
+                                <select
+                                    value={condition.visibilityMode ?? 'hideOnMatch'}
+                                    onChange={(e) =>
+                                        onChange({
+                                            ...condition,
+                                            visibilityMode: e.target.value as WidgetCondition['visibilityMode'],
+                                        })
+                                    }
+                                    className={`${cls} flex-1`}
+                                    style={inputStyle}
+                                >
+                                    <option value="hideOnMatch">{t('cond.hideOnMatch')}</option>
+                                    <option value="showOnMatch">{t('cond.showOnMatch')}</option>
+                                </select>
+                            </div>
+                            <p className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
+                                {(condition.visibilityMode ?? 'hideOnMatch') === 'showOnMatch'
+                                    ? t(context === 'tab' ? 'cond.showOnMatchTabHint' : 'cond.showOnMatchHint')
+                                    : t(context === 'tab' ? 'cond.hideOnMatchTabHint' : 'cond.hideOnMatchHint')}
+                            </p>
+                        </div>
+                    )}
                     {context !== 'tab' && condition.hideWidget && (
                         <div
                             className="flex items-center justify-between pl-3 border-l-2"
