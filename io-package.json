@@ -2,6 +2,7 @@
   "common": {
     "name": "aura",
     "version": "0.17.5",
+    "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
       "de": "Aura",
