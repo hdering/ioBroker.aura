@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.14.0 (2026-06-30)
+- 🌟 **New feature:** Dynamic List - optionally group datapoints by room with the room name as a section heading
+- 🌟 **New feature:** Dynamic List - room section headings now support custom font size, text color and background color
+- Tabs - fix tab switching needing multiple clicks after auto-return to the default tab
+- General - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown
+
 ## 0.13.0 (2026-06-29)
 - 🌟 **New feature:** Map - new widget: plot positions (car, person, …) from lat/lon or JSON datapoints, fixed coordinates, or a plain address on an OpenStreetMap map, with optional distance from a reference point
 - 🌟 **New feature:** Map - choose a map style: standard map, satellite, or terrain/topo

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.18.3",
+    "version": "0.18.4",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.18.4": {
+        "en": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
+        "de": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
+        "ru": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
+        "pt": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
+        "nl": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
+        "fr": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
+        "it": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
+        "es": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
+        "pl": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
+        "uk": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
+        "zh-cn": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view"
+      },
       "0.18.3": {
         "en": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)",
         "de": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)",
@@ -184,19 +197,6 @@
         "pl": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)",
         "uk": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)",
         "zh-cn": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)"
-      },
-      "0.17.3": {
-        "en": "Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows \"Mainly clear\")",
-        "de": "Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows \"Mainly clear\")",
-        "ru": "Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows \"Mainly clear\")",
-        "pt": "Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows \"Mainly clear\")",
-        "nl": "Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows \"Mainly clear\")",
-        "fr": "Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows \"Mainly clear\")",
-        "it": "Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows \"Mainly clear\")",
-        "es": "Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows \"Mainly clear\")",
-        "pl": "Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows \"Mainly clear\")",
-        "uk": "Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows \"Mainly clear\")",
-        "zh-cn": "Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows \"Mainly clear\")"
       }
     }
   },

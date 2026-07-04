@@ -115,6 +115,13 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.18.4 (2026-07-04)
+- Status overview - each category now has a freely selectable background color in addition to the highlight color
+- Status overview - enabled categories now group their settings in a card so it is clear which settings belong to which category
+- Status overview - the hint-count chip in the top-right can now be hidden
+- Status overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view
+
+
 ### 0.18.3 (2026-07-04)
 - Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)
 
@@ -212,13 +219,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Badges - renamed to "Marker" in the German UI
 
 
-### 0.14.0 (2026-06-30)
-- 🌟 **New feature:** Dynamic List - optionally group datapoints by room with the room name as a section heading
-- 🌟 **New feature:** Dynamic List - room section headings now support custom font size, text color and background color
-- Tabs - fix tab switching needing multiple clicks after auto-return to the default tab
-- General - fix datapoints with a JSON path (e.g. dp?soc) in header, tab bar and camera fields being rejected; the nested value is now shown
-
-
 ## License
 
 MIT License
@@ -230,6 +230,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
