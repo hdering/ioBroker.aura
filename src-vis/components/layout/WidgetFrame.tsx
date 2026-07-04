@@ -14969,6 +14969,51 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                         )}
+                                        {/* Sicherheitsabfrage (nur im Submit-Modus relevant) */}
+                                        {submitMode === 'submit' && (
+                                            <>
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] font-medium"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Sicherheitsabfrage
+                                                        </label>
+                                                        <p
+                                                            className="text-[10px]"
+                                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                        >
+                                                            Bestätigung vor dem Schalten
+                                                        </p>
+                                                    </div>
+                                                    <Toggle
+                                                        on={!!o.confirmAction}
+                                                        onClick={() => set({ confirmAction: !o.confirmAction })}
+                                                    />
+                                                </div>
+                                                {o.confirmAction === true && (
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Abfragetext (optional)
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={(o.confirmText as string) ?? ''}
+                                                            onChange={(e) =>
+                                                                set({ confirmText: e.target.value || undefined })
+                                                            }
+                                                            placeholder="Wirklich senden?"
+                                                            className={inputCls3}
+                                                            style={inputSty3}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
                                         {/* Platzhalter */}
                                         <div>
                                             <label

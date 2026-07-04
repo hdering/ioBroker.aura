@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { TextCursorInput, Send } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
+import { useConfirmAction } from '../../hooks/useConfirmAction';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CustomGridView } from './CustomGridView';
+import { ConfirmOverlay } from './ConfirmOverlay';
 
 type SubmitMode = 'live' | 'submit';
 
@@ -18,6 +20,8 @@ export function InputWidget({ config }: WidgetProps) {
     const placeholder = (o.placeholder as string) ?? '';
     const maxLength = (o.maxLength as number) || undefined;
     const readOnly = !!o.readOnly;
+    const confirmAction = !!o.confirmAction;
+    const confirmText = (o.confirmText as string) ?? '';
     const showTitle = o.showTitle !== false;
     const showIcon = o.showIcon !== false;
     const showSubmit = o.showSubmit !== false;
@@ -49,13 +53,25 @@ export function InputWidget({ config }: WidgetProps) {
         lastSeenDp.current = v;
     };
 
+    const doCommit = () => {
+        writeValue(draft);
+        setDirty(false);
+    };
+
+    // Optional security confirmation before writing (only meaningful in submit mode).
+    const {
+        run: runCommit,
+        pending,
+        confirm,
+        cancel,
+    } = useConfirmAction(doCommit, confirmAction && submitMode === 'submit');
+
     const commit = () => {
         if (draft === lastSeenDp.current) {
             setDirty(false);
             return;
         }
-        writeValue(draft);
-        setDirty(false);
+        runCommit();
     };
 
     const onChange = (v: string) => {
@@ -151,21 +167,24 @@ export function InputWidget({ config }: WidgetProps) {
         // always available (even in live mode, in case the user wants it).
         const iconEl = showIcon ? <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)' }} /> : null;
         return (
-            <CustomGridView
-                config={config}
-                value={draft}
-                extraComponents={{
-                    input: inputEl,
-                    submit: renderSubmitButton(true),
-                    icon: iconEl,
-                }}
-            />
+            <div className="relative w-full h-full">
+                <CustomGridView
+                    config={config}
+                    value={draft}
+                    extraComponents={{
+                        input: inputEl,
+                        submit: renderSubmitButton(true),
+                        icon: iconEl,
+                    }}
+                />
+                {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
+            </div>
         );
     }
 
     if (layout === 'compact') {
         return (
-            <div className="aura-widget-row flex items-center h-full gap-2">
+            <div className="aura-widget-row flex items-center h-full gap-2" style={{ position: 'relative' }}>
                 {(showTitle || showIcon) && (
                     <div className="flex items-center gap-2 shrink-0 min-w-0 max-w-[50%]">
                         {showIcon && (
@@ -192,12 +211,13 @@ export function InputWidget({ config }: WidgetProps) {
                     {inputEl}
                 </div>
                 {submitButton}
+                {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
             </div>
         );
     }
 
     return (
-        <div className="aura-widget-row flex flex-col h-full gap-1.5">
+        <div className="aura-widget-row flex flex-col h-full gap-1.5" style={{ position: 'relative' }}>
             {(showTitle || showIcon) && (
                 <div className="flex items-center gap-2 shrink-0">
                     {showIcon && (
@@ -231,6 +251,7 @@ export function InputWidget({ config }: WidgetProps) {
                 {!multiline && submitButton}
             </div>
             {multiline && submitButton && <div className="flex justify-end shrink-0">{submitButton}</div>}
+            {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
         </div>
     );
 }
