@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.12.1 (2026-06-29)
+Release v0.12.1
+
 ## 0.12.0 (2026-06-29)
 - 🌟 **New feature:** Badges - add configurable badges (colored dot, datapoint count, or label/icon) that sit on the edge of widgets, groups and tabs; visible always or when a condition is met, with a free corner position
 - 🌟 **New feature:** Tabs - optional aggregate badge counting how many widgets on a tab currently show a badge
