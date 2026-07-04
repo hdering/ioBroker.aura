@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.17.5",
+    "version": "0.18.0",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.18.0": {
+        "en": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
+        "de": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
+        "ru": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
+        "pt": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
+        "nl": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
+        "fr": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
+        "it": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
+        "es": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
+        "pl": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
+        "uk": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
+        "zh-cn": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)"
+      },
       "0.17.5": {
         "en": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
         "de": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings).",
         "uk": "🌟 New feature: Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings).",
         "zh-cn": "🌟 New feature: Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings)."
-      },
-      "0.16.0": {
-        "en": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
-        "de": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
-        "ru": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
-        "pt": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
-        "nl": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
-        "fr": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
-        "it": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
-        "es": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
-        "pl": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
-        "uk": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner",
-        "zh-cn": "🌟 New feature: Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner"
       }
     }
   },

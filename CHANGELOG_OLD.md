@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.11.5 (2026-06-28)
+- Widget menu - Copy/Move target list now uses 2–3 columns and grows to the right when there are many tabs, so entries no longer fall off the bottom of the screen
+
 ## 0.11.4 (2026-06-27)
 - Popups - removing a widget-type default in the backend now stops auto-linking the built-in popup (e.g. dimmers no longer force the Standard Dimmer popup)
 
