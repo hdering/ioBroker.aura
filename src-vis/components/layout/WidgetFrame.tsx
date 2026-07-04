@@ -14954,24 +14954,28 @@ export function WidgetFrame({
                                                 })}
                                             </div>
                                         </div>
-                                        {/* Senden-Button (nur im Submit-Modus relevant) */}
+                                        {/* Submit-Modus-Optionen — visuell als Untergruppe von "Nach Bestätigung" */}
                                         {submitMode === 'submit' && (
-                                            <div className="flex items-center justify-between">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Senden-Button anzeigen
-                                                </label>
-                                                <Toggle
-                                                    on={showSubmit}
-                                                    onClick={() => set({ showSubmit: !showSubmit })}
-                                                />
-                                            </div>
-                                        )}
-                                        {/* Sicherheitsabfrage (nur im Submit-Modus relevant) */}
-                                        {submitMode === 'submit' && (
-                                            <>
+                                            <div
+                                                className="flex flex-col gap-2"
+                                                style={{
+                                                    borderLeft: '2px solid var(--app-border)',
+                                                    paddingLeft: 10,
+                                                    marginLeft: 2,
+                                                }}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <label
+                                                        className="text-[11px]"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Senden-Button anzeigen
+                                                    </label>
+                                                    <Toggle
+                                                        on={showSubmit}
+                                                        onClick={() => set({ showSubmit: !showSubmit })}
+                                                    />
+                                                </div>
                                                 <div className="flex items-center justify-between">
                                                     <div>
                                                         <label
@@ -14993,7 +14997,13 @@ export function WidgetFrame({
                                                     />
                                                 </div>
                                                 {o.confirmAction === true && (
-                                                    <div>
+                                                    <div
+                                                        style={{
+                                                            borderLeft: '2px solid var(--app-border)',
+                                                            paddingLeft: 10,
+                                                            marginLeft: 2,
+                                                        }}
+                                                    >
                                                         <label
                                                             className="text-[11px] mb-1 block"
                                                             style={{ color: 'var(--text-secondary)' }}
@@ -15012,7 +15022,7 @@ export function WidgetFrame({
                                                         />
                                                     </div>
                                                 )}
-                                            </>
+                                            </div>
                                         )}
                                         {/* Platzhalter */}
                                         <div>

@@ -1750,8 +1750,12 @@ export function CustomCellEditor({
                             })}
                         </div>
                     </div>
+                    {/* Submit-Modus-Optionen — visuell als Untergruppe von "Nach Bestätigung" */}
                     {(cell.submitMode ?? 'submit') === 'submit' && (
-                        <>
+                        <div
+                            className="flex flex-col gap-2"
+                            style={{ borderLeft: '2px solid var(--app-border)', paddingLeft: 10, marginLeft: 2 }}
+                        >
                             <div className="flex items-center justify-between">
                                 <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                     Senden-Button anzeigen
@@ -1801,7 +1805,14 @@ export function CustomCellEditor({
                                     </button>
                                 </div>
                                 {cell.confirmAction && (
-                                    <div className="mt-2">
+                                    <div
+                                        className="mt-2"
+                                        style={{
+                                            borderLeft: '2px solid var(--app-border)',
+                                            paddingLeft: 10,
+                                            marginLeft: 2,
+                                        }}
+                                    >
                                         <label
                                             className="text-[11px] mb-1 block"
                                             style={{ color: 'var(--text-secondary)' }}
@@ -1819,7 +1830,7 @@ export function CustomCellEditor({
                                     </div>
                                 )}
                             </div>
-                        </>
+                        </div>
                     )}
                 </>
             )}
