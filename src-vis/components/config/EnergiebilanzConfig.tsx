@@ -376,7 +376,17 @@ function BarSection({
     const entries = bar.entries ?? [];
 
     const setEntries = (next: EnergyEntry[]) => onUpdate({ entries: next });
-    const addEntry = () => setEntries([...entries, { id: generateId(), datapointId: '', aggregate: 'last' }]);
+    const addEntry = () =>
+        setEntries([
+            ...entries,
+            {
+                id: generateId(),
+                datapointId: '',
+                aggregate: 'last',
+                // Persist the cycled default so the config swatch matches the bar rendering.
+                color: DEFAULT_COLORS[entries.length % DEFAULT_COLORS.length],
+            },
+        ]);
     const updateEntry = (id: string, patch: Partial<EnergyEntry>) =>
         setEntries(entries.map((e) => (e.id === id ? { ...e, ...patch } : e)));
     const removeEntry = (id: string) => setEntries(entries.filter((e) => e.id !== id));
