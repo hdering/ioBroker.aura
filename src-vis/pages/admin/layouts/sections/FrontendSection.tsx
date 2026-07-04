@@ -49,10 +49,7 @@ function ToggleRow({
 /** Indented, accent-bordered container that visually groups the sub-settings of an enabled toggle. */
 function SubGroup({ children }: { children: React.ReactNode }) {
     return (
-        <div
-            className="ml-1.5 pl-3 my-1 py-1 space-y-2 border-l-2"
-            style={{ borderColor: 'var(--accent)' }}
-        >
+        <div className="ml-1.5 pl-3 my-1 py-1 space-y-2 border-l-2" style={{ borderColor: 'var(--accent)' }}>
             {children}
         </div>
     );
