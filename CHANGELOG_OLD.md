@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.14.1 (2026-07-01)
+- Badges - renamed to "Marker" in the German UI
+
 ## 0.14.0 (2026-06-30)
 - 🌟 **New feature:** Dynamic List - optionally group datapoints by room with the room name as a section heading
 - 🌟 **New feature:** Dynamic List - room section headings now support custom font size, text color and background color

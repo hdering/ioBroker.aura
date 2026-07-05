@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.18.4",
+    "version": "0.18.5",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.18.5": {
+        "en": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
+        "de": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
+        "ru": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
+        "pt": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
+        "nl": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
+        "fr": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
+        "it": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
+        "es": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
+        "pl": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
+        "uk": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
+        "zh-cn": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\""
+      },
       "0.18.4": {
         "en": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
         "de": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
@@ -184,19 +197,6 @@
         "pl": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
         "uk": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
         "zh-cn": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default"
-      },
-      "0.17.4": {
-        "en": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)",
-        "de": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)",
-        "ru": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)",
-        "pt": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)",
-        "nl": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)",
-        "fr": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)",
-        "it": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)",
-        "es": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)",
-        "pl": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)",
-        "uk": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)",
-        "zh-cn": "Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)"
       }
     }
   },
