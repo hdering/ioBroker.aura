@@ -1343,6 +1343,47 @@ export function CustomCellEditor({
                             })}
                         </div>
                     </div>
+                    {/* Dezimalstellen — only relevant when the value display is on */}
+                    {(cell.valuePosition ?? 'none') !== 'none' && (
+                        <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                Dezimalstellen
+                            </label>
+                            <div className="flex gap-1">
+                                <input
+                                    type="number"
+                                    min={0}
+                                    max={6}
+                                    step={1}
+                                    disabled={cell.decimals === undefined}
+                                    value={cell.decimals ?? defaultDecimals}
+                                    onChange={(e) => onChange({ decimals: Number(e.target.value) })}
+                                    className="w-16 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                    style={{ ...inputSty, opacity: cell.decimals === undefined ? 0.5 : 1 }}
+                                />
+                                <button
+                                    onClick={() =>
+                                        onChange({
+                                            decimals: cell.decimals === undefined ? defaultDecimals : undefined,
+                                        })
+                                    }
+                                    title={
+                                        cell.decimals === undefined
+                                            ? 'Globale Einstellung aktiv – klicken für eigenen Wert'
+                                            : 'Auf globale Einstellung zurücksetzen'
+                                    }
+                                    className="text-[10px] px-2 py-1 rounded-lg shrink-0"
+                                    style={{
+                                        background: cell.decimals === undefined ? 'var(--accent)' : 'var(--app-border)',
+                                        color: cell.decimals === undefined ? '#fff' : 'var(--text-secondary)',
+                                        border: 'none',
+                                    }}
+                                >
+                                    Global
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
