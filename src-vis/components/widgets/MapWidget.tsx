@@ -283,11 +283,16 @@ function FollowMarkers({
     useEffect(() => {
         if (!enabled || list.length === 0) return;
         let cancelled = false;
+        // Whether a fit has already succeeded for the CURRENT positions (this effect
+        // run). Once true we stop re-fitting on resize so a user/grid resize doesn't
+        // abort in-flight tiles and blank the map. Reset whenever `key` changes.
+        let fitted = false;
         const fit = () => {
-            if (cancelled || !map) return;
+            if (cancelled || fitted || !map) return;
             // Guard against a not-yet-laid-out container: getSize() returns 0 (or NaN)
             // before layout, and a NaN/0 size or zoom makes Leaflet try to load an
-            // infinite number of tiles and throw.
+            // infinite number of tiles and throw. Leave `fitted` false so the resize
+            // listener below re-attempts once the container has a real size.
             const size = map.getSize();
             if (!size.x || !size.y) return;
             const hasMax = Number.isFinite(maxZoom);
@@ -303,17 +308,25 @@ function FollowMarkers({
                     if (bounds.isValid())
                         map.fitBounds(bounds, { padding: [30, 30], maxZoom: hasMax ? (maxZoom as number) : 16 });
                 }
+                fitted = true;
             } catch {
-                // Transient layout/zoom race — re-fit happens when positions change.
+                // Transient layout/zoom race — leave `fitted` false so the next
+                // resize (or a positions change) re-attempts.
             }
         };
         // Fit once the map is ready and again whenever marker positions change (the
-        // effect re-runs because `key` is in the deps). Deliberately NOT tied to the
-        // map 'resize' event — re-setting the view on every resize aborts in-flight
-        // tile requests and leaves the map blank.
+        // effect re-runs because `key` is in the deps). Also re-attempt on 'resize'
+        // UNTIL the first successful fit: a position resolved from the prefetch cache
+        // before the grid lays the container out makes the initial fit bail on a
+        // 0-size container; without this retry the map would stay on the default
+        // center until the next position change (looks like "map never centers").
+        // After the first success `fitted` short-circuits further resize fits, so a
+        // normal user/grid resize still does NOT re-fit (which would abort tiles).
         map.whenReady(fit);
+        map.on('resize', fit);
         return () => {
             cancelled = true;
+            map.off('resize', fit);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [key, enabled, maxZoom]);
