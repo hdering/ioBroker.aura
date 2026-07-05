@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.19.1",
+    "version": "0.19.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.19.2": {
+        "en": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
+        "de": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
+        "ru": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
+        "pt": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
+        "nl": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
+        "fr": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
+        "it": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
+        "es": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
+        "pl": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
+        "uk": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
+        "zh-cn": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled"
+      },
       "0.19.1": {
         "en": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
         "de": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
@@ -184,19 +197,6 @@
         "pl": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout",
         "uk": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout",
         "zh-cn": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout"
-      },
-      "0.18.1": {
-        "en": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
-        "de": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
-        "ru": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
-        "pt": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
-        "nl": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
-        "fr": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
-        "it": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
-        "es": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
-        "pl": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
-        "uk": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
-        "zh-cn": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step"
       }
     }
   },
