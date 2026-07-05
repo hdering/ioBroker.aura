@@ -57,6 +57,8 @@ const EChartsPresetWidget = lazyWithReload(() =>
 );
 // MapWidget is heavy (leaflet) — lazy-loaded like the chart widgets.
 const MapWidget = lazyWithReload(() => import('./MapWidget').then((m) => ({ default: m.MapWidget })));
+// LoadTimesWidget pulls in recharts — lazy-load it like the other chart widgets.
+const LoadTimesWidget = lazyWithReload(() => import('./LoadTimesWidget').then((m) => ({ default: m.LoadTimesWidget })));
 
 export function getWidgetMap() {
     return {
@@ -110,6 +112,7 @@ export function getWidgetMap() {
         button: ButtonWidget,
         map: MapWidget,
         statusoverview: StatusOverviewWidget,
+        loadtimes: LoadTimesWidget,
     } as const;
 }
 

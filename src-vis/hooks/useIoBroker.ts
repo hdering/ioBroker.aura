@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { ioBrokerState, ObjectViewResult } from '../types';
 import { version as appVersion } from '../../package.json';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
+import { NS } from '../utils/namespace';
 
 interface IoBrokerSocket {
     connected: boolean;
@@ -45,6 +46,11 @@ export interface LogEntry {
 let socket: IoBrokerSocket | null = null;
 const subscribers = new Map<string, Set<(state: ioBrokerState) => void>>();
 const connectionListeners = new Set<(connected: boolean) => void>();
+
+// Perf: time from (re)connect to the first live stateChange — a proxy for how
+// quickly the dashboard receives usable data. Reported once per connection.
+let connectPerfMark = 0;
+let firstStateReported = false;
 
 // Last-known-good state for every ID that was ever fetched or received.
 // Allows useDatapoint to initialize synchronously (no null-flash on mount).
@@ -193,6 +199,8 @@ function createSocket(url: string): IoBrokerSocket {
     const handleConnected = (reconnected: boolean): void => {
         if (connectionActive) return;
         connectionActive = true;
+        connectPerfMark = typeof performance !== 'undefined' ? performance.now() : 0;
+        firstStateReported = false;
         console.log(
             `%c Aura %c v${appVersion} %c ${reconnected ? 'reconnected' : 'connected'} %c ${url} `,
             'background:#6366f1;color:#fff;font-weight:bold;border-radius:3px 0 0 3px;padding:2px 6px;',
@@ -234,6 +242,22 @@ function createSocket(url: string): IoBrokerSocket {
         const state = args[1] as ioBrokerState;
         if (state) stateCache.set(id, state);
         subscribers.get(id)?.forEach((fn) => fn(state));
+        // Perf: first live data after connect. Reported inline (rather than via
+        // perfMetrics) to avoid an import cycle back into this module.
+        if (!firstStateReported && connectPerfMark > 0 && typeof performance !== 'undefined') {
+            firstStateReported = true;
+            const shot = typeof window !== 'undefined' && Boolean((window as { __auraShot?: unknown }).__auraShot);
+            if (!shot) {
+                const dt = performance.now() - connectPerfMark;
+                if (dt >= 0) {
+                    void sendToDirect(NS, 'perfLog', {
+                        metric: 'socketToFirstState',
+                        value: Math.round(dt),
+                        ts: Date.now(),
+                    });
+                }
+            }
+        }
     });
 
     return s;

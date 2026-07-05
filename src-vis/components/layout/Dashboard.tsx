@@ -15,6 +15,7 @@ import type { Tab } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
 import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
+import { reportMetric } from '../../utils/perfMetrics';
 
 // Default gap — overridden by config at runtime
 const DEFAULT_MARGIN = 10;
@@ -76,6 +77,27 @@ export function Dashboard({
         if (!activeTabId) return;
         setMountedTabIds((prev) => (prev.has(activeTabId) ? prev : new Set(prev).add(activeTabId)));
     }, [activeTabId]);
+
+    // Perf: measure tab-switch latency in the live frontend (skip the initial
+    // tab and the admin editor). Two rAFs → after the switched-in tab has painted.
+    const tabSwitchFirstRef = useRef(true);
+    useEffect(() => {
+        if (editMode || !activeTabId) return;
+        if (tabSwitchFirstRef.current) {
+            tabSwitchFirstRef.current = false;
+            return;
+        }
+        if (typeof performance === 'undefined' || typeof requestAnimationFrame === 'undefined') return;
+        const start = performance.now();
+        const raf2 = { id: 0 };
+        const raf1 = requestAnimationFrame(() => {
+            raf2.id = requestAnimationFrame(() => reportMetric('tabSwitch', performance.now() - start));
+        });
+        return () => {
+            cancelAnimationFrame(raf1);
+            if (raf2.id) cancelAnimationFrame(raf2.id);
+        };
+    }, [activeTabId, editMode]);
 
     const reflowHiddenIds = useReflowHiddenIds();
     // Raw condition verdict (works in edit mode too) — drives group auto-shrink.

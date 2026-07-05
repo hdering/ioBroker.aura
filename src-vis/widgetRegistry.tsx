@@ -55,6 +55,7 @@ import {
     GalleryThumbnails,
     MapPin,
     Scale,
+    Activity,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -712,6 +713,20 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'special',
         mock: { t: 'Adapter-Logs', v: '' },
         hint: 'Live-Log-Stream aller Adapter — Filter nach Schweregrad (debug/info/warn/error), Adapter und Freitext',
+    },
+    {
+        type: 'loadtimes',
+        label: 'Ladezeiten',
+        shortLabel: 'Ladezeit',
+        Icon: Activity,
+        iconName: 'Activity',
+        color: '#22c55e',
+        defaultW: 12,
+        defaultH: 7,
+        addMode: 'free',
+        widgetGroup: 'special',
+        mock: { t: 'Ladezeiten', v: '' },
+        hint: 'Verlauf der Frontend-Ladezeiten (Initial-Load, First Paint, Socket→DP, Tab-Wechsel, Long-Tasks)',
     },
     {
         type: 'input',

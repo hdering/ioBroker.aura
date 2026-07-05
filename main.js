@@ -1681,6 +1681,67 @@ class Aura extends utils.Adapter {
             this.log.warn(`[adapter-logs] requireLog failed: ${e?.message ?? e}`);
         }
 
+        // ── Frontend load-time metrics ─────────────────────────────────────────────
+        // The frontend measures its own load performance (initial load, paint,
+        // socket warm-up, tab switches, long tasks) and posts samples via
+        // sendTo('perfLog'). We keep a persisted ring buffer — analogous to the log
+        // relay above — that the "Ladezeiten" widget reads back through
+        // getLoadHistory, and mirror each metric's latest value into aura.0.metrics.*
+        // so it is visible in the object tree and can optionally be historised by a
+        // history adapter.
+        this._perfBuffer = [];
+        this._perfSeq = 0;
+        this._perfBufferLimit = 1000;
+        this._perfDirty = false;
+        this._perfPersistTimer = null;
+        const PERF_METRICS = {
+            initialLoad: 'Initial page load (navigation → loadEventEnd)',
+            firstContentfulPaint: 'First contentful paint',
+            socketToFirstState: 'WebSocket connect → first state',
+            tabSwitch: 'Tab switch (activation → rendered)',
+            longTaskMax: 'Longest long-task in session',
+        };
+        this._perfMetricKeys = Object.keys(PERF_METRICS);
+        try {
+            await this.setObjectNotExistsAsync('metrics', {
+                type: 'channel',
+                common: { name: 'Frontend load-time metrics' },
+                native: {},
+            });
+            for (const [key, name] of Object.entries(PERF_METRICS)) {
+                await this.setObjectNotExistsAsync(`metrics.${key}`, {
+                    type: 'state',
+                    common: { name, type: 'number', role: 'value', unit: 'ms', read: true, write: false, def: 0 },
+                    native: {},
+                });
+            }
+            // Meta namespace for the persisted history file (like `backups` above).
+            await this.setObjectNotExistsAsync('perfdata', {
+                type: 'meta',
+                common: { name: 'Load-time history files', type: 'meta.user' },
+                native: {},
+            });
+            // Seed the ring buffer from the persisted history so the chart keeps its
+            // trend across adapter restarts.
+            try {
+                const raw = await this.readFileAsync(`${this.namespace}.perfdata`, 'loadHistory.json');
+                const blob = raw && raw.file != null ? raw.file : raw;
+                const text = Buffer.isBuffer(blob) ? blob.toString('utf8') : typeof blob === 'string' ? blob : null;
+                if (text) {
+                    const parsed = JSON.parse(text);
+                    if (Array.isArray(parsed)) {
+                        this._perfBuffer = parsed.slice(-this._perfBufferLimit);
+                        this._perfSeq = this._perfBuffer.reduce((mx, e) => Math.max(mx, e?.seq | 0), 0);
+                    }
+                }
+            } catch {
+                /* no history yet — ignore */
+            }
+            this.log.info(`[perf] load-time metrics ready (${this._perfBuffer.length} historical sample(s))`);
+        } catch (e) {
+            this.log.warn(`[perf] metrics init failed: ${e?.message ?? e}`);
+        }
+
         // Update localLinks to point to the aura HTTP server port
         {
             const base = this.config.customUrl ? this.config.customUrl.replace(/\/+$/, '') : null;
@@ -2159,6 +2220,49 @@ class Aura extends utils.Adapter {
                 return;
             }
 
+            if (msg.command === 'perfLog') {
+                const m = msg.message || {};
+                const metric = String(m.metric || '');
+                const value = Number(m.value);
+                if (!this._perfMetricKeys || !this._perfMetricKeys.includes(metric) || !Number.isFinite(value)) {
+                    reply({ ok: false, error: 'invalid metric or value' });
+                    return;
+                }
+                if (!Array.isArray(this._perfBuffer)) this._perfBuffer = [];
+                this._perfSeq = (this._perfSeq + 1) | 0;
+                const entry = {
+                    seq: this._perfSeq,
+                    ts: typeof m.ts === 'number' ? m.ts : Date.now(),
+                    metric,
+                    value: Math.round(value * 100) / 100,
+                };
+                this._perfBuffer.push(entry);
+                if (this._perfBuffer.length > this._perfBufferLimit) {
+                    this._perfBuffer.splice(0, this._perfBuffer.length - this._perfBufferLimit);
+                }
+                try {
+                    await this.setStateAsync(`metrics.${metric}`, { val: entry.value, ack: true });
+                } catch (e) {
+                    this.log.debug(`[perf] setState metrics.${metric} failed: ${e?.message ?? e}`);
+                }
+                this._perfSchedulePersist();
+                reply({ ok: true, seq: entry.seq });
+                return;
+            }
+
+            if (msg.command === 'getLoadHistory') {
+                const m = msg.message || {};
+                const sinceSeq = Number(m.sinceSeq) || 0;
+                const limit = Math.max(1, Math.min(5000, Number(m.limit) || this._perfBufferLimit || 1000));
+                const metricFilter = typeof m.metric === 'string' && m.metric ? m.metric : null;
+                let entries = (this._perfBuffer || []).slice();
+                if (sinceSeq > 0) entries = entries.filter((e) => e.seq > sinceSeq);
+                if (metricFilter) entries = entries.filter((e) => e.metric === metricFilter);
+                if (entries.length > limit) entries = entries.slice(entries.length - limit);
+                reply({ ok: true, entries, latestSeq: this._perfSeq || 0 });
+                return;
+            }
+
             if (msg.command === 'setScriptEnabled') {
                 const id = String(msg.message?.id || '').trim();
                 const enabled = !!msg.message?.enabled;
@@ -2237,7 +2341,42 @@ class Aura extends utils.Adapter {
         }
     }
 
+    // Debounced persistence of the load-time ring buffer to the perfdata meta file.
+    _perfSchedulePersist() {
+        this._perfDirty = true;
+        if (this._perfPersistTimer) return;
+        this._perfPersistTimer = this.setTimeout(() => {
+            this._perfPersistTimer = null;
+            void this._perfPersistNow();
+        }, 5000);
+    }
+
+    async _perfPersistNow() {
+        if (!this._perfDirty) return;
+        this._perfDirty = false;
+        try {
+            await this.writeFileAsync(
+                `${this.namespace}.perfdata`,
+                'loadHistory.json',
+                JSON.stringify(this._perfBuffer || []),
+            );
+        } catch (e) {
+            this.log.warn(`[perf] persist failed: ${e?.message ?? e}`);
+        }
+    }
+
     onUnload(callback) {
+        const finish = () => {
+            try {
+                if (this._httpServer) {
+                    this._httpServer.close(() => callback());
+                } else {
+                    callback();
+                }
+            } catch {
+                callback();
+            }
+        };
         try {
             try {
                 this.requireLog(false);
@@ -2248,10 +2387,15 @@ class Aura extends utils.Adapter {
                 this.clearInterval(this._timerInterval);
                 this._timerInterval = null;
             }
-            if (this._httpServer) {
-                this._httpServer.close(() => callback());
+            if (this._perfPersistTimer) {
+                this.clearTimeout(this._perfPersistTimer);
+                this._perfPersistTimer = null;
+            }
+            // Flush any pending load-time samples before shutting down.
+            if (this._perfDirty) {
+                this._perfPersistNow().finally(finish);
             } else {
-                callback();
+                finish();
             }
         } catch {
             callback();

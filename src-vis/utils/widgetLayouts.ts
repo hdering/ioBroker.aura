@@ -14,6 +14,7 @@ const NO_CUSTOM = new Set([
     'adapterstatus',
     'scriptstatus',
     'adapterlogs',
+    'loadtimes',
     'alarm',
 ]);
 
@@ -41,6 +42,7 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
         case 'adapterstatus':
         case 'scriptstatus':
         case 'adapterlogs':
+        case 'loadtimes':
         case 'alarm':
         case 'map':
         case 'energiebilanz':

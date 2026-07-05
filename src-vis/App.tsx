@@ -38,6 +38,7 @@ import { markGroupDefsHydrated } from './store/groupDefsStore';
 import { usePopupConfigStore } from './store/popupConfigStore';
 import { NS } from './utils/namespace';
 import { baseDpId } from './utils/dpRef';
+import { initPerfMetrics } from './utils/perfMetrics';
 
 // Module-level cache of the active themeMode.frontend DP override. Lets the
 // DP listener win over delayed config rehydrations and the followBrowser
@@ -222,6 +223,11 @@ export default function App() {
     const clearLayoutSettings = useDashboardStore((s) => s.clearLayoutSettings);
     const { connected, subscribe } = useIoBroker();
     const { clientId, clientName } = useConnectionStore();
+
+    // Wire up passive frontend load-time metrics (initial load, FCP, long tasks).
+    useEffect(() => {
+        initPerfMetrics();
+    }, []);
 
     // Determine which layout to display based on URL slug
     const layout = useLayoutBySlug(layoutSlug);

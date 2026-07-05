@@ -60,6 +60,7 @@ export type WidgetType =
     | 'adapterstatus'
     | 'scriptstatus'
     | 'adapterlogs'
+    | 'loadtimes'
     | 'input'
     | 'alarm'
     | 'map'

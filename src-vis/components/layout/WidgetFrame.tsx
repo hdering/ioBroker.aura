@@ -110,6 +110,10 @@ const EChartsPresetWidget = lazyWithReload(() =>
 // Map widget pulls in Leaflet (~150 KB + CSS) — lazy-load so only dashboards with a
 // map widget pay for it.
 const MapWidget = lazyWithReload(() => import('../widgets/MapWidget').then((m) => ({ default: m.MapWidget })));
+// LoadTimesWidget pulls in recharts — lazy-load like the other chart widgets.
+const LoadTimesWidget = lazyWithReload(() =>
+    import('../widgets/LoadTimesWidget').then((m) => ({ default: m.LoadTimesWidget })),
+);
 import { ListWidget } from '../widgets/ListWidget';
 import { ClockWidget } from '../widgets/ClockWidget';
 import { CalendarWidget, getSources, DEFAULT_CAL_COLORS, type CalendarSource } from '../widgets/CalendarWidget';
@@ -258,6 +262,7 @@ const NO_CUSTOM_LAYOUT_TYPES: WidgetType[] = [
     'adapterstatus',
     'scriptstatus',
     'adapterlogs',
+    'loadtimes',
     'alarm',
     'map',
     'statusoverview',
@@ -336,6 +341,7 @@ function getWidgetMap() {
         map: MapWidget,
         statusoverview: StatusOverviewWidget,
         energiebilanz: EnergiebilanzWidget,
+        loadtimes: LoadTimesWidget,
     } as const;
 }
 
@@ -11328,6 +11334,126 @@ export function WidgetFrame({
                                             def={true}
                                             hint="Zeilen abwechselnd einfärben"
                                         />
+                                    </>
+                                );
+                            })()}
+
+                        {/* ── Ladezeiten config ── */}
+                        {config.type === 'loadtimes' &&
+                            (() => {
+                                const o = config.options ?? {};
+                                const set = (patch: Record<string, unknown>) =>
+                                    onConfigChange({ ...config, options: { ...o, ...patch } });
+                                const lCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
+                                const lSty = {
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid var(--app-border)',
+                                };
+                                const METRIC_OPTS: { key: string; label: string; color: string }[] = [
+                                    { key: 'initialLoad', label: 'Initial-Load', color: '#3b82f6' },
+                                    { key: 'firstContentfulPaint', label: 'First Paint', color: '#10b981' },
+                                    { key: 'socketToFirstState', label: 'Socket → 1. DP', color: '#f59e0b' },
+                                    { key: 'tabSwitch', label: 'Tab-Wechsel', color: '#a855f7' },
+                                    { key: 'longTaskMax', label: 'Long-Task max', color: '#ef4444' },
+                                ];
+                                const allKeys = METRIC_OPTS.map((m) => m.key);
+                                const metrics =
+                                    Array.isArray(o.metrics) && (o.metrics as string[]).length > 0
+                                        ? (o.metrics as string[])
+                                        : allKeys;
+                                const toggleMetric = (k: string) => {
+                                    const next = metrics.includes(k) ? metrics.filter((m) => m !== k) : [...metrics, k];
+                                    set({ metrics: next.length > 0 ? next : allKeys });
+                                };
+                                const timeWindow = (o.timeWindow as string) ?? '24h';
+                                const chartType = (o.chartType as string) ?? 'line';
+                                const showLegend = (o.showLegend as boolean | undefined) ?? true;
+                                return (
+                                    <>
+                                        <div>
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Metriken <span className="opacity-60">(angezeigte Kurven)</span>
+                                            </label>
+                                            <div className="flex items-center gap-1 flex-wrap">
+                                                {METRIC_OPTS.map(({ key, label, color }) => {
+                                                    const active = metrics.includes(key);
+                                                    return (
+                                                        <button
+                                                            key={key}
+                                                            onClick={() => toggleMetric(key)}
+                                                            className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                                            style={{
+                                                                background: active ? color : 'var(--app-bg)',
+                                                                color: active ? '#fff' : 'var(--text-secondary)',
+                                                                border: `1px solid ${active ? color : 'var(--app-border)'}`,
+                                                            }}
+                                                        >
+                                                            {label}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Zeitfenster
+                                                </label>
+                                                <select
+                                                    value={timeWindow}
+                                                    onChange={(e) => set({ timeWindow: e.target.value })}
+                                                    className={lCls}
+                                                    style={lSty}
+                                                >
+                                                    <option value="1h">1 Stunde</option>
+                                                    <option value="6h">6 Stunden</option>
+                                                    <option value="24h">24 Stunden</option>
+                                                    <option value="7d">7 Tage</option>
+                                                    <option value="all">Alles</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Diagrammtyp
+                                                </label>
+                                                <select
+                                                    value={chartType}
+                                                    onChange={(e) => set({ chartType: e.target.value })}
+                                                    className={lCls}
+                                                    style={lSty}
+                                                >
+                                                    <option value="line">Linie</option>
+                                                    <option value="area">Fläche</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                                Legende anzeigen
+                                            </label>
+                                            <button
+                                                onClick={() => set({ showLegend: !showLegend })}
+                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                style={{
+                                                    background: showLegend ? 'var(--accent)' : 'var(--app-border)',
+                                                }}
+                                            >
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{ left: showLegend ? '18px' : '2px' }}
+                                                />
+                                            </button>
+                                        </div>
                                     </>
                                 );
                             })()}
