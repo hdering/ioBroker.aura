@@ -42,6 +42,9 @@ import { InputWidget } from './InputWidget';
 import { AlarmWidget } from './AlarmWidget';
 import { ChipsWidget } from './ChipsWidget';
 import { EnergiebilanzWidget } from './EnergiebilanzWidget';
+import { HttpRequestWidget } from './HttpRequestWidget';
+import { ButtonWidget } from './ButtonWidget';
+import { StatusOverviewWidget } from './StatusOverviewWidget';
 
 // Chart widgets are heavy (recharts ~380 KB, echarts ~1.1 MB) — lazy-loaded so
 // dashboards without charts skip the cost. Consumers must render these inside
@@ -52,6 +55,8 @@ const EChartWidget = lazyWithReload(() => import('./EChartWidget').then((m) => (
 const EChartsPresetWidget = lazyWithReload(() =>
     import('./EChartsPresetWidget').then((m) => ({ default: m.EChartsPresetWidget })),
 );
+// MapWidget is heavy (leaflet) — lazy-loaded like the chart widgets.
+const MapWidget = lazyWithReload(() => import('./MapWidget').then((m) => ({ default: m.MapWidget })));
 
 export function getWidgetMap() {
     return {
@@ -101,6 +106,10 @@ export function getWidgetMap() {
         alarm: AlarmWidget,
         chips: ChipsWidget,
         energiebilanz: EnergiebilanzWidget,
+        httpRequest: HttpRequestWidget,
+        button: ButtonWidget,
+        map: MapWidget,
+        statusoverview: StatusOverviewWidget,
     } as const;
 }
 
