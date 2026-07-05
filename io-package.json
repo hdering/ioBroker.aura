@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.19.0",
+    "version": "0.19.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.19.1": {
+        "en": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
+        "de": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
+        "ru": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
+        "pt": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
+        "nl": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
+        "fr": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
+        "it": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
+        "es": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
+        "pl": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
+        "uk": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
+        "zh-cn": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view"
+      },
       "0.19.0": {
         "en": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend",
         "de": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend",
@@ -184,19 +197,6 @@
         "pl": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
         "uk": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step",
         "zh-cn": "Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)\nUniversal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode\nInput field - add a number input type with optional Min/Max/Step"
-      },
-      "0.18.0": {
-        "en": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
-        "de": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
-        "ru": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
-        "pt": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
-        "nl": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
-        "fr": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
-        "it": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
-        "es": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
-        "pl": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
-        "uk": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
-        "zh-cn": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)"
       }
     }
   },

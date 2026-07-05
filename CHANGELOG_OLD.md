@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.15.0 (2026-07-02)
+- 🌟 **New feature:** Status overview - new widget that automatically surfaces low batteries, open windows, lights left on, unreachable/offline devices and smoke/water alarms, with an "all clear" state and click-to-jump to the affected device; offers list/Card/Minimal layouts with per-category colors, shows battery type and count, uses robust reachability detection, and includes a battery-type assignment page to identify and manage battery devices
+
 ## 0.14.2 (2026-07-01)
 - Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)
 - Click action "Jump: Widget" now pulse-highlights and scrolls to the target widget after switching tabs
