@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.18.5",
+    "version": "0.19.0",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.19.0": {
+        "en": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend",
+        "de": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend",
+        "ru": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend",
+        "pt": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend",
+        "nl": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend",
+        "fr": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend",
+        "it": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend",
+        "es": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend",
+        "pl": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend",
+        "uk": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend",
+        "zh-cn": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend"
+      },
       "0.18.5": {
         "en": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
         "de": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
@@ -184,19 +197,6 @@
         "pl": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
         "uk": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)",
         "zh-cn": "Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts\nGeneral - adapter readme link now points to the online documentation instead of a dead iobroker.net page\n🌟 New feature: Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)"
-      },
-      "0.17.5": {
-        "en": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
-        "de": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
-        "ru": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
-        "pt": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
-        "nl": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
-        "fr": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
-        "it": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
-        "es": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
-        "pl": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
-        "uk": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default",
-        "zh-cn": "Groups - widgets keep their current size when dropped into a group instead of resetting to the type default"
       }
     }
   },

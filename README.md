@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.19.0 (2026-07-05)
+- 🌟 **New feature:** New "Load times" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend
+
+
 ### 0.18.5 (2026-07-05)
 - Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing "unknown type"
 
@@ -213,12 +217,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Status overview - new widget that automatically surfaces low batteries, open windows, lights left on, unreachable/offline devices and smoke/water alarms, with an "all clear" state and click-to-jump to the affected device; offers list/Card/Minimal layouts with per-category colors, shows battery type and count, uses robust reachability detection, and includes a battery-type assignment page to identify and manage battery devices
 
 
-### 0.14.2 (2026-07-01)
-- Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)
-- Click action "Jump: Widget" now pulse-highlights and scrolls to the target widget after switching tabs
-- Badges - renamed to "Marker" in the German UI
-
-
 ## License
 
 MIT License
@@ -230,6 +228,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.14.2 (2026-07-01)
+- Map - zoom level is now configurable (fixed zoom, or max-zoom cap when auto-centering on markers)
+- Click action "Jump: Widget" now pulse-highlights and scrolls to the target widget after switching tabs
+- Badges - renamed to "Marker" in the German UI
+
 ## 0.14.1 (2026-07-01)
 - Badges - renamed to "Marker" in the German UI
 
