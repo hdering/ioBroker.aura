@@ -37,6 +37,44 @@ function substituteWidget(w: WidgetConfig, map: Record<string, string>): WidgetC
     };
 }
 
+/**
+ * Build an `options` patch for persisting an in-popup widget edit (e.g. adding a
+ * Zeitschaltuhr event) back to the popup-view definition.
+ *
+ * The widget renders against a `{{key}}`-substituted config, so we must NOT write
+ * the substituted values back — that would bake resolved DPs into the shared view
+ * template. Instead we diff the widget's returned options against the substituted
+ * base and apply ONLY the changed keys onto the ORIGINAL (pre-substitution) options.
+ * Interactive widgets mutate placeholder-free keys (events, enabled, stateBaseId),
+ * so untouched keys keep their `{{...}}` placeholders intact.
+ *
+ * Returns null when nothing changed (avoids a no-op store write).
+ */
+function mergedOptionsPatch(
+    orig: WidgetConfig,
+    base: WidgetConfig,
+    next: WidgetConfig,
+): Record<string, unknown> | null {
+    const origOpts = (orig.options ?? {}) as Record<string, unknown>;
+    const baseOpts = (base.options ?? {}) as Record<string, unknown>;
+    const nextOpts = (next.options ?? {}) as Record<string, unknown>;
+    const merged: Record<string, unknown> = { ...origOpts };
+    let changed = false;
+    for (const k of Object.keys(nextOpts)) {
+        if (nextOpts[k] !== baseOpts[k]) {
+            merged[k] = nextOpts[k];
+            changed = true;
+        }
+    }
+    for (const k of Object.keys(baseOpts)) {
+        if (!(k in nextOpts)) {
+            delete merged[k];
+            changed = true;
+        }
+    }
+    return changed ? merged : null;
+}
+
 // ── History-instance inheritance ────────────────────────────────────────────────
 
 /** History adapter instance configured on the trigger widget — top-level (simple
@@ -109,6 +147,7 @@ interface Props {
 
 export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
     const view = usePopupConfigStore((s) => s.views.find((v) => v.id === viewId));
+    const updateWidgetInView = usePopupConfigStore((s) => s.updateWidgetInView);
     const settings = useEffectiveSettings();
     const cellSize = settings.gridRowHeight ?? 60;
     const snapX = settings.gridSnapX ?? settings.gridRowHeight ?? 60;
@@ -200,13 +239,23 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
                     margin={[MARGIN, MARGIN]}
                     containerPadding={[0, 0]}
                 >
-                    {widgets.map((w) => {
+                    {widgets.map((w, i) => {
                         const Widget = wm[w.type as keyof typeof wm];
+                        // Pre-substitution original — persist edits against it so
+                        // {{...}} placeholders in untouched option keys survive.
+                        const orig = view.widgets[i];
                         return (
                             <div key={w.id}>
                                 {Widget ? (
                                     <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
-                                        <Widget config={w} editMode={false} onConfigChange={() => {}} />
+                                        <Widget
+                                            config={w}
+                                            editMode={false}
+                                            onConfigChange={(next) => {
+                                                const patch = mergedOptionsPatch(orig, w, next);
+                                                if (patch) updateWidgetInView(view.id, orig.id, { options: patch });
+                                            }}
+                                        />
                                     </Suspense>
                                 ) : (
                                     <div

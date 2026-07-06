@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import type { WidgetConfig, ClickAction } from '../../../types';
 import { getWidgetMap } from '../widgetMap';
+import { useDashboardStore } from '../../../store/dashboardStore';
 
 interface Props {
     widget: WidgetConfig;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function WidgetEmbedBody({ widget, action, allWidgets }: Props) {
+    const updateWidget = useDashboardStore((s) => s.updateWidget);
     const targetId = action.widgetId;
     const target: WidgetConfig = targetId ? (allWidgets.find((w) => w.id === targetId) ?? widget) : widget;
 
@@ -59,7 +61,16 @@ export function WidgetEmbedBody({ widget, action, allWidgets }: Props) {
             }}
         >
             <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
-                <Widget config={embedConfig} editMode={false} onConfigChange={() => {}} />
+                <Widget
+                    config={embedConfig}
+                    editMode={false}
+                    onConfigChange={(next) => {
+                        // Persist only options — embedConfig overrides gridPos for the
+                        // popup layout, so writing the whole config back would clobber
+                        // the widget's real dashboard position.
+                        updateWidget(target.id, { options: next.options });
+                    }}
+                />
             </Suspense>
         </div>
     );
