@@ -658,7 +658,6 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
             {(
                 [
                     ['showBarTitles', 'Balken-Titel anzeigen'],
-                    ['showTotals', 'Summen anzeigen'],
                     ['showPercent', 'Prozent-Labels anzeigen'],
                     ['showLegend', 'Legende anzeigen'],
                 ] as [keyof EnergyBalanceOptions, string][]
@@ -681,90 +680,126 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                                 />
                             </button>
                         </div>
-                        {/* bar title + total alignment — indented sub-option of "Balken-Titel anzeigen" */}
+                        {/* sub-options that only take effect with bar titles shown */}
                         {key === 'showBarTitles' && val && (
                             <div
-                                className="mt-1.5 ml-1 pl-2"
+                                className="mt-1.5 ml-1 pl-2 space-y-1.5"
                                 style={{ borderLeft: '2px solid color-mix(in srgb, var(--accent) 45%, transparent)' }}
                             >
-                                <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                    Titel/Summe-Ausrichtung
-                                </label>
-                                <select
-                                    value={o.barTitleAlign ?? 'center'}
-                                    onChange={(e) =>
-                                        setO({ barTitleAlign: e.target.value as EnergyBalanceOptions['barTitleAlign'] })
-                                    }
-                                    className={inputCls}
-                                    style={inputStyle}
-                                >
-                                    <option value="left">Links</option>
-                                    <option value="center">Mitte</option>
-                                    <option value="right">Rechts</option>
-                                </select>
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                        Summen anzeigen
+                                    </label>
+                                    <button
+                                        onClick={() => setO({ showTotals: o.showTotals === false })}
+                                        className="relative w-9 h-5 rounded-full transition-colors"
+                                        style={{
+                                            background: o.showTotals !== false ? 'var(--accent)' : 'var(--app-border)',
+                                        }}
+                                    >
+                                        <span
+                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
+                                            style={{ left: o.showTotals !== false ? '18px' : '2px' }}
+                                        />
+                                    </button>
+                                </div>
+                                <div>
+                                    <label
+                                        className="text-[11px] block mb-0.5"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        Titel/Summe-Ausrichtung
+                                    </label>
+                                    <select
+                                        value={o.barTitleAlign ?? 'center'}
+                                        onChange={(e) =>
+                                            setO({
+                                                barTitleAlign: e.target.value as EnergyBalanceOptions['barTitleAlign'],
+                                            })
+                                        }
+                                        className={inputCls}
+                                        style={inputStyle}
+                                    >
+                                        <option value="left">Links</option>
+                                        <option value="center">Mitte</option>
+                                        <option value="right">Rechts</option>
+                                    </select>
+                                </div>
+                            </div>
+                        )}
+                        {/* legend sub-options — indented, only effective with legend shown */}
+                        {key === 'showLegend' && val && (
+                            <div
+                                className="mt-1.5 ml-1 pl-2 space-y-1.5"
+                                style={{ borderLeft: '2px solid color-mix(in srgb, var(--accent) 45%, transparent)' }}
+                            >
+                                <div>
+                                    <label
+                                        className="text-[11px] block mb-0.5"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        Legenden-Position
+                                    </label>
+                                    <select
+                                        value={o.legendSide ?? bars[0]?.legendSide ?? 'below'}
+                                        onChange={(e) =>
+                                            setO({ legendSide: e.target.value as EnergyBar['legendSide'] })
+                                        }
+                                        className={inputCls}
+                                        style={inputStyle}
+                                    >
+                                        <option value="left">Links</option>
+                                        <option value="right">Rechts</option>
+                                        <option value="below">Unten</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        className="text-[11px] block mb-0.5"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        Text-Ausrichtung
+                                    </label>
+                                    <select
+                                        value={
+                                            o.legendAlign ??
+                                            ((o.legendSide ?? bars[0]?.legendSide) === 'right' ? 'right' : 'left')
+                                        }
+                                        onChange={(e) =>
+                                            setO({ legendAlign: e.target.value as EnergyBalanceOptions['legendAlign'] })
+                                        }
+                                        className={inputCls}
+                                        style={inputStyle}
+                                    >
+                                        <option value="left">Linksbündig</option>
+                                        <option value="right">Rechtsbündig</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        className="text-[11px] block mb-0.5"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        Legenden-Inhalt
+                                    </label>
+                                    <select
+                                        value={o.legendFormat ?? 'icon-value'}
+                                        onChange={(e) => setO({ legendFormat: e.target.value as LegendFormat })}
+                                        className={inputCls}
+                                        style={inputStyle}
+                                    >
+                                        {LEGEND_FORMATS.map((f) => (
+                                            <option key={f.id} value={f.id}>
+                                                {f.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
                         )}
                     </div>
                 );
             })}
-
-            {/* legend position (applies to all bars) */}
-            {o.showLegend !== false && (
-                <div>
-                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        Legenden-Position
-                    </label>
-                    <select
-                        value={o.legendSide ?? bars[0]?.legendSide ?? 'below'}
-                        onChange={(e) => setO({ legendSide: e.target.value as EnergyBar['legendSide'] })}
-                        className={inputCls}
-                        style={inputStyle}
-                    >
-                        <option value="left">Links</option>
-                        <option value="right">Rechts</option>
-                        <option value="below">Unten</option>
-                    </select>
-                </div>
-            )}
-
-            {/* legend text alignment */}
-            {o.showLegend !== false && (
-                <div>
-                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        Text-Ausrichtung
-                    </label>
-                    <select
-                        value={o.legendAlign ?? ((o.legendSide ?? bars[0]?.legendSide) === 'right' ? 'right' : 'left')}
-                        onChange={(e) => setO({ legendAlign: e.target.value as EnergyBalanceOptions['legendAlign'] })}
-                        className={inputCls}
-                        style={inputStyle}
-                    >
-                        <option value="left">Linksbündig</option>
-                        <option value="right">Rechtsbündig</option>
-                    </select>
-                </div>
-            )}
-
-            {/* legend content format */}
-            {o.showLegend !== false && (
-                <div>
-                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        Legenden-Inhalt
-                    </label>
-                    <select
-                        value={o.legendFormat ?? 'icon-value'}
-                        onChange={(e) => setO({ legendFormat: e.target.value as LegendFormat })}
-                        className={inputCls}
-                        style={inputStyle}
-                    >
-                        {LEGEND_FORMATS.map((f) => (
-                            <option key={f.id} value={f.id}>
-                                {f.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            )}
         </div>
     );
 }
