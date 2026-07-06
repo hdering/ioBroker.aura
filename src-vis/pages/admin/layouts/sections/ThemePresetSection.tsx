@@ -9,7 +9,7 @@ interface ThemePresetSectionProps {
 
 export function ThemePresetSection({ contextId }: ThemePresetSectionProps) {
     const t = useT();
-    const { themeId, setTheme, resetCustom } = useThemeStore();
+    const { themeId, applyThemePreset } = useThemeStore();
     const layouts = useDashboardStore((s) => s.layouts);
     const updateLayoutSettings = useDashboardStore((s) => s.updateLayoutSettings);
     const clearLayoutSettings = useDashboardStore((s) => s.clearLayoutSettings);
@@ -36,8 +36,7 @@ export function ThemePresetSection({ contextId }: ThemePresetSectionProps) {
                         key={theme.id}
                         onClick={() => {
                             if (!contextId) {
-                                setTheme(theme.id);
-                                resetCustom();
+                                applyThemePreset(theme.id);
                             } else updateLayoutSettings(contextId, { themeId: theme.id, customVars: undefined });
                         }}
                         className="rounded-xl p-3 text-left transition-opacity hover:opacity-80 space-y-2.5"

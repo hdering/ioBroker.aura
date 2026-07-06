@@ -11,6 +11,7 @@ interface ThemeState {
     browserDarkThemeId: string;
     browserLightThemeId: string;
     setTheme: (id: string) => void;
+    applyThemePreset: (id: string) => void;
     setCustomVar: (key: keyof AllVars, value: string) => void;
     resetCustom: () => void;
     setAdminTheme: (id: string) => void;
@@ -29,6 +30,12 @@ export const useThemeStore = create<ThemeState>()(
             browserDarkThemeId: 'dark',
             browserLightThemeId: 'light',
             setTheme: (id) => set({ themeId: id }),
+            // Atomic preset switch: set the theme AND clear custom overrides in a
+            // single persist write. Doing this as two calls (setTheme + resetCustom)
+            // produced a byte-identical aura-theme blob on the second write whenever
+            // customVars was already empty, which managedStorage's no-op detection
+            // treated as a revert and cleared the just-set dirty flag → no save button.
+            applyThemePreset: (id) => set({ themeId: id, customVars: {} }),
             setCustomVar: (key, value) => set((s) => ({ customVars: { ...s.customVars, [key]: value } })),
             resetCustom: () => set({ customVars: {} }),
             setAdminTheme: (id) => set({ adminThemeId: id }),

@@ -25,7 +25,7 @@ function isColor(v: string) {
 }
 
 export function ThemeSelector() {
-    const { themeId, customVars, setTheme, setCustomVar, resetCustom } = useThemeStore();
+    const { themeId, customVars, applyThemePreset, setCustomVar, resetCustom } = useThemeStore();
     const [open, setOpen] = useState(false);
     const [tab, setTab] = useState<'presets' | 'custom'>('presets');
 
@@ -70,10 +70,7 @@ export function ThemeSelector() {
                             {THEMES.map((theme) => (
                                 <button
                                     key={theme.id}
-                                    onClick={() => {
-                                        setTheme(theme.id);
-                                        resetCustom();
-                                    }}
+                                    onClick={() => applyThemePreset(theme.id)}
                                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-opacity hover:opacity-80"
                                     style={{
                                         background: themeId === theme.id ? 'var(--accent)' + '22' : 'var(--app-bg)',
