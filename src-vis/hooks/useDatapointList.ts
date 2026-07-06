@@ -11,6 +11,11 @@ export interface DatapointEntry {
     rooms: string[]; // labels from enum.rooms.*
     funcs: string[]; // labels from enum.functions.*
     logging: string[]; // enabled logging adapter IDs, e.g. ['history.0', 'influxdb.0']
+    // false = the state's adapter instance is not enabled (disabled adapter, or an
+    // orphaned/manually-imported state with no matching instance). Hidden by default
+    // in the picker, shown when the user opts into "also show inactive". Undefined
+    // (e.g. synthetic entries) counts as active.
+    active?: boolean;
 }
 
 // Module-level cache – survives component mount/unmount
@@ -122,13 +127,17 @@ async function loadAll(): Promise<DatapointEntry[]> {
             // Some user DBs contain malformed state rows where row.value or
             // row.value.common is missing — filter them out here so the .map below
             // can dereference common safely.
-            if (!row?.value?.common) return false;
-            // e.g. "hm-rpc.0.ABC.STATE" → prefix "hm-rpc.0"
-            const dot2 = row.id.indexOf('.', row.id.indexOf('.') + 1);
-            const prefix = dot2 !== -1 ? row.id.slice(0, dot2) : row.id;
-            return enabledPrefixes.size === 0 || enabledPrefixes.has(prefix);
+            return !!row?.value?.common;
         })
         .map((row) => {
+            // e.g. "hm-rpc.0.ABC.STATE" → prefix "hm-rpc.0". A state belongs to an
+            // "active" instance when that prefix is an enabled adapter (or a built-in
+            // namespace). Inactive states (disabled adapters, orphaned/imported
+            // states with no instance) are kept but flagged so the picker can hide
+            // them by default.
+            const dot2 = row.id.indexOf('.', row.id.indexOf('.') + 1);
+            const prefix = dot2 !== -1 ? row.id.slice(0, dot2) : row.id;
+            const active = enabledPrefixes.has(prefix);
             // Check state ID and all parent paths (channel, device) – enum members
             // can reference any level of the object hierarchy, not just states directly.
             const parts = row.id.split('.');
@@ -179,6 +188,7 @@ async function loadAll(): Promise<DatapointEntry[]> {
                 rooms: [...roomsSet],
                 funcs: [...funcsSet],
                 logging,
+                active,
             };
         });
 }

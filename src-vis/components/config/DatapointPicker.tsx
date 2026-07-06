@@ -84,32 +84,39 @@ function DpModeBody({
     const [typeFilter, setTypeFilter] = useState('');
     const [unitFilter, setUnitFilter] = useState('');
     const [historyFilter, setHistoryFilter] = useState(false);
+    const [showInactive, setShowInactive] = useState(false);
     const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
     const [values, setValues] = useState<Map<string, unknown>>(new Map());
     const fetchedIds = useRef<Set<string>>(new Set());
 
-    const adapters = useMemo(
-        () => Array.from(new Set(datapoints.map((dp) => dp.id.split('.')[0]))).sort(),
-        [datapoints],
+    // States of disabled/uninstalled adapters (and orphaned/manually imported states
+    // with no matching instance) are hidden by default. The toggle reveals them so a
+    // freshly imported DP whose adapter isn't running yet can still be picked.
+    const hasInactive = useMemo(() => datapoints.some((dp) => dp.active === false), [datapoints]);
+    const base = useMemo(
+        () => (showInactive ? datapoints : datapoints.filter((dp) => dp.active !== false)),
+        [datapoints, showInactive],
     );
-    const rooms = useMemo(() => Array.from(new Set(datapoints.flatMap((dp) => dp.rooms))).sort(), [datapoints]);
-    const funcs = useMemo(() => Array.from(new Set(datapoints.flatMap((dp) => dp.funcs))).sort(), [datapoints]);
+
+    const adapters = useMemo(() => Array.from(new Set(base.map((dp) => dp.id.split('.')[0]))).sort(), [base]);
+    const rooms = useMemo(() => Array.from(new Set(base.flatMap((dp) => dp.rooms))).sort(), [base]);
+    const funcs = useMemo(() => Array.from(new Set(base.flatMap((dp) => dp.funcs))).sort(), [base]);
     const roles = useMemo(
-        () => Array.from(new Set(datapoints.map((dp) => dp.role).filter(Boolean) as string[])).sort(),
-        [datapoints],
+        () => Array.from(new Set(base.map((dp) => dp.role).filter(Boolean) as string[])).sort(),
+        [base],
     );
     const types = useMemo(() => {
-        const all = Array.from(new Set(datapoints.map((dp) => dp.type).filter(Boolean) as string[])).sort();
+        const all = Array.from(new Set(base.map((dp) => dp.type).filter(Boolean) as string[])).sort();
         return allowedTypes?.length ? all.filter((ty) => allowedTypes.includes(ty)) : all;
-    }, [datapoints, allowedTypes]);
+    }, [base, allowedTypes]);
     const units = useMemo(
-        () => Array.from(new Set(datapoints.map((dp) => dp.unit).filter(Boolean) as string[])).sort(),
-        [datapoints],
+        () => Array.from(new Set(base.map((dp) => dp.unit).filter(Boolean) as string[])).sort(),
+        [base],
     );
-    const hasHistory = useMemo(() => datapoints.some((dp) => dp.logging.length > 0), [datapoints]);
+    const hasHistory = useMemo(() => base.some((dp) => dp.logging.length > 0), [base]);
 
     const filtered = useMemo(() => {
-        let list = datapoints;
+        let list = base;
         if (allowedTypes?.length) list = list.filter((dp) => dp.type != null && allowedTypes.includes(dp.type));
         if (adapter) list = list.filter((dp) => dp.id.startsWith(`${adapter}.`));
         if (room) list = list.filter((dp) => dp.rooms.includes(room));
@@ -123,7 +130,7 @@ function DpModeBody({
             list = list.filter((dp) => dp.id.toLowerCase().includes(q) || dp.name.toLowerCase().includes(q));
         }
         return list;
-    }, [datapoints, search, adapter, room, func, role, typeFilter, unitFilter, historyFilter, allowedTypes]);
+    }, [base, search, adapter, room, func, role, typeFilter, unitFilter, historyFilter, allowedTypes]);
 
     const shown = useMemo(() => filtered.slice(0, MAX_DISPLAY), [filtered]);
 
@@ -193,7 +200,8 @@ function DpModeBody({
         types.length > 1 ||
         allowedTypes?.length === 1 ||
         units.length > 1 ||
-        hasHistory;
+        hasHistory ||
+        hasInactive;
 
     return (
         <div className="flex flex-col flex-1 min-h-0">
@@ -359,6 +367,20 @@ function DpModeBody({
                                 }}
                             >
                                 {t('dp.picker.historyOnly')}
+                            </button>
+                        )}
+                        {hasInactive && (
+                            <button
+                                onClick={() => setShowInactive((v) => !v)}
+                                title={t('dp.picker.showInactiveHint')}
+                                className="rounded-lg px-3 py-1.5 text-xs shrink-0 transition-colors"
+                                style={{
+                                    background: showInactive ? '#f59e0b22' : 'var(--app-bg)',
+                                    color: showInactive ? '#f59e0b' : 'var(--text-secondary)',
+                                    border: `1px solid ${showInactive ? '#f59e0b' : 'var(--app-border)'}`,
+                                }}
+                            >
+                                {t('dp.picker.showInactive')}
                             </button>
                         )}
                         {allowedTypes?.length === 1 &&
