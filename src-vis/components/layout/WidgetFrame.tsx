@@ -11568,6 +11568,20 @@ export function WidgetFrame({
                                                 />
                                             </button>
                                         </div>
+                                        <div
+                                            className="text-[10px] leading-snug rounded-lg px-2.5 py-2"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                border: '1px solid var(--app-border)',
+                                                color: 'var(--text-secondary)',
+                                            }}
+                                        >
+                                            💡 Für mehr Details gibt es in den <b>Aura-Adapter-Einstellungen</b> unter
+                                            „Performance-Diagnose" zwei Schalter: <b>Ladezeiten-Metriken aufzeichnen</b>{' '}
+                                            (Standard an) und <b>Timing pro Widget aufzeichnen</b> (Standard aus).
+                                            Letzteren aktivieren, damit die „Details"-Ansicht zeigt, welches Widget
+                                            langsam ist.
+                                        </div>
                                     </>
                                 );
                             })()}
