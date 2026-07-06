@@ -1694,6 +1694,12 @@ class Aura extends utils.Adapter {
         this._perfBufferLimit = 1000;
         this._perfDirty = false;
         this._perfPersistTimer = null;
+        // Per-widget / per-command performance attribution. RAM-only: each client
+        // sends a rolling snapshot (perfBreakdown) that we keep as the latest per
+        // client; the widget reads it back via getPerfBreakdown. Repopulates within
+        // seconds after a restart, so it is not persisted.
+        this._perfBreakdownByClient = {};
+        this._perfBreakdownClientLimit = 50;
         const PERF_METRICS = {
             initialLoad: 'Initial page load (navigation → loadEventEnd)',
             firstContentfulPaint: 'First contentful paint',
@@ -2221,6 +2227,10 @@ class Aura extends utils.Adapter {
             }
 
             if (msg.command === 'perfLog') {
+                if (this.config.perfTracking === false) {
+                    reply({ ok: true, disabled: true });
+                    return;
+                }
                 const m = msg.message || {};
                 const metric = String(m.metric || '');
                 const value = Number(m.value);
@@ -2268,6 +2278,60 @@ class Aura extends utils.Adapter {
                 if (metricFilter) entries = entries.filter((e) => e.metric === metricFilter);
                 if (entries.length > limit) entries = entries.slice(entries.length - limit);
                 reply({ ok: true, entries, latestSeq: this._perfSeq || 0 });
+                return;
+            }
+
+            if (msg.command === 'perfBreakdown') {
+                if (this.config.perfTracking === false) {
+                    reply({ ok: true, disabled: true });
+                    return;
+                }
+                const m = msg.message || {};
+                const client = typeof m.client === 'string' && m.client ? m.client.slice(0, 32) : 'unknown';
+                const clientName = typeof m.clientName === 'string' ? m.clientName.slice(0, 64) : '';
+                const widgetOn = this.config.perfWidgetTracking === true;
+                const rawEntries = Array.isArray(m.entries) ? m.entries : [];
+                const entries = [];
+                for (const e of rawEntries) {
+                    if (!e || typeof e !== 'object') continue;
+                    const cat = String(e.cat || '');
+                    if (cat !== 'widgetRender' && cat !== 'widgetReady' && cat !== 'backend') continue;
+                    // Per-widget categories only stored when that (costly) tracking is on.
+                    if (!widgetOn && cat !== 'backend') continue;
+                    entries.push({
+                        cat,
+                        key: String(e.key || '').slice(0, 64),
+                        label: String(e.label || '').slice(0, 96),
+                        count: Math.max(0, Number(e.count) | 0),
+                        avg: Math.max(0, Math.round(Number(e.avg) || 0)),
+                        max: Math.max(0, Math.round(Number(e.max) || 0)),
+                        last: Math.max(0, Math.round(Number(e.last) || 0)),
+                    });
+                    if (entries.length >= 300) break;
+                }
+                if (!this._perfBreakdownByClient) this._perfBreakdownByClient = {};
+                this._perfBreakdownByClient[client] = { ts: Date.now(), clientName, entries };
+                // Prune to the most recent N clients to bound memory.
+                const clients = Object.keys(this._perfBreakdownByClient);
+                if (clients.length > (this._perfBreakdownClientLimit || 50)) {
+                    clients
+                        .sort((a, b) => this._perfBreakdownByClient[a].ts - this._perfBreakdownByClient[b].ts)
+                        .slice(0, clients.length - (this._perfBreakdownClientLimit || 50))
+                        .forEach((c) => delete this._perfBreakdownByClient[c]);
+                }
+                reply({ ok: true });
+                return;
+            }
+
+            if (msg.command === 'getPerfBreakdown') {
+                const map = this._perfBreakdownByClient || {};
+                const clients = Object.entries(map).map(([client, v]) => ({
+                    client,
+                    clientName: v.clientName || '',
+                    ts: v.ts,
+                    entries: v.entries || [],
+                }));
+                reply({ ok: true, clients });
                 return;
             }
 

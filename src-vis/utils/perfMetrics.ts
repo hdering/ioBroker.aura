@@ -22,9 +22,17 @@ function shotMode(): boolean {
     return typeof window !== 'undefined' && Boolean((window as unknown as { __auraShot?: unknown }).__auraShot);
 }
 
+// Master gate for page-level metrics. Defaults on so the earliest samples
+// (initial load / first paint) are captured before the adapter config is read;
+// disabled afterwards if the user turned tracking off in the adapter settings.
+let trackingEnabled = true;
+export function setPerfTracking(on: boolean): void {
+    trackingEnabled = on;
+}
+
 /** Fire-and-forget a single metric sample to the backend. */
 export function reportMetric(metric: PerfMetric, value: number): void {
-    if (shotMode()) return;
+    if (!trackingEnabled || shotMode()) return;
     if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return;
     // Tag the sample with this device's identity so the widget can filter/compare
     // per client — these load times are almost entirely client-dependent.

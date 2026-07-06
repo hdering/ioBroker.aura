@@ -258,6 +258,54 @@
       "md": 6,
       "lg": 4,
       "xl": 4
+    },
+    "_perfHeader": {
+      "type": "header",
+      "text": {
+        "en": "Performance diagnostics",
+        "de": "Performance-Diagnose"
+      },
+      "size": 2,
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "perfTracking": {
+      "type": "checkbox",
+      "label": {
+        "en": "Record load-time metrics",
+        "de": "Ladezeiten-Metriken aufzeichnen"
+      },
+      "help": {
+        "en": "Collect page-level load metrics (initial load, first paint, socket warm-up, tab switch, long tasks) and backend command round-trip times. Overhead is negligible. Feeds the Ladezeiten widget.",
+        "de": "Erfasst seitenweite Ladezeiten (Initial-Load, First Paint, Socket-Warmup, Tab-Wechsel, Long-Tasks) und Backend-Antwortzeiten. Vernachlässigbarer Overhead. Speist das Ladezeiten-Widget."
+      },
+      "default": true,
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
+    },
+    "perfWidgetTracking": {
+      "type": "checkbox",
+      "label": {
+        "en": "Record per-widget timing (higher overhead)",
+        "de": "Timing pro Widget aufzeichnen (höherer Overhead)"
+      },
+      "help": {
+        "en": "Additionally measure render and ready time for every widget so the Ladezeiten widget can show which widget is slow. This instruments every widget on every render — enable only to diagnose a problem, then turn it off.",
+        "de": "Misst zusätzlich Render- und Bereit-Zeit für jedes Widget, damit das Ladezeiten-Widget anzeigt, welches Widget langsam ist. Instrumentiert jedes Widget bei jedem Render — nur zur Fehlersuche aktivieren, danach wieder ausschalten."
+      },
+      "default": false,
+      "disabled": "!data.perfTracking",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     }
   }
 }

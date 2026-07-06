@@ -217,7 +217,9 @@
       }
     ],
     "fsAllowWrite": false,
-    "timerTickSeconds": 30
+    "timerTickSeconds": 30,
+    "perfTracking": true,
+    "perfWidgetTracking": false
   },
   "objects": [],
   "instanceObjects": [

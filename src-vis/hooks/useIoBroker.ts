@@ -607,6 +607,14 @@ export function extendObjectDirect(id: string, patch: object): Promise<void> {
     });
 }
 
+// Optional sink for backend round-trip timing. Wired from perfBreakdown when
+// performance tracking is enabled in the adapter config; left null otherwise so
+// sendToDirect stays zero-overhead by default.
+let backendTimingSink: ((command: string, ms: number) => void) | null = null;
+export function setBackendTimingSink(fn: ((command: string, ms: number) => void) | null): void {
+    backendTimingSink = fn;
+}
+
 /** Send a command/message to another adapter instance or host (sendTo).
  *  Resolves with the callback result, or { __timeout: true } after timeoutMs (default 30s).
  *  Permission errors come back as the string 'permissionError'. */
@@ -620,6 +628,7 @@ export function sendToDirect<T = unknown>(
         const handled = devSendTo(target, command, payload);
         if (handled !== undefined) return Promise.resolve((handled as T) ?? null);
     }
+    const t0 = backendTimingSink ? performance.now() : 0;
     return new Promise((resolve) => {
         let settled = false;
         const done = (v: T | { __timeout: true } | string | null) => {
@@ -628,7 +637,15 @@ export function sendToDirect<T = unknown>(
                 resolve(v);
             }
         };
-        getSocket().emit('sendTo', target, command, payload, (result: unknown) => done((result as T) ?? null));
+        getSocket().emit('sendTo', target, command, payload, (result: unknown) => {
+            // Measure only real callback returns — a timeout would report the
+            // full timeoutMs and skew the numbers. Don't record the perf command
+            // itself (would be self-referential noise).
+            if (backendTimingSink && command !== 'perfBreakdown' && command !== 'perfLog') {
+                backendTimingSink(command, performance.now() - t0);
+            }
+            done((result as T) ?? null);
+        });
         globalThis.setTimeout(() => done({ __timeout: true }), timeoutMs);
     });
 }

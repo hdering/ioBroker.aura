@@ -9,6 +9,8 @@ import {
     subscribeDpValue,
     prefetchStates,
     setOptimisticEcho,
+    getObjectViewDirect,
+    setBackendTimingSink,
 } from './hooks/useIoBroker';
 import { useCustomJs } from './hooks/useCustomJs';
 import { useCustomCss } from './hooks/useCustomCss';
@@ -38,7 +40,8 @@ import { markGroupDefsHydrated } from './store/groupDefsStore';
 import { usePopupConfigStore } from './store/popupConfigStore';
 import { NS } from './utils/namespace';
 import { baseDpId } from './utils/dpRef';
-import { initPerfMetrics } from './utils/perfMetrics';
+import { initPerfMetrics, setPerfTracking } from './utils/perfMetrics';
+import { setBreakdownTracking, recordBackendCall } from './utils/perfBreakdown';
 
 // Module-level cache of the active themeMode.frontend DP override. Lets the
 // DP listener win over delayed config rehydrations and the followBrowser
@@ -227,6 +230,25 @@ export default function App() {
     // Wire up passive frontend load-time metrics (initial load, FCP, long tasks).
     useEffect(() => {
         initPerfMetrics();
+        // Read the adapter's performance-tracking switches from its native config
+        // and gate recording accordingly. perfTracking (page metrics + backend
+        // round-trip timing) defaults on; perfWidgetTracking (the costly per-widget
+        // instrumentation) defaults off — both overridable in the adapter settings.
+        void (async () => {
+            try {
+                const res = await getObjectViewDirect('instance', 'system.adapter.aura.', 'system.adapter.aura.香');
+                const native = (res.rows?.[0]?.value as unknown as { native?: Record<string, unknown> })?.native ?? {};
+                const perfTracking = native.perfTracking !== false;
+                const perfWidgetTracking = native.perfWidgetTracking === true;
+                setPerfTracking(perfTracking);
+                setBreakdownTracking({ backend: perfTracking, widget: perfWidgetTracking });
+                setBackendTimingSink(perfTracking ? recordBackendCall : null);
+            } catch {
+                /* config unreadable — keep defaults (page metrics on, per-widget off) */
+                setBreakdownTracking({ backend: true, widget: false });
+                setBackendTimingSink(recordBackendCall);
+            }
+        })();
     }, []);
 
     // Determine which layout to display based on URL slug

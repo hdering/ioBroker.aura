@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useSyncExternalStore, Suspense } from 'react';
 import { lazyWithReload } from '../../utils/lazyWithReload';
+import { recordWidgetRender, recordWidgetReady, isWidgetTrackingEnabled } from '../../utils/perfBreakdown';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useT, t } from '../../i18n';
@@ -287,6 +288,55 @@ function setCellClipboard(v: CustomCell | null) {
 }
 function useCellClipboard() {
     return useSyncExternalStore(subscribeCellClipboard, getCellClipboardSnapshot, getCellClipboardSnapshot);
+}
+
+// Production-safe per-widget performance probe. React's <Profiler> yields no
+// data in a production build, so instead we time (a) the synchronous render →
+// layout-commit slice and (b) mount → "settled" (no re-render for a short while),
+// which approximates when the widget is visually ready with its data. Recording
+// is gated by isWidgetTrackingEnabled() (adapter opt-in) because the no-deps
+// effect below runs on every commit of every widget. When disabled it is inert.
+const READY_SETTLE_MS = 700;
+function ProfiledWidget({
+    widgetKey,
+    label,
+    enabled,
+    children,
+}: {
+    widgetKey: string;
+    label: string;
+    enabled: boolean;
+    children: React.ReactNode;
+}) {
+    const renderStart = enabled ? performance.now() : 0;
+    const mountTsRef = useRef(0);
+    const settleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const readyDoneRef = useRef(false);
+
+    useLayoutEffect(() => {
+        if (!enabled) return;
+        recordWidgetRender(widgetKey, label, performance.now() - renderStart);
+    });
+
+    // Runs after every commit (no dep array): reset the settle timer so "ready"
+    // fires once the widget stops re-rendering for READY_SETTLE_MS.
+    useEffect(() => {
+        if (!enabled) return;
+        if (mountTsRef.current === 0) mountTsRef.current = performance.now();
+        if (readyDoneRef.current) return;
+        const lastCommit = performance.now();
+        if (settleRef.current) clearTimeout(settleRef.current);
+        settleRef.current = setTimeout(() => {
+            if (readyDoneRef.current) return;
+            readyDoneRef.current = true;
+            recordWidgetReady(widgetKey, label, lastCommit - mountTsRef.current);
+        }, READY_SETTLE_MS);
+        return () => {
+            if (settleRef.current) clearTimeout(settleRef.current);
+        };
+    });
+
+    return <>{children}</>;
 }
 
 // Defined as a function so it's evaluated lazily, avoiding circular-init issues.
@@ -5649,12 +5699,18 @@ export function WidgetFrame({
                 <Suspense
                     fallback={<div className="h-full w-full" style={{ background: 'var(--app-bg)', opacity: 0.3 }} />}
                 >
-                    <Widget
-                        config={config.options?.hideTitle ? { ...config, title: '' } : config}
-                        editMode={editMode}
-                        onConfigChange={onConfigChange}
-                        onLastChange={setLastChangedTs}
-                    />
+                    <ProfiledWidget
+                        widgetKey={config.type}
+                        label={config.title ? `${config.type} · ${config.title}` : config.type}
+                        enabled={!editMode && isWidgetTrackingEnabled()}
+                    >
+                        <Widget
+                            config={config.options?.hideTitle ? { ...config, title: '' } : config}
+                            editMode={editMode}
+                            onConfigChange={onConfigChange}
+                            onLastChange={setLastChangedTs}
+                        />
+                    </ProfiledWidget>
                 </Suspense>
             ) : (
                 <div
@@ -11373,6 +11429,7 @@ export function WidgetFrame({
                                 const showLegend = (o.showLegend as boolean | undefined) ?? true;
                                 const showThresholds = (o.showThresholds as boolean | undefined) ?? true;
                                 const clientFilter = (o.clientFilter as string) ?? 'current';
+                                const view = (o.view as string) ?? 'chart';
                                 return (
                                     <>
                                         <div>
@@ -11441,22 +11498,41 @@ export function WidgetFrame({
                                                 </select>
                                             </div>
                                         </div>
-                                        <div>
-                                            <label
-                                                className="text-[11px] mb-1 block"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                            >
-                                                Client-Filter <span className="opacity-60">(Standard beim Öffnen)</span>
-                                            </label>
-                                            <select
-                                                value={clientFilter}
-                                                onChange={(e) => set({ clientFilter: e.target.value })}
-                                                className={lCls}
-                                                style={lSty}
-                                            >
-                                                <option value="current">Nur dieser Client</option>
-                                                <option value="all">Alle Clients</option>
-                                            </select>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Standard-Ansicht
+                                                </label>
+                                                <select
+                                                    value={view}
+                                                    onChange={(e) => set({ view: e.target.value })}
+                                                    className={lCls}
+                                                    style={lSty}
+                                                >
+                                                    <option value="chart">Verlauf</option>
+                                                    <option value="breakdown">Details</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Client-Filter
+                                                </label>
+                                                <select
+                                                    value={clientFilter}
+                                                    onChange={(e) => set({ clientFilter: e.target.value })}
+                                                    className={lCls}
+                                                    style={lSty}
+                                                >
+                                                    <option value="current">Nur dieser Client</option>
+                                                    <option value="all">Alle Clients</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
