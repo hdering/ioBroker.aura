@@ -5,6 +5,7 @@ import { Settings, X, GripVertical, ChevronDown, ChevronRight, Download, Upload 
 import { useDashboardStore, useActiveLayout, resolveTabBarSettings } from '../../store/dashboardStore';
 import type { Tab, TabBarItem, TabBarSettings, DashboardLayout } from '../../store/dashboardStore';
 import { exportTab, importTab } from '../../utils/widgetExportImport';
+import { ExportAnonymizeDialog } from '../config/ExportAnonymizeDialog';
 import { useConfigStore } from '../../store/configStore';
 import { Icon } from '@iconify/react';
 import { IconPickerModal } from '../config/IconPickerModal';
@@ -243,6 +244,7 @@ export function TabBar({
     const navigate = useNavigate();
 
     const [settingsTabId, setSettingsTabId] = useState<string | null>(null);
+    const [showTabExport, setShowTabExport] = useState(false);
     const [panelPos, setPanelPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
     const [conditionsOpen, setConditionsOpen] = useState(false);
     const [badgesOpen, setBadgesOpen] = useState(false);
@@ -810,7 +812,7 @@ export function TabBar({
                           {/* ── Export tab ──────────────────────────────────────────────── */}
                           <div className="border-t pt-2" style={{ borderColor: 'var(--app-border)' }}>
                               <button
-                                  onClick={() => exportTab(settingsTab)}
+                                  onClick={() => setShowTabExport(true)}
                                   className="flex items-center gap-1.5 w-full px-2.5 py-2 rounded-lg text-xs hover:opacity-80 transition-opacity"
                                   style={{
                                       background: 'var(--app-bg)',
@@ -823,6 +825,12 @@ export function TabBar({
                               </button>
                           </div>
                       </div>
+                      {showTabExport && (
+                          <ExportAnonymizeDialog
+                              onExport={(anon) => exportTab(settingsTab, anon)}
+                              onClose={() => setShowTabExport(false)}
+                          />
+                      )}
                   </>,
                   document.body,
               )

@@ -54,6 +54,7 @@ import {
 } from '../../utils/dpTemplates';
 import { slugify } from '../../utils/slugify';
 import { exportTab } from '../../utils/widgetExportImport';
+import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 
 // Layout labels are resolved inside components via t() to support i18n
 const LAYOUT_IDS: WidgetLayout[] = ['default', 'card', 'compact', 'minimal'];
@@ -1181,6 +1182,7 @@ const TabBar = memo(function TabBar() {
     const [conditionsOpen, setConditionsOpen] = useState(false);
     const [tabBadgesOpen, setTabBadgesOpen] = useState(false);
     const [iconPickerTabId, setIconPickerTabId] = useState<string | null>(null);
+    const [showTabExport, setShowTabExport] = useState(false);
     const settingsBtnRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
     const [tabDragIdx, setTabDragIdx] = useState<number | null>(null);
     const [tabDragOverIdx, setTabDragOverIdx] = useState<number | null>(null);
@@ -1606,7 +1608,7 @@ const TabBar = memo(function TabBar() {
                             {/* ── Export tab ──────────────────────────────────────────────── */}
                             <div className="border-t pt-2" style={{ borderColor: 'var(--app-border)' }}>
                                 <button
-                                    onClick={() => exportTab(settingsTab)}
+                                    onClick={() => setShowTabExport(true)}
                                     className="flex items-center gap-1.5 w-full px-2.5 py-2 rounded-lg text-xs hover:opacity-80 transition-opacity"
                                     style={{
                                         background: 'var(--app-bg)',
@@ -1749,6 +1751,12 @@ const TabBar = memo(function TabBar() {
                     </>,
                     portalTarget,
                 )}
+            {showTabExport && settingsTab && (
+                <ExportAnonymizeDialog
+                    onExport={(anon) => exportTab(settingsTab, anon)}
+                    onClose={() => setShowTabExport(false)}
+                />
+            )}
             {iconPickerTabId && (
                 <IconPickerModal
                     current={tabs.find((t) => t.id === iconPickerTabId)?.icon ?? ''}

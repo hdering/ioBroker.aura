@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useSuperAdmin } from '../../hooks/useSuperAdmin';
 import { Plus, Trash2, Check, Pencil, Layers, RotateCcw, Download, Upload } from 'lucide-react';
-import { usePopupConfigStore, BUILTIN_VIEW_IDS, BUILTIN_VIEWS } from '../../store/popupConfigStore';
+import { usePopupConfigStore, BUILTIN_VIEW_IDS, BUILTIN_VIEWS, type PopupView } from '../../store/popupConfigStore';
+import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 import { WIDGET_REGISTRY } from '../../widgetRegistry';
 import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { getAvailableLayouts } from '../../utils/widgetLayouts';
@@ -196,6 +197,7 @@ function PopupViewsSection() {
     const [addingView, setAddingView] = useState(false);
     const [editingNameId, setEditingNameId] = useState<string | null>(null);
     const [editingName, setEditingName] = useState('');
+    const [exportTarget, setExportTarget] = useState<PopupView | null>(null);
     const importInputRef = useRef<HTMLInputElement>(null);
 
     const handleAddView = () => {
@@ -462,7 +464,7 @@ function PopupViewsSection() {
                                 </>
                             )}
                             <button
-                                onClick={() => exportPopupView(view)}
+                                onClick={() => setExportTarget(view)}
                                 className="flex items-center justify-center w-6 h-6 shrink-0 rounded hover:opacity-70 transition-opacity"
                                 style={{ color: 'var(--text-secondary)' }}
                                 title="Als JSON exportieren"
@@ -482,6 +484,13 @@ function PopupViewsSection() {
                         </div>
                     );
                 })}
+
+                {exportTarget && (
+                    <ExportAnonymizeDialog
+                        onExport={(anon) => exportPopupView(exportTarget, anon)}
+                        onClose={() => setExportTarget(null)}
+                    />
+                )}
 
                 {/* Deleted builtins — only visible in super-admin mode */}
                 {isSuperAdmin && deletedBuiltinIds.length > 0 && (

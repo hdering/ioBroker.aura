@@ -1173,6 +1173,22 @@ export const en: Record<TranslationKey, string> = {
     'import.tabWidgetCount': '{count} Widget(s)',
     'import.importTab': 'Import Tab',
 
+    // ── Export anonymisation ──────────────────────────────────────────────────────
+    'exportAnon.title': 'Export',
+    'exportAnon.subtitle':
+        'Choose which data to anonymise on export. With nothing selected everything is exported as-is.',
+    'exportAnon.selectAll': 'Anonymise everything',
+    'exportAnon.selectNone': 'Clear selection',
+    'exportAnon.datapoints': 'Datapoints',
+    'exportAnon.datapointsHint': 'Replace ioBroker IDs with placeholders (links stay intact)',
+    'exportAnon.titles': 'Titles & free text',
+    'exportAnon.titlesHint': 'Titles, labels and texts (may contain room / person names)',
+    'exportAnon.urls': 'URLs & credentials',
+    'exportAnon.urlsHint': 'Camera streams, HTTP addresses, links (often carry tokens)',
+    'exportAnon.geoAndCode': 'Geo & custom code',
+    'exportAnon.geoAndCodeHint': 'Remove coordinates and custom JavaScript/CSS',
+    'exportAnon.export': 'Export',
+
     // ── Layout Presets (Tab Wizard) ───────────────────────────────────────────────
     'layout.compact': 'Compact',
     'layout.compactDesc': 'More widgets at a glance – smaller tiles',

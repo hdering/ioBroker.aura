@@ -1176,6 +1176,22 @@ export const de = {
     'import.tabWidgetCount': '{count} Widget(s)',
     'import.importTab': 'Tab importieren',
 
+    // ── Export anonymisation ──────────────────────────────────────────────────────
+    'exportAnon.title': 'Exportieren',
+    'exportAnon.subtitle':
+        'Wähle, welche Daten beim Export anonymisiert werden. Ohne Auswahl wird alles unverändert exportiert.',
+    'exportAnon.selectAll': 'Alles anonymisieren',
+    'exportAnon.selectNone': 'Auswahl aufheben',
+    'exportAnon.datapoints': 'Datenpunkte',
+    'exportAnon.datapointsHint': 'ioBroker-IDs durch Platzhalter ersetzen (Verknüpfungen bleiben erhalten)',
+    'exportAnon.titles': 'Titel & Freitext',
+    'exportAnon.titlesHint': 'Titel, Labels und Texte (können Raum-/Personennamen enthalten)',
+    'exportAnon.urls': 'URLs & Zugangsdaten',
+    'exportAnon.urlsHint': 'Kamera-Streams, HTTP-Adressen, Links (enthalten oft Tokens)',
+    'exportAnon.geoAndCode': 'Geo & Custom-Code',
+    'exportAnon.geoAndCodeHint': 'Koordinaten sowie eigenes JavaScript/CSS entfernen',
+    'exportAnon.export': 'Exportieren',
+
     // ── Layout Presets (Tab Wizard) ───────────────────────────────────────────────
     'layout.compact': 'Kompakt',
     'layout.compactDesc': 'Mehr Widgets auf einen Blick – kleinere Kacheln',

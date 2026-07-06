@@ -9,6 +9,7 @@ import type { WidgetConfig, WidgetType, WidgetLayout } from '../../types';
 import { WIDGET_REGISTRY } from '../../widgetRegistry';
 import { useConfigStore } from '../../store/configStore';
 import { exportWidget } from '../../utils/widgetExportImport';
+import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
 
 // ── Meta (derived from central registry) ─────────────────────────────────────
@@ -371,6 +372,7 @@ function WidgetRow({
     const rowRef = useRef<HTMLDivElement>(null);
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [draft, setDraft] = useState<WidgetConfig>(entry.config);
+    const [showExport, setShowExport] = useState(false);
 
     // Deep-link target: auto-open + scroll into view.
     useEffect(() => {
@@ -458,7 +460,7 @@ function WidgetRow({
 
                     {/* Export */}
                     <button
-                        onClick={() => exportWidget(entry.config)}
+                        onClick={() => setShowExport(true)}
                         className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
                         style={{
                             background: 'var(--app-surface)',
@@ -469,6 +471,12 @@ function WidgetRow({
                     >
                         <Download size={13} />
                     </button>
+                    {showExport && (
+                        <ExportAnonymizeDialog
+                            onExport={(anon) => exportWidget(entry.config, anon)}
+                            onClose={() => setShowExport(false)}
+                        />
+                    )}
 
                     {/* Delete */}
                     {confirmDelete ? (

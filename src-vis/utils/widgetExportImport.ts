@@ -2,6 +2,27 @@ import type { WidgetConfig } from '../types';
 import type { Tab, DashboardLayout } from '../store/dashboardStore';
 import type { PopupView } from '../store/popupConfigStore';
 import { useGroupDefsStore, newGroupDefId } from '../store/groupDefsStore';
+import { anonymizePayload, anyAnonymize, type AnonymizeOptions } from './anonymizeExport';
+
+export type { AnonymizeOptions } from './anonymizeExport';
+
+// Serialises a payload (optionally anonymised) and triggers a browser download.
+// When any anonymisation is active, `-anon` is appended to the filename; when
+// titles are anonymised the descriptive part of the name is dropped too so the
+// filename itself cannot leak a real title.
+function downloadJson(payload: unknown, base: string, descriptive: string, anon?: AnonymizeOptions): void {
+    const scrubbed = anyAnonymize(anon) ? anonymizePayload(payload, anon!) : payload;
+    const namePart = anon?.titles ? '' : `-${descriptive.replace(/[^a-z0-9]/gi, '_')}`;
+    const suffix = anyAnonymize(anon) ? '-anon' : '';
+    const json = JSON.stringify(scrubbed, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${base}${namePart}${suffix}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
 
 function collectGroupDefs(
     widgets: WidgetConfig[],
@@ -24,7 +45,7 @@ function freshWidgetId(): string {
     return `w-${Date.now()}-${(++_widgetCounter).toString(36)}`;
 }
 
-export function exportWidget(config: WidgetConfig) {
+export function exportWidget(config: WidgetConfig, anon?: AnonymizeOptions) {
     const payload: Record<string, unknown> = { ...config };
 
     if ((config.type === 'group' || config.type === 'panels') && config.options?.defId) {
@@ -36,14 +57,7 @@ export function exportWidget(config: WidgetConfig) {
         }
     }
 
-    const json = JSON.stringify(payload, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `aura-widget-${config.type}-${(config.title || config.id).replace(/[^a-z0-9]/gi, '_')}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadJson(payload, `aura-widget-${config.type}`, config.title || config.id, anon);
 }
 
 /**
@@ -80,7 +94,7 @@ export function importGroupDefs(config: WidgetConfig, importedDefs: Record<strin
 
 // ── Tab export / import ───────────────────────────────────────────────────────
 
-export function exportTab(tab: Tab) {
+export function exportTab(tab: Tab, anon?: AnonymizeOptions) {
     const allDefs = useGroupDefsStore.getState().defs;
     const groupDefs: Record<string, WidgetConfig[]> = {};
     collectGroupDefs(tab.widgets, allDefs, groupDefs);
@@ -92,14 +106,7 @@ export function exportTab(tab: Tab) {
         ...(Object.keys(groupDefs).length > 0 ? { groupDefs } : {}),
     };
 
-    const json = JSON.stringify(payload, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `aura-tab-${tab.name.replace(/[^a-z0-9]/gi, '_')}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadJson(payload, 'aura-tab', tab.name, anon);
 }
 
 /**
@@ -159,7 +166,7 @@ export function importTab(raw: unknown): Omit<Tab, 'id'> | null {
 // every tab. Import remaps every tab id, widget id and groupDef id to fresh
 // values so the layout can be added alongside existing ones without collisions.
 
-export function exportLayout(layout: DashboardLayout) {
+export function exportLayout(layout: DashboardLayout, anon?: AnonymizeOptions) {
     const allDefs = useGroupDefsStore.getState().defs;
     const groupDefs: Record<string, WidgetConfig[]> = {};
     for (const tab of layout.tabs) {
@@ -173,14 +180,7 @@ export function exportLayout(layout: DashboardLayout) {
         ...(Object.keys(groupDefs).length > 0 ? { groupDefs } : {}),
     };
 
-    const json = JSON.stringify(payload, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `aura-layout-${layout.name.replace(/[^a-z0-9]/gi, '_')}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadJson(payload, 'aura-layout', layout.name, anon);
 }
 
 /**
@@ -252,7 +252,7 @@ export function importLayout(raw: unknown): Omit<DashboardLayout, 'id'> | null {
 // slot ids cannot be overwritten via import; that path is reserved for the
 // adapter-update / version-migration mechanism in popupConfigStore.
 
-export function exportPopupView(view: PopupView) {
+export function exportPopupView(view: PopupView, anon?: AnonymizeOptions) {
     const payload: PopupView = {
         id: view.id,
         name: view.name,
@@ -261,14 +261,7 @@ export function exportPopupView(view: PopupView) {
         widgets: view.widgets,
     };
 
-    const json = JSON.stringify(payload, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `aura-popup-${view.name.replace(/[^a-z0-9]/gi, '_')}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadJson(payload, 'aura-popup', view.name, anon);
 }
 
 /**

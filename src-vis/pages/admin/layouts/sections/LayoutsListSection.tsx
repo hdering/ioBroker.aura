@@ -18,6 +18,7 @@ import { Icon } from '@iconify/react';
 import { useDashboardStore, type DashboardLayout } from '../../../../store/dashboardStore';
 import { IconPickerModal } from '../../../../components/config/IconPickerModal';
 import { exportLayout, importLayout } from '../../../../utils/widgetExportImport';
+import { ExportAnonymizeDialog } from '../../../../components/config/ExportAnonymizeDialog';
 import { useT } from '../../../../i18n';
 
 function layoutUrl(layout: DashboardLayout, isFirst: boolean): string {
@@ -72,6 +73,7 @@ function LayoutRow({
     const [dupName, setDupName] = useState(`${layout.name} (Kopie)`);
     const [showDup, setShowDup] = useState(false);
     const [iconPickerOpen, setIconPickerOpen] = useState(false);
+    const [showExport, setShowExport] = useState(false);
 
     const widgetCount = layout.tabs.reduce((n, tab) => n + tab.widgets.length, 0);
     const hash = layoutUrl(layout, isFirst);
@@ -295,7 +297,7 @@ function LayoutRow({
                         <Copy size={13} />
                     </button>
                     <button
-                        onClick={() => exportLayout(layout)}
+                        onClick={() => setShowExport(true)}
                         className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
                         style={{
                             background: 'var(--app-bg)',
@@ -306,6 +308,12 @@ function LayoutRow({
                     >
                         <Download size={13} />
                     </button>
+                    {showExport && (
+                        <ExportAnonymizeDialog
+                            onExport={(anon) => exportLayout(layout, anon)}
+                            onClose={() => setShowExport(false)}
+                        />
+                    )}
                     {!isOnly &&
                         (confirmDelete ? (
                             <>

@@ -27,6 +27,7 @@ import type { LucideIcon } from 'lucide-react';
 import { setDragBridge } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
 import { exportWidget } from '../../utils/widgetExportImport';
+import { ExportAnonymizeDialog } from '../config/ExportAnonymizeDialog';
 import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
 import { useFocusedWidgetId } from '../../contexts/FocusedWidgetContext';
 import { copyToClipboard } from '../../utils/clipboard';
@@ -4949,6 +4950,7 @@ export function WidgetFrame({
     const [showMoveMenu, setShowMoveMenu] = useState(false);
     const [showCopyMenu, setShowCopyMenu] = useState(false);
     const [showGroupTypePicker, setShowGroupTypePicker] = useState(false);
+    const [showExportDialog, setShowExportDialog] = useState(false);
     const { addWidgetToLayoutTab, removeWidgetFromLayoutTab } = useDashboardStore();
     const activeLayoutId = useDashboardStore((s) => s.activeLayoutId);
     const { activeTabId, tabs: activeTabs } = useActiveLayout();
@@ -5883,7 +5885,7 @@ export function WidgetFrame({
                         {/* Exportieren */}
                         <button
                             onClick={() => {
-                                exportWidget(config);
+                                setShowExportDialog(true);
                                 openPanelFor(null);
                             }}
                             className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity"
@@ -16295,6 +16297,14 @@ export function WidgetFrame({
                         />
                     );
                 })()}
+
+            {/* Export (with optional anonymisation) */}
+            {showExportDialog && (
+                <ExportAnonymizeDialog
+                    onExport={(anon) => exportWidget(config, anon)}
+                    onClose={() => setShowExportDialog(false)}
+                />
+            )}
 
             {/* Conditions Modal */}
             {openPanel === 'group-mobile-order' && groupDefId && (
