@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.19.2",
+    "version": "0.19.3",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.19.3": {
+        "en": "Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)\nMap - keeps following a slowly moving marker instead of staying put on small position changes\nDatapoint picker - adds a \"Show inactive\" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints",
+        "de": "Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)\nMap - keeps following a slowly moving marker instead of staying put on small position changes\nDatapoint picker - adds a \"Show inactive\" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints",
+        "ru": "Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)\nMap - keeps following a slowly moving marker instead of staying put on small position changes\nDatapoint picker - adds a \"Show inactive\" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints",
+        "pt": "Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)\nMap - keeps following a slowly moving marker instead of staying put on small position changes\nDatapoint picker - adds a \"Show inactive\" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints",
+        "nl": "Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)\nMap - keeps following a slowly moving marker instead of staying put on small position changes\nDatapoint picker - adds a \"Show inactive\" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints",
+        "fr": "Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)\nMap - keeps following a slowly moving marker instead of staying put on small position changes\nDatapoint picker - adds a \"Show inactive\" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints",
+        "it": "Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)\nMap - keeps following a slowly moving marker instead of staying put on small position changes\nDatapoint picker - adds a \"Show inactive\" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints",
+        "es": "Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)\nMap - keeps following a slowly moving marker instead of staying put on small position changes\nDatapoint picker - adds a \"Show inactive\" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints",
+        "pl": "Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)\nMap - keeps following a slowly moving marker instead of staying put on small position changes\nDatapoint picker - adds a \"Show inactive\" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints",
+        "uk": "Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)\nMap - keeps following a slowly moving marker instead of staying put on small position changes\nDatapoint picker - adds a \"Show inactive\" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints",
+        "zh-cn": "Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)\nMap - keeps following a slowly moving marker instead of staying put on small position changes\nDatapoint picker - adds a \"Show inactive\" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints"
+      },
       "0.19.2": {
         "en": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
         "de": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
@@ -184,19 +197,6 @@
         "pl": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)",
         "uk": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)",
         "zh-cn": "Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)"
-      },
-      "0.18.2": {
-        "en": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout",
-        "de": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout",
-        "ru": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout",
-        "pt": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout",
-        "nl": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout",
-        "fr": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout",
-        "it": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout",
-        "es": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout",
-        "pl": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout",
-        "uk": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout",
-        "zh-cn": "Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout"
       }
     }
   },
