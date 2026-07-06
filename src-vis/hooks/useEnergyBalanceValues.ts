@@ -6,12 +6,14 @@
  * (`useMultiSeriesData` / `useChartHistory`): per entry it resolves a history
  * instance (explicit or auto-detected from `common.custom`), fetches the range via
  * `getHistoryDirect`, then reduces the returned points to a single value per the
- * entry's `aggregate` mode. Entries without a history adapter fall back to the live
- * state value. A periodic tick keeps the window from freezing, and live updates
- * refresh the value immediately.
+ * entry's `aggregate` mode. The `last` mode short-circuits to the datapoint's current
+ * state (the true last value) instead of a history query — a step-aggregated query
+ * returns bucket averages, which can be non-zero even when the last logged value is 0.
+ * Entries without a history adapter fall back to the live state value. A periodic tick
+ * keeps the window from freezing, and live updates refresh the value immediately.
  */
 import { useState, useEffect, useRef } from 'react';
-import { getHistoryDirect, getObjectDirect, getStateFromCache, type HistoryEntry } from './useIoBroker';
+import { getHistoryDirect, getObjectDirect, getStateDirect, getStateFromCache, type HistoryEntry } from './useIoBroker';
 import { detectHistoryAdapters } from './useChartHistory';
 import type { EChartTimeRange } from './useMultiSeriesData';
 import type { ioBrokerState } from '../types';
@@ -158,6 +160,19 @@ export function useEnergyBalanceValues(
             }
             const mode = e.aggregate ?? 'last';
             const instance = e.historyInstance ?? resolvedInstances[e.id] ?? undefined;
+
+            // 'last' means the datapoint's current value. Read it live rather than from
+            // history: a step-aggregated history query returns bucket *averages*, so the
+            // last returned point can be a non-zero mean even when the true last logged
+            // value is 0 (see #404). The current state is always the real last value.
+            if (mode === 'last') {
+                getStateDirect(e.datapointId).then((state) => {
+                    if (!mountedRef.current) return;
+                    const val = typeof state?.val === 'number' ? (state.val as number) : null;
+                    setResults((prev) => new Map(prev).set(e.id, { value: val, loading: false }));
+                });
+                return;
+            }
 
             if (!instance) {
                 // No history adapter — seed from the live state value (≈ 'last').
