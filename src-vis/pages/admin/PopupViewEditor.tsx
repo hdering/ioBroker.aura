@@ -34,7 +34,7 @@ const PLACEHOLDER_SCENARIOS: { value: string; field: string; result: string }[] 
     },
     {
         value: '{{parent}}.TSOLL',
-        field: 'Diagramm (erweitert) → Serie → Datenpunkt',
+        field: 'Diagramm (Erweitert) → Serie → Datenpunkt',
         result: 'alias.0.Heizung.Bad.TSOLL',
     },
     {

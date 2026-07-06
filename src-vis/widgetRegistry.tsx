@@ -211,7 +211,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     },
     {
         type: 'chart',
-        label: 'Diagramm (einfach)',
+        label: 'Diagramm (Einfach)',
         shortLabel: 'Diagramm',
         Icon: BarChart2,
         iconName: 'BarChart2',
@@ -240,8 +240,8 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     },
     {
         type: 'echart',
-        label: 'Diagramm (erweitert)',
-        shortLabel: 'Diagramm (erw.)',
+        label: 'Diagramm (Erweitert)',
+        shortLabel: 'Diagramm (Erw.)',
         Icon: BarChart2,
         iconName: 'BarChart2',
         color: '#10b981',
@@ -786,8 +786,8 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     },
     {
         type: 'energiebilanz',
-        label: 'Diagramm (Anteile)',
-        shortLabel: 'Anteile',
+        label: 'Diagramm (Verteilung)',
+        shortLabel: 'Verteilung',
         Icon: PieChart,
         iconName: 'PieChart',
         color: '#22c55e',
@@ -795,7 +795,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         defaultH: 8,
         addMode: 'free',
         widgetGroup: 'control',
-        mock: { t: 'Anteile', v: '📊' },
+        mock: { t: 'Verteilung', v: '📊' },
         hint: 'Anteilige Darstellung (Balken, Torte oder Donut) beliebig vieler Gruppen aus mehreren Datenpunkten mit History-Aggregation – z.B. Energiebilanz, Kosten, Speicherbelegung',
     },
     {

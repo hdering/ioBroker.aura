@@ -1056,7 +1056,7 @@ export const en: Record<TranslationKey, string> = {
     'widget.carousel': 'Carousel',
     'widget.input': 'Input field',
     'widget.map': 'Map',
-    'widget.energiebilanz': 'Chart (Shares)',
+    'widget.energiebilanz': 'Chart (Distribution)',
 
     // ── Weather Widget ────────────────────────────────────────────────────────────
     'weather.sunny': 'Sunny',

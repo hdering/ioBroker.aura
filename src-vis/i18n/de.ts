@@ -1030,8 +1030,8 @@ export const de = {
     'widget.thermostat': 'Thermostat',
     'widget.value': 'Wert-Anzeige',
     'widget.gauge': 'Gauge',
-    'widget.chart': 'Diagramm (einfach)',
-    'widget.echart': 'Diagramm (erweitert (echarts))',
+    'widget.chart': 'Diagramm (Einfach)',
+    'widget.echart': 'Diagramm (Erweitert (echarts))',
     'widget.echartsPreset': 'eCharts',
     'widget.list': 'Statische Liste',
     'widget.autolist': 'Dynamische Liste',
@@ -1059,7 +1059,7 @@ export const de = {
     'widget.carousel': 'Karussell',
     'widget.input': 'Eingabefeld',
     'widget.map': 'Karte',
-    'widget.energiebilanz': 'Diagramm (Anteile)',
+    'widget.energiebilanz': 'Diagramm (Verteilung)',
 
     // ── Weather Widget ────────────────────────────────────────────────────────────
     'weather.sunny': 'Sonnig',
