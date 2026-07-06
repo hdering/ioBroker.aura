@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.21.1 (2026-07-06)
+- Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup
+
+
 ### 0.21.0 (2026-07-06)
 - Energiebilanz - legend position is now a single option (left/right/above/below) shown under "Show legend", instead of a per-bar dropdown
 - Energiebilanz - added a legend text-alignment option (left/center/right)
@@ -210,10 +214,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - feat(config): apply typed hex color live in ColorPicker
 
 
-### 0.17.0 (2026-07-03)
-- 🌟 **New feature:** Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings).
-
-
 ## License
 
 MIT License
@@ -225,6 +225,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

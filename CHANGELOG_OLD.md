@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.17.0 (2026-07-03)
+- 🌟 **New feature:** Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings).
+
 ## 0.16.0 (2026-07-03)
 - 🌟 **New feature:** Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner
 

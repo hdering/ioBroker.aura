@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.21.0",
+    "version": "0.21.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.21.1": {
+        "en": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
+        "de": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
+        "ru": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
+        "pt": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
+        "nl": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
+        "fr": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
+        "it": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
+        "es": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
+        "pl": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
+        "uk": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
+        "zh-cn": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup"
+      },
       "0.21.0": {
         "en": "Energiebilanz - legend position is now a single option (left/right/above/below) shown under \"Show legend\", instead of a per-bar dropdown\nEnergiebilanz - added a legend text-alignment option (left/center/right)\nEnergiebilanz - legend content can now show the label only\nEnergiebilanz - bar title and total can now be aligned left/center/right\n🌟 New feature: Energiebilanz - new display style: bars, pie or donut chart (donut shows the total in its center)\nEnergiebilanz - fixed legend labels being cut off in pie/donut view\nEnergiebilanz - renamed to \"Diagramm (Verteilung)\" and moved into the standard widget group (it works for any part-of-whole data, not just energy)\nDiagramm (Verteilung) - adjustable bar width (bars) and diagram size (pie/donut)",
         "de": "Energiebilanz - legend position is now a single option (left/right/above/below) shown under \"Show legend\", instead of a per-bar dropdown\nEnergiebilanz - added a legend text-alignment option (left/center/right)\nEnergiebilanz - legend content can now show the label only\nEnergiebilanz - bar title and total can now be aligned left/center/right\n🌟 New feature: Energiebilanz - new display style: bars, pie or donut chart (donut shows the total in its center)\nEnergiebilanz - fixed legend labels being cut off in pie/donut view\nEnergiebilanz - renamed to \"Diagramm (Verteilung)\" and moved into the standard widget group (it works for any part-of-whole data, not just energy)\nDiagramm (Verteilung) - adjustable bar width (bars) and diagram size (pie/donut)",
@@ -184,19 +197,6 @@
         "pl": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
         "uk": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
         "zh-cn": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled"
-      },
-      "0.19.1": {
-        "en": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
-        "de": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
-        "ru": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
-        "pt": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
-        "nl": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
-        "fr": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
-        "it": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
-        "es": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
-        "pl": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
-        "uk": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view",
-        "zh-cn": "Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view"
       }
     }
   },
