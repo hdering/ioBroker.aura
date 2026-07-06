@@ -279,7 +279,10 @@ function FollowMarkers({
 }) {
     const map = useMap();
     const list = Object.values(positions);
-    const key = list.map((p) => `${p[0].toFixed(4)},${p[1].toFixed(4)}`).join('|');
+    // ~0.1 m precision: coarser rounding (e.g. 4 places ≈ 11 m) made a slowly
+    // moving marker (a robot mower, a car crawling in a yard) never change the
+    // key, so the effect never re-ran and the map stopped following it.
+    const key = list.map((p) => `${p[0].toFixed(6)},${p[1].toFixed(6)}`).join('|');
     useEffect(() => {
         if (!enabled || list.length === 0) return;
         let cancelled = false;
@@ -461,6 +464,13 @@ export function MapWidget({ config, editMode }: WidgetProps) {
     // Only pass a follow-mode zoom cap when the user actually configured one, so
     // an unset zoom keeps the built-in auto-fit behavior.
     const followMaxZoom = Number.isFinite(o.zoom) ? (o.zoom as number) : undefined;
+    // In follow mode `o.zoom` is a MAX-zoom cap for the auto-fit, not the initial
+    // view. Opening the container at that cap (often 19) shows an unrecognisable,
+    // fully-zoomed-in patch of the default center until the first position
+    // resolves — which reads as "the map takes forever to show my position".
+    // Start from a sensible overview and let FollowMarkers zoom in once a
+    // position is known. With follow off, `zoom` is the fixed user zoom.
+    const initialZoom = followMarkers ? DEFAULT_ZOOM : zoom;
 
     return (
         <div
@@ -492,7 +502,7 @@ export function MapWidget({ config, editMode }: WidgetProps) {
             >
                 <MapContainer
                     center={center}
-                    zoom={zoom}
+                    zoom={initialZoom}
                     style={{ width: '100%', height: '100%' }}
                     // Disable interaction in edit mode so the widget can be dragged/resized on the grid.
                     dragging={!editMode}
