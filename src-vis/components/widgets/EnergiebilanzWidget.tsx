@@ -157,7 +157,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                 className="w-full h-full flex items-center justify-center text-center px-3"
                 style={{ color: 'var(--text-secondary)', fontSize: 12 }}
             >
-                Keine Balken konfiguriert – im Editor Balken und Datenpunkte hinzufügen.
+                Keine Gruppen konfiguriert – im Editor Gruppen und Datenpunkte hinzufügen.
             </div>
         );
     }

@@ -427,7 +427,7 @@ function BarSection({
                 </div>
                 <input
                     value={bar.title ?? ''}
-                    placeholder={`Balken ${index + 1}`}
+                    placeholder={`Gruppe ${index + 1}`}
                     onChange={(e) => onUpdate({ title: e.target.value || undefined })}
                     className="flex-1 text-[11px] font-semibold rounded px-2 py-1 focus:outline-none"
                     style={inputStyle}
@@ -436,7 +436,7 @@ function BarSection({
                     onClick={onRemove}
                     className="hover:opacity-70 shrink-0"
                     style={{ color: 'var(--accent-red, #ef4444)' }}
-                    title="Balken entfernen"
+                    title="Gruppe entfernen"
                 >
                     <X size={14} />
                 </button>
@@ -498,7 +498,7 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
             ...barsRef.current,
             {
                 id: generateId(),
-                title: n === 0 ? 'Produktion' : n === 1 ? 'Verbrauch' : `Balken ${n + 1}`,
+                title: n === 0 ? 'Produktion' : n === 1 ? 'Verbrauch' : `Gruppe ${n + 1}`,
                 legendSide: n === 1 ? 'right' : 'left',
                 entries: [],
             },
@@ -579,7 +579,7 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                 className="w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg hover:opacity-80"
                 style={{ background: 'var(--accent)', color: '#fff' }}
             >
-                <Plus size={13} /> Balken hinzufügen
+                <Plus size={13} /> Gruppe hinzufügen
             </button>
 
             <div style={{ height: 1, background: 'var(--app-border)' }} />
@@ -673,7 +673,7 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
             {/* toggles */}
             {(
                 [
-                    ['showBarTitles', 'Balken-Titel anzeigen'],
+                    ['showBarTitles', 'Titel anzeigen'],
                     ['showPercent', 'Prozent-Labels anzeigen'],
                     ['showLegend', 'Legende anzeigen'],
                 ] as [keyof EnergyBalanceOptions, string][]
