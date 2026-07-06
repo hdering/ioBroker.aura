@@ -445,7 +445,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                         >
                             {!connected
                                 ? 'Nicht verbunden'
-                                : 'Noch keine Detail-Daten. Für Widget-Zeiten „Timing pro Widget" in den Aura-Adapter-Einstellungen aktivieren und Seite neu laden.'}
+                                : 'Noch keine Detail-Daten. Für Widget-Zeiten „Timing pro Widget“ in den Aura-Adapter-Einstellungen aktivieren und Seite neu laden.'}
                         </div>
                     ) : (
                         <div className="flex flex-col gap-2 py-0.5">
@@ -538,7 +538,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                                 : clientSel !== 'all' && clientSel !== 'current'
                                   ? 'Keine Messwerte für diesen Client.'
                                   : clientSel === 'current'
-                                    ? 'Noch keine Messwerte für dieses Gerät — Seite neu laden oder Tabs wechseln. („Alle Clients" zeigt andere Geräte.)'
+                                    ? 'Noch keine Messwerte für dieses Gerät — Seite neu laden oder Tabs wechseln. („Alle Clients“ zeigt andere Geräte.)'
                                     : 'Noch keine Messwerte — Seite neu laden oder Tabs wechseln.'}
                     </div>
                 ) : (

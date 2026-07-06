@@ -11577,9 +11577,9 @@ export function WidgetFrame({
                                             }}
                                         >
                                             💡 Für mehr Details gibt es in den <b>Aura-Adapter-Einstellungen</b> unter
-                                            „Performance-Diagnose" zwei Schalter: <b>Ladezeiten-Metriken aufzeichnen</b>{' '}
+                                            „Performance-Diagnose“ zwei Schalter: <b>Ladezeiten-Metriken aufzeichnen</b>{' '}
                                             (Standard an) und <b>Timing pro Widget aufzeichnen</b> (Standard aus).
-                                            Letzteren aktivieren, damit die „Details"-Ansicht zeigt, welches Widget
+                                            Letzteren aktivieren, damit die „Details“-Ansicht zeigt, welches Widget
                                             langsam ist.
                                         </div>
                                     </>
