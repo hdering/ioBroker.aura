@@ -8,7 +8,7 @@
  * Produktion/Verbrauch reference layout is simply the N=2 case (legendSide left + right).
  */
 import { useMemo } from 'react';
-import { Scale } from 'lucide-react';
+import { PieChart as PieChartIcon } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { WidgetProps } from '../../types';
 import { useIoBroker } from '../../hooks/useIoBroker';
@@ -128,7 +128,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const showIcon = o.showIcon !== false;
     const iconSize = (o.iconSize as number) || 18;
     const titleAlign = (o.titleAlign as 'left' | 'center' | 'right') ?? 'left';
-    const WidgetIcon = getWidgetIcon(o.icon, Scale);
+    const WidgetIcon = getWidgetIcon(o.icon, PieChartIcon);
 
     const configuredBars = o.bars ?? [];
     const hasConfig = configuredBars.some((b) => (b.entries ?? []).some((e) => e.datapointId));

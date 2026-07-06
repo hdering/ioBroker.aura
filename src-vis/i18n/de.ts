@@ -1059,7 +1059,7 @@ export const de = {
     'widget.carousel': 'Karussell',
     'widget.input': 'Eingabefeld',
     'widget.map': 'Karte',
-    'widget.energiebilanz': 'Energiebilanz',
+    'widget.energiebilanz': 'Diagramm (Anteile)',
 
     // ── Weather Widget ────────────────────────────────────────────────────────────
     'weather.sunny': 'Sonnig',
