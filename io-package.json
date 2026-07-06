@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.19.5",
+    "version": "0.20.0",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.20.0": {
+        "en": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
+        "de": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
+        "ru": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
+        "pt": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
+        "nl": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
+        "fr": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
+        "it": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
+        "es": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
+        "pl": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
+        "uk": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
+        "zh-cn": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup"
+      },
       "0.19.5": {
         "en": "Layouts - changing the global theme preset now shows the Save button again",
         "de": "Layouts - changing the global theme preset now shows the Save button again",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend",
         "uk": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend",
         "zh-cn": "🌟 New feature: New \"Load times\" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend"
-      },
-      "0.18.5": {
-        "en": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
-        "de": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
-        "ru": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
-        "pt": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
-        "nl": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
-        "fr": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
-        "it": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
-        "es": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
-        "pl": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
-        "uk": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
-        "zh-cn": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\""
       }
     }
   },

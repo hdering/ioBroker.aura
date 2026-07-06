@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.15.5 (2026-07-03)
+- Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured
+
 ## 0.15.4 (2026-07-02)
 - Tabs - badges are no longer clipped by the header
 - Weather - fix jumbled/incorrect forecast weekday labels when using adapter data source (open-meteo-weather emits DD.MM.YYYY dates)
