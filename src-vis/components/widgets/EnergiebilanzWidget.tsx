@@ -477,12 +477,15 @@ function Legend({
                     )}
                     {wantLabel && c.entry.label && (
                         <span
-                            className="truncate"
+                            className={isStacked ? 'truncate' : ''}
                             style={{
                                 color: c.color,
                                 fontSize: 12,
-                                flex: isStacked ? undefined : '1 1 0',
+                                // Side legends: size to the label so it shows in full (column grows to fit).
+                                // Stacked legends: full-width row, truncate as a safety net.
+                                flex: isStacked ? undefined : '0 0 auto',
                                 minWidth: 0,
+                                whiteSpace: isStacked ? undefined : 'nowrap',
                                 textAlign: effAlign,
                             }}
                         >
