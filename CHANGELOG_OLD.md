@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.17.3 (2026-07-03)
+- Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows "Mainly clear")
+
 ## 0.17.2 (2026-07-03)
 - Script status - list entries, filter buttons and search box now respect transparent mode
 - JSON table - header and search box now respect transparent mode

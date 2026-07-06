@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.21.3",
+    "version": "0.21.4",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.21.4": {
+        "en": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
+        "de": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
+        "ru": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
+        "pt": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
+        "nl": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
+        "fr": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
+        "it": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
+        "es": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
+        "pl": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
+        "uk": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
+        "zh-cn": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off"
+      },
       "0.21.3": {
         "en": "Load times - color-coded good/ok/slow thresholds with reference lines and latest-value badges so numbers are interpretable at a glance\nLoad times - samples are now tagged per client; widget defaults to the current device and can filter/compare individual clients\nLoad times - time range (1h/6h/24h/7d/all) is now switchable live from the widget header, not only in edit mode\nLoad times - new \"Details\" view attributes slowness per widget (render and ready time) and per backend command, so you can see which one is responsible\nSettings - add performance-diagnostics switches: record load-time metrics (default on) and optional per-widget timing (default off, higher overhead)",
         "de": "Load times - color-coded good/ok/slow thresholds with reference lines and latest-value badges so numbers are interpretable at a glance\nLoad times - samples are now tagged per client; widget defaults to the current device and can filter/compare individual clients\nLoad times - time range (1h/6h/24h/7d/all) is now switchable live from the widget header, not only in edit mode\nLoad times - new \"Details\" view attributes slowness per widget (render and ready time) and per backend command, so you can see which one is responsible\nSettings - add performance-diagnostics switches: record load-time metrics (default on) and optional per-widget timing (default off, higher overhead)",
@@ -184,19 +197,6 @@
         "pl": "Layouts - changing the global theme preset now shows the Save button again",
         "uk": "Layouts - changing the global theme preset now shows the Save button again",
         "zh-cn": "Layouts - changing the global theme preset now shows the Save button again"
-      },
-      "0.19.4": {
-        "en": "Map - corners are now rounded in the live view too (transparent map widgets used to render square outside the editor)",
-        "de": "Map - corners are now rounded in the live view too (transparent map widgets used to render square outside the editor)",
-        "ru": "Map - corners are now rounded in the live view too (transparent map widgets used to render square outside the editor)",
-        "pt": "Map - corners are now rounded in the live view too (transparent map widgets used to render square outside the editor)",
-        "nl": "Map - corners are now rounded in the live view too (transparent map widgets used to render square outside the editor)",
-        "fr": "Map - corners are now rounded in the live view too (transparent map widgets used to render square outside the editor)",
-        "it": "Map - corners are now rounded in the live view too (transparent map widgets used to render square outside the editor)",
-        "es": "Map - corners are now rounded in the live view too (transparent map widgets used to render square outside the editor)",
-        "pl": "Map - corners are now rounded in the live view too (transparent map widgets used to render square outside the editor)",
-        "uk": "Map - corners are now rounded in the live view too (transparent map widgets used to render square outside the editor)",
-        "zh-cn": "Map - corners are now rounded in the live view too (transparent map widgets used to render square outside the editor)"
       }
     }
   },
