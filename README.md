@@ -115,6 +115,14 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.21.3 (2026-07-06)
+- Load times - color-coded good/ok/slow thresholds with reference lines and latest-value badges so numbers are interpretable at a glance
+- Load times - samples are now tagged per client; widget defaults to the current device and can filter/compare individual clients
+- Load times - time range (1h/6h/24h/7d/all) is now switchable live from the widget header, not only in edit mode
+- Load times - new "Details" view attributes slowness per widget (render and ready time) and per backend command, so you can see which one is responsible
+- Settings - add performance-diagnostics switches: record load-time metrics (default on) and optional per-widget timing (default off, higher overhead)
+
+
 ### 0.21.2 (2026-07-06)
 - Chart (Distribution) - "last" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)
 
@@ -207,13 +215,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows "Mainly clear")
 
 
-### 0.17.2 (2026-07-03)
-- Script status - list entries, filter buttons and search box now respect transparent mode
-- JSON table - header and search box now respect transparent mode
-- Adapter logs - filter buttons, source buttons, search box, table header and log rows now respect transparent mode
-- Adapter status - filter buttons, search box and instance rows now respect transparent mode
-
-
 ## License
 
 MIT License
@@ -225,6 +226,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

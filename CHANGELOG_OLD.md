@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.17.2 (2026-07-03)
+- Script status - list entries, filter buttons and search box now respect transparent mode
+- JSON table - header and search box now respect transparent mode
+- Adapter logs - filter buttons, source buttons, search box, table header and log rows now respect transparent mode
+- Adapter status - filter buttons, search box and instance rows now respect transparent mode
+
 ## 0.17.1 (2026-07-03)
 - feat(config): apply typed hex color live in ColorPicker
 
