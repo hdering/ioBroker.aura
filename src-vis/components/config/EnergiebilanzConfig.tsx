@@ -35,6 +35,7 @@ const LEGEND_FORMATS: { id: LegendFormat; label: string }[] = [
     { id: 'icon-value', label: 'Icon + Wert' },
     { id: 'icon-label-value', label: 'Icon + Bezeichnung + Wert' },
     { id: 'label-value', label: 'Bezeichnung + Wert' },
+    { id: 'label', label: 'Bezeichnung' },
     { id: 'value', label: 'Wert' },
 ];
 
@@ -766,6 +767,7 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                                     >
                                         <option value="left">Links</option>
                                         <option value="right">Rechts</option>
+                                        <option value="top">Oben</option>
                                         <option value="below">Unten</option>
                                     </select>
                                 </div>
@@ -779,7 +781,14 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                                     <select
                                         value={
                                             o.legendAlign ??
-                                            ((o.legendSide ?? bars[0]?.legendSide) === 'right' ? 'right' : 'left')
+                                            (() => {
+                                                const s = o.legendSide ?? bars[0]?.legendSide ?? 'below';
+                                                return s === 'below' || s === 'top'
+                                                    ? 'center'
+                                                    : s === 'right'
+                                                      ? 'right'
+                                                      : 'left';
+                                            })()
                                         }
                                         onChange={(e) =>
                                             setO({ legendAlign: e.target.value as EnergyBalanceOptions['legendAlign'] })
@@ -788,6 +797,7 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                                         style={inputStyle}
                                     >
                                         <option value="left">Linksbündig</option>
+                                        <option value="center">Mittig</option>
                                         <option value="right">Rechtsbündig</option>
                                     </select>
                                 </div>

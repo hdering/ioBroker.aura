@@ -26,11 +26,11 @@ export interface EnergyBar {
     title?: string;
     entries: EnergyEntry[];
     /** Where this bar's legend sits relative to the bar. Default 'below'. */
-    legendSide?: 'left' | 'right' | 'below';
+    legendSide?: 'left' | 'right' | 'below' | 'top';
 }
 
 /** What each legend row shows. Default 'icon-value'. */
-export type LegendFormat = 'value' | 'icon-value' | 'label-value' | 'icon-label-value';
+export type LegendFormat = 'value' | 'icon-value' | 'label' | 'label-value' | 'icon-label-value';
 
 export interface EnergyBalanceOptions {
     bars: EnergyBar[];
@@ -51,9 +51,9 @@ export interface EnergyBalanceOptions {
     showPercent?: boolean;
     showLegend?: boolean;
     /** Legend position for all bars. Falls back to each bar's own `legendSide`, then 'below'. */
-    legendSide?: 'left' | 'right' | 'below';
-    /** Horizontal text alignment of the legend rows. Defaults to the side (right when side is 'right', else left). */
-    legendAlign?: 'left' | 'right';
+    legendSide?: 'left' | 'right' | 'below' | 'top';
+    /** Horizontal text alignment of the legend rows. Defaults to the side (below → center, right → right, else left). */
+    legendAlign?: 'left' | 'center' | 'right';
     legendFormat?: LegendFormat;
     /** Shared "Darstellung" appearance controls (written by the general config section). */
     icon?: string;
@@ -232,6 +232,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                                     )}
                                 </div>
                             )}
+                            {side === 'top' && legend && <div className="shrink-0 mb-1.5 w-full">{legend}</div>}
                             <div className="flex-1 min-h-0 w-full flex items-stretch justify-center gap-2">
                                 {side === 'left' && legend}
                                 {chart}
@@ -326,7 +327,7 @@ function PieChart({
 
     if (total <= 0) {
         return (
-            <div className="self-stretch min-h-0 flex-1 min-w-0 flex items-center justify-center">
+            <div className="self-stretch min-h-0 shrink-0 flex items-center justify-center">
                 <svg
                     viewBox="0 0 100 100"
                     style={{ height: '100%', maxHeight: 160, width: 'auto', aspectRatio: '1 / 1' }}
@@ -436,21 +437,24 @@ function Legend({
     fmt,
 }: {
     items: Computed[];
-    side: 'left' | 'right' | 'below';
-    align?: 'left' | 'right';
+    side: 'left' | 'right' | 'below' | 'top';
+    align?: 'left' | 'center' | 'right';
     format: LegendFormat;
     fmt: (v: number, e: EnergyEntry) => string;
 }) {
     const isRight = side === 'right';
-    const isBelow = side === 'below';
-    // Explicit alignment overrides the side-derived default; below stays centred only when unset.
-    const alignRight = align === 'right' || (align == null && isRight);
-    const centerRow = isBelow && align == null;
+    // 'top'/'below' render a full-width, horizontally-stacked legend.
+    const isStacked = side === 'below' || side === 'top';
+    // Explicit alignment overrides the side-derived default (stacked → center, right → right, else left).
+    const effAlign: 'left' | 'center' | 'right' = align ?? (isStacked ? 'center' : isRight ? 'right' : 'left');
+    const alignRight = effAlign === 'right';
+    const alignCenter = effAlign === 'center';
     const wantIcon = format === 'icon-value' || format === 'icon-label-value';
-    const wantLabel = format === 'label-value' || format === 'icon-label-value';
+    const wantLabel = format === 'label' || format === 'label-value' || format === 'icon-label-value';
+    const wantValue = format !== 'label';
     return (
         <div
-            className={`flex flex-col justify-center gap-1 min-w-0 ${isBelow ? 'w-full' : ''}`}
+            className={`flex flex-col justify-center gap-1 min-w-0 ${isStacked ? 'w-full' : ''}`}
             style={{ alignItems: 'stretch' }}
         >
             {items.map((c) => (
@@ -459,7 +463,7 @@ function Legend({
                     className="flex items-center gap-1.5 min-w-0"
                     style={{
                         flexDirection: alignRight ? 'row-reverse' : 'row',
-                        justifyContent: centerRow ? 'center' : undefined,
+                        justifyContent: alignCenter ? 'center' : undefined,
                     }}
                     title={c.entry.label}
                 >
@@ -477,25 +481,27 @@ function Legend({
                             style={{
                                 color: c.color,
                                 fontSize: 12,
-                                flex: isBelow ? undefined : '1 1 0',
+                                flex: isStacked ? undefined : '1 1 0',
                                 minWidth: 0,
-                                textAlign: alignRight ? 'right' : 'left',
+                                textAlign: effAlign,
                             }}
                         >
                             {c.entry.label}
                         </span>
                     )}
-                    <span
-                        className="truncate shrink-0"
-                        style={{
-                            color: c.color,
-                            fontSize: 12,
-                            fontWeight: 600,
-                            textAlign: alignRight ? 'right' : 'left',
-                        }}
-                    >
-                        {fmt(c.value, c.entry)}
-                    </span>
+                    {wantValue && (
+                        <span
+                            className="truncate shrink-0"
+                            style={{
+                                color: c.color,
+                                fontSize: 12,
+                                fontWeight: 600,
+                                textAlign: effAlign,
+                            }}
+                        >
+                            {fmt(c.value, c.entry)}
+                        </span>
+                    )}
                 </div>
             ))}
         </div>
