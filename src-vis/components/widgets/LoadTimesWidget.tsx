@@ -1,33 +1,61 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { LineChart, Line, AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
+import {
+    LineChart,
+    Line,
+    AreaChart,
+    Area,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    ReferenceLine,
+} from 'recharts';
 import { Activity } from 'lucide-react';
 import { sendToDirect, useIoBroker } from '../../hooks/useIoBroker';
+import { useConnectionStore } from '../../store/connectionStore';
 import { NS } from '../../utils/namespace';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { WidgetProps } from '../../types';
 
 // ── Metric catalogue ──────────────────────────────────────────────────────────
+//
+// `good` / `ok` are reference thresholds in ms: value ≤ good → green, ≤ ok →
+// amber, otherwise red. They give the raw numbers meaning ("is this fast?") and
+// drive both the status badges and the in-chart reference lines. Ranges assume a
+// vis instance on a local network; a weak client device shifts everything up.
 
 interface MetricMeta {
     key: string;
     label: string;
     color: string;
+    good: number;
+    ok: number;
 }
 
 const METRICS: MetricMeta[] = [
-    { key: 'initialLoad', label: 'Initial-Load', color: '#3b82f6' },
-    { key: 'firstContentfulPaint', label: 'First Paint', color: '#10b981' },
-    { key: 'socketToFirstState', label: 'Socket → 1. DP', color: '#f59e0b' },
-    { key: 'tabSwitch', label: 'Tab-Wechsel', color: '#a855f7' },
-    { key: 'longTaskMax', label: 'Long-Task max', color: '#ef4444' },
+    { key: 'initialLoad', label: 'Initial-Load', color: '#3b82f6', good: 1500, ok: 3000 },
+    { key: 'firstContentfulPaint', label: 'First Paint', color: '#10b981', good: 1000, ok: 2500 },
+    { key: 'socketToFirstState', label: 'Socket → 1. DP', color: '#f59e0b', good: 300, ok: 800 },
+    { key: 'tabSwitch', label: 'Tab-Wechsel', color: '#a855f7', good: 150, ok: 400 },
+    { key: 'longTaskMax', label: 'Long-Task max', color: '#ef4444', good: 50, ok: 150 },
 ];
 const METRIC_BY_KEY: Record<string, MetricMeta> = Object.fromEntries(METRICS.map((m) => [m.key, m]));
+
+const STATUS_COLOR = { good: '#22c55e', ok: '#f59e0b', bad: '#ef4444' } as const;
+function classify(value: number, m: MetricMeta): keyof typeof STATUS_COLOR {
+    if (value <= m.good) return 'good';
+    if (value <= m.ok) return 'ok';
+    return 'bad';
+}
 
 interface PerfSample {
     seq: number;
     ts: number;
     metric: string;
     value: number;
+    client?: string;
+    clientName?: string;
 }
 
 const WINDOWS: Record<string, number> = {
@@ -67,6 +95,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
     const iconSize = (o.iconSize as number) || 20;
     const titleAlign = (o.titleAlign as 'left' | 'center' | 'right') ?? 'left';
     const showLegend = o.showLegend !== false;
+    const showThresholds = o.showThresholds !== false;
     const chartType = (o.chartType as 'line' | 'area') ?? 'line';
     const timeWindow = (o.timeWindow as string) ?? '24h';
     const windowMs = WINDOWS[timeWindow] ?? WINDOWS['24h'];
@@ -80,7 +109,14 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
     const enabledKey = enabledMetrics.join(',');
 
     const { connected } = useIoBroker();
+    const myClientId = useConnectionStore((s) => s.clientId);
     const Icon = getWidgetIcon((o.icon as string) ?? 'Activity', Activity);
+
+    // Client filter: default to *this* device so the numbers are directly
+    // interpretable (these metrics are client-dependent). The config seeds the
+    // default; the inline dropdown overrides it at runtime.
+    const [clientSel, setClientSel] = useState<string>((o.clientFilter as string) ?? 'current');
+    useEffect(() => setClientSel((o.clientFilter as string) ?? 'current'), [o.clientFilter]);
 
     const bufferRef = useRef<PerfSample[]>([]);
     const seenSeqRef = useRef(0);
@@ -131,14 +167,31 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
         };
     }, [connected, editMode]);
 
-    // Build the recharts series: merge samples per timestamp into one point each.
-    const { points, spanMs } = useMemo(() => {
+    // Distinct clients seen in the buffer, for the filter dropdown.
+    const clientOptions = useMemo(() => {
+        const byId = new Map<string, string>();
+        for (const e of bufferRef.current) {
+            if (e.client) byId.set(e.client, e.clientName || e.client.slice(0, 8));
+        }
+        return Array.from(byId, ([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+    }, [tick]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Build the recharts series (merge samples per timestamp) plus the latest
+    // value per metric for the status badges — both honouring the client filter.
+    const { points, spanMs, latest } = useMemo(() => {
         const raw = editMode && bufferRef.current.length === 0 ? previewSamples() : bufferRef.current;
         const enabled = new Set(enabledMetrics);
         const cutoff = windowMs > 0 ? Date.now() - windowMs : 0;
+        const matchesClient = (e: PerfSample): boolean => {
+            if (editMode || clientSel === 'all') return true;
+            if (clientSel === 'current') return e.client === myClientId;
+            return e.client === clientSel;
+        };
         const byTs = new Map<number, Record<string, number>>();
+        const latestByMetric: Record<string, { value: number; seq: number }> = {};
         for (const e of raw) {
             if (!enabled.has(e.metric)) continue;
+            if (!matchesClient(e)) continue;
             if (cutoff && e.ts < cutoff) continue;
             let p = byTs.get(e.ts);
             if (!p) {
@@ -146,14 +199,18 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                 byTs.set(e.ts, p);
             }
             p[e.metric] = e.value;
+            const cur = latestByMetric[e.metric];
+            if (!cur || e.seq >= cur.seq) latestByMetric[e.metric] = { value: e.value, seq: e.seq };
         }
         const arr = Array.from(byTs.values()).sort((a, b) => a.ts - b.ts);
         const span = arr.length > 1 ? arr[arr.length - 1].ts - arr[0].ts : 0;
-        return { points: arr, spanMs: span };
-    }, [tick, enabledKey, windowMs, editMode]); // eslint-disable-line react-hooks/exhaustive-deps
+        return { points: arr, spanMs: span, latest: latestByMetric };
+    }, [tick, enabledKey, windowMs, editMode, clientSel, myClientId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const seriesMetrics = enabledMetrics.map((k) => METRIC_BY_KEY[k]).filter(Boolean);
     const hasData = points.length > 0;
+    // Reference lines only make sense when a single metric owns the Y axis.
+    const soloMetric = seriesMetrics.length === 1 ? seriesMetrics[0] : null;
 
     const tooltipStyle: React.CSSProperties = {
         background: 'var(--app-surface)',
@@ -163,9 +220,15 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
         color: 'var(--text-primary)',
     };
 
+    const selectStyle: React.CSSProperties = {
+        background: 'var(--app-bg)',
+        color: 'var(--text-secondary)',
+        border: '1px solid var(--app-border)',
+    };
+
     return (
         <div className="aura-widget-row w-full h-full flex flex-col gap-2 overflow-hidden">
-            {(showTitle || showIcon) && (
+            {(showTitle || showIcon || clientOptions.length > 0) && (
                 <div className="flex items-center gap-2 shrink-0">
                     {showIcon && (
                         <Icon
@@ -185,6 +248,23 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                             {config.title || 'Ladezeiten'}
                         </p>
                     )}
+                    {clientOptions.length > 0 && (
+                        <select
+                            value={clientSel}
+                            onChange={(e) => setClientSel(e.target.value)}
+                            className="text-[10px] rounded-md px-1.5 py-0.5 focus:outline-none shrink-0 max-w-[45%] truncate"
+                            style={selectStyle}
+                            title="Client-Filter"
+                        >
+                            <option value="current">Dieser Client</option>
+                            <option value="all">Alle Clients</option>
+                            {clientOptions.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                    {c.name}
+                                </option>
+                            ))}
+                        </select>
+                    )}
                 </div>
             )}
 
@@ -203,6 +283,29 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                 </div>
             )}
 
+            {showThresholds && hasData && (
+                <div className="flex items-center gap-1.5 flex-wrap shrink-0">
+                    {seriesMetrics.map((m) => {
+                        const l = latest[m.key];
+                        if (!l) return null;
+                        const status = classify(l.value, m);
+                        const c = STATUS_COLOR[status];
+                        return (
+                            <span
+                                key={m.key}
+                                className="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px]"
+                                style={{ background: `${c}22`, color: 'var(--text-primary)' }}
+                                title={`${m.label} — Zielwert ≤ ${m.good} ms · OK ≤ ${m.ok} ms`}
+                            >
+                                <span style={{ width: 7, height: 7, borderRadius: 9, background: c }} />
+                                <span className="opacity-70">{m.label}</span>
+                                <b>{Math.round(l.value)} ms</b>
+                            </span>
+                        );
+                    })}
+                </div>
+            )}
+
             <div className="flex-1 min-h-0">
                 {!hasData ? (
                     <div
@@ -215,7 +318,11 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                               ? 'Aura-Adapter antwortet nicht — bitte Adapter neu starten/aktualisieren.'
                               : backendOk === null
                                 ? 'Backend wird kontaktiert…'
-                                : 'Noch keine Messwerte — Seite neu laden oder Tabs wechseln.'}
+                                : clientSel !== 'all' && clientSel !== 'current'
+                                  ? 'Keine Messwerte für diesen Client.'
+                                  : clientSel === 'current'
+                                    ? 'Noch keine Messwerte für dieses Gerät — Seite neu laden oder Tabs wechseln. („Alle Clients" zeigt andere Geräte.)'
+                                    : 'Noch keine Messwerte — Seite neu laden oder Tabs wechseln.'}
                     </div>
                 ) : (
                     <ResponsiveContainer width="100%" height="100%">
@@ -254,6 +361,22 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                                         METRIC_BY_KEY[String(name)]?.label ?? String(name),
                                     ]}
                                 />
+                                {showThresholds && soloMetric && (
+                                    <>
+                                        <ReferenceLine
+                                            y={soloMetric.good}
+                                            stroke={STATUS_COLOR.good}
+                                            strokeDasharray="4 4"
+                                            strokeOpacity={0.7}
+                                        />
+                                        <ReferenceLine
+                                            y={soloMetric.ok}
+                                            stroke={STATUS_COLOR.ok}
+                                            strokeDasharray="4 4"
+                                            strokeOpacity={0.7}
+                                        />
+                                    </>
+                                )}
                                 {seriesMetrics.map((m) => (
                                     <Area
                                         key={m.key}
@@ -295,6 +418,22 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                                         METRIC_BY_KEY[String(name)]?.label ?? String(name),
                                     ]}
                                 />
+                                {showThresholds && soloMetric && (
+                                    <>
+                                        <ReferenceLine
+                                            y={soloMetric.good}
+                                            stroke={STATUS_COLOR.good}
+                                            strokeDasharray="4 4"
+                                            strokeOpacity={0.7}
+                                        />
+                                        <ReferenceLine
+                                            y={soloMetric.ok}
+                                            stroke={STATUS_COLOR.ok}
+                                            strokeDasharray="4 4"
+                                            strokeOpacity={0.7}
+                                        />
+                                    </>
+                                )}
                                 {seriesMetrics.map((m) => (
                                     <Line
                                         key={m.key}

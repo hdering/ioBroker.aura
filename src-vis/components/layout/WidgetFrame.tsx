@@ -11371,6 +11371,8 @@ export function WidgetFrame({
                                 const timeWindow = (o.timeWindow as string) ?? '24h';
                                 const chartType = (o.chartType as string) ?? 'line';
                                 const showLegend = (o.showLegend as boolean | undefined) ?? true;
+                                const showThresholds = (o.showThresholds as boolean | undefined) ?? true;
+                                const clientFilter = (o.clientFilter as string) ?? 'current';
                                 return (
                                     <>
                                         <div>
@@ -11439,6 +11441,23 @@ export function WidgetFrame({
                                                 </select>
                                             </div>
                                         </div>
+                                        <div>
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Client-Filter <span className="opacity-60">(Standard beim Öffnen)</span>
+                                            </label>
+                                            <select
+                                                value={clientFilter}
+                                                onChange={(e) => set({ clientFilter: e.target.value })}
+                                                className={lCls}
+                                                style={lSty}
+                                            >
+                                                <option value="current">Nur dieser Client</option>
+                                                <option value="all">Alle Clients</option>
+                                            </select>
+                                        </div>
                                         <div className="flex items-center justify-between">
                                             <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                                 Legende anzeigen
@@ -11453,6 +11472,23 @@ export function WidgetFrame({
                                                 <span
                                                     className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
                                                     style={{ left: showLegend ? '18px' : '2px' }}
+                                                />
+                                            </button>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                                Schwellwerte (gut/ok/langsam)
+                                            </label>
+                                            <button
+                                                onClick={() => set({ showThresholds: !showThresholds })}
+                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                style={{
+                                                    background: showThresholds ? 'var(--accent)' : 'var(--app-border)',
+                                                }}
+                                            >
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{ left: showThresholds ? '18px' : '2px' }}
                                                 />
                                             </button>
                                         </div>

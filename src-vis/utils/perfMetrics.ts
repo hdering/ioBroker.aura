@@ -13,6 +13,7 @@
  */
 import { sendToDirect } from '../hooks/useIoBroker';
 import { NS } from './namespace';
+import { useConnectionStore } from '../store/connectionStore';
 
 export type PerfMetric = 'initialLoad' | 'firstContentfulPaint' | 'socketToFirstState' | 'tabSwitch' | 'longTaskMax';
 
@@ -25,7 +26,15 @@ function shotMode(): boolean {
 export function reportMetric(metric: PerfMetric, value: number): void {
     if (shotMode()) return;
     if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return;
-    void sendToDirect(NS, 'perfLog', { metric, value: Math.round(value), ts: Date.now() }, 10000);
+    // Tag the sample with this device's identity so the widget can filter/compare
+    // per client — these load times are almost entirely client-dependent.
+    const { clientId, clientName } = useConnectionStore.getState();
+    void sendToDirect(
+        NS,
+        'perfLog',
+        { metric, value: Math.round(value), ts: Date.now(), client: clientId, clientName },
+        10000,
+    );
 }
 
 let started = false;

@@ -2230,12 +2230,20 @@ class Aura extends utils.Adapter {
                 }
                 if (!Array.isArray(this._perfBuffer)) this._perfBuffer = [];
                 this._perfSeq = (this._perfSeq + 1) | 0;
+                // Attribute the sample to the reporting client so the widget can
+                // separate devices (a slow tablet vs. a fast desktop) instead of
+                // blending every client onto one line. Both fields are optional and
+                // capped so a rogue client cannot bloat the persisted buffer.
+                const client = typeof m.client === 'string' ? m.client.slice(0, 32) : '';
+                const clientName = typeof m.clientName === 'string' ? m.clientName.slice(0, 64) : '';
                 const entry = {
                     seq: this._perfSeq,
                     ts: typeof m.ts === 'number' ? m.ts : Date.now(),
                     metric,
                     value: Math.round(value * 100) / 100,
                 };
+                if (client) entry.client = client;
+                if (clientName) entry.clientName = clientName;
                 this._perfBuffer.push(entry);
                 if (this._perfBuffer.length > this._perfBufferLimit) {
                     this._perfBuffer.splice(0, this._perfBuffer.length - this._perfBufferLimit);
