@@ -585,6 +585,22 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
             <div style={{ height: 1, background: 'var(--app-border)' }} />
 
             {/* ── Global settings ── */}
+            <div>
+                <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                    Darstellung
+                </label>
+                <select
+                    value={o.chartStyle ?? 'bars'}
+                    onChange={(e) => setO({ chartStyle: e.target.value as EnergyBalanceOptions['chartStyle'] })}
+                    className={inputCls}
+                    style={inputStyle}
+                >
+                    <option value="bars">Balken</option>
+                    <option value="pie">Tortendiagramm</option>
+                    <option value="donut">Donut</option>
+                </select>
+            </div>
+
             <div className="grid grid-cols-2 gap-2">
                 <div>
                     <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>

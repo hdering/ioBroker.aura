@@ -34,6 +34,8 @@ export type LegendFormat = 'value' | 'icon-value' | 'label-value' | 'icon-label-
 
 export interface EnergyBalanceOptions {
     bars: EnergyBar[];
+    /** Visual style of each bar's composition. Default 'bars' (100%-stacked bar). */
+    chartStyle?: 'bars' | 'pie' | 'donut';
     /** Default unit shown after each value + total (per-entry unit overrides). */
     unit?: string;
     decimals?: number;
@@ -116,6 +118,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const showTotals = o.showTotals !== false;
     const showPercent = o.showPercent !== false;
     const showLegend = o.showLegend !== false;
+    const chartStyle = o.chartStyle ?? 'bars';
     const legendFormat = o.legendFormat ?? 'icon-value';
     const legendAlign = o.legendAlign;
     const unit = o.unit ?? 'kWh';
@@ -196,7 +199,22 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                     const legend = showLegend ? (
                         <Legend items={computed} side={side} align={legendAlign} format={legendFormat} fmt={fmt} />
                     ) : null;
-                    const stacked = <StackedBar items={computed} total={total} showPercent={showPercent} />;
+                    const chart =
+                        chartStyle === 'bars' ? (
+                            <StackedBar items={computed} total={total} showPercent={showPercent} />
+                        ) : (
+                            <PieChart
+                                items={computed}
+                                total={total}
+                                showPercent={showPercent}
+                                donut={chartStyle === 'donut'}
+                                center={
+                                    chartStyle === 'donut' && showTotals
+                                        ? { value: formatNum(total, decimals), unit }
+                                        : null
+                                }
+                            />
+                        );
 
                     return (
                         <div key={bar.id} className="flex flex-col items-center min-w-0" style={{ flex: '1 1 0' }}>
@@ -216,7 +234,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                             )}
                             <div className="flex-1 min-h-0 w-full flex items-stretch justify-center gap-2">
                                 {side === 'left' && legend}
-                                {stacked}
+                                {chart}
                                 {side === 'right' && legend}
                             </div>
                             {side === 'below' && legend && <div className="shrink-0 mt-1.5 w-full">{legend}</div>}
@@ -264,6 +282,146 @@ function StackedBar({ items, total, showPercent }: { items: Computed[]; total: n
                     {showPercent && c.percent >= 8 ? `${Math.round(c.percent)} %` : ''}
                 </div>
             ))}
+        </div>
+    );
+}
+
+// ── Pie / Donut ─────────────────────────────────────────────────────────────────
+
+/** Point on a circle; angle 0 = top, growing clockwise. */
+function polar(cx: number, cy: number, r: number, angle: number): [number, number] {
+    return [cx + r * Math.sin(angle), cy - r * Math.cos(angle)];
+}
+
+/** SVG path for an annular sector (rInner = 0 → filled pie slice). */
+function sectorPath(cx: number, cy: number, rOuter: number, rInner: number, start: number, end: number): string {
+    const large = end - start > Math.PI ? 1 : 0;
+    const [xo0, yo0] = polar(cx, cy, rOuter, start);
+    const [xo1, yo1] = polar(cx, cy, rOuter, end);
+    if (rInner <= 0) {
+        return `M ${cx} ${cy} L ${xo0} ${yo0} A ${rOuter} ${rOuter} 0 ${large} 1 ${xo1} ${yo1} Z`;
+    }
+    const [xi0, yi0] = polar(cx, cy, rInner, start);
+    const [xi1, yi1] = polar(cx, cy, rInner, end);
+    return `M ${xo0} ${yo0} A ${rOuter} ${rOuter} 0 ${large} 1 ${xo1} ${yo1} L ${xi1} ${yi1} A ${rInner} ${rInner} 0 ${large} 0 ${xi0} ${yi0} Z`;
+}
+
+function PieChart({
+    items,
+    total,
+    showPercent,
+    donut,
+    center,
+}: {
+    items: Computed[];
+    total: number;
+    showPercent: boolean;
+    donut: boolean;
+    center: { value: string; unit: string } | null;
+}) {
+    const R = 46;
+    const cx = 50;
+    const cy = 50;
+    const rInner = donut ? 26 : 0;
+
+    if (total <= 0) {
+        return (
+            <div className="self-stretch min-h-0 flex-1 min-w-0 flex items-center justify-center">
+                <svg
+                    viewBox="0 0 100 100"
+                    style={{ height: '100%', maxHeight: 160, width: 'auto', aspectRatio: '1 / 1' }}
+                >
+                    <circle
+                        cx={cx}
+                        cy={cy}
+                        r={R}
+                        fill="none"
+                        stroke="var(--app-border)"
+                        strokeWidth={1}
+                        strokeDasharray="3 3"
+                    />
+                </svg>
+            </div>
+        );
+    }
+
+    const segments = items.filter((c) => c.value > 0);
+    let angle = 0;
+
+    return (
+        <div className="self-stretch min-h-0 flex items-center justify-center" style={{ width: '100%' }}>
+            <svg viewBox="0 0 100 100" style={{ height: '100%', maxHeight: 160, width: 'auto', aspectRatio: '1 / 1' }}>
+                {segments.map((c) => {
+                    const frac = c.value / total;
+                    // A single full-circle segment: draw a ring/disc (an arc from 0 to 2π is degenerate).
+                    if (frac >= 0.9999) {
+                        angle = 2 * Math.PI;
+                        return donut ? (
+                            <circle
+                                key={c.entry.id}
+                                cx={cx}
+                                cy={cy}
+                                r={(R + rInner) / 2}
+                                fill="none"
+                                stroke={c.color}
+                                strokeWidth={R - rInner}
+                            />
+                        ) : (
+                            <circle key={c.entry.id} cx={cx} cy={cy} r={R} fill={c.color} />
+                        );
+                    }
+                    const start = angle;
+                    const end = angle + frac * 2 * Math.PI;
+                    angle = end;
+                    const mid = (start + end) / 2;
+                    const [lx, ly] = polar(cx, cy, (R + rInner) / 2, mid);
+                    return (
+                        <g key={c.entry.id}>
+                            <path d={sectorPath(cx, cy, R, rInner, start, end)} fill={c.color} />
+                            {showPercent && c.percent >= 8 && (
+                                <text
+                                    x={lx}
+                                    y={ly}
+                                    fill="#fff"
+                                    fontSize={7}
+                                    fontWeight={600}
+                                    textAnchor="middle"
+                                    dominantBaseline="central"
+                                >
+                                    {Math.round(c.percent)}%
+                                </text>
+                            )}
+                        </g>
+                    );
+                })}
+                {donut && center && (
+                    <>
+                        <text
+                            x={cx}
+                            y={center.unit ? cy - 2 : cy}
+                            fill="var(--text-primary)"
+                            fontSize={11}
+                            fontWeight={700}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                        >
+                            {center.value}
+                        </text>
+                        {center.unit && (
+                            <text
+                                x={cx}
+                                y={cy + 8}
+                                fill="var(--text-secondary)"
+                                fontSize={7}
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                            >
+                                {center.unit}
+                            </text>
+                        )}
+                    </>
+                )}
+            </svg>
         </div>
     );
 }

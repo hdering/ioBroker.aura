@@ -8,3 +8,4 @@
 - Energiebilanz - legend position is now a single option (left/right/below) shown under "Show legend", instead of a per-bar dropdown
 - Energiebilanz - added a legend text-alignment option (left/right)
 - Energiebilanz - bar title and total can now be aligned left/center/right
+- Energiebilanz - new display style: bars, pie or donut chart (donut shows the total in its center)
