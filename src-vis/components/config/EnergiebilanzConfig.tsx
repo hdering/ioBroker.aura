@@ -683,6 +683,27 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                 );
             })}
 
+            {/* bar title + total alignment */}
+            {o.showBarTitles !== false && (
+                <div>
+                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                        Titel/Summe-Ausrichtung
+                    </label>
+                    <select
+                        value={o.barTitleAlign ?? 'center'}
+                        onChange={(e) =>
+                            setO({ barTitleAlign: e.target.value as EnergyBalanceOptions['barTitleAlign'] })
+                        }
+                        className={inputCls}
+                        style={inputStyle}
+                    >
+                        <option value="left">Links</option>
+                        <option value="center">Mitte</option>
+                        <option value="right">Rechts</option>
+                    </select>
+                </div>
+            )}
+
             {/* legend position (applies to all bars) */}
             {o.showLegend !== false && (
                 <div>

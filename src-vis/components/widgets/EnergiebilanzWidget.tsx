@@ -43,6 +43,8 @@ export interface EnergyBalanceOptions {
     showTitle?: boolean;
     /** Per-bar title + total above each bar. Default true. */
     showBarTitles?: boolean;
+    /** Horizontal alignment of the per-bar title + total. Default 'center'. */
+    barTitleAlign?: 'left' | 'center' | 'right';
     showTotals?: boolean;
     showPercent?: boolean;
     showLegend?: boolean;
@@ -110,6 +112,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const o = (config.options ?? {}) as unknown as EnergyBalanceOptions;
     const showTitle = o.showTitle !== false;
     const showBarTitles = o.showBarTitles !== false;
+    const barTitleAlign = o.barTitleAlign ?? 'center';
     const showTotals = o.showTotals !== false;
     const showPercent = o.showPercent !== false;
     const showLegend = o.showLegend !== false;
@@ -198,7 +201,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                     return (
                         <div key={bar.id} className="flex flex-col items-center min-w-0" style={{ flex: '1 1 0' }}>
                             {showBarTitles && (bar.title || showTotals) && (
-                                <div className="text-center mb-1.5 shrink-0">
+                                <div className="mb-1.5 shrink-0 w-full" style={{ textAlign: barTitleAlign }}>
                                     {bar.title && (
                                         <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>
                                             {bar.title}
