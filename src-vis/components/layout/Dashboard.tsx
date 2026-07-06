@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactGridLayout from 'react-grid-layout/legacy';
-import { X } from 'lucide-react';
+import { X, Monitor } from 'lucide-react';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { useIframeStore, type IframeFullscreenData } from '../../store/iframeStore';
@@ -8,6 +8,7 @@ import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { WidgetFrame } from './WidgetFrame';
 import { useReflowHiddenIds, useConditionReflowIds } from '../../hooks/useConditionStyle';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
+import { useConfigStore } from '../../store/configStore';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
 import { DashboardMobileContext } from '../../contexts/DashboardMobileContext';
 import type { WidgetConfig } from '../../types';
@@ -59,8 +60,10 @@ export function Dashboard({
     const guidelinesWidth = settings.guidelinesWidth ?? 1280;
     const guidelinesHeight = settings.guidelinesHeight ?? 800;
     const guidelinesShowInFrontend = settings.guidelinesShowInFrontend ?? false;
+    const guidelinesShowResolution = settings.guidelinesShowResolution ?? true;
 
     const showGuidelines = guidelinesEnabled && (editMode || guidelinesShowInFrontend);
+    const showResolution = showGuidelines && guidelinesShowResolution;
 
     // In frontend view, use provided override; otherwise use active editor layout
     const tabs = viewTabs ?? activeLayout.tabs;
@@ -363,6 +366,14 @@ export function Dashboard({
                     }}
                 >
                     {showGuidelines && <GuidelinesOverlay width={guidelinesWidth} height={guidelinesHeight} />}
+                    {showResolution && <ResolutionBadge />}
+                    {showResolution && !editMode && (
+                        <GuidelinesHint
+                            onDisable={() =>
+                                useConfigStore.getState().updateFrontend({ guidelinesShowInFrontend: false })
+                            }
+                        />
+                    )}
                     {rglWidth > 0 && (
                         <>
                             {/* Reflow-hidden widgets from all tabs rendered off-screen so conditions keep evaluating */}
@@ -705,6 +716,118 @@ function GuidelinesOverlay({ width, height }: { width: number; height: number })
                 </span>
             </div>
         </>
+    );
+}
+
+// ── Live resolution readout + first-run hint ──────────────────────────────
+// The badge shows the current device viewport size (window inner width/height) —
+// the actual resolution of whatever opened the frontend (PC, tablet, phone). It
+// complements the guideline target lines. On fresh installs guidelines + this
+// readout default ON; the hint explains how to switch it off and offers a
+// one-click "hide now".
+const GUIDELINES_HINT_DISMISSED_KEY = 'aura-guidelines-hint-dismissed';
+
+function ResolutionBadge() {
+    const t = useT();
+    const [size, setSize] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }));
+    useEffect(() => {
+        const measure = () => setSize({ w: window.innerWidth, h: window.innerHeight });
+        measure();
+        window.addEventListener('resize', measure);
+        window.addEventListener('orientationchange', measure);
+        return () => {
+            window.removeEventListener('resize', measure);
+            window.removeEventListener('orientationchange', measure);
+        };
+    }, []);
+    return (
+        <div
+            style={{
+                position: 'fixed',
+                right: 12,
+                bottom: 12,
+                zIndex: 45,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'rgba(239,68,68,0.95)',
+                color: '#fff',
+                fontWeight: 700,
+                padding: '7px 14px',
+                borderRadius: 999,
+                pointerEvents: 'none',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.35)',
+            }}
+        >
+            <Monitor size={18} strokeWidth={2.5} />
+            <span style={{ fontSize: 12, fontWeight: 600, opacity: 0.9 }}>{t('guidelines.resolutionLabel')}</span>
+            <span style={{ fontSize: 16, fontVariantNumeric: 'tabular-nums', letterSpacing: 0.3 }}>
+                {size.w} × {size.h}
+            </span>
+        </div>
+    );
+}
+
+function GuidelinesHint({ onDisable }: { onDisable: () => void }) {
+    const t = useT();
+    const [dismissed, setDismissed] = useState(() => {
+        try {
+            return localStorage.getItem(GUIDELINES_HINT_DISMISSED_KEY) === '1';
+        } catch {
+            return false;
+        }
+    });
+    if (dismissed) return null;
+    const dismiss = () => {
+        try {
+            localStorage.setItem(GUIDELINES_HINT_DISMISSED_KEY, '1');
+        } catch {
+            /* quota — hint just reappears next load, harmless */
+        }
+        setDismissed(true);
+    };
+    return (
+        <div
+            style={{
+                position: 'fixed',
+                left: '50%',
+                bottom: 44,
+                transform: 'translateX(-50%)',
+                zIndex: 46,
+                maxWidth: 'min(92vw, 520px)',
+                background: 'var(--app-surface)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--app-border)',
+                borderRadius: 10,
+                boxShadow: '0 6px 24px rgba(0,0,0,0.25)',
+                padding: '12px 14px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                fontSize: 13,
+            }}
+        >
+            <div style={{ lineHeight: 1.4 }}>{t('guidelines.hint')}</div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                <button
+                    onClick={dismiss}
+                    className="px-3 py-1 rounded"
+                    style={{ color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+                >
+                    {t('guidelines.hintKeep')}
+                </button>
+                <button
+                    onClick={() => {
+                        onDisable();
+                        dismiss();
+                    }}
+                    className="px-3 py-1 rounded font-medium"
+                    style={{ background: 'var(--accent)', color: '#fff' }}
+                >
+                    {t('guidelines.hintDisable')}
+                </button>
+            </div>
+        </div>
     );
 }
 

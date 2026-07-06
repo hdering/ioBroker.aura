@@ -38,6 +38,8 @@ export interface FrontendSettings {
     guidelinesWidth: number;
     guidelinesHeight: number;
     guidelinesShowInFrontend: boolean;
+    /** Show a live badge with the current device viewport resolution (window inner size). */
+    guidelinesShowResolution: boolean;
     // Layout drawer (hamburger) — global toggle
     layoutDrawerEnabled: boolean;
     layoutDrawerSize: 'sm' | 'md' | 'lg';
@@ -126,10 +128,15 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     fontScale: 1,
     mobileBreakpoint: 600,
     language: 'de',
-    guidelinesEnabled: false,
+    // Fresh installs show the guidelines + resolution readout in the frontend so
+    // users immediately see their device's viewport size (with a dismissible hint
+    // explaining how to switch it off). Existing installs keep their persisted
+    // values — zustand-persist rehydration overrides these defaults.
+    guidelinesEnabled: true,
     guidelinesWidth: 1280,
     guidelinesHeight: 800,
-    guidelinesShowInFrontend: false,
+    guidelinesShowInFrontend: true,
+    guidelinesShowResolution: true,
     layoutDrawerEnabled: false,
     layoutDrawerSize: 'md',
     layoutDrawerAutoHide: false,

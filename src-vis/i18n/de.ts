@@ -328,6 +328,11 @@ export const de = {
     'layouts.subtab.typo': 'Typografie & Spacing',
     'layouts.subtab.grid': 'Grid & Mobile',
     'layouts.subtab.guidelines': 'Hilfslinien',
+    'guidelines.hint':
+        'Hilfslinien und die aktuelle Bildschirmauflösung werden angezeigt. Zum Ausschalten: Admin → Layout-Einstellungen → Hilfslinien.',
+    'guidelines.hintKeep': 'Verstanden',
+    'guidelines.hintDisable': 'Jetzt ausblenden',
+    'guidelines.resolutionLabel': 'Auflösung',
     'layouts.subtab.css': 'Custom CSS',
     'layouts.subtab.tabbar': 'Tab-Leiste',
     'layouts.subtab.tabbarHiddenHint': 'Tab-Leiste wird pro Layout konfiguriert. Wähle ein Layout im Picker oben.',

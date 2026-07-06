@@ -23,6 +23,7 @@ const LAYOUT_FRONTEND_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = 
     'guidelinesWidth',
     'guidelinesHeight',
     'guidelinesShowInFrontend',
+    'guidelinesShowResolution',
 ];
 
 /** Merged global + per-layout FrontendSettings. */

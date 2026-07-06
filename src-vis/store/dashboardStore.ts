@@ -81,6 +81,7 @@ export interface LayoutSettings {
     guidelinesWidth?: number;
     guidelinesHeight?: number;
     guidelinesShowInFrontend?: boolean;
+    guidelinesShowResolution?: boolean;
     // Tab bar appearance & items
     tabBar?: TabBarSettings;
 }

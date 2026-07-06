@@ -328,6 +328,11 @@ export const en: Record<TranslationKey, string> = {
     'layouts.subtab.typo': 'Typography & Spacing',
     'layouts.subtab.grid': 'Grid & Mobile',
     'layouts.subtab.guidelines': 'Guidelines',
+    'guidelines.hint':
+        'Guidelines and the current screen resolution are being shown. To turn this off: Admin → Layout settings → Guidelines.',
+    'guidelines.hintKeep': 'Got it',
+    'guidelines.hintDisable': 'Hide now',
+    'guidelines.resolutionLabel': 'Resolution',
     'layouts.subtab.css': 'Custom CSS',
     'layouts.subtab.tabbar': 'Tab bar',
     'layouts.subtab.tabbarHiddenHint': 'Tab bar is configured per layout. Pick a layout in the context picker above.',

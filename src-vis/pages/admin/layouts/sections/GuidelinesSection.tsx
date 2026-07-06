@@ -26,11 +26,13 @@ export function GuidelinesSection({ contextId }: GuidelinesSectionProps) {
     const [h, hOv] = eff('guidelinesHeight');
     const [showFe, showFeOv] = eff('guidelinesShowInFrontend');
     const [enabled, enabledOv] = eff('guidelinesEnabled');
+    const [showRes, showResOv] = eff('guidelinesShowResolution');
 
     const effectiveW = (w ?? 1280) as number;
     const effectiveH = (h ?? 800) as number;
-    const effectiveShowFe = (showFe ?? false) as boolean;
-    const effectiveEnabled = (enabled ?? false) as boolean;
+    const effectiveShowFe = (showFe ?? true) as boolean;
+    const effectiveEnabled = (enabled ?? true) as boolean;
+    const effectiveShowRes = (showRes ?? true) as boolean;
 
     return (
         <div
@@ -43,7 +45,8 @@ export function GuidelinesSection({ contextId }: GuidelinesSectionProps) {
                         Hilfslinien
                     </h2>
                     <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                        Rote gestrichelte Linien im Editor zur Orientierung bei der Layout-Planung für ein Zielgerät.
+                        Rote gestrichelte Linien zur Orientierung bei der Layout-Planung für ein Zielgerät. Die
+                        Auflösungsanzeige blendet zusätzlich die aktuelle Bildschirmauflösung des Geräts ein.
                     </p>
                 </div>
             </div>
@@ -114,6 +117,40 @@ export function GuidelinesSection({ contextId }: GuidelinesSectionProps) {
                             </button>
                         )}
                         <Toggle value={effectiveShowFe} onChange={(v) => set('guidelinesShowInFrontend', v)} />
+                    </div>
+                </div>
+
+                <div
+                    className="flex items-center justify-between rounded-lg px-3 py-2"
+                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                >
+                    <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                            Auflösung anzeigen
+                        </p>
+                        {showResOv && (
+                            <span
+                                className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                                style={{
+                                    background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
+                                    color: 'var(--accent)',
+                                }}
+                            >
+                                Layout
+                            </span>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        {showResOv && contextId && (
+                            <button
+                                onClick={() => clear('guidelinesShowResolution')}
+                                className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                ↩ Global
+                            </button>
+                        )}
+                        <Toggle value={effectiveShowRes} onChange={(v) => set('guidelinesShowResolution', v)} />
                     </div>
                 </div>
 
