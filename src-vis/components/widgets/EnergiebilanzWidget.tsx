@@ -46,6 +46,10 @@ export interface EnergyBalanceOptions {
     showTotals?: boolean;
     showPercent?: boolean;
     showLegend?: boolean;
+    /** Legend position for all bars. Falls back to each bar's own `legendSide`, then 'below'. */
+    legendSide?: 'left' | 'right' | 'below';
+    /** Horizontal text alignment of the legend rows. Defaults to the side (right when side is 'right', else left). */
+    legendAlign?: 'left' | 'right';
     legendFormat?: LegendFormat;
     /** Shared "Darstellung" appearance controls (written by the general config section). */
     icon?: string;
@@ -110,6 +114,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const showPercent = o.showPercent !== false;
     const showLegend = o.showLegend !== false;
     const legendFormat = o.legendFormat ?? 'icon-value';
+    const legendAlign = o.legendAlign;
     const unit = o.unit ?? 'kWh';
     const decimals = o.decimals ?? defaultDecimals ?? 2;
     const range = o.range ?? '24h';
@@ -184,9 +189,9 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                     const total = computed.reduce((sum, c) => sum + c.value, 0);
                     for (const c of computed) c.percent = total > 0 ? (c.value / total) * 100 : 0;
 
-                    const side = bar.legendSide ?? 'below';
+                    const side = o.legendSide ?? bar.legendSide ?? 'below';
                     const legend = showLegend ? (
-                        <Legend items={computed} side={side} format={legendFormat} fmt={fmt} />
+                        <Legend items={computed} side={side} align={legendAlign} format={legendFormat} fmt={fmt} />
                     ) : null;
                     const stacked = <StackedBar items={computed} total={total} showPercent={showPercent} />;
 
@@ -265,16 +270,21 @@ function StackedBar({ items, total, showPercent }: { items: Computed[]; total: n
 function Legend({
     items,
     side,
+    align,
     format,
     fmt,
 }: {
     items: Computed[];
     side: 'left' | 'right' | 'below';
+    align?: 'left' | 'right';
     format: LegendFormat;
     fmt: (v: number, e: EnergyEntry) => string;
 }) {
     const isRight = side === 'right';
     const isBelow = side === 'below';
+    // Explicit alignment overrides the side-derived default; below stays centred only when unset.
+    const alignRight = align === 'right' || (align == null && isRight);
+    const centerRow = isBelow && align == null;
     const wantIcon = format === 'icon-value' || format === 'icon-label-value';
     const wantLabel = format === 'label-value' || format === 'icon-label-value';
     return (
@@ -287,8 +297,8 @@ function Legend({
                     key={c.entry.id}
                     className="flex items-center gap-1.5 min-w-0"
                     style={{
-                        flexDirection: isRight ? 'row-reverse' : 'row',
-                        justifyContent: isBelow ? 'center' : undefined,
+                        flexDirection: alignRight ? 'row-reverse' : 'row',
+                        justifyContent: centerRow ? 'center' : undefined,
                     }}
                     title={c.entry.label}
                 >
@@ -308,7 +318,7 @@ function Legend({
                                 fontSize: 12,
                                 flex: isBelow ? undefined : '1 1 0',
                                 minWidth: 0,
-                                textAlign: isRight ? 'right' : 'left',
+                                textAlign: alignRight ? 'right' : 'left',
                             }}
                         >
                             {c.entry.label}
@@ -316,7 +326,12 @@ function Legend({
                     )}
                     <span
                         className="truncate shrink-0"
-                        style={{ color: c.color, fontSize: 12, fontWeight: 600, textAlign: isRight ? 'right' : 'left' }}
+                        style={{
+                            color: c.color,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            textAlign: alignRight ? 'right' : 'left',
+                        }}
                     >
                         {fmt(c.value, c.entry)}
                     </span>

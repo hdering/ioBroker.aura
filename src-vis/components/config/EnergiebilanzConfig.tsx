@@ -432,17 +432,6 @@ function BarSection({
                     className="flex-1 text-[11px] font-semibold rounded px-2 py-1 focus:outline-none"
                     style={inputStyle}
                 />
-                <select
-                    value={bar.legendSide ?? 'below'}
-                    onChange={(e) => onUpdate({ legendSide: e.target.value as EnergyBar['legendSide'] })}
-                    className="text-[10px] rounded px-1.5 py-1 focus:outline-none"
-                    style={inputStyle}
-                    title="Legende"
-                >
-                    <option value="left">Legende links</option>
-                    <option value="right">Legende rechts</option>
-                    <option value="below">Legende unten</option>
-                </select>
                 <button
                     onClick={onRemove}
                     className="hover:opacity-70 shrink-0"
@@ -693,6 +682,43 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                     </div>
                 );
             })}
+
+            {/* legend position (applies to all bars) */}
+            {o.showLegend !== false && (
+                <div>
+                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                        Legenden-Position
+                    </label>
+                    <select
+                        value={o.legendSide ?? bars[0]?.legendSide ?? 'below'}
+                        onChange={(e) => setO({ legendSide: e.target.value as EnergyBar['legendSide'] })}
+                        className={inputCls}
+                        style={inputStyle}
+                    >
+                        <option value="left">Links</option>
+                        <option value="right">Rechts</option>
+                        <option value="below">Unten</option>
+                    </select>
+                </div>
+            )}
+
+            {/* legend text alignment */}
+            {o.showLegend !== false && (
+                <div>
+                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                        Text-Ausrichtung
+                    </label>
+                    <select
+                        value={o.legendAlign ?? ((o.legendSide ?? bars[0]?.legendSide) === 'right' ? 'right' : 'left')}
+                        onChange={(e) => setO({ legendAlign: e.target.value as EnergyBalanceOptions['legendAlign'] })}
+                        className={inputCls}
+                        style={inputStyle}
+                    >
+                        <option value="left">Linksbündig</option>
+                        <option value="right">Rechtsbündig</option>
+                    </select>
+                </div>
+            )}
 
             {/* legend content format */}
             {o.showLegend !== false && (
