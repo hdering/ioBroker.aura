@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.19.4",
+    "version": "0.19.5",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.19.5": {
+        "en": "Layouts - changing the global theme preset now shows the Save button again",
+        "de": "Layouts - changing the global theme preset now shows the Save button again",
+        "ru": "Layouts - changing the global theme preset now shows the Save button again",
+        "pt": "Layouts - changing the global theme preset now shows the Save button again",
+        "nl": "Layouts - changing the global theme preset now shows the Save button again",
+        "fr": "Layouts - changing the global theme preset now shows the Save button again",
+        "it": "Layouts - changing the global theme preset now shows the Save button again",
+        "es": "Layouts - changing the global theme preset now shows the Save button again",
+        "pl": "Layouts - changing the global theme preset now shows the Save button again",
+        "uk": "Layouts - changing the global theme preset now shows the Save button again",
+        "zh-cn": "Layouts - changing the global theme preset now shows the Save button again"
+      },
       "0.19.4": {
         "en": "Map - corners are now rounded in the live view too (transparent map widgets used to render square outside the editor)",
         "de": "Map - corners are now rounded in the live view too (transparent map widgets used to render square outside the editor)",
@@ -184,19 +197,6 @@
         "pl": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
         "uk": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\"",
         "zh-cn": "Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing \"unknown type\""
-      },
-      "0.18.4": {
-        "en": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
-        "de": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
-        "ru": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
-        "pt": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
-        "nl": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
-        "fr": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
-        "it": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
-        "es": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
-        "pl": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
-        "uk": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view",
-        "zh-cn": "Status overview - each category now has a freely selectable background color in addition to the highlight color\nStatus overview - enabled categories now group their settings in a card so it is clear which settings belong to which category\nStatus overview - the hint-count chip in the top-right can now be hidden\nStatus overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view"
       }
     }
   },
