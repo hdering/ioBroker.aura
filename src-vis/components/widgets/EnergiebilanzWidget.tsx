@@ -350,7 +350,7 @@ function PieChart({
     let angle = 0;
 
     return (
-        <div className="self-stretch min-h-0 flex items-center justify-center" style={{ width: '100%' }}>
+        <div className="self-stretch min-h-0 shrink-0 flex items-center justify-center">
             <svg viewBox="0 0 100 100" style={{ height: '100%', maxHeight: 160, width: 'auto', aspectRatio: '1 / 1' }}>
                 {segments.map((c) => {
                     const frac = c.value / total;
@@ -454,59 +454,81 @@ function Legend({
     const wantValue = format !== 'label';
     return (
         <div
-            className={`flex flex-col justify-center gap-1 min-w-0 ${isStacked ? 'w-full' : ''}`}
+            className={`flex flex-col justify-center gap-1 min-w-0 ${isStacked ? 'w-full' : 'flex-1'}`}
             style={{ alignItems: 'stretch' }}
         >
-            {items.map((c) => (
-                <div
-                    key={c.entry.id}
-                    className="flex items-center gap-1.5 min-w-0"
-                    style={{
-                        flexDirection: alignRight ? 'row-reverse' : 'row',
-                        justifyContent: alignCenter ? 'center' : undefined,
-                    }}
-                    title={c.entry.label}
-                >
-                    {wantIcon && c.entry.icon && (
-                        <Icon
-                            icon={toIconifyId(c.entry.icon)}
-                            width={16}
-                            height={16}
-                            style={{ color: c.color, flexShrink: 0 }}
-                        />
-                    )}
-                    {wantLabel && c.entry.label && (
-                        <span
-                            className={isStacked ? 'truncate' : ''}
-                            style={{
-                                color: c.color,
-                                fontSize: 12,
-                                // Side legends: size to the label so it shows in full (column grows to fit).
-                                // Stacked legends: full-width row, truncate as a safety net.
-                                flex: isStacked ? undefined : '0 0 auto',
-                                minWidth: 0,
-                                whiteSpace: isStacked ? undefined : 'nowrap',
-                                textAlign: effAlign,
-                            }}
+            {items.map((c) => {
+                const iconEl = wantIcon && c.entry.icon && (
+                    <Icon
+                        icon={toIconifyId(c.entry.icon)}
+                        width={16}
+                        height={16}
+                        style={{ color: c.color, flexShrink: 0 }}
+                    />
+                );
+                const labelEl = wantLabel && c.entry.label && (
+                    <span
+                        className={isStacked ? 'truncate' : ''}
+                        style={{
+                            color: c.color,
+                            fontSize: 12,
+                            minWidth: 0,
+                            textAlign: effAlign,
+                            // Side legends wrap long labels (block below) instead of clipping.
+                            overflowWrap: isStacked ? undefined : 'break-word',
+                        }}
+                    >
+                        {c.entry.label}
+                    </span>
+                );
+                const valueEl = wantValue && (
+                    <span
+                        className="truncate shrink-0"
+                        style={{ color: c.color, fontSize: 12, fontWeight: 600, textAlign: effAlign }}
+                    >
+                        {fmt(c.value, c.entry)}
+                    </span>
+                );
+                // Side legends: icon beside a stacked label/value block, so a long label
+                // wraps over multiple lines without ever overlapping the value.
+                if (!isStacked) {
+                    return (
+                        <div
+                            key={c.entry.id}
+                            className="flex items-center gap-1.5 min-w-0"
+                            style={{ flexDirection: alignRight ? 'row-reverse' : 'row' }}
+                            title={c.entry.label}
                         >
-                            {c.entry.label}
-                        </span>
-                    )}
-                    {wantValue && (
-                        <span
-                            className="truncate shrink-0"
-                            style={{
-                                color: c.color,
-                                fontSize: 12,
-                                fontWeight: 600,
-                                textAlign: effAlign,
-                            }}
-                        >
-                            {fmt(c.value, c.entry)}
-                        </span>
-                    )}
-                </div>
-            ))}
+                            {iconEl}
+                            <div
+                                className="flex flex-col min-w-0 flex-1"
+                                style={{
+                                    alignItems: alignRight ? 'flex-end' : alignCenter ? 'center' : 'flex-start',
+                                }}
+                            >
+                                {labelEl}
+                                {valueEl}
+                            </div>
+                        </div>
+                    );
+                }
+                // Stacked (top/below): single inline row across the full width.
+                return (
+                    <div
+                        key={c.entry.id}
+                        className="flex items-center gap-1.5 min-w-0"
+                        style={{
+                            flexDirection: alignRight ? 'row-reverse' : 'row',
+                            justifyContent: alignCenter ? 'center' : undefined,
+                        }}
+                        title={c.entry.label}
+                    >
+                        {iconEl}
+                        {labelEl}
+                        {valueEl}
+                    </div>
+                );
+            })}
         </div>
     );
 }
