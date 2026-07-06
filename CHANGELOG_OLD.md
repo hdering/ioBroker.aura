@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.16.0 (2026-07-03)
+- 🌟 **New feature:** Map - add quick-access chips that recenter the map to a configured position on click; each chip supports the same position sources as markers (JSON datapoint, two datapoints, fixed coordinates or address) plus an optional zoom, and can be placed below the map or as an overlay in any corner
+
 ## 0.15.5 (2026-07-03)
 - Settings - the global decimal-places setting now applies on all browsers/devices, not just the one where it was configured
 
