@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.21.1",
+    "version": "0.21.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.21.2": {
+        "en": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
+        "de": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
+        "ru": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
+        "pt": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
+        "nl": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
+        "fr": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
+        "it": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
+        "es": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
+        "pl": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
+        "uk": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
+        "zh-cn": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)"
+      },
       "0.21.1": {
         "en": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
         "de": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
@@ -184,19 +197,6 @@
         "pl": "Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)\nMap - keeps following a slowly moving marker instead of staying put on small position changes\nDatapoint picker - adds a \"Show inactive\" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints",
         "uk": "Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)\nMap - keeps following a slowly moving marker instead of staying put on small position changes\nDatapoint picker - adds a \"Show inactive\" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints",
         "zh-cn": "Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)\nMap - keeps following a slowly moving marker instead of staying put on small position changes\nDatapoint picker - adds a \"Show inactive\" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints"
-      },
-      "0.19.2": {
-        "en": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
-        "de": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
-        "ru": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
-        "pt": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
-        "nl": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
-        "fr": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
-        "it": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
-        "es": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
-        "pl": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
-        "uk": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled",
-        "zh-cn": "Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled"
       }
     }
   },

@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.17.1 (2026-07-03)
+- feat(config): apply typed hex color live in ColorPicker
+
 ## 0.17.0 (2026-07-03)
 - 🌟 **New feature:** Color pickers - add a 0-100% transparency (alpha) slider plus a hex input to every color control (widgets and settings).
 
