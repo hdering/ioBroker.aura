@@ -5700,7 +5700,7 @@ export function WidgetFrame({
                     fallback={<div className="h-full w-full" style={{ background: 'var(--app-bg)', opacity: 0.3 }} />}
                 >
                     <ProfiledWidget
-                        widgetKey={config.type}
+                        widgetKey={config.id}
                         label={config.title ? `${config.type} · ${config.title}` : config.type}
                         enabled={!editMode && isWidgetTrackingEnabled()}
                     >

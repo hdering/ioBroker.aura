@@ -279,31 +279,39 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
     const soloMetric = seriesMetrics.length === 1 ? seriesMetrics[0] : null;
 
     // Merge breakdown entries across the selected client(s) into ranked rows per
-    // section (max ms desc, top 8).
+    // section. Primary value is the (count-weighted) average — the typical cost,
+    // which is stable and easy to read; `max` is carried as the worst-case spike.
     const breakdownRows = useMemo(() => {
         const sel = breakdown.filter((c) => {
             if (clientSel === 'all') return true;
             if (clientSel === 'current') return c.client === myClientId;
             return c.client === clientSel;
         });
-        const byKey = new Map<string, { cat: string; label: string; count: number; max: number }>();
+        const byKey = new Map<string, { cat: string; label: string; count: number; sum: number; max: number }>();
         for (const c of sel) {
             for (const e of c.entries) {
                 const k = `${e.cat}::${e.key}`;
                 const cur = byKey.get(k);
-                if (!cur) byKey.set(k, { cat: e.cat, label: e.label, count: e.count, max: e.max });
-                else {
+                if (!cur) {
+                    byKey.set(k, { cat: e.cat, label: e.label, count: e.count, sum: e.avg * e.count, max: e.max });
+                } else {
                     cur.count += e.count;
+                    cur.sum += e.avg * e.count;
                     if (e.max > cur.max) cur.max = e.max;
                 }
             }
         }
-        const bySection: Record<string, { label: string; count: number; max: number }[]> = {};
+        const bySection: Record<string, { label: string; count: number; avg: number; max: number }[]> = {};
         for (const v of byKey.values()) {
-            (bySection[v.cat] ??= []).push({ label: v.label, count: v.count, max: v.max });
+            (bySection[v.cat] ??= []).push({
+                label: v.label,
+                count: v.count,
+                avg: Math.round(v.sum / Math.max(1, v.count)),
+                max: v.max,
+            });
         }
         for (const cat of Object.keys(bySection)) {
-            bySection[cat].sort((a, b) => b.max - a.max);
+            bySection[cat].sort((a, b) => b.avg - a.avg);
             bySection[cat] = bySection[cat].slice(0, 8);
         }
         return bySection;
@@ -441,6 +449,17 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                         </div>
                     ) : (
                         <div className="flex flex-col gap-2 py-0.5">
+                            <div
+                                className="text-[10px] leading-snug rounded-md px-2 py-1"
+                                style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}
+                            >
+                                Sortiert nach <b>Ø</b> (typische Zeit). <b>Ø</b> = Durchschnitt, <b>↑</b> = längste
+                                Messung (Spitze), <b>×N</b> = Anzahl Messungen. Farbe bewertet den Ø-Wert gegen den
+                                Zielwert — <span style={{ color: STATUS_COLOR.good }}>grün</span> gut,{' '}
+                                <span style={{ color: STATUS_COLOR.ok }}>gelb</span> ok,{' '}
+                                <span style={{ color: STATUS_COLOR.bad }}>rot</span> langsam.{' '}
+                                <b>Niedriger ist besser.</b>
+                            </div>
                             {BREAKDOWN_SECTIONS.map((sec) => {
                                 const rows = breakdownRows[sec.cat] ?? [];
                                 if (rows.length === 0) return null;
@@ -450,11 +469,11 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                                             className="text-[9px] uppercase tracking-wide mb-0.5"
                                             style={{ color: 'var(--text-secondary)' }}
                                         >
-                                            {sec.title}
+                                            {sec.title} <span className="opacity-70">· Ziel ≤ {sec.good} ms</span>
                                         </div>
                                         <div className="flex flex-col gap-0.5">
                                             {rows.map((r) => {
-                                                const c = STATUS_COLOR[classifyMs(r.max, sec.good, sec.ok)];
+                                                const c = STATUS_COLOR[classifyMs(r.avg, sec.good, sec.ok)];
                                                 return (
                                                     <div
                                                         key={r.label}
@@ -482,9 +501,20 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                                                         >
                                                             ×{r.count}
                                                         </span>
-                                                        <b style={{ color: c, minWidth: 52, textAlign: 'right' }}>
-                                                            {r.max} ms
+                                                        <b style={{ color: c, minWidth: 48, textAlign: 'right' }}>
+                                                            {r.avg} ms
                                                         </b>
+                                                        <span
+                                                            className="text-[10px] opacity-60"
+                                                            style={{
+                                                                color: 'var(--text-secondary)',
+                                                                minWidth: 52,
+                                                                textAlign: 'right',
+                                                            }}
+                                                            title="längste Messung (Spitze)"
+                                                        >
+                                                            ↑{r.max} ms
+                                                        </span>
                                                     </div>
                                                 );
                                             })}
