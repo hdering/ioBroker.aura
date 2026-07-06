@@ -665,44 +665,48 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
             ).map(([key, label]) => {
                 const val = (o[key] as boolean | undefined) !== false;
                 return (
-                    <div key={key} className="flex items-center justify-between">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            {label}
-                        </label>
-                        <button
-                            onClick={() => setO({ [key]: !val } as Partial<EnergyBalanceOptions>)}
-                            className="relative w-9 h-5 rounded-full transition-colors"
-                            style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                                style={{ left: val ? '18px' : '2px' }}
-                            />
-                        </button>
+                    <div key={key}>
+                        <div className="flex items-center justify-between">
+                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                {label}
+                            </label>
+                            <button
+                                onClick={() => setO({ [key]: !val } as Partial<EnergyBalanceOptions>)}
+                                className="relative w-9 h-5 rounded-full transition-colors"
+                                style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
+                            >
+                                <span
+                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
+                                    style={{ left: val ? '18px' : '2px' }}
+                                />
+                            </button>
+                        </div>
+                        {/* bar title + total alignment — indented sub-option of "Balken-Titel anzeigen" */}
+                        {key === 'showBarTitles' && val && (
+                            <div
+                                className="mt-1.5 ml-1 pl-2"
+                                style={{ borderLeft: '2px solid color-mix(in srgb, var(--accent) 45%, transparent)' }}
+                            >
+                                <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                    Titel/Summe-Ausrichtung
+                                </label>
+                                <select
+                                    value={o.barTitleAlign ?? 'center'}
+                                    onChange={(e) =>
+                                        setO({ barTitleAlign: e.target.value as EnergyBalanceOptions['barTitleAlign'] })
+                                    }
+                                    className={inputCls}
+                                    style={inputStyle}
+                                >
+                                    <option value="left">Links</option>
+                                    <option value="center">Mitte</option>
+                                    <option value="right">Rechts</option>
+                                </select>
+                            </div>
+                        )}
                     </div>
                 );
             })}
-
-            {/* bar title + total alignment */}
-            {o.showBarTitles !== false && (
-                <div>
-                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        Titel/Summe-Ausrichtung
-                    </label>
-                    <select
-                        value={o.barTitleAlign ?? 'center'}
-                        onChange={(e) =>
-                            setO({ barTitleAlign: e.target.value as EnergyBalanceOptions['barTitleAlign'] })
-                        }
-                        className={inputCls}
-                        style={inputStyle}
-                    >
-                        <option value="left">Links</option>
-                        <option value="center">Mitte</option>
-                        <option value="right">Rechts</option>
-                    </select>
-                </div>
-            )}
 
             {/* legend position (applies to all bars) */}
             {o.showLegend !== false && (
