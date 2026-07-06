@@ -36,6 +36,10 @@ export interface EnergyBalanceOptions {
     bars: EnergyBar[];
     /** Visual style of each bar's composition. Default 'bars' (100%-stacked bar). */
     chartStyle?: 'bars' | 'pie' | 'donut';
+    /** Width of each stacked bar in px (only for chartStyle 'bars'). Default 46. */
+    barWidth?: number;
+    /** Max diameter of the pie/donut in px (only for chartStyle 'pie'/'donut'). Default 160. */
+    pieSize?: number;
     /** Default unit shown after each value + total (per-entry unit overrides). */
     unit?: string;
     decimals?: number;
@@ -119,6 +123,8 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const showPercent = o.showPercent !== false;
     const showLegend = o.showLegend !== false;
     const chartStyle = o.chartStyle ?? 'bars';
+    const barWidth = o.barWidth ?? 46;
+    const pieSize = o.pieSize ?? 160;
     const legendFormat = o.legendFormat ?? 'icon-value';
     const legendAlign = o.legendAlign;
     const unit = o.unit ?? 'kWh';
@@ -201,13 +207,14 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                     ) : null;
                     const chart =
                         chartStyle === 'bars' ? (
-                            <StackedBar items={computed} total={total} showPercent={showPercent} />
+                            <StackedBar items={computed} total={total} showPercent={showPercent} width={barWidth} />
                         ) : (
                             <PieChart
                                 items={computed}
                                 total={total}
                                 showPercent={showPercent}
                                 donut={chartStyle === 'donut'}
+                                size={pieSize}
                                 center={
                                     chartStyle === 'donut' && showTotals
                                         ? { value: formatNum(total, decimals), unit }
@@ -249,13 +256,23 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
 
 // ── Stacked bar ─────────────────────────────────────────────────────────────────
 
-function StackedBar({ items, total, showPercent }: { items: Computed[]; total: number; showPercent: boolean }) {
+function StackedBar({
+    items,
+    total,
+    showPercent,
+    width = 46,
+}: {
+    items: Computed[];
+    total: number;
+    showPercent: boolean;
+    width?: number;
+}) {
     if (total <= 0) {
         return (
             <div
                 className="rounded-lg self-stretch"
                 style={{
-                    width: 46,
+                    width,
                     minHeight: 80,
                     background: 'color-mix(in srgb, var(--text-secondary) 12%, transparent)',
                     border: '1px dashed var(--app-border)',
@@ -264,7 +281,7 @@ function StackedBar({ items, total, showPercent }: { items: Computed[]; total: n
         );
     }
     return (
-        <div className="rounded-lg overflow-hidden self-stretch flex flex-col" style={{ width: 46, minHeight: 80 }}>
+        <div className="rounded-lg overflow-hidden self-stretch flex flex-col" style={{ width, minHeight: 80 }}>
             {items.map((c) => (
                 <div
                     key={c.entry.id}
@@ -313,12 +330,14 @@ function PieChart({
     showPercent,
     donut,
     center,
+    size = 160,
 }: {
     items: Computed[];
     total: number;
     showPercent: boolean;
     donut: boolean;
     center: { value: string; unit: string } | null;
+    size?: number;
 }) {
     const R = 46;
     const cx = 50;
@@ -330,7 +349,7 @@ function PieChart({
             <div className="self-stretch min-h-0 shrink-0 flex items-center justify-center">
                 <svg
                     viewBox="0 0 100 100"
-                    style={{ height: '100%', maxHeight: 160, width: 'auto', aspectRatio: '1 / 1' }}
+                    style={{ height: '100%', maxHeight: size, width: 'auto', aspectRatio: '1 / 1' }}
                 >
                     <circle
                         cx={cx}
@@ -351,7 +370,7 @@ function PieChart({
 
     return (
         <div className="self-stretch min-h-0 shrink-0 flex items-center justify-center">
-            <svg viewBox="0 0 100 100" style={{ height: '100%', maxHeight: 160, width: 'auto', aspectRatio: '1 / 1' }}>
+            <svg viewBox="0 0 100 100" style={{ height: '100%', maxHeight: size, width: 'auto', aspectRatio: '1 / 1' }}>
                 {segments.map((c) => {
                     const frac = c.value / total;
                     // A single full-circle segment: draw a ring/disc (an arc from 0 to 2π is degenerate).

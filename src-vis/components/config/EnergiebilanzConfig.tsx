@@ -602,6 +602,42 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                 </select>
             </div>
 
+            {(o.chartStyle ?? 'bars') === 'bars' && (
+                <div>
+                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                        Balken-Breite: {o.barWidth ?? 46} px
+                    </label>
+                    <input
+                        type="range"
+                        min={16}
+                        max={160}
+                        step={2}
+                        value={o.barWidth ?? 46}
+                        onChange={(e) => setO({ barWidth: Number(e.target.value) })}
+                        className="w-full"
+                        style={{ accentColor: 'var(--accent)' }}
+                    />
+                </div>
+            )}
+
+            {(o.chartStyle === 'pie' || o.chartStyle === 'donut') && (
+                <div>
+                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                        Diagramm-Größe: {o.pieSize ?? 160} px
+                    </label>
+                    <input
+                        type="range"
+                        min={80}
+                        max={400}
+                        step={10}
+                        value={o.pieSize ?? 160}
+                        onChange={(e) => setO({ pieSize: Number(e.target.value) })}
+                        className="w-full"
+                        style={{ accentColor: 'var(--accent)' }}
+                    />
+                </div>
+            )}
+
             <div className="grid grid-cols-2 gap-2">
                 <div>
                     <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>

@@ -12,3 +12,4 @@
 - Energiebilanz - new display style: bars, pie or donut chart (donut shows the total in its center)
 - Energiebilanz - fixed legend labels being cut off in pie/donut view
 - Energiebilanz - renamed to "Diagramm (Verteilung)" and moved into the standard widget group (it works for any part-of-whole data, not just energy)
+- Diagramm (Verteilung) - adjustable bar width (bars) and diagram size (pie/donut)
