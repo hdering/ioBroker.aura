@@ -477,7 +477,11 @@ export function MapWidget({ config, editMode }: WidgetProps) {
             style={{
                 position: 'absolute',
                 inset: 0,
-                borderRadius: 'inherit',
+                // Round to the theme radius directly rather than inheriting it: a
+                // transparent map widget's frame drops its border-radius to 0 in
+                // view mode (only the edit-mode dashed outline is rounded), so
+                // `inherit` left the map with square corners in the live frontend.
+                borderRadius: 'var(--widget-radius)',
                 overflow: 'hidden',
                 // Numeric z-index establishes a stacking context so Leaflet's internal
                 // panes (z-index up to ~700) stay contained and don't paint over the
