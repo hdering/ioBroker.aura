@@ -11,7 +11,7 @@ import {
     CartesianGrid,
     ReferenceLine,
 } from 'recharts';
-import { Activity } from 'lucide-react';
+import { Activity, Info, X } from 'lucide-react';
 import { sendToDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { useConnectionStore } from '../../store/connectionStore';
 import { NS } from '../../utils/namespace';
@@ -154,6 +154,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
     );
     useEffect(() => setViewSel((o.view as string) === 'breakdown' ? 'breakdown' : 'chart'), [o.view]);
     const [breakdown, setBreakdown] = useState<BreakdownClient[]>([]);
+    const [showInfo, setShowInfo] = useState(false);
 
     const bufferRef = useRef<PerfSample[]>([]);
     const seenSeqRef = useRef(0);
@@ -350,7 +351,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
     };
 
     return (
-        <div className="aura-widget-row w-full h-full flex flex-col gap-2 overflow-hidden">
+        <div className="aura-widget-row relative w-full h-full flex flex-col gap-2 overflow-hidden">
             {
                 <div className="flex items-center gap-2 shrink-0">
                     {showIcon && (
@@ -466,17 +467,20 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                         </div>
                     ) : (
                         <div className="flex flex-col gap-2 py-0.5">
-                            <div
-                                className="text-[10px] leading-snug rounded-md px-2 py-1"
-                                style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}
-                            >
-                                Pro Widget: <b>Bereit</b> = Mount bis Daten sichtbar (inkl. Warten auf Daten),{' '}
-                                <b>Render</b> = reine Zeichenzeit, <b>Σ</b> = beides zusammen. Werte sind Ø (typisch),
-                                Farbe bewertet gegen den Zielwert —{' '}
-                                <span style={{ color: STATUS_COLOR.good }}>grün</span> gut,{' '}
-                                <span style={{ color: STATUS_COLOR.ok }}>gelb</span> ok,{' '}
-                                <span style={{ color: STATUS_COLOR.bad }}>rot</span> langsam.{' '}
-                                <b>Niedriger ist besser.</b>
+                            <div className="flex items-center justify-end">
+                                <button
+                                    onClick={() => setShowInfo(true)}
+                                    className="flex items-center gap-1 text-[10px] rounded-md px-1.5 py-0.5 focus:outline-none"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                    title="Was bedeuten die Spalten?"
+                                >
+                                    <Info size={11} />
+                                    Spalten erklären
+                                </button>
                             </div>
 
                             {widgetRows.length > 0 && (
@@ -748,6 +752,61 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                     </ResponsiveContainer>
                 )}
             </div>
+
+            {showInfo && (
+                <div
+                    className="absolute inset-0 z-30 flex items-center justify-center p-3"
+                    style={{ background: 'rgba(0,0,0,0.45)' }}
+                    onClick={() => setShowInfo(false)}
+                >
+                    <div
+                        className="rounded-lg p-3 text-[11px] leading-relaxed max-w-full max-h-full overflow-auto"
+                        style={{
+                            background: 'var(--app-surface)',
+                            border: '1px solid var(--app-border)',
+                            color: 'var(--text-primary)',
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                            <b>So liest du die Details</b>
+                            <button
+                                onClick={() => setShowInfo(false)}
+                                className="shrink-0 rounded p-0.5 focus:outline-none"
+                                style={{ color: 'var(--text-secondary)' }}
+                                title="Schließen"
+                            >
+                                <X size={14} />
+                            </button>
+                        </div>
+                        <ul className="flex flex-col gap-1.5" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                            <li>
+                                <b>Bereit</b> — Zeit von Mount bis die Daten sichtbar sind (inklusive Warten auf
+                                Backend-Daten). Zielwert ≤ {TH_READY.good} ms. Hoch = das Widget wartet lange auf seine
+                                Daten.
+                            </li>
+                            <li>
+                                <b>Render</b> — reine Zeichenzeit im Browser (CPU). Zielwert ≤ {TH_RENDER.good} ms (ein
+                                60-fps-Frame). Hoch = das Widget ist teuer zu zeichnen.
+                            </li>
+                            <li>
+                                <b>Σ</b> — Bereit + Render zusammen. Danach wird sortiert (größtes zuerst).
+                            </li>
+                            <li>
+                                Jede Zelle ist einzeln eingefärbt:{' '}
+                                <span style={{ color: STATUS_COLOR.good }}>grün</span> gut,{' '}
+                                <span style={{ color: STATUS_COLOR.ok }}>gelb</span> ok,{' '}
+                                <span style={{ color: STATUS_COLOR.bad }}>rot</span> langsam.{' '}
+                                <b>Niedriger ist besser.</b>
+                            </li>
+                            <li className="opacity-80">
+                                <b>Backend-Befehle</b>: <b>Anzahl</b> = Aufrufe, <b>Ø</b> = typische (durchschnittliche)
+                                Zeit, <b>↑ Spitze</b> = längste Einzelmessung.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
