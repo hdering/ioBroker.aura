@@ -251,10 +251,10 @@ function TabScrollRow({
     }, [recompute]);
 
     return (
-        <div className={`relative ${outerClassName}`}>
+        <div className={`relative flex ${outerClassName}`}>
             <div
                 ref={ref}
-                className={`aura-scroll aura-badge-room overflow-x-auto ${isMobile ? 'aura-tab-scroll--mobile' : ''} ${scrollClassName}`}
+                className={`aura-scroll aura-badge-room overflow-x-auto h-full ${isMobile ? 'aura-tab-scroll--mobile' : ''} ${scrollClassName}`}
             >
                 {children}
             </div>
