@@ -67,6 +67,24 @@ export function Dashboard({
     // own toggle and shows in both the editor and the frontend when enabled.
     const showResolution = guidelinesShowResolution;
 
+    // Fixed-position overlay (badge + first-run hint). Rendered in BOTH the desktop
+    // and the mobile branch so the resolution shows in every view, not only above the
+    // mobile breakpoint.
+    const resolutionOverlay = showResolution && (
+        <>
+            <ResolutionBadge />
+            {!editMode && (
+                <GuidelinesHint
+                    onDisable={() =>
+                        useConfigStore
+                            .getState()
+                            .updateFrontend({ guidelinesShowResolution: false, guidelinesShowInFrontend: false })
+                    }
+                />
+            )}
+        </>
+    );
+
     // In frontend view, use provided override; otherwise use active editor layout
     const tabs = viewTabs ?? activeLayout.tabs;
     const activeTabId = viewActiveTabId ?? activeLayout.activeTabId;
@@ -340,6 +358,7 @@ export function Dashboard({
                         {showIframeOverlay && (
                             <IframeOverlay data={iframeFullscreen!} onClose={() => setIframeFullscreen(null)} />
                         )}
+                        {resolutionOverlay}
                     </div>
                 </ActiveLayoutContext.Provider>
             </DashboardMobileContext.Provider>
@@ -368,17 +387,7 @@ export function Dashboard({
                     }}
                 >
                     {showGuidelines && <GuidelinesOverlay width={guidelinesWidth} height={guidelinesHeight} />}
-                    {showResolution && <ResolutionBadge />}
-                    {showResolution && !editMode && (
-                        <GuidelinesHint
-                            onDisable={() =>
-                                useConfigStore.getState().updateFrontend({
-                                    guidelinesShowResolution: false,
-                                    guidelinesShowInFrontend: false,
-                                })
-                            }
-                        />
-                    )}
+                    {resolutionOverlay}
                     {rglWidth > 0 && (
                         <>
                             {/* Reflow-hidden widgets from all tabs rendered off-screen so conditions keep evaluating */}
