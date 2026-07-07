@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.18.2 (2026-07-04)
+- Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout
+
 ## 0.18.1 (2026-07-04)
 - Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)
 - Universal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode

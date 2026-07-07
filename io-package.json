@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.21.8",
+    "version": "0.21.9",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.21.9": {
+        "en": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
+        "de": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
+        "ru": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
+        "pt": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
+        "nl": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
+        "fr": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
+        "it": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
+        "es": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
+        "pl": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
+        "uk": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
+        "zh-cn": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open"
+      },
       "0.21.8": {
         "en": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too",
         "de": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too",
@@ -184,19 +197,6 @@
         "pl": "Load times - color-coded good/ok/slow thresholds with reference lines and latest-value badges so numbers are interpretable at a glance\nLoad times - samples are now tagged per client; widget defaults to the current device and can filter/compare individual clients\nLoad times - time range (1h/6h/24h/7d/all) is now switchable live from the widget header, not only in edit mode\nLoad times - new \"Details\" view attributes slowness per widget (render and ready time) and per backend command, so you can see which one is responsible\nSettings - add performance-diagnostics switches: record load-time metrics (default on) and optional per-widget timing (default off, higher overhead)",
         "uk": "Load times - color-coded good/ok/slow thresholds with reference lines and latest-value badges so numbers are interpretable at a glance\nLoad times - samples are now tagged per client; widget defaults to the current device and can filter/compare individual clients\nLoad times - time range (1h/6h/24h/7d/all) is now switchable live from the widget header, not only in edit mode\nLoad times - new \"Details\" view attributes slowness per widget (render and ready time) and per backend command, so you can see which one is responsible\nSettings - add performance-diagnostics switches: record load-time metrics (default on) and optional per-widget timing (default off, higher overhead)",
         "zh-cn": "Load times - color-coded good/ok/slow thresholds with reference lines and latest-value badges so numbers are interpretable at a glance\nLoad times - samples are now tagged per client; widget defaults to the current device and can filter/compare individual clients\nLoad times - time range (1h/6h/24h/7d/all) is now switchable live from the widget header, not only in edit mode\nLoad times - new \"Details\" view attributes slowness per widget (render and ready time) and per backend command, so you can see which one is responsible\nSettings - add performance-diagnostics switches: record load-time metrics (default on) and optional per-widget timing (default off, higher overhead)"
-      },
-      "0.21.2": {
-        "en": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
-        "de": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
-        "ru": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
-        "pt": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
-        "nl": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
-        "fr": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
-        "it": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
-        "es": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
-        "pl": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
-        "uk": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
-        "zh-cn": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)"
       }
     }
   },

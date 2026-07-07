@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.21.9 (2026-07-07)
+- Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open
+
+
 ### 0.21.8 (2026-07-07)
 - feat(guidelines): drop "hide now" button from resolution hint
 - fix(guidelines): show resolution badge in mobile view too
@@ -210,10 +214,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)
 
 
-### 0.18.2 (2026-07-04)
-- Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout
-
-
 ## License
 
 MIT License
@@ -225,6 +225,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
