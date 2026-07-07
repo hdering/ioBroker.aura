@@ -713,9 +713,12 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const [syncing, setSyncing] = useState(false);
     const [showFilter, setShowFilter] = useState(false);
     const [lastChangedTs, setLastChangedTs] = useState(0);
-    // Frontend filter is a per-viewer runtime toggle held in local state so it
-    // applies instantly — independent of whether the persisted config change
-    // round-trips back (it only does while the admin sits on this widget's tab).
+    // Frontend filter is a per-viewer runtime toggle held in local state — it is
+    // NOT persisted back to config. The read-only frontend runs useConfigSync with
+    // ignoreDirty (remote wins) + a 30 s poll, so any frontend write to valueFilter
+    // would be overwritten on the next sync and reset the filter. Local-only state
+    // applies instantly and survives syncs; the effect only adopts the admin-set
+    // default on load / when the admin genuinely changes it.
     const [viewFilter, setViewFilter] = useState<FilterMode>((opts.valueFilter ?? 'all') as FilterMode);
     useEffect(() => {
         setViewFilter((opts.valueFilter ?? 'all') as FilterMode);
@@ -1093,7 +1096,6 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                             key={mode}
                                             onClick={() => {
                                                 setViewFilter(mode);
-                                                saveOpts({ valueFilter: mode });
                                                 setShowFilter(false);
                                             }}
                                             className="w-full px-3 py-2 text-xs text-left hover:opacity-80"

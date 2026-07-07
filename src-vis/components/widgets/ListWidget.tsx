@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Filter, List, Power } from 'lucide-react';
 import { useIoBroker, getObjectViewDirect } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
@@ -475,7 +475,7 @@ function EntryValue({
 
 // ── Main Widget ────────────────────────────────────────────────────────────────
 
-export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
+export function ListWidget({ config, editMode }: WidgetProps) {
     const opts = useMemo(() => (config.options ?? { entries: [] }) as unknown as StaticListOptions, [config.options]);
     const entries = useMemo<StaticListEntry[]>(() => (opts.entries ?? []).filter((e) => !!e?.id), [opts.entries]);
     const t = useT();
@@ -486,20 +486,16 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const [resolvedRooms, setResolvedRooms] = useState<Record<string, string[]>>({});
     const [showFilter, setShowFilter] = useState(false);
     const [lastChangedTs, setLastChangedTs] = useState(0);
-    // Frontend filter is a per-viewer runtime toggle held in local state so it
-    // applies instantly — independent of whether the persisted config change
-    // round-trips back (it only does while the admin sits on this widget's tab).
+    // Frontend filter is a per-viewer runtime toggle held in local state — it is
+    // NOT persisted back to config. The read-only frontend runs useConfigSync with
+    // ignoreDirty (remote wins) + a 30 s poll, so any frontend write to valueFilter
+    // would be overwritten on the next sync and reset the filter. Local-only state
+    // applies instantly and survives syncs; the effect only adopts the admin-set
+    // default on load / when the admin genuinely changes it.
     const [viewFilter, setViewFilter] = useState<FilterMode>((opts.valueFilter ?? 'all') as FilterMode);
     useEffect(() => {
         setViewFilter((opts.valueFilter ?? 'all') as FilterMode);
     }, [opts.valueFilter]);
-
-    const saveOpts = useCallback(
-        (patch: Partial<StaticListOptions>) => {
-            onConfigChange({ ...config, options: { ...opts, ...patch } });
-        },
-        [config, opts, onConfigChange],
-    );
 
     // Subscribe to all entry states — keyed on entryKey only, no prevKey guard.
     // A prevKey ref survives the StrictMode mount→unmount→remount cycle and would
@@ -821,7 +817,6 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                                 key={mode}
                                                 onClick={() => {
                                                     setViewFilter(mode);
-                                                    saveOpts({ valueFilter: mode });
                                                     setShowFilter(false);
                                                 }}
                                                 className="w-full px-3 py-2 text-xs text-left hover:opacity-80"
