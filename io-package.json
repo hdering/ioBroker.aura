@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.21.5",
+    "version": "0.21.6",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.21.6": {
+        "en": "Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits",
+        "de": "Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits",
+        "ru": "Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits",
+        "pt": "Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits",
+        "nl": "Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits",
+        "fr": "Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits",
+        "it": "Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits",
+        "es": "Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits",
+        "pl": "Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits",
+        "uk": "Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits",
+        "zh-cn": "Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits"
+      },
       "0.21.5": {
         "en": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
         "de": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
@@ -184,19 +197,6 @@
         "pl": "Energiebilanz - legend position is now a single option (left/right/above/below) shown under \"Show legend\", instead of a per-bar dropdown\nEnergiebilanz - added a legend text-alignment option (left/center/right)\nEnergiebilanz - legend content can now show the label only\nEnergiebilanz - bar title and total can now be aligned left/center/right\n🌟 New feature: Energiebilanz - new display style: bars, pie or donut chart (donut shows the total in its center)\nEnergiebilanz - fixed legend labels being cut off in pie/donut view\nEnergiebilanz - renamed to \"Diagramm (Verteilung)\" and moved into the standard widget group (it works for any part-of-whole data, not just energy)\nDiagramm (Verteilung) - adjustable bar width (bars) and diagram size (pie/donut)",
         "uk": "Energiebilanz - legend position is now a single option (left/right/above/below) shown under \"Show legend\", instead of a per-bar dropdown\nEnergiebilanz - added a legend text-alignment option (left/center/right)\nEnergiebilanz - legend content can now show the label only\nEnergiebilanz - bar title and total can now be aligned left/center/right\n🌟 New feature: Energiebilanz - new display style: bars, pie or donut chart (donut shows the total in its center)\nEnergiebilanz - fixed legend labels being cut off in pie/donut view\nEnergiebilanz - renamed to \"Diagramm (Verteilung)\" and moved into the standard widget group (it works for any part-of-whole data, not just energy)\nDiagramm (Verteilung) - adjustable bar width (bars) and diagram size (pie/donut)",
         "zh-cn": "Energiebilanz - legend position is now a single option (left/right/above/below) shown under \"Show legend\", instead of a per-bar dropdown\nEnergiebilanz - added a legend text-alignment option (left/center/right)\nEnergiebilanz - legend content can now show the label only\nEnergiebilanz - bar title and total can now be aligned left/center/right\n🌟 New feature: Energiebilanz - new display style: bars, pie or donut chart (donut shows the total in its center)\nEnergiebilanz - fixed legend labels being cut off in pie/donut view\nEnergiebilanz - renamed to \"Diagramm (Verteilung)\" and moved into the standard widget group (it works for any part-of-whole data, not just energy)\nDiagramm (Verteilung) - adjustable bar width (bars) and diagram size (pie/donut)"
-      },
-      "0.20.0": {
-        "en": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
-        "de": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
-        "ru": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
-        "pt": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
-        "nl": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
-        "fr": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
-        "it": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
-        "es": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
-        "pl": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
-        "uk": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
-        "zh-cn": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup"
       }
     }
   },

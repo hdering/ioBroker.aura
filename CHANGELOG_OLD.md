@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.17.5 (2026-07-03)
+- Groups - widgets keep their current size when dropped into a group instead of resetting to the type default
+
 ## 0.17.4 (2026-07-03)
 - Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)
 
