@@ -648,10 +648,20 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                                     stroke="var(--app-border)"
                                 />
                                 <YAxis
-                                    width={34}
+                                    width={40}
                                     tick={{ fontSize: 9, fill: 'var(--text-secondary)' }}
                                     stroke="var(--app-border)"
                                     tickFormatter={(v) => `${v}`}
+                                    label={{
+                                        value: 'ms',
+                                        angle: -90,
+                                        position: 'insideLeft',
+                                        style: {
+                                            fontSize: 9,
+                                            fill: 'var(--text-secondary)',
+                                            textAnchor: 'middle',
+                                        },
+                                    }}
                                 />
                                 <Tooltip
                                     contentStyle={tooltipStyle}
@@ -705,10 +715,20 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                                     stroke="var(--app-border)"
                                 />
                                 <YAxis
-                                    width={34}
+                                    width={40}
                                     tick={{ fontSize: 9, fill: 'var(--text-secondary)' }}
                                     stroke="var(--app-border)"
                                     tickFormatter={(v) => `${v}`}
+                                    label={{
+                                        value: 'ms',
+                                        angle: -90,
+                                        position: 'insideLeft',
+                                        style: {
+                                            fontSize: 9,
+                                            fill: 'var(--text-secondary)',
+                                            textAnchor: 'middle',
+                                        },
+                                    }}
                                 />
                                 <Tooltip
                                     contentStyle={tooltipStyle}
