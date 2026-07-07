@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.18.0 (2026-07-04)
+- Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts
+- General - adapter readme link now points to the online documentation instead of a dead iobroker.net page
+- 🌟 **New feature:** Energiebilanz - new widget: any number of stacked bars, each from multiple datapoints with history aggregation (e.g. Production/Consumption)
+
 ## 0.17.5 (2026-07-03)
 - Groups - widgets keep their current size when dropped into a group instead of resetting to the type default
 
