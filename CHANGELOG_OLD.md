@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.18.3 (2026-07-04)
+- Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)
+
 ## 0.18.2 (2026-07-04)
 - Weather - card sizes to its content on mobile, removing the empty gap below it in the single-column layout
 

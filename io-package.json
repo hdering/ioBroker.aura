@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.21.9",
+    "version": "0.21.10",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,18 +107,18 @@
       }
     ],
     "news": {
-      "0.21.9": {
-        "en": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
-        "de": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
-        "ru": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
-        "pt": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
-        "nl": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
-        "fr": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
-        "it": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
-        "es": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
-        "pl": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
-        "uk": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open",
-        "zh-cn": "Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open"
+      "0.21.10": {
+        "en": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
+        "de": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
+        "ru": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
+        "pt": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
+        "nl": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
+        "fr": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
+        "it": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
+        "es": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
+        "pl": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
+        "uk": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
+        "zh-cn": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state"
       },
       "0.21.8": {
         "en": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too",
