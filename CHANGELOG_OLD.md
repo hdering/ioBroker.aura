@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.18.4 (2026-07-04)
+- Status overview - each category now has a freely selectable background color in addition to the highlight color
+- Status overview - enabled categories now group their settings in a card so it is clear which settings belong to which category
+- Status overview - the hint-count chip in the top-right can now be hidden
+- Status overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view
+
 ## 0.18.3 (2026-07-04)
 - Conditions - visibility can now show a widget or tab on match, not just hide it (new Hide/Show on match toggle)
 

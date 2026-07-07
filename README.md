@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.21.11 (2026-07-07)
+- Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)
+
+
 ### 0.21.10 (2026-07-07)
 - fix(list): stop frontend value filter from resetting after config sync
 - fix(list): apply frontend value filter instantly via local state
@@ -208,13 +212,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing "unknown type"
 
 
-### 0.18.4 (2026-07-04)
-- Status overview - each category now has a freely selectable background color in addition to the highlight color
-- Status overview - enabled categories now group their settings in a card so it is clear which settings belong to which category
-- Status overview - the hint-count chip in the top-right can now be hidden
-- Status overview - new option to size the widget height to its content (auto height), in both the grid and the stacked/mobile view
-
-
 ## License
 
 MIT License
@@ -226,6 +223,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
