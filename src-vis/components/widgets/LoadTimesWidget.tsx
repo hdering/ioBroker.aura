@@ -11,7 +11,7 @@ import {
     CartesianGrid,
     ReferenceLine,
 } from 'recharts';
-import { Activity, Info, X } from 'lucide-react';
+import { Activity, Info, X, RefreshCw } from 'lucide-react';
 import { sendToDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { useConnectionStore } from '../../store/connectionStore';
 import { NS } from '../../utils/namespace';
@@ -155,6 +155,10 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
     useEffect(() => setViewSel((o.view as string) === 'breakdown' ? 'breakdown' : 'chart'), [o.view]);
     const [breakdown, setBreakdown] = useState<BreakdownClient[]>([]);
     const [showInfo, setShowInfo] = useState(false);
+    // Bumped by the refresh button to re-poll the backend immediately. This only
+    // re-fetches the already-stored data — unlike F5 it does NOT create a new
+    // page-load sample or reset this client's session counters.
+    const [refreshNonce, setRefreshNonce] = useState(0);
 
     const bufferRef = useRef<PerfSample[]>([]);
     const seenSeqRef = useRef(0);
@@ -203,7 +207,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
             cancelled = true;
             if (timer) clearTimeout(timer);
         };
-    }, [connected, editMode]);
+    }, [connected, editMode, refreshNonce]);
 
     // Poll the per-widget / per-command breakdown while that view is open.
     useEffect(() => {
@@ -228,7 +232,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
             cancelled = true;
             if (timer) clearTimeout(timer);
         };
-    }, [connected, editMode, viewSel]);
+    }, [connected, editMode, viewSel, refreshNonce]);
 
     // Distinct clients seen in either data source, for the filter dropdown.
     const clientOptions = useMemo(() => {
@@ -373,6 +377,14 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                         </p>
                     )}
                     {!showTitle && <span className="flex-1 min-w-0" />}
+                    <button
+                        onClick={() => setRefreshNonce((n) => n + 1)}
+                        className="flex items-center rounded-md p-1 focus:outline-none shrink-0"
+                        style={selectStyle}
+                        title="Aktualisieren (lädt nur neu vom Backend — verfälscht die Messwerte nicht)"
+                    >
+                        <RefreshCw size={12} />
+                    </button>
                     <button
                         onClick={() => setViewSel(viewSel === 'chart' ? 'breakdown' : 'chart')}
                         className="text-[10px] rounded-md px-1.5 py-0.5 focus:outline-none shrink-0"
