@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.21.4",
+    "version": "0.21.5",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.21.5": {
+        "en": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
+        "de": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
+        "ru": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
+        "pt": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
+        "nl": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
+        "fr": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
+        "it": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
+        "es": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
+        "pl": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
+        "uk": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
+        "zh-cn": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs"
+      },
       "0.21.4": {
         "en": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
         "de": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
         "uk": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup",
         "zh-cn": "🌟 New feature: Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup"
-      },
-      "0.19.5": {
-        "en": "Layouts - changing the global theme preset now shows the Save button again",
-        "de": "Layouts - changing the global theme preset now shows the Save button again",
-        "ru": "Layouts - changing the global theme preset now shows the Save button again",
-        "pt": "Layouts - changing the global theme preset now shows the Save button again",
-        "nl": "Layouts - changing the global theme preset now shows the Save button again",
-        "fr": "Layouts - changing the global theme preset now shows the Save button again",
-        "it": "Layouts - changing the global theme preset now shows the Save button again",
-        "es": "Layouts - changing the global theme preset now shows the Save button again",
-        "pl": "Layouts - changing the global theme preset now shows the Save button again",
-        "uk": "Layouts - changing the global theme preset now shows the Save button again",
-        "zh-cn": "Layouts - changing the global theme preset now shows the Save button again"
       }
     }
   },

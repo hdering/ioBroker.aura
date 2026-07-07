@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.17.4 (2026-07-03)
+- Script Status, Adapter Status, Adapter Logs - add optional zebra striping (like the JSON table widget)
+
 ## 0.17.3 (2026-07-03)
 - Weather - fixed weather condition labels (WMO codes 1-3 were shifted; code 1 now correctly shows "Mainly clear")
 
