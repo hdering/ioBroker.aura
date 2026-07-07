@@ -63,7 +63,9 @@ export function Dashboard({
     const guidelinesShowResolution = settings.guidelinesShowResolution ?? true;
 
     const showGuidelines = guidelinesEnabled && (editMode || guidelinesShowInFrontend);
-    const showResolution = showGuidelines && guidelinesShowResolution;
+    // The resolution badge is independent of the guideline lines: it follows its
+    // own toggle and shows in both the editor and the frontend when enabled.
+    const showResolution = guidelinesShowResolution;
 
     // In frontend view, use provided override; otherwise use active editor layout
     const tabs = viewTabs ?? activeLayout.tabs;
@@ -370,7 +372,10 @@ export function Dashboard({
                     {showResolution && !editMode && (
                         <GuidelinesHint
                             onDisable={() =>
-                                useConfigStore.getState().updateFrontend({ guidelinesShowInFrontend: false })
+                                useConfigStore.getState().updateFrontend({
+                                    guidelinesShowResolution: false,
+                                    guidelinesShowInFrontend: false,
+                                })
                             }
                         />
                     )}

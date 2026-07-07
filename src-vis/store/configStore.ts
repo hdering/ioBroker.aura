@@ -177,10 +177,20 @@ export const useConfigStore = create<ConfigState>()(
             // merge is shallow and would drop newly-added keys → undefined at runtime).
             merge: (persisted, current) => {
                 const p = (persisted ?? {}) as Partial<ConfigState>;
+                const pf: Partial<FrontendSettings> = p.frontend ?? {};
+                const frontend = { ...DEFAULT_FRONTEND, ...pf };
+                // The resolution badge is independent of the guideline lines and defaults ON,
+                // but only for fresh installs. An existing install (persisted frontend present)
+                // that predates this key must NOT get the badge switched on by the upgrade —
+                // otherwise every existing client would suddenly show it. Absence of the key in
+                // a persisted frontend = existing install → keep it off until explicitly enabled.
+                if (p.frontend && pf.guidelinesShowResolution === undefined) {
+                    frontend.guidelinesShowResolution = false;
+                }
                 return {
                     ...current,
                     ...p,
-                    frontend: { ...DEFAULT_FRONTEND, ...(p.frontend ?? {}) },
+                    frontend,
                     widgetDefaults: p.widgetDefaults ?? current.widgetDefaults,
                 };
             },

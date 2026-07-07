@@ -327,9 +327,9 @@ export const de = {
     'layouts.subtab.theme': 'Theme & CSS-Vars',
     'layouts.subtab.typo': 'Typografie & Spacing',
     'layouts.subtab.grid': 'Grid & Mobile',
-    'layouts.subtab.guidelines': 'Hilfslinien',
+    'layouts.subtab.guidelines': 'Hilfslinien & Auflösung',
     'guidelines.hint':
-        'Hilfslinien und die aktuelle Bildschirmauflösung werden angezeigt. Zum Ausschalten: Admin → Layout-Einstellungen → Hilfslinien.',
+        'Die aktuelle Bildschirmauflösung wird angezeigt. Zum Ausschalten: Admin → Layout-Einstellungen → Hilfslinien & Auflösung.',
     'guidelines.hintKeep': 'Verstanden',
     'guidelines.hintDisable': 'Jetzt ausblenden',
     'guidelines.resolutionLabel': 'Auflösung',

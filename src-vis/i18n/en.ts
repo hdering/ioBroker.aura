@@ -327,9 +327,9 @@ export const en: Record<TranslationKey, string> = {
     'layouts.subtab.theme': 'Theme & CSS Vars',
     'layouts.subtab.typo': 'Typography & Spacing',
     'layouts.subtab.grid': 'Grid & Mobile',
-    'layouts.subtab.guidelines': 'Guidelines',
+    'layouts.subtab.guidelines': 'Guidelines & Resolution',
     'guidelines.hint':
-        'Guidelines and the current screen resolution are being shown. To turn this off: Admin → Layout settings → Guidelines.',
+        'The current screen resolution is being shown. To turn this off: Admin → Layout settings → Guidelines & Resolution.',
     'guidelines.hintKeep': 'Got it',
     'guidelines.hintDisable': 'Hide now',
     'guidelines.resolutionLabel': 'Resolution',
