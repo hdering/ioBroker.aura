@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.18.1 (2026-07-04)
+- Input field - optional confirmation prompt before sending the value (input widget submit mode and universal-widget input cell)
+- Universal widget - input cell now matches the input widget: submit-on-Enter/Send vs. live mode, an optional Send button, and a multi-line (textarea) mode
+- Input field - add a number input type with optional Min/Max/Step
+
 ## 0.18.0 (2026-07-04)
 - Settings - Frontend options reordered (Header first) with clearer grouping for sub-settings, and a note that the layout menu only appears with 2+ layouts
 - General - adapter readme link now points to the online documentation instead of a dead iobroker.net page

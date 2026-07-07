@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.21.7",
+    "version": "0.21.8",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.21.8": {
+        "en": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too",
+        "de": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too",
+        "ru": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too",
+        "pt": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too",
+        "nl": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too",
+        "fr": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too",
+        "it": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too",
+        "es": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too",
+        "pl": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too",
+        "uk": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too",
+        "zh-cn": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too"
+      },
       "0.21.7": {
         "en": "🌟 New feature: Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize\n🌟 New feature: Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)\nTab bar - fix tabs sticking to the top instead of being vertically centered (regression from the mobile scroll-hint change)",
         "de": "🌟 New feature: Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize\n🌟 New feature: Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)\nTab bar - fix tabs sticking to the top instead of being vertically centered (regression from the mobile scroll-hint change)",
@@ -184,19 +197,6 @@
         "pl": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
         "uk": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)",
         "zh-cn": "Chart (Distribution) - \"last\" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)"
-      },
-      "0.21.1": {
-        "en": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
-        "de": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
-        "ru": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
-        "pt": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
-        "nl": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
-        "fr": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
-        "it": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
-        "es": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
-        "pl": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
-        "uk": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup",
-        "zh-cn": "Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup"
       }
     }
   },
