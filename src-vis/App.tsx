@@ -625,6 +625,31 @@ export default function App() {
         };
     }, [connected, clientId, clientName]);
 
+    // Report this client's viewport resolution: once on connect and (debounced)
+    // whenever the window is resized or the device rotates. The adapter stores it
+    // in clients.<id>.info.resolutionWidth / .resolutionHeight.
+    useEffect(() => {
+        if (!connected) return;
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const report = () =>
+            setStateDirect(
+                `${NS}.clients.resolution`,
+                JSON.stringify({ clientId, width: window.innerWidth, height: window.innerHeight }),
+            );
+        report();
+        const onResize = () => {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(report, 500);
+        };
+        window.addEventListener('resize', onResize);
+        window.addEventListener('orientationchange', onResize);
+        return () => {
+            if (timer) clearTimeout(timer);
+            window.removeEventListener('resize', onResize);
+            window.removeEventListener('orientationchange', onResize);
+        };
+    }, [connected, clientId]);
+
     // Subscribe to per-client navigate datapoint
     useEffect(() => {
         const dpId = `${NS}.clients.${clientId}.navigate.url`;

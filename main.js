@@ -542,6 +542,32 @@ class Aura extends utils.Adapter {
                 common: { name: 'Last Seen', type: 'number', role: 'date', read: true, write: true, def: 0 },
                 native: {},
             });
+            await this.setObjectNotExistsAsync(`clients.${cId}.info.resolutionWidth`, {
+                type: 'state',
+                common: {
+                    name: 'Screen resolution width',
+                    type: 'number',
+                    role: 'value',
+                    unit: 'px',
+                    read: true,
+                    write: true,
+                    def: 0,
+                },
+                native: {},
+            });
+            await this.setObjectNotExistsAsync(`clients.${cId}.info.resolutionHeight`, {
+                type: 'state',
+                common: {
+                    name: 'Screen resolution height',
+                    type: 'number',
+                    role: 'value',
+                    unit: 'px',
+                    read: true,
+                    write: true,
+                    def: 0,
+                },
+                native: {},
+            });
             await this.setObjectNotExistsAsync(`clients.${cId}.navigate`, {
                 type: 'channel',
                 common: { name: 'Navigation' },
@@ -576,6 +602,67 @@ class Aura extends utils.Adapter {
             return;
         }
 
+        // Client resolution relay: frontend writes {clientId, width, height} → adapter stores the
+        // per-client viewport resolution. Fired on connect and (debounced) on resize/rotation. DPs
+        // are ensured idempotently here so clients registered before this feature get them on demand.
+        if (id.endsWith('clients.resolution') && state && !state.ack && state.val) {
+            let payload;
+            try {
+                payload = JSON.parse(String(state.val));
+            } catch {
+                await this.setStateAsync('clients.resolution', '', true);
+                return;
+            }
+            const cId = payload && payload.clientId ? String(payload.clientId) : '';
+            const width = Number(payload && payload.width);
+            const height = Number(payload && payload.height);
+            if (cId && Number.isFinite(width) && Number.isFinite(height)) {
+                await this.setObjectNotExistsAsync(`clients.${cId}`, {
+                    type: 'channel',
+                    common: { name: cId.slice(0, 8) },
+                    native: {},
+                });
+                await this.setObjectNotExistsAsync(`clients.${cId}.info`, {
+                    type: 'channel',
+                    common: { name: 'Info' },
+                    native: {},
+                });
+                await this.setObjectNotExistsAsync(`clients.${cId}.info.resolutionWidth`, {
+                    type: 'state',
+                    common: {
+                        name: 'Screen resolution width',
+                        type: 'number',
+                        role: 'value',
+                        unit: 'px',
+                        read: true,
+                        write: true,
+                        def: 0,
+                    },
+                    native: {},
+                });
+                await this.setObjectNotExistsAsync(`clients.${cId}.info.resolutionHeight`, {
+                    type: 'state',
+                    common: {
+                        name: 'Screen resolution height',
+                        type: 'number',
+                        role: 'value',
+                        unit: 'px',
+                        read: true,
+                        write: true,
+                        def: 0,
+                    },
+                    native: {},
+                });
+                await this.setStateAsync(`clients.${cId}.info.resolutionWidth`, { val: Math.round(width), ack: true });
+                await this.setStateAsync(`clients.${cId}.info.resolutionHeight`, {
+                    val: Math.round(height),
+                    ack: true,
+                });
+            }
+            await this.setStateAsync('clients.resolution', '', true);
+            return;
+        }
+
         // Client delete relay: frontend writes clientId → adapter deletes all child objects explicitly
         if (id.endsWith('clients.deleteRequest') && state && !state.ack && state.val) {
             const clientId = String(state.val).trim();
@@ -584,6 +671,8 @@ class Aura extends utils.Adapter {
                 const toDelete = [
                     `${base}.info.name`,
                     `${base}.info.lastSeen`,
+                    `${base}.info.resolutionWidth`,
+                    `${base}.info.resolutionHeight`,
                     `${base}.info`,
                     `${base}.navigate.url`,
                     `${base}.navigate.target`,
@@ -1586,11 +1675,24 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this.setObjectNotExistsAsync('clients.resolution', {
+            type: 'state',
+            common: {
+                name: 'Client resolution relay (write JSON {clientId, width, height} to store per-client resolution)',
+                type: 'string',
+                role: 'json',
+                read: true,
+                write: true,
+                def: '',
+            },
+            native: {},
+        });
 
         this.subscribeStates('calendar.request');
         this.subscribeStates('calendar.clientError');
         this.subscribeStates('clients.deleteRequest');
         this.subscribeStates('clients.register');
+        this.subscribeStates('clients.resolution');
 
         // Navigate selector: relay target selections and keep dropdowns in sync
         // with the dashboard config (views/tabs added, renamed or removed).
