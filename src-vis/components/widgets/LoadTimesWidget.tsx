@@ -71,11 +71,10 @@ interface BreakdownClient {
     ts: number;
     entries: BreakdownEntry[];
 }
-const BREAKDOWN_SECTIONS: { cat: string; title: string; good: number; ok: number }[] = [
-    { cat: 'widgetReady', title: 'Widgets — Bereit-Zeit', good: 300, ok: 1000 },
-    { cat: 'widgetRender', title: 'Widgets — Render', good: 16, ok: 50 },
-    { cat: 'backend', title: 'Backend-Befehle', good: 300, ok: 1000 },
-];
+// Reference thresholds (ms) per metric: value ≤ good → green, ≤ ok → amber, else red.
+const TH_READY = { good: 300, ok: 1000 };
+const TH_RENDER = { good: 16, ok: 50 };
+const TH_BACKEND = { good: 300, ok: 1000 };
 
 interface PerfSample {
     seq: number;
@@ -278,45 +277,63 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
     // Reference lines only make sense when a single metric owns the Y axis.
     const soloMetric = seriesMetrics.length === 1 ? seriesMetrics[0] : null;
 
-    // Merge breakdown entries across the selected client(s) into ranked rows per
-    // section. Primary value is the (count-weighted) average — the typical cost,
-    // which is stable and easy to read; `max` is carried as the worst-case spike.
-    const breakdownRows = useMemo(() => {
+    // Merge breakdown entries across the selected client(s). Widgets get one row
+    // each with ready- and render-time side by side (so you can see which one is
+    // high); backend commands are their own list. Values are count-weighted
+    // averages (typical cost); `max` is kept as the worst-case spike.
+    const { widgetRows, backendRows } = useMemo(() => {
         const sel = breakdown.filter((c) => {
             if (clientSel === 'all') return true;
             if (clientSel === 'current') return c.client === myClientId;
             return c.client === clientSel;
         });
-        const byKey = new Map<string, { cat: string; label: string; count: number; sum: number; max: number }>();
+        type Slot = { sum: number; count: number; max: number };
+        const empty = (): Slot => ({ sum: 0, count: 0, max: 0 });
+        const add = (s: Slot, avg: number, count: number, max: number) => {
+            s.sum += avg * count;
+            s.count += count;
+            if (max > s.max) s.max = max;
+        };
+        const avgOf = (s: Slot) => (s.count ? Math.round(s.sum / s.count) : 0);
+        const widgets = new Map<string, { label: string; ready: Slot; render: Slot }>();
+        const backend = new Map<string, { label: string; slot: Slot }>();
         for (const c of sel) {
             for (const e of c.entries) {
-                const k = `${e.cat}::${e.key}`;
-                const cur = byKey.get(k);
-                if (!cur) {
-                    byKey.set(k, { cat: e.cat, label: e.label, count: e.count, sum: e.avg * e.count, max: e.max });
-                } else {
-                    cur.count += e.count;
-                    cur.sum += e.avg * e.count;
-                    if (e.max > cur.max) cur.max = e.max;
+                if (e.cat === 'backend') {
+                    const cur = backend.get(e.key) ?? { label: e.label, slot: empty() };
+                    cur.label = e.label;
+                    add(cur.slot, e.avg, e.count, e.max);
+                    backend.set(e.key, cur);
+                } else if (e.cat === 'widgetReady' || e.cat === 'widgetRender') {
+                    const w = widgets.get(e.key) ?? { label: e.label, ready: empty(), render: empty() };
+                    w.label = e.label;
+                    add(e.cat === 'widgetReady' ? w.ready : w.render, e.avg, e.count, e.max);
+                    widgets.set(e.key, w);
                 }
             }
         }
-        const bySection: Record<string, { label: string; count: number; avg: number; max: number }[]> = {};
-        for (const v of byKey.values()) {
-            (bySection[v.cat] ??= []).push({
-                label: v.label,
-                count: v.count,
-                avg: Math.round(v.sum / Math.max(1, v.count)),
-                max: v.max,
-            });
-        }
-        for (const cat of Object.keys(bySection)) {
-            bySection[cat].sort((a, b) => b.avg - a.avg);
-            bySection[cat] = bySection[cat].slice(0, 8);
-        }
-        return bySection;
+        const wRows = Array.from(widgets.values())
+            .map((w) => {
+                const readyAvg = avgOf(w.ready);
+                const renderAvg = avgOf(w.render);
+                return {
+                    label: w.label,
+                    readyAvg,
+                    readyMax: w.ready.max,
+                    renderAvg,
+                    renderMax: w.render.max,
+                    sum: readyAvg + renderAvg,
+                };
+            })
+            .sort((a, b) => b.sum - a.sum)
+            .slice(0, 12);
+        const bRows = Array.from(backend.values())
+            .map((b) => ({ label: b.label, count: b.slot.count, avg: avgOf(b.slot), max: b.slot.max }))
+            .sort((a, b) => b.avg - a.avg)
+            .slice(0, 8);
+        return { widgetRows: wRows, backendRows: bRows };
     }, [breakdown, clientSel, myClientId]);
-    const hasBreakdown = Object.values(breakdownRows).some((rows) => rows.length > 0);
+    const hasBreakdown = widgetRows.length > 0 || backendRows.length > 0;
 
     const tooltipStyle: React.CSSProperties = {
         background: 'var(--app-surface)',
@@ -453,75 +470,138 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                                 className="text-[10px] leading-snug rounded-md px-2 py-1"
                                 style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}
                             >
-                                Sortiert nach <b>Ø</b> (typische Zeit). <b>Ø</b> = Durchschnitt, <b>↑</b> = längste
-                                Messung (Spitze), <b>×N</b> = Anzahl Messungen. Farbe bewertet den Ø-Wert gegen den
-                                Zielwert — <span style={{ color: STATUS_COLOR.good }}>grün</span> gut,{' '}
+                                Pro Widget: <b>Bereit</b> = Mount bis Daten sichtbar (inkl. Warten auf Daten),{' '}
+                                <b>Render</b> = reine Zeichenzeit, <b>Σ</b> = beides zusammen. Werte sind Ø (typisch),
+                                Farbe bewertet gegen den Zielwert —{' '}
+                                <span style={{ color: STATUS_COLOR.good }}>grün</span> gut,{' '}
                                 <span style={{ color: STATUS_COLOR.ok }}>gelb</span> ok,{' '}
                                 <span style={{ color: STATUS_COLOR.bad }}>rot</span> langsam.{' '}
                                 <b>Niedriger ist besser.</b>
                             </div>
-                            {BREAKDOWN_SECTIONS.map((sec) => {
-                                const rows = breakdownRows[sec.cat] ?? [];
-                                if (rows.length === 0) return null;
-                                return (
-                                    <div key={sec.cat}>
-                                        <div
-                                            className="text-[9px] uppercase tracking-wide mb-0.5"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            {sec.title} <span className="opacity-70">· Ziel ≤ {sec.good} ms</span>
-                                        </div>
-                                        <div className="flex flex-col gap-0.5">
-                                            {rows.map((r) => {
-                                                const c = STATUS_COLOR[classifyMs(r.avg, sec.good, sec.ok)];
-                                                return (
-                                                    <div
-                                                        key={r.label}
-                                                        className="flex items-center gap-1.5 text-[11px]"
-                                                    >
-                                                        <span
-                                                            style={{
-                                                                width: 7,
-                                                                height: 7,
-                                                                borderRadius: 9,
-                                                                background: c,
-                                                                flexShrink: 0,
-                                                            }}
-                                                        />
-                                                        <span
-                                                            className="flex-1 min-w-0 truncate"
-                                                            style={{ color: 'var(--text-primary)' }}
-                                                            title={r.label}
-                                                        >
-                                                            {r.label}
-                                                        </span>
-                                                        <span
-                                                            className="opacity-50 text-[10px]"
-                                                            style={{ color: 'var(--text-secondary)' }}
-                                                        >
-                                                            ×{r.count}
-                                                        </span>
-                                                        <b style={{ color: c, minWidth: 48, textAlign: 'right' }}>
-                                                            {r.avg} ms
-                                                        </b>
-                                                        <span
-                                                            className="text-[10px] opacity-60"
-                                                            style={{
-                                                                color: 'var(--text-secondary)',
-                                                                minWidth: 52,
-                                                                textAlign: 'right',
-                                                            }}
-                                                            title="längste Messung (Spitze)"
-                                                        >
-                                                            ↑{r.max} ms
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
+
+                            {widgetRows.length > 0 && (
+                                <div>
+                                    <div
+                                        className="text-[9px] uppercase tracking-wide mb-0.5"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        Widgets{' '}
+                                        <span className="opacity-70">
+                                            · Ziel: Bereit ≤ {TH_READY.good} ms · Render ≤ {TH_RENDER.good} ms
+                                        </span>
                                     </div>
-                                );
-                            })}
+                                    <div
+                                        className="flex items-center gap-1.5 text-[9px] mb-0.5"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        <span className="flex-1 min-w-0">Widget</span>
+                                        <span style={{ minWidth: 56, textAlign: 'right' }}>Bereit</span>
+                                        <span style={{ minWidth: 56, textAlign: 'right' }}>Render</span>
+                                        <span style={{ minWidth: 56, textAlign: 'right' }}>Σ</span>
+                                    </div>
+                                    <div className="flex flex-col gap-0.5">
+                                        {widgetRows.map((r) => {
+                                            const cReady =
+                                                STATUS_COLOR[classifyMs(r.readyAvg, TH_READY.good, TH_READY.ok)];
+                                            const cRender =
+                                                STATUS_COLOR[classifyMs(r.renderAvg, TH_RENDER.good, TH_RENDER.ok)];
+                                            return (
+                                                <div key={r.label} className="flex items-center gap-1.5 text-[11px]">
+                                                    <span
+                                                        className="flex-1 min-w-0 truncate"
+                                                        style={{ color: 'var(--text-primary)' }}
+                                                        title={r.label}
+                                                    >
+                                                        {r.label}
+                                                    </span>
+                                                    <span
+                                                        style={{ color: cReady, minWidth: 56, textAlign: 'right' }}
+                                                        title={`Spitze ↑${r.readyMax} ms`}
+                                                    >
+                                                        {r.readyAvg ? `${r.readyAvg} ms` : '—'}
+                                                    </span>
+                                                    <span
+                                                        style={{ color: cRender, minWidth: 56, textAlign: 'right' }}
+                                                        title={`Spitze ↑${r.renderMax} ms`}
+                                                    >
+                                                        {r.renderAvg ? `${r.renderAvg} ms` : '—'}
+                                                    </span>
+                                                    <b
+                                                        style={{
+                                                            color: 'var(--text-primary)',
+                                                            minWidth: 56,
+                                                            textAlign: 'right',
+                                                        }}
+                                                    >
+                                                        {r.sum} ms
+                                                    </b>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {backendRows.length > 0 && (
+                                <div>
+                                    <div
+                                        className="text-[9px] uppercase tracking-wide mb-0.5"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        Backend-Befehle{' '}
+                                        <span className="opacity-70">· Ziel ≤ {TH_BACKEND.good} ms</span>
+                                    </div>
+                                    <div
+                                        className="flex items-center gap-1.5 text-[9px] mb-0.5"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        <span className="flex-1 min-w-0">Befehl</span>
+                                        <span style={{ minWidth: 44, textAlign: 'right' }}>Anzahl</span>
+                                        <span style={{ minWidth: 52, textAlign: 'right' }}>Ø</span>
+                                        <span style={{ minWidth: 56, textAlign: 'right' }}>↑ Spitze</span>
+                                    </div>
+                                    <div className="flex flex-col gap-0.5">
+                                        {backendRows.map((r) => {
+                                            const c = STATUS_COLOR[classifyMs(r.avg, TH_BACKEND.good, TH_BACKEND.ok)];
+                                            return (
+                                                <div key={r.label} className="flex items-center gap-1.5 text-[11px]">
+                                                    <span
+                                                        className="flex-1 min-w-0 truncate"
+                                                        style={{ color: 'var(--text-primary)' }}
+                                                        title={r.label}
+                                                    >
+                                                        {r.label}
+                                                    </span>
+                                                    <span
+                                                        className="opacity-50 text-[10px]"
+                                                        style={{
+                                                            color: 'var(--text-secondary)',
+                                                            minWidth: 44,
+                                                            textAlign: 'right',
+                                                        }}
+                                                    >
+                                                        ×{r.count}
+                                                    </span>
+                                                    <b style={{ color: c, minWidth: 52, textAlign: 'right' }}>
+                                                        {r.avg} ms
+                                                    </b>
+                                                    <span
+                                                        className="text-[10px] opacity-60"
+                                                        style={{
+                                                            color: 'var(--text-secondary)',
+                                                            minWidth: 56,
+                                                            textAlign: 'right',
+                                                        }}
+                                                        title="längste Messung (Spitze)"
+                                                    >
+                                                        ↑{r.max} ms
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )
                 ) : !hasData ? (
