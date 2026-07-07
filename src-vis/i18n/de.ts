@@ -331,7 +331,6 @@ export const de = {
     'guidelines.hint':
         'Die aktuelle Bildschirmauflösung wird angezeigt. Zum Ausschalten: Admin → Layout-Einstellungen → Hilfslinien & Auflösung.',
     'guidelines.hintKeep': 'Verstanden',
-    'guidelines.hintDisable': 'Jetzt ausblenden',
     'guidelines.resolutionLabel': 'Auflösung',
     'layouts.subtab.css': 'Custom CSS',
     'layouts.subtab.tabbar': 'Tab-Leiste',

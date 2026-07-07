@@ -331,7 +331,6 @@ export const en: Record<TranslationKey, string> = {
     'guidelines.hint':
         'The current screen resolution is being shown. To turn this off: Admin → Layout settings → Guidelines & Resolution.',
     'guidelines.hintKeep': 'Got it',
-    'guidelines.hintDisable': 'Hide now',
     'guidelines.resolutionLabel': 'Resolution',
     'layouts.subtab.css': 'Custom CSS',
     'layouts.subtab.tabbar': 'Tab bar',

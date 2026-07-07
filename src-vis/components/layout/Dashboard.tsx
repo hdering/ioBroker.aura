@@ -8,7 +8,6 @@ import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { WidgetFrame } from './WidgetFrame';
 import { useReflowHiddenIds, useConditionReflowIds } from '../../hooks/useConditionStyle';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
-import { useConfigStore } from '../../store/configStore';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
 import { DashboardMobileContext } from '../../contexts/DashboardMobileContext';
 import type { WidgetConfig } from '../../types';
@@ -73,15 +72,7 @@ export function Dashboard({
     const resolutionOverlay = showResolution && (
         <>
             <ResolutionBadge />
-            {!editMode && (
-                <GuidelinesHint
-                    onDisable={() =>
-                        useConfigStore
-                            .getState()
-                            .updateFrontend({ guidelinesShowResolution: false, guidelinesShowInFrontend: false })
-                    }
-                />
-            )}
+            {!editMode && <GuidelinesHint />}
         </>
     );
 
@@ -782,7 +773,7 @@ function ResolutionBadge() {
     );
 }
 
-function GuidelinesHint({ onDisable }: { onDisable: () => void }) {
+function GuidelinesHint() {
     const t = useT();
     const [dismissed, setDismissed] = useState(() => {
         try {
@@ -825,20 +816,10 @@ function GuidelinesHint({ onDisable }: { onDisable: () => void }) {
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                 <button
                     onClick={dismiss}
-                    className="px-3 py-1 rounded"
-                    style={{ color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
-                >
-                    {t('guidelines.hintKeep')}
-                </button>
-                <button
-                    onClick={() => {
-                        onDisable();
-                        dismiss();
-                    }}
                     className="px-3 py-1 rounded font-medium"
                     style={{ background: 'var(--accent)', color: '#fff' }}
                 >
-                    {t('guidelines.hintDisable')}
+                    {t('guidelines.hintKeep')}
                 </button>
             </div>
         </div>
