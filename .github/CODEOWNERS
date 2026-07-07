@@ -1,0 +1,16 @@
+# CODEOWNERS — steuert die erzwungenen PR-Reviewer.
+#
+# Wirkt NUR zusammen mit Branch-Protection auf `main`:
+#   "Require a pull request before merging" + "Require review from Code Owners".
+# Ohne diese Regel fordert die Datei nur automatisch Reviewer an, blockt aber nichts.
+#
+# Syntax: <Pfad-Muster>   <Owner ...>   (letztes passendes Muster gewinnt)
+
+# Standard: alles gehört dem Maintainer.
+# Jeder PR, der Dateien außerhalb von /docs/ berührt (= Code, Build, CI),
+# braucht die Freigabe von @hdering, bevor er gemergt werden kann.
+*                               @hdering
+
+# Dokumentation — gehört dem Maintainer UND dem Doku-Team.
+# Doku-Autoren können reine Doku-PRs gegenseitig freigeben; Code bleibt an @hdering gebunden.
+/docs/                          @hdering @mcuiobroker
