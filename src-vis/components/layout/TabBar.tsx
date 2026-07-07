@@ -198,6 +198,73 @@ function TabBadges({ tab }: { tab: Tab }) {
     return <BadgeOverlay badges={badges} />;
 }
 
+// ── Scrollable tab row + custom "more tabs" indicator ─────────────────────────
+// Wraps a horizontally scrolling row. On mobile the native (flickering, low)
+// scrollbar is hidden and replaced with a static thumb that tracks the scroll
+// position and sits just under the tabs. See .aura-tab-scroll-* in index.css.
+
+function TabScrollRow({
+    isMobile,
+    outerClassName = '',
+    scrollClassName = '',
+    children,
+}: {
+    isMobile: boolean;
+    outerClassName?: string;
+    scrollClassName?: string;
+    children: React.ReactNode;
+}) {
+    const ref = useRef<HTMLDivElement>(null);
+    const [ind, setInd] = useState<{ show: boolean; left: number; width: number }>({
+        show: false,
+        left: 0,
+        width: 0,
+    });
+
+    const recompute = useCallback(() => {
+        const el = ref.current;
+        if (!el) return;
+        const { scrollWidth, clientWidth, scrollLeft } = el;
+        const overflow = scrollWidth - clientWidth;
+        if (overflow <= 2) {
+            setInd((p) => (p.show ? { show: false, left: 0, width: 0 } : p));
+            return;
+        }
+        const width = Math.max((clientWidth / scrollWidth) * 100, 15);
+        const left = (scrollLeft / overflow) * (100 - width);
+        setInd({ show: true, left, width });
+    }, []);
+
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        recompute();
+        const ro = new ResizeObserver(recompute);
+        ro.observe(el);
+        const inner = el.firstElementChild;
+        if (inner) ro.observe(inner);
+        el.addEventListener('scroll', recompute, { passive: true });
+        return () => {
+            ro.disconnect();
+            el.removeEventListener('scroll', recompute);
+        };
+    }, [recompute]);
+
+    return (
+        <div className={`relative ${outerClassName}`}>
+            <div
+                ref={ref}
+                className={`aura-scroll aura-badge-room overflow-x-auto ${isMobile ? 'aura-tab-scroll--mobile' : ''} ${scrollClassName}`}
+            >
+                {children}
+            </div>
+            {isMobile && ind.show && (
+                <div className="aura-tab-scroll-ind" style={{ left: `${ind.left}%`, width: `${ind.width}%` }} />
+            )}
+        </div>
+    );
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export function TabBar({
@@ -885,9 +952,10 @@ export function TabBar({
                     }}
                 >
                     {/* Zone 1: left items + tabs when alignment=left */}
-                    <div
-                        className="aura-scroll aura-badge-room flex items-center overflow-x-auto"
-                        style={{ minWidth: 0 }}
+                    <TabScrollRow
+                        isMobile={isMobile}
+                        outerClassName="min-w-0"
+                        scrollClassName="flex items-center w-full"
                     >
                         <div className="flex items-center gap-1 px-2">
                             {headerSlot}
@@ -901,10 +969,10 @@ export function TabBar({
                             {tabsAlignment === 'left' && renderTabs()}
                             {tabsAlignment === 'left' && addTabBtn}
                         </div>
-                    </div>
+                    </TabScrollRow>
 
                     {/* Zone 2: center items + tabs when alignment=center */}
-                    <div className="aura-scroll aura-badge-room flex items-center justify-center overflow-x-auto shrink-0">
+                    <TabScrollRow isMobile={isMobile} scrollClassName="flex items-center justify-center w-full">
                         <div className="flex items-center gap-1 px-2">
                             {tabsAlignment === 'center' && renderTabs()}
                             {tabsAlignment === 'center' && addTabBtn}
@@ -916,10 +984,14 @@ export function TabBar({
                             )}
                             {centerItems.map(renderTabBarItem)}
                         </div>
-                    </div>
+                    </TabScrollRow>
 
                     {/* Zone 3: right items + tabs when alignment=right */}
-                    <div className="aura-scroll aura-badge-room flex items-center justify-end overflow-x-auto shrink-0">
+                    <TabScrollRow
+                        isMobile={isMobile}
+                        outerClassName="min-w-0"
+                        scrollClassName="flex items-center justify-end w-full"
+                    >
                         <div className="flex items-center gap-1 px-2">
                             {tabsAlignment === 'right' && renderTabs()}
                             {tabsAlignment === 'right' && addTabBtn}
@@ -931,7 +1003,7 @@ export function TabBar({
                             )}
                             {rightItems.map(renderTabBarItem)}
                         </div>
-                    </div>
+                    </TabScrollRow>
                 </div>
                 {settingsPanel}
                 {iconPickerModal}
@@ -943,7 +1015,11 @@ export function TabBar({
     return (
         <>
             <div className="aura-tabs shrink-0 flex" style={containerStyle}>
-                <div className="aura-scroll aura-badge-room flex items-center overflow-x-auto flex-1 min-w-0">
+                <TabScrollRow
+                    isMobile={isMobile}
+                    outerClassName="flex-1 min-w-0"
+                    scrollClassName="flex items-center w-full"
+                >
                     <div className="flex items-center gap-1 px-4">
                         {headerSlot}
                         {leftItems.map(renderTabBarItem)}
@@ -956,7 +1032,7 @@ export function TabBar({
                         {renderTabs()}
                         {addTabBtn}
                     </div>
-                </div>
+                </TabScrollRow>
             </div>
             {settingsPanel}
             {iconPickerModal}
