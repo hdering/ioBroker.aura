@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.21.11",
+    "version": "0.21.12",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.21.12": {
+        "en": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
+        "de": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
+        "ru": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
+        "pt": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
+        "nl": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
+        "fr": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
+        "it": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
+        "es": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
+        "pl": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
+        "uk": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
+        "zh-cn": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)"
+      },
       "0.21.11": {
         "en": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)",
         "de": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)",
@@ -184,19 +197,6 @@
         "pl": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
         "uk": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
         "zh-cn": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs"
-      },
-      "0.21.4": {
-        "en": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
-        "de": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
-        "ru": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
-        "pt": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
-        "nl": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
-        "fr": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
-        "it": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
-        "es": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
-        "pl": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
-        "uk": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off",
-        "zh-cn": "🌟 New feature: Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off"
       }
     }
   },

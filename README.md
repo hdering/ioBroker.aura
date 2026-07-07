@@ -115,6 +115,13 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.21.12 (2026-07-07)
+- fix(loadtimes): add "ms" unit label to the chart Y-axis
+- feat(loadtimes): explain Bereit/Render/Summe columns in an info popup
+- feat(loadtimes): widget breakdown as ready|render|sum table with column headers
+- Add Test section to README (#425)
+
+
 ### 0.21.11 (2026-07-07)
 - Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)
 
@@ -208,10 +215,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** New "Load times" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend
 
 
-### 0.18.5 (2026-07-05)
-- Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing "unknown type"
-
-
 ## License
 
 MIT License
@@ -223,6 +226,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

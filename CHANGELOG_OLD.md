@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.18.5 (2026-07-05)
+- Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing "unknown type"
+
 ## 0.18.4 (2026-07-04)
 - Status overview - each category now has a freely selectable background color in addition to the highlight color
 - Status overview - enabled categories now group their settings in a card so it is clear which settings belong to which category
