@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.21.12",
+    "version": "0.21.13",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.21.13": {
+        "en": "feat(loadtimes): add refresh button that re-polls the backend",
+        "de": "feat(loadtimes): add refresh button that re-polls the backend",
+        "ru": "feat(loadtimes): add refresh button that re-polls the backend",
+        "pt": "feat(loadtimes): add refresh button that re-polls the backend",
+        "nl": "feat(loadtimes): add refresh button that re-polls the backend",
+        "fr": "feat(loadtimes): add refresh button that re-polls the backend",
+        "it": "feat(loadtimes): add refresh button that re-polls the backend",
+        "es": "feat(loadtimes): add refresh button that re-polls the backend",
+        "pl": "feat(loadtimes): add refresh button that re-polls the backend",
+        "uk": "feat(loadtimes): add refresh button that re-polls the backend",
+        "zh-cn": "feat(loadtimes): add refresh button that re-polls the backend"
+      },
       "0.21.12": {
         "en": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
         "de": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
@@ -184,19 +197,6 @@
         "pl": "Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits",
         "uk": "Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits",
         "zh-cn": "Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits"
-      },
-      "0.21.5": {
-        "en": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
-        "de": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
-        "ru": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
-        "pt": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
-        "nl": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
-        "fr": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
-        "it": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
-        "es": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
-        "pl": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
-        "uk": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs",
-        "zh-cn": "Tabs - the \"more tabs\" scroll hint no longer flickers on mobile and sits higher, right under the tabs"
       }
     }
   },

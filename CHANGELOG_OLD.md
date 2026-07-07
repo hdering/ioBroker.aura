@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.19.0 (2026-07-05)
+- 🌟 **New feature:** New "Load times" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend
+
 ## 0.18.5 (2026-07-05)
 - Popup views - HTTP request, button, map and status overview widgets now render inside popups instead of showing "unknown type"
 
