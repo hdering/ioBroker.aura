@@ -511,12 +511,26 @@ function WaveViz({
     uid,
 }: Pick<TankProps, 'pct' | 'value' | 'unit' | 'decimals' | 'fillColor' | 'showValue' | 'uid'>) {
     const clipId = `wave-${uid}`;
+    const aboveId = `wave-above-${uid}`;
+    const belowId = `wave-below-${uid}`;
     const fillY = 100 - pct;
     const amp = 5;
     const waveColor = fillColor;
-    const textOnFill = pct > 50;
 
     const displayVal = isNaN(value) ? '–' : formatNum(value, decimals);
+
+    // Split the value at the waterline: dark on the empty background, white on the fill,
+    // so it stays readable even when the line crosses the middle of the number.
+    const renderVal = (mainFill: string, unitFill: string, clip: string) => (
+        <text x={50} y={55} fontSize={18} fontWeight="bold" textAnchor="middle" fill={mainFill} clipPath={clip}>
+            {displayVal}
+            {unit && (
+                <tspan fontSize={10} dx={2} fill={unitFill}>
+                    {unit}
+                </tspan>
+            )}
+        </text>
+    );
 
     // Two sine periods across 200 units so animation looks seamless
     const wavePath =
@@ -532,6 +546,12 @@ function WaveViz({
             <defs>
                 <clipPath id={clipId}>
                     <rect x={0} y={0} width={100} height={100} rx={8} />
+                </clipPath>
+                <clipPath id={aboveId}>
+                    <rect x={0} y={0} width={100} height={Math.max(0, fillY)} />
+                </clipPath>
+                <clipPath id={belowId}>
+                    <rect x={0} y={fillY} width={100} height={Math.max(0, 100 - fillY)} />
                 </clipPath>
             </defs>
 
@@ -575,27 +595,12 @@ function WaveViz({
                 strokeWidth={1.5}
             />
 
-            {/* Value */}
+            {/* Value – split at the waterline for readable contrast on both sides */}
             {showValue && (
-                <text
-                    x={50}
-                    y={55}
-                    fontSize={18}
-                    fontWeight="bold"
-                    textAnchor="middle"
-                    fill={textOnFill ? '#fff' : 'var(--text-primary)'}
-                >
-                    {displayVal}
-                    {unit && (
-                        <tspan
-                            fontSize={10}
-                            dx={2}
-                            fill={textOnFill ? 'rgba(255,255,255,0.75)' : 'var(--text-secondary)'}
-                        >
-                            {unit}
-                        </tspan>
-                    )}
-                </text>
+                <>
+                    {renderVal('var(--text-primary)', 'var(--text-secondary)', `url(#${aboveId})`)}
+                    {renderVal('#fff', 'rgba(255,255,255,0.85)', `url(#${belowId})`)}
+                </>
             )}
         </svg>
     );
@@ -626,12 +631,38 @@ function BatteryViz({
             nubH = 12;
         const fillH = Math.max(0, (pct / 100) * bh);
         const clipId = `bat-v-${uid}`;
-        const textOnFill = fillH > bh * 0.4;
+        const aboveId = `bat-v-above-${uid}`;
+        const belowId = `bat-v-below-${uid}`;
+        const lineY = by + bh - fillH; // fill top edge
+        const renderVal = (mainFill: string, unitFill: string, clip: string) => (
+            <text
+                x={bx + bw / 2}
+                y={by + bh / 2 + 6}
+                fontSize={18}
+                fontWeight="bold"
+                textAnchor="middle"
+                fill={mainFill}
+                clipPath={clip}
+            >
+                {displayVal}
+                {unit && (
+                    <tspan fontSize={10} dx={2} fill={unitFill}>
+                        {unit}
+                    </tspan>
+                )}
+            </text>
+        );
         return (
             <svg viewBox="0 0 90 260" style={{ width: '100%', height: '100%' }}>
                 <defs>
                     <clipPath id={clipId}>
                         <rect x={bx} y={by} width={bw} height={bh} rx={br} />
+                    </clipPath>
+                    <clipPath id={aboveId}>
+                        <rect x={0} y={0} width={90} height={Math.max(0, lineY)} />
+                    </clipPath>
+                    <clipPath id={belowId}>
+                        <rect x={0} y={lineY} width={90} height={Math.max(0, 260 - lineY)} />
                     </clipPath>
                 </defs>
                 <rect
@@ -685,25 +716,10 @@ function BatteryViz({
                     strokeWidth={2}
                 />
                 {showValue && (
-                    <text
-                        x={bx + bw / 2}
-                        y={by + bh / 2 + 6}
-                        fontSize={18}
-                        fontWeight="bold"
-                        textAnchor="middle"
-                        fill={textOnFill ? '#fff' : 'var(--text-primary)'}
-                    >
-                        {displayVal}
-                        {unit && (
-                            <tspan
-                                fontSize={10}
-                                dx={2}
-                                fill={textOnFill ? 'rgba(255,255,255,0.8)' : 'var(--text-secondary)'}
-                            >
-                                {unit}
-                            </tspan>
-                        )}
-                    </text>
+                    <>
+                        {renderVal('var(--text-primary)', 'var(--text-secondary)', `url(#${aboveId})`)}
+                        {renderVal('#fff', 'rgba(255,255,255,0.85)', `url(#${belowId})`)}
+                    </>
                 )}
             </svg>
         );
@@ -720,12 +736,38 @@ function BatteryViz({
         nubH = 30;
     const fillW = Math.max(0, (pct / 100) * bw);
     const clipId = `bat-h-${uid}`;
-    const textOnFill = fillW > bw * 0.4;
+    const onFillId = `bat-h-onfill-${uid}`;
+    const emptyId = `bat-h-empty-${uid}`;
+    const lineX = bx + fillW; // fill right edge
+    const renderVal = (mainFill: string, unitFill: string, clip: string) => (
+        <text
+            x={bx + bw / 2}
+            y={by + bh / 2 + 6}
+            fontSize={20}
+            fontWeight="bold"
+            textAnchor="middle"
+            fill={mainFill}
+            clipPath={clip}
+        >
+            {displayVal}
+            {unit && (
+                <tspan fontSize={12} dx={2} fill={unitFill}>
+                    {unit}
+                </tspan>
+            )}
+        </text>
+    );
     return (
         <svg viewBox="0 0 260 90" style={{ width: '100%', height: '100%' }}>
             <defs>
                 <clipPath id={clipId}>
                     <rect x={bx} y={by} width={bw} height={bh} rx={br} />
+                </clipPath>
+                <clipPath id={onFillId}>
+                    <rect x={0} y={0} width={Math.max(0, lineX)} height={90} />
+                </clipPath>
+                <clipPath id={emptyId}>
+                    <rect x={lineX} y={0} width={Math.max(0, 260 - lineX)} height={90} />
                 </clipPath>
             </defs>
             <rect
@@ -756,25 +798,10 @@ function BatteryViz({
             ))}
             <rect x={bx} y={by} width={bw} height={bh} rx={br} fill="none" stroke="var(--app-border)" strokeWidth={2} />
             {showValue && (
-                <text
-                    x={bx + bw / 2}
-                    y={by + bh / 2 + 6}
-                    fontSize={20}
-                    fontWeight="bold"
-                    textAnchor="middle"
-                    fill={textOnFill ? '#fff' : 'var(--text-primary)'}
-                >
-                    {displayVal}
-                    {unit && (
-                        <tspan
-                            fontSize={12}
-                            dx={2}
-                            fill={textOnFill ? 'rgba(255,255,255,0.8)' : 'var(--text-secondary)'}
-                        >
-                            {unit}
-                        </tspan>
-                    )}
-                </text>
+                <>
+                    {renderVal('#fff', 'rgba(255,255,255,0.85)', `url(#${onFillId})`)}
+                    {renderVal('var(--text-primary)', 'var(--text-secondary)', `url(#${emptyId})`)}
+                </>
             )}
         </svg>
     );
