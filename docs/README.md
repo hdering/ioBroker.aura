@@ -41,3 +41,6 @@ Screenshots gehören nach `docs/widgets/assets/<widget-slug>/`. Im Markdown refe
 ## Übersetzung
 
 Aktuell nur Deutsch. Später per Skript automatisch nach EN/FR/… übersetzen.
+
+## Test
+Änderungstest
