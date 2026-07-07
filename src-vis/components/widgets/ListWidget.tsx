@@ -486,6 +486,13 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const [resolvedRooms, setResolvedRooms] = useState<Record<string, string[]>>({});
     const [showFilter, setShowFilter] = useState(false);
     const [lastChangedTs, setLastChangedTs] = useState(0);
+    // Frontend filter is a per-viewer runtime toggle held in local state so it
+    // applies instantly — independent of whether the persisted config change
+    // round-trips back (it only does while the admin sits on this widget's tab).
+    const [viewFilter, setViewFilter] = useState<FilterMode>((opts.valueFilter ?? 'all') as FilterMode);
+    useEffect(() => {
+        setViewFilter((opts.valueFilter ?? 'all') as FilterMode);
+    }, [opts.valueFilter]);
 
     const saveOpts = useCallback(
         (patch: Partial<StaticListOptions>) => {
@@ -551,8 +558,9 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const getLabel = (entry: StaticListEntry) =>
         applyDpNameFilter(entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id);
 
-    // Value filter (same logic as AutoListWidget)
-    const valueFilter = (opts.valueFilter ?? 'all') as FilterMode;
+    // Value filter (same logic as AutoListWidget) — driven by local state so
+    // frontend clicks take effect immediately, not only after the config sync.
+    const valueFilter = viewFilter;
     const filterLabels: Record<FilterMode, string> = {
         all: 'Alle',
         active: opts.filterActiveLabel || DEFAULT_filterLabels.active,
@@ -812,6 +820,7 @@ export function ListWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                             <button
                                                 key={mode}
                                                 onClick={() => {
+                                                    setViewFilter(mode);
                                                     saveOpts({ valueFilter: mode });
                                                     setShowFilter(false);
                                                 }}
