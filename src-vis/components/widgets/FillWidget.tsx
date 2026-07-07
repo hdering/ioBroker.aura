@@ -167,7 +167,14 @@ function TankVertical({
 
             {/* Value label – right side, at fill level */}
             {showValue && (
-                <text x={bx + bw + 5} y={labelY} fontSize={11} fontWeight="bold" fill={fillColor} textAnchor="start">
+                <text
+                    x={bx + bw + 5}
+                    y={labelY}
+                    fontSize={11}
+                    fontWeight="bold"
+                    fill="var(--text-primary)"
+                    textAnchor="start"
+                >
                     {displayVal}
                     {unit && (
                         <tspan fontSize={9} fill="var(--text-secondary)" dx={1}>
@@ -357,7 +364,7 @@ function TankHorizontal({
                     y={by + bh / 2 + 4}
                     fontSize={12}
                     fontWeight="bold"
-                    fill={fillColor}
+                    fill="var(--text-primary)"
                     textAnchor="start"
                 >
                     {displayVal}
@@ -435,7 +442,7 @@ function SegmentsViz({
                         fontSize={13}
                         fontWeight="bold"
                         textAnchor="middle"
-                        fill={fillColor}
+                        fill="var(--text-primary)"
                     >
                         {displayVal}
                         {unit && (
@@ -473,7 +480,14 @@ function SegmentsViz({
                 );
             })}
             {showValue && (
-                <text x={totalW / 2} y={segH + 18} fontSize={14} fontWeight="bold" textAnchor="middle" fill={fillColor}>
+                <text
+                    x={totalW / 2}
+                    y={segH + 18}
+                    fontSize={14}
+                    fontWeight="bold"
+                    textAnchor="middle"
+                    fill="var(--text-primary)"
+                >
                     {displayVal}
                     {unit && (
                         <tspan fontSize={9} dx={1} fill="var(--text-secondary)">
@@ -569,7 +583,7 @@ function WaveViz({
                     fontSize={18}
                     fontWeight="bold"
                     textAnchor="middle"
-                    fill={textOnFill ? '#fff' : waveColor}
+                    fill={textOnFill ? '#fff' : 'var(--text-primary)'}
                 >
                     {displayVal}
                     {unit && (
@@ -677,7 +691,7 @@ function BatteryViz({
                         fontSize={18}
                         fontWeight="bold"
                         textAnchor="middle"
-                        fill={textOnFill ? '#fff' : fillColor}
+                        fill={textOnFill ? '#fff' : 'var(--text-primary)'}
                     >
                         {displayVal}
                         {unit && (
@@ -748,7 +762,7 @@ function BatteryViz({
                     fontSize={20}
                     fontWeight="bold"
                     textAnchor="middle"
-                    fill={textOnFill ? '#fff' : fillColor}
+                    fill={textOnFill ? '#fff' : 'var(--text-primary)'}
                 >
                     {displayVal}
                     {unit && (
