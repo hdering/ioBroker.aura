@@ -250,11 +250,17 @@ function TabScrollRow({
         };
     }, [recompute]);
 
+    // Outer must be a flex container so the scroll row is stretched to the bar height
+    // via align-items:stretch. The scroll row carries .aura-badge-room (padding 14 /
+    // margin -14 so corner badges aren't clipped); when stretched, that yields a content
+    // box equal to the bar height, so its inner `items-center` centers the tabs. A fixed
+    // height (h-full) would shrink the content box by the 28px padding and break both the
+    // centering and clip the vertical axis — do not add one.
     return (
         <div className={`relative flex ${outerClassName}`}>
             <div
                 ref={ref}
-                className={`aura-scroll aura-badge-room overflow-x-auto h-full ${isMobile ? 'aura-tab-scroll--mobile' : ''} ${scrollClassName}`}
+                className={`aura-scroll aura-badge-room overflow-x-auto ${isMobile ? 'aura-tab-scroll--mobile' : ''} ${scrollClassName}`}
             >
                 {children}
             </div>
