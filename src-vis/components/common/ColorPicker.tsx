@@ -266,8 +266,14 @@ function ColorPopover({
     }, [anchorRef, onClose]);
 
     const [hexText, setHexText] = useState(alphaEnabled && alpha < 100 ? combineColor(hex6, alpha) : hex6);
+    // While the user is typing in the text field, never overwrite it with the
+    // normalized value — otherwise `#ef4` gets rewritten to `#eeff44` mid-word.
+    // The colour is still applied live (commitHex on each keystroke) so the
+    // swatch/preview reflects it; the field only re-normalizes on blur.
+    const editingRef = useRef(false);
     // Keep the text field in sync when the colour changes from the swatch/slider.
     useEffect(() => {
+        if (editingRef.current) return;
         setHexText(alphaEnabled && alpha < 100 ? combineColor(hex6, alpha) : hex6);
     }, [hex6, alpha, alphaEnabled]);
 
@@ -308,7 +314,13 @@ function ColorPopover({
                         // Apply immediately once a complete colour is typed.
                         if (isCompleteColor(raw)) commitHex(raw);
                     }}
-                    onBlur={(e) => commitHex(e.target.value)}
+                    onFocus={() => {
+                        editingRef.current = true;
+                    }}
+                    onBlur={(e) => {
+                        editingRef.current = false;
+                        commitHex(e.target.value);
+                    }}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') commitHex((e.target as HTMLInputElement).value);
                     }}
