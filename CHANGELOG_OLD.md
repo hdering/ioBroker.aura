@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.19.5 (2026-07-06)
+- Layouts - changing the global theme preset now shows the Save button again
+
 ## 0.19.4 (2026-07-06)
 - Map - corners are now rounded in the live view too (transparent map widgets used to render square outside the editor)
 

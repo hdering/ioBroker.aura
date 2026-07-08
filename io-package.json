@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.22.1",
+    "version": "0.22.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.22.2": {
+        "en": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
+        "de": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
+        "ru": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
+        "pt": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
+        "nl": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
+        "fr": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
+        "it": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
+        "es": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
+        "pl": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
+        "uk": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
+        "zh-cn": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect"
+      },
       "0.22.1": {
         "en": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
         "de": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
@@ -184,19 +197,6 @@
         "pl": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
         "uk": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
         "zh-cn": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)"
-      },
-      "0.21.11": {
-        "en": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)",
-        "de": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)",
-        "ru": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)",
-        "pt": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)",
-        "nl": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)",
-        "fr": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)",
-        "it": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)",
-        "es": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)",
-        "pl": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)",
-        "uk": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)",
-        "zh-cn": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)"
       }
     }
   },
