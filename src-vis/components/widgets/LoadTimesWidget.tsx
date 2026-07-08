@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { Activity, Info, X, RefreshCw, RotateCcw } from 'lucide-react';
-import { sendToDirect, useIoBroker } from '../../hooks/useIoBroker';
+import { sendToDirect, useIoBroker, getObjectViewDirect, getStateDirect } from '../../hooks/useIoBroker';
 import { resetBreakdown } from '../../utils/perfBreakdown';
 import { useConnectionStore } from '../../store/connectionStore';
 import { useDashboardStore } from '../../store/dashboardStore';
@@ -285,17 +285,52 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
         };
     }, [connected, editMode, viewSel, refreshNonce]);
 
+    // Client names from the registry (aura.0.clients.<id>.info.name) — the same
+    // source the Settings page uses. Perf samples are keyed by the same client id
+    // (the device fingerprint), so we can show the assigned name instead of the id.
+    const [clientNames, setClientNames] = useState<Record<string, string>>({});
+    useEffect(() => {
+        if (!connected || editMode) return;
+        let cancelled = false;
+        void (async () => {
+            try {
+                const res = await getObjectViewDirect('channel', `${NS}.clients.`, `${NS}.clients.香`);
+                const rows = res.rows.filter((r) => r.id.split('.').length === 4);
+                const entries = await Promise.all(
+                    rows.map(async (row) => {
+                        const id = row.id.split('.')[3];
+                        const st = await getStateDirect(`${row.id}.info.name`);
+                        return [id, st?.val ? String(st.val) : ''] as const;
+                    }),
+                );
+                if (cancelled) return;
+                const map: Record<string, string> = {};
+                for (const [id, name] of entries) if (name) map[id] = name;
+                setClientNames(map);
+            } catch {
+                /* registry unreadable — fall back to ids */
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [connected, editMode, refreshNonce]);
+
+    // Resolve a client id to its display name: registry name → embedded sample
+    // name → shortened id.
+    const clientLabel = (id: string, embedded?: string) => clientNames[id] || embedded || id.slice(0, 8);
+
     // Distinct clients seen in either data source, for the filter dropdown.
     const clientOptions = useMemo(() => {
         const byId = new Map<string, string>();
         for (const e of bufferRef.current) {
-            if (e.client) byId.set(e.client, e.clientName || e.client.slice(0, 8));
+            if (e.client) byId.set(e.client, clientLabel(e.client, e.clientName));
         }
         for (const c of breakdown) {
-            if (c.client) byId.set(c.client, c.clientName || byId.get(c.client) || c.client.slice(0, 8));
+            if (c.client) byId.set(c.client, clientLabel(c.client, c.clientName));
         }
         return Array.from(byId, ([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
-    }, [tick, breakdown]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [tick, breakdown, clientNames]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Build the recharts series (merge samples per timestamp) plus the latest
     // value per metric for the status badges — both honouring the client filter.
