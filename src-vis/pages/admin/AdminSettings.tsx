@@ -34,6 +34,7 @@ import {
     Trash2,
     History,
     Download,
+    Copy,
 } from 'lucide-react';
 import { useT, type TranslationKey } from '../../i18n';
 import { NS } from '../../utils/namespace';
@@ -574,6 +575,20 @@ function ClientsCard() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editValue, setEditValue] = useState('');
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+
+    // Copy the raw client ID so a user standing at the phone/tablet can read (and
+    // paste) exactly which ID this device was assigned. clipboard needs a secure
+    // context (the instances are HTTPS); fall back silently if unavailable.
+    const copyId = (id: string) => {
+        void navigator.clipboard?.writeText(id).then(
+            () => {
+                setCopiedId(id);
+                setTimeout(() => setCopiedId((cur) => (cur === id ? null : cur)), 1500);
+            },
+            () => {},
+        );
+    };
     // Scroll the expanded confirm/edit row into view: for devices near the bottom of the
     // scroll container the inline panel would otherwise open below the fold and go unnoticed.
     const expandedRef = useRef<HTMLDivElement | null>(null);
@@ -783,12 +798,6 @@ function ClientsCard() {
                                                 {deviceInfo}
                                             </p>
                                         )}
-                                        <p
-                                            className="text-[10px] font-mono truncate"
-                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                        >
-                                            {c.channelId}.navigate.url
-                                        </p>
                                     </div>
                                     <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>
                                         {fmtLastSeen(c.lastSeen)}
@@ -823,39 +832,65 @@ function ClientsCard() {
                                 {isEditing && (
                                     <div
                                         ref={expandedRef}
-                                        className="flex items-center gap-2 px-3 py-2.5"
+                                        className="flex flex-col gap-2 px-3 py-2.5"
                                         style={{
                                             background: 'var(--app-surface)',
                                             borderTop: '1px solid var(--app-border)',
                                         }}
                                     >
-                                        <input
-                                            autoFocus
-                                            value={editValue}
-                                            onChange={(e) => setEditValue(e.target.value)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') saveName(c);
-                                                if (e.key === 'Escape') cancelEdit();
-                                            }}
-                                            placeholder={t('settings.client.namePh')}
-                                            className="flex-1 text-sm rounded-lg px-3 py-1.5 focus:outline-none"
-                                            style={inputStyle}
-                                        />
-                                        <button
-                                            onClick={() => saveName(c)}
-                                            disabled={!editValue.trim() || editValue.trim() === c.name}
-                                            className="hover:opacity-70 disabled:opacity-30"
-                                            style={{ color: 'var(--accent-green)' }}
-                                        >
-                                            <Check size={15} />
-                                        </button>
-                                        <button
-                                            onClick={cancelEdit}
-                                            className="hover:opacity-70"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            <X size={15} />
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                autoFocus
+                                                value={editValue}
+                                                onChange={(e) => setEditValue(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') saveName(c);
+                                                    if (e.key === 'Escape') cancelEdit();
+                                                }}
+                                                placeholder={t('settings.client.namePh')}
+                                                className="flex-1 text-sm rounded-lg px-3 py-1.5 focus:outline-none"
+                                                style={inputStyle}
+                                            />
+                                            <button
+                                                onClick={() => saveName(c)}
+                                                disabled={!editValue.trim() || editValue.trim() === c.name}
+                                                className="hover:opacity-70 disabled:opacity-30"
+                                                style={{ color: 'var(--accent-green)' }}
+                                            >
+                                                <Check size={15} />
+                                            </button>
+                                            <button
+                                                onClick={cancelEdit}
+                                                className="hover:opacity-70"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                <X size={15} />
+                                            </button>
+                                        </div>
+                                        {/* Client ID — revealed here (not permanently on the row) so a user
+                                            standing at the device can read/copy the exact ID it was assigned. */}
+                                        <div className="flex items-center gap-1.5">
+                                            <span
+                                                className="text-[10px] font-mono truncate"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                                title={`${c.channelId}.navigate.url`}
+                                            >
+                                                ID: {c.clientId}
+                                            </span>
+                                            <button
+                                                onClick={() => copyId(c.clientId)}
+                                                className="hover:opacity-70 shrink-0"
+                                                style={{
+                                                    color:
+                                                        copiedId === c.clientId
+                                                            ? 'var(--accent-green)'
+                                                            : 'var(--text-secondary)',
+                                                }}
+                                                title={t('settings.clients.copyId')}
+                                            >
+                                                {copiedId === c.clientId ? <Check size={12} /> : <Copy size={12} />}
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
 
