@@ -9,12 +9,15 @@ export interface GlobalSettings {
     dpNameReplaceDots: boolean;
     /** Default number of decimal places for numeric widget values (can be overridden per widget) */
     defaultDecimals: number;
+    /** Show a small overlay badge with each device's own client ID (for identifying devices) */
+    showClientIdBadge: boolean;
 }
 
 interface GlobalSettingsState extends GlobalSettings {
     setDpNameSuffixes: (v: string) => void;
     setDpNameReplaceDots: (v: boolean) => void;
     setDefaultDecimals: (v: number) => void;
+    setShowClientIdBadge: (v: boolean) => void;
 }
 
 export const useGlobalSettingsStore = create<GlobalSettingsState>()(
@@ -23,9 +26,11 @@ export const useGlobalSettingsStore = create<GlobalSettingsState>()(
             dpNameSuffixes: '',
             dpNameReplaceDots: false,
             defaultDecimals: 2,
+            showClientIdBadge: false,
             setDpNameSuffixes: (v) => set({ dpNameSuffixes: v }),
             setDpNameReplaceDots: (v) => set({ dpNameReplaceDots: v }),
             setDefaultDecimals: (v) => set({ defaultDecimals: v }),
+            setShowClientIdBadge: (v) => set({ showClientIdBadge: v }),
         }),
         { name: 'aura-global-settings', storage: createJSONStorage(() => managedStorage) },
     ),

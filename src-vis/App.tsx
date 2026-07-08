@@ -17,6 +17,7 @@ import { useCustomCss } from './hooks/useCustomCss';
 import { useConfigSync } from './hooks/useConfigSync';
 import { useVersionGuard } from './hooks/useVersionGuard';
 import { useConnectionStore } from './store/connectionStore';
+import { useGlobalSettingsStore } from './store/globalSettingsStore';
 import { useConfigStore } from './store/configStore';
 import { useDashboardStore, useLayoutBySlug } from './store/dashboardStore';
 import { useNavigationStore } from './store/navigationStore';
@@ -192,6 +193,48 @@ function ConnectionIndicator({ showBadge }: { showBadge: boolean }) {
                 style={{ background: color, boxShadow: `0 0 6px ${color}` }}
             />
         </div>
+    );
+}
+
+// ── ClientIdBadge ───────────────────────────────────────────────────────────
+// Opt-in overlay (global setting, toggled in Settings → Connected Devices) that
+// shows THIS device its own client ID, so it can be identified without opening
+// the backend. Tap to copy. Fixed bottom-left so it clears the connection dot.
+
+function ClientIdBadge() {
+    const { clientId, clientName } = useConnectionStore();
+    const [copied, setCopied] = useState(false);
+
+    const copy = () => {
+        void navigator.clipboard?.writeText(clientId).then(
+            () => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1500);
+            },
+            () => {},
+        );
+    };
+
+    return (
+        <button
+            onClick={copy}
+            className="fixed bottom-3 left-3 z-50 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono shadow-lg hover:opacity-90"
+            style={{
+                background: 'var(--app-surface)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--app-border)',
+            }}
+            title="Client-ID kopieren"
+        >
+            {clientName && (
+                <span className="font-sans font-medium" style={{ color: 'var(--text-secondary)' }}>
+                    {clientName}
+                </span>
+            )}
+            <span>
+                {copied ? '✓ ' : ''}ID: {clientId}
+            </span>
+        </button>
     );
 }
 
@@ -684,6 +727,7 @@ export default function App() {
     const layoutUrlBase = layoutSlug ? `/view/${layoutSlug}` : '';
 
     const showBadge = frontend.showHeader && frontend.showConnectionBadge;
+    const showClientIdBadge = useGlobalSettingsStore((s) => s.showClientIdBadge);
 
     const activeTabSlug = useMemo(() => {
         const t = tabs.find((t) => t.id === activeTabId);
@@ -707,6 +751,7 @@ export default function App() {
             style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}
         >
             <ConnectionIndicator showBadge={showBadge} />
+            {showClientIdBadge && <ClientIdBadge />}
             {drawerFloating && (
                 <LayoutDrawer
                     activeLayoutId={layout?.id}

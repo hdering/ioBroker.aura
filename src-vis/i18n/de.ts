@@ -78,6 +78,7 @@ export const de = {
     'settings.clients.none': 'Noch keine Geräte registriert.',
     'settings.clients.thisDevice': 'Dieses Gerät',
     'settings.clients.copyId': 'Client-ID kopieren',
+    'settings.clients.showIdBadge': 'ID-Badge auf jedem Gerät anzeigen',
     'settings.clients.justNow': 'gerade eben',
     'settings.clients.minsAgo': 'vor {n} min',
     'settings.clients.hoursAgo': 'vor {n} Std',

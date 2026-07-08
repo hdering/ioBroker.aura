@@ -570,6 +570,7 @@ function DeviceIcon({ kind, ...props }: { kind: DeviceKind } & React.ComponentPr
 function ClientsCard() {
     const t = useT();
     const { clientId: myClientId, clientName: myClientName, setClientName } = useConnectionStore();
+    const { showClientIdBadge, setShowClientIdBadge } = useGlobalSettingsStore();
     const [clients, setClients] = useState<ClientInfo[]>([]);
     const [loading, setLoading] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -738,6 +739,12 @@ function ClientsCard() {
                 </button>
             </div>
 
+            <ToggleRow
+                label={t('settings.clients.showIdBadge')}
+                value={showClientIdBadge}
+                onChange={setShowClientIdBadge}
+            />
+
             {clients.length === 0 ? (
                 <p className="text-xs text-center py-3" style={{ color: 'var(--text-secondary)' }}>
                     {loading ? '…' : t('settings.clients.none')}
@@ -798,6 +805,29 @@ function ClientsCard() {
                                                 {deviceInfo}
                                             </p>
                                         )}
+                                        <div className="flex items-center gap-1">
+                                            <p
+                                                className="text-[10px] font-mono truncate"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                title={`${c.channelId}.navigate.url`}
+                                            >
+                                                ID: {c.clientId}
+                                            </p>
+                                            <button
+                                                onClick={() => copyId(c.clientId)}
+                                                className="hover:opacity-70 shrink-0"
+                                                style={{
+                                                    color:
+                                                        copiedId === c.clientId
+                                                            ? 'var(--accent-green)'
+                                                            : 'var(--text-secondary)',
+                                                    opacity: 0.7,
+                                                }}
+                                                title={t('settings.clients.copyId')}
+                                            >
+                                                {copiedId === c.clientId ? <Check size={11} /> : <Copy size={11} />}
+                                            </button>
+                                        </div>
                                     </div>
                                     <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>
                                         {fmtLastSeen(c.lastSeen)}
@@ -832,65 +862,39 @@ function ClientsCard() {
                                 {isEditing && (
                                     <div
                                         ref={expandedRef}
-                                        className="flex flex-col gap-2 px-3 py-2.5"
+                                        className="flex items-center gap-2 px-3 py-2.5"
                                         style={{
                                             background: 'var(--app-surface)',
                                             borderTop: '1px solid var(--app-border)',
                                         }}
                                     >
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                autoFocus
-                                                value={editValue}
-                                                onChange={(e) => setEditValue(e.target.value)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') saveName(c);
-                                                    if (e.key === 'Escape') cancelEdit();
-                                                }}
-                                                placeholder={t('settings.client.namePh')}
-                                                className="flex-1 text-sm rounded-lg px-3 py-1.5 focus:outline-none"
-                                                style={inputStyle}
-                                            />
-                                            <button
-                                                onClick={() => saveName(c)}
-                                                disabled={!editValue.trim() || editValue.trim() === c.name}
-                                                className="hover:opacity-70 disabled:opacity-30"
-                                                style={{ color: 'var(--accent-green)' }}
-                                            >
-                                                <Check size={15} />
-                                            </button>
-                                            <button
-                                                onClick={cancelEdit}
-                                                className="hover:opacity-70"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                            >
-                                                <X size={15} />
-                                            </button>
-                                        </div>
-                                        {/* Client ID — revealed here (not permanently on the row) so a user
-                                            standing at the device can read/copy the exact ID it was assigned. */}
-                                        <div className="flex items-center gap-1.5">
-                                            <span
-                                                className="text-[10px] font-mono truncate"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                                title={`${c.channelId}.navigate.url`}
-                                            >
-                                                ID: {c.clientId}
-                                            </span>
-                                            <button
-                                                onClick={() => copyId(c.clientId)}
-                                                className="hover:opacity-70 shrink-0"
-                                                style={{
-                                                    color:
-                                                        copiedId === c.clientId
-                                                            ? 'var(--accent-green)'
-                                                            : 'var(--text-secondary)',
-                                                }}
-                                                title={t('settings.clients.copyId')}
-                                            >
-                                                {copiedId === c.clientId ? <Check size={12} /> : <Copy size={12} />}
-                                            </button>
-                                        </div>
+                                        <input
+                                            autoFocus
+                                            value={editValue}
+                                            onChange={(e) => setEditValue(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') saveName(c);
+                                                if (e.key === 'Escape') cancelEdit();
+                                            }}
+                                            placeholder={t('settings.client.namePh')}
+                                            className="flex-1 text-sm rounded-lg px-3 py-1.5 focus:outline-none"
+                                            style={inputStyle}
+                                        />
+                                        <button
+                                            onClick={() => saveName(c)}
+                                            disabled={!editValue.trim() || editValue.trim() === c.name}
+                                            className="hover:opacity-70 disabled:opacity-30"
+                                            style={{ color: 'var(--accent-green)' }}
+                                        >
+                                            <Check size={15} />
+                                        </button>
+                                        <button
+                                            onClick={cancelEdit}
+                                            className="hover:opacity-70"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            <X size={15} />
+                                        </button>
                                     </div>
                                 )}
 

@@ -80,6 +80,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.clients.none': 'No devices registered yet.',
     'settings.clients.thisDevice': 'This Device',
     'settings.clients.copyId': 'Copy client ID',
+    'settings.clients.showIdBadge': 'Show ID badge on every device',
     'settings.clients.justNow': 'just now',
     'settings.clients.minsAgo': '{n} min ago',
     'settings.clients.hoursAgo': '{n} h ago',
