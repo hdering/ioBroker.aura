@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.19.3 (2026-07-06)
+- Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)
+- Map - keeps following a slowly moving marker instead of staying put on small position changes
+- Datapoint picker - adds a "Show inactive" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints
+
 ## 0.19.2 (2026-07-05)
 - Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled
 
