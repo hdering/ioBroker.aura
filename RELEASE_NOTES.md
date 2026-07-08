@@ -10,3 +10,5 @@ Load times - the per-widget breakdown now shows which tab each widget is on, and
 Load times - the client filter now shows the client name assigned in Settings instead of the raw client id
 Load times - the refresh button now shows a spinner while loading so you get feedback that a refresh is in progress
 Load times - add network breakdown metrics (TTFB, transfer, DNS, TCP/TLS) plus a backend ping (RTT) so high latency (e.g. over VPN) is distinguishable from device/render cost
+Load times - chart legend entries are now clickable to hide/show individual metrics so you can focus on one value
+Load times - add an info popup explaining which metrics to watch (network vs device) to diagnose the cause of slow loads

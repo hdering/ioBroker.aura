@@ -213,6 +213,8 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
     useEffect(() => setViewSel((o.view as string) === 'breakdown' ? 'breakdown' : 'chart'), [o.view]);
     const [breakdown, setBreakdown] = useState<BreakdownClient[]>([]);
     const [showInfo, setShowInfo] = useState(false);
+    // Runtime-hidden metric series (legend click) — lets you focus on one value.
+    const [hiddenMetrics, setHiddenMetrics] = useState<Set<string>>(new Set());
     // Bumped by the refresh button to re-poll the backend immediately. This only
     // re-fetches the already-stored data — unlike F5 it does NOT create a new
     // page-load sample or reset this client's session counters.
@@ -394,10 +396,20 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
         return { points: arr, spanMs: span, latest: latestByMetric };
     }, [tick, enabledKey, windowMs, editMode, clientSel, myClientId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const seriesMetrics = enabledMetrics.map((k) => METRIC_BY_KEY[k]).filter(Boolean);
+    // Legend = every configured metric; series/badges = the ones not toggled off
+    // at runtime (click a legend entry to focus on a single value).
+    const legendMetrics = enabledMetrics.map((k) => METRIC_BY_KEY[k]).filter(Boolean);
+    const seriesMetrics = legendMetrics.filter((m) => !hiddenMetrics.has(m.key));
     const hasData = points.length > 0;
     // Reference lines only make sense when a single metric owns the Y axis.
     const soloMetric = seriesMetrics.length === 1 ? seriesMetrics[0] : null;
+    const toggleMetric = (key: string) =>
+        setHiddenMetrics((prev) => {
+            const next = new Set(prev);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+        });
 
     // Merge breakdown entries across the selected client(s). Widgets get one row
     // each with ready- and render-time side by side (so you can see which one is
@@ -584,6 +596,16 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                             <option value="all">Alles</option>
                         </select>
                     )}
+                    {viewSel === 'chart' && (
+                        <button
+                            onClick={() => setShowInfo(true)}
+                            className="flex items-center rounded-md p-1 focus:outline-none shrink-0"
+                            style={{ ...selectStyle, cursor: 'pointer' }}
+                            title="Worauf du achten solltest (Netzwerk vs. Gerät)"
+                        >
+                            <Info size={12} />
+                        </button>
+                    )}
                     {clientOptions.length > 0 && (
                         <select
                             value={clientSel}
@@ -606,16 +628,26 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
 
             {viewSel === 'chart' && showLegend && (
                 <div className="flex items-center gap-2 flex-wrap shrink-0 text-[10px]">
-                    {seriesMetrics.map((m) => (
-                        <span
-                            key={m.key}
-                            className="flex items-center gap-1"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            <span style={{ width: 8, height: 8, borderRadius: 9, background: m.color }} />
-                            {m.label}
-                        </span>
-                    ))}
+                    {legendMetrics.map((m) => {
+                        const hidden = hiddenMetrics.has(m.key);
+                        return (
+                            <button
+                                key={m.key}
+                                onClick={() => toggleMetric(m.key)}
+                                className="flex items-center gap-1 focus:outline-none"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    opacity: hidden ? 0.4 : 1,
+                                    textDecoration: hidden ? 'line-through' : 'none',
+                                    cursor: 'pointer',
+                                }}
+                                title={hidden ? `${m.label} einblenden` : `${m.label} ausblenden`}
+                            >
+                                <span style={{ width: 8, height: 8, borderRadius: 9, background: m.color }} />
+                                {m.label}
+                            </button>
+                        );
+                    })}
                 </div>
             )}
 
@@ -642,7 +674,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                 </div>
             )}
 
-            <div className="flex-1 min-h-0 overflow-auto">
+            <div className={`flex-1 min-h-0 ${viewSel === 'breakdown' ? 'overflow-auto' : 'overflow-hidden'}`}>
                 {viewSel === 'breakdown' ? (
                     !hasBreakdown ? (
                         <div
@@ -1042,7 +1074,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between gap-2 mb-1.5">
-                            <b>So liest du die Details</b>
+                            <b>{viewSel === 'breakdown' ? 'So liest du die Details' : 'Worauf du achten solltest'}</b>
                             <button
                                 onClick={() => setShowInfo(false)}
                                 className="shrink-0 rounded p-0.5 focus:outline-none"
@@ -1052,31 +1084,63 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                                 <X size={14} />
                             </button>
                         </div>
-                        <ul className="flex flex-col gap-1.5" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                            <li>
-                                <b>Bereit</b> — Zeit von Mount bis die Daten sichtbar sind (inklusive Warten auf
-                                Backend-Daten). Zielwert ≤ {TH_READY.good} ms. Hoch = das Widget wartet lange auf seine
-                                Daten.
-                            </li>
-                            <li>
-                                <b>Render</b> — reine Zeichenzeit im Browser (CPU). Zielwert ≤ {TH_RENDER.good} ms (ein
-                                60-fps-Frame). Hoch = das Widget ist teuer zu zeichnen.
-                            </li>
-                            <li>
-                                <b>Σ</b> — Bereit + Render zusammen. Danach wird sortiert (größtes zuerst).
-                            </li>
-                            <li>
-                                Jede Zelle ist einzeln eingefärbt:{' '}
-                                <span style={{ color: STATUS_COLOR.good }}>grün</span> gut,{' '}
-                                <span style={{ color: STATUS_COLOR.ok }}>gelb</span> ok,{' '}
-                                <span style={{ color: STATUS_COLOR.bad }}>rot</span> langsam.{' '}
-                                <b>Niedriger ist besser.</b>
-                            </li>
-                            <li className="opacity-80">
-                                <b>Backend-Befehle</b>: <b>Anzahl</b> = Aufrufe, <b>Ø</b> = typische (durchschnittliche)
-                                Zeit, <b>↑ Spitze</b> = längste Einzelmessung.
-                            </li>
-                        </ul>
+                        {viewSel === 'breakdown' ? (
+                            <ul className="flex flex-col gap-1.5" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                <li>
+                                    <b>Bereit</b> — Zeit von Mount bis die Daten sichtbar sind (inklusive Warten auf
+                                    Backend-Daten). Zielwert ≤ {TH_READY.good} ms. Hoch = das Widget wartet lange auf
+                                    seine Daten.
+                                </li>
+                                <li>
+                                    <b>Render</b> — reine Zeichenzeit im Browser (CPU). Zielwert ≤ {TH_RENDER.good} ms
+                                    (ein 60-fps-Frame). Hoch = das Widget ist teuer zu zeichnen.
+                                </li>
+                                <li>
+                                    <b>Σ</b> — Bereit + Render zusammen. Danach wird sortiert (größtes zuerst).
+                                </li>
+                                <li>
+                                    Jede Zelle ist einzeln eingefärbt:{' '}
+                                    <span style={{ color: STATUS_COLOR.good }}>grün</span> gut,{' '}
+                                    <span style={{ color: STATUS_COLOR.ok }}>gelb</span> ok,{' '}
+                                    <span style={{ color: STATUS_COLOR.bad }}>rot</span> langsam.{' '}
+                                    <b>Niedriger ist besser.</b>
+                                </li>
+                                <li className="opacity-80">
+                                    <b>Backend-Befehle</b>: <b>Anzahl</b> = Aufrufe, <b>Ø</b> = typische
+                                    (durchschnittliche) Zeit, <b>↑ Spitze</b> = längste Einzelmessung.
+                                </li>
+                            </ul>
+                        ) : (
+                            <ul
+                                className="flex flex-col gap-2"
+                                style={{ listStyle: 'none', padding: 0, margin: 0, maxWidth: 460 }}
+                            >
+                                <li>
+                                    <b>🌐 Netzwerk (Internet/VPN):</b> <b>TTFB</b> (Server-Antwortzeit = Latenz),{' '}
+                                    <b>DNS</b>, <b>TCP/TLS</b> (Verbindungsaufbau), <b>Backend-Ping</b> (reine
+                                    Umlaufzeit) und <b>Socket → 1. DP</b>. Sind diese hoch (und Render niedrig), liegt
+                                    es am <b>Netzwerk</b> — z. B. VPN, mobile Verbindung, langsames WLAN.{' '}
+                                    <b>Transfer</b> = Download-Größe/Bandbreite.
+                                </li>
+                                <li>
+                                    <b>🖥️ Gerät/Browser:</b> <b>Render</b> und <b>Long-Task</b> (Zeichen-/Rechenzeit),{' '}
+                                    <b>First Paint</b>, <b>Tab-Wechsel</b>. Sind diese hoch (und Ping/TTFB niedrig),
+                                    liegt es am <b>Gerät</b> (schwaches Tablet) oder an einem <b>teuren Widget</b>.
+                                </li>
+                                <li>
+                                    <b>Σ Gesamt:</b> <b>Initial-Load</b> = Gesamtzeit bis die Seite fertig ist (Netz +
+                                    Laden + Rendern zusammen).
+                                </li>
+                                <li className="opacity-90">
+                                    <b>Faustregel:</b> Ping/TTFB hoch → Internet-Latenz. Transfer hoch → Bandbreite.
+                                    Render/Long-Task hoch → Gerät/Widget. Farbe:{' '}
+                                    <span style={{ color: STATUS_COLOR.good }}>grün</span> gut,{' '}
+                                    <span style={{ color: STATUS_COLOR.ok }}>gelb</span> ok,{' '}
+                                    <span style={{ color: STATUS_COLOR.bad }}>rot</span> langsam. Klicke Metriken in der
+                                    Legende an, um dich auf einen Wert zu konzentrieren.
+                                </li>
+                            </ul>
+                        )}
                     </div>
                 </div>
             )}
