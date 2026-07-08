@@ -61,6 +61,9 @@ const PopupViewEditor = lazyWithReload(() =>
 const AdminBatteries = lazyWithReload(() =>
     import('./pages/admin/AdminBatteries').then((m) => ({ default: m.AdminBatteries })),
 );
+const AdminLoadTimes = lazyWithReload(() =>
+    import('./pages/admin/AdminLoadTimes').then((m) => ({ default: m.AdminLoadTimes })),
+);
 
 function lazyRoute(Comp: ComponentType): JSX.Element {
     return (
@@ -90,6 +93,7 @@ const router = createHashRouter([
             { path: 'popups', element: lazyRoute(AdminPopups) },
             { path: 'popups/:viewId', element: lazyRoute(PopupViewEditor) },
             { path: 'batteries', element: lazyRoute(AdminBatteries) },
+            { path: 'loadtimes', element: lazyRoute(AdminLoadTimes) },
             { path: 'settings', element: lazyRoute(AdminSettings) },
         ],
     },

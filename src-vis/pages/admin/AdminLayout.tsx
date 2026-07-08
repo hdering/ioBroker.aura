@@ -22,6 +22,7 @@ import {
     Code2,
     MonitorSmartphone,
     AlertTriangle,
+    Activity,
 } from 'lucide-react';
 import { useAuthStore, logout } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
@@ -283,6 +284,7 @@ export function AdminLayout() {
         { to: '/admin/layouts', label: t('admin.nav.layouts'), icon: Layers2 },
         { to: '/admin/frontend', label: t('admin.nav.frontend'), icon: MonitorSmartphone },
         { to: '/admin/css-js', label: t('admin.nav.cssjs'), icon: Code2 },
+        { to: '/admin/loadtimes', label: t('admin.nav.loadtimes'), icon: Activity },
         { to: '/admin/settings', label: t('admin.nav.settings'), icon: Settings },
     ];
 

@@ -37,6 +37,7 @@ export const en: Record<TranslationKey, string> = {
     'admin.nav.layouts': 'Layouts',
     'admin.nav.frontend': 'Frontend',
     'admin.nav.cssjs': 'CSS & JS',
+    'admin.nav.loadtimes': 'Load times',
     'admin.nav.widgets': 'Widgets',
     'admin.nav.popups': 'Popups',
     'admin.nav.theme': 'Theme & CSS',

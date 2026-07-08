@@ -4,3 +4,4 @@
 #   <Widget type> - <what changed>          e.g.  Thermostat - target temperature now shown inline
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
+Load times - add a dedicated backend page (Admin -> Ladezeiten) that shows the metrics live, so you can watch them from the backend while using the frontend in another tab
