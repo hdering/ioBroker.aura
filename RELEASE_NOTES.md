@@ -4,3 +4,7 @@
 #   <Widget type> - <what changed>          e.g.  Thermostat - target temperature now shown inline
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
+
+- Advanced chart - optional day navigation (prev day / today / next day) to browse single calendar days
+- Advanced chart - per-series history aggregation option (average/minmax/max/min/total); minmax keeps true extremes for sparsely logged counters
+- Advanced chart - monotone line smoothing, so flat data runs no longer wobble around their value

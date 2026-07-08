@@ -18,6 +18,16 @@ export interface EChartSeriesConfig {
     smooth?: boolean;
     yAxisIndex?: 0 | 1;
     lineWidth?: number;
+    /** Absolute window override (ms epoch) — set by the widget's day navigation; wins over historyRange. */
+    historyStart?: number;
+    historyEnd?: number;
+    /**
+     * getHistory aggregation for stepped fetches (default `average`). `minmax` keeps the real
+     * extreme points with their true timestamps — right for sparsely change-logged datapoints
+     * (e.g. daily rain counters), where bucket averages smear resets and dropped empty buckets
+     * let the chart interpolate across days.
+     */
+    aggregate?: 'average' | 'minmax' | 'max' | 'min' | 'total';
 }
 
 export interface SeriesDataResult {
@@ -161,6 +171,9 @@ export function useMultiSeriesData(
             s.historyRange,
             s.historyRange === 'custom' ? s.historyRangeCustomValue : undefined,
             s.historyRange === 'custom' ? s.historyRangeCustomUnit : undefined,
+            s.historyStart,
+            s.historyEnd,
+            s.aggregate,
         ]),
     );
 
@@ -216,29 +229,43 @@ export function useMultiSeriesData(
             }
 
             const range = s.historyRange ?? '24h';
-            const rangeMs = getRangeMs(s);
+            const hasAbsWindow = typeof s.historyStart === 'number' && typeof s.historyEnd === 'number';
+            const rangeMs = hasAbsWindow ? (s.historyEnd as number) - (s.historyStart as number) : getRangeMs(s);
             const now = Date.now();
-            const end = now;
-            const start = end - rangeMs;
-            const step = range === 'custom' ? getStepForMs(rangeMs) : RANGE_STEP[range];
+            const end = hasAbsWindow ? Math.min(s.historyEnd as number, now) : now;
+            const start = hasAbsWindow ? (s.historyStart as number) : end - rangeMs;
+            const step = hasAbsWindow
+                ? getStepForMs(rangeMs)
+                : range === 'custom'
+                  ? getStepForMs(rangeMs)
+                  : RANGE_STEP[range];
 
             getHistoryDirect(s.datapointId, {
                 instance: s.historyInstance,
                 start,
                 end,
                 step,
-                aggregate: step ? 'average' : 'none',
+                aggregate: step ? (s.aggregate ?? 'average') : 'none',
                 count: 1000,
             })
                 .then((entries: HistoryEntry[]) => {
                     if (!mountedRef.current) return;
-                    const data: [number, number][] = entries
+                    let data: [number, number][] = entries
                         .filter(
                             (e): e is { ts: number; val: number; ack?: boolean; q?: number } =>
                                 typeof e.val === 'number',
                         )
                         .map((e): [number, number] => [e.ts, e.val as number])
                         .sort((a, b) => a[0] - b[0]);
+                    if (hasAbsWindow) {
+                        // History adapters append border values at the window edges (last value
+                        // before start, first value after end). For a pinned calendar-day window
+                        // they leak the neighbour days in — e.g. the midnight reset of a daily
+                        // rain counter lands exactly on the end border and hides the day total.
+                        const winStart = s.historyStart as number;
+                        const winEnd = s.historyEnd as number;
+                        data = data.filter((p) => p[0] >= winStart && p[0] < winEnd);
+                    }
                     const current = data.length > 0 ? data[data.length - 1][1] : null;
                     setResultsMap((prev) => {
                         const next = new Map(prev);
@@ -267,7 +294,8 @@ export function useMultiSeriesData(
     useEffect(() => {
         if (!connected || series.length === 0) return;
         const unsubs = series
-            .filter((s) => !!s.datapointId)
+            // Series pinned to a past absolute window are a frozen view — no live appends.
+            .filter((s) => !!s.datapointId && !(typeof s.historyEnd === 'number' && s.historyEnd < Date.now()))
             .map((s) => {
                 const cutoffMs = getRangeMs(s);
                 return subscribe(s.datapointId, (state: ioBrokerState) => {
@@ -278,7 +306,7 @@ export function useMultiSeriesData(
                         const existing = next.get(s.id);
                         let newData: [number, number][];
                         if (s.historyInstance && existing) {
-                            const cutoff = Date.now() - cutoffMs;
+                            const cutoff = typeof s.historyStart === 'number' ? s.historyStart : Date.now() - cutoffMs;
                             const trimmed = existing.data.filter((p) => p[0] >= cutoff);
                             if (trimmed.length > 0 && trimmed[trimmed.length - 1][0] === state.ts) {
                                 newData = trimmed;

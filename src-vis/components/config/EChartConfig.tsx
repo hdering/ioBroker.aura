@@ -59,6 +59,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const echartRangeCustomUnit =
         (o.echartRangeCustomUnit as 'h' | 'd' | undefined) ?? series[0]?.historyRangeCustomUnit ?? 'h';
     const lockRange = (o.lockRange as boolean | undefined) ?? false;
+    const dayNav = (o.echartDayNav as boolean | undefined) ?? false;
     const anyHistory = series.some((s) => !!s.historyInstance);
     const echartLeftUnit = (o.echartLeftUnit as string | undefined) ?? '';
     const echartRightUnit = (o.echartRightUnit as string | undefined) ?? '';
@@ -596,6 +597,38 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                 </select>
                                                             </div>
                                                         )}
+                                                    {s.datapointId && s.historyInstance && (
+                                                        <div className="mt-1.5">
+                                                            <label
+                                                                className="text-[11px] mb-1 block"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                Aggregation
+                                                            </label>
+                                                            <select
+                                                                value={s.aggregate ?? 'average'}
+                                                                onChange={(e) =>
+                                                                    updateSeries(s.id, {
+                                                                        aggregate:
+                                                                            e.target.value === 'average'
+                                                                                ? undefined
+                                                                                : (e.target
+                                                                                      .value as EChartSeriesConfig['aggregate']),
+                                                                    })
+                                                                }
+                                                                className={inputCls}
+                                                                style={inputStyle}
+                                                            >
+                                                                <option value="average">Durchschnitt (Standard)</option>
+                                                                <option value="minmax">
+                                                                    Min/Max (echte Extremwerte — z.B. Regenzähler)
+                                                                </option>
+                                                                <option value="max">Maximum</option>
+                                                                <option value="min">Minimum</option>
+                                                                <option value="total">Summe</option>
+                                                            </select>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </>
                                         )}
@@ -760,6 +793,17 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                             />
                             <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                 Zeitraum im Frontend sperren
+                            </span>
+                        </label>
+                        <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={dayNav}
+                                onChange={(e) => setO({ echartDayNav: e.target.checked })}
+                                className="rounded"
+                            />
+                            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                Tages-Navigation im Frontend (◀ Heute ▶)
                             </span>
                         </label>
                     </div>
