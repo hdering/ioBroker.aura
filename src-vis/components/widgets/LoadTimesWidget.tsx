@@ -210,6 +210,28 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
     // re-fetches the already-stored data — unlike F5 it does NOT create a new
     // page-load sample or reset this client's session counters.
     const [refreshNonce, setRefreshNonce] = useState(0);
+    // Refresh button feedback: spins while the triggered fetch is in flight (with
+    // a short minimum so the spin is perceptible even on a fast round-trip).
+    const [refreshing, setRefreshing] = useState(false);
+    const pendingRefreshRef = useRef(false);
+    const refreshStartRef = useRef(0);
+
+    const triggerRefresh = () => {
+        if (refreshing) return;
+        pendingRefreshRef.current = true;
+        refreshStartRef.current = performance.now();
+        setRefreshing(true);
+        setRefreshNonce((n) => n + 1);
+    };
+    // Called from the active poll once its post-refresh fetch settles.
+    const finishRefresh = (isCancelled: () => boolean) => {
+        if (!pendingRefreshRef.current) return;
+        pendingRefreshRef.current = false;
+        const wait = Math.max(0, 600 - (performance.now() - refreshStartRef.current));
+        setTimeout(() => {
+            if (!isCancelled()) setRefreshing(false);
+        }, wait);
+    };
 
     const bufferRef = useRef<PerfSample[]>([]);
     const seenSeqRef = useRef(0);
@@ -250,6 +272,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                     seenSeqRef.current = result.latestSeq;
                 }
             }
+            finishRefresh(() => cancelled);
             timer = setTimeout(pollOnce, 5000);
         };
         pollOnce();
@@ -276,6 +299,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
             if (!cancelled && res && typeof res === 'object' && 'clients' in res && Array.isArray(res.clients)) {
                 setBreakdown(res.clients);
             }
+            finishRefresh(() => cancelled);
             timer = setTimeout(poll, 8000);
         };
         poll();
@@ -516,13 +540,19 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                         </p>
                     )}
                     {!showTitle && <span className="flex-1 min-w-0" />}
+                    {refreshing && (
+                        <span className="text-[10px] opacity-70 shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                            Lädt…
+                        </span>
+                    )}
                     <button
-                        onClick={() => setRefreshNonce((n) => n + 1)}
+                        onClick={triggerRefresh}
+                        disabled={refreshing}
                         className="flex items-center rounded-md p-1 focus:outline-none shrink-0"
-                        style={selectStyle}
+                        style={{ ...selectStyle, cursor: refreshing ? 'default' : 'pointer' }}
                         title="Aktualisieren (lädt nur neu vom Backend — verfälscht die Messwerte nicht)"
                     >
-                        <RefreshCw size={12} />
+                        <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
                     </button>
                     <button
                         onClick={() => setViewSel(viewSel === 'chart' ? 'breakdown' : 'chart')}
