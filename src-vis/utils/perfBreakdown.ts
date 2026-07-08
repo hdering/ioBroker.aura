@@ -106,3 +106,20 @@ export function recordBackendCall(command: string, ms: number): void {
     if (!backendEnabled) return;
     bump('backend', command, command, ms);
 }
+
+/**
+ * Clear the accumulated session stats and overwrite this client's backend
+ * snapshot with an empty one, so stale numbers don't reappear on the next poll.
+ * Fresh measurements accumulate again from here. Unlike a page reload this does
+ * NOT create a new load-time sample.
+ */
+export function resetBreakdown(): void {
+    store.clear();
+    if (flushTimer) {
+        clearTimeout(flushTimer);
+        flushTimer = null;
+    }
+    if (shotMode()) return;
+    const { clientId, clientName } = useConnectionStore.getState();
+    void sendToDirect(NS, 'perfBreakdown', { client: clientId, clientName, entries: [] }, 10000);
+}

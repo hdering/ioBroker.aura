@@ -11,8 +11,9 @@ import {
     CartesianGrid,
     ReferenceLine,
 } from 'recharts';
-import { Activity, Info, X, RefreshCw } from 'lucide-react';
+import { Activity, Info, X, RefreshCw, RotateCcw } from 'lucide-react';
 import { sendToDirect, useIoBroker } from '../../hooks/useIoBroker';
+import { resetBreakdown } from '../../utils/perfBreakdown';
 import { useConnectionStore } from '../../store/connectionStore';
 import { NS } from '../../utils/namespace';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -321,8 +322,16 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
             .map((w) => {
                 const readyAvg = avgOf(w.ready);
                 const renderAvg = avgOf(w.render);
+                // Label is "type · title" (or just "type" when untitled) — split it
+                // into separate type and name columns. type has no " · " so the
+                // first token is always the type.
+                const sepIdx = w.label.indexOf(' · ');
+                const type = sepIdx >= 0 ? w.label.slice(0, sepIdx) : w.label;
+                const name = sepIdx >= 0 ? w.label.slice(sepIdx + 3) : '—';
                 return {
                     label: w.label,
+                    name,
+                    type,
                     readyAvg,
                     readyMax: w.ready.max,
                     renderAvg,
@@ -339,6 +348,17 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
         return { widgetRows: wRows, backendRows: bRows };
     }, [breakdown, clientSel, myClientId]);
     const hasBreakdown = widgetRows.length > 0 || backendRows.length > 0;
+
+    // Newest snapshot timestamp among the selected client(s) — shows data freshness.
+    const breakdownUpdatedAt = useMemo(() => {
+        let mx = 0;
+        for (const c of breakdown) {
+            const match =
+                clientSel === 'all' ? true : clientSel === 'current' ? c.client === myClientId : c.client === clientSel;
+            if (match && c.ts > mx) mx = c.ts;
+        }
+        return mx;
+    }, [breakdown, clientSel, myClientId]);
 
     const tooltipStyle: React.CSSProperties = {
         background: 'var(--app-surface)',
@@ -479,7 +499,30 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                         </div>
                     ) : (
                         <div className="flex flex-col gap-2 py-0.5">
-                            <div className="flex items-center justify-end">
+                            <div className="flex items-center gap-2">
+                                {breakdownUpdatedAt > 0 && (
+                                    <span className="text-[10px] opacity-70" style={{ color: 'var(--text-secondary)' }}>
+                                        Stand: {new Date(breakdownUpdatedAt).toLocaleTimeString('de-DE')}
+                                    </span>
+                                )}
+                                <span className="flex-1" />
+                                <button
+                                    onClick={() => {
+                                        resetBreakdown();
+                                        setBreakdown([]);
+                                        setRefreshNonce((n) => n + 1);
+                                    }}
+                                    className="flex items-center gap-1 text-[10px] rounded-md px-1.5 py-0.5 focus:outline-none"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                    title="Zähler zurücksetzen und neu messen (kein Seiten-Reload — verfälscht die Lade-Metriken nicht)"
+                                >
+                                    <RotateCcw size={11} />
+                                    Zurücksetzen
+                                </button>
                                 <button
                                     onClick={() => setShowInfo(true)}
                                     className="flex items-center gap-1 text-[10px] rounded-md px-1.5 py-0.5 focus:outline-none"
@@ -510,7 +553,8 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                                         className="flex items-center gap-1.5 text-[9px] mb-0.5"
                                         style={{ color: 'var(--text-secondary)' }}
                                     >
-                                        <span className="flex-1 min-w-0">Widget</span>
+                                        <span className="flex-1 min-w-0">Name</span>
+                                        <span style={{ minWidth: 96, textAlign: 'left' }}>Typ</span>
                                         <span style={{ minWidth: 56, textAlign: 'right' }}>Bereit</span>
                                         <span style={{ minWidth: 56, textAlign: 'right' }}>Render</span>
                                         <span style={{ minWidth: 56, textAlign: 'right' }}>Σ</span>
@@ -526,9 +570,21 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                                                     <span
                                                         className="flex-1 min-w-0 truncate"
                                                         style={{ color: 'var(--text-primary)' }}
-                                                        title={r.label}
+                                                        title={r.name}
                                                     >
-                                                        {r.label}
+                                                        {r.name}
+                                                    </span>
+                                                    <span
+                                                        className="truncate opacity-70"
+                                                        style={{
+                                                            color: 'var(--text-secondary)',
+                                                            minWidth: 96,
+                                                            maxWidth: 96,
+                                                            textAlign: 'left',
+                                                        }}
+                                                        title={r.type}
+                                                    >
+                                                        {r.type}
                                                     </span>
                                                     <span
                                                         style={{ color: cReady, minWidth: 56, textAlign: 'right' }}
