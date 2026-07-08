@@ -5,6 +5,7 @@ import { useConfirmAction } from '../../hooks/useConfirmAction';
 import type { WidgetProps } from '../../types';
 import { contentPositionClass, titlePositionStyle } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { resolveAssetUrl } from '../../utils/assetUrl';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
@@ -55,9 +56,10 @@ export function SwitchWidget({ config }: WidgetProps) {
     const iconSize = (o.iconSize as number) || 20;
     const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
-    // Icon-Modus statt Schiebeschalter
+    // Icon-/Bild-Modus statt Schiebeschalter
     const controlMode = (o.controlMode as string) ?? 'toggle';
     const isIconMode = controlMode === 'icon';
+    const isImageMode = controlMode === 'image';
     const onColor = (o.onColor as string) || 'var(--accent-green)';
     const offColor = (o.offColor as string) || 'var(--text-secondary)';
     const OnIconComp = getWidgetIcon(o.onIcon as string | undefined, WidgetIcon);
@@ -65,7 +67,11 @@ export function SwitchWidget({ config }: WidgetProps) {
     const StateIcon = isOn ? OnIconComp : OffIconComp;
     const stateColor = isOn ? onColor : offColor;
     const controlIconSize = (o.controlIconSize as number) || 28;
+    const onImage = o.onImage as string | undefined;
+    const offImage = o.offImage as string | undefined;
+    const stateImage = isOn ? onImage : offImage;
 
+    // Bedienelement für Icon- oder Bild-Modus (gemeinsamer Button-Wrapper)
     const iconControlButton = (extraClass = '') => (
         <button
             onClick={handleToggle}
@@ -73,7 +79,15 @@ export function SwitchWidget({ config }: WidgetProps) {
             style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
             aria-label={isOn ? 'AN' : 'AUS'}
         >
-            <StateIcon size={controlIconSize} style={{ color: stateColor }} />
+            {isImageMode && stateImage ? (
+                <img
+                    src={resolveAssetUrl(stateImage)}
+                    style={{ width: controlIconSize, height: controlIconSize, objectFit: 'contain' }}
+                    alt=""
+                />
+            ) : (
+                <StateIcon size={controlIconSize} style={{ color: stateColor }} />
+            )}
         </button>
     );
 
@@ -94,28 +108,29 @@ export function SwitchWidget({ config }: WidgetProps) {
                         'battery-icon': batteryIcon,
                         'reach-icon': reachIcon,
                         'status-badges': statusBadges,
-                        toggle: isIconMode ? (
-                            iconControlButton()
-                        ) : (
-                            <button
-                                onClick={handleToggle}
-                                className="aura-widget-action nodrag relative w-10 h-5 rounded-full transition-colors focus:outline-none"
-                                style={{
-                                    background: isOn
-                                        ? 'var(--switch-bg, var(--accent))'
-                                        : 'var(--switch-off-bg, var(--app-border))',
-                                    border: '1px solid var(--switch-border, transparent)',
-                                }}
-                            >
-                                <span
-                                    className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full shadow transition-transform"
+                        toggle:
+                            isIconMode || isImageMode ? (
+                                iconControlButton()
+                            ) : (
+                                <button
+                                    onClick={handleToggle}
+                                    className="aura-widget-action nodrag relative w-10 h-5 rounded-full transition-colors focus:outline-none"
                                     style={{
-                                        left: isOn ? '22px' : '2px',
-                                        background: 'var(--switch-thumb-color, #fff)',
+                                        background: isOn
+                                            ? 'var(--switch-bg, var(--accent))'
+                                            : 'var(--switch-off-bg, var(--app-border))',
+                                        border: '1px solid var(--switch-border, transparent)',
                                     }}
-                                />
-                            </button>
-                        ),
+                                >
+                                    <span
+                                        className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full shadow transition-transform"
+                                        style={{
+                                            left: isOn ? '22px' : '2px',
+                                            background: 'var(--switch-thumb-color, #fff)',
+                                        }}
+                                    />
+                                </button>
+                            ),
                     }}
                 />
                 {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
@@ -196,7 +211,7 @@ export function SwitchWidget({ config }: WidgetProps) {
                     </span>
                 )}
                 {!showTitle && <span className="flex-1" />}
-                {isIconMode ? (
+                {isIconMode || isImageMode ? (
                     iconControlButton()
                 ) : (
                     <button
@@ -264,7 +279,7 @@ export function SwitchWidget({ config }: WidgetProps) {
                         {isOn ? 'AN' : 'AUS'}
                     </span>
                 )}
-                {isIconMode ? (
+                {isIconMode || isImageMode ? (
                     iconControlButton(!showLabel ? 'ml-auto' : '')
                 ) : (
                     <button

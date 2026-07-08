@@ -8221,6 +8221,7 @@ export function WidgetFrame({
                                                     [
                                                         ['toggle', 'Schiebeschalter'],
                                                         ['icon', 'Icon'],
+                                                        ['image', 'Bild'],
                                                     ] as const
                                                 ).map(([val, lbl]) => (
                                                     <button
@@ -8335,6 +8336,106 @@ export function WidgetFrame({
                                                             style={{ color: 'var(--text-secondary)' }}
                                                         >
                                                             Icon-Größe
+                                                        </label>
+                                                        <span
+                                                            className="text-[11px] tabular-nums"
+                                                            style={{ color: 'var(--text-primary)' }}
+                                                        >
+                                                            {ctrlIconSize} px
+                                                        </span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
+                                                        min={16}
+                                                        max={192}
+                                                        step={2}
+                                                        value={ctrlIconSize}
+                                                        onChange={(e) =>
+                                                            set({ controlIconSize: Number(e.target.value) })
+                                                        }
+                                                        className="w-full h-1"
+                                                        style={{ accentColor: 'var(--accent)' }}
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
+                                        {controlMode === 'image' && (
+                                            <>
+                                                {(['on', 'off'] as const).map((state) => {
+                                                    const isOnState = state === 'on';
+                                                    const stateLabel = isOnState ? 'AN' : 'AUS';
+                                                    const optKey = isOnState ? 'onImage' : 'offImage';
+                                                    const img = (o[optKey] as string | undefined) ?? '';
+                                                    return (
+                                                        <div key={state} className="space-y-1.5">
+                                                            <p
+                                                                className="text-[11px] font-semibold"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                Bild {stateLabel}
+                                                            </p>
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                onChange={(e) => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (!file) return;
+                                                                    const reader = new FileReader();
+                                                                    reader.onload = () =>
+                                                                        set({ [optKey]: reader.result as string });
+                                                                    reader.readAsDataURL(file);
+                                                                }}
+                                                                className="w-full text-[11px] cursor-pointer"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            />
+                                                            <textarea
+                                                                rows={2}
+                                                                value={img}
+                                                                onChange={(e) =>
+                                                                    set({
+                                                                        [optKey]: e.target.value.trim() || undefined,
+                                                                    })
+                                                                }
+                                                                placeholder="https://…/bild.png oder data:image/…"
+                                                                className="w-full text-[10px] rounded-lg px-2.5 py-1.5 focus:outline-none resize-none font-mono"
+                                                                style={{
+                                                                    background: 'var(--app-bg)',
+                                                                    color: 'var(--text-secondary)',
+                                                                    border: '1px solid var(--app-border)',
+                                                                }}
+                                                            />
+                                                            {img && (
+                                                                <div className="flex items-center gap-2">
+                                                                    <img
+                                                                        src={img}
+                                                                        style={{
+                                                                            width: 32,
+                                                                            height: 32,
+                                                                            objectFit: 'contain',
+                                                                            border: '1px solid var(--app-border)',
+                                                                            borderRadius: 4,
+                                                                        }}
+                                                                        alt=""
+                                                                    />
+                                                                    <button
+                                                                        onClick={() => set({ [optKey]: undefined })}
+                                                                        className="text-[10px] hover:opacity-70"
+                                                                        style={{ color: 'var(--accent-red, #ef4444)' }}
+                                                                    >
+                                                                        Entfernen
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                                <div>
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <label
+                                                            className="text-[11px]"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Bildgröße
                                                         </label>
                                                         <span
                                                             className="text-[11px] tabular-nums"
