@@ -415,7 +415,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                         style={selectStyle}
                         title="Ansicht wechseln (Verlauf / Details)"
                     >
-                        {viewSel === 'chart' ? 'Verlauf' : 'Details'}
+                        {viewSel === 'chart' ? 'Details anzeigen' : 'Verlauf anzeigen'}
                     </button>
                     {viewSel === 'chart' && (
                         <select
