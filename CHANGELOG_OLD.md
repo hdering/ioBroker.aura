@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.19.1 (2026-07-05)
+- Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view
+
 ## 0.19.0 (2026-07-05)
 - 🌟 **New feature:** New "Load times" widget - charts frontend load performance over time (initial load, first paint, socket warm-up, tab switches, long tasks), recorded in the aura backend
 
