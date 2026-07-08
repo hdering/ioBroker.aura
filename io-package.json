@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.21.14",
+    "version": "0.21.15",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.21.15": {
+        "en": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
+        "de": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
+        "ru": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
+        "pt": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
+        "nl": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
+        "fr": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
+        "it": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
+        "es": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
+        "pl": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
+        "uk": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
+        "zh-cn": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur"
+      },
       "0.21.14": {
         "en": "fix(loadtimes): make view toggle label show the action (Details/Verlauf anzeigen)\nfix(loadtimes): stop breakdown list bloating over long sessions\nfeat(loadtimes): split widget Name/Type columns + reset button + freshness time",
         "de": "fix(loadtimes): make view toggle label show the action (Details/Verlauf anzeigen)\nfix(loadtimes): stop breakdown list bloating over long sessions\nfeat(loadtimes): split widget Name/Type columns + reset button + freshness time",
@@ -184,19 +197,6 @@
         "pl": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too",
         "uk": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too",
         "zh-cn": "feat(guidelines): drop \"hide now\" button from resolution hint\nfix(guidelines): show resolution badge in mobile view too"
-      },
-      "0.21.7": {
-        "en": "🌟 New feature: Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize\n🌟 New feature: Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)\nTab bar - fix tabs sticking to the top instead of being vertically centered (regression from the mobile scroll-hint change)",
-        "de": "🌟 New feature: Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize\n🌟 New feature: Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)\nTab bar - fix tabs sticking to the top instead of being vertically centered (regression from the mobile scroll-hint change)",
-        "ru": "🌟 New feature: Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize\n🌟 New feature: Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)\nTab bar - fix tabs sticking to the top instead of being vertically centered (regression from the mobile scroll-hint change)",
-        "pt": "🌟 New feature: Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize\n🌟 New feature: Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)\nTab bar - fix tabs sticking to the top instead of being vertically centered (regression from the mobile scroll-hint change)",
-        "nl": "🌟 New feature: Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize\n🌟 New feature: Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)\nTab bar - fix tabs sticking to the top instead of being vertically centered (regression from the mobile scroll-hint change)",
-        "fr": "🌟 New feature: Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize\n🌟 New feature: Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)\nTab bar - fix tabs sticking to the top instead of being vertically centered (regression from the mobile scroll-hint change)",
-        "it": "🌟 New feature: Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize\n🌟 New feature: Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)\nTab bar - fix tabs sticking to the top instead of being vertically centered (regression from the mobile scroll-hint change)",
-        "es": "🌟 New feature: Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize\n🌟 New feature: Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)\nTab bar - fix tabs sticking to the top instead of being vertically centered (regression from the mobile scroll-hint change)",
-        "pl": "🌟 New feature: Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize\n🌟 New feature: Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)\nTab bar - fix tabs sticking to the top instead of being vertically centered (regression from the mobile scroll-hint change)",
-        "uk": "🌟 New feature: Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize\n🌟 New feature: Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)\nTab bar - fix tabs sticking to the top instead of being vertically centered (regression from the mobile scroll-hint change)",
-        "zh-cn": "🌟 New feature: Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize\n🌟 New feature: Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)\nTab bar - fix tabs sticking to the top instead of being vertically centered (regression from the mobile scroll-hint change)"
       }
     }
   },

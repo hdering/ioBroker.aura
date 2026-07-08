@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.21.15 (2026-07-08)
+- 🌟 **New feature:** Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon
+- Color picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur
+
+
 ### 0.21.14 (2026-07-08)
 - fix(loadtimes): make view toggle label show the action (Details/Verlauf anzeigen)
 - fix(loadtimes): stop breakdown list bloating over long sessions
@@ -213,10 +218,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Datapoint picker - adds a "Show inactive" toggle to reveal states of disabled/uninstalled adapters and orphaned or imported datapoints
 
 
-### 0.19.2 (2026-07-05)
-- Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled
-
-
 ## License
 
 MIT License
@@ -228,6 +229,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.19.2 (2026-07-05)
+- Universal widget - slider cell now offers a decimal-places option (with Global fallback) when the value display is enabled
+
 ## 0.19.1 (2026-07-05)
 - Map - now centers reliably on a marker positioned via two lat/lon datapoints instead of staying on the default view
 
