@@ -608,29 +608,34 @@ export default function App() {
     }, [subscribe, layout?.id, handleNavigate]);
 
     // Register this client in ioBroker on connect and subscribe to per-client navigate.
-    // We only write the relay state when the client is genuinely new (or its name changed).
-    // `connected` toggles on every websocket reconnect (~10 min); writing unconditionally
-    // re-triggered the adapter every time, spamming "[clients] registered" in the log.
-    const registeredNameRef = useRef<string | null>(null);
+    // The server-side name (clients.<id>.info.name) is authoritative: once the client
+    // exists we NEVER overwrite it from here. Renames always write that DP directly
+    // (see ClientsCard.saveName), so re-pushing the local/UA name on reconnect would only
+    // ever clobber a name set from another device (where this device's localStorage
+    // clientName is empty and the UA fallback "Linux; Android 10; K" would win).
+    // We therefore only register — with the local name or the UA fallback — on FIRST
+    // contact, when no server name exists yet.
+    // `connected` toggles on every websocket reconnect (~10 min); the ref guards against
+    // re-running the check on every reconnect within a session.
+    const registeredRef = useRef(false);
     useEffect(() => {
-        if (!connected) return;
-        const displayName = clientName || navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Aura Client';
-        // Already registered this name in the current session → a plain reconnect, skip the write.
-        if (registeredNameRef.current === displayName) return;
+        if (!connected || registeredRef.current) return;
 
         let cancelled = false;
         void (async () => {
             const existing = await getStateDirect(`${NS}.clients.${clientId}.info.name`);
             if (cancelled) return;
-            registeredNameRef.current = displayName;
-            // Adapter already knows this client under this name → nothing to do.
-            if (existing && String(existing.val ?? '') === displayName) return;
+            registeredRef.current = true;
+            // Already registered → server name wins; leave it untouched. The userAgent /
+            // resolution are still refreshed via the resolution relay on every connect.
+            if (existing && String(existing.val ?? '').length > 0) return;
 
-            // Register via relay state: adapter creates the full object tree and writes initial states.
-            // Direct setObject calls are blocked by the web adapter socket (admin-only).
+            // First registration: seed the name from this device's stored name, else the
+            // UA fallback. Register via relay state (direct setObject is admin-only).
+            const initialName = clientName || navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Aura Client';
             setStateDirect(
                 `${NS}.clients.register`,
-                JSON.stringify({ clientId, name: displayName, userAgent: navigator.userAgent }),
+                JSON.stringify({ clientId, name: initialName, userAgent: navigator.userAgent }),
             );
         })();
         return () => {
