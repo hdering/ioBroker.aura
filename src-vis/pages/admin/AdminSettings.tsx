@@ -26,6 +26,8 @@ import {
     AlertTriangle,
     RefreshCw,
     Tablet,
+    Smartphone,
+    Monitor,
     Edit3,
     Check,
     X,
@@ -504,6 +506,64 @@ interface ClientInfo {
     clientId: string;
     name: string;
     lastSeen: number;
+    userAgent: string;
+    resW: number;
+    resH: number;
+}
+
+type DeviceKind = 'phone' | 'tablet' | 'desktop';
+
+// Derive a human-readable device fingerprint from the user-agent string so a
+// phone/tablet/desktop can be told apart at a glance. Resolution width is used
+// as a tie-breaker when the UA is ambiguous (e.g. desktop-mode tablets).
+function parseUA(ua: string, resW: number): { kind: DeviceKind; label: string } {
+    const s = ua.toLowerCase();
+
+    const os = /iphone|ipod/.test(s)
+        ? 'iPhone'
+        : /ipad/.test(s)
+          ? 'iPad'
+          : /android/.test(s)
+            ? 'Android'
+            : /windows/.test(s)
+              ? 'Windows'
+              : /macintosh|mac os x/.test(s)
+                ? 'macOS'
+                : /linux/.test(s)
+                  ? 'Linux'
+                  : '';
+
+    const browser = /edg\//.test(s)
+        ? 'Edge'
+        : /samsungbrowser/.test(s)
+          ? 'Samsung Internet'
+          : /firefox|fxios/.test(s)
+            ? 'Firefox'
+            : /chrome|crios/.test(s)
+              ? 'Chrome'
+              : /safari/.test(s)
+                ? 'Safari'
+                : '';
+
+    let kind: DeviceKind;
+    if (/iphone|ipod|windows phone/.test(s) || (/android/.test(s) && /mobile/.test(s))) {
+        kind = 'phone';
+    } else if (/ipad|tablet/.test(s) || (/android/.test(s) && !/mobile/.test(s))) {
+        kind = 'tablet';
+    } else if (resW > 0 && resW < 500) {
+        kind = 'phone';
+    } else {
+        kind = 'desktop';
+    }
+
+    const label = [os, browser].filter(Boolean).join(' · ');
+    return { kind, label };
+}
+
+function DeviceIcon({ kind, ...props }: { kind: DeviceKind } & React.ComponentProps<typeof Tablet>) {
+    if (kind === 'phone') return <Smartphone {...props} />;
+    if (kind === 'desktop') return <Monitor {...props} />;
+    return <Tablet {...props} />;
 }
 
 function ClientsCard() {
@@ -534,18 +594,27 @@ function ClientsCard() {
                     clientId: myClientId,
                     name: 'Wohnzimmer-Tablet',
                     lastSeen: now,
+                    userAgent: 'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605 Safari/604',
+                    resW: 1024,
+                    resH: 768,
                 },
                 {
                     channelId: `${NS}.clients.kitchen`,
                     clientId: 'kitchen',
                     name: 'K\u00fcche-Tablet',
                     lastSeen: now - 2 * 3600_000,
+                    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605 Safari/604',
+                    resW: 390,
+                    resH: 844,
                 },
                 {
                     channelId: `${NS}.clients.office`,
                     clientId: 'office',
                     name: 'B\u00fcro-PC',
                     lastSeen: now - 26 * 3600_000,
+                    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537 Chrome/120 Safari/537',
+                    resW: 1920,
+                    resH: 1080,
                 },
             ]);
             setLoading(false);
@@ -559,15 +628,21 @@ function ClientsCard() {
             const data = await Promise.all(
                 channelRows.map(async (row) => {
                     const cId = row.id.split('.')[3];
-                    const [nameState, lastSeenState] = await Promise.all([
+                    const [nameState, lastSeenState, uaState, resWState, resHState] = await Promise.all([
                         getStateDirect(`${row.id}.info.name`),
                         getStateDirect(`${row.id}.info.lastSeen`),
+                        getStateDirect(`${row.id}.info.userAgent`),
+                        getStateDirect(`${row.id}.info.resolutionWidth`),
+                        getStateDirect(`${row.id}.info.resolutionHeight`),
                     ]);
                     return {
                         channelId: row.id,
                         clientId: cId,
                         name: nameState?.val ? String(nameState.val) : cId.slice(0, 8),
                         lastSeen: lastSeenState?.val ? Number(lastSeenState.val) : 0,
+                        userAgent: uaState?.val ? String(uaState.val) : '',
+                        resW: resWState?.val ? Number(resWState.val) : 0,
+                        resH: resHState?.val ? Number(resHState.val) : 0,
                     };
                 }),
             );
@@ -660,6 +735,9 @@ function ClientsCard() {
                     {clients.map((c) => {
                         const isMine = c.clientId === myClientId;
                         const isEditing = editingId === c.clientId;
+                        const { kind, label: uaLabel } = parseUA(c.userAgent, c.resW);
+                        const resLabel = c.resW && c.resH ? `${c.resW} × ${c.resH}` : '';
+                        const deviceInfo = [uaLabel, resLabel].filter(Boolean).join(' · ');
                         return (
                             <div
                                 key={c.clientId}
@@ -671,8 +749,9 @@ function ClientsCard() {
                                     className="flex items-center gap-2.5 px-3 py-2.5"
                                     style={{ background: 'var(--app-bg)' }}
                                 >
-                                    <Tablet
-                                        size={13}
+                                    <DeviceIcon
+                                        kind={kind}
+                                        size={15}
                                         style={{
                                             color: isMine ? 'var(--accent)' : 'var(--text-secondary)',
                                             flexShrink: 0,
@@ -695,9 +774,18 @@ function ClientsCard() {
                                                 </span>
                                             )}
                                         </div>
+                                        {deviceInfo && (
+                                            <p
+                                                className="text-[11px] truncate"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                                title={c.userAgent}
+                                            >
+                                                {deviceInfo}
+                                            </p>
+                                        )}
                                         <p
                                             className="text-[10px] font-mono truncate"
-                                            style={{ color: 'var(--text-secondary)' }}
+                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                                         >
                                             {c.channelId}.navigate.url
                                         </p>

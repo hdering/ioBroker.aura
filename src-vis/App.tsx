@@ -628,7 +628,10 @@ export default function App() {
 
             // Register via relay state: adapter creates the full object tree and writes initial states.
             // Direct setObject calls are blocked by the web adapter socket (admin-only).
-            setStateDirect(`${NS}.clients.register`, JSON.stringify({ clientId, name: displayName }));
+            setStateDirect(
+                `${NS}.clients.register`,
+                JSON.stringify({ clientId, name: displayName, userAgent: navigator.userAgent }),
+            );
         })();
         return () => {
             cancelled = true;
@@ -644,7 +647,12 @@ export default function App() {
         const report = () =>
             setStateDirect(
                 `${NS}.clients.resolution`,
-                JSON.stringify({ clientId, width: window.innerWidth, height: window.innerHeight }),
+                JSON.stringify({
+                    clientId,
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    userAgent: navigator.userAgent,
+                }),
             );
         report();
         const onResize = () => {

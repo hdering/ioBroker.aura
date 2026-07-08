@@ -568,6 +568,11 @@ class Aura extends utils.Adapter {
                 },
                 native: {},
             });
+            await this.setObjectNotExistsAsync(`clients.${cId}.info.userAgent`, {
+                type: 'state',
+                common: { name: 'User agent', type: 'string', role: 'text', read: true, write: true, def: '' },
+                native: {},
+            });
             await this.setObjectNotExistsAsync(`clients.${cId}.navigate`, {
                 type: 'channel',
                 common: { name: 'Navigation' },
@@ -596,6 +601,12 @@ class Aura extends utils.Adapter {
 
             await this.setStateAsync(`clients.${cId}.info.name`, { val: displayName, ack: true });
             await this.setStateAsync(`clients.${cId}.info.lastSeen`, { val: Date.now(), ack: true });
+            if (reg.userAgent) {
+                await this.setStateAsync(`clients.${cId}.info.userAgent`, {
+                    val: String(reg.userAgent),
+                    ack: true,
+                });
+            }
 
             this.log.info(`[clients] registered: ${cId} (${displayName})`);
             await this.setStateAsync('clients.register', '', true);
@@ -616,6 +627,7 @@ class Aura extends utils.Adapter {
             const cId = payload && payload.clientId ? String(payload.clientId) : '';
             const width = Number(payload && payload.width);
             const height = Number(payload && payload.height);
+            const userAgent = payload && payload.userAgent ? String(payload.userAgent) : '';
             if (cId && Number.isFinite(width) && Number.isFinite(height)) {
                 await this.setObjectNotExistsAsync(`clients.${cId}`, {
                     type: 'channel',
@@ -658,6 +670,16 @@ class Aura extends utils.Adapter {
                     val: Math.round(height),
                     ack: true,
                 });
+                if (userAgent) {
+                    // Backfill for clients registered before the userAgent DP existed;
+                    // the resolution relay fires on every connect, so this self-heals.
+                    await this.setObjectNotExistsAsync(`clients.${cId}.info.userAgent`, {
+                        type: 'state',
+                        common: { name: 'User agent', type: 'string', role: 'text', read: true, write: true, def: '' },
+                        native: {},
+                    });
+                    await this.setStateAsync(`clients.${cId}.info.userAgent`, { val: userAgent, ack: true });
+                }
             }
             await this.setStateAsync('clients.resolution', '', true);
             return;
@@ -673,6 +695,7 @@ class Aura extends utils.Adapter {
                     `${base}.info.lastSeen`,
                     `${base}.info.resolutionWidth`,
                     `${base}.info.resolutionHeight`,
+                    `${base}.info.userAgent`,
                     `${base}.info`,
                     `${base}.navigate.url`,
                     `${base}.navigate.target`,
