@@ -311,10 +311,14 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                     add(cur.slot, e.avg, e.count, e.max);
                     backend.set(e.key, cur);
                 } else if (e.cat === 'widgetReady' || e.cat === 'widgetRender') {
-                    const w = widgets.get(e.key) ?? { label: e.label, ready: empty(), render: empty() };
+                    // Group by the stable label (type · title), not the raw widget id.
+                    // Container widgets can churn through many short-lived child ids
+                    // for the same logical widget — grouping by label collapses those
+                    // into one row instead of dozens of duplicates.
+                    const w = widgets.get(e.label) ?? { label: e.label, ready: empty(), render: empty() };
                     w.label = e.label;
                     add(e.cat === 'widgetReady' ? w.ready : w.render, e.avg, e.count, e.max);
-                    widgets.set(e.key, w);
+                    widgets.set(e.label, w);
                 }
             }
         }

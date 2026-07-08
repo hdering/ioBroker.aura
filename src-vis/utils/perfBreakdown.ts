@@ -28,10 +28,17 @@ interface Agg {
     sum: number;
     max: number;
     last: number;
+    ts: number; // last-updated (performance.now) — for recency pruning
 }
 
 const store = new Map<string, Agg>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+// Bound the store so a widget that churns through many short-lived instance ids
+// (e.g. a container re-rendering children) can't make it grow without limit over
+// a long-running session. Drop entries not touched within the TTL, then cap.
+const ENTRY_TTL_MS = 15 * 60 * 1000;
+const STORE_CAP = 60;
 
 // Gates, both default off — enabled from the adapter config after app start.
 let backendEnabled = false;
@@ -58,7 +65,7 @@ function bump(cat: BreakdownCat, key: string, label: string, ms: number): void {
     const mapKey = `${cat}::${key}`;
     let a = store.get(mapKey);
     if (!a) {
-        a = { cat, key, label, count: 0, sum: 0, max: 0, last: 0 };
+        a = { cat, key, label, count: 0, sum: 0, max: 0, last: 0, ts: 0 };
         store.set(mapKey, a);
     }
     a.label = label;
@@ -66,7 +73,20 @@ function bump(cat: BreakdownCat, key: string, label: string, ms: number): void {
     a.sum += ms;
     a.last = ms;
     if (ms > a.max) a.max = ms;
+    a.ts = performance.now();
     scheduleFlush();
+}
+
+// Evict stale (untouched > TTL) entries, then cap to the most-recently-updated.
+function pruneStore(): void {
+    const now = performance.now();
+    for (const [k, a] of store) {
+        if (now - a.ts > ENTRY_TTL_MS) store.delete(k);
+    }
+    if (store.size > STORE_CAP) {
+        const byAge = Array.from(store.entries()).sort((a, b) => a[1].ts - b[1].ts);
+        for (let i = 0; i < byAge.length - STORE_CAP; i++) store.delete(byAge[i][0]);
+    }
 }
 
 function scheduleFlush(): void {
@@ -78,6 +98,7 @@ function scheduleFlush(): void {
 }
 
 function flush(): void {
+    pruneStore();
     if (store.size === 0) return;
     const { clientId, clientName } = useConnectionStore.getState();
     const entries = Array.from(store.values()).map((a) => ({
