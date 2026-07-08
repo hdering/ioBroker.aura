@@ -12,7 +12,7 @@ const WIDGET_CONFIG: WidgetConfig = {
     title: '',
     datapoint: '',
     gridPos: { x: 0, y: 0, w: 0, h: 0 },
-    options: { clientFilter: 'all', view: 'breakdown', showTitle: false, showIcon: false },
+    options: { clientFilter: 'all', view: 'breakdown', showTitle: false, showIcon: false, linkToEditor: true },
 };
 
 export function AdminLoadTimes() {

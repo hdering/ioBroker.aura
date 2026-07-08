@@ -11,13 +11,16 @@ import {
     CartesianGrid,
     ReferenceLine,
 } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 import { Activity, Info, X, RefreshCw, RotateCcw } from 'lucide-react';
 import { sendToDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { resetBreakdown } from '../../utils/perfBreakdown';
 import { useConnectionStore } from '../../store/connectionStore';
+import { useDashboardStore } from '../../store/dashboardStore';
+import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { NS } from '../../utils/namespace';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import type { WidgetProps } from '../../types';
+import type { WidgetProps, WidgetConfig } from '../../types';
 
 // ── Metric catalogue ──────────────────────────────────────────────────────────
 //
@@ -72,6 +75,44 @@ interface BreakdownClient {
     ts: number;
     entries: BreakdownEntry[];
 }
+interface WidgetLoc {
+    layoutId: string;
+    layoutName: string;
+    tabId: string;
+    tabName: string;
+}
+
+// Build a widget-id → {layout,tab} map from the dashboard config, so the
+// breakdown can show which tab a widget lives on and deep-link to the editor.
+// Group/panel children live in a separate store (groupDefsStore) but belong to
+// the same tab as their container — recurse into them.
+function buildWidgetLocationMap(
+    layouts: ReturnType<typeof useDashboardStore.getState>['layouts'],
+    defs: Record<string, WidgetConfig[]>,
+): Map<string, WidgetLoc> {
+    const map = new Map<string, WidgetLoc>();
+    const addChildren = (defId: string | undefined, loc: WidgetLoc, seen: Set<string>): void => {
+        if (!defId || seen.has(defId)) return;
+        seen.add(defId);
+        for (const k of defs[defId] ?? []) {
+            map.set(k.id, loc);
+            if (k.type === 'group' || k.type === 'panels')
+                addChildren(k.options?.defId as string | undefined, loc, seen);
+        }
+    };
+    for (const l of layouts) {
+        for (const tab of l.tabs) {
+            const loc: WidgetLoc = { layoutId: l.id, layoutName: l.name, tabId: tab.id, tabName: tab.name };
+            for (const w of tab.widgets) {
+                map.set(w.id, loc);
+                if (w.type === 'group' || w.type === 'panels')
+                    addChildren(w.options?.defId as string | undefined, loc, new Set());
+            }
+        }
+    }
+    return map;
+}
+
 // Reference thresholds (ms) per metric: value ≤ good → green, ≤ ok → amber, else red.
 const TH_READY = { good: 300, ok: 1000 };
 const TH_RENDER = { good: 16, ok: 50 };
@@ -136,6 +177,15 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
 
     const { connected } = useIoBroker();
     const myClientId = useConnectionStore((s) => s.clientId);
+    const navigate = useNavigate();
+
+    // Resolve which tab a widget lives on (and enable a jump into the editor).
+    const layouts = useDashboardStore((s) => s.layouts);
+    const groupDefs = useGroupDefsStore((s) => s.defs);
+    const widgetLoc = useMemo(() => buildWidgetLocationMap(layouts, groupDefs), [layouts, groupDefs]);
+    // Editor deep-link only makes sense in the backend page (set via config option),
+    // not on the public dashboard where it would navigate the viewer to /admin.
+    const linkToEditor = o.linkToEditor === true;
     const Icon = getWidgetIcon((o.icon as string) ?? 'Activity', Activity);
 
     // Client filter: default to *this* device so the numbers are directly
@@ -301,7 +351,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
             if (max > s.max) s.max = max;
         };
         const avgOf = (s: Slot) => (s.count ? Math.round(s.sum / s.count) : 0);
-        const widgets = new Map<string, { label: string; ready: Slot; render: Slot }>();
+        const widgets = new Map<string, { label: string; ids: Set<string>; ready: Slot; render: Slot }>();
         const backend = new Map<string, { label: string; slot: Slot }>();
         for (const c of sel) {
             for (const e of c.entries) {
@@ -314,9 +364,16 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                     // Group by the stable label (type · title), not the raw widget id.
                     // Container widgets can churn through many short-lived child ids
                     // for the same logical widget — grouping by label collapses those
-                    // into one row instead of dozens of duplicates.
-                    const w = widgets.get(e.label) ?? { label: e.label, ready: empty(), render: empty() };
+                    // into one row instead of dozens of duplicates. We still keep the
+                    // ids so we can resolve the widget's tab / editor link.
+                    const w = widgets.get(e.label) ?? {
+                        label: e.label,
+                        ids: new Set<string>(),
+                        ready: empty(),
+                        render: empty(),
+                    };
                     w.label = e.label;
+                    if (e.key) w.ids.add(e.key);
                     add(e.cat === 'widgetReady' ? w.ready : w.render, e.avg, e.count, e.max);
                     widgets.set(e.label, w);
                 }
@@ -332,10 +389,24 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                 const sepIdx = w.label.indexOf(' · ');
                 const type = sepIdx >= 0 ? w.label.slice(0, sepIdx) : w.label;
                 const name = sepIdx >= 0 ? w.label.slice(sepIdx + 3) : '—';
+                // Resolve the tab from the first id that still exists in the config
+                // (churned/deleted ids won't resolve → no location).
+                let loc: WidgetLoc | undefined;
+                let widgetId: string | undefined;
+                for (const id of w.ids) {
+                    const l = widgetLoc.get(id);
+                    if (l) {
+                        loc = l;
+                        widgetId = id;
+                        break;
+                    }
+                }
                 return {
                     label: w.label,
                     name,
                     type,
+                    loc,
+                    widgetId,
                     readyAvg,
                     readyMax: w.ready.max,
                     renderAvg,
@@ -350,8 +421,17 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
             .sort((a, b) => b.avg - a.avg)
             .slice(0, 8);
         return { widgetRows: wRows, backendRows: bRows };
-    }, [breakdown, clientSel, myClientId]);
+    }, [breakdown, clientSel, myClientId, widgetLoc]);
     const hasBreakdown = widgetRows.length > 0 || backendRows.length > 0;
+    const multiLayout = layouts.length > 1;
+
+    const jumpToEditor = (loc: WidgetLoc, widgetId: string) => {
+        navigate(
+            `/admin/editor?layout=${encodeURIComponent(loc.layoutId)}&tab=${encodeURIComponent(
+                loc.tabId,
+            )}&focus=${encodeURIComponent(widgetId)}`,
+        );
+    };
 
     // Newest snapshot timestamp among the selected client(s) — shows data freshness.
     const breakdownUpdatedAt = useMemo(() => {
@@ -559,6 +639,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                                     >
                                         <span className="flex-1 min-w-0">Name</span>
                                         <span style={{ minWidth: 96, textAlign: 'left' }}>Typ</span>
+                                        <span style={{ minWidth: 120, textAlign: 'left' }}>Tab</span>
                                         <span style={{ minWidth: 56, textAlign: 'right' }}>Bereit</span>
                                         <span style={{ minWidth: 56, textAlign: 'right' }}>Render</span>
                                         <span style={{ minWidth: 56, textAlign: 'right' }}>Σ</span>
@@ -569,8 +650,23 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                                                 STATUS_COLOR[classifyMs(r.readyAvg, TH_READY.good, TH_READY.ok)];
                                             const cRender =
                                                 STATUS_COLOR[classifyMs(r.renderAvg, TH_RENDER.good, TH_RENDER.ok)];
+                                            const canJump = linkToEditor && !!r.widgetId && !!r.loc;
+                                            const tabText = r.loc
+                                                ? multiLayout
+                                                    ? `${r.loc.layoutName} · ${r.loc.tabName}`
+                                                    : r.loc.tabName
+                                                : '—';
                                             return (
-                                                <div key={r.label} className="flex items-center gap-1.5 text-[11px]">
+                                                <div
+                                                    key={r.label}
+                                                    className={`flex items-center gap-1.5 text-[11px] rounded ${
+                                                        canJump ? 'cursor-pointer hover:opacity-70' : ''
+                                                    }`}
+                                                    onClick={
+                                                        canJump ? () => jumpToEditor(r.loc!, r.widgetId!) : undefined
+                                                    }
+                                                    title={canJump ? 'Im Dashboard-Editor öffnen' : undefined}
+                                                >
                                                     <span
                                                         className="flex-1 min-w-0 truncate"
                                                         style={{ color: 'var(--text-primary)' }}
@@ -589,6 +685,19 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                                                         title={r.type}
                                                     >
                                                         {r.type}
+                                                    </span>
+                                                    <span
+                                                        className="truncate"
+                                                        style={{
+                                                            color: r.loc ? 'var(--accent)' : 'var(--text-secondary)',
+                                                            minWidth: 120,
+                                                            maxWidth: 120,
+                                                            textAlign: 'left',
+                                                            opacity: r.loc ? 1 : 0.5,
+                                                        }}
+                                                        title={tabText}
+                                                    >
+                                                        {tabText}
                                                     </span>
                                                     <span
                                                         style={{ color: cReady, minWidth: 56, textAlign: 'right' }}
