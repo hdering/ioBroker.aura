@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.20.0 (2026-07-06)
+- 🌟 **New feature:** Export - optionally anonymise datapoints, titles, URLs, coordinates and custom code when exporting a widget, tab, layout or popup
+
 ## 0.19.5 (2026-07-06)
 - Layouts - changing the global theme preset now shows the Save button again
 

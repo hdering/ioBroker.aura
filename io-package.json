@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.22.2",
+    "version": "0.22.3",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.22.3": {
+        "en": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser, screen resolution and the client ID so each device is easy to identify\nSettings - optional on-screen badge (toggle in Connected Devices) shows each device its own client ID, so it can be identified without opening the backend",
+        "de": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser, screen resolution and the client ID so each device is easy to identify\nSettings - optional on-screen badge (toggle in Connected Devices) shows each device its own client ID, so it can be identified without opening the backend",
+        "ru": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser, screen resolution and the client ID so each device is easy to identify\nSettings - optional on-screen badge (toggle in Connected Devices) shows each device its own client ID, so it can be identified without opening the backend",
+        "pt": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser, screen resolution and the client ID so each device is easy to identify\nSettings - optional on-screen badge (toggle in Connected Devices) shows each device its own client ID, so it can be identified without opening the backend",
+        "nl": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser, screen resolution and the client ID so each device is easy to identify\nSettings - optional on-screen badge (toggle in Connected Devices) shows each device its own client ID, so it can be identified without opening the backend",
+        "fr": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser, screen resolution and the client ID so each device is easy to identify\nSettings - optional on-screen badge (toggle in Connected Devices) shows each device its own client ID, so it can be identified without opening the backend",
+        "it": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser, screen resolution and the client ID so each device is easy to identify\nSettings - optional on-screen badge (toggle in Connected Devices) shows each device its own client ID, so it can be identified without opening the backend",
+        "es": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser, screen resolution and the client ID so each device is easy to identify\nSettings - optional on-screen badge (toggle in Connected Devices) shows each device its own client ID, so it can be identified without opening the backend",
+        "pl": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser, screen resolution and the client ID so each device is easy to identify\nSettings - optional on-screen badge (toggle in Connected Devices) shows each device its own client ID, so it can be identified without opening the backend",
+        "uk": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser, screen resolution and the client ID so each device is easy to identify\nSettings - optional on-screen badge (toggle in Connected Devices) shows each device its own client ID, so it can be identified without opening the backend",
+        "zh-cn": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser, screen resolution and the client ID so each device is easy to identify\nSettings - optional on-screen badge (toggle in Connected Devices) shows each device its own client ID, so it can be identified without opening the backend"
+      },
       "0.22.2": {
         "en": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
         "de": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
@@ -184,19 +197,6 @@
         "pl": "feat(loadtimes): add refresh button that re-polls the backend",
         "uk": "feat(loadtimes): add refresh button that re-polls the backend",
         "zh-cn": "feat(loadtimes): add refresh button that re-polls the backend"
-      },
-      "0.21.12": {
-        "en": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
-        "de": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
-        "ru": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
-        "pt": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
-        "nl": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
-        "fr": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
-        "it": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
-        "es": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
-        "pl": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
-        "uk": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)",
-        "zh-cn": "fix(loadtimes): add \"ms\" unit label to the chart Y-axis\nfeat(loadtimes): explain Bereit/Render/Summe columns in an info popup\nfeat(loadtimes): widget breakdown as ready|render|sum table with column headers\nAdd Test section to README (#425)"
       }
     }
   },
