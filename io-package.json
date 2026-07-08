@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.22.0",
+    "version": "0.22.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.22.1": {
+        "en": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
+        "de": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
+        "ru": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
+        "pt": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
+        "nl": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
+        "fr": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
+        "it": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
+        "es": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
+        "pl": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
+        "uk": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
+        "zh-cn": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify"
+      },
       "0.22.0": {
         "en": "🌟 New feature: Load times - add a dedicated backend page (Admin -> Ladezeiten) with live metrics, a per-widget breakdown showing each widget's tab with click-through to the editor, network breakdown metrics (TTFB, transfer, DNS, TCP/TLS) plus a backend ping (RTT) to spot high latency (e.g. over VPN), client names from Settings instead of raw ids, a toggleable chart legend, a refresh spinner, and an info popup on which metrics to watch; the old dashboard widget is superseded and hidden from the picker but keeps working\nPopup views - widgets now show their normal card background instead of always appearing transparent; a widget's own transparency setting is still respected",
         "de": "🌟 New feature: Load times - add a dedicated backend page (Admin -> Ladezeiten) with live metrics, a per-widget breakdown showing each widget's tab with click-through to the editor, network breakdown metrics (TTFB, transfer, DNS, TCP/TLS) plus a backend ping (RTT) to spot high latency (e.g. over VPN), client names from Settings instead of raw ids, a toggleable chart legend, a refresh spinner, and an info popup on which metrics to watch; the old dashboard widget is superseded and hidden from the picker but keeps working\nPopup views - widgets now show their normal card background instead of always appearing transparent; a widget's own transparency setting is still respected",
@@ -184,19 +197,6 @@
         "pl": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)",
         "uk": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)",
         "zh-cn": "Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)"
-      },
-      "0.21.10": {
-        "en": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
-        "de": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
-        "ru": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
-        "pt": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
-        "nl": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
-        "fr": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
-        "it": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
-        "es": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
-        "pl": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
-        "uk": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state",
-        "zh-cn": "fix(list): stop frontend value filter from resetting after config sync\nfix(list): apply frontend value filter instantly via local state"
       }
     }
   },

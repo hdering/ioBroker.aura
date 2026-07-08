@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.19.4 (2026-07-06)
+- Map - corners are now rounded in the live view too (transparent map widgets used to render square outside the editor)
+
 ## 0.19.3 (2026-07-06)
 - Map - opens on a sensible overview and zooms to the marker once its position resolves (no more long wait on a blank zoomed-in patch)
 - Map - keeps following a slowly moving marker instead of staying put on small position changes
