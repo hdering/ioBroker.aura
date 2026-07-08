@@ -15,7 +15,19 @@ import { sendToDirect } from '../hooks/useIoBroker';
 import { NS } from './namespace';
 import { useConnectionStore } from '../store/connectionStore';
 
-export type PerfMetric = 'initialLoad' | 'firstContentfulPaint' | 'socketToFirstState' | 'tabSwitch' | 'longTaskMax';
+export type PerfMetric =
+    | 'initialLoad'
+    | 'firstContentfulPaint'
+    | 'socketToFirstState'
+    | 'tabSwitch'
+    | 'longTaskMax'
+    // Network breakdown (from Navigation Timing) + a backend round-trip ping.
+    // These isolate internet/VPN latency from device/render cost.
+    | 'ttfb'
+    | 'transfer'
+    | 'dns'
+    | 'tcp'
+    | 'backendPing';
 
 /** Screenshot harness runs offline and must not emit instance writes. */
 function shotMode(): boolean {
@@ -60,7 +72,17 @@ export function initPerfMetrics(): void {
     const reportInitial = (): void => {
         try {
             const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
-            if (nav && nav.loadEventEnd > 0) reportMetric('initialLoad', nav.loadEventEnd - nav.startTime);
+            if (nav && nav.loadEventEnd > 0) {
+                reportMetric('initialLoad', nav.loadEventEnd - nav.startTime);
+                // Network breakdown. TTFB (RTT + server to first byte) and the
+                // connection phases spike over high-latency links (e.g. VPN);
+                // transfer reflects the document download. DNS/TCP are often 0 on
+                // a warm keep-alive connection — that's fine (reported as 0 = good).
+                reportMetric('ttfb', nav.responseStart - nav.startTime);
+                reportMetric('transfer', nav.responseEnd - nav.responseStart);
+                reportMetric('dns', nav.domainLookupEnd - nav.domainLookupStart);
+                reportMetric('tcp', nav.connectEnd - nav.connectStart);
+            }
         } catch {
             /* Navigation Timing unsupported — ignore */
         }
@@ -106,4 +128,17 @@ export function initPerfMetrics(): void {
     } catch {
         /* longtask entry type unsupported (Firefox/Safari) — ignore */
     }
+}
+
+/**
+ * Measure the round-trip time of a no-op backend call — a clean RTT signal that
+ * isolates network/VPN latency from device/render cost. Call once the socket is
+ * connected (e.g. from App on `connected`).
+ */
+export async function reportBackendPing(): Promise<void> {
+    if (!trackingEnabled || shotMode()) return;
+    const t0 = performance.now();
+    const res = await sendToDirect(NS, 'ping', {}, 10000);
+    if (res && typeof res === 'object' && '__timeout' in (res as object)) return;
+    reportMetric('backendPing', performance.now() - t0);
 }

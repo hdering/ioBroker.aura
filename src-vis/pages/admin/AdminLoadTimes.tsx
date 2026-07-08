@@ -27,6 +27,17 @@ export function AdminLoadTimes() {
                     aktualisieren sich hier live, ohne die Messung zu stören. Für die Pro-Widget-Details muss in den
                     Aura-Adapter-Einstellungen „Timing pro Widget aufzeichnen“ aktiv sein.
                 </p>
+                <p
+                    className="text-sm mt-2 rounded-lg px-3 py-2"
+                    style={{
+                        color: 'var(--text-secondary)',
+                        background: 'color-mix(in srgb, var(--accent-yellow, #f59e0b) 12%, var(--app-surface))',
+                        border: '1px solid color-mix(in srgb, var(--accent-yellow, #f59e0b) 40%, transparent)',
+                    }}
+                >
+                    ⚠️ Tipp: „Timing pro Widget aufzeichnen“ nach der Fehlersuche wieder <b>deaktivieren</b> — die
+                    Instrumentierung jedes Widgets bei jedem Render kostet selbst Performance.
+                </p>
             </div>
 
             <div

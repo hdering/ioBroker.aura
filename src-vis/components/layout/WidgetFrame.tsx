@@ -11516,6 +11516,11 @@ export function WidgetFrame({
                                     { key: 'socketToFirstState', label: 'Socket → 1. DP', color: '#f59e0b' },
                                     { key: 'tabSwitch', label: 'Tab-Wechsel', color: '#a855f7' },
                                     { key: 'longTaskMax', label: 'Long-Task max', color: '#ef4444' },
+                                    { key: 'ttfb', label: 'TTFB (Server)', color: '#06b6d4' },
+                                    { key: 'transfer', label: 'Transfer', color: '#14b8a6' },
+                                    { key: 'dns', label: 'DNS', color: '#8b5cf6' },
+                                    { key: 'tcp', label: 'TCP/TLS', color: '#ec4899' },
+                                    { key: 'backendPing', label: 'Backend-Ping', color: '#eab308' },
                                 ];
                                 const allKeys = METRIC_OPTS.map((m) => m.key);
                                 const metrics =

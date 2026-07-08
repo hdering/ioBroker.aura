@@ -40,7 +40,7 @@ import { markGroupDefsHydrated } from './store/groupDefsStore';
 import { usePopupConfigStore } from './store/popupConfigStore';
 import { NS } from './utils/namespace';
 import { baseDpId } from './utils/dpRef';
-import { initPerfMetrics, setPerfTracking } from './utils/perfMetrics';
+import { initPerfMetrics, setPerfTracking, reportBackendPing } from './utils/perfMetrics';
 import { setBreakdownTracking, recordBackendCall } from './utils/perfBreakdown';
 
 // Module-level cache of the active themeMode.frontend DP override. Lets the
@@ -250,6 +250,16 @@ export default function App() {
             }
         })();
     }, []);
+
+    // Measure a backend round-trip (RTT) once the socket is connected — a clean
+    // network-latency signal (spikes over VPN) independent of device/render cost.
+    const pingedRef = useRef(false);
+    useEffect(() => {
+        if (connected && !pingedRef.current) {
+            pingedRef.current = true;
+            void reportBackendPing();
+        }
+    }, [connected]);
 
     // Determine which layout to display based on URL slug
     const layout = useLayoutBySlug(layoutSlug);

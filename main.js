@@ -1808,6 +1808,11 @@ class Aura extends utils.Adapter {
             socketToFirstState: 'WebSocket connect → first state',
             tabSwitch: 'Tab switch (activation → rendered)',
             longTaskMax: 'Longest long-task in session',
+            ttfb: 'Time to first byte (RTT + server)',
+            transfer: 'Document download (response transfer)',
+            dns: 'DNS lookup',
+            tcp: 'Connection setup (TCP/TLS)',
+            backendPing: 'Backend round-trip time (RTT)',
         };
         this._perfMetricKeys = Object.keys(PERF_METRICS);
         try {
@@ -2325,6 +2330,12 @@ class Aura extends utils.Adapter {
                 let entries = sinceSeq > 0 ? buf.filter((e) => e.seq > sinceSeq) : buf.slice();
                 if (tokens.length > 0) entries = entries.filter((e) => matchesInstance(e.from));
                 reply({ ok: true, entries, latestSeq: this._logSeq || 0 });
+                return;
+            }
+
+            if (msg.command === 'ping') {
+                // No-op round-trip so the frontend can measure network RTT.
+                reply({ ok: true, t: Date.now() });
                 return;
             }
 

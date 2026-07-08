@@ -9,3 +9,4 @@ Load times - the dashboard widget is superseded by that backend page and is now 
 Load times - the per-widget breakdown now shows which tab each widget is on, and (on the backend page) rows link straight to that widget in the dashboard editor
 Load times - the client filter now shows the client name assigned in Settings instead of the raw client id
 Load times - the refresh button now shows a spinner while loading so you get feedback that a refresh is in progress
+Load times - add network breakdown metrics (TTFB, transfer, DNS, TCP/TLS) plus a backend ping (RTT) so high latency (e.g. over VPN) is distinguishable from device/render cost

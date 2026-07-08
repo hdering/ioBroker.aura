@@ -43,6 +43,13 @@ const METRICS: MetricMeta[] = [
     { key: 'socketToFirstState', label: 'Socket → 1. DP', color: '#f59e0b', good: 300, ok: 800 },
     { key: 'tabSwitch', label: 'Tab-Wechsel', color: '#a855f7', good: 150, ok: 400 },
     { key: 'longTaskMax', label: 'Long-Task max', color: '#ef4444', good: 50, ok: 150 },
+    // Network breakdown — high values here (with normal render times) point to
+    // internet/VPN latency rather than the device.
+    { key: 'ttfb', label: 'TTFB (Server)', color: '#06b6d4', good: 200, ok: 600 },
+    { key: 'transfer', label: 'Transfer', color: '#14b8a6', good: 200, ok: 800 },
+    { key: 'dns', label: 'DNS', color: '#8b5cf6', good: 30, ok: 150 },
+    { key: 'tcp', label: 'TCP/TLS', color: '#ec4899', good: 80, ok: 400 },
+    { key: 'backendPing', label: 'Backend-Ping', color: '#eab308', good: 80, ok: 300 },
 ];
 const METRIC_BY_KEY: Record<string, MetricMeta> = Object.fromEntries(METRICS.map((m) => [m.key, m]));
 
