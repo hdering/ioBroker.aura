@@ -22,7 +22,7 @@ export function AdminLoadTimes() {
                 <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
                     Ladezeiten
                 </h1>
-                <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                <p className="text-base mt-1" style={{ color: 'var(--text-secondary)' }}>
                     Backend hier offen lassen und das Frontend in einem zweiten Browser-Tab bedienen — die Werte
                     aktualisieren sich hier live, ohne die Messung zu stören. Für die Pro-Widget-Details muss in den
                     Aura-Adapter-Einstellungen „Timing pro Widget aufzeichnen“ aktiv sein.
@@ -38,7 +38,12 @@ export function AdminLoadTimes() {
                     minHeight: 480,
                 }}
             >
-                <LoadTimesWidget config={WIDGET_CONFIG} editMode={false} onConfigChange={() => {}} />
+                {/* Enlarge the whole (dense) widget uniformly via CSS zoom. The inner
+                    height is divided by the zoom factor so the zoomed result exactly
+                    fills the card without overflowing. */}
+                <div style={{ zoom: 1.35, height: 'calc((100vh - 232px) / 1.35)', minHeight: 340 }}>
+                    <LoadTimesWidget config={WIDGET_CONFIG} editMode={false} onConfigChange={() => {}} />
+                </div>
             </div>
         </div>
     );

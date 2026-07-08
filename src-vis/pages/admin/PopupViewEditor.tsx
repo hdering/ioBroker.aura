@@ -59,7 +59,9 @@ const OPTION_PLACEHOLDER_KEYS = ALL_POPUP_PLACEHOLDER_KEYS.filter((k) => !['dp',
 
 /** Widget types for the "add" dropdown, sorted alphabetically by label so the list
  *  stays ordered automatically as new widgets are registered. */
-const SORTED_WIDGET_REGISTRY = [...WIDGET_REGISTRY].sort((a, b) => a.label.localeCompare(b.label, 'de'));
+const SORTED_WIDGET_REGISTRY = WIDGET_REGISTRY.filter((m) => !m.hidden).sort((a, b) =>
+    a.label.localeCompare(b.label, 'de'),
+);
 
 export function PopupViewEditor() {
     const { viewId } = useParams<{ viewId: string }>();

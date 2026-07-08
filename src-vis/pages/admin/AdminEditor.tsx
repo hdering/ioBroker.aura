@@ -176,7 +176,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
         () =>
             // Sort by the displayed label (de locale) so new widget types are
             // inserted alphabetically automatically – no manual ordering needed.
-            WIDGET_REGISTRY.filter((w) => !coveredWidgetTypes.has(w.type)).sort((a, b) =>
+            WIDGET_REGISTRY.filter((w) => !w.hidden && !coveredWidgetTypes.has(w.type)).sort((a, b) =>
                 a.label.localeCompare(b.label, 'de'),
             ),
         [coveredWidgetTypes],

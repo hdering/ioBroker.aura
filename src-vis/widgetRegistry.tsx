@@ -94,6 +94,8 @@ export interface WidgetMeta {
     hint?: string;
     /** Option keys pre-filled with {{key}} placeholders when adding this widget inside a popup view editor */
     popupDefaults?: Record<string, string>;
+    /** Deprecated/hidden: existing instances keep working, but it is filtered out of the "add widget" pickers */
+    hidden?: boolean;
 }
 
 export const WIDGET_GROUPS: { id: WidgetGroup; label: string }[] = [
@@ -727,6 +729,9 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'special',
         mock: { t: 'Ladezeiten', v: '' },
         hint: 'Verlauf der Frontend-Ladezeiten (Initial-Load, First Paint, Socket→DP, Tab-Wechsel, Long-Tasks)',
+        // Superseded by the backend page (Admin → Ladezeiten). Hidden from the
+        // add pickers; existing widget instances keep rendering and working.
+        hidden: true,
     },
     {
         type: 'input',

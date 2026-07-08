@@ -5887,7 +5887,8 @@ export function WidgetFrame({
                                             // wizard-only types like calendar) and sort by the displayed
                                             // label so the picker stays alphabetical as widgets are added.
                                             const types = WIDGET_REGISTRY.filter(
-                                                (m) => m.widgetGroup === g.id && m.addMode !== 'wizard-only',
+                                                (m) =>
+                                                    m.widgetGroup === g.id && m.addMode !== 'wizard-only' && !m.hidden,
                                             )
                                                 .slice()
                                                 .sort((a, b) => a.shortLabel.localeCompare(b.shortLabel, 'de'));
@@ -6342,7 +6343,7 @@ export function WidgetFrame({
                             >
                                 {WIDGET_GROUPS.map((g) => (
                                     <optgroup key={g.id} label={g.label}>
-                                        {WIDGET_REGISTRY.filter((m) => m.widgetGroup === g.id)
+                                        {WIDGET_REGISTRY.filter((m) => m.widgetGroup === g.id && !m.hidden)
                                             .slice()
                                             .sort((a, b) => a.label.localeCompare(b.label, 'de'))
                                             .map((m) => (

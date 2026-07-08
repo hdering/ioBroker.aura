@@ -481,7 +481,7 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
 // sorted alphabetically by their displayed label. Derived from the registry so
 // new widgets show up automatically — and stay sorted — without touching this file.
 const PANEL_WIDGET_TYPES: WidgetType[] = WIDGET_REGISTRY.filter(
-    (m) => m.addMode !== 'wizard-only' && m.type !== 'panels',
+    (m) => m.addMode !== 'wizard-only' && m.type !== 'panels' && !m.hidden,
 )
     .slice()
     .sort((a, b) => a.shortLabel.localeCompare(b.shortLabel, 'de'))
