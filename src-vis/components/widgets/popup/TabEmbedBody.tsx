@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useMemo, useRef, useState, type CSSProperties } from 'react';
 import ReactGridLayout from 'react-grid-layout/legacy';
 import { AlertTriangle } from 'lucide-react';
 import { usePopupConfigStore } from '../../../store/popupConfigStore';
@@ -134,6 +134,42 @@ function markAutoHistory(w: WidgetConfig, orig: WidgetConfig): WidgetConfig {
     return w;
 }
 
+// ── Card styling ────────────────────────────────────────────────────────────────
+
+/** Widget types that carry their own chrome / fill their box, so the popup card
+ *  wrapper must not add padding (mirrors WidgetFrame's isNoPad set). */
+const NO_PAD_TYPES = new Set(['header', 'group', 'panels', 'iframe', 'map', 'echartsPreset']);
+
+/**
+ * Card background/border/radius for a popup-view widget, mirroring WidgetFrame so
+ * embedded widgets look identical to the dashboard. Popup views render bare widgets
+ * (no WidgetFrame), so without this every widget would appear transparent regardless
+ * of its own `transparent` option. A widget that opts into transparency keeps it.
+ */
+function cardStyleFor(w: WidgetConfig, widgetPadding: number): CSSProperties {
+    const isTransparent = !!w.options?.transparent;
+    if (isTransparent) {
+        const strength = Math.max(0, Math.min(100, Number(w.options?.transparency ?? 100)));
+        return {
+            background:
+                strength >= 100
+                    ? 'transparent'
+                    : `color-mix(in srgb, var(--widget-bg) ${100 - strength}%, transparent)`,
+        };
+    }
+    const isButton = w.type === 'button';
+    return {
+        background: isButton ? 'var(--button-bg, var(--widget-bg))' : 'var(--widget-bg)',
+        borderRadius: 'var(--widget-radius)',
+        boxShadow: 'var(--widget-shadow)',
+        backdropFilter: 'var(--widget-backdrop)',
+        borderWidth: 'var(--widget-border-width)',
+        borderStyle: 'solid',
+        borderColor: isButton ? 'var(--button-border, var(--widget-border))' : 'var(--widget-border)',
+        padding: NO_PAD_TYPES.has(w.type) ? undefined : widgetPadding,
+    };
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -152,6 +188,7 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
     const cellSize = settings.gridRowHeight ?? 60;
     const snapX = settings.gridSnapX ?? settings.gridRowHeight ?? 60;
     const MARGIN = settings.gridGap ?? DEFAULT_MARGIN;
+    const widgetPadding = settings.widgetPadding ?? 16;
 
     const roRef = useRef<ResizeObserver | null>(null);
     const [containerWidth, setContainerWidth] = useState(0);
@@ -245,7 +282,11 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
                         // {{...}} placeholders in untouched option keys survive.
                         const orig = view.widgets[i];
                         return (
-                            <div key={w.id}>
+                            <div
+                                key={w.id}
+                                className="h-full box-border overflow-hidden"
+                                style={cardStyleFor(w, widgetPadding)}
+                            >
                                 {Widget ? (
                                     <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
                                         <Widget

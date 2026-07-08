@@ -12,3 +12,4 @@ Load times - the refresh button now shows a spinner while loading so you get fee
 Load times - add network breakdown metrics (TTFB, transfer, DNS, TCP/TLS) plus a backend ping (RTT) so high latency (e.g. over VPN) is distinguishable from device/render cost
 Load times - chart legend entries are now clickable to hide/show individual metrics so you can focus on one value
 Load times - add an info popup explaining which metrics to watch (network vs device) to diagnose the cause of slow loads
+Popup views - widgets now show their normal card background instead of always appearing transparent; a widget's own transparency setting is still respected
