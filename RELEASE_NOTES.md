@@ -11,3 +11,4 @@
 - Advanced chart - choose which time-range presets the frontend selector offers
 - Advanced chart - a range without recorded changes draws a flat line at the current value instead of "no data"
 - Advanced chart - fixed periodic chart flicker when adapters re-write unchanged values
+- Panels - loop now wraps seamlessly onto the first/last slide instead of rewinding across the whole row

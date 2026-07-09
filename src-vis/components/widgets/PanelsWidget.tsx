@@ -82,6 +82,14 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
     const [active, setActive] = useState(0);
     const [dragOver, setDragOver] = useState(false);
     const [drag, setDrag] = useState<{ startX: number; dx: number } | null>(null);
+    // ── Seamless loop wrap ──────────────────────────────────────────────────
+    // While set, the track animates onto a cloned edge slide (last→first or
+    // first→last) instead of rewinding across the whole row; once the
+    // transition lands on the clone, the transform snaps (without animation)
+    // to the real slide the clone stands for.
+    const [wrap, setWrap] = useState<null | 'fwd' | 'back'>(null);
+    const [noAnim, setNoAnim] = useState(false);
+    const wrapTimerRef = useRef<number | null>(null);
     // Tracks an in-progress pointer interaction before it's promoted to a swipe.
     // `captured` flips true once movement crosses DRAG_START_THRESHOLD; only then
     // do we grab the pointer and start moving the slide track.
@@ -114,22 +122,53 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
     // Autoplay — suspended while `paused` (pointer over / focus inside the panel).
     // Re-entering the effect on un-pause restarts the interval from zero, so the
     // next slide is always a full interval away from the user's last interaction.
+    // Advances via nextRef so the wrap-around uses the same seamless loop
+    // animation as manual navigation (a plain setActive would rewind the track).
+    const nextRef = useRef<() => void>(() => {});
     useEffect(() => {
         if (!autoplay || editMode || interacting || children.length < 2) return;
-        const iv = setInterval(() => {
-            setActive((i) => {
-                if (i + 1 < children.length) return i + 1;
-                return loop ? 0 : i;
-            });
-        }, autoplayInterval * 1000);
+        const iv = setInterval(() => nextRef.current(), autoplayInterval * 1000);
         return () => clearInterval(iv);
-    }, [autoplay, autoplayInterval, editMode, interacting, children.length, loop]);
+    }, [autoplay, autoplayInterval, editMode, interacting, children.length]);
 
     // ── Navigation ───────────────────────────────────────────────────────────
+    // Seamless loop needs the edge clones and px-based transform math, so it is
+    // only active once the viewport is measured (and never in editMode, where
+    // clones would duplicate the slide-CRUD controls).
+    const smoothLoop = loop && !editMode && children.length > 1 && viewportW > 0;
+    const finishWrap = () => {
+        if (wrapTimerRef.current !== null) {
+            clearTimeout(wrapTimerRef.current);
+            wrapTimerRef.current = null;
+        }
+        setNoAnim(true);
+        setWrap(null);
+        // Two frames: let the snapped transform paint before re-enabling the
+        // transition, otherwise the browser would animate the snap itself.
+        requestAnimationFrame(() => requestAnimationFrame(() => setNoAnim(false)));
+    };
+    const startWrap = (dir: 'fwd' | 'back') => {
+        setWrap(dir);
+        setActive(dir === 'fwd' ? 0 : children.length - 1);
+        // Safety net: if the transitionend event is lost (hidden tab, etc.) a
+        // stuck wrap would lock navigation — snap shortly after the 280ms anyway.
+        wrapTimerRef.current = window.setTimeout(finishWrap, 400);
+    };
     const goTo = (i: number) => {
         if (children.length === 0) return;
         if (loop) {
+            if (wrap) return; // a wrap animation is in flight — ignore further nav
             const n = children.length;
+            if (smoothLoop) {
+                if (i >= n && active === n - 1) {
+                    startWrap('fwd');
+                    return;
+                }
+                if (i < 0 && active === 0) {
+                    startWrap('back');
+                    return;
+                }
+            }
             setActive(((i % n) + n) % n);
         } else {
             setActive(Math.max(0, Math.min(children.length - 1, i)));
@@ -137,6 +176,7 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
     };
     const prev = () => goTo(active - 1);
     const next = () => goTo(active + 1);
+    nextRef.current = next;
 
     // ── Pointer drag / swipe ─────────────────────────────────────────────────
     const onPointerDown = (e: React.PointerEvent) => {
@@ -286,9 +326,54 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
     const canNext = children.length > 1 && (loop || !atLast);
 
     // ── Render ───────────────────────────────────────────────────────────────
-    // Translate: active index * viewport width, plus live drag offset
+    // Translate: slide index * viewport width, plus live drag offset. With the
+    // seamless loop the track carries a clone of the last slide up front and a
+    // clone of the first at the end, so every index is shifted by one; a wrap
+    // animates onto the neighbouring clone instead of rewinding across the row.
     const liveOffset = drag?.dx ?? 0;
-    const translateX = viewportW > 0 ? -(active * viewportW) + liveOffset : 0;
+    const slideIndex = wrap === 'fwd' ? children.length : wrap === 'back' ? -1 : active;
+    const trackIndex = slideIndex + (smoothLoop ? 1 : 0);
+    const translateX = viewportW > 0 ? -(trackIndex * viewportW) + liveOffset : 0;
+
+    const renderSlide = (child: WidgetConfig, key: string) => (
+        <div
+            key={key}
+            className="relative shrink-0 p-1"
+            style={{
+                width: viewportW || `${100 / Math.max(1, children.length)}%`,
+                // Layout containment: a child widget resizing/ticking
+                // can't reflow the sibling slides, so the track layer
+                // stays valid through the whole transition.
+                contain: 'layout',
+            }}
+        >
+            <WidgetFrame
+                config={child}
+                editMode={editMode}
+                onRemove={removeSlide}
+                onConfigChange={updateChild}
+                onDuplicate={() => duplicateChild(child)}
+            />
+            {editMode && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        removeSlide(child.id);
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="nodrag absolute top-1.5 left-1.5 z-10 w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+                    title={t('panels.removeSlide')}
+                    style={{
+                        background: 'var(--app-bg)',
+                        color: 'var(--text-secondary)',
+                        border: '1px solid var(--app-border)',
+                    }}
+                >
+                    <Trash2 size={12} />
+                </button>
+            )}
+        </div>
+    );
 
     return (
         <div
@@ -351,11 +436,21 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
                     </div>
                 ) : (
                     <div
+                        // Remounting when the clones appear (first viewport measurement)
+                        // renders the shifted transform directly instead of animating the
+                        // track from its clone-less position.
+                        key={smoothLoop ? 'looped' : 'plain'}
                         className="absolute inset-0 flex"
+                        onTransitionEnd={(e) => {
+                            // A finished wrap animation sits on a clone — snap (without
+                            // animation) to the real slide the clone stands for.
+                            if (!wrap || e.target !== e.currentTarget || e.propertyName !== 'transform') return;
+                            finishWrap();
+                        }}
                         style={{
                             transform: `translate3d(${translateX}px, 0, 0)`,
-                            transition: drag ? 'none' : 'transform 280ms ease-out',
-                            width: `${children.length * 100}%`,
+                            transition: drag || noAnim ? 'none' : 'transform 280ms ease-out',
+                            width: `${(children.length + (smoothLoop ? 2 : 0)) * 100}%`,
                             // Keep the slide track promoted to its own compositor layer so
                             // each transition just moves an existing texture instead of
                             // re-rasterising every slide on each autoplay tick — the main
@@ -365,45 +460,9 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
                             backfaceVisibility: 'hidden',
                         }}
                     >
-                        {children.map((child) => (
-                            <div
-                                key={child.id}
-                                className="relative shrink-0 p-1"
-                                style={{
-                                    width: viewportW || `${100 / Math.max(1, children.length)}%`,
-                                    // Layout containment: a child widget resizing/ticking
-                                    // can't reflow the sibling slides, so the track layer
-                                    // stays valid through the whole transition.
-                                    contain: 'layout',
-                                }}
-                            >
-                                <WidgetFrame
-                                    config={child}
-                                    editMode={editMode}
-                                    onRemove={removeSlide}
-                                    onConfigChange={updateChild}
-                                    onDuplicate={() => duplicateChild(child)}
-                                />
-                                {editMode && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            removeSlide(child.id);
-                                        }}
-                                        onPointerDown={(e) => e.stopPropagation()}
-                                        className="nodrag absolute top-1.5 left-1.5 z-10 w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
-                                        title={t('panels.removeSlide')}
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            color: 'var(--text-secondary)',
-                                            border: '1px solid var(--app-border)',
-                                        }}
-                                    >
-                                        <Trash2 size={12} />
-                                    </button>
-                                )}
-                            </div>
-                        ))}
+                        {smoothLoop && renderSlide(children[children.length - 1], 'clone-last')}
+                        {children.map((child) => renderSlide(child, child.id))}
+                        {smoothLoop && renderSlide(children[0], 'clone-first')}
                     </div>
                 )}
 
