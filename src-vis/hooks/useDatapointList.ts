@@ -137,7 +137,11 @@ async function loadAll(): Promise<DatapointEntry[]> {
             // them by default.
             const dot2 = row.id.indexOf('.', row.id.indexOf('.') + 1);
             const prefix = dot2 !== -1 ? row.id.slice(0, dot2) : row.id;
-            const active = enabledPrefixes.has(prefix);
+            // Scenes live under the "scene.<n>" namespace but the adapter is named
+            // "scenes", so there is no matching "system.adapter.scene.<n>" instance and
+            // the prefix check above would always mark them inactive. Treat the scene
+            // namespace as active so scene DPs are selectable and shown by default.
+            const active = enabledPrefixes.has(prefix) || prefix.startsWith('scene.');
             // Check state ID and all parent paths (channel, device) – enum members
             // can reference any level of the object hierarchy, not just states directly.
             const parts = row.id.split('.');
