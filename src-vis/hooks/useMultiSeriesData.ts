@@ -290,7 +290,10 @@ export function useMultiSeriesData(
                     };
                     const cached = getStateFromCache(s.datapointId);
                     if (cached) finish(cached);
-                    else if (getState) getState(s.datapointId).then(finish).catch(() => finish(null));
+                    else if (getState)
+                        getState(s.datapointId)
+                            .then(finish)
+                            .catch(() => finish(null));
                     else finish(null);
                 })
                 .catch(() => {
