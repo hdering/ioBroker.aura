@@ -1,12 +1,19 @@
-import { Suspense, useCallback, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import ReactGridLayout from 'react-grid-layout/legacy';
 import { AlertTriangle } from 'lucide-react';
 import { usePopupConfigStore } from '../../../store/popupConfigStore';
 import { useEffectiveSettings } from '../../../hooks/useEffectiveSettings';
+import { useConditionStyle, type ConditionResult } from '../../../hooks/useConditionStyle';
 import { getWidgetMap } from '../widgetMap';
-import type { WidgetConfig } from '../../../types';
+import type { WidgetConfig, WidgetCondition } from '../../../types';
 
 const DEFAULT_MARGIN = 10;
+
+// Stable empty reference so useConditionStyle doesn't re-subscribe every render.
+const NO_CONDITIONS: WidgetCondition[] = [];
+
+// Default verdict for a widget whose probe hasn't reported yet (visible).
+const EMPTY_COND: ConditionResult = { cssVars: {}, effect: null, hidden: false, reflow: false };
 
 // ── {{key}} substitution ──────────────────────────────────────────────────────
 
@@ -170,6 +177,86 @@ function cardStyleFor(w: WidgetConfig, widgetPadding: number): CSSProperties {
     };
 }
 
+// ── Condition evaluation ──────────────────────────────────────────────────────
+
+/**
+ * Always-mounted, render-free probe that evaluates one widget's visibility
+ * conditions and reports the result up. It lives OUTSIDE the grid so its DP
+ * subscription survives even when a reflow-hidden widget is pulled out of the
+ * layout — otherwise a reflowed widget would unmount, lose its subscription, and
+ * never learn its condition turned false again (it could never come back).
+ * Conditions are read from the already-substituted config, so `{{dp}}` placeholders
+ * inside condition clauses resolve the same way the widget body does.
+ */
+function ConditionProbe({ w, onResult }: { w: WidgetConfig; onResult: (id: string, r: ConditionResult) => void }) {
+    const conditions = (w.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
+    const cond = useConditionStyle(conditions, w.id);
+    useEffect(() => {
+        onResult(w.id, cond);
+    }, [w.id, cond, onResult]);
+    return null;
+}
+
+// ── Per-widget cell ───────────────────────────────────────────────────────────
+
+/**
+ * Renders one popup-view widget bare (no WidgetFrame). The condition verdict is
+ * evaluated by ConditionProbe and passed in via `cond`, so this component only
+ * applies the visual effect (style vars, pulse/blink, in-place hide). Reflow-hidden
+ * widgets are removed from the grid by the parent, so this cell only ever sees the
+ * in-place (non-reflow) hide case.
+ */
+function PopupWidgetCell({
+    w,
+    cond,
+    widgetPadding,
+    onConfigChange,
+}: {
+    w: WidgetConfig;
+    cond: ConditionResult;
+    widgetPadding: number;
+    onConfigChange: (next: WidgetConfig) => void;
+}) {
+    const wm = getWidgetMap();
+    const Widget = wm[w.type as keyof typeof wm];
+
+    const effectClass =
+        cond.effect === 'pulse'
+            ? 'animate-pulse'
+            : cond.effect === 'blink'
+              ? 'animate-[blink_1s_step-end_infinite]'
+              : '';
+
+    return (
+        <div
+            className={`h-full box-border overflow-hidden ${effectClass}`}
+            style={{
+                ...cardStyleFor(w, widgetPadding),
+                ...cond.cssVars,
+                ...(cond.hidden ? { visibility: 'hidden', pointerEvents: 'none' } : {}),
+            }}
+        >
+            {Widget ? (
+                <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
+                    <Widget config={w} editMode={false} onConfigChange={onConfigChange} />
+                </Suspense>
+            ) : (
+                <div
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs h-full"
+                    style={{
+                        background: 'var(--app-bg)',
+                        color: 'var(--text-secondary)',
+                        border: '1px solid var(--app-border)',
+                    }}
+                >
+                    <AlertTriangle size={13} />
+                    Unbekannter Typ: {w.type}
+                </div>
+            )}
+        </div>
+    );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -192,6 +279,26 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
 
     const roRef = useRef<ResizeObserver | null>(null);
     const [containerWidth, setContainerWidth] = useState(0);
+
+    // Condition verdicts per widget, fed by the always-mounted ConditionProbes.
+    // Drives in-place hide (cssVars/effect/visibility on the cell) and reflow
+    // (reflow-hidden widgets are dropped from the layout so the grid compacts up).
+    const [conds, setConds] = useState<Record<string, ConditionResult>>({});
+    const onCondResult = useCallback((id: string, r: ConditionResult) => {
+        setConds((prev) => {
+            const cur = prev[id];
+            if (
+                cur &&
+                cur.hidden === r.hidden &&
+                cur.reflow === r.reflow &&
+                cur.effect === r.effect &&
+                JSON.stringify(cur.cssVars) === JSON.stringify(r.cssVars)
+            ) {
+                return prev;
+            }
+            return { ...prev, [id]: r };
+        });
+    }, []);
 
     const containerRefCallback = useCallback((el: HTMLDivElement | null) => {
         if (roRef.current) {
@@ -246,14 +353,23 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
         }
     }
 
-    const wm = getWidgetMap();
     // Popup charts inherit the trigger's history adapter instance when they have none.
     const triggerInstance = triggerHistoryInstance(triggerWidget);
     const widgets = view.widgets.map((w) =>
         markAutoHistory(inheritHistoryInstance(substituteWidget(w, subMap), triggerInstance), w),
     );
 
-    const layout = widgets.map((w) => ({
+    // Reflow-hidden widgets (condition with hideWidget + reflow) drop out of the
+    // grid entirely so ReactGridLayout's vertical compaction slides the rest up.
+    // In-place hidden widgets stay in the layout (their space is kept) and are only
+    // visually hidden by the cell. The probes below keep every widget's condition
+    // subscription alive regardless, so a dropped widget can reappear.
+    const gridWidgets = widgets.filter((w) => {
+        const c = conds[w.id];
+        return !(c?.hidden && c?.reflow);
+    });
+
+    const layout = gridWidgets.map((w) => ({
         i: w.id,
         x: w.gridPos.x ?? 0,
         y: w.gridPos.y ?? 9999,
@@ -264,6 +380,13 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
 
     return (
         <div ref={containerRefCallback} className="p-3" style={{ minWidth: naturalMinWidth }}>
+            {/* Render-free condition evaluators for every widget — kept mounted even
+                when a widget is reflowed out of the grid. */}
+            <div style={{ display: 'none' }}>
+                {widgets.map((w) => (
+                    <ConditionProbe key={w.id} w={w} onResult={onCondResult} />
+                ))}
+            </div>
             {containerWidth > 0 && (
                 <ReactGridLayout
                     className="layout"
@@ -276,41 +399,21 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
                     margin={[MARGIN, MARGIN]}
                     containerPadding={[0, 0]}
                 >
-                    {widgets.map((w, i) => {
-                        const Widget = wm[w.type as keyof typeof wm];
+                    {gridWidgets.map((w) => {
                         // Pre-substitution original — persist edits against it so
                         // {{...}} placeholders in untouched option keys survive.
-                        const orig = view.widgets[i];
+                        const orig = view.widgets.find((o) => o.id === w.id) ?? w;
                         return (
-                            <div
-                                key={w.id}
-                                className="h-full box-border overflow-hidden"
-                                style={cardStyleFor(w, widgetPadding)}
-                            >
-                                {Widget ? (
-                                    <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
-                                        <Widget
-                                            config={w}
-                                            editMode={false}
-                                            onConfigChange={(next) => {
-                                                const patch = mergedOptionsPatch(orig, w, next);
-                                                if (patch) updateWidgetInView(view.id, orig.id, { options: patch });
-                                            }}
-                                        />
-                                    </Suspense>
-                                ) : (
-                                    <div
-                                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs h-full"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            color: 'var(--text-secondary)',
-                                            border: '1px solid var(--app-border)',
-                                        }}
-                                    >
-                                        <AlertTriangle size={13} />
-                                        Unbekannter Typ: {w.type}
-                                    </div>
-                                )}
+                            <div key={w.id}>
+                                <PopupWidgetCell
+                                    w={w}
+                                    cond={conds[w.id] ?? EMPTY_COND}
+                                    widgetPadding={widgetPadding}
+                                    onConfigChange={(next) => {
+                                        const patch = mergedOptionsPatch(orig, w, next);
+                                        if (patch) updateWidgetInView(view.id, orig.id, { options: patch });
+                                    }}
+                                />
                             </div>
                         );
                     })}

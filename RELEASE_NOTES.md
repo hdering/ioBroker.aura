@@ -9,3 +9,4 @@ Datapoint picker - scene datapoints (scene.0.*) are now selectable and shown by 
 Popups - choosing "no view" for a widget type default now correctly disables the popup instead of falling back to the built-in one
 Tab bar - bottom-corner tab badges are no longer hidden behind iframe widgets that fill the tab
 Dark themes - native controls (dimmer/slider rails, scrollbars, dropdowns) now render dark instead of light, so the dimmer slider rail is no longer brighter in the frontend than in the admin backend
+Popups - widget visibility conditions now work inside popup/tab views (hide-widget and reflow "move others up"), matching how they behave on the dashboard
