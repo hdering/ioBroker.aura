@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.21.1 (2026-07-06)
+- Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup
+
 ## 0.21.0 (2026-07-06)
 - Energiebilanz - legend position is now a single option (left/right/above/below) shown under "Show legend", instead of a per-bar dropdown
 - Energiebilanz - added a legend text-alignment option (left/center/right)
