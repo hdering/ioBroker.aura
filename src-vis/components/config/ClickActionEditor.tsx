@@ -225,13 +225,20 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
     //   3. 'none'
     const typeDefaultRemoved = popupRemovedTypeDefaults.includes(config.type);
     const typeDefaultViewId = !storedAction ? popupTypeDefaults[config.type] : undefined;
+    // An explicit empty type default ('— keine View —') means "no popup" and must
+    // suppress the builtin fallback, just like an explicitly removed type default.
+    const explicitNoView = !storedAction && config.type in popupTypeDefaults && !typeDefaultViewId;
     const builtInDefault =
-        !storedAction && !typeDefaultViewId && !typeDefaultRemoved ? defaultActionForConfig(config) : null;
+        !storedAction && !typeDefaultViewId && !explicitNoView && !typeDefaultRemoved
+            ? defaultActionForConfig(config)
+            : null;
     const action: ClickAction = storedAction ??
         (typeDefaultViewId ? { kind: 'popup-view' as const, viewId: typeDefaultViewId } : null) ??
         builtInDefault ?? { kind: 'none' as const };
     const isTypeDefaultActive = !!typeDefaultViewId;
-    const hasFallback = !!popupTypeDefaults[config.type] || (!typeDefaultRemoved && !!defaultActionForConfig(config));
+    const hasFallback =
+        !!popupTypeDefaults[config.type] ||
+        (!explicitNoView && !typeDefaultRemoved && !!defaultActionForConfig(config));
 
     const isPopup = action.kind.startsWith('popup-');
 

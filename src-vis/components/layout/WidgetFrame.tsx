@@ -5404,10 +5404,14 @@ export function WidgetFrame({
                     return { kind: 'popup-view', viewId };
                 }
             }
+            // An explicit empty type default ('— keine View —') means "no popup".
+            // It must suppress the builtin fallback below — otherwise choosing it
+            // in the backend has no effect (the hardcoded fallback keeps opening).
+            const explicitNoView = config.type in popupTypeDefaults && !viewId;
             // Ebene 1 only applies while the admin hasn't explicitly removed the
             // builtin type default — otherwise removing it in the backend would
             // have no effect (the hardcoded fallback would keep re-linking it).
-            if (!popupRemovedTypeDefaults.includes(config.type)) {
+            if (!explicitNoView && !popupRemovedTypeDefaults.includes(config.type)) {
                 const builtIn = defaultActionForConfig(config);
                 if (builtIn) return builtIn;
             }

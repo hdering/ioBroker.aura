@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 Status Overview - remove leftover jump-to-device behavior (no more pointer cursor or navigation on row click)
 Datapoint picker - scene datapoints (scene.0.*) are now selectable and shown by default
+Popups - choosing "no view" for a widget type default now correctly disables the popup instead of falling back to the built-in one
