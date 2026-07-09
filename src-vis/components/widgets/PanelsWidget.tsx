@@ -90,6 +90,14 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
     const [wrap, setWrap] = useState<null | 'fwd' | 'back'>(null);
     const [noAnim, setNoAnim] = useState(false);
     const wrapTimerRef = useRef<number | null>(null);
+    // Clear a pending wrap safety-timer on unmount so its finishWrap (setState)
+    // can't fire after the widget is gone.
+    useEffect(
+        () => () => {
+            if (wrapTimerRef.current !== null) clearTimeout(wrapTimerRef.current);
+        },
+        [],
+    );
     // Tracks an in-progress pointer interaction before it's promoted to a swipe.
     // `captured` flips true once movement crosses DRAG_START_THRESHOLD; only then
     // do we grab the pointer and start moving the slide track.

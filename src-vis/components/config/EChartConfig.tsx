@@ -613,7 +613,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                 className="text-[11px] mb-1 block"
                                                                 style={{ color: 'var(--text-secondary)' }}
                                                             >
-                                                                Aggregation
+                                                                {t('echart.aggregation')}
                                                             </label>
                                                             <select
                                                                 value={s.aggregate ?? 'average'}
@@ -629,13 +629,13 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                 className={inputCls}
                                                                 style={inputStyle}
                                                             >
-                                                                <option value="average">Durchschnitt (Standard)</option>
-                                                                <option value="minmax">
-                                                                    Min/Max (echte Extremwerte — z.B. Regenzähler)
+                                                                <option value="average">
+                                                                    {t('echart.aggAverage')}
                                                                 </option>
-                                                                <option value="max">Maximum</option>
-                                                                <option value="min">Minimum</option>
-                                                                <option value="total">Summe</option>
+                                                                <option value="minmax">{t('echart.aggMinmax')}</option>
+                                                                <option value="max">{t('echart.aggMax')}</option>
+                                                                <option value="min">{t('echart.aggMin')}</option>
+                                                                <option value="total">{t('echart.aggTotal')}</option>
                                                             </select>
                                                         </div>
                                                     )}
@@ -797,7 +797,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         {!lockRange && (
                             <div className="mt-2">
                                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                    Sichtbare Zeitbereiche im Frontend
+                                    {t('echart.visibleRanges')}
                                 </label>
                                 <div className="flex gap-1 flex-wrap">
                                     {frontendPresets.map((r) => {
@@ -840,7 +840,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                 className="rounded"
                             />
                             <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                Tages-Navigation im Frontend (◀ Heute ▶)
+                                {t('echart.dayNavToggle')}
                             </span>
                         </label>
                     </div>

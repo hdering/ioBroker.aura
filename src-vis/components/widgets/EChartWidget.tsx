@@ -15,6 +15,7 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { samplePreviewSeries } from '../../utils/sampleChartData';
+import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
@@ -46,6 +47,7 @@ function deepMerge(target: Record<string, unknown>, source: Record<string, unkno
 
 export function EChartWidget({ config, editMode }: WidgetProps) {
     const { subscribe, getState, connected } = useIoBroker();
+    const t = useT();
 
     const layout = config.layout ?? 'default';
 
@@ -207,12 +209,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         if (previewData) return previewData[idx];
         const r = seriesDataMap.get(id);
         const data = r?.data ?? [];
-        if (
-            data.length === 0 &&
-            r &&
-            !r.loading &&
-            (dayWindow !== null || !!effectiveSeries[idx]?.historyInstance)
-        ) {
+        if (data.length === 0 && r && !r.loading && (dayWindow !== null || !!effectiveSeries[idx]?.historyInstance)) {
             return flatLineData(r.current);
         }
         return data;
@@ -629,7 +626,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 <button
                     className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
                     style={navBtnStyle(false)}
-                    title="Einen Tag zurück"
+                    title={t('echart.dayPrevTitle')}
                     onClick={() => setDayOffset((prev) => (prev ?? 0) - 1)}
                 >
                     <ChevronLeft size={12} />
@@ -637,15 +634,15 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 <button
                     className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
                     style={navBtnStyle(dayOffset === 0)}
-                    title="Zum aktuellen Tag"
+                    title={t('echart.dayTodayTitle')}
                     onClick={() => setDayOffset(0)}
                 >
-                    Heute
+                    {t('echart.today')}
                 </button>
                 <button
                     className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity disabled:opacity-40"
                     style={navBtnStyle(false)}
-                    title="Einen Tag vor"
+                    title={t('echart.dayNextTitle')}
                     disabled={dayOffset === null || dayOffset >= 0}
                     onClick={() => setDayOffset((prev) => (prev !== null && prev < 0 ? prev + 1 : prev))}
                 >
@@ -656,7 +653,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                         className="text-[10px] font-medium ml-1 whitespace-nowrap"
                         style={{ color: 'var(--text-secondary)' }}
                     >
-                        {new Date(dayWindow.start).toLocaleDateString('de-DE', {
+                        {new Date(dayWindow.start).toLocaleDateString(t('echart.dateLocale'), {
                             weekday: 'short',
                             day: '2-digit',
                             month: '2-digit',
