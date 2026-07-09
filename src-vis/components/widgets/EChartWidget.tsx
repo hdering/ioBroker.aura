@@ -5,6 +5,7 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import {
     useMultiSeriesData,
     useAutoHistoryInstances,
+    rangeToMs,
     type EChartSeriesConfig,
     type EChartTimeRange,
 } from '../../hooks/useMultiSeriesData';
@@ -80,6 +81,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const cfgCustomUnit =
         (o.echartRangeCustomUnit as 'h' | 'd' | undefined) ?? echartSeries[0]?.historyRangeCustomUnit ?? 'h';
     const lockRange = o.lockRange === true;
+    // Which presets the frontend selector offers (config-selectable; default: all).
+    const cfgVisibleRanges = o.echartVisibleRanges as EChartTimeRange[] | undefined;
+    const visibleRanges =
+        cfgVisibleRanges && cfgVisibleRanges.length > 0
+            ? PRESET_RANGES.filter((r) => cfgVisibleRanges.includes(r))
+            : PRESET_RANGES;
 
     const [activeRange, setActiveRange] = useState<EChartTimeRange>(cfgRange);
     const [activeCustomVal, setActiveCustomVal] = useState<number>(cfgCustomVal);
@@ -178,19 +185,36 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         !hasAnyData &&
         echartSeries.some((s) => (s.datapointId ?? '').includes('{{'));
     const previewData = isPreview ? echartSeries.map((_, idx) => samplePreviewSeries(idx)) : null;
-    // Day mode: a day without records renders as a flat zero line instead of "Keine Daten",
-    // and its current value reads 0 — the day simply had nothing to log (e.g. no rain).
-    const zeroLineData = (): [number, number][] => {
-        if (!dayWindow) return [];
+    // A window without records renders as a flat line instead of "Keine Daten":
+    //   • day mode: flat zero — the browsed day simply had nothing to log (e.g. no rain);
+    //   • rolling range: flat at the current value — a change-logged datapoint that
+    //     didn't change in the window has been constant at its live value the whole time.
+    const flatLineData = (current: number | null): [number, number][] => {
+        const now = Date.now();
+        if (dayWindow) {
+            return [
+                [dayWindow.start, 0],
+                [Math.min(dayWindow.end, now), 0],
+            ];
+        }
+        const val = current ?? 0;
         return [
-            [dayWindow.start, 0],
-            [Math.min(dayWindow.end, Date.now()), 0],
+            [now - rangeToMs(activeRange, activeCustomVal, activeCustomUnit), val],
+            [now, val],
         ];
     };
     const seriesData = (idx: number, id: string): [number, number][] => {
         if (previewData) return previewData[idx];
-        const data = seriesDataMap.get(id)?.data ?? [];
-        if (dayWindow && data.length === 0 && !seriesDataMap.get(id)?.loading) return zeroLineData();
+        const r = seriesDataMap.get(id);
+        const data = r?.data ?? [];
+        if (
+            data.length === 0 &&
+            r &&
+            !r.loading &&
+            (dayWindow !== null || !!effectiveSeries[idx]?.historyInstance)
+        ) {
+            return flatLineData(r.current);
+        }
         return data;
     };
     const seriesCurrent = (idx: number, id: string): number | null => {
@@ -199,7 +223,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         if (dayWindow && current === null && !seriesDataMap.get(id)?.loading) return 0;
         return current;
     };
-    const effHasData = isPreview || hasAnyData || (dayWindow !== null && echartSeries.length > 0 && !allLoading);
+    const effHasData =
+        isPreview || hasAnyData || (echartSeries.length > 0 && !allLoading && (dayWindow !== null || hasHistory));
     const effLoading = !isPreview && allLoading;
 
     // Gauge mode: show first series' current value as a gauge
@@ -554,7 +579,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             // day-nav controls; on very narrow widgets the chips scroll (swipe)
             // instead of wrapping the day-nav into a second row.
             <div className="nodrag flex gap-1 min-w-0 overflow-x-auto aura-no-scrollbar">
-                {PRESET_RANGES.map((r) => {
+                {visibleRanges.map((r) => {
                     const active = dayOffset === null && activeRange === r;
                     return (
                         <button

@@ -60,6 +60,16 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
         (o.echartRangeCustomUnit as 'h' | 'd' | undefined) ?? series[0]?.historyRangeCustomUnit ?? 'h';
     const lockRange = (o.lockRange as boolean | undefined) ?? false;
     const dayNav = (o.echartDayNav as boolean | undefined) ?? false;
+    // Which presets the frontend range selector offers (default: all).
+    const frontendPresets = CHART_RANGES.filter((r) => r !== 'custom');
+    const visibleRanges = (o.echartVisibleRanges as EChartTimeRange[] | undefined) ?? frontendPresets;
+    const toggleVisibleRange = (r: EChartTimeRange) => {
+        const next = visibleRanges.includes(r)
+            ? visibleRanges.filter((x) => x !== r)
+            : frontendPresets.filter((x) => visibleRanges.includes(x) || x === r);
+        if (next.length === 0) return; // keep at least one preset selectable
+        setO({ echartVisibleRanges: next });
+    };
     const anyHistory = series.some((s) => !!s.historyInstance);
     const echartLeftUnit = (o.echartLeftUnit as string | undefined) ?? '';
     const echartRightUnit = (o.echartRightUnit as string | undefined) ?? '';
@@ -782,6 +792,33 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                         {u === 'h' ? 'Std' : 'Tage'}
                                     </button>
                                 ))}
+                            </div>
+                        )}
+                        {!lockRange && (
+                            <div className="mt-2">
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                    Sichtbare Zeitbereiche im Frontend
+                                </label>
+                                <div className="flex gap-1 flex-wrap">
+                                    {frontendPresets.map((r) => {
+                                        const active = visibleRanges.includes(r);
+                                        return (
+                                            <button
+                                                key={r}
+                                                onClick={() => toggleVisibleRange(r)}
+                                                className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                                style={{
+                                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                    color: active ? '#fff' : 'var(--text-secondary)',
+                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                    minWidth: 36,
+                                                }}
+                                            >
+                                                {RANGE_LABELS[r]}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         )}
                         <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">

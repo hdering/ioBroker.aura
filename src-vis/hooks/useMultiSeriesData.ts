@@ -52,15 +52,16 @@ const RANGE_STEP: Record<Exclude<EChartTimeRange, 'custom'>, number | undefined>
     '30d': 21_600_000,
 };
 
-function getCustomMs(s: EChartSeriesConfig): number {
-    const val = s.historyRangeCustomValue ?? 24;
-    const unit = s.historyRangeCustomUnit ?? 'h';
-    return Math.max(1, val) * (unit === 'd' ? 86_400_000 : 3_600_000);
+/** Millisecond span of a range selection — also used by the widget to frame flat "no change" windows. */
+export function rangeToMs(range: EChartTimeRange, customValue?: number, customUnit?: 'h' | 'd'): number {
+    if (range === 'custom') {
+        return Math.max(1, customValue ?? 24) * ((customUnit ?? 'h') === 'd' ? 86_400_000 : 3_600_000);
+    }
+    return RANGE_MS[range];
 }
 
 function getRangeMs(s: EChartSeriesConfig): number {
-    const r = s.historyRange ?? '24h';
-    return r === 'custom' ? getCustomMs(s) : RANGE_MS[r];
+    return rangeToMs(s.historyRange ?? '24h', s.historyRangeCustomValue, s.historyRangeCustomUnit);
 }
 
 function getStepForMs(rangeMs: number): number | undefined {
@@ -266,12 +267,31 @@ export function useMultiSeriesData(
                         const winEnd = s.historyEnd as number;
                         data = data.filter((p) => p[0] >= winStart && p[0] < winEnd);
                     }
-                    const current = data.length > 0 ? data[data.length - 1][1] : null;
-                    setResultsMap((prev) => {
-                        const next = new Map(prev);
-                        next.set(s.id, { data, current, loading: false });
-                        return next;
-                    });
+                    if (data.length > 0) {
+                        const current = data[data.length - 1][1];
+                        setResultsMap((prev) => {
+                            const next = new Map(prev);
+                            next.set(s.id, { data, current, loading: false });
+                            return next;
+                        });
+                        return;
+                    }
+                    // Empty window — a change-logged datapoint simply had no changes in the
+                    // range. Seed the current value from the live state so the widget can
+                    // draw a flat line at it instead of reporting "no data".
+                    const finish = (state: ioBrokerState | null) => {
+                        if (!mountedRef.current) return;
+                        const val = typeof state?.val === 'number' ? (state.val as number) : null;
+                        setResultsMap((prev) => {
+                            const next = new Map(prev);
+                            next.set(s.id, { data: [], current: val, loading: false });
+                            return next;
+                        });
+                    };
+                    const cached = getStateFromCache(s.datapointId);
+                    if (cached) finish(cached);
+                    else if (getState) getState(s.datapointId).then(finish).catch(() => finish(null));
+                    else finish(null);
                 })
                 .catch(() => {
                     if (!mountedRef.current) return;
@@ -302,8 +322,13 @@ export function useMultiSeriesData(
                     if (typeof state.val !== 'number') return;
                     const val = state.val as number;
                     setResultsMap((prev) => {
+                        const existing = prev.get(s.id);
+                        // Adapters often re-write unchanged values on every poll (only the ts
+                        // moves). Appending those points rebuilt the chart each time — visible
+                        // as a periodic flicker. Returning the previous map bails out of the
+                        // re-render entirely.
+                        if (existing && !existing.loading && existing.current === val) return prev;
                         const next = new Map(prev);
-                        const existing = next.get(s.id);
                         let newData: [number, number][];
                         if (s.historyInstance && existing) {
                             const cutoff = typeof s.historyStart === 'number' ? s.historyStart : Date.now() - cutoffMs;

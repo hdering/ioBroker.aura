@@ -82,6 +82,7 @@ Ein gemeinsamer Zeitraum für alle Serien.
 | `echartRangeCustomValue` | `24` | nur bei `custom` |
 | `echartRangeCustomUnit` | `h` | `h` · `d`, nur bei `custom` |
 | `lockRange` | `false` | Zeitraum-Umschalter im Frontend ausblenden |
+| `echartVisibleRanges` | alle | Welche Presets der Frontend-Umschalter anbietet, z. B. `["6h","24h","7d","30d"]` |
 | `echartDayNav` | `false` | Tages-Navigation im Frontend (◀ Heute ▶) — einzelne Kalendertage durchblättern |
 | `autoHistoryInstance` | `false` | History-Instanz je Serie automatisch erkennen |
 
