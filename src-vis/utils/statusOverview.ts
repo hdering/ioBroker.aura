@@ -107,7 +107,6 @@ export interface StatusOverviewOptions {
     showOkCategories?: boolean; // also list categories with no alerts (default false)
     allClearText?: string;
     sortBy?: 'severity' | 'room'; // default 'severity'
-    rowClick?: 'none' | 'jump'; // click a row → jump to a widget bound to that DP (default 'jump')
 }
 
 /** One datapoint currently in an attention state. */

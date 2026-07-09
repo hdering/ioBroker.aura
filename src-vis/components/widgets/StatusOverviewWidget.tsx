@@ -12,8 +12,6 @@ import {
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
-import { useDashboardStore } from '../../store/dashboardStore';
-import { useNavigationStore } from '../../store/navigationStore';
 import { useConfigStore } from '../../store/configStore';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
 import {
@@ -85,20 +83,6 @@ function formatItemName(item: StatusItem, pattern?: string): string {
 interface Candidate {
     dp: DatapointEntry;
     cat: CategoryKey;
-}
-
-/** Finds the first dashboard widget bound to `dpId` and navigates + pulse-highlights it. */
-function jumpToWidgetForDp(dpId: string): void {
-    const layouts = useDashboardStore.getState().layouts;
-    for (const l of layouts) {
-        for (const tab of l.tabs) {
-            const w = tab.widgets.find((wg) => wg.datapoint === dpId);
-            if (w) {
-                useNavigationStore.getState().navigateTo(l.id, tab.id, w.id);
-                return;
-            }
-        }
-    }
 }
 
 export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
@@ -318,8 +302,6 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         },
         [widgetId],
     );
-    const rowClickable = (opts.rowClick ?? 'jump') === 'jump';
-
     // ── Attention chip (the one "loud" element) ────────────────────────────────
     const chip = (
         <span
@@ -377,11 +359,8 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
             .join(' · ');
         return (
             <div
-                className={`flex items-center gap-2 py-1 px-1 -mx-1 rounded-md min-w-0 ${rowClickable ? 'cursor-pointer hover:bg-[var(--app-bg)]' : ''}`}
+                className="flex items-center gap-2 py-1 px-1 -mx-1 rounded-md min-w-0"
                 style={alert ? { background: customBg ?? `color-mix(in srgb, ${color} 12%, transparent)` } : undefined}
-                onClick={rowClickable ? () => jumpToWidgetForDp(item.id) : undefined}
-                data-widget-interactive={rowClickable ? '' : undefined}
-                title={rowClickable ? 'Zum Gerät springen' : undefined}
             >
                 <Icon size={14} style={{ color }} />
                 <span className="flex-1 min-w-0 truncate text-xs" style={{ color: 'var(--text-primary)' }}>
@@ -439,7 +418,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                         return (
                             <div
                                 key={item.id}
-                                className={`rounded-xl p-2 flex flex-col gap-1 ${rowClickable ? 'cursor-pointer' : ''}`}
+                                className="rounded-xl p-2 flex flex-col gap-1"
                                 style={{
                                     background: alert
                                         ? (customBg ??
@@ -447,9 +426,6 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                         : 'var(--app-bg)',
                                     border: `1px solid ${alert ? `color-mix(in srgb, ${color} 40%, transparent)` : 'var(--widget-border)'}`,
                                 }}
-                                onClick={rowClickable ? () => jumpToWidgetForDp(item.id) : undefined}
-                                data-widget-interactive={rowClickable ? '' : undefined}
-                                title={rowClickable ? 'Zum Gerät springen' : undefined}
                             >
                                 <span
                                     className="flex items-center gap-1 text-[10px] leading-tight"
@@ -489,7 +465,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                         return (
                             <span
                                 key={item.id}
-                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium ${rowClickable ? 'cursor-pointer hover:opacity-80' : ''}`}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium"
                                 style={{
                                     background: alert
                                         ? (customBg ?? `color-mix(in srgb, ${color} 14%, transparent)`)
@@ -497,9 +473,6 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                     color: alert ? color : 'var(--text-primary)',
                                     border: `1px solid ${alert ? `color-mix(in srgb, ${color} 34%, transparent)` : 'var(--widget-border)'}`,
                                 }}
-                                onClick={rowClickable ? () => jumpToWidgetForDp(item.id) : undefined}
-                                data-widget-interactive={rowClickable ? '' : undefined}
-                                title={rowClickable ? 'Zum Gerät springen' : undefined}
                             >
                                 <Icon size={11} className="shrink-0" style={{ color }} />
                                 <span className="truncate max-w-[120px]">{formatItemName(item, opts.namePattern)}</span>
