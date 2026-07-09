@@ -550,13 +550,16 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // Frontend range selector — shown when at least one series has history and not locked.
     const rangeSelector =
         hasHistory && !lockRange ? (
-            <div className="flex gap-1 flex-wrap">
+            // nowrap + horizontal scroll: keeps the chips on one line next to the
+            // day-nav controls; on very narrow widgets the chips scroll (swipe)
+            // instead of wrapping the day-nav into a second row.
+            <div className="nodrag flex gap-1 min-w-0 overflow-x-auto aura-no-scrollbar">
                 {PRESET_RANGES.map((r) => {
                     const active = dayOffset === null && activeRange === r;
                     return (
                         <button
                             key={r}
-                            className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+                            className="nodrag shrink-0 whitespace-nowrap px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
                             style={{
                                 background: active ? 'var(--accent)' : 'var(--app-border)',
                                 color: active ? '#fff' : 'var(--text-secondary)',
@@ -572,7 +575,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 })}
                 {cfgRange === 'custom' && (
                     <button
-                        className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+                        className="nodrag shrink-0 whitespace-nowrap px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
                         style={{
                             background: activeRange === 'custom' ? 'var(--accent)' : 'var(--app-border)',
                             color: activeRange === 'custom' ? '#fff' : 'var(--text-secondary)',
@@ -624,7 +627,10 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     <ChevronRight size={12} />
                 </button>
                 {dayWindow && (
-                    <span className="text-[10px] font-medium ml-1" style={{ color: 'var(--text-secondary)' }}>
+                    <span
+                        className="text-[10px] font-medium ml-1 whitespace-nowrap"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
                         {new Date(dayWindow.start).toLocaleDateString('de-DE', {
                             weekday: 'short',
                             day: '2-digit',
@@ -666,7 +672,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 </div>
             )}
             {(rangeSelector || dayNavControls) && (
-                <div className="shrink-0 mb-1 flex items-center justify-between gap-2 flex-wrap">
+                <div className="shrink-0 mb-1 flex items-center justify-between gap-2 min-w-0">
                     {rangeSelector ?? <span />}
                     {dayNavControls}
                 </div>
