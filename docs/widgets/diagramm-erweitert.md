@@ -57,6 +57,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartSeries[].color` | Palette | Linien-/Balkenfarbe |
 | `echartSeries[].yAxisIndex` | `0` | `0` = links, `1` = rechte Y-Achse |
 | `echartSeries[].smooth` | `true` | geglättete Linie (nur Linie/Fläche) |
+| `echartSeries[].aggregate` | `average` | `average` · `minmax` · `max` · `min` · `total` — `minmax` erhält echte Extremwerte mit echten Zeitstempeln (empfohlen für änderungsbasiert geloggte Zähler wie Tagesregen) |
 | `echartSeries[].lineWidth` | `2` | Linienstärke 1–4 (nur Linie/Fläche) |
 
 ### Achsen
@@ -81,6 +82,8 @@ Ein gemeinsamer Zeitraum für alle Serien.
 | `echartRangeCustomValue` | `24` | nur bei `custom` |
 | `echartRangeCustomUnit` | `h` | `h` · `d`, nur bei `custom` |
 | `lockRange` | `false` | Zeitraum-Umschalter im Frontend ausblenden |
+| `echartVisibleRanges` | alle | Welche Presets der Frontend-Umschalter anbietet, z. B. `["6h","24h","7d","30d"]` |
+| `echartDayNav` | `false` | Tages-Navigation im Frontend (◀ Heute ▶) — einzelne Kalendertage durchblättern |
 | `autoHistoryInstance` | `false` | History-Instanz je Serie automatisch erkennen |
 
 ### JSON-Override

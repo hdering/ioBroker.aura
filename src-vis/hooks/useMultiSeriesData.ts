@@ -18,6 +18,16 @@ export interface EChartSeriesConfig {
     smooth?: boolean;
     yAxisIndex?: 0 | 1;
     lineWidth?: number;
+    /** Absolute window override (ms epoch) — set by the widget's day navigation; wins over historyRange. */
+    historyStart?: number;
+    historyEnd?: number;
+    /**
+     * getHistory aggregation for stepped fetches (default `average`). `minmax` keeps the real
+     * extreme points with their true timestamps — right for sparsely change-logged datapoints
+     * (e.g. daily rain counters), where bucket averages smear resets and dropped empty buckets
+     * let the chart interpolate across days.
+     */
+    aggregate?: 'average' | 'minmax' | 'max' | 'min' | 'total';
 }
 
 export interface SeriesDataResult {
@@ -42,15 +52,16 @@ const RANGE_STEP: Record<Exclude<EChartTimeRange, 'custom'>, number | undefined>
     '30d': 21_600_000,
 };
 
-function getCustomMs(s: EChartSeriesConfig): number {
-    const val = s.historyRangeCustomValue ?? 24;
-    const unit = s.historyRangeCustomUnit ?? 'h';
-    return Math.max(1, val) * (unit === 'd' ? 86_400_000 : 3_600_000);
+/** Millisecond span of a range selection — also used by the widget to frame flat "no change" windows. */
+export function rangeToMs(range: EChartTimeRange, customValue?: number, customUnit?: 'h' | 'd'): number {
+    if (range === 'custom') {
+        return Math.max(1, customValue ?? 24) * ((customUnit ?? 'h') === 'd' ? 86_400_000 : 3_600_000);
+    }
+    return RANGE_MS[range];
 }
 
 function getRangeMs(s: EChartSeriesConfig): number {
-    const r = s.historyRange ?? '24h';
-    return r === 'custom' ? getCustomMs(s) : RANGE_MS[r];
+    return rangeToMs(s.historyRange ?? '24h', s.historyRangeCustomValue, s.historyRangeCustomUnit);
 }
 
 function getStepForMs(rangeMs: number): number | undefined {
@@ -161,6 +172,9 @@ export function useMultiSeriesData(
             s.historyRange,
             s.historyRange === 'custom' ? s.historyRangeCustomValue : undefined,
             s.historyRange === 'custom' ? s.historyRangeCustomUnit : undefined,
+            s.historyStart,
+            s.historyEnd,
+            s.aggregate,
         ]),
     );
 
@@ -216,35 +230,68 @@ export function useMultiSeriesData(
             }
 
             const range = s.historyRange ?? '24h';
-            const rangeMs = getRangeMs(s);
+            const hasAbsWindow = typeof s.historyStart === 'number' && typeof s.historyEnd === 'number';
+            const rangeMs = hasAbsWindow ? (s.historyEnd as number) - (s.historyStart as number) : getRangeMs(s);
             const now = Date.now();
-            const end = now;
-            const start = end - rangeMs;
-            const step = range === 'custom' ? getStepForMs(rangeMs) : RANGE_STEP[range];
+            const end = hasAbsWindow ? Math.min(s.historyEnd as number, now) : now;
+            const start = hasAbsWindow ? (s.historyStart as number) : end - rangeMs;
+            const step = hasAbsWindow
+                ? getStepForMs(rangeMs)
+                : range === 'custom'
+                  ? getStepForMs(rangeMs)
+                  : RANGE_STEP[range];
 
             getHistoryDirect(s.datapointId, {
                 instance: s.historyInstance,
                 start,
                 end,
                 step,
-                aggregate: step ? 'average' : 'none',
+                aggregate: step ? (s.aggregate ?? 'average') : 'none',
                 count: 1000,
             })
                 .then((entries: HistoryEntry[]) => {
                     if (!mountedRef.current) return;
-                    const data: [number, number][] = entries
+                    let data: [number, number][] = entries
                         .filter(
                             (e): e is { ts: number; val: number; ack?: boolean; q?: number } =>
                                 typeof e.val === 'number',
                         )
                         .map((e): [number, number] => [e.ts, e.val as number])
                         .sort((a, b) => a[0] - b[0]);
-                    const current = data.length > 0 ? data[data.length - 1][1] : null;
-                    setResultsMap((prev) => {
-                        const next = new Map(prev);
-                        next.set(s.id, { data, current, loading: false });
-                        return next;
-                    });
+                    if (hasAbsWindow) {
+                        // History adapters append border values at the window edges (last value
+                        // before start, first value after end). For a pinned calendar-day window
+                        // they leak the neighbour days in — e.g. the midnight reset of a daily
+                        // rain counter lands exactly on the end border and hides the day total.
+                        const winStart = s.historyStart as number;
+                        const winEnd = s.historyEnd as number;
+                        data = data.filter((p) => p[0] >= winStart && p[0] < winEnd);
+                    }
+                    if (data.length > 0) {
+                        const current = data[data.length - 1][1];
+                        setResultsMap((prev) => {
+                            const next = new Map(prev);
+                            next.set(s.id, { data, current, loading: false });
+                            return next;
+                        });
+                        return;
+                    }
+                    // Empty window — a change-logged datapoint simply had no changes in the
+                    // range. Seed the current value from the live state so the widget can
+                    // draw a flat line at it instead of reporting "no data".
+                    const finish = (state: ioBrokerState | null) => {
+                        if (!mountedRef.current) return;
+                        const val = typeof state?.val === 'number' ? (state.val as number) : null;
+                        setResultsMap((prev) => {
+                            const next = new Map(prev);
+                            next.set(s.id, { data: [], current: val, loading: false });
+                            return next;
+                        });
+                    };
+                    const cached = getStateFromCache(s.datapointId);
+                    if (cached) finish(cached);
+                    else if (getState) getState(s.datapointId).then(finish).catch(() => finish(null));
+                    else finish(null);
                 })
                 .catch(() => {
                     if (!mountedRef.current) return;
@@ -267,18 +314,24 @@ export function useMultiSeriesData(
     useEffect(() => {
         if (!connected || series.length === 0) return;
         const unsubs = series
-            .filter((s) => !!s.datapointId)
+            // Series pinned to a past absolute window are a frozen view — no live appends.
+            .filter((s) => !!s.datapointId && !(typeof s.historyEnd === 'number' && s.historyEnd < Date.now()))
             .map((s) => {
                 const cutoffMs = getRangeMs(s);
                 return subscribe(s.datapointId, (state: ioBrokerState) => {
                     if (typeof state.val !== 'number') return;
                     const val = state.val as number;
                     setResultsMap((prev) => {
+                        const existing = prev.get(s.id);
+                        // Adapters often re-write unchanged values on every poll (only the ts
+                        // moves). Appending those points rebuilt the chart each time — visible
+                        // as a periodic flicker. Returning the previous map bails out of the
+                        // re-render entirely.
+                        if (existing && !existing.loading && existing.current === val) return prev;
                         const next = new Map(prev);
-                        const existing = next.get(s.id);
                         let newData: [number, number][];
                         if (s.historyInstance && existing) {
-                            const cutoff = Date.now() - cutoffMs;
+                            const cutoff = typeof s.historyStart === 'number' ? s.historyStart : Date.now() - cutoffMs;
                             const trimmed = existing.data.filter((p) => p[0] >= cutoff);
                             if (trimmed.length > 0 && trimmed[trimmed.length - 1][0] === state.ts) {
                                 newData = trimmed;

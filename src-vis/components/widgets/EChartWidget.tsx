@@ -1,10 +1,11 @@
 import ReactECharts from 'echarts-for-react';
 import { useRef, useState, useEffect } from 'react';
-import { BarChart2, Loader } from 'lucide-react';
+import { BarChart2, ChevronLeft, ChevronRight, Loader } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import {
     useMultiSeriesData,
     useAutoHistoryInstances,
+    rangeToMs,
     type EChartSeriesConfig,
     type EChartTimeRange,
 } from '../../hooks/useMultiSeriesData';
@@ -80,10 +81,30 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const cfgCustomUnit =
         (o.echartRangeCustomUnit as 'h' | 'd' | undefined) ?? echartSeries[0]?.historyRangeCustomUnit ?? 'h';
     const lockRange = o.lockRange === true;
+    // Which presets the frontend selector offers (config-selectable; default: all).
+    const cfgVisibleRanges = o.echartVisibleRanges as EChartTimeRange[] | undefined;
+    const visibleRanges =
+        cfgVisibleRanges && cfgVisibleRanges.length > 0
+            ? PRESET_RANGES.filter((r) => cfgVisibleRanges.includes(r))
+            : PRESET_RANGES;
 
     const [activeRange, setActiveRange] = useState<EChartTimeRange>(cfgRange);
     const [activeCustomVal, setActiveCustomVal] = useState<number>(cfgCustomVal);
     const [activeCustomUnit, setActiveCustomUnit] = useState<'h' | 'd'>(cfgCustomUnit);
+
+    // ── Day navigation (◀ Heute ▶): view a single calendar day, step day by day ──
+    // null = normal rolling-range mode; number = offset in days from today (0 = today, -1 = yesterday …)
+    const dayNav = o.echartDayNav === true;
+    const [dayOffset, setDayOffset] = useState<number | null>(null);
+    const dayWindow = (() => {
+        if (!dayNav || dayOffset === null) return null;
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() + dayOffset);
+        const e = new Date(d);
+        e.setDate(e.getDate() + 1);
+        return { start: d.getTime(), end: e.getTime() };
+    })();
 
     // Reset frontend selection when the admin config changes
     useEffect(() => {
@@ -106,6 +127,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         historyRange: activeRange,
         historyRangeCustomValue: activeCustomVal,
         historyRangeCustomUnit: activeCustomUnit,
+        // Day mode pins all series to one absolute calendar-day window.
+        historyStart: dayWindow?.start,
+        historyEnd: dayWindow?.end,
     }));
 
     const hasHistory = effectiveSeries.some((s) => !!s.historyInstance);
@@ -161,11 +185,46 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         !hasAnyData &&
         echartSeries.some((s) => (s.datapointId ?? '').includes('{{'));
     const previewData = isPreview ? echartSeries.map((_, idx) => samplePreviewSeries(idx)) : null;
-    const seriesData = (idx: number, id: string): [number, number][] =>
-        previewData ? previewData[idx] : (seriesDataMap.get(id)?.data ?? []);
-    const seriesCurrent = (idx: number, id: string): number | null =>
-        previewData ? previewData[idx][previewData[idx].length - 1][1] : (seriesDataMap.get(id)?.current ?? null);
-    const effHasData = isPreview || hasAnyData;
+    // A window without records renders as a flat line instead of "Keine Daten":
+    //   • day mode: flat zero — the browsed day simply had nothing to log (e.g. no rain);
+    //   • rolling range: flat at the current value — a change-logged datapoint that
+    //     didn't change in the window has been constant at its live value the whole time.
+    const flatLineData = (current: number | null): [number, number][] => {
+        const now = Date.now();
+        if (dayWindow) {
+            return [
+                [dayWindow.start, 0],
+                [Math.min(dayWindow.end, now), 0],
+            ];
+        }
+        const val = current ?? 0;
+        return [
+            [now - rangeToMs(activeRange, activeCustomVal, activeCustomUnit), val],
+            [now, val],
+        ];
+    };
+    const seriesData = (idx: number, id: string): [number, number][] => {
+        if (previewData) return previewData[idx];
+        const r = seriesDataMap.get(id);
+        const data = r?.data ?? [];
+        if (
+            data.length === 0 &&
+            r &&
+            !r.loading &&
+            (dayWindow !== null || !!effectiveSeries[idx]?.historyInstance)
+        ) {
+            return flatLineData(r.current);
+        }
+        return data;
+    };
+    const seriesCurrent = (idx: number, id: string): number | null => {
+        if (previewData) return previewData[idx][previewData[idx].length - 1][1];
+        const current = seriesDataMap.get(id)?.current ?? null;
+        if (dayWindow && current === null && !seriesDataMap.get(id)?.loading) return 0;
+        return current;
+    };
+    const effHasData =
+        isPreview || hasAnyData || (echartSeries.length > 0 && !allLoading && (dayWindow !== null || hasHistory));
     const effLoading = !isPreview && allLoading;
 
     // Gauge mode: show first series' current value as a gauge
@@ -425,6 +484,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             type: s.chartType === 'area' ? 'line' : s.chartType,
             areaStyle: s.chartType === 'area' ? { opacity: 0.2 } : undefined,
             smooth: s.smooth ?? (s.chartType === 'line' || s.chartType === 'area'),
+            // Monotone smoothing never overshoots the data — a flat run of equal values
+            // (e.g. dry days at 0) stays exactly flat instead of wobbling around it.
+            smoothMonotone: 'x',
             lineStyle: { width: s.lineWidth ?? 2 },
             itemStyle: { color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length] },
             data,
@@ -482,6 +544,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             axisTick: { show: echartShowXAxis },
             axisLine: { show: echartShowXAxis, lineStyle: { color: '#444' } },
             splitLine: { show: false },
+            // Day mode: frame exactly the selected calendar day, even when data is sparse.
+            ...(dayWindow ? { min: dayWindow.start, max: dayWindow.end } : {}),
         },
         yAxis: [leftAxis, rightAxis],
         series: seriesList,
@@ -511,18 +575,24 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // Frontend range selector — shown when at least one series has history and not locked.
     const rangeSelector =
         hasHistory && !lockRange ? (
-            <div className="flex gap-1 flex-wrap">
-                {PRESET_RANGES.map((r) => {
-                    const active = activeRange === r;
+            // nowrap + horizontal scroll: keeps the chips on one line next to the
+            // day-nav controls; on very narrow widgets the chips scroll (swipe)
+            // instead of wrapping the day-nav into a second row.
+            <div className="nodrag flex gap-1 min-w-0 overflow-x-auto aura-no-scrollbar">
+                {visibleRanges.map((r) => {
+                    const active = dayOffset === null && activeRange === r;
                     return (
                         <button
                             key={r}
-                            className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+                            className="nodrag shrink-0 whitespace-nowrap px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
                             style={{
                                 background: active ? 'var(--accent)' : 'var(--app-border)',
                                 color: active ? '#fff' : 'var(--text-secondary)',
                             }}
-                            onClick={() => setActiveRange(r)}
+                            onClick={() => {
+                                setDayOffset(null);
+                                setActiveRange(r);
+                            }}
                         >
                             {RANGE_LABELS[r]}
                         </button>
@@ -530,12 +600,13 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 })}
                 {cfgRange === 'custom' && (
                     <button
-                        className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+                        className="nodrag shrink-0 whitespace-nowrap px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
                         style={{
                             background: activeRange === 'custom' ? 'var(--accent)' : 'var(--app-border)',
                             color: activeRange === 'custom' ? '#fff' : 'var(--text-secondary)',
                         }}
                         onClick={() => {
+                            setDayOffset(null);
                             setActiveRange('custom');
                             setActiveCustomVal(cfgCustomVal);
                             setActiveCustomUnit(cfgCustomUnit);
@@ -543,6 +614,54 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     >
                         {cfgCustomVal} {cfgCustomUnit === 'd' ? (cfgCustomVal === 1 ? 'Tag' : 'Tage') : 'Std'}
                     </button>
+                )}
+            </div>
+        ) : null;
+
+    // Day navigation (◀ Heute ▶) — step through single calendar days, "Heute" returns to the current day.
+    const navBtnStyle = (active: boolean): React.CSSProperties => ({
+        background: active ? 'var(--accent)' : 'var(--app-border)',
+        color: active ? '#fff' : 'var(--text-secondary)',
+    });
+    const dayNavControls =
+        dayNav && hasHistory ? (
+            <div className="flex items-center gap-1 shrink-0">
+                <button
+                    className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+                    style={navBtnStyle(false)}
+                    title="Einen Tag zurück"
+                    onClick={() => setDayOffset((prev) => (prev ?? 0) - 1)}
+                >
+                    <ChevronLeft size={12} />
+                </button>
+                <button
+                    className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+                    style={navBtnStyle(dayOffset === 0)}
+                    title="Zum aktuellen Tag"
+                    onClick={() => setDayOffset(0)}
+                >
+                    Heute
+                </button>
+                <button
+                    className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity disabled:opacity-40"
+                    style={navBtnStyle(false)}
+                    title="Einen Tag vor"
+                    disabled={dayOffset === null || dayOffset >= 0}
+                    onClick={() => setDayOffset((prev) => (prev !== null && prev < 0 ? prev + 1 : prev))}
+                >
+                    <ChevronRight size={12} />
+                </button>
+                {dayWindow && (
+                    <span
+                        className="text-[10px] font-medium ml-1 whitespace-nowrap"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
+                        {new Date(dayWindow.start).toLocaleDateString('de-DE', {
+                            weekday: 'short',
+                            day: '2-digit',
+                            month: '2-digit',
+                        })}
+                    </span>
                 )}
             </div>
         ) : null;
@@ -577,7 +696,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     )}
                 </div>
             )}
-            {rangeSelector && <div className="shrink-0 mb-1">{rangeSelector}</div>}
+            {(rangeSelector || dayNavControls) && (
+                <div className="shrink-0 mb-1 flex items-center justify-between gap-2 min-w-0">
+                    {rangeSelector ?? <span />}
+                    {dayNavControls}
+                </div>
+            )}
             {instancePickers.length > 0 && (
                 <div className="shrink-0 mb-1 flex items-center gap-1 flex-wrap">
                     {instancePickers.map((p) => (

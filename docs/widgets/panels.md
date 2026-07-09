@@ -25,7 +25,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | --- | --- | --- |
 | `showDots` | `true` | Pagination-Punkte anzeigen |
 | `showArrows` | `true` | Pfeil-Buttons anzeigen |
-| `loop` | `false` | Endlos-Schleife (vom letzten zum ersten Slide) |
+| `loop` | `false` | Endlos-Schleife — läuft nahtlos vom letzten zum ersten Slide weiter (und umgekehrt) |
 
 ### Autoplay
 
