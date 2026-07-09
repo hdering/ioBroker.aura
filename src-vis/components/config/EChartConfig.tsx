@@ -63,6 +63,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     // Which presets the frontend range selector offers (default: all).
     const frontendPresets = CHART_RANGES.filter((r) => r !== 'custom');
     const visibleRanges = (o.echartVisibleRanges as EChartTimeRange[] | undefined) ?? frontendPresets;
+    const setO = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
     const toggleVisibleRange = (r: EChartTimeRange) => {
         const next = visibleRanges.includes(r)
             ? visibleRanges.filter((x) => x !== r)
@@ -83,8 +84,6 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const [pickerForSeries, setPickerForSeries] = useState<string | null>(null);
     const [adapterStates, setAdapterStates] = useState<Record<string, SeriesAdapterState>>({});
     const [jsonOpen, setJsonOpen] = useState(false);
-
-    const setO = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
 
     const setSeries = (next: EChartSeriesConfig[]) => setO({ echartSeries: next });
 

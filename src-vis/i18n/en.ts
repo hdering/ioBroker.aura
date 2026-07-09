@@ -137,6 +137,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.tabBar.title': 'Tab Bar',
     'settings.tabBar.height': 'Height',
     'settings.tabBar.style': 'Tab Style',
+    'settings.tabBar.styleText': 'Colored',
     'settings.tabBar.styleUnderline': 'Underline',
     'settings.tabBar.styleFilled': 'Filled',
     'settings.tabBar.stylePills': 'Pills',

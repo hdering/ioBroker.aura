@@ -29,7 +29,7 @@ export interface TabBarSettings {
     background?: string; // CSS color or var(--...)
     activeColor?: string; // active tab text + indicator
     inactiveColor?: string; // inactive tab text
-    indicatorStyle?: 'underline' | 'filled' | 'pills';
+    indicatorStyle?: 'text' | 'underline' | 'filled' | 'pills';
     fontSize?: number | 'sm' | 'md' | 'lg'; // px when number; legacy keyword sizes still resolved
     iconSize?: number; // tab icon size in px, default 14
     tabsAlignment?: 'left' | 'center' | 'right'; // navigation tabs position

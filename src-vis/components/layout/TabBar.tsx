@@ -157,6 +157,14 @@ function tabStyle(isActive: boolean, settings: TabBarSettings | undefined): Reac
         };
     }
 
+    if (style === 'text') {
+        // Colored text only — no underline, no background.
+        return {
+            color: isActive ? `var(--tab-accent, ${activeClr})` : `var(--tab-text, ${inactiveClr})`,
+            borderBottom: 'none',
+        };
+    }
+
     // underline (default)
     return {
         borderBottomColor: isActive ? `var(--tab-accent, ${activeClr})` : 'transparent',

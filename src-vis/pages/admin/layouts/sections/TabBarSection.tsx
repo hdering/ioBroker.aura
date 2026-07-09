@@ -356,6 +356,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
     const hasOverride = isGlobal ? Object.keys(globalTb).length > 0 : !!layoutTb && Object.keys(layoutTb).length > 0;
 
     const styleOptions: Array<{ key: TabBarSettings['indicatorStyle']; label: string }> = [
+        { key: 'text', label: t('settings.tabBar.styleText') },
         { key: 'underline', label: t('settings.tabBar.styleUnderline') },
         { key: 'filled', label: t('settings.tabBar.styleFilled') },
         { key: 'pills', label: t('settings.tabBar.stylePills') },

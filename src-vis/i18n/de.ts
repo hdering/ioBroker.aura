@@ -136,6 +136,7 @@ export const de = {
     'settings.tabBar.title': 'Tableiste',
     'settings.tabBar.height': 'Höhe',
     'settings.tabBar.style': 'Tab-Stil',
+    'settings.tabBar.styleText': 'Farbig',
     'settings.tabBar.styleUnderline': 'Unterstrich',
     'settings.tabBar.styleFilled': 'Gefüllt',
     'settings.tabBar.stylePills': 'Pill',
