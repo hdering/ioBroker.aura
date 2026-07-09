@@ -16,6 +16,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         });
         root.style.setProperty('--font-scale', String(fontScale));
         root.classList.toggle('dark', theme.dark);
+        // Match native form-control chrome to the theme (like AdminLayout does).
+        // Without this, dark themes keep color-scheme:light, so a native
+        // <input type=range> gets a WHITE UA background — the semi-transparent
+        // dimmer rail then composites over white and looks far brighter than the
+        // admin backend (which sets color-scheme:dark). Also fixes scrollbars /
+        // selects / date pickers to render dark in dark themes.
+        root.style.colorScheme = theme.dark ? 'dark' : 'light';
     }, [theme, customVars, fontScale]);
 
     return <>{children}</>;
