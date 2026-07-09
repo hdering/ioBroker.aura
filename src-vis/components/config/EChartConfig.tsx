@@ -256,7 +256,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                             disabled={idx === 0}
                                             className="p-0.5 rounded hover:opacity-80 disabled:opacity-30"
                                             style={{ color: 'var(--text-secondary)' }}
-                                            title="Nach oben"
+                                            title={t('echart.moveUp')}
                                         >
                                             <ChevronUp size={11} />
                                         </button>
@@ -265,7 +265,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                             disabled={idx === series.length - 1}
                                             className="p-0.5 rounded hover:opacity-80 disabled:opacity-30"
                                             style={{ color: 'var(--text-secondary)' }}
-                                            title="Nach unten"
+                                            title={t('echart.moveDown')}
                                         >
                                             <ChevronDown size={11} />
                                         </button>
@@ -527,7 +527,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                             </label>
                                                             <input
                                                                 type="text"
-                                                                placeholder="leer = Instanz des auslösenden Widgets"
+                                                                placeholder={t('echart.templateInstancePlaceholder')}
                                                                 value={s.historyInstance ?? ''}
                                                                 onChange={(e) =>
                                                                     updateSeries(s.id, {
@@ -541,8 +541,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                 className="text-[11px] mt-1"
                                                                 style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                                                             >
-                                                                Platzhalter-Datenpunkt – leer lassen, um die
-                                                                Verlaufs-Instanz vom auslösenden Widget zu übernehmen.
+                                                                {t('echart.templateInstanceHint')}
                                                             </p>
                                                         </div>
                                                     )}
@@ -677,7 +676,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                 {/* Show Y-axis scale */}
                 <div className="flex items-center justify-between mb-2">
                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Y-Achse anzeigen
+                        {t('echart.showYAxis')}
                     </label>
                     <button
                         onClick={() => setO({ echartShowYAxis: !echartShowYAxis })}
@@ -694,7 +693,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                 {/* Show X-axis scale */}
                 <div className="flex items-center justify-between mb-2">
                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        X-Achse anzeigen
+                        {t('echart.showXAxis')}
                     </label>
                     <button
                         onClick={() => setO({ echartShowXAxis: !echartShowXAxis })}
@@ -711,7 +710,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                 {/* Horizontal grid lines */}
                 <div className="flex items-center justify-between mb-2">
                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Horizontale Linien
+                        {t('echart.gridLines')}
                     </label>
                     <button
                         onClick={() => setO({ echartShowGridLines: !echartShowGridLines })}
@@ -728,7 +727,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                 {/* Show current value */}
                 <div className="flex items-center justify-between mb-2">
                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Aktuellen Wert anzeigen
+                        {t('echart.showCurrentValue')}
                     </label>
                     <button
                         onClick={() => setO({ echartShowCurrent: !echartShowCurrent })}
@@ -789,7 +788,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                             border: `1px solid ${echartRangeCustomUnit === u ? 'var(--accent)' : 'var(--app-border)'}`,
                                         }}
                                     >
-                                        {u === 'h' ? 'Std' : 'Tage'}
+                                        {u === 'h' ? t('echart.unitHoursShort') : t('echart.unitDaysShort')}
                                     </button>
                                 ))}
                             </div>
@@ -829,7 +828,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                 className="rounded"
                             />
                             <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                Zeitraum im Frontend sperren
+                                {t('echart.lockRangeToggle')}
                             </span>
                         </label>
                         <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
@@ -849,7 +848,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                 {/* Decimal places */}
                 <div className="flex items-center justify-between mb-2">
                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Dezimalstellen (Tooltip)
+                        {t('echart.decimals')}
                     </label>
                     <div className="flex gap-1">
                         <input
@@ -869,11 +868,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         />
                         <button
                             onClick={() => setO({ decimals: o.decimals === undefined ? defaultDecimals : undefined })}
-                            title={
-                                o.decimals === undefined
-                                    ? 'Globale Einstellung aktiv – klicken für eigenen Wert'
-                                    : 'Auf globale Einstellung zurücksetzen'
-                            }
+                            title={o.decimals === undefined ? t('echart.globalActive') : t('echart.resetToGlobal')}
                             className="px-1.5 rounded text-[10px] font-bold shrink-0"
                             style={{
                                 background: o.decimals === undefined ? 'var(--accent)' : 'var(--app-border)',

@@ -420,7 +420,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                             style={{ color: 'var(--text-secondary)' }}
                         >
                             <BarChart2 size={28} strokeWidth={1.5} />
-                            <span className="text-xs">Keine Daten</span>
+                            <span className="text-xs">{t('echart.noData')}</span>
                         </div>
                     )}
                     {hasSize && hasData && (
@@ -510,7 +510,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 if (!items?.length) return '';
                 const ts = items[0].axisValue;
                 const date = new Date(ts);
-                const timeStr = date.toLocaleString('de-DE', {
+                const timeStr = date.toLocaleString(t('echart.dateLocale'), {
                     day: '2-digit',
                     month: '2-digit',
                     hour: '2-digit',
@@ -609,7 +609,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                             setActiveCustomUnit(cfgCustomUnit);
                         }}
                     >
-                        {cfgCustomVal} {cfgCustomUnit === 'd' ? (cfgCustomVal === 1 ? 'Tag' : 'Tage') : 'Std'}
+                        {cfgCustomVal}{' '}
+                        {cfgCustomUnit === 'd'
+                            ? cfgCustomVal === 1
+                                ? t('echart.daySingular')
+                                : t('echart.dayPlural')
+                            : t('echart.unitHoursShort')}
                     </button>
                 )}
             </div>
@@ -712,7 +717,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                             }}
                             value={p.value}
                             onChange={(e) => setPicked(p.id, e.target.value)}
-                            title={echartSeries.length > 1 ? p.name : 'Verlaufs-Instanz'}
+                            title={echartSeries.length > 1 ? p.name : t('echart.historyInstance')}
                         >
                             {p.adapters.map((a) => (
                                 <option key={a.instance} value={a.instance}>
@@ -733,7 +738,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                             border: '1px solid var(--app-border)',
                         }}
                     >
-                        Vorschau
+                        {t('echart.preview')}
                     </span>
                 )}
                 {effLoading && (
@@ -750,7 +755,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                         style={{ color: 'var(--text-secondary)' }}
                     >
                         <BarChart2 size={28} strokeWidth={1.5} />
-                        <span className="text-xs">Keine Daten</span>
+                        <span className="text-xs">{t('echart.noData')}</span>
                     </div>
                 )}
                 {hasSize && effHasData && (
