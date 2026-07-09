@@ -406,6 +406,12 @@ export function TabBar({
         background: barBg,
         borderBottom: '1px solid var(--app-border)',
         fontSize: resolveTabBarFontSize(tbSettings?.fontSize),
+        // Lift the bar into its own stacking context above the dashboard content.
+        // Bottom-corner tab badges overflow downward past the bar (see .aura-badge-room);
+        // without this, the following-sibling content — especially opaque iframe widgets —
+        // paints over that overflow and hides the badge.
+        position: 'relative',
+        zIndex: 10,
         ...(barHeight ? { minHeight: `${barHeight}px` } : {}),
     };
 
