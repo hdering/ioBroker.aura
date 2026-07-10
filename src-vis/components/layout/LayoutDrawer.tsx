@@ -61,13 +61,13 @@ function entryActiveStyle(
             };
         case 'filled':
         default:
-            // Not a full-width fill — an inset rounded accent outline that hugs the
-            // entry (via `outline`, so it adds no layout shift), plus accent text.
+            // Subtle NEUTRAL elevated fill (not accent-tinted) with a rounded chip that
+            // hugs the entry — the accent shows only in the bullet/icon. The overlay is
+            // built from --text-primary so it adapts to light and dark themes.
             return {
-                color: 'var(--accent)',
-                borderRadius: '0.5rem',
-                outline: '1.5px solid var(--accent)',
-                outlineOffset: '-4px',
+                background: 'color-mix(in srgb, var(--text-primary) 7%, transparent)',
+                color: 'var(--text-primary)',
+                borderRadius: '0.75rem',
                 borderLeft: '3px solid transparent',
             };
     }
@@ -179,8 +179,9 @@ export function LayoutDrawer({
     const iconBox = iconSize + 16;
 
     // Shared layout list — reused by the overlay drawer and the docked sidebar.
+    // Container gets a little horizontal padding so the selected chip reads as inset.
     const list = (
-        <div className="flex-1 overflow-y-auto py-2">
+        <div className="flex-1 overflow-y-auto py-2 px-2">
             {layouts.map((layout) => {
                 const isActive = layout.id === activeLayout?.id;
                 return (
@@ -188,7 +189,7 @@ export function LayoutDrawer({
                         key={layout.id}
                         onClick={() => goToLayout(layout)}
                         title={entryStyle === 'iconOnly' ? layout.name : undefined}
-                        className={`w-full flex items-center gap-3 px-4 py-1.5 transition-colors hover:opacity-90 text-left ${entryStyle === 'iconOnly' ? 'justify-center' : ''}`}
+                        className={`w-full flex items-center gap-3 px-3 py-1.5 transition-colors hover:opacity-90 text-left ${entryStyle === 'iconOnly' ? 'justify-center' : ''}`}
                         style={{
                             minHeight: entryHeight,
                             ...entryActiveStyle(isActive, indicatorStyle),
@@ -198,9 +199,13 @@ export function LayoutDrawer({
                             <span
                                 className="shrink-0 rounded-full"
                                 style={{
-                                    width: 6,
-                                    height: 6,
-                                    background: isActive ? 'currentColor' : 'var(--text-secondary)',
+                                    width: 7,
+                                    height: 7,
+                                    background: isActive
+                                        ? indicatorStyle === 'pills'
+                                            ? 'currentColor'
+                                            : 'var(--accent)'
+                                        : 'var(--text-secondary)',
                                 }}
                             />
                         )}
@@ -222,7 +227,10 @@ export function LayoutDrawer({
                             </span>
                         )}
                         {showName && (
-                            <span className="font-medium truncate" style={{ fontSize }}>
+                            <span
+                                className={`truncate ${isActive ? 'font-semibold' : 'font-medium'}`}
+                                style={{ fontSize }}
+                            >
                                 {layout.name}
                             </span>
                         )}
