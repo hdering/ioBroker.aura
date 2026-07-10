@@ -263,23 +263,25 @@ export function LayoutMenuSection() {
                         onChange={(v) => updateFrontend({ layoutDrawerShowTitle: v })}
                     />
                     {(frontend.layoutDrawerShowTitle ?? true) && (
-                        <div>
-                            <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                                {t('settings.frontend.layoutDrawerTitle')}
-                            </p>
-                            <input
-                                type="text"
-                                value={frontend.layoutDrawerTitle ?? ''}
-                                onChange={(e) => updateFrontend({ layoutDrawerTitle: e.target.value })}
-                                placeholder={t('layoutDrawer.title')}
-                                className="w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            />
-                        </div>
+                        <SubGroup>
+                            <div>
+                                <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('settings.frontend.layoutDrawerTitle')}
+                                </p>
+                                <input
+                                    type="text"
+                                    value={frontend.layoutDrawerTitle ?? ''}
+                                    onChange={(e) => updateFrontend({ layoutDrawerTitle: e.target.value })}
+                                    placeholder={t('layoutDrawer.title')}
+                                    className="w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-primary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                />
+                            </div>
+                        </SubGroup>
                     )}
                     {/* Placement decides the menu type first (floating / tab-bar / docked sidebar). */}
                     <div>
