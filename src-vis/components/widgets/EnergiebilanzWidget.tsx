@@ -428,16 +428,57 @@ function PieChart({
     }
 
     const segments = items.filter((c) => c.value > 0);
-    let angle = 0;
+
+    // Lay out every slice's angular span once so the slices and the small-slice outside
+    // labels share the same geometry (angle 0 = top, growing clockwise).
+    let acc = 0;
+    const laid = segments.map((c) => {
+        const frac = c.value / total;
+        const start = acc;
+        const end = acc + frac * 2 * Math.PI;
+        acc = end;
+        return { c, frac, start, end, mid: (start + end) / 2 };
+    });
+
+    // Slices below this share can't fit a readable label inside, so their percentage is
+    // pulled outside the ring with a leader line instead of being dropped. Only when
+    // percentages are shown and there's more than one slice.
+    const OUTSIDE_MAX = 8;
+    const outside =
+        showPercent && laid.length > 1
+            ? laid.filter((s) => s.c.percent > 0 && s.c.percent < OUTSIDE_MAX && s.frac < 0.9999)
+            : [];
+
+    // Widen the viewBox only when there are outside labels, so a pie without tiny slices
+    // still fills the box at full size.
+    const pad = outside.length > 0 ? 22 : 2;
+    const viewBox = `${-pad} ${-pad} ${100 + 2 * pad} ${100 + 2 * pad}`;
+
+    // De-collide outside labels per side: sort by their natural edge-y, push apart to a
+    // minimum gap, then shift the column up if it runs past the bottom margin.
+    const MIN_GAP = 9;
+    const yBottom = cy + R + 16;
+    const adjY = new Map<string, number>();
+    for (const sign of [1, -1] as const) {
+        const col = outside
+            .filter((s) => (Math.sin(s.mid) >= 0 ? 1 : -1) === sign)
+            .map((s) => ({ id: s.c.entry.id, y: polar(cx, cy, R, s.mid)[1] }))
+            .sort((a, b) => a.y - b.y);
+        for (let i = 1; i < col.length; i++) {
+            if (col[i].y - col[i - 1].y < MIN_GAP) col[i].y = col[i - 1].y + MIN_GAP;
+        }
+        const overflow = col.length ? col[col.length - 1].y - yBottom : 0;
+        if (overflow > 0) for (const e of col) e.y -= overflow;
+        for (const e of col) adjY.set(e.id, e.y);
+    }
 
     return (
         <div className="self-stretch min-h-0 shrink-0 flex items-center justify-center">
-            <svg viewBox="0 0 100 100" style={{ height: '100%', maxHeight: size, width: 'auto', aspectRatio: '1 / 1' }}>
-                {segments.map((c) => {
-                    const frac = c.value / total;
+            <svg viewBox={viewBox} style={{ height: '100%', maxHeight: size, width: 'auto', aspectRatio: '1 / 1' }}>
+                {laid.map((s) => {
+                    const c = s.c;
                     // A single full-circle segment: draw a ring/disc (an arc from 0 to 2π is degenerate).
-                    if (frac >= 0.9999) {
-                        angle = 2 * Math.PI;
+                    if (s.frac >= 0.9999) {
                         // Label sits at the top of the ring band; the donut centre still shows the total.
                         const [lx, ly] = polar(cx, cy, (R + rInner) / 2, 0);
                         const shape = donut ? (
@@ -459,15 +500,42 @@ function PieChart({
                             </g>
                         );
                     }
-                    const start = angle;
-                    const end = angle + frac * 2 * Math.PI;
-                    angle = end;
-                    const mid = (start + end) / 2;
-                    const [lx, ly] = polar(cx, cy, (R + rInner) / 2, mid);
+                    const [lx, ly] = polar(cx, cy, (R + rInner) / 2, s.mid);
                     return (
                         <g key={c.entry.id}>
-                            <path d={sectorPath(cx, cy, R, rInner, start, end)} fill={c.color} />
+                            <path d={sectorPath(cx, cy, R, rInner, s.start, s.end)} fill={c.color} />
                             {renderLabel(c, lx, ly)}
+                        </g>
+                    );
+                })}
+                {outside.map((s) => {
+                    const c = s.c;
+                    const right = Math.sin(s.mid) >= 0;
+                    const [ex, ey] = polar(cx, cy, R, s.mid);
+                    const y = adjY.get(c.entry.id) ?? ey;
+                    const kneeX = right ? cx + R + 7 : cx - R - 7;
+                    const textX = right ? kneeX + 2 : kneeX - 2;
+                    const label = c.percent < 1 ? '<1 %' : `${Math.round(c.percent)} %`;
+                    return (
+                        <g key={`o-${c.entry.id}`} style={{ pointerEvents: 'none' }}>
+                            <polyline
+                                points={`${ex},${ey} ${kneeX},${y} ${textX},${y}`}
+                                fill="none"
+                                stroke={c.color}
+                                strokeWidth={0.6}
+                                strokeOpacity={0.75}
+                            />
+                            <text
+                                x={textX + (right ? 0.5 : -0.5)}
+                                y={y}
+                                fill={c.color}
+                                fontSize={7}
+                                fontWeight={600}
+                                textAnchor={right ? 'start' : 'end'}
+                                dominantBaseline="central"
+                            >
+                                {label}
+                            </text>
                         </g>
                     );
                 })}
