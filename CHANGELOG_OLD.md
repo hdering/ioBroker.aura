@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.21.7 (2026-07-07)
+- 🌟 **New feature:** Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize
+- 🌟 **New feature:** Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)
+- Tab bar - fix tabs sticking to the top instead of being vertically centered (regression from the mobile scroll-hint change)
+
 ## 0.21.6 (2026-07-07)
 - Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits
 

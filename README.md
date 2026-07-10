@@ -115,6 +115,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.23.5 (2026-07-10)
+- Media player - relative cover paths (e.g. Sonos current_cover) now resolve automatically, no full-URL datapoint needed
+- Widgets - transparency mode with partial strength now keeps rounded corners in the frontend instead of showing square edges
+- Widgets - enabling transparency mode no longer shifts the widget content outward (padding and border box are preserved)
+
+
 ### 0.23.4 (2026-07-10)
 - Input widget - field width is now adjustable (setting added after Placeholder)
 - Tab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)
@@ -219,12 +225,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - fix(guidelines): show resolution badge in mobile view too
 
 
-### 0.21.7 (2026-07-07)
-- 🌟 **New feature:** Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize
-- 🌟 **New feature:** Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)
-- Tab bar - fix tabs sticking to the top instead of being vertically centered (regression from the mobile scroll-hint change)
-
-
 ## License
 
 MIT License
@@ -236,6 +236,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
