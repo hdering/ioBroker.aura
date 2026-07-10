@@ -257,6 +257,53 @@ export function LayoutMenuSection() {
             />
             {frontend.layoutDrawerEnabled && (
                 <div className="space-y-3 pt-1">
+                    {/* Placement decides the menu type first (floating / tab-bar / docked sidebar). */}
+                    <div>
+                        <p className="text-base font-semibold mb-1.5" style={{ color: 'var(--text-primary)' }}>
+                            {t('settings.frontend.layoutDrawerPlacement')}
+                        </p>
+                        <div className="flex gap-1.5">
+                            {(['floating', 'tabbar', 'sidebar'] as const).map((v) => {
+                                const labels = {
+                                    floating: t('settings.frontend.layoutDrawerPlacementFloating'),
+                                    tabbar: t('settings.frontend.layoutDrawerPlacementTabbar'),
+                                    sidebar: t('settings.frontend.layoutDrawerPlacementSidebar'),
+                                };
+                                const active = (frontend.layoutDrawerPlacement ?? 'floating') === v;
+                                const autoHide = frontend.layoutDrawerAutoHide ?? false;
+                                let disabledReason: string | undefined;
+                                // 'sidebar' is a docked menu that works with or without the header — never disabled.
+                                if (v !== 'sidebar' && frontend.showHeader) {
+                                    disabledReason = t('settings.frontend.layoutDrawerPlacementDisabledHeader');
+                                } else if (v === 'tabbar' && autoHide) {
+                                    disabledReason = t('settings.frontend.layoutDrawerPlacementTabbarDisabledAutoHide');
+                                }
+                                const disabled = !!disabledReason;
+                                return (
+                                    <button
+                                        key={v}
+                                        onClick={() => {
+                                            if (!disabled) updateFrontend({ layoutDrawerPlacement: v });
+                                        }}
+                                        disabled={disabled}
+                                        title={disabledReason}
+                                        className={`px-2.5 py-1 rounded-lg text-xs font-medium ${disabled ? 'cursor-not-allowed' : 'hover:opacity-80'}`}
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                            opacity: disabled ? 0.4 : 1,
+                                        }}
+                                    >
+                                        {labels[v]}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                            {t('settings.frontend.layoutDrawerPlacementHint')}
+                        </p>
+                    </div>
                     <ToggleRow
                         label={t('settings.frontend.layoutDrawerShowTitle')}
                         value={frontend.layoutDrawerShowTitle ?? true}
@@ -326,52 +373,6 @@ export function LayoutMenuSection() {
                         />
                         <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                             {t('settings.frontend.layoutDrawerAutoHideHint')}
-                        </p>
-                    </div>
-                    <div>
-                        <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                            {t('settings.frontend.layoutDrawerPlacement')}
-                        </p>
-                        <div className="flex gap-1.5">
-                            {(['floating', 'tabbar', 'sidebar'] as const).map((v) => {
-                                const labels = {
-                                    floating: t('settings.frontend.layoutDrawerPlacementFloating'),
-                                    tabbar: t('settings.frontend.layoutDrawerPlacementTabbar'),
-                                    sidebar: t('settings.frontend.layoutDrawerPlacementSidebar'),
-                                };
-                                const active = (frontend.layoutDrawerPlacement ?? 'floating') === v;
-                                const autoHide = frontend.layoutDrawerAutoHide ?? false;
-                                let disabledReason: string | undefined;
-                                // 'sidebar' is a docked menu that works with or without the header — never disabled.
-                                if (v !== 'sidebar' && frontend.showHeader) {
-                                    disabledReason = t('settings.frontend.layoutDrawerPlacementDisabledHeader');
-                                } else if (v === 'tabbar' && autoHide) {
-                                    disabledReason = t('settings.frontend.layoutDrawerPlacementTabbarDisabledAutoHide');
-                                }
-                                const disabled = !!disabledReason;
-                                return (
-                                    <button
-                                        key={v}
-                                        onClick={() => {
-                                            if (!disabled) updateFrontend({ layoutDrawerPlacement: v });
-                                        }}
-                                        disabled={disabled}
-                                        title={disabledReason}
-                                        className={`px-2.5 py-1 rounded-lg text-xs font-medium ${disabled ? 'cursor-not-allowed' : 'hover:opacity-80'}`}
-                                        style={{
-                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                            color: active ? '#fff' : 'var(--text-secondary)',
-                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                            opacity: disabled ? 0.4 : 1,
-                                        }}
-                                    >
-                                        {labels[v]}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                            {t('settings.frontend.layoutDrawerPlacementHint')}
                         </p>
                     </div>
                     {frontend.layoutDrawerPlacement === 'sidebar' && (

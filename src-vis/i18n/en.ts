@@ -99,7 +99,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.layoutDrawerAutoHide': 'Auto-hide',
     'settings.frontend.layoutDrawerAutoHideHint':
         'Button appears only when the mouse is near the top edge (or after a top-area touch). Applies only when the header is hidden.',
-    'settings.frontend.layoutDrawerPlacement': 'Position',
+    'settings.frontend.layoutDrawerPlacement': 'Placement',
     'settings.frontend.layoutDrawerPlacementFloating': 'Floating',
     'settings.frontend.layoutDrawerPlacementTabbar': 'In tab bar',
     'settings.frontend.layoutDrawerPlacementSidebar': 'Docked sidebar',

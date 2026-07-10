@@ -97,7 +97,7 @@ export const de = {
     'settings.frontend.layoutDrawerAutoHide': 'Auto-Ausblenden',
     'settings.frontend.layoutDrawerAutoHideHint':
         'Button erscheint nur, wenn die Maus oben am Rand ist (oder bei Touch nach Tipp im oberen Bereich). Wirkt nur wenn der Header ausgeblendet ist.',
-    'settings.frontend.layoutDrawerPlacement': 'Position',
+    'settings.frontend.layoutDrawerPlacement': 'Platzierung',
     'settings.frontend.layoutDrawerPlacementFloating': 'Schwebend',
     'settings.frontend.layoutDrawerPlacementTabbar': 'In Tab-Leiste',
     'settings.frontend.layoutDrawerPlacementSidebar': 'Feste Seitenleiste',
