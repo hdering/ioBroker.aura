@@ -739,10 +739,16 @@ export default function App() {
     const drawerSize = frontend.layoutDrawerSize ?? 'md';
     const drawerAutoHide = frontend.layoutDrawerAutoHide ?? false;
     const drawerPlacement = frontend.layoutDrawerPlacement ?? 'floating';
-    const drawerInTabBar = drawerEnabled && !frontend.showHeader && drawerPlacement === 'tabbar' && !drawerAutoHide;
-    const drawerFloating = drawerEnabled && !frontend.showHeader && !drawerInTabBar;
+    // Docked sidebar: always-visible left menu, works with or without header — overrides overlay placements.
+    const drawerSidebar = drawerEnabled && drawerPlacement === 'sidebar';
+    const drawerWidth = frontend.layoutDrawerWidth ?? 240;
+    const drawerInTabBar =
+        drawerEnabled && !drawerSidebar && !frontend.showHeader && drawerPlacement === 'tabbar' && !drawerAutoHide;
+    const drawerFloating = drawerEnabled && !drawerSidebar && !frontend.showHeader && !drawerInTabBar;
+    const drawerShowTitle = frontend.layoutDrawerShowTitle ?? true;
     const drawerTitle = frontend.layoutDrawerTitle ?? '';
     const drawerEntryStyle = frontend.layoutDrawerEntryStyle ?? 'iconAndName';
+    const drawerEntryHeight = frontend.layoutDrawerEntryHeight ?? 48;
 
     return (
         <div
@@ -758,102 +764,123 @@ export default function App() {
                     floating
                     size={drawerSize}
                     autoHide={drawerAutoHide}
+                    showTitle={drawerShowTitle}
                     drawerTitle={drawerTitle}
                     entryStyle={drawerEntryStyle}
+                    entryHeight={drawerEntryHeight}
                 />
             )}
-            {frontend.showHeader && (
-                <header
-                    className="aura-header flex items-center justify-between px-4 sm:px-6 py-4 shrink-0"
-                    style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)' }}
-                >
-                    <div className="flex items-center gap-3 min-w-0">
-                        {drawerEnabled && (
-                            <LayoutDrawer
-                                activeLayoutId={layout?.id}
-                                size={drawerSize}
-                                drawerTitle={drawerTitle}
-                                entryStyle={drawerEntryStyle}
-                            />
-                        )}
-                        <h1 className="aura-titel text-xl font-bold tracking-tight truncate">
-                            {frontend.headerTitle || 'Aura'}
-                        </h1>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        {frontend.headerDatapoint && (
-                            <HeaderDatapoint
-                                id={frontend.headerDatapoint}
-                                template={frontend.headerDatapointTemplate || undefined}
-                            />
-                        )}
-                        {frontend.headerClockEnabled && <HeaderClock f={frontend} />}
-                        {showBadge && <ConnectionBadge />}
-                        {frontend.showAdminLink && (
-                            <a
-                                href="#/admin"
-                                className="w-8 h-8 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-secondary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                                title="Admin"
-                            >
-                                <Settings size={15} />
-                            </a>
-                        )}
-                        <button
-                            onClick={() => {
-                                const nextId = currentTheme.dark ? 'light' : 'dark';
-                                themeModeOverride.value = nextId; // seed before setTheme so snap-back doesn't revert
-                                setTheme(nextId);
-                                if (layout?.settings?.themeId) clearLayoutSettings(layout.id, 'themeId');
-                                setStateDirect(`${NS}.config.themeMode.frontend`, nextId);
-                            }}
-                            className="w-8 h-8 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
-                            style={{
-                                background: 'var(--app-bg)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                            title={currentTheme.dark ? 'Hell-Modus' : 'Dunkel-Modus'}
+            <div className={drawerSidebar ? 'flex-1 min-h-0 flex' : 'contents'}>
+                {drawerSidebar && (
+                    <LayoutDrawer
+                        activeLayoutId={layout?.id}
+                        variant="sidebar"
+                        width={drawerWidth}
+                        showTitle={drawerShowTitle}
+                        drawerTitle={drawerTitle}
+                        entryStyle={drawerEntryStyle}
+                        entryHeight={drawerEntryHeight}
+                    />
+                )}
+                <div className={drawerSidebar ? 'flex-1 min-w-0 flex flex-col' : 'contents'}>
+                    {frontend.showHeader && (
+                        <header
+                            className="aura-header flex items-center justify-between px-4 sm:px-6 py-4 shrink-0"
+                            style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)' }}
                         >
-                            {currentTheme.dark ? <Sun size={15} /> : <Moon size={15} />}
-                        </button>
+                            <div className="flex items-center gap-3 min-w-0">
+                                {drawerEnabled && !drawerSidebar && (
+                                    <LayoutDrawer
+                                        activeLayoutId={layout?.id}
+                                        size={drawerSize}
+                                        showTitle={drawerShowTitle}
+                                        drawerTitle={drawerTitle}
+                                        entryStyle={drawerEntryStyle}
+                                        entryHeight={drawerEntryHeight}
+                                    />
+                                )}
+                                <h1 className="aura-titel text-xl font-bold tracking-tight truncate">
+                                    {frontend.headerTitle || 'Aura'}
+                                </h1>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                {frontend.headerDatapoint && (
+                                    <HeaderDatapoint
+                                        id={frontend.headerDatapoint}
+                                        template={frontend.headerDatapointTemplate || undefined}
+                                    />
+                                )}
+                                {frontend.headerClockEnabled && <HeaderClock f={frontend} />}
+                                {showBadge && <ConnectionBadge />}
+                                {frontend.showAdminLink && (
+                                    <a
+                                        href="#/admin"
+                                        className="w-8 h-8 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            color: 'var(--text-secondary)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                        title="Admin"
+                                    >
+                                        <Settings size={15} />
+                                    </a>
+                                )}
+                                <button
+                                    onClick={() => {
+                                        const nextId = currentTheme.dark ? 'light' : 'dark';
+                                        themeModeOverride.value = nextId; // seed before setTheme so snap-back doesn't revert
+                                        setTheme(nextId);
+                                        if (layout?.settings?.themeId) clearLayoutSettings(layout.id, 'themeId');
+                                        setStateDirect(`${NS}.config.themeMode.frontend`, nextId);
+                                    }}
+                                    className="w-8 h-8 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                    title={currentTheme.dark ? 'Hell-Modus' : 'Dunkel-Modus'}
+                                >
+                                    {currentTheme.dark ? <Sun size={15} /> : <Moon size={15} />}
+                                </button>
+                            </div>
+                        </header>
+                    )}
+                    <TabBar
+                        readonly
+                        layoutId={layout?.id}
+                        viewTabs={tabs}
+                        viewActiveTabId={activeTabId}
+                        onViewTabClick={(tab) => {
+                            const slug = tab.slug ?? tab.id;
+                            if (layoutSlug) {
+                                navigate(`/view/${layoutSlug}/tab/${slug}`);
+                            } else {
+                                navigate(`/tab/${slug}`);
+                            }
+                        }}
+                        layoutUrlBase={layoutUrlBase}
+                        headerSlot={
+                            drawerInTabBar ? (
+                                <LayoutDrawer
+                                    activeLayoutId={layout?.id}
+                                    size={drawerSize}
+                                    iconOnly
+                                    showTitle={drawerShowTitle}
+                                    drawerTitle={drawerTitle}
+                                    entryStyle={drawerEntryStyle}
+                                    entryHeight={drawerEntryHeight}
+                                />
+                            ) : undefined
+                        }
+                    />
+                    <div className="flex-1 min-h-0 flex flex-col">
+                        <FocusedWidgetContext.Provider value={focusWidgetId}>
+                            <Dashboard readonly viewTabs={tabs} viewActiveTabId={activeTabId} layoutId={layout?.id} />
+                        </FocusedWidgetContext.Provider>
                     </div>
-                </header>
-            )}
-            <TabBar
-                readonly
-                layoutId={layout?.id}
-                viewTabs={tabs}
-                viewActiveTabId={activeTabId}
-                onViewTabClick={(tab) => {
-                    const slug = tab.slug ?? tab.id;
-                    if (layoutSlug) {
-                        navigate(`/view/${layoutSlug}/tab/${slug}`);
-                    } else {
-                        navigate(`/tab/${slug}`);
-                    }
-                }}
-                layoutUrlBase={layoutUrlBase}
-                headerSlot={
-                    drawerInTabBar ? (
-                        <LayoutDrawer
-                            activeLayoutId={layout?.id}
-                            size={drawerSize}
-                            iconOnly
-                            drawerTitle={drawerTitle}
-                            entryStyle={drawerEntryStyle}
-                        />
-                    ) : undefined
-                }
-            />
-            <div className="flex-1 min-h-0 flex flex-col">
-                <FocusedWidgetContext.Provider value={focusWidgetId}>
-                    <Dashboard readonly viewTabs={tabs} viewActiveTabId={activeTabId} layoutId={layout?.id} />
-                </FocusedWidgetContext.Provider>
+                </div>
             </div>
         </div>
     );

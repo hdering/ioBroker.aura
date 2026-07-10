@@ -12,6 +12,7 @@ import {
     Undo2,
     Layers,
     Layers2,
+    Palette,
     Sun,
     Moon,
     ExternalLink,
@@ -20,7 +21,6 @@ import {
     AppWindow,
     BookOpen,
     Code2,
-    MonitorSmartphone,
     AlertTriangle,
     Activity,
 } from 'lucide-react';
@@ -278,11 +278,11 @@ export function AdminLayout() {
 
     const NAV = [
         { to: '/admin', label: t('admin.nav.overview'), icon: LayoutDashboard, end: true },
+        { to: '/admin/layouts', label: t('admin.nav.layouts'), icon: Layers2 },
         { to: '/admin/editor', label: t('admin.nav.editor'), icon: PenSquare },
         { to: '/admin/popups', label: t('admin.nav.popups'), icon: AppWindow },
         { to: '/admin/widgets', label: t('admin.nav.widgets'), icon: Layers },
-        { to: '/admin/layouts', label: t('admin.nav.layouts'), icon: Layers2 },
-        { to: '/admin/frontend', label: t('admin.nav.frontend'), icon: MonitorSmartphone },
+        { to: '/admin/design', label: t('admin.nav.design'), icon: Palette },
         { to: '/admin/css-js', label: t('admin.nav.cssjs'), icon: Code2 },
         { to: '/admin/loadtimes', label: t('admin.nav.loadtimes'), icon: Activity },
         { to: '/admin/settings', label: t('admin.nav.settings'), icon: Settings },

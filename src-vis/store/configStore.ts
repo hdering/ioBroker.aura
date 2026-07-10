@@ -45,12 +45,21 @@ export interface FrontendSettings {
     layoutDrawerSize: 'sm' | 'md' | 'lg';
     /** Floating button auto-hides; reveals near top edge (mouse) or top-touch (touch). */
     layoutDrawerAutoHide: boolean;
-    /** When header is hidden: render hamburger as a floating top-left button, or inline in the TabBar. */
-    layoutDrawerPlacement: 'floating' | 'tabbar';
+    /**
+     * floating/tabbar: hamburger trigger opening an overlay (only when header is hidden).
+     * sidebar: permanently docked left menu (no overlay), always visible — works with or without header.
+     */
+    layoutDrawerPlacement: 'floating' | 'tabbar' | 'sidebar';
+    /** Width in px of the docked sidebar (placement='sidebar'). */
+    layoutDrawerWidth: number;
+    /** Show the menu title/header row. */
+    layoutDrawerShowTitle: boolean;
     /** Drawer header title; empty falls back to the localized default ("Layouts"). */
     layoutDrawerTitle: string;
     /** How entries are shown in the drawer list. */
     layoutDrawerEntryStyle: 'iconAndName' | 'iconOnly' | 'nameOnly';
+    /** Min height in px of each menu entry. */
+    layoutDrawerEntryHeight: number;
     // Idle return — auto-switch back to default tab after inactivity
     idleReturnEnabled: boolean;
     /** Seconds of inactivity before returning to the default tab. */
@@ -141,8 +150,11 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     layoutDrawerSize: 'md',
     layoutDrawerAutoHide: false,
     layoutDrawerPlacement: 'floating',
+    layoutDrawerWidth: 240,
+    layoutDrawerShowTitle: true,
     layoutDrawerTitle: '',
     layoutDrawerEntryStyle: 'iconAndName',
+    layoutDrawerEntryHeight: 48,
     idleReturnEnabled: false,
     idleReturnDelay: 30,
     optimisticUpdates: true,

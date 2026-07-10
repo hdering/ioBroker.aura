@@ -50,9 +50,7 @@ const AdminWidgets = lazyWithReload(() =>
 const AdminLayouts = lazyWithReload(() =>
     import('./pages/admin/AdminLayouts').then((m) => ({ default: m.AdminLayouts })),
 );
-const AdminFrontend = lazyWithReload(() =>
-    import('./pages/admin/AdminFrontend').then((m) => ({ default: m.AdminFrontend })),
-);
+const AdminDesign = lazyWithReload(() => import('./pages/admin/AdminDesign').then((m) => ({ default: m.AdminDesign })));
 const AdminCssJs = lazyWithReload(() => import('./pages/admin/AdminCssJs').then((m) => ({ default: m.AdminCssJs })));
 const AdminPopups = lazyWithReload(() => import('./pages/admin/AdminPopups').then((m) => ({ default: m.AdminPopups })));
 const PopupViewEditor = lazyWithReload(() =>
@@ -85,10 +83,11 @@ const router = createHashRouter([
         children: [
             { index: true, element: lazyRoute(AdminDashboard) },
             { path: 'editor', element: lazyRoute(AdminEditor) },
-            { path: 'theme', element: <Navigate to="/admin/layouts?tab=theme" replace /> },
+            { path: 'theme', element: <Navigate to="/admin/design?tab=theme" replace /> },
             { path: 'widgets', element: lazyRoute(AdminWidgets) },
             { path: 'layouts', element: lazyRoute(AdminLayouts) },
-            { path: 'frontend', element: lazyRoute(AdminFrontend) },
+            { path: 'design', element: lazyRoute(AdminDesign) },
+            { path: 'frontend', element: <Navigate to="/admin/design?frame=header" replace /> },
             { path: 'css-js', element: lazyRoute(AdminCssJs) },
             { path: 'popups', element: lazyRoute(AdminPopups) },
             { path: 'popups/:viewId', element: lazyRoute(PopupViewEditor) },

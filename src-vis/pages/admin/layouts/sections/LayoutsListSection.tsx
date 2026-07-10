@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
     Plus,
     Pencil,
@@ -13,6 +13,7 @@ import {
     GripVertical,
     Download,
     Upload,
+    Palette,
 } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { useDashboardStore, type DashboardLayout } from '../../../../store/dashboardStore';
@@ -98,6 +99,8 @@ function LayoutRow({
         setActiveLayout(layout.id);
         navigate('/admin/editor');
     };
+
+    const openDesign = () => navigate(`/admin/design?ctx=${layout.id}`);
 
     const isDragging = dragIdx === index;
     const isDragTarget = dragOverIdx === index && dragIdx !== null && dragIdx !== index;
@@ -283,6 +286,18 @@ function LayoutRow({
                         style={{ background: 'var(--accent)', color: '#fff' }}
                     >
                         <Pencil size={12} /> {t('layouts.edit')}
+                    </button>
+                    <button
+                        onClick={openDesign}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                        title={t('layouts.designSettings')}
+                    >
+                        <Palette size={13} />
                     </button>
                     <button
                         onClick={() => setShowDup(!showDup)}
@@ -521,6 +536,25 @@ export function LayoutsListSection({
                         <Plus size={14} /> {t('layouts.newLayout')}
                     </button>
                 </div>
+            </div>
+
+            <div
+                className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs"
+                style={{
+                    background: 'var(--app-surface)',
+                    border: '1px solid var(--app-border)',
+                    color: 'var(--text-secondary)',
+                }}
+            >
+                <Palette size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                <span>{t('layouts.designHint')}</span>
+                <Link
+                    to="/admin/design"
+                    className="font-medium hover:underline shrink-0"
+                    style={{ color: 'var(--accent)' }}
+                >
+                    {t('layouts.designHintLink')}
+                </Link>
             </div>
 
             {showNew && (

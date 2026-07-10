@@ -29,7 +29,7 @@ export default [
     // without a project service, and we intentionally disabled it above).
     tseslint.configs.disableTypeChecked,
     {
-        ignores: ['www/**', 'node_modules/**', 'dist/**'],
+        ignores: ['www/**', 'node_modules/**', 'dist/**', 'src-vis/**/*.generated.ts'],
     },
     // Downgrade "Definition for rule X was not found" from error to warning.
     // eslint-plugin-react (v7) is ESLint-10-incompatible so we don't load it;

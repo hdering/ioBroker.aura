@@ -58,7 +58,12 @@ async function shotModal(name) {
     const pad = 6;
     await page.screenshot({
         path: `${OUT}/${name}.png`,
-        clip: { x: Math.max(0, box.x - pad), y: Math.max(0, box.y - pad), width: box.width + pad * 2, height: box.height + pad * 2 },
+        clip: {
+            x: Math.max(0, box.x - pad),
+            y: Math.max(0, box.y - pad),
+            width: box.width + pad * 2,
+            height: box.height + pad * 2,
+        },
     });
     console.log('✓', `${name}.png (modal)`);
 }
@@ -66,7 +71,9 @@ async function shotModal(name) {
 // ── bootstrap: login bypass + seed ──────────────────────────────────────────
 await page.goto(`${BASE}/?shot=1#/`, { waitUntil: 'networkidle' });
 await ensureReady();
-await page.evaluate(() => localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 })));
+await page.evaluate(() =>
+    localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 })),
+);
 
 // ── 1. Übersicht ────────────────────────────────────────────────────────────
 await go('admin');
@@ -88,15 +95,19 @@ await shotPage('popups');
 await go('admin/widgets');
 await shotPage('widgets');
 
-// ── 5. Layouts (5 sub-tabs) ──────────────────────────────────────────────────
-for (const tab of ['theme', 'typo', 'grid', 'guidelines', 'tabbar']) {
-    await go(`admin/layouts?tab=${tab}`);
-    await shotPage(`layouts-${tab}`);
-}
+// ── 5. Layouts (list) ────────────────────────────────────────────────────────
+await go('admin/layouts');
+await shotPage('layouts');
 
-// ── 6. Frontend ──────────────────────────────────────────────────────────────
-await go('admin/frontend');
-await shotPage('frontend');
+// ── 6. Design (global-frame sections + scoped appearance sub-tabs) ────────────
+for (const frame of ['header', 'menu', 'nav']) {
+    await go(`admin/design?frame=${frame}`);
+    await shotPage(`design-${frame}`);
+}
+for (const tab of ['theme', 'typo', 'grid', 'guidelines', 'tabbar']) {
+    await go(`admin/design?tab=${tab}`);
+    await shotPage(`design-${tab}`);
+}
 
 // ── 7. CSS & JS (2 tabs) ─────────────────────────────────────────────────────
 for (const tab of ['css', 'js']) {

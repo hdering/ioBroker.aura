@@ -20,10 +20,18 @@ interface LayoutDrawerProps {
     autoHide?: boolean;
     /** Inline mode: render only the menu icon (no layout name) — used inside the TabBar. */
     iconOnly?: boolean;
+    /** Show the menu title/header row. */
+    showTitle?: boolean;
     /** Custom drawer header title; empty/undefined falls back to the localized default. */
     drawerTitle?: string;
     /** How each entry in the drawer list is rendered. */
     entryStyle?: 'iconAndName' | 'iconOnly' | 'nameOnly';
+    /** 'overlay' = hamburger trigger + slide-in drawer; 'sidebar' = permanently docked left menu. */
+    variant?: 'overlay' | 'sidebar';
+    /** Width in px of the docked sidebar (variant='sidebar'). */
+    width?: number;
+    /** Min height in px of each menu entry. */
+    entryHeight?: number;
 }
 
 // Sizing scale for the trigger button. Icon + container scale together.
@@ -42,8 +50,12 @@ export function LayoutDrawer({
     size = 'md',
     autoHide = false,
     iconOnly = false,
+    showTitle = true,
     drawerTitle,
     entryStyle = 'iconAndName',
+    variant = 'overlay',
+    width = 240,
+    entryHeight = 48,
 }: LayoutDrawerProps) {
     const t = useT();
     const navigate = useNavigate();
@@ -119,6 +131,74 @@ export function LayoutDrawer({
         }
     };
 
+    // Shared layout list — reused by the overlay drawer and the docked sidebar.
+    const list = (
+        <div className="flex-1 overflow-y-auto py-2">
+            {layouts.map((layout) => {
+                const isActive = layout.id === activeLayout?.id;
+                return (
+                    <button
+                        key={layout.id}
+                        onClick={() => goToLayout(layout)}
+                        title={entryStyle === 'iconOnly' ? layout.name : undefined}
+                        className={`w-full flex items-center gap-3 px-4 py-1.5 transition-colors hover:opacity-90 text-left ${entryStyle === 'iconOnly' ? 'justify-center' : ''}`}
+                        style={{
+                            minHeight: entryHeight,
+                            background: isActive ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
+                            color: isActive ? 'var(--accent)' : 'var(--text-primary)',
+                            borderLeft: `3px solid ${isActive ? 'var(--accent)' : 'transparent'}`,
+                        }}
+                    >
+                        {entryStyle !== 'nameOnly' && (
+                            <span
+                                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                                style={{
+                                    background: isActive ? 'var(--accent)22' : 'var(--app-bg)',
+                                    color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
+                                }}
+                            >
+                                {layout.icon ? (
+                                    <Icon icon={layout.icon} width={16} height={16} />
+                                ) : (
+                                    <LayoutDashboard size={15} />
+                                )}
+                            </span>
+                        )}
+                        {entryStyle !== 'iconOnly' && (
+                            <span className="text-sm font-medium truncate">{layout.name}</span>
+                        )}
+                    </button>
+                );
+            })}
+        </div>
+    );
+
+    // Docked sidebar: always visible, no overlay/trigger, no portal.
+    if (variant === 'sidebar') {
+        return (
+            <aside
+                className="h-full flex flex-col shrink-0 overflow-hidden"
+                style={{
+                    width,
+                    background: 'var(--app-surface)',
+                    borderRight: '1px solid var(--app-border)',
+                }}
+            >
+                {showTitle && entryStyle !== 'iconOnly' && (
+                    <div
+                        className="flex items-center px-4 py-3 shrink-0"
+                        style={{ borderBottom: '1px solid var(--app-border)' }}
+                    >
+                        <span className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                            {drawerTitle?.trim() || t('layoutDrawer.title')}
+                        </span>
+                    </div>
+                )}
+                {list}
+            </aside>
+        );
+    }
+
     const trigger = (
         <button
             onClick={() => setOpen(true)}
@@ -174,9 +254,13 @@ export function LayoutDrawer({
                           className="flex items-center justify-between px-4 py-3 shrink-0"
                           style={{ borderBottom: '1px solid var(--app-border)' }}
                       >
-                          <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                              {drawerTitle?.trim() || t('layoutDrawer.title')}
-                          </span>
+                          {showTitle ? (
+                              <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                  {drawerTitle?.trim() || t('layoutDrawer.title')}
+                              </span>
+                          ) : (
+                              <span />
+                          )}
                           <button
                               onClick={() => setOpen(false)}
                               className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
@@ -187,45 +271,7 @@ export function LayoutDrawer({
                           </button>
                       </div>
 
-                      <div className="flex-1 overflow-y-auto py-2">
-                          {layouts.map((layout) => {
-                              const isActive = layout.id === activeLayout?.id;
-                              return (
-                                  <button
-                                      key={layout.id}
-                                      onClick={() => goToLayout(layout)}
-                                      title={entryStyle === 'iconOnly' ? layout.name : undefined}
-                                      className={`w-full flex items-center gap-3 px-4 py-3 transition-colors hover:opacity-90 text-left ${entryStyle === 'iconOnly' ? 'justify-center' : ''}`}
-                                      style={{
-                                          background: isActive
-                                              ? 'color-mix(in srgb, var(--accent) 15%, transparent)'
-                                              : 'transparent',
-                                          color: isActive ? 'var(--accent)' : 'var(--text-primary)',
-                                          borderLeft: `3px solid ${isActive ? 'var(--accent)' : 'transparent'}`,
-                                      }}
-                                  >
-                                      {entryStyle !== 'nameOnly' && (
-                                          <span
-                                              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                                              style={{
-                                                  background: isActive ? 'var(--accent)22' : 'var(--app-bg)',
-                                                  color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
-                                              }}
-                                          >
-                                              {layout.icon ? (
-                                                  <Icon icon={layout.icon} width={16} height={16} />
-                                              ) : (
-                                                  <LayoutDashboard size={15} />
-                                              )}
-                                          </span>
-                                      )}
-                                      {entryStyle !== 'iconOnly' && (
-                                          <span className="text-sm font-medium truncate">{layout.name}</span>
-                                      )}
-                                  </button>
-                              );
-                          })}
-                      </div>
+                      {list}
                   </aside>
                   <style>{`@keyframes auraDrawerIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }`}</style>
               </>,
