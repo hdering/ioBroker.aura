@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 Media player - relative cover paths (e.g. Sonos current_cover) now resolve automatically, no full-URL datapoint needed
 Widgets - transparency mode with partial strength now keeps rounded corners in the frontend instead of showing square edges
+Widgets - enabling transparency mode no longer shifts the widget content outward (padding and border box are preserved)

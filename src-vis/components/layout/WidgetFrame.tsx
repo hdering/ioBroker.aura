@@ -5555,7 +5555,6 @@ export function WidgetFrame({
         isHeader ||
         isGroup ||
         config.type === 'panels' ||
-        isTransparent ||
         config.type === 'iframe' ||
         config.type === 'map' ||
         config.type === 'echartsPreset';
@@ -5573,9 +5572,10 @@ export function WidgetFrame({
                               isTransparent && (editMode || transparencyStrength < 100) ? 'var(--widget-radius)' : 0,
                           boxShadow: 'none',
                           backdropFilter: 'none',
-                          borderWidth: isTransparent && editMode ? 1 : 0,
+                          borderWidth: isHeader ? 0 : editMode ? 1 : 'var(--widget-border-width)',
                           borderStyle: 'dashed',
                           borderColor: isTransparent && editMode ? 'var(--app-border)' : 'transparent',
+                          padding: isHeader || isNoPad ? undefined : widgetPadding,
                           cursor: !editMode && hasClickAction ? 'pointer' : undefined,
                           ...cssOverride,
                           ...(!editMode && conditionResult.hidden && !conditionResult.reflow
