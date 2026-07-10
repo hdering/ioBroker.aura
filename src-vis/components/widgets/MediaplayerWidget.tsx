@@ -19,6 +19,29 @@ type MediaChip = {
     value?: string | number | boolean;
 };
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Resolve a cover-art datapoint value into a browser-loadable image src.
+ *  - empty / data: / absolute http(s) / protocol-relative → use as-is
+ *  - base64 blob (long, no scheme, no slash) → data: URI
+ *  - relative path (e.g. Sonos `sonos/coverImage/x.png`) → prepend page origin.
+ *  A cache-buster derived from the current track (title+artist) is appended to
+ *  relative covers so the image refreshes on track change even when the adapter
+ *  keeps writing the same filename (Sonos reuses `<ip>.png` per device). */
+function resolveCoverUrl(raw: string, title: string, artist: string): string {
+    const v = raw.trim();
+    if (!v) return '';
+    if (v.startsWith('data:') || /^(https?:)?\/\//i.test(v)) return v;
+    // Long token with no scheme and no path separator → raw base64 image data
+    if (!v.includes('/') && v.length > 64) return `data:image/jpeg;base64,${v}`;
+    const path = v.startsWith('/') ? v : `/${v}`;
+    const url = window.location.origin + path;
+    const bust = `${title}|${artist}`.trim();
+    if (!bust) return url;
+    const sep = url.includes('?') ? '&' : '?';
+    return `${url}${sep}_aura_cb=${encodeURIComponent(bust)}`;
+}
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function CoverImage({ src, Icon, iconSize }: { src: string; Icon: React.ElementType | null; iconSize: number }) {
@@ -264,7 +287,10 @@ export function MediaplayerWidget({ config }: WidgetProps) {
     const artistStr = String(artist ?? '');
     const albumStr = String(album ?? '');
     const sourceStr = String(source ?? '');
-    const coverStr = String(cover ?? '');
+    const coverStr = useMemo(
+        () => resolveCoverUrl(String(cover ?? ''), titleStr, artistStr),
+        [cover, titleStr, artistStr],
+    );
     const subtitle = [artistStr, albumStr].filter(Boolean).join(' · ');
 
     const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
