@@ -3,7 +3,7 @@ import { Plus, X } from 'lucide-react';
 import { useConfigStore } from '../../../../store/configStore';
 import type { LayoutMenuItem } from '../../../../store/dashboardStore';
 import { useT } from '../../../../i18n';
-import { ToggleRow } from '../shared/SettingControls';
+import { ToggleRow, SubGroup } from '../shared/SettingControls';
 
 // ── LayoutMenuItemRow ─────────────────────────────────────────────────────────
 // Editor row for one extra menu element (clock / datapoint / text). Mirrors the
@@ -257,6 +257,30 @@ export function LayoutMenuSection() {
             />
             {frontend.layoutDrawerEnabled && (
                 <div className="space-y-3 pt-1">
+                    <ToggleRow
+                        label={t('settings.frontend.layoutDrawerShowTitle')}
+                        value={frontend.layoutDrawerShowTitle ?? true}
+                        onChange={(v) => updateFrontend({ layoutDrawerShowTitle: v })}
+                    />
+                    {(frontend.layoutDrawerShowTitle ?? true) && (
+                        <div>
+                            <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                {t('settings.frontend.layoutDrawerTitle')}
+                            </p>
+                            <input
+                                type="text"
+                                value={frontend.layoutDrawerTitle ?? ''}
+                                onChange={(e) => updateFrontend({ layoutDrawerTitle: e.target.value })}
+                                placeholder={t('layoutDrawer.title')}
+                                className="w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            />
+                        </div>
+                    )}
                     {/* Placement decides the menu type first (floating / tab-bar / docked sidebar). */}
                     <div>
                         <p className="text-base font-semibold mb-1.5" style={{ color: 'var(--text-primary)' }}>
@@ -304,107 +328,85 @@ export function LayoutMenuSection() {
                             {t('settings.frontend.layoutDrawerPlacementHint')}
                         </p>
                     </div>
-                    <ToggleRow
-                        label={t('settings.frontend.layoutDrawerShowTitle')}
-                        value={frontend.layoutDrawerShowTitle ?? true}
-                        onChange={(v) => updateFrontend({ layoutDrawerShowTitle: v })}
-                    />
-                    {(frontend.layoutDrawerShowTitle ?? true) && (
-                        <div>
-                            <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                                {t('settings.frontend.layoutDrawerTitle')}
-                            </p>
-                            <input
-                                type="text"
-                                value={frontend.layoutDrawerTitle ?? ''}
-                                onChange={(e) => updateFrontend({ layoutDrawerTitle: e.target.value })}
-                                placeholder={t('layoutDrawer.title')}
-                                className="w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            />
-                        </div>
-                    )}
-                    {/* Hamburger-button appearance + behavior — only relevant for the trigger
-                        button (floating / tab-bar placement); hidden for the docked sidebar. */}
-                    {(frontend.layoutDrawerPlacement ?? 'floating') !== 'sidebar' && (
-                        <div className="rounded-lg p-3 space-y-3" style={{ border: '1px solid var(--app-border)' }}>
-                            <p
-                                className="text-[11px] font-semibold uppercase tracking-wide"
-                                style={{ color: 'var(--text-secondary)' }}
-                            >
-                                {t('settings.frontend.layoutDrawerHamburger')}
-                            </p>
+                    {/* Placement-dependent options as an indented sub-group directly under the
+                        placement chooser — makes clear which settings depend on the chosen placement. */}
+                    <SubGroup>
+                        {(frontend.layoutDrawerPlacement ?? 'floating') !== 'sidebar' && (
+                            <>
+                                <p
+                                    className="text-[11px] font-semibold uppercase tracking-wide"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    {t('settings.frontend.layoutDrawerHamburger')}
+                                </p>
+                                <div>
+                                    <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('settings.frontend.layoutDrawerSize')}
+                                    </p>
+                                    <div className="flex gap-1.5">
+                                        {(['sm', 'md', 'lg'] as const).map((v) => {
+                                            const labels = {
+                                                sm: t('common.sizeSmall'),
+                                                md: t('common.sizeMedium'),
+                                                lg: t('common.sizeLarge'),
+                                            };
+                                            const active = (frontend.layoutDrawerSize ?? 'md') === v;
+                                            return (
+                                                <button
+                                                    key={v}
+                                                    onClick={() => updateFrontend({ layoutDrawerSize: v })}
+                                                    className="px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
+                                                    style={{
+                                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                        color: active ? '#fff' : 'var(--text-secondary)',
+                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                    }}
+                                                >
+                                                    {labels[v]}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                <ToggleRow
+                                    label={t('settings.frontend.layoutDrawerAutoHide')}
+                                    value={frontend.layoutDrawerAutoHide ?? false}
+                                    onChange={(v) => updateFrontend({ layoutDrawerAutoHide: v })}
+                                />
+                                <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                                    {t('settings.frontend.layoutDrawerAutoHideHint')}
+                                </p>
+                            </>
+                        )}
+                        {frontend.layoutDrawerPlacement === 'sidebar' && (
                             <div>
                                 <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('settings.frontend.layoutDrawerSize')}
+                                    {t('settings.frontend.layoutDrawerWidth')}
                                 </p>
-                                <div className="flex gap-1.5">
-                                    {(['sm', 'md', 'lg'] as const).map((v) => {
-                                        const labels = {
-                                            sm: t('common.sizeSmall'),
-                                            md: t('common.sizeMedium'),
-                                            lg: t('common.sizeLarge'),
-                                        };
-                                        const active = (frontend.layoutDrawerSize ?? 'md') === v;
-                                        return (
-                                            <button
-                                                key={v}
-                                                onClick={() => updateFrontend({ layoutDrawerSize: v })}
-                                                className="px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
-                                                style={{
-                                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                                    color: active ? '#fff' : 'var(--text-secondary)',
-                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                }}
-                                            >
-                                                {labels[v]}
-                                            </button>
-                                        );
-                                    })}
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="number"
+                                        min={120}
+                                        max={600}
+                                        value={frontend.layoutDrawerWidth ?? 240}
+                                        onChange={(e) => {
+                                            const v = Math.min(600, Math.max(120, parseInt(e.target.value) || 240));
+                                            updateFrontend({ layoutDrawerWidth: v });
+                                        }}
+                                        className="w-24 text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            color: 'var(--text-primary)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                    />
+                                    <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                        px
+                                    </span>
                                 </div>
                             </div>
-                            <ToggleRow
-                                label={t('settings.frontend.layoutDrawerAutoHide')}
-                                value={frontend.layoutDrawerAutoHide ?? false}
-                                onChange={(v) => updateFrontend({ layoutDrawerAutoHide: v })}
-                            />
-                            <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                                {t('settings.frontend.layoutDrawerAutoHideHint')}
-                            </p>
-                        </div>
-                    )}
-                    {frontend.layoutDrawerPlacement === 'sidebar' && (
-                        <div>
-                            <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                                {t('settings.frontend.layoutDrawerWidth')}
-                            </p>
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="number"
-                                    min={120}
-                                    max={600}
-                                    value={frontend.layoutDrawerWidth ?? 240}
-                                    onChange={(e) => {
-                                        const v = Math.min(600, Math.max(120, parseInt(e.target.value) || 240));
-                                        updateFrontend({ layoutDrawerWidth: v });
-                                    }}
-                                    className="w-24 text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
-                                    style={{
-                                        background: 'var(--app-bg)',
-                                        color: 'var(--text-primary)',
-                                        border: '1px solid var(--app-border)',
-                                    }}
-                                />
-                                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                    px
-                                </span>
-                            </div>
-                        </div>
-                    )}
+                        )}
+                    </SubGroup>
                     <div>
                         <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                             {t('settings.frontend.layoutDrawerEntryStyle')}
