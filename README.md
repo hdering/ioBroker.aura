@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.24.2 (2026-07-10)
+- Layouts can be hidden from the layout menu (still reachable via their direct URL)
+- Layout menu can be hidden per layout — e.g. lock a wall tablet to a single layout
+
+
 ### 0.24.1 (2026-07-10)
 - refactor(layout-menu): show the menu-title input in a SubGroup like placement
 - refactor(layout-menu): group placement-dependent settings under the placement
@@ -226,10 +231,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Add Test section to README (#425)
 
 
-### 0.21.11 (2026-07-07)
-- Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)
-
-
 ## License
 
 MIT License
@@ -241,6 +242,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

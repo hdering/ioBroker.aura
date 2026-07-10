@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.24.1",
+    "version": "0.24.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.24.2": {
+        "en": "Layouts can be hidden from the layout menu (still reachable via their direct URL)\nLayout menu can be hidden per layout — e.g. lock a wall tablet to a single layout",
+        "de": "Layouts can be hidden from the layout menu (still reachable via their direct URL)\nLayout menu can be hidden per layout — e.g. lock a wall tablet to a single layout",
+        "ru": "Layouts can be hidden from the layout menu (still reachable via their direct URL)\nLayout menu can be hidden per layout — e.g. lock a wall tablet to a single layout",
+        "pt": "Layouts can be hidden from the layout menu (still reachable via their direct URL)\nLayout menu can be hidden per layout — e.g. lock a wall tablet to a single layout",
+        "nl": "Layouts can be hidden from the layout menu (still reachable via their direct URL)\nLayout menu can be hidden per layout — e.g. lock a wall tablet to a single layout",
+        "fr": "Layouts can be hidden from the layout menu (still reachable via their direct URL)\nLayout menu can be hidden per layout — e.g. lock a wall tablet to a single layout",
+        "it": "Layouts can be hidden from the layout menu (still reachable via their direct URL)\nLayout menu can be hidden per layout — e.g. lock a wall tablet to a single layout",
+        "es": "Layouts can be hidden from the layout menu (still reachable via their direct URL)\nLayout menu can be hidden per layout — e.g. lock a wall tablet to a single layout",
+        "pl": "Layouts can be hidden from the layout menu (still reachable via their direct URL)\nLayout menu can be hidden per layout — e.g. lock a wall tablet to a single layout",
+        "uk": "Layouts can be hidden from the layout menu (still reachable via their direct URL)\nLayout menu can be hidden per layout — e.g. lock a wall tablet to a single layout",
+        "zh-cn": "Layouts can be hidden from the layout menu (still reachable via their direct URL)\nLayout menu can be hidden per layout — e.g. lock a wall tablet to a single layout"
+      },
       "0.24.1": {
         "en": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
         "de": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
@@ -184,19 +197,6 @@
         "pl": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend",
         "uk": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend",
         "zh-cn": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend"
-      },
-      "0.23.2": {
-        "en": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it",
-        "de": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it",
-        "ru": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it",
-        "pt": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it",
-        "nl": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it",
-        "fr": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it",
-        "it": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it",
-        "es": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it",
-        "pl": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it",
-        "uk": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it",
-        "zh-cn": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it"
       }
     }
   },

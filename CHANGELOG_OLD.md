@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.21.11 (2026-07-07)
+- Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)
+
 ## 0.21.10 (2026-07-07)
 - fix(list): stop frontend value filter from resetting after config sync
 - fix(list): apply frontend value filter instantly via local state
