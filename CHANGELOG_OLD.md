@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.21.9 (2026-07-07)
+- Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open
+
 ## 0.21.8 (2026-07-07)
 - feat(guidelines): drop "hide now" button from resolution hint
 - fix(guidelines): show resolution badge in mobile view too
