@@ -14370,6 +14370,7 @@ export function WidgetFrame({
                             'windowcontact',
                             'binarysensor',
                             'stateimage',
+                            'value',
                         ].includes(config.type) &&
                             (() => {
                                 const o = config.options ?? {};

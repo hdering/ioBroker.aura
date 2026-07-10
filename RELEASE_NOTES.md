@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 Thermostat - quick-select preset buttons now shown directly on the widget (toggleable)
 Thermostat - color thresholds now apply to the actual temperature instead of the setpoint
+Value - add status datapoints (battery / reachability) with show-always or alert-only badges
