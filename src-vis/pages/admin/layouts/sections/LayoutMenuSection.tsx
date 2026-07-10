@@ -285,7 +285,7 @@ export function LayoutMenuSection() {
                     )}
                     {/* Placement decides the menu type first (floating / tab-bar / docked sidebar). */}
                     <div>
-                        <p className="text-base font-semibold mb-1.5" style={{ color: 'var(--text-primary)' }}>
+                        <p className="text-sm mb-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.frontend.layoutDrawerPlacement')}
                         </p>
                         <div className="flex gap-1.5">
