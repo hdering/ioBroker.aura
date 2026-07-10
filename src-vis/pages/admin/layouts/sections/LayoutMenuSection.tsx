@@ -550,8 +550,8 @@ export function LayoutMenuSection() {
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                    <div className="border-t pt-3" style={{ borderColor: 'var(--app-border)' }}>
+                        <p className="text-sm mb-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.frontend.layoutDrawerItems')}
                         </p>
                         <div className="space-y-1.5">
