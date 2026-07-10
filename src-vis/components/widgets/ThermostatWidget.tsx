@@ -60,16 +60,17 @@ export function ThermostatWidget({ config }: WidgetProps) {
           ? 'var(--climate-cool, var(--accent))'
           : 'var(--text-secondary)';
 
+    // Colour thresholds are evaluated against the measured (actual) temperature
+    // and colour the actual reading — not the setpoint, which keeps its
+    // heat/cool accent.
     const thresholds = o.colorThresholds as Array<[number, string]> | undefined;
-    const thresholdNum = actual ?? target;
     const thresholdColor = useMemo(() => {
-        if (!thresholds?.length) return undefined;
+        if (!thresholds?.length || actual === null) return undefined;
         for (const [thresh, color] of thresholds) {
-            if (thresholdNum < thresh) return color;
+            if (actual < thresh) return color;
         }
         return thresholds[thresholds.length - 1][1];
-    }, [thresholds, thresholdNum]);
-    const valueColor = thresholdColor ?? accentColor;
+    }, [thresholds, actual]);
 
     const displayTitle = resolveTitle(config);
 
@@ -219,10 +220,13 @@ export function ThermostatWidget({ config }: WidgetProps) {
                     )}
                     {!showTitle && <span className="flex-1" />}
                     {showSetpoint && (
-                        <span className="aura-widget-value text-xl font-bold shrink-0" style={{ color: valueColor }}>
+                        <span className="aura-widget-value text-xl font-bold shrink-0" style={{ color: accentColor }}>
                             {formatNum(target, decimals)}°C
                             {showActualTemp && actual !== null && (
-                                <span className="font-normal text-xs ml-1" style={{ color: 'var(--text-secondary)' }}>
+                                <span
+                                    className="font-normal text-xs ml-1"
+                                    style={{ color: thresholdColor ?? 'var(--text-secondary)' }}
+                                >
                                     / {formatNum(actual, decimals)}°C
                                 </span>
                             )}
@@ -266,13 +270,13 @@ export function ThermostatWidget({ config }: WidgetProps) {
                     {showSetpoint && (
                         <span
                             className="aura-widget-value text-xl font-bold"
-                            style={{ color: valueColor, lineHeight: 1 }}
+                            style={{ color: accentColor, lineHeight: 1 }}
                         >
                             {formatNum(target, decimals)}°C
                         </span>
                     )}
                     {showActualTemp && actual !== null && (
-                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                        <span className="text-xs" style={{ color: thresholdColor ?? 'var(--text-secondary)' }}>
                             {t('thermo.actual')} {formatNum(actual, decimals)}°C
                         </span>
                     )}
@@ -340,14 +344,16 @@ export function ThermostatWidget({ config }: WidgetProps) {
                 <div className="flex items-center justify-between flex-1">
                     <div className="aura-widget-value">
                         {showSetpoint && (
-                            <p className="text-xl font-bold leading-none" style={{ color: valueColor }}>
+                            <p className="text-xl font-bold leading-none" style={{ color: accentColor }}>
                                 {formatNum(target, decimals)}°C
                             </p>
                         )}
                         {showActualTemp && actual !== null && (
                             <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
                                 {t('thermo.actual')}:{' '}
-                                <span style={{ color: 'var(--text-primary)' }}>{formatNum(actual, decimals)}°C</span>
+                                <span style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
+                                    {formatNum(actual, decimals)}°C
+                                </span>
                             </p>
                         )}
                     </div>
