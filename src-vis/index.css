@@ -9,6 +9,20 @@ body,
     height: 100%;
 }
 
+/*
+ * ThemeProvider sets `color-scheme: dark` on <html> so native form controls
+ * (range inputs, scrollbars, selects) render dark. `color-scheme` is inherited,
+ * so every <iframe> would otherwise inherit `dark`. When an embedded document
+ * (external page, /echarts preset page) does not itself declare `dark`, the
+ * browser treats this as a color-scheme mismatch and paints an OPAQUE WHITE
+ * canvas behind the frame — giving iframe/eCharts widgets a white background in
+ * dark mode. Reset iframes to `normal` so they no longer inherit the forced
+ * dark scheme and composite transparently over the (dark) widget card again.
+ */
+iframe {
+    color-scheme: normal;
+}
+
 @keyframes blink {
     0%,
     100% {
