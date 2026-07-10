@@ -32,6 +32,9 @@ export function InputWidget({ config }: WidgetProps) {
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const textAlign = (o.textAlign as 'left' | 'right' | 'center') ?? 'left';
     const iconSize = (o.iconSize as number) || 20;
+    // Input field width as a percentage of its cell (default 100 = fill). Clamped to a
+    // sane range so the field never collapses to nothing.
+    const inputWidth = Math.max(10, Math.min(100, Number(o.inputWidth) || 100));
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, TextCursorInput);
 
     const { value: rawVal } = useDatapoint(config.datapoint);
@@ -117,6 +120,9 @@ export function InputWidget({ config }: WidgetProps) {
         color: 'var(--text-primary)',
         border: '1px solid var(--app-border)',
         textAlign,
+        // Inline width overrides the `w-full` class; only set when narrowed so the
+        // default keeps filling the cell. Alignment is handled by the flex wrapper.
+        ...(inputWidth < 100 ? { width: `${inputWidth}%` } : null),
     };
     const justifyForAlign: React.CSSProperties['justifyContent'] =
         textAlign === 'right' ? 'flex-end' : textAlign === 'center' ? 'center' : 'flex-start';

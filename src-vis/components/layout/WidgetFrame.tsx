@@ -15303,6 +15303,36 @@ export function WidgetFrame({
                                                 style={inputSty3}
                                             />
                                         </div>
+                                        {/* Feldbreite */}
+                                        <div>
+                                            <div className="flex items-center justify-between mb-1">
+                                                <label
+                                                    className="text-[11px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Feldbreite
+                                                </label>
+                                                <span
+                                                    className="text-[11px] tabular-nums"
+                                                    style={{ color: 'var(--text-primary)' }}
+                                                >
+                                                    {Math.round((o.inputWidth as number) ?? 100)} %
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min={10}
+                                                max={100}
+                                                step={1}
+                                                value={(o.inputWidth as number) ?? 100}
+                                                onChange={(e) => {
+                                                    const n = Number(e.target.value);
+                                                    set({ inputWidth: n >= 100 ? undefined : n });
+                                                }}
+                                                className="w-full h-1"
+                                                style={{ accentColor: 'var(--accent)' }}
+                                            />
+                                        </div>
                                         {/* Eingabeart — bei Textarea ausgeblendet (immer Text) */}
                                         {!multiline && (
                                             <div>
