@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.23.3",
+    "version": "0.23.4",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.23.4": {
+        "en": "Input widget - field width is now adjustable (setting added after Placeholder)\nTab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)\niframe & eCharts widgets - fixed white background in dark mode",
+        "de": "Input widget - field width is now adjustable (setting added after Placeholder)\nTab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)\niframe & eCharts widgets - fixed white background in dark mode",
+        "ru": "Input widget - field width is now adjustable (setting added after Placeholder)\nTab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)\niframe & eCharts widgets - fixed white background in dark mode",
+        "pt": "Input widget - field width is now adjustable (setting added after Placeholder)\nTab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)\niframe & eCharts widgets - fixed white background in dark mode",
+        "nl": "Input widget - field width is now adjustable (setting added after Placeholder)\nTab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)\niframe & eCharts widgets - fixed white background in dark mode",
+        "fr": "Input widget - field width is now adjustable (setting added after Placeholder)\nTab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)\niframe & eCharts widgets - fixed white background in dark mode",
+        "it": "Input widget - field width is now adjustable (setting added after Placeholder)\nTab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)\niframe & eCharts widgets - fixed white background in dark mode",
+        "es": "Input widget - field width is now adjustable (setting added after Placeholder)\nTab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)\niframe & eCharts widgets - fixed white background in dark mode",
+        "pl": "Input widget - field width is now adjustable (setting added after Placeholder)\nTab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)\niframe & eCharts widgets - fixed white background in dark mode",
+        "uk": "Input widget - field width is now adjustable (setting added after Placeholder)\nTab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)\niframe & eCharts widgets - fixed white background in dark mode",
+        "zh-cn": "Input widget - field width is now adjustable (setting added after Placeholder)\nTab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)\niframe & eCharts widgets - fixed white background in dark mode"
+      },
       "0.23.3": {
         "en": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend",
         "de": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend",
@@ -184,19 +197,6 @@
         "pl": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser, screen resolution and the client ID so each device is easy to identify\nSettings - optional on-screen badge (toggle in Connected Devices) shows each device its own client ID, so it can be identified without opening the backend",
         "uk": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser, screen resolution and the client ID so each device is easy to identify\nSettings - optional on-screen badge (toggle in Connected Devices) shows each device its own client ID, so it can be identified without opening the backend",
         "zh-cn": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser, screen resolution and the client ID so each device is easy to identify\nSettings - optional on-screen badge (toggle in Connected Devices) shows each device its own client ID, so it can be identified without opening the backend"
-      },
-      "0.22.2": {
-        "en": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
-        "de": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
-        "ru": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
-        "pt": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
-        "nl": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
-        "fr": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
-        "it": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
-        "es": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
-        "pl": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
-        "uk": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
-        "zh-cn": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect"
       }
     }
   },

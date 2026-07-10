@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.21.6 (2026-07-07)
+- Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits
+
 ## 0.21.5 (2026-07-07)
 - Tabs - the "more tabs" scroll hint no longer flickers on mobile and sits higher, right under the tabs
 
