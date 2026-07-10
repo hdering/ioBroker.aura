@@ -5569,7 +5569,8 @@ export function WidgetFrame({
                 isHeader || isTransparent
                     ? {
                           background: isHeader ? 'var(--header-bg, transparent)' : transparentBg,
-                          borderRadius: isTransparent && editMode ? 'var(--widget-radius)' : 0,
+                          borderRadius:
+                              isTransparent && (editMode || transparencyStrength < 100) ? 'var(--widget-radius)' : 0,
                           boxShadow: 'none',
                           backdropFilter: 'none',
                           borderWidth: isTransparent && editMode ? 1 : 0,
