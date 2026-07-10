@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.21.2 (2026-07-06)
+- Chart (Distribution) - "last" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)
+
 ## 0.21.1 (2026-07-06)
 - Zeitschaltuhr - adding or editing events now saves when the widget is used inside a popup
 
