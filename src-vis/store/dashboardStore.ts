@@ -33,6 +33,7 @@ export interface TabBarSettings {
     fontSize?: number | 'sm' | 'md' | 'lg'; // px when number; legacy keyword sizes still resolved
     iconSize?: number; // tab icon size in px, default 14
     tabsAlignment?: 'left' | 'center' | 'right'; // navigation tabs position
+    hideMobileScrollbar?: boolean; // hide the mobile scroll indicator ("Laufleiste") under the tabs
     items?: TabBarItem[];
 }
 

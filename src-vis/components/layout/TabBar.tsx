@@ -213,11 +213,13 @@ function TabBadges({ tab }: { tab: Tab }) {
 
 function TabScrollRow({
     isMobile,
+    hideIndicator = false,
     outerClassName = '',
     scrollClassName = '',
     children,
 }: {
     isMobile: boolean;
+    hideIndicator?: boolean;
     outerClassName?: string;
     scrollClassName?: string;
     children: React.ReactNode;
@@ -272,7 +274,7 @@ function TabScrollRow({
             >
                 {children}
             </div>
-            {isMobile && ind.show && (
+            {isMobile && !hideIndicator && ind.show && (
                 <div className="aura-tab-scroll-ind" style={{ left: `${ind.left}%`, width: `${ind.width}%` }} />
             )}
         </div>
@@ -939,6 +941,7 @@ export function TabBar({
     // ── Render ───────────────────────────────────────────────────────────────────
 
     const tabsAlignment = isMobile ? 'left' : (tbSettings?.tabsAlignment ?? 'left');
+    const hideMobileScrollbar = tbSettings?.hideMobileScrollbar ?? false;
     const needsGrid = hasExtras || tabsAlignment !== 'left';
 
     const addTabBtn = !readonly && editMode && (
@@ -976,6 +979,7 @@ export function TabBar({
                     {/* Zone 1: left items + tabs when alignment=left */}
                     <TabScrollRow
                         isMobile={isMobile}
+                        hideIndicator={hideMobileScrollbar}
                         outerClassName="min-w-0"
                         scrollClassName="flex items-center w-full"
                     >
@@ -994,7 +998,11 @@ export function TabBar({
                     </TabScrollRow>
 
                     {/* Zone 2: center items + tabs when alignment=center */}
-                    <TabScrollRow isMobile={isMobile} scrollClassName="flex items-center justify-center w-full">
+                    <TabScrollRow
+                        isMobile={isMobile}
+                        hideIndicator={hideMobileScrollbar}
+                        scrollClassName="flex items-center justify-center w-full"
+                    >
                         <div className="flex items-center gap-1 px-2">
                             {tabsAlignment === 'center' && renderTabs()}
                             {tabsAlignment === 'center' && addTabBtn}
@@ -1011,6 +1019,7 @@ export function TabBar({
                     {/* Zone 3: right items + tabs when alignment=right */}
                     <TabScrollRow
                         isMobile={isMobile}
+                        hideIndicator={hideMobileScrollbar}
                         outerClassName="min-w-0"
                         scrollClassName="flex items-center justify-end w-full"
                     >
@@ -1039,6 +1048,7 @@ export function TabBar({
             <div className="aura-tabs shrink-0 flex" style={containerStyle}>
                 <TabScrollRow
                     isMobile={isMobile}
+                    hideIndicator={hideMobileScrollbar}
                     outerClassName="flex-1 min-w-0"
                     scrollClassName="flex items-center w-full"
                 >

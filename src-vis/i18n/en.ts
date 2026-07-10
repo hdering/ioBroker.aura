@@ -173,6 +173,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.tabBar.alignLeft': 'Left',
     'settings.tabBar.alignCenter': 'Center',
     'settings.tabBar.alignRight': 'Right',
+    'settings.tabBar.hideMobileScrollbar': 'Hide scroll bar (mobile)',
     'settings.tabBar.clearAll': '↩ Reset all',
 
     'settings.grid.title': 'Grid & Mobile',

@@ -655,6 +655,23 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                             })}
                         </div>
                     </div>
+
+                    <div className="flex items-center justify-between">
+                        <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                            {t('settings.tabBar.hideMobileScrollbar')}
+                            <OverrideDot show={ov('hideMobileScrollbar')} title={ovTitle} />
+                        </p>
+                        <button
+                            onClick={() => update({ hideMobileScrollbar: !tbs.hideMobileScrollbar })}
+                            className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                            style={{ background: tbs.hideMobileScrollbar ? 'var(--accent)' : 'var(--app-border)' }}
+                        >
+                            <span
+                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                style={{ left: tbs.hideMobileScrollbar ? '18px' : '2px' }}
+                            />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Col 2: Colors */}

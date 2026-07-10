@@ -5,3 +5,4 @@
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 - Input widget - field width is now adjustable (setting added after Placeholder)
+- Tab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)

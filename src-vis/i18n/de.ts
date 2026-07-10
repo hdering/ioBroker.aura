@@ -171,6 +171,7 @@ export const de = {
     'settings.tabBar.alignLeft': 'Links',
     'settings.tabBar.alignCenter': 'Mitte',
     'settings.tabBar.alignRight': 'Rechts',
+    'settings.tabBar.hideMobileScrollbar': 'Laufleiste ausblenden (mobil)',
     'settings.tabBar.clearAll': '↩ Alles zurücksetzen',
 
     'settings.grid.title': 'Grid & Mobil',
