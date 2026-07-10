@@ -281,6 +281,14 @@ export function LayoutMenuSection() {
                             />
                         </div>
                     )}
+                    <ToggleRow
+                        label={t('settings.frontend.layoutDrawerAutoHide')}
+                        value={frontend.layoutDrawerAutoHide ?? false}
+                        onChange={(v) => updateFrontend({ layoutDrawerAutoHide: v })}
+                    />
+                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        {t('settings.frontend.layoutDrawerAutoHideHint')}
+                    </p>
                     <div>
                         <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                             {t('settings.frontend.layoutDrawerSize')}
@@ -310,14 +318,6 @@ export function LayoutMenuSection() {
                             })}
                         </div>
                     </div>
-                    <ToggleRow
-                        label={t('settings.frontend.layoutDrawerAutoHide')}
-                        value={frontend.layoutDrawerAutoHide ?? false}
-                        onChange={(v) => updateFrontend({ layoutDrawerAutoHide: v })}
-                    />
-                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                        {t('settings.frontend.layoutDrawerAutoHideHint')}
-                    </p>
                     <div>
                         <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                             {t('settings.frontend.layoutDrawerPlacement')}
