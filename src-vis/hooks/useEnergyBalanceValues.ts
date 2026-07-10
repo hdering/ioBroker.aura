@@ -175,10 +175,20 @@ export function useEnergyBalanceValues(
             }
 
             if (!instance) {
-                // No history adapter — seed from the live state value (≈ 'last').
+                // No history adapter — a ranged aggregate can't be computed, so fall back to
+                // the datapoint's current value (≈ 'last'). Fetch it live via getStateDirect
+                // rather than the synchronous cache, which is empty on first mount before any
+                // subscription has fired — otherwise pie/donut/bars render empty until the DP
+                // next changes. Seed instantly from the cache if present to avoid a flash.
                 const cached = getStateFromCache(e.datapointId);
-                const val = typeof cached?.val === 'number' ? (cached.val as number) : null;
-                setResults((prev) => new Map(prev).set(e.id, { value: val, loading: false }));
+                if (typeof cached?.val === 'number') {
+                    setResults((prev) => new Map(prev).set(e.id, { value: cached.val as number, loading: false }));
+                }
+                getStateDirect(e.datapointId).then((state) => {
+                    if (!mountedRef.current) return;
+                    const val = typeof state?.val === 'number' ? (state.val as number) : null;
+                    setResults((prev) => new Map(prev).set(e.id, { value: val, loading: false }));
+                });
                 return;
             }
 
