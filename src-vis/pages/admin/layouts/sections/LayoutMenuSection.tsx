@@ -410,7 +410,7 @@ export function LayoutMenuSection() {
                         )}
                     </SubGroup>
                     <div>
-                        <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                        <p className="text-sm mb-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.frontend.layoutDrawerEntryStyle')}
                         </p>
                         <div className="flex gap-1.5">
