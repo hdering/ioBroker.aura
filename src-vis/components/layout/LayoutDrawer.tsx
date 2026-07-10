@@ -265,9 +265,10 @@ export function LayoutDrawer({
 
     // Shared layout list — reused by the overlay drawer and the docked sidebar.
     // Container gets a little horizontal padding so the selected chip reads as inset.
+    const visibleLayouts = layouts.filter((l) => !l.hidden);
     const list = (
         <div className="flex-1 overflow-y-auto py-2 px-2">
-            {layouts.map((layout) => {
+            {visibleLayouts.map((layout) => {
                 const isActive = layout.id === activeLayout?.id;
                 return (
                     <button

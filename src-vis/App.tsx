@@ -752,8 +752,8 @@ export default function App() {
         return t?.slug ?? null;
     }, [tabs, activeTabId]);
 
-    const totalLayouts = useDashboardStore((s) => s.layouts.length);
-    const drawerEnabled = (frontend.layoutDrawerEnabled ?? false) && totalLayouts > 1;
+    const totalLayouts = useDashboardStore((s) => s.layouts.filter((l) => !l.hidden).length);
+    const drawerEnabled = (effectiveSettings.layoutDrawerEnabled ?? false) && totalLayouts > 1;
     const drawerSize = frontend.layoutDrawerSize ?? 'md';
     const drawerAutoHide = frontend.layoutDrawerAutoHide ?? false;
     const drawerPlacement = frontend.layoutDrawerPlacement ?? 'floating';

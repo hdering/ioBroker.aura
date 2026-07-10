@@ -340,6 +340,11 @@ export const de = {
     'layouts.dragToReorder': 'Ziehen, um die Reihenfolge zu ändern',
     'layouts.defaultTab': 'Standard-Tab',
     'layouts.setDefaultTab': 'Als Standard-Tab setzen (wird geöffnet wenn kein Tab in der URL angegeben ist)',
+    'layouts.hideFromMenu': 'Aus Menü ausblenden',
+    'layouts.hideFromMenuHint': 'Layout aus dem Layout-Menü entfernen. Bleibt per direkter URL (#/view/…) erreichbar.',
+    'layouts.hideMenuHere': 'Menü hier verbergen',
+    'layouts.hideMenuHereHint':
+        'Layout-Menü ausblenden, wenn dieses Layout geöffnet ist – z.B. für ein festgelegtes Tablet.',
     'layouts.designSettings': 'Frontend-Design öffnen',
     'layouts.designHint': 'Theme, Typografie, Header, Menü und Tab-Leiste werden unter Frontend-Design eingestellt.',
     'layouts.designHintLink': 'Zum Frontend-Design →',

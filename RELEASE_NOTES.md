@@ -4,3 +4,5 @@
 #   <Widget type> - <what changed>          e.g.  Thermostat - target temperature now shown inline
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
+Layouts can be hidden from the layout menu (still reachable via their direct URL)
+Layout menu can be hidden per layout — e.g. lock a wall tablet to a single layout

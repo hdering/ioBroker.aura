@@ -104,6 +104,8 @@ export interface LayoutSettings {
     guidelinesShowResolution?: boolean;
     // Tab bar appearance & items
     tabBar?: TabBarSettings;
+    // Layout drawer (menu): override the global on/off per layout (undefined = inherit)
+    layoutDrawerEnabled?: boolean;
 }
 
 export interface Tab {
@@ -128,6 +130,7 @@ export interface DashboardLayout {
     activeTabId: string;
     defaultTabId?: string; // tab shown when frontend opens without a tab slug
     icon?: string; // icon name (Iconify ID or lucide PascalCase) for layout drawer
+    hidden?: boolean; // removed from the layout drawer, but still reachable via its direct slug URL
     settings?: LayoutSettings; // per-layout overrides (undefined = use global)
 }
 
@@ -219,6 +222,7 @@ interface DashboardState {
     renameLayout: (id: string, name: string) => void;
     setLayoutSlug: (id: string, slug: string) => void;
     setLayoutIcon: (id: string, icon: string | undefined) => void;
+    setLayoutHidden: (id: string, hidden: boolean) => void;
     reorderLayouts: (fromIndex: number, toIndex: number) => void;
     setActiveLayout: (id: string) => void;
 
@@ -346,6 +350,9 @@ export const useDashboardStore = create<DashboardState>()(
             setLayoutSlug: (id, slug) => set((s) => ({ layouts: patchLayout(s.layouts, id, (l) => ({ ...l, slug })) })),
 
             setLayoutIcon: (id, icon) => set((s) => ({ layouts: patchLayout(s.layouts, id, (l) => ({ ...l, icon })) })),
+
+            setLayoutHidden: (id, hidden) =>
+                set((s) => ({ layouts: patchLayout(s.layouts, id, (l) => ({ ...l, hidden })) })),
 
             reorderLayouts: (fromIndex, toIndex) =>
                 set((s) => {

@@ -59,10 +59,13 @@ function LayoutRow({
         renameLayout,
         setLayoutSlug,
         setLayoutIcon,
+        setLayoutHidden,
         duplicateLayout,
         removeLayout,
         setActiveLayout,
         setDefaultTab,
+        updateLayoutSettings,
+        clearLayoutSettings,
     } = useDashboardStore();
     const navigate = useNavigate();
 
@@ -78,6 +81,7 @@ function LayoutRow({
 
     const widgetCount = layout.tabs.reduce((n, tab) => n + tab.widgets.length, 0);
     const hash = layoutUrl(layout, isFirst);
+    const menuHiddenHere = layout.settings?.layoutDrawerEnabled === false;
 
     const commitName = () => {
         if (nameVal.trim()) renameLayout(layout.id, nameVal.trim());
@@ -445,6 +449,48 @@ function LayoutRow({
                         </button>
                     );
                 })}
+            </div>
+
+            <div
+                className="px-4 py-2 flex flex-wrap gap-x-5 gap-y-2 items-center"
+                style={{ borderTop: '1px solid var(--app-border)' }}
+            >
+                <div className="flex items-center gap-2">
+                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        {t('layouts.hideFromMenu')}
+                    </span>
+                    <button
+                        onClick={() => setLayoutHidden(layout.id, !layout.hidden)}
+                        title={t('layouts.hideFromMenuHint')}
+                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                        style={{ background: layout.hidden ? 'var(--accent)' : 'var(--app-border)' }}
+                    >
+                        <span
+                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                            style={{ left: layout.hidden ? '18px' : '2px' }}
+                        />
+                    </button>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        {t('layouts.hideMenuHere')}
+                    </span>
+                    <button
+                        onClick={() =>
+                            menuHiddenHere
+                                ? clearLayoutSettings(layout.id, 'layoutDrawerEnabled')
+                                : updateLayoutSettings(layout.id, { layoutDrawerEnabled: false })
+                        }
+                        title={t('layouts.hideMenuHereHint')}
+                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                        style={{ background: menuHiddenHere ? 'var(--accent)' : 'var(--app-border)' }}
+                    >
+                        <span
+                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                            style={{ left: menuHiddenHere ? '18px' : '2px' }}
+                        />
+                    </button>
+                </div>
             </div>
         </div>
     );
