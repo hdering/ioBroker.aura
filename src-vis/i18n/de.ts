@@ -114,6 +114,10 @@ export const de = {
     'settings.frontend.layoutDrawerEntryStyleIconAndName': 'Icon + Name',
     'settings.frontend.layoutDrawerEntryStyleIconOnly': 'Nur Icon',
     'settings.frontend.layoutDrawerEntryStyleNameOnly': 'Nur Name',
+    'settings.frontend.layoutDrawerEntryStyleBulletAndName': 'Aufzählungspunkt + Name',
+    'settings.frontend.layoutDrawerIndicatorStyle': 'Stil des ausgewählten Layouts',
+    'settings.frontend.layoutDrawerFontSize': 'Schriftgröße',
+    'settings.frontend.layoutDrawerIconSize': 'Icon-Größe',
     'settings.frontend.idleReturn': 'Automatisch zum Standard-Tab zurückkehren',
     'settings.frontend.idleReturnDelay': 'Verzögerung',
     'settings.frontend.idleReturnHint':

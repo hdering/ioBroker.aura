@@ -773,6 +773,9 @@ export default function App() {
     const drawerTitle = frontend.layoutDrawerTitle ?? '';
     const drawerEntryStyle = frontend.layoutDrawerEntryStyle ?? 'iconAndName';
     const drawerEntryHeight = frontend.layoutDrawerEntryHeight ?? 48;
+    const drawerIndicatorStyle = frontend.layoutDrawerIndicatorStyle ?? 'filled';
+    const drawerFontSize = frontend.layoutDrawerFontSize ?? 14;
+    const drawerIconSize = frontend.layoutDrawerIconSize ?? 16;
 
     return (
         <div
@@ -792,6 +795,9 @@ export default function App() {
                     drawerTitle={drawerTitle}
                     entryStyle={drawerEntryStyle}
                     entryHeight={drawerEntryHeight}
+                    indicatorStyle={drawerIndicatorStyle}
+                    fontSize={drawerFontSize}
+                    iconSize={drawerIconSize}
                 />
             )}
             <div className={drawerSidebar ? 'flex-1 min-h-0 flex' : 'contents'}>
@@ -804,6 +810,9 @@ export default function App() {
                         drawerTitle={drawerTitle}
                         entryStyle={drawerEntryStyle}
                         entryHeight={drawerEntryHeight}
+                        indicatorStyle={drawerIndicatorStyle}
+                        fontSize={drawerFontSize}
+                        iconSize={drawerIconSize}
                     />
                 )}
                 <div className={drawerSidebar ? 'flex-1 min-w-0 flex flex-col' : 'contents'}>
@@ -821,6 +830,9 @@ export default function App() {
                                         drawerTitle={drawerTitle}
                                         entryStyle={drawerEntryStyle}
                                         entryHeight={drawerEntryHeight}
+                                        indicatorStyle={drawerIndicatorStyle}
+                                        fontSize={drawerFontSize}
+                                        iconSize={drawerIconSize}
                                     />
                                 )}
                                 <h1 className="aura-titel text-xl font-bold tracking-tight truncate">
@@ -895,6 +907,9 @@ export default function App() {
                                     drawerTitle={drawerTitle}
                                     entryStyle={drawerEntryStyle}
                                     entryHeight={drawerEntryHeight}
+                                    indicatorStyle={drawerIndicatorStyle}
+                                    fontSize={drawerFontSize}
+                                    iconSize={drawerIconSize}
                                 />
                             ) : undefined
                         }

@@ -1979,6 +1979,9 @@ export function AdminEditor() {
                                 drawerTitle={frontend.layoutDrawerTitle ?? ''}
                                 entryStyle={frontend.layoutDrawerEntryStyle ?? 'iconAndName'}
                                 entryHeight={frontend.layoutDrawerEntryHeight ?? 48}
+                                indicatorStyle={frontend.layoutDrawerIndicatorStyle ?? 'filled'}
+                                fontSize={frontend.layoutDrawerFontSize ?? 14}
+                                iconSize={frontend.layoutDrawerIconSize ?? 16}
                             />
                         </div>
                         <div

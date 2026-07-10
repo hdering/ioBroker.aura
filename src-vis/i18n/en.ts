@@ -116,6 +116,10 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.layoutDrawerEntryStyleIconAndName': 'Icon + name',
     'settings.frontend.layoutDrawerEntryStyleIconOnly': 'Icon only',
     'settings.frontend.layoutDrawerEntryStyleNameOnly': 'Name only',
+    'settings.frontend.layoutDrawerEntryStyleBulletAndName': 'Bullet + name',
+    'settings.frontend.layoutDrawerIndicatorStyle': 'Selected style',
+    'settings.frontend.layoutDrawerFontSize': 'Font size',
+    'settings.frontend.layoutDrawerIconSize': 'Icon size',
     'settings.frontend.idleReturn': 'Auto-return to default tab',
     'settings.frontend.idleReturnDelay': 'Delay',
     'settings.frontend.idleReturnHint':

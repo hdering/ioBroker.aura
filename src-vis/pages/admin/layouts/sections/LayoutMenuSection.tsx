@@ -169,11 +169,12 @@ export function LayoutMenuSection() {
                             {t('settings.frontend.layoutDrawerEntryStyle')}
                         </p>
                         <div className="flex gap-1.5">
-                            {(['iconAndName', 'iconOnly', 'nameOnly'] as const).map((v) => {
+                            {(['iconAndName', 'iconOnly', 'nameOnly', 'bulletAndName'] as const).map((v) => {
                                 const labels = {
                                     iconAndName: t('settings.frontend.layoutDrawerEntryStyleIconAndName'),
                                     iconOnly: t('settings.frontend.layoutDrawerEntryStyleIconOnly'),
                                     nameOnly: t('settings.frontend.layoutDrawerEntryStyleNameOnly'),
+                                    bulletAndName: t('settings.frontend.layoutDrawerEntryStyleBulletAndName'),
                                 };
                                 const active = (frontend.layoutDrawerEntryStyle ?? 'iconAndName') === v;
                                 return (
@@ -191,6 +192,88 @@ export function LayoutMenuSection() {
                                     </button>
                                 );
                             })}
+                        </div>
+                    </div>
+                    <div>
+                        <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                            {t('settings.frontend.layoutDrawerIndicatorStyle')}
+                        </p>
+                        <div className="flex gap-1.5 flex-wrap">
+                            {(['text', 'underline', 'filled', 'pills'] as const).map((v) => {
+                                const labels = {
+                                    text: t('settings.tabBar.styleText'),
+                                    underline: t('settings.tabBar.styleUnderline'),
+                                    filled: t('settings.tabBar.styleFilled'),
+                                    pills: t('settings.tabBar.stylePills'),
+                                };
+                                const active = (frontend.layoutDrawerIndicatorStyle ?? 'filled') === v;
+                                return (
+                                    <button
+                                        key={v}
+                                        onClick={() => updateFrontend({ layoutDrawerIndicatorStyle: v })}
+                                        className="px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {labels[v]}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    <div>
+                        <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                            {t('settings.frontend.layoutDrawerFontSize')}
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="number"
+                                min={10}
+                                max={28}
+                                value={frontend.layoutDrawerFontSize ?? 14}
+                                onChange={(e) => {
+                                    const v = Math.min(28, Math.max(10, parseInt(e.target.value) || 14));
+                                    updateFrontend({ layoutDrawerFontSize: v });
+                                }}
+                                className="w-24 text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            />
+                            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                px
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                            {t('settings.frontend.layoutDrawerIconSize')}
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="number"
+                                min={10}
+                                max={40}
+                                value={frontend.layoutDrawerIconSize ?? 16}
+                                onChange={(e) => {
+                                    const v = Math.min(40, Math.max(10, parseInt(e.target.value) || 16));
+                                    updateFrontend({ layoutDrawerIconSize: v });
+                                }}
+                                className="w-24 text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            />
+                            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                px
+                            </span>
                         </div>
                     </div>
                     <div>

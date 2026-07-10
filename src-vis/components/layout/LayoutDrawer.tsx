@@ -25,13 +25,48 @@ interface LayoutDrawerProps {
     /** Custom drawer header title; empty/undefined falls back to the localized default. */
     drawerTitle?: string;
     /** How each entry in the drawer list is rendered. */
-    entryStyle?: 'iconAndName' | 'iconOnly' | 'nameOnly';
+    entryStyle?: 'iconAndName' | 'iconOnly' | 'nameOnly' | 'bulletAndName';
+    /** Selected-entry indicator style — mirrors the tab-bar indicator styles. */
+    indicatorStyle?: 'text' | 'underline' | 'filled' | 'pills';
+    /** Entry text font size in px. */
+    fontSize?: number;
+    /** Entry icon size in px. */
+    iconSize?: number;
     /** 'overlay' = hamburger trigger + slide-in drawer; 'sidebar' = permanently docked left menu. */
     variant?: 'overlay' | 'sidebar';
     /** Width in px of the docked sidebar (variant='sidebar'). */
     width?: number;
     /** Min height in px of each menu entry. */
     entryHeight?: number;
+}
+
+// Active-entry styling — mirrors TabBar's indicatorStyle. The vertical menu maps
+// "underline" to a left accent bar (the natural equivalent for a stacked list).
+function entryActiveStyle(
+    isActive: boolean,
+    style: NonNullable<LayoutDrawerProps['indicatorStyle']>,
+): React.CSSProperties {
+    if (!isActive) return { color: 'var(--text-primary)', borderLeft: '3px solid transparent' };
+    switch (style) {
+        case 'text':
+            return { color: 'var(--accent)', borderLeft: '3px solid transparent' };
+        case 'underline':
+            return { color: 'var(--accent)', borderLeft: '3px solid var(--accent)' };
+        case 'pills':
+            return {
+                background: 'var(--accent)',
+                color: '#fff',
+                borderRadius: '0.5rem',
+                borderLeft: '3px solid transparent',
+            };
+        case 'filled':
+        default:
+            return {
+                background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
+                color: 'var(--accent)',
+                borderLeft: '3px solid var(--accent)',
+            };
+    }
 }
 
 // Sizing scale for the trigger button. Icon + container scale together.
@@ -53,6 +88,9 @@ export function LayoutDrawer({
     showTitle = true,
     drawerTitle,
     entryStyle = 'iconAndName',
+    indicatorStyle = 'filled',
+    fontSize = 14,
+    iconSize = 16,
     variant = 'overlay',
     width = 240,
     entryHeight = 48,
@@ -131,6 +169,11 @@ export function LayoutDrawer({
         }
     };
 
+    const showIcon = entryStyle === 'iconAndName' || entryStyle === 'iconOnly';
+    const showName = entryStyle !== 'iconOnly';
+    const showBullet = entryStyle === 'bulletAndName';
+    const iconBox = iconSize + 16;
+
     // Shared layout list — reused by the overlay drawer and the docked sidebar.
     const list = (
         <div className="flex-1 overflow-y-auto py-2">
@@ -144,28 +187,40 @@ export function LayoutDrawer({
                         className={`w-full flex items-center gap-3 px-4 py-1.5 transition-colors hover:opacity-90 text-left ${entryStyle === 'iconOnly' ? 'justify-center' : ''}`}
                         style={{
                             minHeight: entryHeight,
-                            background: isActive ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
-                            color: isActive ? 'var(--accent)' : 'var(--text-primary)',
-                            borderLeft: `3px solid ${isActive ? 'var(--accent)' : 'transparent'}`,
+                            ...entryActiveStyle(isActive, indicatorStyle),
                         }}
                     >
-                        {entryStyle !== 'nameOnly' && (
+                        {showBullet && (
                             <span
-                                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                                className="shrink-0 rounded-full"
                                 style={{
+                                    width: 6,
+                                    height: 6,
+                                    background: isActive ? 'currentColor' : 'var(--text-secondary)',
+                                }}
+                            />
+                        )}
+                        {showIcon && (
+                            <span
+                                className="rounded-lg flex items-center justify-center shrink-0"
+                                style={{
+                                    width: iconBox,
+                                    height: iconBox,
                                     background: isActive ? 'var(--accent)22' : 'var(--app-bg)',
                                     color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
                                 }}
                             >
                                 {layout.icon ? (
-                                    <Icon icon={layout.icon} width={16} height={16} />
+                                    <Icon icon={layout.icon} width={iconSize} height={iconSize} />
                                 ) : (
-                                    <LayoutDashboard size={15} />
+                                    <LayoutDashboard size={iconSize} />
                                 )}
                             </span>
                         )}
-                        {entryStyle !== 'iconOnly' && (
-                            <span className="text-sm font-medium truncate">{layout.name}</span>
+                        {showName && (
+                            <span className="font-medium truncate" style={{ fontSize }}>
+                                {layout.name}
+                            </span>
                         )}
                     </button>
                 );

@@ -57,9 +57,15 @@ export interface FrontendSettings {
     /** Drawer header title; empty falls back to the localized default ("Layouts"). */
     layoutDrawerTitle: string;
     /** How entries are shown in the drawer list. */
-    layoutDrawerEntryStyle: 'iconAndName' | 'iconOnly' | 'nameOnly';
+    layoutDrawerEntryStyle: 'iconAndName' | 'iconOnly' | 'nameOnly' | 'bulletAndName';
     /** Min height in px of each menu entry. */
     layoutDrawerEntryHeight: number;
+    /** Selected-entry indicator style — mirrors the tab-bar indicator styles. */
+    layoutDrawerIndicatorStyle: 'text' | 'underline' | 'filled' | 'pills';
+    /** Entry text font size in px. */
+    layoutDrawerFontSize: number;
+    /** Entry icon size in px. */
+    layoutDrawerIconSize: number;
     // Idle return — auto-switch back to default tab after inactivity
     idleReturnEnabled: boolean;
     /** Seconds of inactivity before returning to the default tab. */
@@ -155,6 +161,9 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     layoutDrawerTitle: '',
     layoutDrawerEntryStyle: 'iconAndName',
     layoutDrawerEntryHeight: 48,
+    layoutDrawerIndicatorStyle: 'filled',
+    layoutDrawerFontSize: 14,
+    layoutDrawerIconSize: 16,
     idleReturnEnabled: false,
     idleReturnDelay: 30,
     optimisticUpdates: true,
