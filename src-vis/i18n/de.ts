@@ -105,6 +105,7 @@ export const de = {
         'Schwebend/Tab-Leiste zeigen einen Hamburger mit Overlay (nur bei ausgeblendetem Header). Feste Seitenleiste ist ein dauerhaft sichtbares Menü links.',
     'settings.frontend.layoutDrawerWidth': 'Breite der Seitenleiste',
     'settings.frontend.layoutDrawerShowTitle': 'Titel des Menüs anzeigen',
+    'settings.frontend.layoutDrawerHamburger': 'Hamburger-Button',
     'settings.frontend.layoutDrawerEntryHeight': 'Höhe der Einträge',
     'settings.frontend.layoutDrawerPlacementDisabledHeader':
         'Nicht relevant, solange der Header sichtbar ist – der Hamburger wird dann im Header angezeigt.',

@@ -107,6 +107,7 @@ export const en: Record<TranslationKey, string> = {
         'Floating/tab bar show a hamburger with an overlay (header hidden only). Docked sidebar is a permanently visible left menu.',
     'settings.frontend.layoutDrawerWidth': 'Sidebar width',
     'settings.frontend.layoutDrawerShowTitle': 'Show menu title',
+    'settings.frontend.layoutDrawerHamburger': 'Hamburger button',
     'settings.frontend.layoutDrawerEntryHeight': 'Entry height',
     'settings.frontend.layoutDrawerPlacementDisabledHeader':
         'Not relevant while the header is visible – the hamburger is then rendered in the header.',
