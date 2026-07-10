@@ -115,6 +115,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.23.2 (2026-07-10)
+- Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)
+- Distribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage
+- Distribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it
+
+
 ### 0.23.1 (2026-07-10)
 - Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens
 
@@ -216,10 +222,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Tabs - the "more tabs" scroll hint no longer flickers on mobile and sits higher, right under the tabs
 
 
-### 0.21.4 (2026-07-06)
-- 🌟 **New feature:** Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off
-
-
 ## License
 
 MIT License
@@ -231,6 +233,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

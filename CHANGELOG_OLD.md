@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.21.4 (2026-07-06)
+- 🌟 **New feature:** Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off
+
 ## 0.21.3 (2026-07-06)
 - Load times - color-coded good/ok/slow thresholds with reference lines and latest-value badges so numbers are interpretable at a glance
 - Load times - samples are now tagged per client; widget defaults to the current device and can filter/compare individual clients
