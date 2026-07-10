@@ -30,7 +30,7 @@ import { FocusedWidgetContext } from './contexts/FocusedWidgetContext';
 import { TabBar } from './components/layout/TabBar';
 import { LayoutDrawer } from './components/layout/LayoutDrawer';
 import { useIframeStore } from './store/iframeStore';
-import { useEffectiveThemeId, useEffectiveCustomVars } from './hooks/useEffectiveSettings';
+import { useEffectiveThemeId, useEffectiveCustomVars, useEffectiveSettings } from './hooks/useEffectiveSettings';
 import { useT } from './i18n';
 import { applyCustomFormat, fmtTime, fmtDate } from './utils/clockUtils';
 import type { Tab } from './store/dashboardStore';
@@ -311,7 +311,25 @@ export default function App() {
     // Effective settings for the active layout (per-layout overrides + global fallback)
     const effectiveThemeId = useEffectiveThemeId(layout?.id);
     const effectiveCustomVars = useEffectiveCustomVars(layout?.id);
+    const effectiveSettings = useEffectiveSettings(layout?.id);
     const currentTheme = getTheme(effectiveThemeId);
+
+    // Track viewport width so a docked sidebar layout menu can collapse into an
+    // overlay hamburger on mobile — matching the same breakpoint the Dashboard
+    // uses to switch to its single-column stack. When the viewport grows back
+    // past the breakpoint the sidebar re-docks automatically.
+    const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 0));
+    useEffect(() => {
+        const onResize = () => setViewportWidth(window.innerWidth);
+        window.addEventListener('resize', onResize);
+        window.addEventListener('orientationchange', onResize);
+        return () => {
+            window.removeEventListener('resize', onResize);
+            window.removeEventListener('orientationchange', onResize);
+        };
+    }, []);
+    const mobileBreakpoint = effectiveSettings.mobileBreakpoint ?? 600;
+    const isMobileViewport = viewportWidth > 0 && viewportWidth < mobileBreakpoint;
 
     // ── Prefetch (silent, background) ────────────────────────────────────────
     // Warm the state cache for the active tab before widgets mount so they render
@@ -740,10 +758,16 @@ export default function App() {
     const drawerAutoHide = frontend.layoutDrawerAutoHide ?? false;
     const drawerPlacement = frontend.layoutDrawerPlacement ?? 'floating';
     // Docked sidebar: always-visible left menu, works with or without header — overrides overlay placements.
-    const drawerSidebar = drawerEnabled && drawerPlacement === 'sidebar';
+    // On mobile it would eat too much horizontal space, so it collapses into the tab bar as an
+    // overlay hamburger and re-docks on wider viewports.
+    const drawerSidebar = drawerEnabled && drawerPlacement === 'sidebar' && !isMobileViewport;
+    const drawerSidebarCollapsed = drawerEnabled && drawerPlacement === 'sidebar' && isMobileViewport;
     const drawerWidth = frontend.layoutDrawerWidth ?? 240;
+    // Tab-bar hamburger: either the explicit tabbar placement, or a docked sidebar that
+    // collapsed on mobile — the collapsed sidebar always lands here, even with a header shown.
     const drawerInTabBar =
-        drawerEnabled && !drawerSidebar && !frontend.showHeader && drawerPlacement === 'tabbar' && !drawerAutoHide;
+        (drawerEnabled && !drawerSidebar && !frontend.showHeader && drawerPlacement === 'tabbar' && !drawerAutoHide) ||
+        drawerSidebarCollapsed;
     const drawerFloating = drawerEnabled && !drawerSidebar && !frontend.showHeader && !drawerInTabBar;
     const drawerShowTitle = frontend.layoutDrawerShowTitle ?? true;
     const drawerTitle = frontend.layoutDrawerTitle ?? '';
@@ -789,7 +813,7 @@ export default function App() {
                             style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)' }}
                         >
                             <div className="flex items-center gap-3 min-w-0">
-                                {drawerEnabled && !drawerSidebar && (
+                                {drawerEnabled && !drawerSidebar && !drawerSidebarCollapsed && (
                                     <LayoutDrawer
                                         activeLayoutId={layout?.id}
                                         size={drawerSize}
