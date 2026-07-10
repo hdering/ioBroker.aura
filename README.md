@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.23.1 (2026-07-10)
+- Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens
+
+
 ### 0.23.0 (2026-07-10)
 - 🌟 **New feature:** Admin - appearance settings reorganized into a new "Frontend Design" menu (theme, typography, grid, guidelines and tab bar, global or per layout) with a "Global frame" group for header, layout menu and navigation (auto-return to default tab); the layout menu gained a "docked sidebar" placement (permanent left menu with configurable width, entry height and optional title), the old "Frontend" menu was dissolved, and optimistic updates moved to "Settings"
 
@@ -216,14 +220,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off
 
 
-### 0.21.3 (2026-07-06)
-- Load times - color-coded good/ok/slow thresholds with reference lines and latest-value badges so numbers are interpretable at a glance
-- Load times - samples are now tagged per client; widget defaults to the current device and can filter/compare individual clients
-- Load times - time range (1h/6h/24h/7d/all) is now switchable live from the widget header, not only in edit mode
-- Load times - new "Details" view attributes slowness per widget (render and ready time) and per backend command, so you can see which one is responsible
-- Settings - add performance-diagnostics switches: record load-time metrics (default on) and optional per-widget timing (default off, higher overhead)
-
-
 ## License
 
 MIT License
@@ -235,6 +231,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.23.0",
+    "version": "0.23.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.23.1": {
+        "en": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
+        "de": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
+        "ru": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
+        "pt": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
+        "nl": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
+        "fr": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
+        "it": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
+        "es": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
+        "pl": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
+        "uk": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
+        "zh-cn": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens"
+      },
       "0.23.0": {
         "en": "🌟 New feature: Admin - appearance settings reorganized into a new \"Frontend Design\" menu (theme, typography, grid, guidelines and tab bar, global or per layout) with a \"Global frame\" group for header, layout menu and navigation (auto-return to default tab); the layout menu gained a \"docked sidebar\" placement (permanent left menu with configurable width, entry height and optional title), the old \"Frontend\" menu was dissolved, and optimistic updates moved to \"Settings\"",
         "de": "🌟 New feature: Admin - appearance settings reorganized into a new \"Frontend Design\" menu (theme, typography, grid, guidelines and tab bar, global or per layout) with a \"Global frame\" group for header, layout menu and navigation (auto-return to default tab); the layout menu gained a \"docked sidebar\" placement (permanent left menu with configurable width, entry height and optional title), the old \"Frontend\" menu was dissolved, and optimistic updates moved to \"Settings\"",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Load times - add a dedicated backend page (Admin -> Ladezeiten) with live metrics, a per-widget breakdown showing each widget's tab with click-through to the editor, network breakdown metrics (TTFB, transfer, DNS, TCP/TLS) plus a backend ping (RTT) to spot high latency (e.g. over VPN), client names from Settings instead of raw ids, a toggleable chart legend, a refresh spinner, and an info popup on which metrics to watch; the old dashboard widget is superseded and hidden from the picker but keeps working\nPopup views - widgets now show their normal card background instead of always appearing transparent; a widget's own transparency setting is still respected",
         "uk": "🌟 New feature: Load times - add a dedicated backend page (Admin -> Ladezeiten) with live metrics, a per-widget breakdown showing each widget's tab with click-through to the editor, network breakdown metrics (TTFB, transfer, DNS, TCP/TLS) plus a backend ping (RTT) to spot high latency (e.g. over VPN), client names from Settings instead of raw ids, a toggleable chart legend, a refresh spinner, and an info popup on which metrics to watch; the old dashboard widget is superseded and hidden from the picker but keeps working\nPopup views - widgets now show their normal card background instead of always appearing transparent; a widget's own transparency setting is still respected",
         "zh-cn": "🌟 New feature: Load times - add a dedicated backend page (Admin -> Ladezeiten) with live metrics, a per-widget breakdown showing each widget's tab with click-through to the editor, network breakdown metrics (TTFB, transfer, DNS, TCP/TLS) plus a backend ping (RTT) to spot high latency (e.g. over VPN), client names from Settings instead of raw ids, a toggleable chart legend, a refresh spinner, and an info popup on which metrics to watch; the old dashboard widget is superseded and hidden from the picker but keeps working\nPopup views - widgets now show their normal card background instead of always appearing transparent; a widget's own transparency setting is still respected"
-      },
-      "0.21.15": {
-        "en": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
-        "de": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
-        "ru": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
-        "pt": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
-        "nl": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
-        "fr": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
-        "it": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
-        "es": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
-        "pl": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
-        "uk": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur",
-        "zh-cn": "🌟 New feature: Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon\nColor picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur"
       }
     }
   },

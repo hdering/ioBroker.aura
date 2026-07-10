@@ -1,5 +1,12 @@
 # Changelog (older entries)
 
+## 0.21.3 (2026-07-06)
+- Load times - color-coded good/ok/slow thresholds with reference lines and latest-value badges so numbers are interpretable at a glance
+- Load times - samples are now tagged per client; widget defaults to the current device and can filter/compare individual clients
+- Load times - time range (1h/6h/24h/7d/all) is now switchable live from the widget header, not only in edit mode
+- Load times - new "Details" view attributes slowness per widget (render and ready time) and per backend command, so you can see which one is responsible
+- Settings - add performance-diagnostics switches: record load-time metrics (default on) and optional per-widget timing (default off, higher overhead)
+
 ## 0.21.2 (2026-07-06)
 - Chart (Distribution) - "last" values now show the true current value instead of a history bucket average (e.g. 0 was shown as non-zero)
 
