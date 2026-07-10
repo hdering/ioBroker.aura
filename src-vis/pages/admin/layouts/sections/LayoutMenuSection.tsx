@@ -1,6 +1,217 @@
+import { useState } from 'react';
+import { Plus, X } from 'lucide-react';
 import { useConfigStore } from '../../../../store/configStore';
+import type { LayoutMenuItem } from '../../../../store/dashboardStore';
 import { useT } from '../../../../i18n';
 import { ToggleRow } from '../shared/SettingControls';
+
+// ── LayoutMenuItemRow ─────────────────────────────────────────────────────────
+// Editor row for one extra menu element (clock / datapoint / text). Mirrors the
+// tab-bar item editor, but the position toggle is top / bottom instead of L/M/R.
+
+function LayoutMenuItemRow({
+    item,
+    onUpdate,
+    onRemove,
+    t,
+}: {
+    item: LayoutMenuItem;
+    onUpdate: (patch: Partial<LayoutMenuItem>) => void;
+    onRemove: () => void;
+    t: ReturnType<typeof useT>;
+}) {
+    const [expanded, setExpanded] = useState(false);
+    const posLabels: Record<'top' | 'bottom', string> = {
+        top: t('settings.frontend.layoutDrawerItemPosTop'),
+        bottom: t('settings.frontend.layoutDrawerItemPosBottom'),
+    };
+    const typeLabel =
+        item.type === 'clock'
+            ? t('settings.tabBar.itemTypeClock')
+            : item.type === 'datapoint'
+              ? t('settings.tabBar.itemTypeDatapoint')
+              : t('settings.tabBar.itemTypeText');
+
+    const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
+
+    return (
+        <div className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+            <div className="flex items-center gap-2 px-2 py-1.5" style={{ background: 'var(--app-bg)' }}>
+                <div className="flex gap-0.5 shrink-0">
+                    {(['top', 'bottom'] as const).map((pos) => (
+                        <button
+                            key={pos}
+                            onClick={() => onUpdate({ position: pos })}
+                            className="px-1.5 h-5 rounded text-[10px] font-bold flex items-center justify-center transition-colors"
+                            style={{
+                                background: item.position === pos ? 'var(--accent)' : 'var(--app-surface)',
+                                color: item.position === pos ? '#fff' : 'var(--text-secondary)',
+                                border: `1px solid ${item.position === pos ? 'var(--accent)' : 'var(--app-border)'}`,
+                            }}
+                        >
+                            {posLabels[pos]}
+                        </button>
+                    ))}
+                </div>
+                <span className="text-xs flex-1 font-medium" style={{ color: 'var(--text-primary)' }}>
+                    {typeLabel}
+                </span>
+                <button
+                    onClick={() => setExpanded((e) => !e)}
+                    className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    {expanded ? '▲' : '▼'}
+                </button>
+                <button onClick={onRemove} className="hover:opacity-70 shrink-0" style={{ color: 'var(--accent-red)' }}>
+                    <X size={13} />
+                </button>
+            </div>
+
+            {expanded && (
+                <div className="px-2 py-2 space-y-2 border-t" style={{ borderColor: 'var(--app-border)' }}>
+                    {item.type === 'clock' && (
+                        <>
+                            <div>
+                                <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('settings.tabBar.clockDisplay')}
+                                </p>
+                                <div className="flex gap-1 flex-wrap">
+                                    {(['time', 'date', 'datetime'] as const).map((v) => {
+                                        const labels = {
+                                            time: t('wf.clock.timeOnly'),
+                                            date: t('wf.clock.dateOnly'),
+                                            datetime: t('wf.clock.datetime'),
+                                        };
+                                        const active = (item.clockDisplay ?? 'time') === v;
+                                        return (
+                                            <button
+                                                key={v}
+                                                onClick={() => onUpdate({ clockDisplay: v })}
+                                                className="px-2 py-1 rounded-lg text-xs font-medium hover:opacity-80"
+                                                style={{
+                                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                    color: active ? '#fff' : 'var(--text-secondary)',
+                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                }}
+                                            >
+                                                {labels[v]}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            {(item.clockDisplay ?? 'time') !== 'date' && (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('settings.tabBar.clockSeconds')}
+                                    </span>
+                                    <button
+                                        onClick={() => onUpdate({ clockShowSeconds: !item.clockShowSeconds })}
+                                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                        style={{
+                                            background: item.clockShowSeconds ? 'var(--accent)' : 'var(--app-border)',
+                                        }}
+                                    >
+                                        <span
+                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                            style={{ left: item.clockShowSeconds ? '18px' : '2px' }}
+                                        />
+                                    </button>
+                                </div>
+                            )}
+                            {(item.clockDisplay ?? 'time') !== 'time' && (
+                                <div>
+                                    <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('settings.tabBar.clockDateLen')}
+                                    </p>
+                                    <div className="flex gap-1">
+                                        {(['short', 'long'] as const).map((v) => {
+                                            const labels = { short: t('wf.clock.short'), long: t('wf.clock.long') };
+                                            const active = (item.clockDateLength ?? 'short') === v;
+                                            return (
+                                                <button
+                                                    key={v}
+                                                    onClick={() => onUpdate({ clockDateLength: v })}
+                                                    className="px-2 py-1 rounded-lg text-xs font-medium hover:opacity-80"
+                                                    style={{
+                                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                        color: active ? '#fff' : 'var(--text-secondary)',
+                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                    }}
+                                                >
+                                                    {labels[v]}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                            <div>
+                                <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('settings.tabBar.clockCustom')}
+                                </p>
+                                <input
+                                    type="text"
+                                    value={item.clockCustomFormat ?? ''}
+                                    onChange={(e) => onUpdate({ clockCustomFormat: e.target.value || undefined })}
+                                    placeholder="HH:mm:ss"
+                                    className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none font-mono"
+                                    style={iSty}
+                                />
+                            </div>
+                        </>
+                    )}
+                    {item.type === 'datapoint' && (
+                        <>
+                            <div>
+                                <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('settings.tabBar.datapointId')}
+                                </p>
+                                <input
+                                    type="text"
+                                    value={item.datapointId ?? ''}
+                                    onChange={(e) => onUpdate({ datapointId: e.target.value || undefined })}
+                                    placeholder="hm-rpc.0.ABC.1.TEMPERATURE"
+                                    className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none font-mono"
+                                    style={iSty}
+                                />
+                            </div>
+                            <div>
+                                <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('settings.tabBar.datapointTemplate')}
+                                </p>
+                                <input
+                                    type="text"
+                                    value={item.datapointTemplate ?? ''}
+                                    onChange={(e) => onUpdate({ datapointTemplate: e.target.value || undefined })}
+                                    placeholder="{dp} °C"
+                                    className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none font-mono"
+                                    style={iSty}
+                                />
+                            </div>
+                        </>
+                    )}
+                    {item.type === 'text' && (
+                        <div>
+                            <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
+                                {t('settings.tabBar.staticText')}
+                            </p>
+                            <input
+                                type="text"
+                                value={item.text ?? ''}
+                                onChange={(e) => onUpdate({ text: e.target.value || undefined })}
+                                placeholder="Mein Dashboard"
+                                className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                style={iSty}
+                            />
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
 
 // Global layout menu (hamburger) configuration. Extracted from the former
 // FrontendSection into its own prominent Design sub-tab: the enable toggle sits at
@@ -8,6 +219,23 @@ import { ToggleRow } from '../shared/SettingControls';
 export function LayoutMenuSection() {
     const t = useT();
     const { frontend, updateFrontend } = useConfigStore();
+
+    const items = frontend.layoutDrawerItems ?? [];
+    const updateItem = (id: string, patch: Partial<LayoutMenuItem>) => {
+        updateFrontend({ layoutDrawerItems: items.map((it) => (it.id === id ? { ...it, ...patch } : it)) });
+    };
+    const removeItem = (id: string) => {
+        updateFrontend({ layoutDrawerItems: items.filter((it) => it.id !== id) });
+    };
+    const addItem = (type: LayoutMenuItem['type']) => {
+        const newItem: LayoutMenuItem = {
+            id: `lmi-${Date.now()}`,
+            type,
+            position: 'top',
+            ...(type === 'clock' ? { clockDisplay: 'datetime' as const } : {}),
+        };
+        updateFrontend({ layoutDrawerItems: [...items, newItem] });
+    };
 
     return (
         <div
@@ -300,6 +528,46 @@ export function LayoutMenuSection() {
                             <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                                 px
                             </span>
+                        </div>
+                    </div>
+                    <div>
+                        <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                            {t('settings.frontend.layoutDrawerItems')}
+                        </p>
+                        <div className="space-y-1.5">
+                            {items.map((item) => (
+                                <LayoutMenuItemRow
+                                    key={item.id}
+                                    item={item}
+                                    onUpdate={(patch) => updateItem(item.id, patch)}
+                                    onRemove={() => removeItem(item.id)}
+                                    t={t}
+                                />
+                            ))}
+                        </div>
+                        <div className="flex gap-1.5 mt-2 flex-wrap">
+                            {(['clock', 'datapoint', 'text'] as const).map((type) => {
+                                const label =
+                                    type === 'clock'
+                                        ? t('settings.tabBar.itemTypeClock')
+                                        : type === 'datapoint'
+                                          ? t('settings.tabBar.itemTypeDatapoint')
+                                          : t('settings.tabBar.itemTypeText');
+                                return (
+                                    <button
+                                        key={type}
+                                        onClick={() => addItem(type)}
+                                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            color: 'var(--text-secondary)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                    >
+                                        <Plus size={11} /> {label}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>

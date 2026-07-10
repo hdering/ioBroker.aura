@@ -1982,6 +1982,7 @@ export function AdminEditor() {
                                 indicatorStyle={frontend.layoutDrawerIndicatorStyle ?? 'filled'}
                                 fontSize={frontend.layoutDrawerFontSize ?? 14}
                                 iconSize={frontend.layoutDrawerIconSize ?? 16}
+                                items={frontend.layoutDrawerItems ?? []}
                             />
                         </div>
                         <div

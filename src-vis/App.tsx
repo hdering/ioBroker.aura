@@ -776,6 +776,7 @@ export default function App() {
     const drawerIndicatorStyle = frontend.layoutDrawerIndicatorStyle ?? 'filled';
     const drawerFontSize = frontend.layoutDrawerFontSize ?? 14;
     const drawerIconSize = frontend.layoutDrawerIconSize ?? 16;
+    const drawerItems = frontend.layoutDrawerItems ?? [];
 
     return (
         <div
@@ -798,6 +799,7 @@ export default function App() {
                     indicatorStyle={drawerIndicatorStyle}
                     fontSize={drawerFontSize}
                     iconSize={drawerIconSize}
+                    items={drawerItems}
                 />
             )}
             <div className={drawerSidebar ? 'flex-1 min-h-0 flex' : 'contents'}>
@@ -813,6 +815,7 @@ export default function App() {
                         indicatorStyle={drawerIndicatorStyle}
                         fontSize={drawerFontSize}
                         iconSize={drawerIconSize}
+                        items={drawerItems}
                     />
                 )}
                 <div className={drawerSidebar ? 'flex-1 min-w-0 flex flex-col' : 'contents'}>
@@ -833,6 +836,7 @@ export default function App() {
                                         indicatorStyle={drawerIndicatorStyle}
                                         fontSize={drawerFontSize}
                                         iconSize={drawerIconSize}
+                                        items={drawerItems}
                                     />
                                 )}
                                 <h1 className="aura-titel text-xl font-bold tracking-tight truncate">
@@ -910,6 +914,7 @@ export default function App() {
                                     indicatorStyle={drawerIndicatorStyle}
                                     fontSize={drawerFontSize}
                                     iconSize={drawerIconSize}
+                                    items={drawerItems}
                                 />
                             ) : undefined
                         }

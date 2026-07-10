@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { managedStorage } from './persistManager';
-import type { TabBarSettings } from './dashboardStore';
+import type { TabBarSettings, LayoutMenuItem } from './dashboardStore';
 
 export interface FrontendSettings {
     customCSS: string;
@@ -66,6 +66,8 @@ export interface FrontendSettings {
     layoutDrawerFontSize: number;
     /** Entry icon size in px. */
     layoutDrawerIconSize: number;
+    /** Extra elements (clock/datapoint/text) rendered above/below the layout list. */
+    layoutDrawerItems: LayoutMenuItem[];
     // Idle return — auto-switch back to default tab after inactivity
     idleReturnEnabled: boolean;
     /** Seconds of inactivity before returning to the default tab. */
@@ -164,6 +166,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     layoutDrawerIndicatorStyle: 'filled',
     layoutDrawerFontSize: 14,
     layoutDrawerIconSize: 16,
+    layoutDrawerItems: [],
     idleReturnEnabled: false,
     idleReturnDelay: 30,
     optimisticUpdates: true,

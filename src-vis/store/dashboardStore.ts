@@ -24,6 +24,25 @@ export interface TabBarItem {
     text?: string;
 }
 
+// Extra element rendered in the layout menu (LayoutDrawer). Same content shapes as
+// TabBarItem, but positioned above (top) or below (bottom) the layout list instead
+// of left/center/right.
+export interface LayoutMenuItem {
+    id: string;
+    type: 'clock' | 'datapoint' | 'text';
+    position: 'top' | 'bottom';
+    // clock
+    clockDisplay?: 'time' | 'date' | 'datetime';
+    clockShowSeconds?: boolean;
+    clockDateLength?: 'short' | 'long';
+    clockCustomFormat?: string;
+    // datapoint
+    datapointId?: string;
+    datapointTemplate?: string;
+    // static text
+    text?: string;
+}
+
 export interface TabBarSettings {
     height?: number; // px, default ~40
     background?: string; // CSS color or var(--...)

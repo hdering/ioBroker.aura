@@ -5,3 +5,4 @@
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 Layout menu - new "bullet + name" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size
+Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list

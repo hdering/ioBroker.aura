@@ -118,6 +118,9 @@ export const de = {
     'settings.frontend.layoutDrawerIndicatorStyle': 'Stil des ausgewählten Layouts',
     'settings.frontend.layoutDrawerFontSize': 'Schriftgröße',
     'settings.frontend.layoutDrawerIconSize': 'Icon-Größe',
+    'settings.frontend.layoutDrawerItems': 'Elemente',
+    'settings.frontend.layoutDrawerItemPosTop': 'Oben',
+    'settings.frontend.layoutDrawerItemPosBottom': 'Unten',
     'settings.frontend.idleReturn': 'Automatisch zum Standard-Tab zurückkehren',
     'settings.frontend.idleReturnDelay': 'Verzögerung',
     'settings.frontend.idleReturnHint':

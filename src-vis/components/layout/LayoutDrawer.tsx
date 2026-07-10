@@ -4,8 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, X, LayoutDashboard } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { useDashboardStore } from '../../store/dashboardStore';
-import type { DashboardLayout } from '../../store/dashboardStore';
+import type { DashboardLayout, LayoutMenuItem } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
+import { subscribeDpValue } from '../../hooks/useIoBroker';
+import { applyCustomFormat, fmtTime, fmtDate } from '../../utils/clockUtils';
 
 export type LayoutDrawerSize = 'sm' | 'md' | 'lg';
 
@@ -38,6 +40,8 @@ interface LayoutDrawerProps {
     width?: number;
     /** Min height in px of each menu entry. */
     entryHeight?: number;
+    /** Extra elements (clock/datapoint/text) rendered above/below the layout list. */
+    items?: LayoutMenuItem[];
 }
 
 // Active-entry styling — mirrors TabBar's indicatorStyle. The vertical menu maps
@@ -73,6 +77,86 @@ function entryActiveStyle(
     }
 }
 
+// ── Layout-menu extra items (clock / datapoint / text) ────────────────────────
+// Same content shapes as the tab-bar items, but rendered block-style (stacked)
+// above or below the layout list.
+
+function LayoutMenuClock({ item, t }: { item: LayoutMenuItem; t: ReturnType<typeof useT> }) {
+    const [now, setNow] = useState(() => new Date());
+    useEffect(() => {
+        const id = setInterval(() => setNow(new Date()), 1000);
+        return () => clearInterval(id);
+    }, []);
+
+    if (item.clockCustomFormat) {
+        return (
+            <div className="text-2xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                {applyCustomFormat(now, item.clockCustomFormat, t)}
+            </div>
+        );
+    }
+
+    const timeStr = fmtTime(now, item.clockShowSeconds ?? false);
+    const dateStr = fmtDate(now, item.clockDateLength ?? 'short', t);
+
+    if (item.clockDisplay === 'datetime') {
+        return (
+            <div>
+                <div className="text-3xl font-bold tabular-nums leading-none" style={{ color: 'var(--text-primary)' }}>
+                    {timeStr}
+                </div>
+                <div className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                    {dateStr}
+                </div>
+            </div>
+        );
+    }
+
+    const text = item.clockDisplay === 'date' ? dateStr : timeStr;
+    return (
+        <div className="text-2xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>
+            {text}
+        </div>
+    );
+}
+
+function LayoutMenuDatapoint({ item }: { item: LayoutMenuItem }) {
+    const [val, setVal] = useState<string>('…');
+    useEffect(() => {
+        if (!item.datapointId) return;
+        const unsub = subscribeDpValue(item.datapointId, (value) => {
+            setVal(value != null ? String(value) : '–');
+        });
+        return unsub;
+    }, [item.datapointId]);
+
+    if (item.datapointTemplate) {
+        return (
+            <div
+                className="text-sm"
+                style={{ color: 'var(--text-secondary)' }}
+                dangerouslySetInnerHTML={{ __html: item.datapointTemplate.replace(/\{dp\}/g, val) }}
+            />
+        );
+    }
+
+    return (
+        <div className="text-sm" style={{ color: 'var(--text-primary)' }}>
+            {val}
+        </div>
+    );
+}
+
+function LayoutMenuItemView({ item, t }: { item: LayoutMenuItem; t: ReturnType<typeof useT> }) {
+    if (item.type === 'clock') return <LayoutMenuClock item={item} t={t} />;
+    if (item.type === 'datapoint') return <LayoutMenuDatapoint item={item} />;
+    return (
+        <div className="text-sm" style={{ color: 'var(--text-primary)' }}>
+            {item.text ?? ''}
+        </div>
+    );
+}
+
 // Sizing scale for the trigger button. Icon + container scale together.
 const SIZE_MAP: Record<
     LayoutDrawerSize,
@@ -98,6 +182,7 @@ export function LayoutDrawer({
     variant = 'overlay',
     width = 240,
     entryHeight = 48,
+    items = [],
 }: LayoutDrawerProps) {
     const t = useT();
     const navigate = useNavigate();
@@ -240,6 +325,23 @@ export function LayoutDrawer({
         </div>
     );
 
+    // Extra items rendered above (top) / below (bottom) the list. `list` is flex-1,
+    // so the bottom group is naturally pushed to the bottom edge (footer).
+    const renderItemGroup = (pos: 'top' | 'bottom') => {
+        const groupItems = items.filter((i) => i.position === pos);
+        if (groupItems.length === 0) return null;
+        return (
+            <div
+                className={`px-4 py-3 space-y-2 shrink-0 ${pos === 'top' ? 'border-b' : 'border-t'}`}
+                style={{ borderColor: 'var(--app-border)' }}
+            >
+                {groupItems.map((it) => (
+                    <LayoutMenuItemView key={it.id} item={it} t={t} />
+                ))}
+            </div>
+        );
+    };
+
     // Docked sidebar: always visible, no overlay/trigger, no portal.
     if (variant === 'sidebar') {
         return (
@@ -261,7 +363,9 @@ export function LayoutDrawer({
                         </span>
                     </div>
                 )}
+                {renderItemGroup('top')}
                 {list}
+                {renderItemGroup('bottom')}
             </aside>
         );
     }
@@ -338,7 +442,9 @@ export function LayoutDrawer({
                           </button>
                       </div>
 
+                      {renderItemGroup('top')}
                       {list}
+                      {renderItemGroup('bottom')}
                   </aside>
                   <style>{`@keyframes auraDrawerIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }`}</style>
               </>,

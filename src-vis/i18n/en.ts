@@ -120,6 +120,9 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.layoutDrawerIndicatorStyle': 'Selected style',
     'settings.frontend.layoutDrawerFontSize': 'Font size',
     'settings.frontend.layoutDrawerIconSize': 'Icon size',
+    'settings.frontend.layoutDrawerItems': 'Elements',
+    'settings.frontend.layoutDrawerItemPosTop': 'Top',
+    'settings.frontend.layoutDrawerItemPosBottom': 'Bottom',
     'settings.frontend.idleReturn': 'Auto-return to default tab',
     'settings.frontend.idleReturnDelay': 'Delay',
     'settings.frontend.idleReturnHint':
