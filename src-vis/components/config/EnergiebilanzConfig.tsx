@@ -736,15 +736,20 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                         {/* Icon-in-segment — sits under the percent-labels toggle, but is
                             independent of it (default off), so either/both/neither can show. */}
                         {key === 'showPercent' &&
-                            (() => {
-                                const on = o.showSegmentIcon === true;
+                            (
+                                [
+                                    ['showSegmentIcon', 'Icon im Segment anzeigen', false],
+                                    ['showOutsidePercent', 'Kleine Werte außerhalb anzeigen (Torte/Donut)', true],
+                                ] as [keyof EnergyBalanceOptions, string, boolean][]
+                            ).map(([optKey, optLabel, defOn]) => {
+                                const on = defOn ? o[optKey] !== false : o[optKey] === true;
                                 return (
-                                    <div className="mt-1 flex items-center justify-between">
+                                    <div key={optKey} className="mt-1 flex items-center justify-between">
                                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                            Icon im Segment anzeigen
+                                            {optLabel}
                                         </label>
                                         <button
-                                            onClick={() => setO({ showSegmentIcon: !on })}
+                                            onClick={() => setO({ [optKey]: !on } as Partial<EnergyBalanceOptions>)}
                                             className="relative w-9 h-5 rounded-full transition-colors"
                                             style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}
                                         >
@@ -755,7 +760,7 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                                         </button>
                                     </div>
                                 );
-                            })()}
+                            })}
                         {/* sub-options that only take effect with bar titles shown */}
                         {key === 'showBarTitles' && val && (
                             <div

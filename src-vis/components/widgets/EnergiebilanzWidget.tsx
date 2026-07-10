@@ -55,6 +55,8 @@ export interface EnergyBalanceOptions {
     showPercent?: boolean;
     /** Show each entry's icon inside its bar segment / pie slice, next to the percentage. Default false. */
     showSegmentIcon?: boolean;
+    /** Pull the percentage of pie/donut slices too small for an inside label outside on a leader line. Default true. */
+    showOutsidePercent?: boolean;
     showLegend?: boolean;
     /** Legend position for all bars. Falls back to each bar's own `legendSide`, then 'below'. */
     legendSide?: 'left' | 'right' | 'below' | 'top';
@@ -124,6 +126,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const showTotals = o.showTotals !== false;
     const showPercent = o.showPercent !== false;
     const showSegmentIcon = o.showSegmentIcon === true;
+    const showOutsidePercent = o.showOutsidePercent !== false;
     const showLegend = o.showLegend !== false;
     const chartStyle = o.chartStyle ?? 'bars';
     const barWidth = o.barWidth ?? 46;
@@ -223,6 +226,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                                 total={total}
                                 showPercent={showPercent}
                                 showIcon={showSegmentIcon}
+                                showOutside={showOutsidePercent}
                                 donut={chartStyle === 'donut'}
                                 size={pieSize}
                                 center={
@@ -350,6 +354,7 @@ function PieChart({
     total,
     showPercent,
     showIcon,
+    showOutside,
     donut,
     center,
     size = 160,
@@ -358,6 +363,7 @@ function PieChart({
     total: number;
     showPercent: boolean;
     showIcon: boolean;
+    showOutside: boolean;
     donut: boolean;
     center: { value: string; unit: string } | null;
     size?: number;
@@ -445,7 +451,7 @@ function PieChart({
     // percentages are shown and there's more than one slice.
     const OUTSIDE_MAX = 8;
     const outside =
-        showPercent && laid.length > 1
+        showPercent && showOutside && laid.length > 1
             ? laid.filter((s) => s.c.percent > 0 && s.c.percent < OUTSIDE_MAX && s.frac < 0.9999)
             : [];
 
