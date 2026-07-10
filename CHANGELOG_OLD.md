@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.21.8 (2026-07-07)
+- feat(guidelines): drop "hide now" button from resolution hint
+- fix(guidelines): show resolution badge in mobile view too
+
 ## 0.21.7 (2026-07-07)
 - 🌟 **New feature:** Clients - store each client's current screen resolution in ioBroker (clients.<id>.info.resolutionWidth / resolutionHeight), updated on connect and on resize
 - 🌟 **New feature:** Settings - the frontend resolution display is now its own block, independent of the guidelines (no longer requires guidelines to be active)

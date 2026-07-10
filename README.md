@@ -115,6 +115,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.23.6 (2026-07-10)
+- Thermostat - quick-select preset buttons now shown directly on the widget (toggleable)
+- Thermostat - color thresholds now apply to the actual temperature instead of the setpoint
+- Value - add status datapoints (battery / reachability) with show-always or alert-only badges
+
+
 ### 0.23.5 (2026-07-10)
 - Media player - relative cover paths (e.g. Sonos current_cover) now resolve automatically, no full-URL datapoint needed
 - Widgets - transparency mode with partial strength now keeps rounded corners in the frontend instead of showing square edges
@@ -220,11 +226,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open
 
 
-### 0.21.8 (2026-07-07)
-- feat(guidelines): drop "hide now" button from resolution hint
-- fix(guidelines): show resolution badge in mobile view too
-
-
 ## License
 
 MIT License
@@ -236,6 +237,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
