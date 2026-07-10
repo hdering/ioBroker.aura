@@ -562,6 +562,9 @@ export const de = {
     'widgets.copyTarget': 'Ziel:',
 
     // ── Editor ────────────────────────────────────────────────────────────────────
+    'editor.dockedMenuPreview.hint':
+        'Das Layout-Menü ist als feste Seitenleiste angedockt und belegt diesen Bereich im Frontend. Es wird hier angezeigt, damit die Designfläche übereinstimmt.',
+    'editor.dockedMenuPreview.link': 'Menü-Einstellung ändern',
     'editor.manual.title': 'Widget manuell hinzufügen',
     'editor.manual.template': 'Schnellauswahl',
     'editor.manual.type': 'Typ',

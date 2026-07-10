@@ -563,6 +563,9 @@ export const en: Record<TranslationKey, string> = {
     'widgets.copyTarget': 'Target:',
 
     // ── Editor ────────────────────────────────────────────────────────────────────
+    'editor.dockedMenuPreview.hint':
+        'The layout menu is docked as a sidebar and takes up this space in the frontend. It is shown here so the design area matches.',
+    'editor.dockedMenuPreview.link': 'Change menu setting',
     'editor.manual.title': 'Add Widget Manually',
     'editor.manual.template': 'Quick Select',
     'editor.manual.type': 'Type',

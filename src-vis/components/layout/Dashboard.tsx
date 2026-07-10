@@ -61,6 +61,17 @@ export function Dashboard({
     const guidelinesShowInFrontend = settings.guidelinesShowInFrontend ?? false;
     const guidelinesShowResolution = settings.guidelinesShowResolution ?? true;
 
+    // A docked sidebar menu occupies real horizontal space to the left of the dashboard,
+    // so the guideline (which marks the target *device* width) must subtract the menu
+    // width: usable dashboard = deviceWidth − menu. A floating / tab-bar menu overlays
+    // content without insetting the dashboard, so nothing is subtracted there.
+    const totalLayouts = useDashboardStore((s) => s.layouts.length);
+    const dockedSidebar =
+        (settings.layoutDrawerEnabled ?? false) &&
+        (settings.layoutDrawerPlacement ?? 'floating') === 'sidebar' &&
+        totalLayouts > 1;
+    const guidelinesMenuInset = dockedSidebar ? (settings.layoutDrawerWidth ?? 240) : 0;
+
     const showGuidelines = guidelinesEnabled && (editMode || guidelinesShowInFrontend);
     // The resolution badge is independent of the guideline lines: it follows its
     // own toggle and shows in both the editor and the frontend when enabled.
@@ -377,7 +388,13 @@ export function Dashboard({
                         ...(effectiveRglWidth > containerWidth ? { overflowX: 'auto' } : {}),
                     }}
                 >
-                    {showGuidelines && <GuidelinesOverlay width={guidelinesWidth} height={guidelinesHeight} />}
+                    {showGuidelines && (
+                        <GuidelinesOverlay
+                            width={guidelinesWidth}
+                            height={guidelinesHeight}
+                            menuInset={guidelinesMenuInset}
+                        />
+                    )}
                     {resolutionOverlay}
                     {rglWidth > 0 && (
                         <>
@@ -617,12 +634,19 @@ export function Dashboard({
 
 // ── Guidelines overlay ────────────────────────────────────────────────────
 // Renders a vertical line at x=guidelinesWidth and a horizontal line at
-// y=guidelinesHeight. Lines are positioned absolutely inside the scroll
-// container; positions are offset by the scroll container's viewport
-// top/left so the lines indicate the *device's* screen edges (the target
-// width/height covers the entire app including header + tab bar), not
-// the dashboard area alone.
-function GuidelinesOverlay({ width, height }: { width: number; height: number }) {
+// y=guidelinesHeight, positioned absolutely inside the scroll container.
+// Both lines mark the target *device* edges (width/height = the whole device).
+//
+// Vertical line (width): the dashboard's left edge already sits to the right of
+// a docked sidebar menu, so to land the line on the device's right edge we
+// subtract the docked menu width — usable dashboard = deviceWidth − menu.
+// `menuInset` is the docked sidebar width (0 for a floating / tab-bar menu,
+// which overlays content instead of insetting the dashboard).
+//
+// Horizontal line (height): offset by the container's viewport top so it
+// indicates the device's screen edge (target height covers the whole app
+// including header + tab bar).
+function GuidelinesOverlay({ width, height, menuInset }: { width: number; height: number; menuInset: number }) {
     const markerRef = useRef<HTMLDivElement | null>(null);
     const [offset, setOffset] = useState({ top: 0, left: 0 });
 
@@ -645,7 +669,7 @@ function GuidelinesOverlay({ width, height }: { width: number; height: number })
         };
     }, []);
 
-    const lineLeft = width - offset.left;
+    const lineLeft = width - menuInset;
     const lineTop = height - offset.top;
 
     return (

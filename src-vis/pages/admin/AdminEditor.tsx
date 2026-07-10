@@ -21,6 +21,7 @@ import {
     Download,
     Eye,
     EyeOff,
+    ExternalLink,
 } from 'lucide-react';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { Icon } from '@iconify/react';
@@ -32,6 +33,7 @@ import { BadgeEditor } from '../../components/config/BadgeEditor';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useGroupStore } from '../../store/groupStore';
 import { Dashboard } from '../../components/layout/Dashboard';
+import { LayoutDrawer } from '../../components/layout/LayoutDrawer';
 import { FocusedWidgetContext } from '../../contexts/FocusedWidgetContext';
 import { TabWizard } from '../../components/config/TabWizard';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
@@ -1821,6 +1823,16 @@ export function AdminEditor() {
     const { frontend, updateFrontend } = useConfigStore();
     const guidelinesEnabled = frontend.guidelinesEnabled ?? false;
 
+    // Docked-sidebar layout menu: mirror the frontend so the editor preview reserves
+    // the same horizontal space the menu occupies in the frontend. Without this the
+    // preview would be full-width while the frontend dashboard is (device − menu),
+    // so designs wouldn't match. Rendered as a non-interactive preview (see below).
+    const drawerSidebarPreview =
+        (frontend.layoutDrawerEnabled ?? false) &&
+        (frontend.layoutDrawerPlacement ?? 'floating') === 'sidebar' &&
+        layoutOptions.length > 1;
+    const drawerWidth = frontend.layoutDrawerWidth ?? 240;
+
     // Run custom JS inside the editor preview when `customJSInEditor` is enabled.
     useCustomJs(activeLayoutId, true);
     // Apply custom CSS inside the editor preview when `customCSSInEditor` is enabled.
@@ -1949,7 +1961,48 @@ export function AdminEditor() {
 
             {/* Dashboard preview with edit mode */}
             <div className="flex-1 flex overflow-hidden" style={{ background: 'var(--app-bg)' }}>
-                <div className="flex-1 flex flex-col overflow-hidden">
+                {drawerSidebarPreview && (
+                    // Greyed, non-interactive preview of the docked sidebar so the design
+                    // area matches the frontend. A hint overlay explains why it appears and
+                    // links to the setting that controls it.
+                    <div className="shrink-0 relative flex" style={{ width: drawerWidth }}>
+                        <div
+                            className="flex w-full"
+                            style={{ pointerEvents: 'none', filter: 'grayscale(1)', opacity: 0.45 }}
+                            aria-hidden
+                        >
+                            <LayoutDrawer
+                                activeLayoutId={activeLayoutId}
+                                variant="sidebar"
+                                width={drawerWidth}
+                                showTitle={frontend.layoutDrawerShowTitle ?? true}
+                                drawerTitle={frontend.layoutDrawerTitle ?? ''}
+                                entryStyle={frontend.layoutDrawerEntryStyle ?? 'iconAndName'}
+                                entryHeight={frontend.layoutDrawerEntryHeight ?? 48}
+                            />
+                        </div>
+                        <div
+                            className="absolute inset-x-2 bottom-2 rounded-lg p-2.5 space-y-1.5 shadow-lg"
+                            style={{
+                                background: 'var(--app-surface)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            <p className="text-[11px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
+                                {t('editor.dockedMenuPreview.hint')}
+                            </p>
+                            <a
+                                href="#/admin/design?frame=menu"
+                                className="inline-flex items-center gap-1 text-[11px] font-medium hover:opacity-80"
+                                style={{ color: 'var(--accent)' }}
+                            >
+                                {t('editor.dockedMenuPreview.link')}
+                                <ExternalLink size={11} />
+                            </a>
+                        </div>
+                    </div>
+                )}
+                <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
                     <FocusedWidgetContext.Provider value={focusedWidgetId}>
                         <Dashboard editMode={true} />
                     </FocusedWidgetContext.Provider>
