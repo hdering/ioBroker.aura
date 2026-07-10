@@ -115,6 +115,14 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.24.1 (2026-07-10)
+- refactor(layout-menu): show the menu-title input in a SubGroup like placement
+- refactor(layout-menu): group placement-dependent settings under the placement
+- feat(layout-menu): show settings conditionally per placement
+- refactor(layout-menu): put placement first as a prominent heading
+- refactor(layout-menu): group hamburger size + auto-hide in one bordered box
+
+
 ### 0.24.0 (2026-07-10)
 - 🌟 **New feature:** Layout menu - new "bullet + name" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size
 - 🌟 **New feature:** Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list
@@ -222,11 +230,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)
 
 
-### 0.21.10 (2026-07-07)
-- fix(list): stop frontend value filter from resetting after config sync
-- fix(list): apply frontend value filter instantly via local state
-
-
 ## License
 
 MIT License
@@ -238,6 +241,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

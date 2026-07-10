@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.24.0",
+    "version": "0.24.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.24.1": {
+        "en": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
+        "de": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
+        "ru": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
+        "pt": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
+        "nl": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
+        "fr": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
+        "it": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
+        "es": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
+        "pl": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
+        "uk": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
+        "zh-cn": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box"
+      },
       "0.24.0": {
         "en": "🌟 New feature: Layout menu - new \"bullet + name\" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size\n🌟 New feature: Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list",
         "de": "🌟 New feature: Layout menu - new \"bullet + name\" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size\n🌟 New feature: Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list",
@@ -184,19 +197,6 @@
         "pl": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it",
         "uk": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it",
         "zh-cn": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it"
-      },
-      "0.23.1": {
-        "en": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
-        "de": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
-        "ru": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
-        "pt": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
-        "nl": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
-        "fr": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
-        "it": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
-        "es": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
-        "pl": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
-        "uk": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens",
-        "zh-cn": "Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens"
       }
     }
   },

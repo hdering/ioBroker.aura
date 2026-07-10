@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.21.10 (2026-07-07)
+- fix(list): stop frontend value filter from resetting after config sync
+- fix(list): apply frontend value filter instantly via local state
+
 ## 0.21.9 (2026-07-07)
 - Static list / Auto list - frontend filter (all / active / inactive) now applies instantly instead of only when the admin config tab is open
 
