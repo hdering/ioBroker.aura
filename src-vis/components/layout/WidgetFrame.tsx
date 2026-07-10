@@ -15286,52 +15286,45 @@ export function WidgetFrame({
                                             </label>
                                             <Toggle on={multiline} onClick={() => set({ multiline: !multiline })} />
                                         </div>
-                                        {/* Platzhalter */}
-                                        <div>
-                                            <label
-                                                className="text-[11px] mb-1 block"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                            >
-                                                Platzhalter
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={placeholder}
-                                                onChange={(e) => set({ placeholder: e.target.value || undefined })}
-                                                placeholder="z.B. Nachricht eingeben…"
-                                                className={inputCls3}
-                                                style={inputSty3}
-                                            />
-                                        </div>
-                                        {/* Feldbreite */}
-                                        <div>
-                                            <div className="flex items-center justify-between mb-1">
+                                        {/* Platzhalter (70%) + Feldbreite (30%) nebeneinander */}
+                                        <div className="flex gap-2">
+                                            <div style={{ flex: '7 1 0%', minWidth: 0 }}>
                                                 <label
-                                                    className="text-[11px]"
+                                                    className="text-[11px] mb-1 block"
                                                     style={{ color: 'var(--text-secondary)' }}
                                                 >
-                                                    Feldbreite
+                                                    Platzhalter
                                                 </label>
-                                                <span
-                                                    className="text-[11px] tabular-nums"
-                                                    style={{ color: 'var(--text-primary)' }}
-                                                >
-                                                    {Math.round((o.inputWidth as number) ?? 100)} %
-                                                </span>
+                                                <input
+                                                    type="text"
+                                                    value={placeholder}
+                                                    onChange={(e) => set({ placeholder: e.target.value || undefined })}
+                                                    placeholder="z.B. Nachricht eingeben…"
+                                                    className={inputCls3}
+                                                    style={inputSty3}
+                                                />
                                             </div>
-                                            <input
-                                                type="range"
-                                                min={10}
-                                                max={100}
-                                                step={1}
-                                                value={(o.inputWidth as number) ?? 100}
-                                                onChange={(e) => {
-                                                    const n = Number(e.target.value);
-                                                    set({ inputWidth: n >= 100 ? undefined : n });
-                                                }}
-                                                className="w-full h-1"
-                                                style={{ accentColor: 'var(--accent)' }}
-                                            />
+                                            <div style={{ flex: '3 1 0%', minWidth: 0 }}>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Feldbreite (px)
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={20}
+                                                    step={10}
+                                                    value={(o.inputWidth as number) ?? ''}
+                                                    onChange={(e) => {
+                                                        const n = Number(e.target.value);
+                                                        set({ inputWidth: e.target.value && n > 0 ? n : undefined });
+                                                    }}
+                                                    placeholder="voll"
+                                                    className={inputCls3}
+                                                    style={inputSty3}
+                                                />
+                                            </div>
                                         </div>
                                         {/* Eingabeart — bei Textarea ausgeblendet (immer Text) */}
                                         {!multiline && (

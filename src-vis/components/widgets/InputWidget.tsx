@@ -32,9 +32,10 @@ export function InputWidget({ config }: WidgetProps) {
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const textAlign = (o.textAlign as 'left' | 'right' | 'center') ?? 'left';
     const iconSize = (o.iconSize as number) || 20;
-    // Input field width as a percentage of its cell (default 100 = fill). Clamped to a
-    // sane range so the field never collapses to nothing.
-    const inputWidth = Math.max(10, Math.min(100, Number(o.inputWidth) || 100));
+    // Fixed input field width in px, independent of the cell width. Undefined = fill the
+    // cell (default). When set, the field keeps this width and the submit button sits
+    // directly next to it instead of being pushed to the far edge.
+    const fixedWidth = Number(o.inputWidth) > 0 ? Number(o.inputWidth) : undefined;
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, TextCursorInput);
 
     const { value: rawVal } = useDatapoint(config.datapoint);
@@ -120,9 +121,9 @@ export function InputWidget({ config }: WidgetProps) {
         color: 'var(--text-primary)',
         border: '1px solid var(--app-border)',
         textAlign,
-        // Inline width overrides the `w-full` class; only set when narrowed so the
-        // default keeps filling the cell. Alignment is handled by the flex wrapper.
-        ...(inputWidth < 100 ? { width: `${inputWidth}%` } : null),
+        // A fixed px width overrides the `w-full` class and keeps the field from
+        // shrinking; without it the field fills its cell as before.
+        ...(fixedWidth ? { width: `${fixedWidth}px`, flexShrink: 0 } : null),
     };
     const justifyForAlign: React.CSSProperties['justifyContent'] =
         textAlign === 'right' ? 'flex-end' : textAlign === 'center' ? 'center' : 'flex-start';
@@ -153,6 +154,17 @@ export function InputWidget({ config }: WidgetProps) {
             onKeyDown={onKeyDown}
             onBlur={submitMode === 'submit' ? commit : undefined}
         />
+    );
+
+    // Single-line input area used by the compact + default layouts. With a fixed width
+    // the field is rendered bare so the submit button adjoins it; otherwise it sits in a
+    // flex-1 wrapper that fills the row and honours the text alignment.
+    const inputArea = fixedWidth ? (
+        inputEl
+    ) : (
+        <div className="flex-1 min-w-0 flex" style={{ justifyContent: justifyForAlign }}>
+            {inputEl}
+        </div>
     );
 
     const renderSubmitButton = (alwaysActive = false, fillContainer = alwaysActive) => {
@@ -223,9 +235,7 @@ export function InputWidget({ config }: WidgetProps) {
                         )}
                     </div>
                 )}
-                <div className="flex-1 min-w-0 flex" style={{ justifyContent: justifyForAlign }}>
-                    {inputEl}
-                </div>
+                {inputArea}
                 {submitButton}
                 {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
             </div>
@@ -257,13 +267,7 @@ export function InputWidget({ config }: WidgetProps) {
                 </div>
             )}
             <div className={`flex ${multiline ? 'flex-1 min-h-0' : 'items-center'} gap-2`}>
-                {multiline ? (
-                    inputEl
-                ) : (
-                    <div className="flex-1 min-w-0 flex" style={{ justifyContent: justifyForAlign }}>
-                        {inputEl}
-                    </div>
-                )}
+                {multiline ? inputEl : inputArea}
                 {!multiline && submitButton}
             </div>
             {multiline && submitButton && <div className="flex justify-end shrink-0">{submitButton}</div>}
