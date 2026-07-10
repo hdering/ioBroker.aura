@@ -469,82 +469,85 @@ export function LayoutMenuSection() {
                             })}
                         </div>
                     </div>
-                    <div>
-                        <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                            {t('settings.frontend.layoutDrawerFontSize')}
-                        </p>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="number"
-                                min={10}
-                                max={28}
-                                value={frontend.layoutDrawerFontSize ?? 14}
-                                onChange={(e) => {
-                                    const v = Math.min(28, Math.max(10, parseInt(e.target.value) || 14));
-                                    updateFrontend({ layoutDrawerFontSize: v });
-                                }}
-                                className="w-24 text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            />
-                            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                px
-                            </span>
+                    {/* Size fields side by side */}
+                    <div className="grid grid-cols-3 gap-3">
+                        <div>
+                            <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                {t('settings.frontend.layoutDrawerFontSize')}
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    min={10}
+                                    max={28}
+                                    value={frontend.layoutDrawerFontSize ?? 14}
+                                    onChange={(e) => {
+                                        const v = Math.min(28, Math.max(10, parseInt(e.target.value) || 14));
+                                        updateFrontend({ layoutDrawerFontSize: v });
+                                    }}
+                                    className="w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-primary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                />
+                                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                    px
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                            {t('settings.frontend.layoutDrawerIconSize')}
-                        </p>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="number"
-                                min={10}
-                                max={40}
-                                value={frontend.layoutDrawerIconSize ?? 16}
-                                onChange={(e) => {
-                                    const v = Math.min(40, Math.max(10, parseInt(e.target.value) || 16));
-                                    updateFrontend({ layoutDrawerIconSize: v });
-                                }}
-                                className="w-24 text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            />
-                            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                px
-                            </span>
+                        <div>
+                            <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                {t('settings.frontend.layoutDrawerIconSize')}
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    min={10}
+                                    max={40}
+                                    value={frontend.layoutDrawerIconSize ?? 16}
+                                    onChange={(e) => {
+                                        const v = Math.min(40, Math.max(10, parseInt(e.target.value) || 16));
+                                        updateFrontend({ layoutDrawerIconSize: v });
+                                    }}
+                                    className="w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-primary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                />
+                                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                    px
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                            {t('settings.frontend.layoutDrawerEntryHeight')}
-                        </p>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="number"
-                                min={32}
-                                max={120}
-                                value={frontend.layoutDrawerEntryHeight ?? 48}
-                                onChange={(e) => {
-                                    const v = Math.min(120, Math.max(32, parseInt(e.target.value) || 48));
-                                    updateFrontend({ layoutDrawerEntryHeight: v });
-                                }}
-                                className="w-24 text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            />
-                            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                px
-                            </span>
+                        <div>
+                            <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                {t('settings.frontend.layoutDrawerEntryHeight')}
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    min={32}
+                                    max={120}
+                                    value={frontend.layoutDrawerEntryHeight ?? 48}
+                                    onChange={(e) => {
+                                        const v = Math.min(120, Math.max(32, parseInt(e.target.value) || 48));
+                                        updateFrontend({ layoutDrawerEntryHeight: v });
+                                    }}
+                                    className="w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-primary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                />
+                                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                    px
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <div>
