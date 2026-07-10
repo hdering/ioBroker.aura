@@ -168,6 +168,7 @@ import { AdapterLogsWidget } from '../widgets/AdapterLogsWidget';
 import { InputWidget } from '../widgets/InputWidget';
 import { AlarmWidget, AlarmConfig } from '../widgets/AlarmWidget';
 import { TimerConfig } from '../config/TimerConfig';
+import { NumberListInput } from '../config/NumberListInput';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
 import { WidgetClickPopup } from '../widgets/popup/WidgetClickPopup';
@@ -199,11 +200,8 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
         { key: 'showUnit', label: 'Einheit' },
         { key: 'showMinMax', label: 'Min/Max-Beschriftung' },
     ],
-    thermostat: [
-        { key: 'showSetpoint', label: 'Solltemperatur' },
-        { key: 'showActualTemp', label: 'Isttemperatur' },
-        { key: 'showControls', label: 'Tasten ±' },
-    ],
+    // thermostat: visibility toggles live in the thermostat settings block
+    // (Soll/Ist/Tasten/Schnellwahl) — kept out of the generic Darstellung block.
     value: [
         { key: 'showValue', label: 'Wert' },
         { key: 'showUnit', label: 'Einheit' },
@@ -14005,19 +14003,12 @@ export function WidgetFrame({
                                                 className="text-[11px] mb-1 block"
                                                 style={{ color: 'var(--text-secondary)' }}
                                             >
-                                                Schnellwahl (kommagetrennt)
+                                                Schnellwahl (mit ; getrennt)
                                             </label>
-                                            <input
-                                                type="text"
-                                                value={((o.presets as number[]) ?? [18, 20, 22, 24]).join(', ')}
-                                                onChange={(e) => {
-                                                    const vals = e.target.value
-                                                        .split(',')
-                                                        .map((s) => parseFloat(s.trim()))
-                                                        .filter((n) => !isNaN(n));
-                                                    setO({ presets: vals.length ? vals : undefined });
-                                                }}
-                                                placeholder="18, 20, 22, 24"
+                                            <NumberListInput
+                                                value={(o.presets as number[]) ?? [18, 20, 22, 24]}
+                                                onChange={(presets) => setO({ presets })}
+                                                placeholder="18; 20; 21,5; 24"
                                                 className={tInputCls}
                                                 style={tInputStyle}
                                             />
@@ -14069,6 +14060,39 @@ export function WidgetFrame({
                                                 </button>
                                             </div>
                                         </div>
+
+                                        {/* Sichtbare Felder */}
+                                        <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                        {[
+                                            { key: 'showSetpoint', label: 'Solltemperatur' },
+                                            { key: 'showActualTemp', label: 'Isttemperatur' },
+                                            { key: 'showControls', label: 'Tasten ±' },
+                                            { key: 'showPresets', label: 'Schnellwahl' },
+                                        ].map(({ key, label }) => {
+                                            const val = o[key] !== false;
+                                            return (
+                                                <div key={key} className="flex items-center justify-between">
+                                                    <span
+                                                        className="text-[11px]"
+                                                        style={{ color: 'var(--text-primary)' }}
+                                                    >
+                                                        {label}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => setO({ [key]: !val })}
+                                                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                                        style={{
+                                                            background: val ? 'var(--accent)' : 'var(--app-border)',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                                            style={{ left: val ? '14px' : '2px' }}
+                                                        />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
                                     </>
                                 );
                             })()}

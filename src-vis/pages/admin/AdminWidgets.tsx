@@ -4,6 +4,7 @@ import { useT } from '../../i18n';
 import { ChevronDown, ChevronRight, Trash2, Database, X, Check, RotateCcw, Download, ExternalLink } from 'lucide-react';
 import { useDashboardStore, useActiveLayout, type Tab } from '../../store/dashboardStore';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
+import { NumberListInput } from '../../components/config/NumberListInput';
 import { WidgetPreview } from '../../components/config/WidgetPreview';
 import type { WidgetConfig, WidgetType, WidgetLayout } from '../../types';
 import { WIDGET_REGISTRY } from '../../widgetRegistry';
@@ -256,17 +257,10 @@ function InlineEditForm({
                                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                                     {t('wf.thermo.presets')}
                                 </label>
-                                <input
-                                    type="text"
-                                    value={((o.presets as number[]) ?? [18, 20, 22, 24]).join(', ')}
-                                    onChange={(e) => {
-                                        const vals = e.target.value
-                                            .split(',')
-                                            .map((s) => parseFloat(s.trim()))
-                                            .filter((n) => !isNaN(n));
-                                        setO({ presets: vals.length ? vals : undefined });
-                                    }}
-                                    placeholder="18, 20, 22, 24"
+                                <NumberListInput
+                                    value={(o.presets as number[]) ?? [18, 20, 22, 24]}
+                                    onChange={(presets) => setO({ presets })}
+                                    placeholder="18; 20; 21,5; 24"
                                     className={inputCls}
                                     style={inputStyle}
                                 />

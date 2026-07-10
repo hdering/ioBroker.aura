@@ -751,7 +751,7 @@ export const en: Record<TranslationKey, string> = {
     'wf.thermo.minTemp': 'Min °C',
     'wf.thermo.maxTemp': 'Max °C',
     'wf.thermo.step': 'Step Size',
-    'wf.thermo.presets': 'Quick Select (comma-separated)',
+    'wf.thermo.presets': 'Quick Select (separate with ;)',
 
     // Group config
     'wf.group.transparent': 'Transparency Mode',

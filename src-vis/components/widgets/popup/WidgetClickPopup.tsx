@@ -5,7 +5,6 @@ import type { WidgetConfig, ClickAction } from '../../../types';
 import { usePortalTarget } from '../../../contexts/PortalTargetContext';
 import { usePopupConfigStore } from '../../../store/popupConfigStore';
 import { DimmerPopupBody } from './DimmerPopupBody';
-import { ThermostatPopupBody } from './ThermostatPopupBody';
 import { SwitchPopupBody } from './SwitchPopupBody';
 import { ShutterPopupBody } from './ShutterPopupBody';
 import { MediaplayerPopupBody } from './MediaplayerPopupBody';
@@ -122,8 +121,6 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
         switch (action.kind) {
             case 'popup-dimmer':
                 return <DimmerPopupBody widget={widget} />;
-            case 'popup-thermostat':
-                return <ThermostatPopupBody widget={widget} action={action} />;
             case 'popup-switch':
                 return <SwitchPopupBody widget={widget} />;
             case 'popup-shutter':

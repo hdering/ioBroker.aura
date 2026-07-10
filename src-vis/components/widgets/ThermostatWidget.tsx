@@ -40,6 +40,8 @@ export function ThermostatWidget({ config }: WidgetProps) {
     const showSetpoint = o.showSetpoint !== false;
     const showActualTemp = o.showActualTemp !== false;
     const showControls = o.showControls !== false;
+    const showPresets = o.showPresets !== false;
+    const presets = (o.presets as number[] | undefined) ?? [18, 20, 22, 24];
     const showIcon = o.showIcon !== false;
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const ThermoIcon = getWidgetIcon(o.icon as string | undefined, Thermometer);
@@ -95,6 +97,27 @@ export function ThermostatWidget({ config }: WidgetProps) {
             >
                 −
             </button>
+        </div>
+    );
+
+    const PresetButtons = () => (
+        <div className="aura-widget-action nodrag flex gap-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
+            {presets.map((v) => {
+                const active = Math.abs(target - v) < 0.1;
+                return (
+                    <button
+                        key={v}
+                        onClick={() => setTemp(v)}
+                        className="px-2 py-1 rounded-lg text-xs font-medium hover:opacity-80 active:scale-95 transition-all"
+                        style={{
+                            background: active ? 'var(--accent)' : 'var(--app-border)',
+                            color: active ? '#fff' : 'var(--text-primary)',
+                        }}
+                    >
+                        {String(v).replace('.', ',')}°
+                    </button>
+                );
+            })}
         </div>
     );
 
@@ -271,6 +294,11 @@ export function ThermostatWidget({ config }: WidgetProps) {
                             </button>
                         </div>
                     )}
+                    {showPresets && presets.length > 0 && (
+                        <div className="flex justify-center mt-1">
+                            <PresetButtons />
+                        </div>
+                    )}
                     <StatusBadges config={config} />
                 </div>
             </>
@@ -330,21 +358,8 @@ export function ThermostatWidget({ config }: WidgetProps) {
                     )}
                 </div>
 
-                {/* Progress bar */}
-                {showActualTemp && actual !== null && (
-                    <div
-                        className="w-full h-1 rounded-full overflow-hidden"
-                        style={{ background: 'var(--app-border)' }}
-                    >
-                        <div
-                            className="h-full rounded-full transition-all duration-700"
-                            style={{
-                                width: `${Math.min(100, Math.max(0, ((actual - minTemp) / (maxTemp - minTemp)) * 100))}%`,
-                                background: accentColor,
-                            }}
-                        />
-                    </div>
-                )}
+                {/* Quick-select presets */}
+                {showPresets && presets.length > 0 && <PresetButtons />}
                 <StatusBadges config={config} />
             </div>
         </>

@@ -750,7 +750,7 @@ export const de = {
     'wf.thermo.minTemp': 'Min °C',
     'wf.thermo.maxTemp': 'Max °C',
     'wf.thermo.step': 'Schrittweite',
-    'wf.thermo.presets': 'Schnellwahl (kommagetrennt)',
+    'wf.thermo.presets': 'Schnellwahl (mit ; getrennt)',
 
     // Group config
     'wf.group.transparent': 'Transparenz-Modus',
