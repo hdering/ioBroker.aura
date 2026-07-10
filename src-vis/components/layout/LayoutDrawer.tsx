@@ -61,10 +61,14 @@ function entryActiveStyle(
             };
         case 'filled':
         default:
+            // Not a full-width fill — an inset rounded accent outline that hugs the
+            // entry (via `outline`, so it adds no layout shift), plus accent text.
             return {
-                background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
                 color: 'var(--accent)',
-                borderLeft: '3px solid var(--accent)',
+                borderRadius: '0.5rem',
+                outline: '1.5px solid var(--accent)',
+                outlineOffset: '-4px',
+                borderLeft: '3px solid transparent',
             };
     }
 }
