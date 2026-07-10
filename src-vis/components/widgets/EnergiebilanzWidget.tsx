@@ -53,6 +53,8 @@ export interface EnergyBalanceOptions {
     barTitleAlign?: 'left' | 'center' | 'right';
     showTotals?: boolean;
     showPercent?: boolean;
+    /** Show each entry's icon inside its bar segment / pie slice, next to the percentage. Default false. */
+    showSegmentIcon?: boolean;
     showLegend?: boolean;
     /** Legend position for all bars. Falls back to each bar's own `legendSide`, then 'below'. */
     legendSide?: 'left' | 'right' | 'below' | 'top';
@@ -121,6 +123,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const barTitleAlign = o.barTitleAlign ?? 'center';
     const showTotals = o.showTotals !== false;
     const showPercent = o.showPercent !== false;
+    const showSegmentIcon = o.showSegmentIcon === true;
     const showLegend = o.showLegend !== false;
     const chartStyle = o.chartStyle ?? 'bars';
     const barWidth = o.barWidth ?? 46;
@@ -207,12 +210,19 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                     ) : null;
                     const chart =
                         chartStyle === 'bars' ? (
-                            <StackedBar items={computed} total={total} showPercent={showPercent} width={barWidth} />
+                            <StackedBar
+                                items={computed}
+                                total={total}
+                                showPercent={showPercent}
+                                showIcon={showSegmentIcon}
+                                width={barWidth}
+                            />
                         ) : (
                             <PieChart
                                 items={computed}
                                 total={total}
                                 showPercent={showPercent}
+                                showIcon={showSegmentIcon}
                                 donut={chartStyle === 'donut'}
                                 size={pieSize}
                                 center={
@@ -260,11 +270,13 @@ function StackedBar({
     items,
     total,
     showPercent,
+    showIcon,
     width = 46,
 }: {
     items: Computed[];
     total: number;
     showPercent: boolean;
+    showIcon: boolean;
     width?: number;
 }) {
     if (total <= 0) {
@@ -282,24 +294,33 @@ function StackedBar({
     }
     return (
         <div className="rounded-lg overflow-hidden self-stretch flex flex-col" style={{ width, minHeight: 80 }}>
-            {items.map((c) => (
-                <div
-                    key={c.entry.id}
-                    className="flex items-center justify-center"
-                    style={{
-                        flexGrow: c.value,
-                        flexBasis: 0,
-                        background: c.color,
-                        color: '#fff',
-                        fontSize: 11,
-                        fontWeight: 600,
-                        overflow: 'hidden',
-                        minHeight: 0,
-                    }}
-                >
-                    {showPercent && c.percent >= 8 ? `${Math.round(c.percent)} %` : ''}
-                </div>
-            ))}
+            {items.map((c) => {
+                // Icon needs more vertical room than the percent label, so gate it on a
+                // larger share; both are centred and stacked when they fit together.
+                const wantIcon = showIcon && !!c.entry.icon && c.percent >= 12;
+                const wantPct = showPercent && c.percent >= 8;
+                return (
+                    <div
+                        key={c.entry.id}
+                        className="flex flex-col items-center justify-center gap-0.5"
+                        style={{
+                            flexGrow: c.value,
+                            flexBasis: 0,
+                            background: c.color,
+                            color: '#fff',
+                            fontSize: 11,
+                            fontWeight: 600,
+                            overflow: 'hidden',
+                            minHeight: 0,
+                        }}
+                    >
+                        {wantIcon && (
+                            <Icon icon={toIconifyId(c.entry.icon!)} width={15} height={15} style={{ color: '#fff' }} />
+                        )}
+                        {wantPct && <span>{Math.round(c.percent)} %</span>}
+                    </div>
+                );
+            })}
         </div>
     );
 }
@@ -328,6 +349,7 @@ function PieChart({
     items,
     total,
     showPercent,
+    showIcon,
     donut,
     center,
     size = 160,
@@ -335,6 +357,7 @@ function PieChart({
     items: Computed[];
     total: number;
     showPercent: boolean;
+    showIcon: boolean;
     donut: boolean;
     center: { value: string; unit: string } | null;
     size?: number;
@@ -343,6 +366,45 @@ function PieChart({
     const cx = 50;
     const cy = 50;
     const rInner = donut ? 26 : 0;
+
+    // Icon (foreignObject) + percentage (SVG text) at a slice centroid. Icon needs a bit
+    // more room, so it's gated on a slightly larger share; when both show they stack.
+    const renderLabel = (c: Computed, lx: number, ly: number) => {
+        const wantIcon = showIcon && !!c.entry.icon && c.percent >= 10;
+        const wantPct = showPercent && c.percent >= 8;
+        if (!wantIcon && !wantPct) return null;
+        const both = wantIcon && wantPct;
+        return (
+            <g style={{ pointerEvents: 'none' }}>
+                {wantIcon && (
+                    <foreignObject
+                        x={lx - 6}
+                        y={ly - (both ? 11 : 6)}
+                        width={12}
+                        height={12}
+                        style={{ overflow: 'visible' }}
+                    >
+                        <div className="w-full h-full flex items-center justify-center">
+                            <Icon icon={toIconifyId(c.entry.icon!)} width={11} height={11} style={{ color: '#fff' }} />
+                        </div>
+                    </foreignObject>
+                )}
+                {wantPct && (
+                    <text
+                        x={lx}
+                        y={both ? ly + 5 : ly}
+                        fill="#fff"
+                        fontSize={7}
+                        fontWeight={600}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                    >
+                        {Math.round(c.percent)}%
+                    </text>
+                )}
+            </g>
+        );
+    };
 
     if (total <= 0) {
         return (
@@ -376,9 +438,10 @@ function PieChart({
                     // A single full-circle segment: draw a ring/disc (an arc from 0 to 2π is degenerate).
                     if (frac >= 0.9999) {
                         angle = 2 * Math.PI;
-                        return donut ? (
+                        // Label sits at the top of the ring band; the donut centre still shows the total.
+                        const [lx, ly] = polar(cx, cy, (R + rInner) / 2, 0);
+                        const shape = donut ? (
                             <circle
-                                key={c.entry.id}
                                 cx={cx}
                                 cy={cy}
                                 r={(R + rInner) / 2}
@@ -387,7 +450,13 @@ function PieChart({
                                 strokeWidth={R - rInner}
                             />
                         ) : (
-                            <circle key={c.entry.id} cx={cx} cy={cy} r={R} fill={c.color} />
+                            <circle cx={cx} cy={cy} r={R} fill={c.color} />
+                        );
+                        return (
+                            <g key={c.entry.id}>
+                                {shape}
+                                {renderLabel(c, lx, ly)}
+                            </g>
                         );
                     }
                     const start = angle;
@@ -398,19 +467,7 @@ function PieChart({
                     return (
                         <g key={c.entry.id}>
                             <path d={sectorPath(cx, cy, R, rInner, start, end)} fill={c.color} />
-                            {showPercent && c.percent >= 8 && (
-                                <text
-                                    x={lx}
-                                    y={ly}
-                                    fill="#fff"
-                                    fontSize={7}
-                                    fontWeight={600}
-                                    textAnchor="middle"
-                                    dominantBaseline="central"
-                                >
-                                    {Math.round(c.percent)}%
-                                </text>
-                            )}
+                            {renderLabel(c, lx, ly)}
                         </g>
                     );
                 })}

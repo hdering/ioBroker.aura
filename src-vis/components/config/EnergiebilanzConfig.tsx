@@ -733,6 +733,29 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                                 />
                             </button>
                         </div>
+                        {/* Icon-in-segment — sits under the percent-labels toggle, but is
+                            independent of it (default off), so either/both/neither can show. */}
+                        {key === 'showPercent' &&
+                            (() => {
+                                const on = o.showSegmentIcon === true;
+                                return (
+                                    <div className="mt-1 flex items-center justify-between">
+                                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                            Icon im Segment anzeigen
+                                        </label>
+                                        <button
+                                            onClick={() => setO({ showSegmentIcon: !on })}
+                                            className="relative w-9 h-5 rounded-full transition-colors"
+                                            style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}
+                                        >
+                                            <span
+                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
+                                                style={{ left: on ? '18px' : '2px' }}
+                                            />
+                                        </button>
+                                    </div>
+                                );
+                            })()}
                         {/* sub-options that only take effect with bar titles shown */}
                         {key === 'showBarTitles' && val && (
                             <div
