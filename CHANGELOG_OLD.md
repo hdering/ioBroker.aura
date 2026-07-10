@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.21.5 (2026-07-07)
+- Tabs - the "more tabs" scroll hint no longer flickers on mobile and sits higher, right under the tabs
+
 ## 0.21.4 (2026-07-06)
 - 🌟 **New feature:** Guidelines - show a live badge with the current device screen resolution; enabled by default on fresh installs with a dismissible hint on how to turn it off
 

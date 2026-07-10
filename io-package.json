@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.23.2",
+    "version": "0.23.3",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.23.3": {
+        "en": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend",
+        "de": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend",
+        "ru": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend",
+        "pt": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend",
+        "nl": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend",
+        "fr": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend",
+        "it": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend",
+        "es": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend",
+        "pl": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend",
+        "uk": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend",
+        "zh-cn": "Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted\nEditor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend"
+      },
       "0.23.2": {
         "en": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it",
         "de": "Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)\nDistribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage\nDistribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it",
@@ -184,19 +197,6 @@
         "pl": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
         "uk": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect",
         "zh-cn": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify\nSettings - a client renamed from another device no longer reverts to its generic name on reconnect"
-      },
-      "0.22.1": {
-        "en": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
-        "de": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
-        "ru": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
-        "pt": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
-        "nl": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
-        "fr": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
-        "it": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
-        "es": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
-        "pl": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
-        "uk": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify",
-        "zh-cn": "Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify"
       }
     }
   },

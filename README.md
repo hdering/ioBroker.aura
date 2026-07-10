@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.23.3 (2026-07-10)
+- Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted
+- Editor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend
+
+
 ### 0.23.2 (2026-07-10)
 - Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)
 - Distribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage
@@ -218,10 +223,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Fill level - value text now uses the theme text color for readable contrast in light mode (was tinted with the fill/zone color); in the wave and battery layouts the number is split at the fill line so both halves stay legible when the level crosses the middle of the digits
 
 
-### 0.21.5 (2026-07-07)
-- Tabs - the "more tabs" scroll hint no longer flickers on mobile and sits higher, right under the tabs
-
-
 ## License
 
 MIT License
@@ -233,6 +234,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
