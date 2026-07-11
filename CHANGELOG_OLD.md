@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.21.14 (2026-07-08)
+- fix(loadtimes): make view toggle label show the action (Details/Verlauf anzeigen)
+- fix(loadtimes): stop breakdown list bloating over long sessions
+- feat(loadtimes): split widget Name/Type columns + reset button + freshness time
+
 ## 0.21.13 (2026-07-07)
 - feat(loadtimes): add refresh button that re-polls the backend
 

@@ -115,6 +115,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.25.2 (2026-07-11)
+- 🌟 **New feature:** Timer - event value has On/Off quick-select buttons (free text still allowed)
+- 🌟 **New feature:** Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off
+- 🌟 **New feature:** Advanced - widget border color and width are now configurable per widget
+
+
 ### 0.25.1 (2026-07-11)
 - 🌟 **New feature:** Static & dynamic list - the sum line can now also show average, minimum and maximum, each with its own icon and text prefix
 - 🌟 **New feature:** Value display - the HTML template can now reference any other datapoint, e.g. {alias.0.Raeume.Draussen.Suedseite.ACTUAL}, in addition to {dp} for the widget's own value; new {color} (current threshold color, e.g. for an icon) and {unit} placeholders
@@ -227,12 +233,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Color picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur
 
 
-### 0.21.14 (2026-07-08)
-- fix(loadtimes): make view toggle label show the action (Details/Verlauf anzeigen)
-- fix(loadtimes): stop breakdown list bloating over long sessions
-- feat(loadtimes): split widget Name/Type columns + reset button + freshness time
-
-
 ## License
 
 MIT License
@@ -244,6 +244,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
