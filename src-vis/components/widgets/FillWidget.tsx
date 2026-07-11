@@ -726,7 +726,10 @@ function BatteryViz({
     }
 
     // ── horizontal ────────────────────────────────────────────────────────────
-    // Center silhouette (body+nub = 218+3+12 = 233) in 260-wide viewBox → (260-233)/2 = 13.5
+    // Battery body stretches to fill the cell (preserveAspectRatio="none") so it
+    // no longer leaves large empty margins in short/wide cells. The value is an
+    // HTML overlay (not SVG text) so it stays crisp/undistorted and scales with
+    // the cell via container-query units. #453
     const bx = 13.5,
         by = 12,
         bw = 218,
@@ -734,76 +737,105 @@ function BatteryViz({
         br = 9;
     const nubW = 12,
         nubH = 30;
-    const fillW = Math.max(0, (pct / 100) * bw);
+    const fillPct = Math.max(0, Math.min(100, pct));
+    const fillW = (fillPct / 100) * bw;
     const clipId = `bat-h-${uid}`;
-    const onFillId = `bat-h-onfill-${uid}`;
-    const emptyId = `bat-h-empty-${uid}`;
-    const lineX = bx + fillW; // fill right edge
-    const renderVal = (mainFill: string, unitFill: string, clip: string) => (
-        <text
-            x={bx + bw / 2}
-            y={by + bh / 2 + 6}
-            fontSize={20}
-            fontWeight="bold"
-            textAnchor="middle"
-            fill={mainFill}
-            clipPath={clip}
+    // Fill edge as % of the full viewBox width → drives the on-fill/empty text split.
+    const fillLinePct = ((bx + fillW) / 260) * 100;
+    const valStyle: React.CSSProperties = {
+        fontWeight: 'bold',
+        fontSize: 'min(42cqh, 24cqw)',
+        lineHeight: 1,
+        whiteSpace: 'nowrap',
+    };
+    const renderVal = (color: string, unitColor: string, extra?: React.CSSProperties) => (
+        <div
+            style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                ...extra,
+            }}
         >
-            {displayVal}
-            {unit && (
-                <tspan fontSize={12} dx={2} fill={unitFill}>
-                    {unit}
-                </tspan>
-            )}
-        </text>
+            <span style={{ ...valStyle, color }}>
+                {displayVal}
+                {unit && <span style={{ fontSize: '0.6em', marginLeft: '0.12em', color: unitColor }}>{unit}</span>}
+            </span>
+        </div>
     );
     return (
-        <svg viewBox="0 0 260 90" style={{ width: '100%', height: '100%' }}>
-            <defs>
-                <clipPath id={clipId}>
-                    <rect x={bx} y={by} width={bw} height={bh} rx={br} />
-                </clipPath>
-                <clipPath id={onFillId}>
-                    <rect x={0} y={0} width={Math.max(0, lineX)} height={90} />
-                </clipPath>
-                <clipPath id={emptyId}>
-                    <rect x={lineX} y={0} width={Math.max(0, 260 - lineX)} height={90} />
-                </clipPath>
-            </defs>
-            <rect
-                x={bx}
-                y={by}
-                width={bw}
-                height={bh}
-                rx={br}
-                fill="var(--widget-bg)"
-                stroke="var(--app-border)"
-                strokeWidth={2}
-            />
-            <rect x={bx + bw + 3} y={by + (bh - nubH) / 2} width={nubW} height={nubH} rx={5} fill="var(--app-border)" />
-            {fillW > 0 && (
-                <rect x={bx} y={by} width={fillW} height={bh} fill={fillColor} clipPath={`url(#${clipId})`} />
-            )}
-            {[0.25, 0.5, 0.75].map((t, i) => (
-                <line
-                    key={i}
-                    x1={bx + t * bw}
-                    y1={by}
-                    x2={bx + t * bw}
-                    y2={by + bh}
-                    stroke="var(--app-bg)"
-                    strokeWidth={2.5}
-                    clipPath={`url(#${clipId})`}
+        <div
+            style={
+                { position: 'relative', width: '100%', height: '100%', containerType: 'size' } as React.CSSProperties
+            }
+        >
+            <svg
+                viewBox="0 0 260 90"
+                preserveAspectRatio="none"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+            >
+                <defs>
+                    <clipPath id={clipId}>
+                        <rect x={bx} y={by} width={bw} height={bh} rx={br} />
+                    </clipPath>
+                </defs>
+                <rect
+                    x={bx}
+                    y={by}
+                    width={bw}
+                    height={bh}
+                    rx={br}
+                    fill="var(--widget-bg)"
+                    stroke="var(--app-border)"
+                    strokeWidth={2}
                 />
-            ))}
-            <rect x={bx} y={by} width={bw} height={bh} rx={br} fill="none" stroke="var(--app-border)" strokeWidth={2} />
+                <rect
+                    x={bx + bw + 3}
+                    y={by + (bh - nubH) / 2}
+                    width={nubW}
+                    height={nubH}
+                    rx={5}
+                    fill="var(--app-border)"
+                />
+                {fillW > 0 && (
+                    <rect x={bx} y={by} width={fillW} height={bh} fill={fillColor} clipPath={`url(#${clipId})`} />
+                )}
+                {[0.25, 0.5, 0.75].map((t, i) => (
+                    <line
+                        key={i}
+                        x1={bx + t * bw}
+                        y1={by}
+                        x2={bx + t * bw}
+                        y2={by + bh}
+                        stroke="var(--app-bg)"
+                        strokeWidth={2.5}
+                        clipPath={`url(#${clipId})`}
+                    />
+                ))}
+                <rect
+                    x={bx}
+                    y={by}
+                    width={bw}
+                    height={bh}
+                    rx={br}
+                    fill="none"
+                    stroke="var(--app-border)"
+                    strokeWidth={2}
+                />
+            </svg>
             {showValue && (
                 <>
-                    {renderVal('#fff', 'rgba(255,255,255,0.85)', `url(#${onFillId})`)}
-                    {renderVal('var(--text-primary)', 'var(--text-secondary)', `url(#${emptyId})`)}
+                    {/* empty-side value (readable on the background, both themes) */}
+                    {renderVal('var(--text-primary)', 'var(--text-secondary)')}
+                    {/* on-fill value in white, clipped to the filled portion */}
+                    {renderVal('#fff', 'rgba(255,255,255,0.85)', {
+                        clipPath: `inset(0 ${100 - fillLinePct}% 0 0)`,
+                    })}
                 </>
             )}
-        </svg>
+        </div>
     );
 }
 
