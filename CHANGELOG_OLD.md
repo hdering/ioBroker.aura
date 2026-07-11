@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.21.13 (2026-07-07)
+- feat(loadtimes): add refresh button that re-polls the backend
+
 ## 0.21.12 (2026-07-07)
 - fix(loadtimes): add "ms" unit label to the chart Y-axis
 - feat(loadtimes): explain Bereit/Render/Summe columns in an info popup
