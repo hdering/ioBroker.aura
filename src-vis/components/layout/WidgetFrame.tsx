@@ -8192,14 +8192,16 @@ export function WidgetFrame({
                                         beliebiger anderer Datenpunkt (wird live abonniert)
                                     </p>
                                     <p>
+                                        <code>{'{color}'}</code> = aktuelle Schwellwert-Farbe (z. B. für Icon/Text) ·{' '}
+                                        <code>{'{unit}'}</code> = Einheit
+                                    </p>
+                                    <p>
                                         JSON-Pfad-Suffix möglich: <code>{'{0_userdata.0.batterie?soc}'}</code> · Zahlen
                                         werden mit den eingestellten Nachkommastellen formatiert, fehlende Werte als „–“
                                     </p>
                                     <p>
                                         Beispiel:{' '}
-                                        <code>
-                                            {'<span style="font-size:2em">{dp}</span> von {alias.0.Aussen.Temp}'}
-                                        </code>
+                                        <code>{'<span style="color:{color};font-size:2em">{dp}</span> {unit}'}</code>
                                     </p>
                                 </div>
                             </div>

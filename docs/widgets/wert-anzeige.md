@@ -63,9 +63,20 @@ Reine Anzeige-Umrechnung `Wert × Faktor + Offset`; der Datenpunkt selbst bleibt
 
 | Option | Standard | |
 | --- | --- | --- |
-| `htmlTemplate` | — | freies HTML; `{dp}` = eigener Wert, `{beliebige.dp.id}` = beliebiger anderer Datenpunkt (z. B. `{alias.0.Raeume.Draussen.Suedseite.ACTUAL}`) |
+| `htmlTemplate` | — | freies HTML mit Platzhaltern (siehe unten) |
 
-Beliebige weitere Datenpunkte werden live abonniert und formatiert (Zahlen mit den eingestellten Nachkommastellen). Ein JSON-Pfad-Suffix `?pfad` ist erlaubt, z. B. `{0_userdata.0.batterie?soc}`.
+Verfügbare Platzhalter:
+
+| Platzhalter | ersetzt durch |
+| --- | --- |
+| `{dp}` | eigener Wert des Widgets |
+| `{beliebige.dp.id}` | Wert eines beliebigen anderen Datenpunkts, z. B. `{alias.0.Raeume.Draussen.Suedseite.ACTUAL}` (wird live abonniert) |
+| `{color}` | aktuelle Schwellwert-Farbe — so lässt sich die Farbe frei auf Icon, Text o. Ä. anwenden statt nur auf den Wert |
+| `{unit}` | konfigurierte Einheit |
+
+Zahlen werden mit den eingestellten Nachkommastellen formatiert, fehlende Werte als „–". Ein JSON-Pfad-Suffix `?pfad` ist bei Datenpunkten erlaubt, z. B. `{0_userdata.0.batterie?soc}`.
+
+Beispiel: `<span style="color:{color};font-size:2em">{dp}</span> {unit}`
 
 ### Schwellwerte
 

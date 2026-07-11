@@ -36,14 +36,21 @@ export function extractTemplateDpRefs(template: string | undefined | null): stri
 }
 
 /**
- * Replace `{dp}` and `{<id>}` tokens in the template. `mainValue` fills `{dp}`,
- * `resolve(ref)` supplies each extra datapoint's display string. Non-datapoint
- * braces are returned verbatim.
+ * Replace tokens in the template.
+ *
+ * `vars` holds reserved, non-datapoint tokens — e.g. `{dp}` (main value),
+ * `{color}` (threshold color), `{unit}` — and takes precedence. Any other token
+ * that looks like a state ID is passed to `resolve(ref)` for its live value.
+ * Braces that match neither are returned verbatim.
  */
-export function renderTemplate(template: string, mainValue: string, resolve: (ref: string) => string): string {
+export function renderTemplate(
+    template: string,
+    vars: Record<string, string>,
+    resolve: (ref: string) => string,
+): string {
     return template.replace(TOKEN_RE, (full, inner) => {
         const tok = String(inner).trim();
-        if (tok === 'dp') return mainValue;
+        if (Object.prototype.hasOwnProperty.call(vars, tok)) return vars[tok];
         if (isDpToken(tok)) return resolve(tok);
         return full;
     });
