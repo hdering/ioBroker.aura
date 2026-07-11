@@ -31,6 +31,9 @@ export function InputWidget({ config }: WidgetProps) {
     const showSubmit = o.showSubmit !== false;
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const textAlign = (o.textAlign as 'left' | 'right' | 'center') ?? 'left';
+    // Where the input field sits horizontally within its cell. Only visible when the field
+    // has a fixed width (see inputWidth) — a full-width field fills the cell regardless.
+    const fieldAlign = (o.fieldAlign as 'left' | 'right' | 'center') ?? 'left';
     const iconSize = (o.iconSize as number) || 20;
     // Fixed input field width in px, independent of the cell width. Undefined = fill the
     // cell (default). When set, the field keeps this width and the submit button sits
@@ -125,8 +128,8 @@ export function InputWidget({ config }: WidgetProps) {
         // shrinking; without it the field fills its cell as before.
         ...(fixedWidth ? { width: `${fixedWidth}px`, flexShrink: 0 } : null),
     };
-    const justifyForAlign: React.CSSProperties['justifyContent'] =
-        textAlign === 'right' ? 'flex-end' : textAlign === 'center' ? 'center' : 'flex-start';
+    const fieldJustify: React.CSSProperties['justifyContent'] =
+        fieldAlign === 'right' ? 'flex-end' : fieldAlign === 'center' ? 'center' : 'flex-start';
 
     const inputEl = multiline ? (
         <textarea
@@ -156,17 +159,6 @@ export function InputWidget({ config }: WidgetProps) {
         />
     );
 
-    // Single-line input area used by the compact + default layouts. With a fixed width
-    // the field is rendered bare so the submit button adjoins it; otherwise it sits in a
-    // flex-1 wrapper that fills the row and honours the text alignment.
-    const inputArea = fixedWidth ? (
-        inputEl
-    ) : (
-        <div className="flex-1 min-w-0 flex" style={{ justifyContent: justifyForAlign }}>
-            {inputEl}
-        </div>
-    );
-
     const renderSubmitButton = (alwaysActive = false, fillContainer = alwaysActive) => {
         if (readOnly) return null;
         if (!alwaysActive && !(submitMode === 'submit' && showSubmit)) return null;
@@ -189,6 +181,22 @@ export function InputWidget({ config }: WidgetProps) {
     };
 
     const submitButton = renderSubmitButton();
+
+    // Single-line field + submit button used by the compact and default layouts. In fill mode
+    // the field grows to fill the cell and the button is a shrink-0 sibling at the far edge.
+    // With a fixed width the field keeps its size and the whole group (field + button) is
+    // positioned within the row per `fieldAlign` (left / center / right).
+    const singleLineContent = fixedWidth ? (
+        <div className="flex-1 min-w-0 flex items-center gap-2" style={{ justifyContent: fieldJustify }}>
+            {inputEl}
+            {submitButton}
+        </div>
+    ) : (
+        <>
+            <div className="flex-1 min-w-0 flex">{inputEl}</div>
+            {submitButton}
+        </>
+    );
 
     if (layout === 'custom') {
         // In custom mode the user freely places cells; the Senden-Button is
@@ -235,8 +243,7 @@ export function InputWidget({ config }: WidgetProps) {
                         )}
                     </div>
                 )}
-                {inputArea}
-                {submitButton}
+                {singleLineContent}
                 {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
             </div>
         );
@@ -267,8 +274,7 @@ export function InputWidget({ config }: WidgetProps) {
                 </div>
             )}
             <div className={`flex ${multiline ? 'flex-1 min-h-0' : 'items-center'} gap-2`}>
-                {multiline ? inputEl : inputArea}
-                {!multiline && submitButton}
+                {multiline ? inputEl : singleLineContent}
             </div>
             {multiline && submitButton && <div className="flex justify-end shrink-0">{submitButton}</div>}
             {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
