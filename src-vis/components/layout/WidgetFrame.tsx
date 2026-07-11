@@ -10676,6 +10676,14 @@ export function WidgetFrame({
                                                     min={20}
                                                     max={150}
                                                     defaultValue={(o.barSize as number) ?? 80}
+                                                    onChange={(e) => {
+                                                        // Live preview: commit on every keystroke/spin so the
+                                                        // widget resizes immediately. Input stays uncontrolled
+                                                        // (defaultValue) to avoid cursor jumps while typing.
+                                                        if (e.target.value === '') return;
+                                                        const n = Number(e.target.value);
+                                                        if (!isNaN(n)) set({ barSize: Math.min(150, Math.max(20, n)) });
+                                                    }}
                                                     onBlur={(e) => {
                                                         const v = Math.min(
                                                             150,
