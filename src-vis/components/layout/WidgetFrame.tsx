@@ -8183,13 +8183,25 @@ export function WidgetFrame({
                                         })
                                     }
                                 />
-                                <p
-                                    className="text-[10px] mt-1"
+                                <div
+                                    className="text-[10px] mt-1 space-y-0.5"
                                     style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
                                 >
-                                    {'{dp}'} = eigener Wert · {'{beliebige.dp.id}'} = anderer Datenpunkt · Beispiel:{' '}
-                                    {'<span style="font-size:2em">{dp}</span> von {alias.0.Aussen.Temp}'}
-                                </p>
+                                    <p>
+                                        <code>{'{dp}'}</code> = eigener Wert · <code>{'{beliebige.dp.id}'}</code> =
+                                        beliebiger anderer Datenpunkt (wird live abonniert)
+                                    </p>
+                                    <p>
+                                        JSON-Pfad-Suffix möglich: <code>{'{0_userdata.0.batterie?soc}'}</code> · Zahlen
+                                        werden mit den eingestellten Nachkommastellen formatiert, fehlende Werte als „–“
+                                    </p>
+                                    <p>
+                                        Beispiel:{' '}
+                                        <code>
+                                            {'<span style="font-size:2em">{dp}</span> von {alias.0.Aussen.Temp}'}
+                                        </code>
+                                    </p>
+                                </div>
                             </div>
                         )}
                         {config.type === 'value' && (
