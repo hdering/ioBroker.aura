@@ -115,6 +115,14 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.25.0 (2026-07-11)
+- Fill widget - horizontal battery layout now fills the whole cell instead of shrinking and leaving empty margins in short/wide widgets
+- Fill widget - bar width/height now previews live while editing instead of only after leaving the field
+- Input widget - add field alignment (left / center / right) to position a fixed-width input field within its cell
+- Layout menu - configurable spacing: gap between the layout list and the element above it, space above/below the menu title, and space above/below each added element (clock / datapoint / text)
+- 🌟 **New feature:** Group widget - add "collapsed by default" option: the group shows only its header and folds its body away until clicked to expand (frontend only)
+
+
 ### 0.24.2 (2026-07-10)
 - Layouts can be hidden from the layout menu (still reachable via their direct URL)
 - Layout menu can be hidden per layout — e.g. lock a wall tablet to a single layout
@@ -224,13 +232,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - feat(loadtimes): add refresh button that re-polls the backend
 
 
-### 0.21.12 (2026-07-07)
-- fix(loadtimes): add "ms" unit label to the chart Y-axis
-- feat(loadtimes): explain Bereit/Render/Summe columns in an info popup
-- feat(loadtimes): widget breakdown as ready|render|sum table with column headers
-- Add Test section to README (#425)
-
-
 ## License
 
 MIT License
@@ -242,6 +243,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

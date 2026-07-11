@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.21.12 (2026-07-07)
+- fix(loadtimes): add "ms" unit label to the chart Y-axis
+- feat(loadtimes): explain Bereit/Render/Summe columns in an info popup
+- feat(loadtimes): widget breakdown as ready|render|sum table with column headers
+- Add Test section to README (#425)
+
 ## 0.21.11 (2026-07-07)
 - Settings - fix admin configuration page failing to load (missing i18n property in jsonConfig)
 
