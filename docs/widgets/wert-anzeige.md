@@ -63,7 +63,9 @@ Reine Anzeige-Umrechnung `Wert × Faktor + Offset`; der Datenpunkt selbst bleibt
 
 | Option | Standard | |
 | --- | --- | --- |
-| `htmlTemplate` | — | freies HTML, `{dp}` wird durch den Wert ersetzt |
+| `htmlTemplate` | — | freies HTML; `{dp}` = eigener Wert, `{beliebige.dp.id}` = beliebiger anderer Datenpunkt (z. B. `{alias.0.Raeume.Draussen.Suedseite.ACTUAL}`) |
+
+Beliebige weitere Datenpunkte werden live abonniert und formatiert (Zahlen mit den eingestellten Nachkommastellen). Ein JSON-Pfad-Suffix `?pfad` ist erlaubt, z. B. `{0_userdata.0.batterie?soc}`.
 
 ### Schwellwerte
 

@@ -10,6 +10,8 @@ import { useStatusFields } from '../../hooks/useStatusFields';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { applyValueTransform } from '../../utils/valueTransform';
+import { extractTemplateDpRefs, renderTemplate } from '../../utils/htmlTemplate';
+import { useTemplateValues } from '../../hooks/useTemplateValues';
 
 export function ValueWidget({ config }: WidgetProps) {
     const { value } = useDatapoint(config.datapoint);
@@ -57,8 +59,21 @@ export function ValueWidget({ config }: WidgetProps) {
 
     const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
+    // Extra datapoints referenced in the template via {alias.0.…} tokens.
+    // {dp} still resolves to this widget's own datapoint; any other {<id>} token
+    // is subscribed live and replaced with its formatted value.
+    const extraRefs = useMemo(() => extractTemplateDpRefs(htmlTemplate), [htmlTemplate]);
+    const extraValues = useTemplateValues(extraRefs);
     const htmlValueNode = htmlTemplate ? (
-        <div dangerouslySetInnerHTML={{ __html: htmlTemplate.replace(/\{dp\}/g, displayValue) }} />
+        <div
+            dangerouslySetInnerHTML={{
+                __html: renderTemplate(htmlTemplate, displayValue, (ref) => {
+                    const v = extraValues[ref];
+                    if (v === null || v === undefined) return '–';
+                    return typeof v === 'number' ? formatNum(v, decimals) : String(v);
+                }),
+            }}
+        />
     ) : null;
 
     // --- CUSTOM ---

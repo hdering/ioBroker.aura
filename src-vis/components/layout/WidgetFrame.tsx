@@ -8187,8 +8187,8 @@ export function WidgetFrame({
                                     className="text-[10px] mt-1"
                                     style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
                                 >
-                                    {'{dp}'} wird durch den Wert ersetzt · Beispiel:{' '}
-                                    {'<span style="font-size:2em">{dp}</span> kW'}
+                                    {'{dp}'} = eigener Wert · {'{beliebige.dp.id}'} = anderer Datenpunkt · Beispiel:{' '}
+                                    {'<span style="font-size:2em">{dp}</span> von {alias.0.Aussen.Temp}'}
                                 </p>
                             </div>
                         )}
