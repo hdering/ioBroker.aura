@@ -12,6 +12,8 @@ import { useT } from '../../i18n';
 import { formatLastChange } from '../../utils/formatLastChange';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
+import { computeListStats, type ListStat } from '../../utils/listStats';
+import { StatLine } from './StatLine';
 import { publishListCount, unpublishList } from '../../utils/publishWidgetState';
 import {
     listEntryTarget,
@@ -98,9 +100,15 @@ export interface StaticListOptions extends GroupActionConfigOpts {
     publishCount?: boolean;
     /** Backend display filter — independent from frontend valueFilter. Default 'all'. */
     backendValueFilter?: 'all' | 'active' | 'inactive';
-    /** Show sum of numeric values from visible entries below the title. */
+    /** Show an aggregate line of numeric values from visible entries below the title. */
     showSum?: boolean;
-    /** Prefix label for the sum line (default 'Σ'). */
+    /** Which aggregates to show. Default (undefined/empty) = sum only. */
+    sumStats?: ListStat[];
+    /** Per-stat text prefix. Falls back to a default symbol per stat. */
+    statLabels?: Partial<Record<ListStat, string>>;
+    /** Per-stat icon (iconify id / lucide name) rendered before the value. */
+    statIcons?: Partial<Record<ListStat, string>>;
+    /** Legacy prefix label for the sum part (default 'Σ'). Superseded by statLabels.sum. */
     sumLabel?: string;
     /** Text alignment of the sum line. Default 'left' (inherits titleAlign feel). */
     sumAlign?: 'left' | 'center' | 'right';
@@ -615,22 +623,11 @@ export function ListWidget({ config, editMode }: WidgetProps) {
         publishListCount(config.id, config.title || 'Statische Liste', viewCount);
     }, [opts.publishCount, viewCount, config.id, config.title]);
 
-    // Sum of numeric values from visible entries (single shared unit assumed —
-    // first encountered unit wins; entries with non-numeric values are skipped).
-    const sumInfo = useMemo(() => {
-        if (!opts.showSum) return null;
-        let sum = 0;
-        let unit: string | undefined;
-        let count = 0;
-        for (const e of visibleEntries) {
-            const v = states[e.id]?.val;
-            if (typeof v !== 'number' || !isFinite(v)) continue;
-            sum += v;
-            count++;
-            if (unit === undefined && e.unit) unit = e.unit;
-        }
-        return count > 0 ? { sum, unit, count } : null;
-    }, [opts.showSum, visibleEntries, states]);
+    // Aggregate (sum / avg / min / max) of numeric values from visible entries.
+    const sumInfo = useMemo(
+        () => (opts.showSum ? computeListStats(visibleEntries, states) : null),
+        [opts.showSum, visibleEntries, states],
+    );
 
     useEffect(() => {
         if (opts.publishCount) return;
@@ -767,18 +764,16 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             </p>
                         )}
                         {opts.showSum && sumInfo && (
-                            <p
-                                className="tabular-nums truncate"
-                                style={{
-                                    color: 'var(--text-secondary)',
-                                    opacity: 0.75,
-                                    textAlign: (opts.sumAlign ?? 'left') as React.CSSProperties['textAlign'],
-                                    fontSize: `${opts.sumFontSize ?? 10}px`,
-                                }}
-                            >
-                                {opts.sumLabel ?? 'Σ'} {formatNum(sumInfo.sum, defaultDecimals)}
-                                {sumInfo.unit ? ` ${sumInfo.unit}` : ''}
-                            </p>
+                            <StatLine
+                                stats={sumInfo}
+                                selected={opts.sumStats}
+                                labels={opts.statLabels}
+                                icons={opts.statIcons}
+                                sumLabel={opts.sumLabel}
+                                decimals={defaultDecimals}
+                                align={opts.sumAlign ?? 'left'}
+                                fontSize={opts.sumFontSize ?? 10}
+                            />
                         )}
                     </div>
                 </div>

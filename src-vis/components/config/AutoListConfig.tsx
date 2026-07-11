@@ -23,6 +23,14 @@ import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { NS } from '../../utils/namespace';
 import { ColorPicker } from '../common/ColorPicker';
+import { Icon } from '@iconify/react';
+import { IconPickerModal } from './IconPickerModal';
+import { lucidePascalToIconify } from '../../utils/iconifyLoader';
+import type { ListStat } from '../../utils/listStats';
+
+function toIconifyId(name: string): string {
+    return name.includes(':') ? name : lucidePascalToIconify(name);
+}
 
 const PRESETS_ID: { label: string; value: string }[] = [
     { label: 'endet auf .POWER', value: '/\\.POWER$/i' },
@@ -299,6 +307,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
     const [availTypes, setAvailTypes] = useState<string[]>([]);
     const [availAdapters, setAvailAdapters] = useState<string[]>([]);
     const [optLoading, setOptLoading] = useState(true);
+    const [statIconPicker, setStatIconPicker] = useState<ListStat | null>(null);
     const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
 
     useEffect(() => {
@@ -807,7 +816,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
             <div>
                 <div className="flex items-center justify-between">
                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Summe anzeigen
+                        Statistik anzeigen
                     </label>
                     <button
                         onClick={() => setOpts({ showSum: !(opts.showSum ?? false) })}
@@ -821,22 +830,128 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                     </button>
                 </div>
                 {opts.showSum && (
-                    <div className="mt-1.5 space-y-1.5">
+                    <div
+                        className="mt-1.5 ml-1 pl-2 space-y-1.5"
+                        style={{ borderLeft: '2px solid color-mix(in srgb, var(--accent) 45%, transparent)' }}
+                    >
                         <div>
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Präfix (z.B. Σ, Summe, Gesamt)
+                                Werte
                             </label>
-                            <input
-                                className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                                placeholder="Σ"
-                                value={opts.sumLabel ?? ''}
-                                onChange={(e) => setOpts({ sumLabel: e.target.value || undefined })}
-                            />
+                            <div className="flex flex-wrap gap-1">
+                                {(
+                                    [
+                                        ['sum', 'Summe'],
+                                        ['avg', 'Mittelwert'],
+                                        ['min', 'Minimum'],
+                                        ['max', 'Maximum'],
+                                    ] as const
+                                ).map(([key, lbl]) => {
+                                    const sel = (opts.sumStats ?? ['sum']) as ('sum' | 'avg' | 'min' | 'max')[];
+                                    const active = sel.includes(key);
+                                    return (
+                                        <button
+                                            key={key}
+                                            onClick={() => {
+                                                const cur = (opts.sumStats ?? ['sum']) as (
+                                                    | 'sum'
+                                                    | 'avg'
+                                                    | 'min'
+                                                    | 'max'
+                                                )[];
+                                                const next = cur.includes(key)
+                                                    ? cur.filter((s) => s !== key)
+                                                    : [...cur, key];
+                                                setOpts({ sumStats: next.length ? next : undefined });
+                                            }}
+                                            className="text-[10px] px-2 py-1 rounded-full transition-colors"
+                                            style={{
+                                                background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                color: active ? '#fff' : 'var(--text-secondary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        >
+                                            {lbl}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                Präfix / Icon / Text
+                            </label>
+                            <div className="grid grid-cols-2 gap-1.5">
+                                {(
+                                    [
+                                        ['sum', 'Summe', 'Σ'],
+                                        ['avg', 'Mittelwert', 'ø'],
+                                        ['min', 'Minimum', '↓'],
+                                        ['max', 'Maximum', '↑'],
+                                    ] as const
+                                )
+                                    .filter(([key]) =>
+                                        ((opts.sumStats ?? ['sum']) as ('sum' | 'avg' | 'min' | 'max')[]).includes(key),
+                                    )
+                                    .map(([key, lbl, sym]) => (
+                                        <div key={key}>
+                                            <label
+                                                className="text-[9px] block mb-0.5"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {lbl}
+                                            </label>
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    onClick={() => setStatIconPicker(key)}
+                                                    title={opts.statIcons?.[key] || 'Icon wählen'}
+                                                    className="shrink-0 flex items-center justify-center rounded hover:opacity-80"
+                                                    style={{
+                                                        background: 'var(--app-bg)',
+                                                        color: 'var(--text-primary)',
+                                                        border: '1px solid var(--app-border)',
+                                                        width: 26,
+                                                        height: 26,
+                                                    }}
+                                                >
+                                                    {opts.statIcons?.[key] ? (
+                                                        <Icon
+                                                            icon={toIconifyId(opts.statIcons[key]!)}
+                                                            width={14}
+                                                            height={14}
+                                                        />
+                                                    ) : (
+                                                        <Plus
+                                                            size={12}
+                                                            style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                                        />
+                                                    )}
+                                                </button>
+                                                <input
+                                                    className="flex-1 min-w-0 text-[10px] rounded px-2 py-1 focus:outline-none"
+                                                    style={{
+                                                        background: 'var(--app-bg)',
+                                                        color: 'var(--text-primary)',
+                                                        border: '1px solid var(--app-border)',
+                                                    }}
+                                                    placeholder={sym}
+                                                    value={
+                                                        opts.statLabels?.[key] ??
+                                                        (key === 'sum' ? (opts.sumLabel ?? '') : '')
+                                                    }
+                                                    onChange={(e) =>
+                                                        setOpts({
+                                                            statLabels: {
+                                                                ...opts.statLabels,
+                                                                [key]: e.target.value || undefined,
+                                                            },
+                                                        })
+                                                    }
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
                         </div>
                         <div className="grid grid-cols-2 gap-1.5">
                             <div>
@@ -891,6 +1006,18 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                                 />
                             </div>
                         </div>
+                        {statIconPicker && (
+                            <IconPickerModal
+                                current={opts.statIcons?.[statIconPicker] ?? ''}
+                                onSelect={(name) => {
+                                    setOpts({
+                                        statIcons: { ...opts.statIcons, [statIconPicker]: name || undefined },
+                                    });
+                                    setStatIconPicker(null);
+                                }}
+                                onClose={() => setStatIconPicker(null)}
+                            />
+                        )}
                     </div>
                 )}
             </div>
