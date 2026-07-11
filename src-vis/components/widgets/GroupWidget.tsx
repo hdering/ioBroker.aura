@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
-import { Layers, Loader } from 'lucide-react';
+import { Layers, Loader, ChevronDown } from 'lucide-react';
 import ReactGridLayout from 'react-grid-layout/legacy';
 import type { WidgetProps, WidgetConfig, WidgetType, ioBrokerState } from '../../types';
 import { useConfigStore } from '../../store/configStore';
@@ -24,6 +24,7 @@ import { CustomGridView } from './CustomGridView';
 import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
 import { useDashboardMobile } from '../../contexts/DashboardMobileContext';
 import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
+import { useGroupCollapseStore } from '../../store/groupCollapseStore';
 import { verticalCompact } from '../../utils/gridCompact';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
@@ -90,6 +91,21 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const gridChildren = !editMode ? verticalCompact(children.filter((c) => !reflowHiddenIds.has(c.id))) : children;
     const transparent = !!config.options?.transparent;
     const showTitle = config.options?.showTitle !== false;
+
+    // ── Collapse ────────────────────────────────────────────────────────────────
+    // A group with `defaultCollapsed` set is collapsible in the live dashboard:
+    // its header stays, the body folds away, and the outer box shrinks to the
+    // header (see Dashboard height computation). In the editor children must stay
+    // reachable, so collapse never applies there.
+    const defaultCollapsed = !!config.options?.defaultCollapsed;
+    const collapsible = defaultCollapsed && !editMode;
+    const initCollapse = useGroupCollapseStore((s) => s.init);
+    const toggleCollapse = useGroupCollapseStore((s) => s.toggle);
+    const collapsed = useGroupCollapseStore((s) => s.collapsed[config.id] ?? defaultCollapsed);
+    useEffect(() => {
+        if (defaultCollapsed) initCollapse(config.id, true);
+    }, [config.id, defaultCollapsed, initCollapse]);
+    const isCollapsed = collapsible && collapsed;
     const showIcon = config.options?.showIcon !== false;
     const iconSize = (config.options?.iconSize as number | undefined) || 20;
     const WidgetIcon = getWidgetIcon(config.options?.icon as string | undefined, Layers);
@@ -314,15 +330,37 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // ── Title bar (always shown in editMode as outer-grid drag handle) ─────────
     const titleAlign = (config.options?.titleAlign as string | undefined) ?? 'left';
     const titleBar =
-        (showTitle && config.title) || editMode || showMaster ? (
+        (showTitle && config.title) || editMode || showMaster || collapsible ? (
             <div
                 className="shrink-0 flex items-center gap-1.5 px-3 py-2.5 min-w-0"
                 style={{
                     color: 'var(--text-secondary)',
-                    borderBottom: transparent ? 'none' : '1px solid var(--widget-border)',
+                    // When collapsed the body is gone, so drop the header's divider.
+                    borderBottom: transparent || isCollapsed ? 'none' : '1px solid var(--widget-border)',
                     minHeight: editMode && !(showTitle && config.title) ? '36px' : undefined,
+                    cursor: collapsible ? 'pointer' : undefined,
                 }}
+                onClick={
+                    collapsible
+                        ? (e) => {
+                              // Don't let the toggle bubble to a widget-level click action
+                              // (e.g. "open view") on the group frame.
+                              e.stopPropagation();
+                              toggleCollapse(config.id);
+                          }
+                        : undefined
+                }
             >
+                {collapsible && (
+                    <ChevronDown
+                        size={16}
+                        className="transition-transform shrink-0"
+                        style={{
+                            color: 'var(--text-secondary)',
+                            transform: isCollapsed ? 'rotate(-90deg)' : undefined,
+                        }}
+                    />
+                )}
                 {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
                 {showTitle && config.title && (
                     <span
@@ -333,19 +371,25 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     </span>
                 )}
                 {showMaster && (
-                    <GroupActionControl
-                        type={groupActionType}
-                        cfg={gaCfg}
-                        setState={setState}
-                        switchTargets={groupSwitchTargets}
-                        dimmerIds={groupDimmerIds}
-                        shutterTargets={groupShutterTargets}
-                        pulseIds={groupPulseIds}
-                        editing={editMode}
-                        placeholderHint={t('group.masterPlaceholder')}
-                        placeholderLabel={t('group.masterPlaceholderShort')}
-                        className="ml-auto"
-                    />
+                    // Wrapper stops master-control clicks from bubbling to the header's
+                    // collapse toggle when the group is collapsible.
+                    <div
+                        className="ml-auto flex min-w-0"
+                        onClick={collapsible ? (e) => e.stopPropagation() : undefined}
+                    >
+                        <GroupActionControl
+                            type={groupActionType}
+                            cfg={gaCfg}
+                            setState={setState}
+                            switchTargets={groupSwitchTargets}
+                            dimmerIds={groupDimmerIds}
+                            shutterTargets={groupShutterTargets}
+                            pulseIds={groupPulseIds}
+                            editing={editMode}
+                            placeholderHint={t('group.masterPlaceholder')}
+                            placeholderLabel={t('group.masterPlaceholderShort')}
+                        />
+                    </div>
                 )}
             </div>
         ) : null;
@@ -379,7 +423,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
             // slide) fills it and scrolls internally instead of overflowing. At the
             // top level the mobile-stack wrapper is auto-height, so h-full resolves
             // to content height and the page still scrolls as before.
-            <div className="aura-widget-row relative flex flex-col h-full min-h-0" {...dragHandlers}>
+            <div
+                className={`aura-widget-row relative flex flex-col h-full min-h-0 ${isCollapsed ? 'justify-center' : ''}`}
+                {...dragHandlers}
+            >
                 {isDragOver && (
                     <div
                         className="nodrag pointer-events-none absolute inset-0 z-20 rounded-[inherit] border-2 border-dashed flex items-center justify-center"
@@ -395,29 +442,31 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 )}
                 {titleBar}
 
-                <div
-                    className="aura-scroll flex-1 overflow-auto min-h-0 p-1"
-                    style={{ scrollbarGutter: 'stable both-edges' }}
-                >
-                    <div className="flex flex-col gap-1.5">
-                        {sorted.map((child) => (
-                            <div
-                                key={child.id}
-                                style={{ height: child.gridPos.h * cellSize + (child.gridPos.h - 1) * gridGap }}
-                            >
-                                <WidgetFrame
-                                    config={child}
-                                    editMode={false}
-                                    onRemove={onRemove}
-                                    onConfigChange={updateChild}
-                                    onDuplicate={() => duplicateChild(child)}
-                                    inGroup
-                                />
-                            </div>
-                        ))}
+                {!isCollapsed && (
+                    <div
+                        className="aura-scroll flex-1 overflow-auto min-h-0 p-1"
+                        style={{ scrollbarGutter: 'stable both-edges' }}
+                    >
+                        <div className="flex flex-col gap-1.5">
+                            {sorted.map((child) => (
+                                <div
+                                    key={child.id}
+                                    style={{ height: child.gridPos.h * cellSize + (child.gridPos.h - 1) * gridGap }}
+                                >
+                                    <WidgetFrame
+                                        config={child}
+                                        editMode={false}
+                                        onRemove={onRemove}
+                                        onConfigChange={updateChild}
+                                        onDuplicate={() => duplicateChild(child)}
+                                        inGroup
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                        {children.length === 0 && <GroupEmptyState loading={isLoading} />}
                     </div>
-                    {children.length === 0 && <GroupEmptyState loading={isLoading} />}
-                </div>
+                )}
                 {offScreenHidden}
             </div>
         );
@@ -431,7 +480,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     });
 
     return (
-        <div className="aura-widget-row relative flex flex-col h-full" {...dragHandlers}>
+        <div
+            className={`aura-widget-row relative flex flex-col h-full ${isCollapsed ? 'justify-center' : ''}`}
+            {...dragHandlers}
+        >
             {isDragOver && (
                 <div
                     className="nodrag pointer-events-none absolute inset-0 z-20 rounded-[inherit] border-2 border-dashed flex items-center justify-center"
@@ -452,6 +504,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
             <div
                 ref={containerRef}
                 className="flex-1 overflow-auto min-h-0 p-1"
+                style={isCollapsed ? { display: 'none' } : undefined}
                 onMouseDown={editMode ? (e) => e.stopPropagation() : undefined}
                 onPointerDown={editMode ? (e) => e.stopPropagation() : undefined}
             >

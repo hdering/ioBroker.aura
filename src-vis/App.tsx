@@ -771,6 +771,8 @@ export default function App() {
     const drawerFloating = drawerEnabled && !drawerSidebar && !frontend.showHeader && !drawerInTabBar;
     const drawerShowTitle = frontend.layoutDrawerShowTitle ?? true;
     const drawerTitle = frontend.layoutDrawerTitle ?? '';
+    const drawerTitleMarginTop = frontend.layoutDrawerTitleMarginTop ?? 0;
+    const drawerTitleMarginBottom = frontend.layoutDrawerTitleMarginBottom ?? 0;
     const drawerEntryStyle = frontend.layoutDrawerEntryStyle ?? 'iconAndName';
     const drawerEntryHeight = frontend.layoutDrawerEntryHeight ?? 48;
     const drawerIndicatorStyle = frontend.layoutDrawerIndicatorStyle ?? 'filled';
@@ -794,6 +796,8 @@ export default function App() {
                     autoHide={drawerAutoHide}
                     showTitle={drawerShowTitle}
                     drawerTitle={drawerTitle}
+                    titleMarginTop={drawerTitleMarginTop}
+                    titleMarginBottom={drawerTitleMarginBottom}
                     entryStyle={drawerEntryStyle}
                     entryHeight={drawerEntryHeight}
                     indicatorStyle={drawerIndicatorStyle}
@@ -808,8 +812,11 @@ export default function App() {
                         activeLayoutId={layout?.id}
                         variant="sidebar"
                         width={drawerWidth}
+                        topOffset={frontend.layoutDrawerTopOffset ?? 0}
                         showTitle={drawerShowTitle}
                         drawerTitle={drawerTitle}
+                        titleMarginTop={drawerTitleMarginTop}
+                        titleMarginBottom={drawerTitleMarginBottom}
                         entryStyle={drawerEntryStyle}
                         entryHeight={drawerEntryHeight}
                         indicatorStyle={drawerIndicatorStyle}
@@ -831,6 +838,8 @@ export default function App() {
                                         size={drawerSize}
                                         showTitle={drawerShowTitle}
                                         drawerTitle={drawerTitle}
+                                        titleMarginTop={drawerTitleMarginTop}
+                                        titleMarginBottom={drawerTitleMarginBottom}
                                         entryStyle={drawerEntryStyle}
                                         entryHeight={drawerEntryHeight}
                                         indicatorStyle={drawerIndicatorStyle}
@@ -909,6 +918,8 @@ export default function App() {
                                     iconOnly
                                     showTitle={drawerShowTitle}
                                     drawerTitle={drawerTitle}
+                                    titleMarginTop={drawerTitleMarginTop}
+                                    titleMarginBottom={drawerTitleMarginBottom}
                                     entryStyle={drawerEntryStyle}
                                     entryHeight={drawerEntryHeight}
                                     indicatorStyle={drawerIndicatorStyle}

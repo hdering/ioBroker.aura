@@ -52,10 +52,16 @@ export interface FrontendSettings {
     layoutDrawerPlacement: 'floating' | 'tabbar' | 'sidebar';
     /** Width in px of the docked sidebar (placement='sidebar'). */
     layoutDrawerWidth: number;
+    /** Top offset in px of the docked sidebar menu content (placement='sidebar'). */
+    layoutDrawerTopOffset: number;
     /** Show the menu title/header row. */
     layoutDrawerShowTitle: boolean;
     /** Drawer header title; empty falls back to the localized default ("Layouts"). */
     layoutDrawerTitle: string;
+    /** Extra space in px above the menu title row. */
+    layoutDrawerTitleMarginTop: number;
+    /** Extra space in px below the menu title row. */
+    layoutDrawerTitleMarginBottom: number;
     /** How entries are shown in the drawer list. */
     layoutDrawerEntryStyle: 'iconAndName' | 'iconOnly' | 'nameOnly' | 'bulletAndName';
     /** Min height in px of each menu entry. */
@@ -159,8 +165,11 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     layoutDrawerAutoHide: false,
     layoutDrawerPlacement: 'floating',
     layoutDrawerWidth: 240,
+    layoutDrawerTopOffset: 0,
     layoutDrawerShowTitle: true,
     layoutDrawerTitle: '',
+    layoutDrawerTitleMarginTop: 0,
+    layoutDrawerTitleMarginBottom: 0,
     layoutDrawerEntryStyle: 'iconAndName',
     layoutDrawerEntryHeight: 48,
     layoutDrawerIndicatorStyle: 'filled',

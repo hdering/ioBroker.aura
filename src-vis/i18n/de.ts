@@ -104,6 +104,7 @@ export const de = {
     'settings.frontend.layoutDrawerPlacementHint':
         'Schwebend/Tab-Leiste zeigen einen Hamburger mit Overlay (nur bei ausgeblendetem Header). Feste Seitenleiste ist ein dauerhaft sichtbares Menü links.',
     'settings.frontend.layoutDrawerWidth': 'Breite der Seitenleiste',
+    'settings.frontend.layoutDrawerTopOffset': 'Abstand nach oben',
     'settings.frontend.layoutDrawerShowTitle': 'Titel des Menüs anzeigen',
     'settings.frontend.layoutDrawerHamburger': 'Hamburger-Button',
     'settings.frontend.layoutDrawerEntryHeight': 'Höhe der Einträge',
@@ -122,6 +123,8 @@ export const de = {
     'settings.frontend.layoutDrawerItems': 'Elemente',
     'settings.frontend.layoutDrawerItemPosTop': 'Oben',
     'settings.frontend.layoutDrawerItemPosBottom': 'Unten',
+    'settings.frontend.layoutDrawerItemMarginTop': 'Abstand oben',
+    'settings.frontend.layoutDrawerItemMarginBottom': 'Abstand unten',
     'settings.frontend.idleReturn': 'Automatisch zum Standard-Tab zurückkehren',
     'settings.frontend.idleReturnDelay': 'Verzögerung',
     'settings.frontend.idleReturnHint':
@@ -654,6 +657,9 @@ export const de = {
     'wf.edit.group.autoShrink': 'Bei versteckten Widgets schrumpfen',
     'wf.edit.group.autoShrinkHint':
         'Sind Kind-Widgets per Bedingung ausgeblendet, verkleinert sich die Gruppe auf die sichtbaren Inhalte (nur im Frontend).',
+    'wf.edit.group.defaultCollapsed': 'Standardmäßig eingeklappt',
+    'wf.edit.group.defaultCollapsedHint':
+        'Die Gruppe zeigt zunächst nur ihre Kopfzeile; ein Klick darauf klappt die Inhalte aus (nur im Frontend).',
     'wf.edit.group.mobileKeepGrid': 'Raster auf dem Smartphone beibehalten',
     'wf.edit.group.mobileKeepGridHint':
         'Standardmäßig werden Widgets auf dem Smartphone untereinander gestapelt. Aktiviert bleibt die nebeneinander-Anordnung wie in der normalen Ansicht erhalten, nur verkleinert.',

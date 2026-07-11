@@ -7535,6 +7535,7 @@ export function WidgetFrame({
                         (() => {
                             const o = config.options ?? {};
                             const autoShrink = !!o.autoShrink;
+                            const defaultCollapsed = !!o.defaultCollapsed;
                             return (
                                 <div
                                     className="space-y-2.5 rounded-lg px-3 py-3"
@@ -7579,6 +7580,39 @@ export function WidgetFrame({
                                             <span
                                                 className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
                                                 style={{ left: autoShrink ? '18px' : '2px' }}
+                                            />
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div>
+                                            <label
+                                                className="text-[11px] font-medium"
+                                                style={{ color: 'var(--text-primary)' }}
+                                            >
+                                                {t('wf.edit.group.defaultCollapsed')}
+                                            </label>
+                                            <p
+                                                className="text-[10px] mt-0.5"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                            >
+                                                {t('wf.edit.group.defaultCollapsedHint')}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() =>
+                                                onConfigChange({
+                                                    ...config,
+                                                    options: { ...o, defaultCollapsed: !defaultCollapsed },
+                                                })
+                                            }
+                                            className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                            style={{
+                                                background: defaultCollapsed ? 'var(--accent)' : 'var(--app-border)',
+                                            }}
+                                        >
+                                            <span
+                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                style={{ left: defaultCollapsed ? '18px' : '2px' }}
                                             />
                                         </button>
                                     </div>

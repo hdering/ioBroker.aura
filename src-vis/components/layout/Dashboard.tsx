@@ -3,6 +3,7 @@ import ReactGridLayout from 'react-grid-layout/legacy';
 import { X, Monitor } from 'lucide-react';
 import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
 import { useGroupDefsStore } from '../../store/groupDefsStore';
+import { useGroupCollapseStore } from '../../store/groupCollapseStore';
 import { useIframeStore, type IframeFullscreenData } from '../../store/iframeStore';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { WidgetFrame } from './WidgetFrame';
@@ -54,6 +55,7 @@ export function Dashboard({
     const snapX = settings.gridSnapX ?? settings.gridRowHeight ?? 20;
     const MARGIN = settings.gridGap ?? DEFAULT_MARGIN;
     const groupDefs = useGroupDefsStore((s) => s.defs);
+    const groupCollapsed = useGroupCollapseStore((s) => s.collapsed);
     const mobileBreakpoint = settings.mobileBreakpoint ?? 600;
     const guidelinesEnabled = settings.guidelinesEnabled ?? false;
     const guidelinesWidth = settings.guidelinesWidth ?? 1280;
@@ -490,6 +492,20 @@ export function Dashboard({
                                                 h = Math.min(h, shrunk);
                                                 minH = Math.min(minH, h); // never let RGL clamp back up
                                             }
+                                        }
+                                        // Collapsed group (frontend only): fold the outer box down to just
+                                        // the header. Mirrors GroupWidget, which hides the body in the same
+                                        // state. A user toggle lives in groupCollapsed; absent it, the config
+                                        // default applies.
+                                        if (
+                                            isGroup &&
+                                            !editMode &&
+                                            !!w.options?.defaultCollapsed &&
+                                            (groupCollapsed[w.id] ?? true)
+                                        ) {
+                                            const headerRows = Math.ceil((37 + 10 + MARGIN) / (cellSize + MARGIN));
+                                            h = Math.max(1, headerRows);
+                                            minH = Math.min(minH, h);
                                         }
                                         // Content auto-height (e.g. Statusübersicht): size the item to the
                                         // widget's measured content instead of the stored height. The widget

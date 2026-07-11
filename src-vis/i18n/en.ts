@@ -106,6 +106,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.layoutDrawerPlacementHint':
         'Floating/tab bar show a hamburger with an overlay (header hidden only). Docked sidebar is a permanently visible left menu.',
     'settings.frontend.layoutDrawerWidth': 'Sidebar width',
+    'settings.frontend.layoutDrawerTopOffset': 'Top offset',
     'settings.frontend.layoutDrawerShowTitle': 'Show menu title',
     'settings.frontend.layoutDrawerHamburger': 'Hamburger button',
     'settings.frontend.layoutDrawerEntryHeight': 'Entry height',
@@ -124,6 +125,8 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.layoutDrawerItems': 'Elements',
     'settings.frontend.layoutDrawerItemPosTop': 'Top',
     'settings.frontend.layoutDrawerItemPosBottom': 'Bottom',
+    'settings.frontend.layoutDrawerItemMarginTop': 'Space above',
+    'settings.frontend.layoutDrawerItemMarginBottom': 'Space below',
     'settings.frontend.idleReturn': 'Auto-return to default tab',
     'settings.frontend.idleReturnDelay': 'Delay',
     'settings.frontend.idleReturnHint':
@@ -655,6 +658,9 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.group.autoShrink': 'Shrink when widgets are hidden',
     'wf.edit.group.autoShrinkHint':
         'When child widgets are hidden by a condition, the group shrinks to fit the visible content (frontend only).',
+    'wf.edit.group.defaultCollapsed': 'Collapsed by default',
+    'wf.edit.group.defaultCollapsedHint':
+        'The group initially shows only its header; clicking it expands the content (frontend only).',
     'wf.edit.group.mobileKeepGrid': 'Keep grid layout on mobile',
     'wf.edit.group.mobileKeepGridHint':
         'By default widgets are stacked in a single column on mobile. When enabled, the side-by-side arrangement from the normal view is kept, just scaled down.',

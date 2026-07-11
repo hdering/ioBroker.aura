@@ -70,6 +70,42 @@ function LayoutMenuItemRow({
 
             {expanded && (
                 <div className="px-2 py-2 space-y-2 border-t" style={{ borderColor: 'var(--app-border)' }}>
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
+                                {t('settings.frontend.layoutDrawerItemMarginTop')}
+                            </p>
+                            <input
+                                type="number"
+                                min={0}
+                                max={200}
+                                value={item.marginTop ?? 0}
+                                onChange={(e) =>
+                                    onUpdate({ marginTop: Math.min(200, Math.max(0, parseInt(e.target.value) || 0)) })
+                                }
+                                className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                style={iSty}
+                            />
+                        </div>
+                        <div>
+                            <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
+                                {t('settings.frontend.layoutDrawerItemMarginBottom')}
+                            </p>
+                            <input
+                                type="number"
+                                min={0}
+                                max={200}
+                                value={item.marginBottom ?? 0}
+                                onChange={(e) =>
+                                    onUpdate({
+                                        marginBottom: Math.min(200, Math.max(0, parseInt(e.target.value) || 0)),
+                                    })
+                                }
+                                className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                style={iSty}
+                            />
+                        </div>
+                    </div>
                     {item.type === 'clock' && (
                         <>
                             <div>
@@ -281,6 +317,68 @@ export function LayoutMenuSection() {
                                     }}
                                 />
                             </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('settings.frontend.layoutDrawerItemMarginTop')}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            max={200}
+                                            value={frontend.layoutDrawerTitleMarginTop ?? 0}
+                                            onChange={(e) =>
+                                                updateFrontend({
+                                                    layoutDrawerTitleMarginTop: Math.min(
+                                                        200,
+                                                        Math.max(0, parseInt(e.target.value) || 0),
+                                                    ),
+                                                })
+                                            }
+                                            className="w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-primary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        />
+                                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                            px
+                                        </span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('settings.frontend.layoutDrawerItemMarginBottom')}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            max={200}
+                                            value={frontend.layoutDrawerTitleMarginBottom ?? 0}
+                                            onChange={(e) =>
+                                                updateFrontend({
+                                                    layoutDrawerTitleMarginBottom: Math.min(
+                                                        200,
+                                                        Math.max(0, parseInt(e.target.value) || 0),
+                                                    ),
+                                                })
+                                            }
+                                            className="w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-primary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        />
+                                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                            px
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </SubGroup>
                     )}
                     {/* Placement decides the menu type first (floating / tab-bar / docked sidebar). */}
@@ -381,30 +479,58 @@ export function LayoutMenuSection() {
                             </>
                         )}
                         {frontend.layoutDrawerPlacement === 'sidebar' && (
-                            <div>
-                                <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('settings.frontend.layoutDrawerWidth')}
-                                </p>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="number"
-                                        min={120}
-                                        max={600}
-                                        value={frontend.layoutDrawerWidth ?? 240}
-                                        onChange={(e) => {
-                                            const v = Math.min(600, Math.max(120, parseInt(e.target.value) || 240));
-                                            updateFrontend({ layoutDrawerWidth: v });
-                                        }}
-                                        className="w-24 text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            color: 'var(--text-primary)',
-                                            border: '1px solid var(--app-border)',
-                                        }}
-                                    />
-                                    <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                        px
-                                    </span>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('settings.frontend.layoutDrawerWidth')}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            min={120}
+                                            max={600}
+                                            value={frontend.layoutDrawerWidth ?? 240}
+                                            onChange={(e) => {
+                                                const v = Math.min(600, Math.max(120, parseInt(e.target.value) || 240));
+                                                updateFrontend({ layoutDrawerWidth: v });
+                                            }}
+                                            className="w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-primary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        />
+                                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                            px
+                                        </span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('settings.frontend.layoutDrawerTopOffset')}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            max={400}
+                                            value={frontend.layoutDrawerTopOffset ?? 0}
+                                            onChange={(e) => {
+                                                const v = Math.min(400, Math.max(0, parseInt(e.target.value) || 0));
+                                                updateFrontend({ layoutDrawerTopOffset: v });
+                                            }}
+                                            className="w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-primary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        />
+                                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                            px
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         )}

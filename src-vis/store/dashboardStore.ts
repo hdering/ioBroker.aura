@@ -31,6 +31,10 @@ export interface LayoutMenuItem {
     id: string;
     type: 'clock' | 'datapoint' | 'text';
     position: 'top' | 'bottom';
+    /** Extra space in px above this element. */
+    marginTop?: number;
+    /** Extra space in px below this element. */
+    marginBottom?: number;
     // clock
     clockDisplay?: 'time' | 'date' | 'datetime';
     clockShowSeconds?: boolean;

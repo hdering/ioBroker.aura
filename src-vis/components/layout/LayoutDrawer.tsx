@@ -38,6 +38,12 @@ interface LayoutDrawerProps {
     variant?: 'overlay' | 'sidebar';
     /** Width in px of the docked sidebar (variant='sidebar'). */
     width?: number;
+    /** Space in px between the layout list and the element directly above it (title / top items / top edge). */
+    topOffset?: number;
+    /** Extra space in px above the menu title row. */
+    titleMarginTop?: number;
+    /** Extra space in px below the menu title row. */
+    titleMarginBottom?: number;
     /** Min height in px of each menu entry. */
     entryHeight?: number;
     /** Extra elements (clock/datapoint/text) rendered above/below the layout list. */
@@ -181,6 +187,9 @@ export function LayoutDrawer({
     iconSize = 16,
     variant = 'overlay',
     width = 240,
+    topOffset = 0,
+    titleMarginTop = 0,
+    titleMarginBottom = 0,
     entryHeight = 48,
     items = [],
 }: LayoutDrawerProps) {
@@ -267,7 +276,7 @@ export function LayoutDrawer({
     // Container gets a little horizontal padding so the selected chip reads as inset.
     const visibleLayouts = layouts.filter((l) => !l.hidden);
     const list = (
-        <div className="flex-1 overflow-y-auto py-2 px-2">
+        <div className="flex-1 overflow-y-auto py-2 px-2" style={{ marginTop: topOffset || undefined }}>
             {visibleLayouts.map((layout) => {
                 const isActive = layout.id === activeLayout?.id;
                 return (
@@ -337,7 +346,12 @@ export function LayoutDrawer({
                 style={{ borderColor: 'var(--app-border)' }}
             >
                 {groupItems.map((it) => (
-                    <LayoutMenuItemView key={it.id} item={it} t={t} />
+                    <div
+                        key={it.id}
+                        style={{ marginTop: it.marginTop || undefined, marginBottom: it.marginBottom || undefined }}
+                    >
+                        <LayoutMenuItemView item={it} t={t} />
+                    </div>
                 ))}
             </div>
         );
@@ -357,7 +371,11 @@ export function LayoutDrawer({
                 {showTitle && entryStyle !== 'iconOnly' && (
                     <div
                         className="flex items-center px-4 py-3 shrink-0"
-                        style={{ borderBottom: '1px solid var(--app-border)' }}
+                        style={{
+                            borderBottom: '1px solid var(--app-border)',
+                            marginTop: titleMarginTop || undefined,
+                            marginBottom: titleMarginBottom || undefined,
+                        }}
                     >
                         <span className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
                             {drawerTitle?.trim() || t('layoutDrawer.title')}
@@ -424,7 +442,11 @@ export function LayoutDrawer({
                   >
                       <div
                           className="flex items-center justify-between px-4 py-3 shrink-0"
-                          style={{ borderBottom: '1px solid var(--app-border)' }}
+                          style={{
+                              borderBottom: '1px solid var(--app-border)',
+                              marginTop: titleMarginTop || undefined,
+                              marginBottom: titleMarginBottom || undefined,
+                          }}
                       >
                           {showTitle ? (
                               <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
