@@ -12,9 +12,10 @@
  *   - compact list of up to N events (weekday chips, trigger preview, target DP)
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Timer, Sun, Sunset, Sunrise, Moon, CalendarRange, Clock, Plus, Pencil } from 'lucide-react';
+import { Timer, Sun, Sunset, Sunrise, Moon, CalendarRange, Clock, Plus, Pencil, Power, PowerOff } from 'lucide-react';
 import type { WidgetProps, TimerEvent, TimerWeekday, TimerTrigger } from '../../types';
 import { contentPositionClass } from '../../utils/widgetUtils';
+import { classifyTimerValue, effectiveEventValue } from '../../utils/timerValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { publishTimerConfig, publishTimerEnabled, type TimerConfigPayload } from '../../utils/publishTimerConfig';
 import { TimerEventModal } from './TimerEventModal';
@@ -121,6 +122,63 @@ function TriggerIcon({ trigger, size = 12 }: { trigger: TimerTrigger; size?: num
     if (trigger.event === 'dawn') return <Sunrise size={size} />;
     if (trigger.event === 'dusk') return <Moon size={size} />;
     return <Sun size={size} />;
+}
+
+/**
+ * Shows what an event *does* to the target — the green live-dot only tells you
+ * the event is armed, not whether it switches the target on or off. For boolean
+ * values we render a coloured Ein/Aus pill; other values are shown literally.
+ * A 'range' trigger fires the value at the start and its inverse at the end, so
+ * a boolean range shows both icons.
+ */
+function ValueBadge({ raw, isRange, iconOnly }: { raw: string; isRange?: boolean; iconOnly?: boolean }) {
+    const kind = classifyTimerValue(raw);
+    const sz = iconOnly ? 12 : 11;
+
+    if (isRange && kind !== 'other') {
+        return (
+            <span
+                className="flex items-center gap-0.5 shrink-0"
+                title="Schaltet am Start ein und am Ende aus (bzw. umgekehrt)"
+            >
+                <Power size={sz} style={{ color: 'var(--accent-green)' }} />
+                <PowerOff size={sz} style={{ color: 'var(--accent-red)' }} />
+            </span>
+        );
+    }
+
+    if (kind === 'on' || kind === 'off') {
+        const on = kind === 'on';
+        const Icon = on ? Power : PowerOff;
+        const color = on ? 'var(--accent-green)' : 'var(--accent-red)';
+        const title = on ? 'Schaltet ein' : 'Schaltet aus';
+        if (iconOnly)
+            return (
+                <span className="shrink-0 flex items-center" title={title}>
+                    <Icon size={sz} style={{ color }} />
+                </span>
+            );
+        return (
+            <span
+                className="flex items-center gap-0.5 shrink-0 text-[9px] font-semibold rounded px-1 py-0.5"
+                style={{ color, border: `1px solid ${color}` }}
+                title={title}
+            >
+                <Icon size={10} /> {on ? 'Ein' : 'Aus'}
+            </span>
+        );
+    }
+
+    // other: show the literal value that will be written
+    return (
+        <span
+            className="shrink-0 text-[9px] font-medium rounded px-1 py-0.5 max-w-[64px] truncate"
+            style={{ color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+            title={`Setzt Wert: ${raw}`}
+        >
+            {raw}
+        </span>
+    );
 }
 
 function statusColor(masterEnabled: boolean, events: TimerEvent[], hasTarget: boolean): string {
@@ -363,6 +421,10 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                 <TriggerIcon trigger={ev.trigger} />
                                 {formatTrigger(ev.trigger)}
                             </span>
+                            <ValueBadge
+                                raw={effectiveEventValue(ev.value, targetValue, allowEventValue)}
+                                isRange={ev.trigger.kind === 'range'}
+                            />
                             {ev.label ? (
                                 <span
                                     className="text-[10px] flex-1 truncate text-right"
@@ -522,6 +584,11 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                 />
                                 <TriggerIcon trigger={ev.trigger} />
                                 <span className="font-mono">{formatTrigger(ev.trigger)}</span>
+                                <ValueBadge
+                                    raw={effectiveEventValue(ev.value, targetValue, allowEventValue)}
+                                    isRange={ev.trigger.kind === 'range'}
+                                    iconOnly
+                                />
                                 <span className="flex-1 truncate" style={{ color: 'var(--text-secondary)' }}>
                                     {ev.label ||
                                         (ev.trigger.kind === 'time' || ev.trigger.kind === 'astro'

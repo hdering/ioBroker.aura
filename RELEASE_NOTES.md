@@ -4,3 +4,5 @@
 #   <Widget type> - <what changed>          e.g.  Thermostat - target temperature now shown inline
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
+Timer - event value has On/Off quick-select buttons (free text still allowed)
+Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off
