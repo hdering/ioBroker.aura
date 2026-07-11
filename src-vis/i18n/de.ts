@@ -688,6 +688,8 @@ export const de = {
     'wf.dpTypeMismatch.keep': 'Bei „{current}“ bleiben',
 
     'wf.edit.style.bg': 'Hintergrund',
+    'wf.edit.style.border': 'Rahmenfarbe',
+    'wf.edit.style.borderWidth': 'Rahmenbreite',
     'wf.edit.style.accent': 'Akzentfarbe',
     'wf.edit.style.text': 'Text',
     'wf.edit.style.textSec': 'Text sekundär',

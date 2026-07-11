@@ -689,6 +689,8 @@ export const en: Record<TranslationKey, string> = {
     'wf.dpTypeMismatch.keep': 'Keep "{current}"',
 
     'wf.edit.style.bg': 'Background',
+    'wf.edit.style.border': 'Border Color',
+    'wf.edit.style.borderWidth': 'Border Width',
     'wf.edit.style.accent': 'Accent Color',
     'wf.edit.style.text': 'Text',
     'wf.edit.style.textSec': 'Secondary Text',

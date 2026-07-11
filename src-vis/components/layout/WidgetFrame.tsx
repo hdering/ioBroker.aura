@@ -806,10 +806,12 @@ function CalendarEditPanel({
 
 const STYLE_FIELDS: { key: string; labelKey: string; type: 'color' | 'text' }[] = [
     { key: 'bg', labelKey: 'wf.edit.style.bg', type: 'color' },
+    { key: 'border', labelKey: 'wf.edit.style.border', type: 'color' },
+    { key: 'borderWidth', labelKey: 'wf.edit.style.borderWidth', type: 'text' },
+    { key: 'radius', labelKey: 'wf.edit.style.radius', type: 'text' },
     { key: 'accent', labelKey: 'wf.edit.style.accent', type: 'color' },
     { key: 'textPrimary', labelKey: 'wf.edit.style.text', type: 'color' },
     { key: 'textSecondary', labelKey: 'wf.edit.style.textSec', type: 'color' },
-    { key: 'radius', labelKey: 'wf.edit.style.radius', type: 'text' },
 ];
 
 // ── ChartHistoryConfig ────────────────────────────────────────────────────────
@@ -5374,6 +5376,7 @@ export function WidgetFrame({
             // Static style overrides from options.styleOverride
             '--widget-bg': overrides?.bg,
             '--widget-border': overrides?.border,
+            '--widget-border-width': overrides?.borderWidth,
             '--widget-radius': overrides?.radius,
             '--text-primary': overrides?.textPrimary,
             '--text-secondary': overrides?.textSecondary,
