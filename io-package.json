@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.25.3",
+    "version": "0.25.4",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.25.4": {
+        "en": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
+        "de": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
+        "ru": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
+        "pt": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
+        "nl": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
+        "fr": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
+        "it": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
+        "es": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
+        "pl": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
+        "uk": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
+        "zh-cn": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile"
+      },
       "0.25.3": {
         "en": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint",
         "de": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint",
@@ -184,19 +197,6 @@
         "pl": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
         "uk": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
         "zh-cn": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box"
-      },
-      "0.24.0": {
-        "en": "🌟 New feature: Layout menu - new \"bullet + name\" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size\n🌟 New feature: Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list",
-        "de": "🌟 New feature: Layout menu - new \"bullet + name\" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size\n🌟 New feature: Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list",
-        "ru": "🌟 New feature: Layout menu - new \"bullet + name\" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size\n🌟 New feature: Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list",
-        "pt": "🌟 New feature: Layout menu - new \"bullet + name\" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size\n🌟 New feature: Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list",
-        "nl": "🌟 New feature: Layout menu - new \"bullet + name\" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size\n🌟 New feature: Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list",
-        "fr": "🌟 New feature: Layout menu - new \"bullet + name\" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size\n🌟 New feature: Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list",
-        "it": "🌟 New feature: Layout menu - new \"bullet + name\" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size\n🌟 New feature: Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list",
-        "es": "🌟 New feature: Layout menu - new \"bullet + name\" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size\n🌟 New feature: Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list",
-        "pl": "🌟 New feature: Layout menu - new \"bullet + name\" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size\n🌟 New feature: Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list",
-        "uk": "🌟 New feature: Layout menu - new \"bullet + name\" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size\n🌟 New feature: Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list",
-        "zh-cn": "🌟 New feature: Layout menu - new \"bullet + name\" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size\n🌟 New feature: Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list"
       }
     }
   },

@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.22.0 (2026-07-08)
+- 🌟 **New feature:** Load times - add a dedicated backend page (Admin -> Ladezeiten) with live metrics, a per-widget breakdown showing each widget's tab with click-through to the editor, network breakdown metrics (TTFB, transfer, DNS, TCP/TLS) plus a backend ping (RTT) to spot high latency (e.g. over VPN), client names from Settings instead of raw ids, a toggleable chart legend, a refresh spinner, and an info popup on which metrics to watch; the old dashboard widget is superseded and hidden from the picker but keeps working
+- Popup views - widgets now show their normal card background instead of always appearing transparent; a widget's own transparency setting is still respected
+
 ## 0.21.15 (2026-07-08)
 - 🌟 **New feature:** Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon
 - Color picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur
