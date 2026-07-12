@@ -951,7 +951,10 @@ export function FillWidget({ config }: WidgetProps) {
                         style={
                             orientation === 'vertical'
                                 ? { width: `${barSize}%`, height: '100%' }
-                                : { width: '100%', height: `${barSize}%` }
+                                : // horizontal: keep the battery's natural aspect ratio (matches the
+                                  // segments layout) so barSize actually scales it and it no longer
+                                  // stretches to full width on narrow (mobile) cells. #453
+                                  { height: `${barSize}%`, aspectRatio: '260 / 90', maxWidth: '100%' }
                         }
                     >
                         <BatteryViz
