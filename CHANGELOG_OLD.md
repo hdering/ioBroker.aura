@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.21.15 (2026-07-08)
+- 🌟 **New feature:** Switch - control element can now be an image (URL or base64) with separate on/off images, alongside toggle and icon
+- Color picker - typing a hex code (e.g. #ef4) is no longer auto-expanded while you type; the colour still previews live and normalizes on blur
+
 ## 0.21.14 (2026-07-08)
 - fix(loadtimes): make view toggle label show the action (Details/Verlauf anzeigen)
 - fix(loadtimes): stop breakdown list bloating over long sessions
