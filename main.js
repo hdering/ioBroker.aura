@@ -1096,16 +1096,26 @@ class Aura extends utils.Adapter {
                 return;
             }
 
+            // `/webfs/<path>` transparently forwards to the ioBroker web adapter
+            // backend (the socket backend, default :8082). Adapters like sonos serve
+            // assets (e.g. album art `sonos/coverImage/<ip>.png`) as relative paths
+            // that only exist on the web adapter, NOT on aura's own server. Widgets
+            // resolve such relative image DPs to `/webfs/...` so the browser hits
+            // aura's origin, and aura pipes it through to the web adapter — cookies
+            // and all, so authenticated web instances keep working.
             const webAdapterPrefixes = ['/socket.io', '/echarts', '/lib'];
-            if (webAdapterPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+            const isWebFs = pathname === '/webfs' || pathname.startsWith('/webfs/');
+            if (isWebFs || webAdapterPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
                 const socketLib = socketSecure ? https : http;
                 const fwdHeaders = { ...req.headers, host: socketHostPort };
                 if (socketSendForwardedFor) applyForwardedHeaders(fwdHeaders, req);
+                // Strip the `/webfs` prefix so the backend receives the real web path.
+                const backendPath = isWebFs ? req.url.slice('/webfs'.length) || '/' : req.url;
                 const proxyReq = socketLib.request(
                     {
                         hostname: socketHost,
                         port: socketPort,
-                        path: req.url,
+                        path: backendPath,
                         method: req.method,
                         headers: fwdHeaders,
                         timeout: 30000,

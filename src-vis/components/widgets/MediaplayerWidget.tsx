@@ -24,7 +24,10 @@ type MediaChip = {
 /** Resolve a cover-art datapoint value into a browser-loadable image src.
  *  - empty / data: / absolute http(s) / protocol-relative → use as-is
  *  - base64 blob (long, no scheme, no slash) → data: URI
- *  - relative path (e.g. Sonos `sonos/coverImage/x.png`) → prepend page origin.
+ *  - relative path (e.g. Sonos `sonos/coverImage/x.png`) → route through aura's
+ *    `/webfs/` proxy. Such paths are served by the ioBroker web adapter, NOT by
+ *    aura's own HTTP server, so resolving against `window.location.origin`
+ *    directly would 404. `/webfs/` forwards the request to the web backend.
  *  A cache-buster derived from the current track (title+artist) is appended to
  *  relative covers so the image refreshes on track change even when the adapter
  *  keeps writing the same filename (Sonos reuses `<ip>.png` per device). */
@@ -35,7 +38,7 @@ function resolveCoverUrl(raw: string, title: string, artist: string): string {
     // Long token with no scheme and no path separator → raw base64 image data
     if (!v.includes('/') && v.length > 64) return `data:image/jpeg;base64,${v}`;
     const path = v.startsWith('/') ? v : `/${v}`;
-    const url = window.location.origin + path;
+    const url = `/webfs${path}`;
     const bust = `${title}|${artist}`.trim();
     if (!bust) return url;
     const sep = url.includes('?') ? '&' : '?';
