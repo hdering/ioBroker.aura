@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.25.4",
+    "version": "0.25.5",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.25.5": {
+        "en": "Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)\nJSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content",
+        "de": "Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)\nJSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content",
+        "ru": "Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)\nJSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content",
+        "pt": "Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)\nJSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content",
+        "nl": "Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)\nJSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content",
+        "fr": "Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)\nJSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content",
+        "it": "Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)\nJSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content",
+        "es": "Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)\nJSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content",
+        "pl": "Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)\nJSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content",
+        "uk": "Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)\nJSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content",
+        "zh-cn": "Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)\nJSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content"
+      },
       "0.25.4": {
         "en": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
         "de": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
@@ -184,19 +197,6 @@
         "pl": "Layouts can be hidden from the layout menu (still reachable via their direct URL)\nLayout menu can be hidden per layout — e.g. lock a wall tablet to a single layout",
         "uk": "Layouts can be hidden from the layout menu (still reachable via their direct URL)\nLayout menu can be hidden per layout — e.g. lock a wall tablet to a single layout",
         "zh-cn": "Layouts can be hidden from the layout menu (still reachable via their direct URL)\nLayout menu can be hidden per layout — e.g. lock a wall tablet to a single layout"
-      },
-      "0.24.1": {
-        "en": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
-        "de": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
-        "ru": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
-        "pt": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
-        "nl": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
-        "fr": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
-        "it": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
-        "es": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
-        "pl": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
-        "uk": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box",
-        "zh-cn": "refactor(layout-menu): show the menu-title input in a SubGroup like placement\nrefactor(layout-menu): group placement-dependent settings under the placement\nfeat(layout-menu): show settings conditionally per placement\nrefactor(layout-menu): put placement first as a prominent heading\nrefactor(layout-menu): group hamburger size + auto-hide in one bordered box"
       }
     }
   },
