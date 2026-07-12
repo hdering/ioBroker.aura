@@ -7,7 +7,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
 import type { WidgetConfig, CustomCell, CustomGrid, CustomGridDef } from '../../types';
-import { resolveAssetUrl } from '../../utils/assetUrl';
+import { resolveAssetUrl, proxifyIfMixed } from '../../utils/assetUrl';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { applyValueTransform } from '../../utils/valueTransform';
@@ -80,6 +80,11 @@ function cellTextStyle(cell: CustomCell, defaultColor: string): React.CSSPropert
         whiteSpace: wrap ? 'normal' : 'nowrap',
         wordBreak: wrap ? 'break-word' : undefined,
         overflowWrap: wrap ? 'anywhere' : undefined,
+        // Align the wrapped lines *within* the text box too. Without this the box
+        // grows to (near) full cell width when wrapping, so the container's
+        // justify-content no longer visibly centers it and the lines fall back to
+        // the default left alignment.
+        textAlign: cell.align === 'right' ? 'right' : cell.align === 'center' ? 'center' : 'left',
         // 1.3 (not 1.15) so descenders (g, j, p, q, y) aren't clipped by overflow:hidden.
         lineHeight: 1.3,
         paddingBottom: '0.1em',
@@ -241,7 +246,7 @@ function ImageCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
     return (
         <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: 0 }}>
             <img
-                src={resolveAssetUrl(cell.imageUrl)}
+                src={proxifyIfMixed(resolveAssetUrl(cell.imageUrl))}
                 alt=""
                 style={{
                     width: '100%',

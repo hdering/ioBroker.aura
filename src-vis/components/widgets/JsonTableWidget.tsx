@@ -6,7 +6,7 @@ import { useDashboardStore } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { resolveAssetUrl } from '../../utils/assetUrl';
+import { resolveAssetUrl, proxifyIfMixed } from '../../utils/assetUrl';
 
 // ── Column definition (stored in options.columns) ─────────────────────────────
 export interface JsonColumnDef {
@@ -62,23 +62,23 @@ function effectiveAdminBaseUrl(adminBaseUrl: string | undefined): string {
 }
 
 /** Resolve image URL for a cell.
- *  - http(s)://, //, data: → as-is
+ *  - http(s)://, //, data: → as-is (http proxied on HTTPS pages, see proxifyIfMixed)
  *  - aura-file:… → fs/read endpoint
  *  - /<adapter>.admin/… → prepend adminBaseUrl (global) or columnPrefix (override)
  *  - everything else → fall back to aura-file: (legacy behaviour) */
 function resolveImageSrc(v: unknown, adminBaseUrl: string, columnPrefix?: string): string {
     if (typeof v !== 'string' || !v) return '';
-    if (/^(https?:)?\/\//i.test(v) || v.startsWith('data:')) return v;
+    if (/^(https?:)?\/\//i.test(v) || v.startsWith('data:')) return proxifyIfMixed(v);
     if (v.startsWith('aura-file:')) return resolveAssetUrl(v);
     // Per-column prefix overrides global handling
     if (columnPrefix && columnPrefix.trim()) {
         const prefix = columnPrefix.trim().replace(/\/+$/, '');
         const path = v.startsWith('/') ? v : `/${v}`;
-        return prefix + path;
+        return proxifyIfMixed(prefix + path);
     }
     // ioBroker admin asset path: /<adapter>.admin/...
     if (/^\/[^/]+\.admin\//.test(v) && adminBaseUrl) {
-        return adminBaseUrl + v;
+        return proxifyIfMixed(adminBaseUrl + v);
     }
     return resolveAssetUrl(`aura-file:${v.replace(/^\/+/, '')}`);
 }
