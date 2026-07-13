@@ -3,11 +3,48 @@
  * (displayType) plus the per-type fields it needs. Used by both StaticListConfig
  * and AutoListConfig so the static and dynamic lists offer the same controls.
  */
-import { useState } from 'react';
-import { X, Database, Wand2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, Database, Wand2, Plus } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import { DatapointPicker } from './DatapointPicker';
+import { IconPickerModal } from './IconPickerModal';
+import { ColorPicker } from '../common/ColorPicker';
+import { lucidePascalToIconify } from '../../utils/iconifyLoader';
+import { getObjectDirect } from '../../hooks/useIoBroker';
 import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
-import type { EntryControlConfig, EntryDisplayType, EntryPreset } from '../widgets/entryControls';
+import type { EntryControlConfig, EntryDisplayType, EntryPreset, EntryStateMap } from '../widgets/entryControls';
+
+function toIconifyId(name: string): string {
+    return name.includes(':') ? name : lucidePascalToIconify(name);
+}
+
+/** Parse an ioBroker `common.states` value (object / array / "k:v;…" string) into
+ *  entry state mappings. Numeric-looking keys become numbers so they match the DP. */
+function parseCommonStates(states: unknown): EntryStateMap[] {
+    if (!states) return [];
+    const toValue = (raw: string): string | number => {
+        const s = raw.trim();
+        const num = Number(s);
+        return s !== '' && isFinite(num) ? num : s;
+    };
+    if (Array.isArray(states)) {
+        return states.map((label, i) => ({ value: i, label: String(label) }));
+    }
+    if (typeof states === 'string') {
+        return states
+            .split(';')
+            .map((pair) => pair.split(':'))
+            .filter((kv) => kv.length >= 2 && kv[0].trim() !== '')
+            .map((kv) => ({ value: toValue(kv[0]), label: kv.slice(1).join(':').trim() }));
+    }
+    if (typeof states === 'object') {
+        return Object.entries(states as Record<string, unknown>).map(([v, label]) => ({
+            value: toValue(v),
+            label: String(label),
+        }));
+    }
+    return [];
+}
 
 interface Props {
     // entry carries the list-entry id at runtime (StaticListEntry/AutoListEntry);
@@ -72,6 +109,7 @@ const TYPE_OPTIONS: { value: EntryDisplayType; label: string }[] = [
     { value: 'stepper', label: '+/−' },
     { value: 'buttons', label: 'Tasten' },
     { value: 'momentary', label: 'Taster' },
+    { value: 'states', label: 'Zustände' },
 ];
 
 const iSty = {
@@ -110,13 +148,51 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
     const dt = entry.displayType ?? 'auto';
     const sMode = entry.shutterMode ?? 'commands';
     const [pickFor, setPickFor] = useState<null | 'shutterUpDp' | 'shutterStopDp' | 'shutterDownDp'>(null);
+    const [statePickFor, setStatePickFor] = useState<number | null>(null);
     const [autoMsg, setAutoMsg] = useState<string | null>(null);
+    const [stateMsg, setStateMsg] = useState<string | null>(null);
     const presets = entry.presets ?? [];
+    const stateMaps = entry.states ?? [];
 
     const setPreset = (i: number, patch: Partial<EntryPreset>) => {
         const next = presets.map((p, j) => (j === i ? { ...p, ...patch } : p));
         onUpdate({ presets: next });
     };
+
+    const setStateMap = (i: number, patch: Partial<EntryStateMap>) => {
+        onUpdate({ states: stateMaps.map((s, j) => (j === i ? { ...s, ...patch } : s)) });
+    };
+
+    const loadStatesFromObject = async () => {
+        if (!entry.id) return;
+        const obj = await getObjectDirect(entry.id);
+        const parsed = parseCommonStates(obj?.common?.states);
+        if (parsed.length) {
+            onUpdate({ states: parsed });
+            setStateMsg(`${parsed.length} Zustände aus common.states übernommen`);
+        } else {
+            setStateMsg('Keine common.states im Objekt gefunden');
+        }
+    };
+
+    // On switching to the "states" display with no mappings yet, try to prefill
+    // from the DP's common.states. Guarded so it never overwrites manual edits.
+    useEffect(() => {
+        if (dt !== 'states' || (entry.states?.length ?? 0) > 0 || !entry.id) return;
+        let cancelled = false;
+        getObjectDirect(entry.id).then((obj) => {
+            if (cancelled) return;
+            const parsed = parseCommonStates(obj?.common?.states);
+            if (parsed.length) {
+                onUpdate({ states: parsed });
+                setStateMsg(`${parsed.length} Zustände aus common.states übernommen`);
+            }
+        });
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dt, entry.id]);
 
     const autoDetectShutter = async () => {
         if (!entry.id) return;
@@ -480,6 +556,97 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
                 </div>
             )}
 
+            {/* ── Zustände (Wert→Label/Icon/Farbe) ── */}
+            {dt === 'states' && (
+                <div className="space-y-1">
+                    <button
+                        onClick={loadStatesFromObject}
+                        disabled={!entry.id}
+                        title="Zustände aus common.states des Datenpunkts übernehmen"
+                        className="w-full flex items-center justify-center gap-1 text-[10px] py-1 rounded hover:opacity-80 disabled:opacity-40"
+                        style={{
+                            background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+                            color: 'var(--accent)',
+                            border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)',
+                        }}
+                    >
+                        <Wand2 size={10} /> Aus common.states laden
+                    </button>
+                    {stateMsg && (
+                        <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.75 }}>
+                            {stateMsg}
+                        </p>
+                    )}
+                    <div className="flex items-center justify-between">
+                        <Label>Zustände (Wert → Anzeige)</Label>
+                        <button
+                            onClick={() =>
+                                onUpdate({ states: [...stateMaps, { value: '', label: '', color: undefined }] })
+                            }
+                            className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-80"
+                            style={{
+                                background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+                                color: 'var(--accent)',
+                            }}
+                        >
+                            + Hinzufügen
+                        </button>
+                    </div>
+                    {stateMaps.map((s, i) => (
+                        <div key={i} className="flex items-center gap-1">
+                            <button
+                                onClick={() => setStatePickFor(i)}
+                                title={s.icon || 'Icon wählen'}
+                                className="shrink-0 flex items-center justify-center rounded hover:opacity-80"
+                                style={{ ...iSty, width: 26, height: 26 }}
+                            >
+                                {s.icon ? (
+                                    <Icon icon={toIconifyId(s.icon)} width={14} height={14} />
+                                ) : (
+                                    <Plus size={12} style={{ color: 'var(--text-secondary)', opacity: 0.6 }} />
+                                )}
+                            </button>
+                            <input
+                                className={`${iCls} font-mono`}
+                                style={{ ...iSty, width: 56 }}
+                                placeholder="Wert"
+                                value={String(s.value)}
+                                onChange={(e) => {
+                                    const raw = e.target.value;
+                                    const num = Number(raw);
+                                    setStateMap(i, { value: raw !== '' && isFinite(num) ? num : raw });
+                                }}
+                            />
+                            <input
+                                className={iCls}
+                                style={iSty}
+                                placeholder="Text"
+                                value={s.label ?? ''}
+                                onChange={(e) => setStateMap(i, { label: e.target.value || undefined })}
+                            />
+                            <ColorPicker
+                                value={s.color?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#94a3b8'}
+                                onChange={(v) => setStateMap(i, { color: v })}
+                                className="w-7 h-6 rounded cursor-pointer shrink-0"
+                                style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+                            />
+                            <button
+                                onClick={() => onUpdate({ states: stateMaps.filter((_, j) => j !== i) })}
+                                className="shrink-0 hover:opacity-70 p-1"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                <X size={11} />
+                            </button>
+                        </div>
+                    ))}
+                    {stateMaps.length === 0 && (
+                        <p className="text-[9px] italic" style={{ color: 'var(--text-secondary)', opacity: 0.45 }}>
+                            {'z.B. Drehgriffkontakt: 0 → Geschlossen, 1 → Gekippt, 2 → Offen'}
+                        </p>
+                    )}
+                </div>
+            )}
+
             {pickFor && (
                 <DatapointPicker
                     currentValue={(entry[pickFor] as string) || ''}
@@ -488,6 +655,16 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
                         setPickFor(null);
                     }}
                     onClose={() => setPickFor(null)}
+                />
+            )}
+            {statePickFor !== null && (
+                <IconPickerModal
+                    current={stateMaps[statePickFor]?.icon ?? ''}
+                    onSelect={(name) => {
+                        setStateMap(statePickFor, { icon: name || undefined });
+                        setStatePickFor(null);
+                    }}
+                    onClose={() => setStatePickFor(null)}
                 />
             )}
         </div>

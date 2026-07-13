@@ -17,15 +17,40 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
 import { ConfirmOverlay } from './ConfirmOverlay';
 
-export type EntryDisplayType = 'auto' | 'switch' | 'slider' | 'value' | 'shutter' | 'stepper' | 'buttons' | 'momentary';
+export type EntryDisplayType =
+    | 'auto'
+    | 'switch'
+    | 'slider'
+    | 'value'
+    | 'shutter'
+    | 'stepper'
+    | 'buttons'
+    | 'momentary'
+    | 'states';
 
 /** Control types that are not a simple on/off and must be excluded from the
  *  group master switch. */
-export const NON_TOGGLE_DISPLAY_TYPES: ReadonlySet<string> = new Set(['shutter', 'stepper', 'buttons', 'momentary']);
+export const NON_TOGGLE_DISPLAY_TYPES: ReadonlySet<string> = new Set([
+    'shutter',
+    'stepper',
+    'buttons',
+    'momentary',
+    'states',
+]);
 
 export interface EntryPreset {
     value: string | number;
     label?: string;
+}
+
+/** A single value→state mapping for the "states" display (multi-state sensors
+ *  such as a window handle: closed / tilted / open). Matched by string-equality
+ *  against the DP value. */
+export interface EntryStateMap {
+    value: string | number;
+    label?: string;
+    icon?: string;
+    color?: string;
 }
 
 /** Per-entry control config — mixed into StaticListEntry and AutoListEntry. */
@@ -58,6 +83,9 @@ export interface EntryControlConfig {
     stepStep?: number;
     // ── buttons (value presets) ────────────────────────────────────────────────
     presets?: EntryPreset[];
+    // ── states (multi-state read display) ──────────────────────────────────────
+    /** Value→label/icon/color mappings for the "states" display. */
+    states?: EntryStateMap[];
     // ── momentary (push / pulse) ───────────────────────────────────────────────
     /** Value written on press. Default true. */
     pulseValue?: string | number | boolean;
@@ -251,6 +279,37 @@ export function PresetButtons({
                 );
             })}
         </div>
+    );
+}
+
+// ── Multi-state read display ────────────────────────────────────────────────
+// Read-only pill for sensors with more than two states (window handle:
+// closed/tilted/open, thermostat modes, …). Matches the current value against
+// the configured mappings by string-equality and shows the matched
+// label/icon/color, falling back to the raw value when nothing matches.
+
+export function StateDisplay({
+    entry,
+    val,
+}: {
+    entry: EntryControlConfig & { unit?: string };
+    val: ioBrokerState['val'];
+}) {
+    const states = entry.states ?? [];
+    const match = states.find((s) => String(s.value) === String(val));
+    const color = match?.color || 'var(--text-secondary)';
+    const label =
+        match?.label ??
+        (match ? String(match.value) : val != null ? `${String(val)}${entry.unit ? ` ${entry.unit}` : ''}` : '–');
+    const Icon = match?.icon ? getWidgetIcon(match.icon, null) : null;
+    return (
+        <span
+            className="shrink-0 flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
+            style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color }}
+        >
+            {Icon && <Icon size={14} />}
+            {label}
+        </span>
     );
 }
 

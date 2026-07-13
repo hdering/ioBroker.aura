@@ -443,6 +443,9 @@ export interface ioBrokerObject {
         type?: string;
         unit?: string;
         write?: boolean;
+        role?: string;
+        /** Value→text map for multi-state DPs (object / array / "k:v;…" string). */
+        states?: Record<string, string> | string[] | string;
         custom?: Record<string, { enabled?: boolean; [key: string]: unknown }>;
     };
 }

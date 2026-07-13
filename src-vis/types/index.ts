@@ -314,6 +314,9 @@ export interface ioBrokerObject {
         enabled?: boolean; // instance: whether the adapter instance is enabled
         members?: string[]; // enum.rooms / enum.functions member IDs
         custom?: Record<string, { enabled?: boolean } | null>;
+        // Value→text map for multi-state DPs. ioBroker allows several shapes:
+        //   { "0": "closed", … } · ["closed", …] · "0:closed;1:tilted;2:open"
+        states?: Record<string, string> | string[] | string;
     };
     /** Adapter-specific fields (device model/manufacturer, etc.). Shape varies per adapter. */
     native?: Record<string, unknown>;

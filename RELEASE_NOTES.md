@@ -5,3 +5,4 @@
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values
+Static and dynamic lists - new "States" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states
