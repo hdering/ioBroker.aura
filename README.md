@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.31.0 (2026-07-13)
+- 🌟 **New feature:** Value & JSON-table widgets - `aura-file:` paths now resolve inside HTML `<img src>`, so images/icons from the ioBroker file system can be embedded the same way everywhere
+- 🌟 **New feature:** JSON-table widget - new per-column width (px), text alignment and line-wrap options, plus an optional max-rows limit and click-to-sort column headers
+
+
 ### 0.30.1 (2026-07-13)
 - 🌟 **New feature:** Section menu - entries can now show markers (badges) and an optional aggregate count of how many widgets across the section's tabs currently have a badge
 
@@ -225,15 +230,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Settings - new "Colored" tab-bar style that only tints the active tab's text (no underline)
 
 
-### 0.22.4 (2026-07-09)
-- Status Overview - remove leftover jump-to-device behavior (no more pointer cursor or navigation on row click)
-- Datapoint picker - scene datapoints (scene.0.*) are now selectable and shown by default
-- Popups - choosing "no view" for a widget type default now correctly disables the popup instead of falling back to the built-in one
-- Tab bar - bottom-corner tab badges are no longer hidden behind iframe widgets that fill the tab
-- Dark themes - native controls (dimmer/slider rails, scrollbars, dropdowns) now render dark instead of light, so the dimmer slider rail is no longer brighter in the frontend than in the admin backend
-- Popups - widget visibility conditions now work inside popup/tab views (hide-widget and reflow "move others up"), matching how they behave on the dashboard
-
-
 ## License
 
 MIT License
@@ -245,6 +241,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
