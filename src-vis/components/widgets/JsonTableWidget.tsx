@@ -484,12 +484,24 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                                 }}
                                             >
                                                 {col.label ?? col.key}
-                                                {isSorted &&
-                                                    (sort?.dir === 'asc' ? (
-                                                        <ArrowUp size={Math.round(fs * 0.9)} />
-                                                    ) : (
-                                                        <ArrowDown size={Math.round(fs * 0.9)} />
-                                                    ))}
+                                                {/* Reserve the arrow slot on every sortable header so the
+                                                    label doesn't shift when a sort indicator appears. */}
+                                                {sortable && (
+                                                    <span
+                                                        style={{
+                                                            display: 'inline-flex',
+                                                            width: Math.round(fs * 0.9),
+                                                            flexShrink: 0,
+                                                            visibility: isSorted ? 'visible' : 'hidden',
+                                                        }}
+                                                    >
+                                                        {sort?.dir === 'desc' ? (
+                                                            <ArrowDown size={Math.round(fs * 0.9)} />
+                                                        ) : (
+                                                            <ArrowUp size={Math.round(fs * 0.9)} />
+                                                        )}
+                                                    </span>
+                                                )}
                                             </span>
                                         </th>
                                     );
