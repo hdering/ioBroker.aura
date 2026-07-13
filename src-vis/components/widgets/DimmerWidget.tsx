@@ -2,13 +2,12 @@ import React, { useMemo, useState, type CSSProperties } from 'react';
 import { Power, SunDim } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
-import type { WidgetProps } from '../../types';
+import type { WidgetProps, ConditionOperator } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { evaluateClause } from '../../utils/conditionEval';
-import type { ConditionOperator } from '../../types';
 
 function parseVal(raw: string | undefined, fallback: boolean): boolean | number | string {
     if (raw === undefined || raw === '') return fallback;
