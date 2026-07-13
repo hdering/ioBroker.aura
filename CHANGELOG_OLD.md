@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.22.2 (2026-07-08)
+- Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify
+- Settings - a client renamed from another device no longer reverts to its generic name on reconnect
+
 ## 0.22.1 (2026-07-08)
 - Settings - Connected Devices now show a device-type icon (phone/tablet/desktop), OS/browser and screen resolution so each client is easy to identify
 
