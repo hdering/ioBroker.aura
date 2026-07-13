@@ -6,7 +6,7 @@ import { useDashboardStore } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { resolveAssetUrl, proxifyIfMixed } from '../../utils/assetUrl';
+import { resolveAssetUrl, proxifyIfMixed, resolveHtmlAssets } from '../../utils/assetUrl';
 
 // ── Column definition (stored in options.columns) ─────────────────────────────
 export interface JsonColumnDef {
@@ -484,7 +484,11 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                                         <span style={{ opacity: 0.5 }}>–</span>
                                                     )
                                                 ) : isHtml ? (
-                                                    <span dangerouslySetInnerHTML={{ __html: cellText(raw) }} />
+                                                    <span
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: resolveHtmlAssets(cellText(raw)),
+                                                        }}
+                                                    />
                                                 ) : useIconify ? (
                                                     renderTextWithIcons(cellText(raw), fs)
                                                 ) : (

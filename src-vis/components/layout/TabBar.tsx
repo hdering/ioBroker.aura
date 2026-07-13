@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { resolveHtmlAssets } from '../../utils/assetUrl';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Settings, X, GripVertical, ChevronDown, ChevronRight, Download, Upload } from 'lucide-react';
@@ -109,7 +110,7 @@ function TabBarDatapointItem({ item }: { item: TabBarItem }) {
             <span
                 className="text-sm font-medium shrink-0"
                 style={{ color: 'var(--text-primary)' }}
-                dangerouslySetInnerHTML={{ __html: item.datapointTemplate.replace(/\{dp\}/g, val) }}
+                dangerouslySetInnerHTML={{ __html: resolveHtmlAssets(item.datapointTemplate.replace(/\{dp\}/g, val)) }}
             />
         );
     }

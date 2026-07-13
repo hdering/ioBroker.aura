@@ -8234,6 +8234,15 @@ export function WidgetFrame({
                                         Beispiel:{' '}
                                         <code>{'<span style="color:{color};font-size:2em">{dp}</span> {unit}'}</code>
                                     </p>
+                                    <p>
+                                        Bilder aus dem ioBroker-Dateisystem via <code>{'aura-file:'}</code>-Präfix in{' '}
+                                        <code>{'<img src="…">'}</code>:{' '}
+                                        <code>
+                                            {
+                                                '<img src="aura-file:/opt/iobroker/iobroker-data/files/vis.0/Aura/icon.png" style="height:2em">'
+                                            }
+                                        </code>
+                                    </p>
                                 </div>
                             </div>
                         )}

@@ -11,7 +11,7 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { applyValueTransform } from '../../utils/valueTransform';
 import { extractTemplateDpRefs, renderTemplate } from '../../utils/htmlTemplate';
-import { proxifyHtmlAssets } from '../../utils/assetUrl';
+import { proxifyHtmlAssets, resolveHtmlAssets } from '../../utils/assetUrl';
 import { useTemplateValues } from '../../hooks/useTemplateValues';
 
 export function ValueWidget({ config }: WidgetProps) {
@@ -68,12 +68,18 @@ export function ValueWidget({ config }: WidgetProps) {
     const htmlValueNode = htmlTemplate ? (
         <div
             dangerouslySetInnerHTML={{
-                __html: proxifyHtmlAssets(
-                    renderTemplate(htmlTemplate, { dp: displayValue, color: accentColor, unit: unit ?? '' }, (ref) => {
-                        const v = extraValues[ref];
-                        if (v === null || v === undefined) return '–';
-                        return typeof v === 'number' ? formatNum(v, decimals) : String(v);
-                    }),
+                __html: resolveHtmlAssets(
+                    proxifyHtmlAssets(
+                        renderTemplate(
+                            htmlTemplate,
+                            { dp: displayValue, color: accentColor, unit: unit ?? '' },
+                            (ref) => {
+                                const v = extraValues[ref];
+                                if (v === null || v === undefined) return '–';
+                                return typeof v === 'number' ? formatNum(v, decimals) : String(v);
+                            },
+                        ),
+                    ),
                 ),
             }}
         />

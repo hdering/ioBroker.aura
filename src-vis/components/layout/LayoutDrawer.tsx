@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { resolveHtmlAssets } from '../../utils/assetUrl';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Menu, X, LayoutDashboard } from 'lucide-react';
@@ -148,7 +149,7 @@ function LayoutMenuDatapoint({ item }: { item: LayoutMenuItem }) {
             <div
                 className="text-sm"
                 style={{ color: 'var(--text-secondary)' }}
-                dangerouslySetInnerHTML={{ __html: item.datapointTemplate.replace(/\{dp\}/g, val) }}
+                dangerouslySetInnerHTML={{ __html: resolveHtmlAssets(item.datapointTemplate.replace(/\{dp\}/g, val)) }}
             />
         );
     }

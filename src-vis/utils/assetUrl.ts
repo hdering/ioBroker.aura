@@ -6,6 +6,19 @@ export function resolveAssetUrl(value: string): string {
 }
 
 /**
+ * Rewrite `src="aura-file:…"` / `src='aura-file:…'` attributes in an HTML
+ * fragment to the `/fs/read` endpoint, so hand-authored `<img>` tags in the
+ * value widget's HTML template or a JSON table's HTML cell can reference files
+ * from the ioBroker file system with the same `aura-file:` syntax used by the
+ * image picker — no IP/port dependency. (issue #465)
+ */
+export function resolveHtmlAssets(html: string): string {
+    return html.replace(/(\ssrc\s*=\s*)(["'])(aura-file:[^"']+)\2/gi, (_m, pre, q, url) => {
+        return `${pre}${q}${resolveAssetUrl(url)}${q}`;
+    });
+}
+
+/**
  * Route an absolute `http://` URL through aura's `/proxy` backend when the page
  * itself is served over HTTPS. Otherwise the browser refuses to load the plain
  * http resource as mixed content — images stay blank on mobile even though they

@@ -476,8 +476,23 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                             className={jCls}
                                             style={jSty}
                                         />
+                                        <p
+                                            className="text-[9px] mt-0.5"
+                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                        >
+                                            Datei aus dem ioBroker-Dateisystem:{' '}
+                                            <code>aura-file:/opt/iobroker/iobroker-data/files/vis.0/Aura/icon.png</code>
+                                        </p>
                                     </div>
                                 </>
+                            )}
+                            {col.html && (
+                                <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                                    Lokale Bilder in <code>{'<img>'}</code> via <code>aura-file:</code>-Präfix, z.B.{' '}
+                                    <code>
+                                        {'<img src="aura-file:/opt/iobroker/iobroker-data/files/vis.0/Aura/icon.png">'}
+                                    </code>
+                                </p>
                             )}
                         </div>
                     ))}

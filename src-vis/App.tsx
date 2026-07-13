@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { resolveHtmlAssets } from './utils/assetUrl';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sun, Moon, Settings } from 'lucide-react';
 import {
@@ -120,7 +121,7 @@ function HeaderDatapoint({ id, template }: { id: string; template?: string }) {
             <span
                 className="text-sm font-medium"
                 style={{ color: 'var(--text-primary)' }}
-                dangerouslySetInnerHTML={{ __html: template.replace(/\{dp\}/g, val) }}
+                dangerouslySetInnerHTML={{ __html: resolveHtmlAssets(template.replace(/\{dp\}/g, val)) }}
             />
         );
     }
