@@ -1,5 +1,5 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
-import { Table2, Search, X } from 'lucide-react';
+import { Table2, Search, X, ArrowUp, ArrowDown } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useDashboardStore } from '../../store/dashboardStore';
@@ -21,7 +21,27 @@ export interface JsonColumnDef {
     imagePathPrefix?: string;
     /** Render Iconify tokens (e.g. "mdi:window-open-variant") inline as SVG icons. */
     iconify?: boolean;
+    /** Fixed column width in px. Unset → auto. */
+    width?: number;
+    /** Allow the cell text to wrap onto multiple lines (default: single line, ellipsis). */
+    wrap?: boolean;
+    /** Horizontal alignment of header + cells. Default 'left'. */
+    align?: 'left' | 'center' | 'right';
     order?: number; // lower = further left
+}
+
+/** Compare two raw cell values: numeric when both look like numbers, else a
+ *  locale-aware string compare (with numeric collation so "9" < "10"). */
+function compareCellValues(a: unknown, b: unknown): number {
+    const aEmpty = a === null || a === undefined || a === '';
+    const bEmpty = b === null || b === undefined || b === '';
+    if (aEmpty && bEmpty) return 0;
+    if (aEmpty) return -1;
+    if (bEmpty) return 1;
+    const na = typeof a === 'number' ? a : Number(a);
+    const nb = typeof b === 'number' ? b : Number(b);
+    if (Number.isFinite(na) && Number.isFinite(nb) && na !== nb) return na - nb;
+    return cellText(a).localeCompare(cellText(b), undefined, { numeric: true, sensitivity: 'base' });
 }
 
 // Iconify token pattern: <set>:<name>, e.g. "mdi:home", "material-symbols:lock".
@@ -154,6 +174,8 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     const showSearch = (opts.showSearch as boolean) ?? false;
     const fontSize = (opts.fontSize as number) ?? 12;
     const autoHeight = (opts.autoHeight as boolean) ?? false;
+    const sortable = (opts.sortable as boolean) ?? false;
+    const maxRows = (opts.maxRows as number) ?? 0;
     const transparent = !!opts.transparent;
     const showTitle = opts.showTitle !== false;
     const showIcon = opts.showIcon !== false;
@@ -162,6 +184,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, Table2);
     const adminBaseUrl = useConfigStore((s) => effectiveAdminBaseUrl(s.frontend.adminBaseUrl));
     const [query, setQuery] = useState('');
+    const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
 
     const contentRef = useRef<HTMLDivElement>(null);
 
@@ -199,6 +222,33 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
         const q = query.toLowerCase();
         return tableData.rows.filter((row) => columns.some((col) => cellText(row[col.key]).toLowerCase().includes(q)));
     }, [tableData, columns, query]);
+
+    // Sort by the clicked column header (only when sorting is enabled and the
+    // referenced column is still present).
+    const sortedRows = useMemo(() => {
+        if (!sortable || !sort || !columns.some((c) => c.key === sort.key)) return filteredRows;
+        const arr = [...filteredRows];
+        arr.sort((r1, r2) => {
+            const cmp = compareCellValues(r1[sort.key], r2[sort.key]);
+            return sort.dir === 'asc' ? cmp : -cmp;
+        });
+        return arr;
+    }, [filteredRows, columns, sortable, sort]);
+
+    // Optional hard cap on the number of displayed rows.
+    const displayedRows = useMemo(
+        () => (maxRows > 0 ? sortedRows.slice(0, maxRows) : sortedRows),
+        [sortedRows, maxRows],
+    );
+
+    // Cycle a header through asc → desc → unsorted.
+    const toggleSort = (key: string) => {
+        setSort((prev) => {
+            if (!prev || prev.key !== key) return { key, dir: 'asc' };
+            if (prev.dir === 'asc') return { key, dir: 'desc' };
+            return null;
+        });
+    };
 
     // Auto-height: measure content and update gridPos.h when data changes.
     // We compare against config.gridPos.h (not a ref) and include it in deps so
@@ -248,7 +298,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
         return () => ro.disconnect();
     }, [
         autoHeight,
-        filteredRows.length,
+        displayedRows.length,
         columns.length,
         showHeader,
         showSearch,
@@ -395,31 +445,60 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                     {showHeader && columns.length > 0 && (
                         <thead>
                             <tr>
-                                {columns.map((col, ci) => (
-                                    <th
-                                        key={col.key}
-                                        className="text-left whitespace-nowrap sticky top-0"
-                                        style={{
-                                            padding: `${Math.round(fs * 0.4)}px ${Math.round(fs * 0.6)}px`,
-                                            background: transparent
-                                                ? 'transparent'
-                                                : firstColHeader && ci === 0
-                                                  ? firstColBg
-                                                  : headerBg,
-                                            color: firstColHeader && ci === 0 ? firstColColor : headerColor,
-                                            fontWeight: 600,
-                                            borderBottom: '2px solid var(--app-border)',
-                                            zIndex: 1,
-                                        }}
-                                    >
-                                        {col.label ?? col.key}
-                                    </th>
-                                ))}
+                                {columns.map((col, ci) => {
+                                    const align = col.align ?? 'left';
+                                    const isSorted = sortable && sort?.key === col.key;
+                                    return (
+                                        <th
+                                            key={col.key}
+                                            onClick={sortable ? () => toggleSort(col.key) : undefined}
+                                            className="whitespace-nowrap sticky top-0"
+                                            style={{
+                                                padding: `${Math.round(fs * 0.4)}px ${Math.round(fs * 0.6)}px`,
+                                                textAlign: align,
+                                                width: col.width && col.width > 0 ? col.width : undefined,
+                                                cursor: sortable ? 'pointer' : undefined,
+                                                userSelect: sortable ? 'none' : undefined,
+                                                background: transparent
+                                                    ? 'transparent'
+                                                    : firstColHeader && ci === 0
+                                                      ? firstColBg
+                                                      : headerBg,
+                                                color: firstColHeader && ci === 0 ? firstColColor : headerColor,
+                                                fontWeight: 600,
+                                                borderBottom: '2px solid var(--app-border)',
+                                                zIndex: 1,
+                                            }}
+                                        >
+                                            <span
+                                                style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: 3,
+                                                    justifyContent:
+                                                        align === 'right'
+                                                            ? 'flex-end'
+                                                            : align === 'center'
+                                                              ? 'center'
+                                                              : 'flex-start',
+                                                }}
+                                            >
+                                                {col.label ?? col.key}
+                                                {isSorted &&
+                                                    (sort?.dir === 'asc' ? (
+                                                        <ArrowUp size={Math.round(fs * 0.9)} />
+                                                    ) : (
+                                                        <ArrowDown size={Math.round(fs * 0.9)} />
+                                                    ))}
+                                            </span>
+                                        </th>
+                                    );
+                                })}
                             </tr>
                         </thead>
                     )}
                     <tbody>
-                        {filteredRows.length === 0 ? (
+                        {displayedRows.length === 0 ? (
                             <tr>
                                 <td
                                     colSpan={columns.length}
@@ -430,7 +509,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                 </td>
                             </tr>
                         ) : (
-                            filteredRows.map((row, ri) => (
+                            displayedRows.map((row, ri) => (
                                 <tr
                                     key={ri}
                                     style={{
@@ -448,6 +527,8 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                         const useIconify = !isImage && !isHtml && (col.iconify ?? false);
                                         const imgSize =
                                             col.imageSize && col.imageSize > 0 ? col.imageSize : Math.round(fs * 2.4);
+                                        const wrap = col.wrap ?? false;
+                                        const hasWidth = !!(col.width && col.width > 0);
                                         return (
                                             <td
                                                 key={col.key}
@@ -456,12 +537,15 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                                     color: isLabel ? firstColColor : 'var(--text-primary)',
                                                     background: isLabel ? firstColBg : undefined,
                                                     fontWeight: isLabel ? 600 : 400,
+                                                    textAlign: col.align ?? 'left',
+                                                    width: hasWidth ? col.width : undefined,
                                                     borderRight: isLabel ? '2px solid var(--app-border)' : undefined,
                                                     borderBottom: `1px solid color-mix(in srgb, var(--app-border) 50%, transparent)`,
-                                                    maxWidth: isHtml || isImage ? undefined : '20em',
-                                                    overflow: 'hidden',
-                                                    textOverflow: isHtml || isImage ? undefined : 'ellipsis',
-                                                    whiteSpace: isHtml || isImage ? undefined : 'nowrap',
+                                                    maxWidth:
+                                                        isHtml || isImage || wrap || hasWidth ? undefined : '20em',
+                                                    overflow: isHtml || isImage || wrap ? undefined : 'hidden',
+                                                    textOverflow: isHtml || isImage || wrap ? undefined : 'ellipsis',
+                                                    whiteSpace: isHtml || isImage || wrap ? undefined : 'nowrap',
                                                 }}
                                             >
                                                 {isImage ? (
