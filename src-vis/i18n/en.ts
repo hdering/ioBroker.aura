@@ -1031,6 +1031,8 @@ export const en: Record<TranslationKey, string> = {
     'badge.visCondition': 'When condition met',
     'badge.tabAggregate': 'Aggregate count',
     'badge.tabAggregateHint': 'Show how many widgets on this tab currently have a badge',
+    'badge.sectionAggregate': 'Aggregate count',
+    'badge.sectionAggregateHint': 'Show how many widgets across all tabs of this section currently have a badge',
 
     // ── EChartConfig ─────────────────────────────────────────────────────────────
     'echart.deleteSeries': 'Delete Series',

@@ -1176,13 +1176,33 @@ const SectionSwitcher = memo(function SectionSwitcher() {
     });
     const setActiveSection = useDashboardStore((s) => s.setActiveSection);
     const addSection = useDashboardStore((s) => s.addSection);
+    const updateSection = useDashboardStore((s) => s.updateSection);
     const [adding, setAdding] = useState(false);
     const [newName, setNewName] = useState('');
+    const [settingsSectionId, setSettingsSectionId] = useState<string | null>(null);
+    const [panelPos, setPanelPos] = useState<{ top: number; left: number } | null>(null);
+    const gearRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+    // Full data for the section whose settings popover is open (badges/aggregate).
+    const openSection = useDashboardStore((s) => {
+        if (!settingsSectionId) return null;
+        const l = s.layouts.find((x) => x.id === s.activeLayoutId) ?? s.layouts[0];
+        return l.sections.find((sec) => sec.id === settingsSectionId) ?? null;
+    });
 
     const create = () => {
         if (newName.trim()) addSection(newName.trim());
         setNewName('');
         setAdding(false);
+    };
+
+    const openSettings = (id: string) => {
+        const btn = gearRefs.current.get(id);
+        if (!btn) return;
+        const rect = btn.getBoundingClientRect();
+        const panelW = 340;
+        setPanelPos({ top: rect.bottom + 6, left: Math.max(8, Math.min(rect.left, window.innerWidth - panelW - 12)) });
+        setSettingsSectionId((prev) => (prev === id ? null : id));
     };
 
     return (
@@ -1196,18 +1216,40 @@ const SectionSwitcher = memo(function SectionSwitcher() {
             {sections.map((sec) => {
                 const isActive = sec.id === activeSectionId;
                 return (
-                    <button
+                    <div
                         key={sec.id}
-                        onClick={() => setActiveSection(sec.id)}
-                        className="shrink-0 text-xs px-2.5 py-1 rounded-full font-medium transition-colors"
+                        className="shrink-0 flex items-center gap-0.5 rounded-full pl-2.5 pr-1 py-0.5 transition-colors"
                         style={{
                             background: isActive ? 'var(--accent)' : 'var(--app-surface)',
-                            color: isActive ? '#fff' : 'var(--text-secondary)',
                             border: `1px solid ${isActive ? 'var(--accent)' : 'var(--app-border)'}`,
                         }}
                     >
-                        {sec.name}
-                    </button>
+                        <button
+                            onClick={() => setActiveSection(sec.id)}
+                            className="text-xs font-medium"
+                            style={{ color: isActive ? '#fff' : 'var(--text-secondary)' }}
+                        >
+                            {sec.name}
+                        </button>
+                        <button
+                            ref={(el) => {
+                                if (el) gearRefs.current.set(sec.id, el);
+                                else gearRefs.current.delete(sec.id);
+                            }}
+                            onClick={() => openSettings(sec.id)}
+                            title={t('tabBar.badges')}
+                            className="p-0.5 rounded-full hover:opacity-70 flex items-center shrink-0"
+                            style={{
+                                color: isActive
+                                    ? '#fff'
+                                    : settingsSectionId === sec.id
+                                      ? 'var(--accent)'
+                                      : 'var(--text-secondary)',
+                            }}
+                        >
+                            <Settings size={11} />
+                        </button>
+                    </div>
                 );
             })}
             {adding ? (
@@ -1245,6 +1287,69 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                     <Plus size={12} /> {t('sections.newSection')}
                 </button>
             )}
+
+            {settingsSectionId &&
+                openSection &&
+                panelPos &&
+                createPortal(
+                    <>
+                        <div className="fixed inset-0 z-[998]" onClick={() => setSettingsSectionId(null)} />
+                        <div
+                            className="fixed z-[999] rounded-xl p-3 shadow-2xl"
+                            style={{
+                                top: panelPos.top,
+                                left: panelPos.left,
+                                width: 340,
+                                background: 'var(--app-surface)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            <p className="text-[11px] font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>
+                                {t('tabBar.badges')}
+                            </p>
+                            <BadgeEditor
+                                badges={openSection.badges ?? []}
+                                onChange={(next) => updateSection(openSection.id, { badges: next })}
+                                style={{ width: '100%', padding: 0 }}
+                            />
+                            <div
+                                className="flex items-center justify-between pt-2 mt-2 border-t"
+                                style={{ borderColor: 'var(--app-border)' }}
+                            >
+                                <div>
+                                    <p className="text-[11px] font-medium" style={{ color: 'var(--text-primary)' }}>
+                                        {t('badge.sectionAggregate')}
+                                    </p>
+                                    <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('badge.sectionAggregateHint')}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() =>
+                                        updateSection(openSection.id, {
+                                            badgeAggregate: {
+                                                ...openSection.badgeAggregate,
+                                                enabled: !(openSection.badgeAggregate?.enabled ?? false),
+                                            },
+                                        })
+                                    }
+                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                    style={{
+                                        background: openSection.badgeAggregate?.enabled
+                                            ? 'var(--accent)'
+                                            : 'var(--app-border)',
+                                    }}
+                                >
+                                    <span
+                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                        style={{ left: openSection.badgeAggregate?.enabled ? '18px' : '2px' }}
+                                    />
+                                </button>
+                            </div>
+                        </div>
+                    </>,
+                    document.body,
+                )}
         </div>
     );
 });

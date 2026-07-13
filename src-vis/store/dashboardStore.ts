@@ -178,6 +178,8 @@ export interface Section {
     defaultTabId?: string; // tab shown when the section opens without a tab slug
     icon?: string; // icon name (Iconify ID or lucide PascalCase) for the section menu
     hidden?: boolean; // removed from the section menu, but still reachable via its direct slug URL
+    badges?: BadgeDef[]; // own overlay badges on the section menu entry
+    badgeAggregate?: BadgeAggregate; // auto-count of widgets across the section's tabs that show a badge
     settings?: LayoutSettings; // per-section content overrides (undefined = inherit)
 }
 
@@ -344,6 +346,8 @@ interface DashboardState {
     setSectionSlug: (id: string, slug: string) => void;
     setSectionIcon: (id: string, icon: string | undefined) => void;
     setSectionHidden: (id: string, hidden: boolean) => void;
+    /** Patch arbitrary fields of a section on the active layout (e.g. badges). */
+    updateSection: (id: string, patch: Partial<Section>) => void;
     reorderSections: (fromIndex: number, toIndex: number) => void;
     setActiveSection: (id: string) => void;
     setActiveLayoutAndSection: (layoutId: string, sectionId: string) => void;
@@ -611,6 +615,11 @@ export const useDashboardStore = create<DashboardState>()(
 
             setSectionIcon: (id, icon) =>
                 set((s) => ({ layouts: patchSection(s.layouts, s.activeLayoutId, id, (sec) => ({ ...sec, icon })) })),
+
+            updateSection: (id, patch) =>
+                set((s) => ({
+                    layouts: patchSection(s.layouts, s.activeLayoutId, id, (sec) => ({ ...sec, ...patch })),
+                })),
 
             setSectionHidden: (id, hidden) =>
                 set((s) => ({

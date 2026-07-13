@@ -8,6 +8,9 @@ import type { Section, LayoutMenuItem } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
 import { subscribeDpValue } from '../../hooks/useIoBroker';
 import { applyCustomFormat, fmtTime, fmtDate } from '../../utils/clockUtils';
+import { useBadges, useTabBadgeAggregate, type ResolvedBadge } from '../../hooks/useBadges';
+import { Badge } from '../common/Badge';
+import type { BadgeSize } from '../../types';
 
 export type LayoutDrawerSize = 'sm' | 'md' | 'lg';
 
@@ -154,6 +157,38 @@ function LayoutMenuDatapoint({ item }: { item: LayoutMenuItem }) {
         <div className="text-sm" style={{ color: 'var(--text-primary)' }}>
             {val}
         </div>
+    );
+}
+
+// Own badges + optional aggregate count (widgets with a visible badge across all
+// of the section's tabs) shown inline at the trailing edge of a menu entry.
+function SectionBadges({ section }: { section: Section }) {
+    const own = useBadges(section.badges);
+    const aggEnabled = section.badgeAggregate?.enabled ?? false;
+    const allWidgets = useMemo(
+        () => (aggEnabled ? section.tabs.flatMap((tab) => tab.widgets) : undefined),
+        [aggEnabled, section.tabs],
+    );
+    const aggCount = useTabBadgeAggregate(allWidgets);
+
+    const badges: ResolvedBadge[] = [...own];
+    if (aggEnabled && aggCount > 0) {
+        badges.push({
+            id: `__agg_${section.id}`,
+            style: 'count',
+            corner: 'top-right',
+            color: section.badgeAggregate?.color,
+            size: (section.badgeAggregate?.size as BadgeSize) ?? 'md',
+            text: String(aggCount),
+        });
+    }
+    if (!badges.length) return null;
+    return (
+        <span className="ml-auto shrink-0 flex items-center gap-1">
+            {badges.map((b) => (
+                <Badge key={b.id} style={b.style} size={b.size} color={b.color} text={b.text} icon={b.icon} />
+            ))}
+        </span>
     );
 }
 
@@ -338,6 +373,7 @@ export function LayoutDrawer({
                                 {section.name}
                             </span>
                         )}
+                        <SectionBadges section={section} />
                     </button>
                 );
             })}

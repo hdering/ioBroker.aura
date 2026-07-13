@@ -1034,6 +1034,8 @@ export const de = {
     'badge.visCondition': 'Wenn Bedingung erfüllt',
     'badge.tabAggregate': 'Aggregat-Anzahl',
     'badge.tabAggregateHint': 'Zeigt, wie viele Widgets in diesem Tab gerade einen Marker haben',
+    'badge.sectionAggregate': 'Aggregat-Anzahl',
+    'badge.sectionAggregateHint': 'Zeigt, wie viele Widgets über alle Tabs des Bereichs gerade einen Marker haben',
 
     // ── EChartConfig ─────────────────────────────────────────────────────────────
     'echart.deleteSeries': 'Serie löschen',
