@@ -319,8 +319,9 @@ function BrokenDpRefsSection() {
 export function AdminDashboard() {
     const t = useT();
     const { layouts } = useDashboardStore();
-    const totalTabsAll = layouts.reduce((acc, l) => acc + l.tabs.length, 0);
-    const totalWidgetsAll = layouts.reduce((acc, l) => acc + l.tabs.reduce((a, tab) => a + tab.widgets.length, 0), 0);
+    const allTabs = layouts.flatMap((l) => l.sections.flatMap((s) => s.tabs));
+    const totalTabsAll = allTabs.length;
+    const totalWidgetsAll = allTabs.reduce((a, tab) => a + tab.widgets.length, 0);
     const { connected } = useIoBroker();
 
     return (

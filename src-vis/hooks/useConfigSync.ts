@@ -24,9 +24,10 @@ function applyOneState(key: SyncStoreKey, raw: string): boolean {
         return true;
     }
 
-    // Preserve in-memory activeTabId/activeLayoutId for the dashboard key —
-    // navigation state is flushed directly to localStorage and must not be
-    // overwritten by a slightly stale remote copy.
+    // Preserve in-memory navigation state (activeLayoutId / per-layout
+    // activeSectionId / per-section activeTabId) for the dashboard key — it is
+    // flushed directly to localStorage and must not be overwritten by a slightly
+    // stale remote copy.
     let remoteStr = raw;
     if (key === 'aura-dashboard') {
         try {
@@ -38,7 +39,14 @@ function applyOneState(key: SyncStoreKey, raw: string): boolean {
                 if (Array.isArray(state.layouts)) {
                     state.layouts = (state.layouts as Array<Record<string, unknown>>).map((l) => {
                         const cur = current.layouts.find((cl) => cl.id === (l as { id: string }).id);
-                        return cur ? { ...l, activeTabId: cur.activeTabId } : l;
+                        if (!cur) return l;
+                        const sections = Array.isArray(l.sections)
+                            ? (l.sections as Array<Record<string, unknown>>).map((sec) => {
+                                  const curSec = cur.sections.find((cs) => cs.id === (sec as { id: string }).id);
+                                  return curSec ? { ...sec, activeTabId: curSec.activeTabId } : sec;
+                              })
+                            : l.sections;
+                        return { ...l, activeSectionId: cur.activeSectionId, sections };
                     });
                 }
                 parsed.state = state;

@@ -2,7 +2,12 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Settings, X, GripVertical, ChevronDown, ChevronRight, Download, Upload } from 'lucide-react';
-import { useDashboardStore, useActiveLayout, resolveTabBarSettings } from '../../store/dashboardStore';
+import {
+    useDashboardStore,
+    useActiveLayout,
+    useActiveSection,
+    resolveTabBarSettings,
+} from '../../store/dashboardStore';
 import type { Tab, TabBarItem, TabBarSettings, DashboardLayout } from '../../store/dashboardStore';
 import { exportTab, importTab } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../config/ExportAnonymizeDialog';
@@ -27,6 +32,8 @@ interface TabBarProps {
     onViewTabClick?: (tab: Tab) => void;
     layoutUrlBase?: string;
     layoutId?: string;
+    /** Active section id — the tab bar renders the tabs of this section. */
+    sectionId?: string;
     /** Optional leading slot rendered before any left items / tabs (used for inline LayoutDrawer). */
     headerSlot?: React.ReactNode;
 }
@@ -290,21 +297,35 @@ export function TabBar({
     onViewTabClick,
     layoutUrlBase = '',
     layoutId,
+    sectionId,
     headerSlot,
 }: TabBarProps) {
     const t = useT();
     const activeLayout = useActiveLayout();
+    const activeSection = useActiveSection();
     const specificLayout = useDashboardStore((s) =>
         layoutId ? (s.layouts.find((l) => l.id === layoutId) ?? null) : null,
     ) as DashboardLayout | null;
     const layout = specificLayout ?? activeLayout;
+    // Resolve the section whose tabs + tab-bar settings this bar renders.
+    const specificSection = sectionId ? (layout.sections.find((sec) => sec.id === sectionId) ?? null) : null;
+    const section =
+        specificSection ??
+        (specificLayout
+            ? (specificLayout.sections.find((sec) => sec.id === specificLayout.activeSectionId) ??
+              specificLayout.sections[0])
+            : activeSection);
     const { setActiveTab, addTab, addTabFromImport, removeTab, renameTab, updateTab, reorderTabs, editMode } =
         useDashboardStore();
 
-    const tabs = viewTabs ?? layout.tabs;
-    const activeTabId = viewActiveTabId ?? layout.activeTabId;
+    const tabs = viewTabs ?? section.tabs;
+    const activeTabId = viewActiveTabId ?? section.activeTabId;
     const globalTabBar = useConfigStore((s) => s.frontend.tabBar);
-    const tbSettings = resolveTabBarSettings(globalTabBar, layout.settings?.tabBar);
+    // Tab-bar settings cascade global → layout → section (section wins).
+    const tbSettings = resolveTabBarSettings(
+        resolveTabBarSettings(globalTabBar, layout.settings?.tabBar),
+        section.settings?.tabBar,
+    );
     const items = tbSettings?.items ?? [];
 
     const leftItems = items.filter((i) => i.position === 'left');
@@ -404,7 +425,7 @@ export function TabBar({
         setSettingsTabId((prev) => (prev === tabId ? null : tabId));
     };
 
-    if (tabs.length <= 1 && readonly && !headerSlot) return null;
+    if (tabs.length <= 1 && readonly && !headerSlot && !tbSettings?.showSingle) return null;
 
     const settingsTab = tabs.find((t) => t.id === settingsTabId);
 

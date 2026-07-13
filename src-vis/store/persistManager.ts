@@ -356,10 +356,15 @@ interface TabLite {
     name?: string;
     widgets?: WidgetLite[];
 }
-interface LayoutLite {
+interface SectionLite {
     id?: string;
     name?: string;
     tabs?: TabLite[];
+}
+interface LayoutLite {
+    id?: string;
+    name?: string;
+    sections?: SectionLite[];
 }
 
 type RawChange = { kind: string; label?: string };
@@ -477,6 +482,23 @@ function diffTabs(before: TabLite[], after: TabLite[], out: RawChange[]): void {
     });
 }
 
+function diffSections(before: SectionLite[], after: SectionLite[], out: RawChange[]): void {
+    const beforeById = new Map(before.filter((sec) => sec.id).map((sec) => [sec.id, sec]));
+    const afterById = new Map(after.filter((sec) => sec.id).map((sec) => [sec.id, sec]));
+    after.forEach((sec) => {
+        if (sec.id && !beforeById.has(sec.id)) out.push({ kind: 'section-added', label: sec.name });
+    });
+    before.forEach((sec) => {
+        if (sec.id && !afterById.has(sec.id)) out.push({ kind: 'section-removed', label: sec.name });
+    });
+    after.forEach((sa) => {
+        const sb = sa.id ? beforeById.get(sa.id) : undefined;
+        if (!sb) return;
+        if (sa.name !== sb.name) out.push({ kind: 'section-renamed', label: sa.name });
+        diffTabs(sb.tabs ?? [], sa.tabs ?? [], out);
+    });
+}
+
 function diffDashboard(beforeRaw: string, afterRaw: string): RawChange[] {
     const before = parseLayouts(beforeRaw);
     const after = parseLayouts(afterRaw);
@@ -494,7 +516,7 @@ function diffDashboard(beforeRaw: string, afterRaw: string): RawChange[] {
         const lb = la.id ? beforeById.get(la.id) : undefined;
         if (!lb) return;
         if (la.name !== lb.name) out.push({ kind: 'layout-renamed', label: la.name });
-        diffTabs(lb.tabs ?? [], la.tabs ?? [], out);
+        diffSections(lb.sections ?? [], la.sections ?? [], out);
     });
     return out;
 }

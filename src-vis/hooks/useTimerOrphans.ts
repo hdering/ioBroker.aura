@@ -13,7 +13,8 @@ import type { WidgetConfig } from '../types';
  *  that currently exists in the app config". */
 function visitAllWidgets(visit: (w: WidgetConfig) => void): void {
     const layouts = useDashboardStore.getState().layouts;
-    for (const l of layouts) for (const tab of l.tabs) for (const w of tab.widgets) visit(w);
+    for (const l of layouts)
+        for (const sec of l.sections) for (const tab of sec.tabs) for (const w of tab.widgets) visit(w);
     const defs = useGroupDefsStore.getState().defs;
     for (const children of Object.values(defs)) for (const w of children) visit(w);
     const views = usePopupConfigStore.getState().views;

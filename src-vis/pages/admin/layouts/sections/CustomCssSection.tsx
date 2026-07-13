@@ -1,6 +1,5 @@
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { LayoutContextSwitcher } from '../shared/LayoutContextSwitcher';
-import { useDashboardStore } from '../../../../store/dashboardStore';
 import { useT } from '../../../../i18n';
 
 interface CustomCssSectionProps {
@@ -10,17 +9,14 @@ interface CustomCssSectionProps {
 
 export function CustomCssSection({ contextId, onContextChange }: CustomCssSectionProps) {
     const t = useT();
-    const { ls, updateFrontend, updateLayoutSettings } = useLayoutSetting(contextId);
-    const clearLayoutSettings = useDashboardStore((s) => s.clearLayoutSettings);
-    const { frontend } = useLayoutSetting(contextId);
+    const { ls, frontend, setPatch, clear } = useLayoutSetting(contextId);
 
     const cssEnabled = ls?.customCSSEnabled ?? frontend.customCSSEnabled ?? true;
     const cssInEditor = ls?.customCSSInEditor ?? frontend.customCSSInEditor ?? false;
     const cssValue = ls?.customCSS ?? frontend.customCSS ?? '';
 
     function setCss(patch: Partial<{ customCSS: string; customCSSEnabled: boolean; customCSSInEditor: boolean }>) {
-        if (!contextId) updateFrontend(patch as never);
-        else updateLayoutSettings(contextId, patch);
+        setPatch(patch);
     }
 
     return (
@@ -66,13 +62,13 @@ export function CustomCssSection({ contextId, onContextChange }: CustomCssSectio
                                 color: 'var(--accent)',
                             }}
                         >
-                            Layout-CSS aktiv
+                            Bereich-CSS aktiv
                         </span>
                         <button
                             onClick={() => {
-                                clearLayoutSettings(contextId, 'customCSS');
-                                clearLayoutSettings(contextId, 'customCSSEnabled');
-                                clearLayoutSettings(contextId, 'customCSSInEditor');
+                                clear('customCSS');
+                                clear('customCSSEnabled');
+                                clear('customCSSInEditor');
                             }}
                             className="text-[10px] hover:opacity-70"
                             style={{ color: 'var(--text-secondary)' }}

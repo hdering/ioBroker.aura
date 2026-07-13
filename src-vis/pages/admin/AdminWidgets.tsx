@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useT } from '../../i18n';
 import { ChevronDown, ChevronRight, Trash2, Database, X, Check, RotateCcw, Download, ExternalLink } from 'lucide-react';
-import { useDashboardStore, useActiveLayout, type Tab } from '../../store/dashboardStore';
+import { useDashboardStore, useActiveSection, type Tab } from '../../store/dashboardStore';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
 import { NumberListInput } from '../../components/config/NumberListInput';
 import { WidgetPreview } from '../../components/config/WidgetPreview';
@@ -689,7 +689,7 @@ function DefaultSizesDialog({ onClose }: { onClose: () => void }) {
 export function AdminWidgets() {
     const t = useT();
     const { updateWidgetInTab, removeWidgetInTab, activeLayoutId, setActiveLayoutAndTab } = useDashboardStore();
-    const tabs = useActiveLayout().tabs;
+    const tabs = useActiveSection().tabs;
     const [showSizes, setShowSizes] = useState(false);
     const [search, setSearch] = useState('');
     // Bumped on each summary-chip click so the matching TypeSection opens + scrolls.

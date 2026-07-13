@@ -27,7 +27,7 @@ import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { Icon } from '@iconify/react';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { IconPickerModal } from '../../components/config/IconPickerModal';
-import { useDashboardStore } from '../../store/dashboardStore';
+import { useDashboardStore, useActiveSection, resolveTabBarSettings } from '../../store/dashboardStore';
 import { ConditionEditor } from '../../components/config/ConditionEditor';
 import { BadgeEditor } from '../../components/config/BadgeEditor';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
@@ -44,6 +44,7 @@ import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { useConfigStore } from '../../store/configStore';
 import { useCustomJs } from '../../hooks/useCustomJs';
 import { useCustomCss } from '../../hooks/useCustomCss';
+import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { useT } from '../../i18n';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import {
@@ -1008,10 +1009,16 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
 function MobileOrderPanel({ layoutId }: { layoutId: string }) {
     const t = useT();
     const { layouts, updateWidgetInTab } = useDashboardStore();
-    const activeTabId = useDashboardStore(
-        (s) => (s.layouts.find((l) => l.id === layoutId) ?? s.layouts[0])?.activeTabId ?? '',
-    );
-    const tab = layouts.find((l) => l.id === layoutId)?.tabs.find((t) => t.id === activeTabId);
+    const activeTabId = useDashboardStore((s) => {
+        const l = s.layouts.find((x) => x.id === layoutId) ?? s.layouts[0];
+        const sec = l?.sections.find((x) => x.id === l.activeSectionId) ?? l?.sections[0];
+        return sec?.activeTabId ?? '';
+    });
+    const tab = (() => {
+        const l = layouts.find((x) => x.id === layoutId);
+        const sec = l?.sections.find((x) => x.id === l.activeSectionId) ?? l?.sections[0];
+        return sec?.tabs.find((t) => t.id === activeTabId);
+    })();
 
     const [dragIdx, setDragIdx] = useState<number | null>(null);
     const [overIdx, setOverIdx] = useState<number | null>(null);
@@ -1149,6 +1156,99 @@ function MobileOrderPanel({ layoutId }: { layoutId: string }) {
     );
 }
 
+// ── SectionSwitcher ─────────────────────────────────────────────────────────────
+// Switch between the sections ("Bereiche") of the active layout while editing, and
+// add new ones inline. Full section management (rename, icon, delete, reorder) lives
+// on the Layouts admin page.
+const SectionSwitcher = memo(function SectionSwitcher() {
+    const t = useT();
+    const sections = useStoreWithEqualityFn(
+        useDashboardStore,
+        (s) => {
+            const l = s.layouts.find((x) => x.id === s.activeLayoutId) ?? s.layouts[0];
+            return l.sections.map((sec) => ({ id: sec.id, name: sec.name }));
+        },
+        (a, b) => a.length === b.length && a.every((x, i) => x.id === b[i].id && x.name === b[i].name),
+    );
+    const activeSectionId = useDashboardStore((s) => {
+        const l = s.layouts.find((x) => x.id === s.activeLayoutId) ?? s.layouts[0];
+        return l.activeSectionId;
+    });
+    const setActiveSection = useDashboardStore((s) => s.setActiveSection);
+    const addSection = useDashboardStore((s) => s.addSection);
+    const [adding, setAdding] = useState(false);
+    const [newName, setNewName] = useState('');
+
+    const create = () => {
+        if (newName.trim()) addSection(newName.trim());
+        setNewName('');
+        setAdding(false);
+    };
+
+    return (
+        <div
+            className="flex items-center gap-1.5 px-3 py-1.5 overflow-x-auto"
+            style={{ background: 'var(--app-bg)', borderBottom: '1px solid var(--app-border)' }}
+        >
+            <span className="text-[10px] font-semibold shrink-0 mr-1" style={{ color: 'var(--text-secondary)' }}>
+                {t('sections.title')}:
+            </span>
+            {sections.map((sec) => {
+                const isActive = sec.id === activeSectionId;
+                return (
+                    <button
+                        key={sec.id}
+                        onClick={() => setActiveSection(sec.id)}
+                        className="shrink-0 text-xs px-2.5 py-1 rounded-full font-medium transition-colors"
+                        style={{
+                            background: isActive ? 'var(--accent)' : 'var(--app-surface)',
+                            color: isActive ? '#fff' : 'var(--text-secondary)',
+                            border: `1px solid ${isActive ? 'var(--accent)' : 'var(--app-border)'}`,
+                        }}
+                    >
+                        {sec.name}
+                    </button>
+                );
+            })}
+            {adding ? (
+                <input
+                    autoFocus
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') create();
+                        if (e.key === 'Escape') {
+                            setNewName('');
+                            setAdding(false);
+                        }
+                    }}
+                    onBlur={create}
+                    placeholder={t('sections.placeholder')}
+                    className="shrink-0 text-xs rounded-full px-2.5 py-1 focus:outline-none w-40"
+                    style={{
+                        background: 'var(--app-bg)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--accent)',
+                    }}
+                />
+            ) : (
+                <button
+                    onClick={() => setAdding(true)}
+                    className="shrink-0 flex items-center gap-1 text-xs px-2 py-1 rounded-full hover:opacity-80"
+                    style={{
+                        background: 'var(--app-surface)',
+                        color: 'var(--text-secondary)',
+                        border: '1px dashed var(--app-border)',
+                    }}
+                    title={t('sections.newSection')}
+                >
+                    <Plus size={12} /> {t('sections.newSection')}
+                </button>
+            )}
+        </div>
+    );
+});
+
 // ── TabBar ─────────────────────────────────────────────────────────────────────
 // Isolated component so AdminEditor does NOT re-render on tab switch.
 // Key insight: patchLayout does { ...l, activeTabId: id } which preserves the
@@ -1158,10 +1258,16 @@ const TabBar = memo(function TabBar() {
     const t = useT();
     const portalTarget = usePortalTarget();
 
-    const tabs = useDashboardStore((s) => (s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0]).tabs);
-    const activeTabId = useDashboardStore(
-        (s) => (s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0]).activeTabId,
-    );
+    const tabs = useDashboardStore((s) => {
+        const l = s.layouts.find((x) => x.id === s.activeLayoutId) ?? s.layouts[0];
+        const sec = l.sections.find((x) => x.id === l.activeSectionId) ?? l.sections[0];
+        return sec.tabs;
+    });
+    const activeTabId = useDashboardStore((s) => {
+        const l = s.layouts.find((x) => x.id === s.activeLayoutId) ?? s.layouts[0];
+        const sec = l.sections.find((x) => x.id === l.activeSectionId) ?? l.sections[0];
+        return sec.activeTabId;
+    });
     const { addTab, setActiveTab, renameTab, removeTab, setTabSlug, updateTab, reorderTabs } = useStoreWithEqualityFn(
         useDashboardStore,
         (s) => ({
@@ -1786,10 +1892,17 @@ export function AdminEditor() {
     );
     // tabs reference is stable on tab switch (patchLayout spreads { ...l, activeTabId }
     // which preserves the l.tabs array reference) — needed only for ImportWidgetDialog
-    const tabs = useDashboardStore((s) => (s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0]).tabs);
-    const importActiveTabId = useDashboardStore(
-        (s) => (s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0]).activeTabId,
-    );
+    const tabs = useDashboardStore((s) => {
+        const l = s.layouts.find((x) => x.id === s.activeLayoutId) ?? s.layouts[0];
+        const sec = l.sections.find((x) => x.id === l.activeSectionId) ?? l.sections[0];
+        return sec.tabs;
+    });
+    const importActiveTabId = useDashboardStore((s) => {
+        const l = s.layouts.find((x) => x.id === s.activeLayoutId) ?? s.layouts[0];
+        const sec = l.sections.find((x) => x.id === l.activeSectionId) ?? l.sections[0];
+        return sec.activeTabId;
+    });
+    const activeSectionForEditor = useActiveSection();
     // Stable action references — never cause re-renders
     const setActiveLayout = useDashboardStore((s) => s.setActiveLayout);
     const setActiveLayoutAndTab = useDashboardStore((s) => s.setActiveLayoutAndTab);
@@ -1823,20 +1936,38 @@ export function AdminEditor() {
     const { frontend, updateFrontend } = useConfigStore();
     const guidelinesEnabled = frontend.guidelinesEnabled ?? false;
 
+    // Effective settings for the edited layout/section so the editor preview honors
+    // per-layout overrides (e.g. a layout that enables the menu while global is off).
+    const editorSettings = useEffectiveSettings(activeLayoutId, activeSectionForEditor?.id);
+
+    // Tab-bar position (top / footer) for the edited scope — mirror the frontend so
+    // the editor tab strip sits where the bar will render.
+    const editedLayout = useDashboardStore((s) => s.layouts.find((l) => l.id === activeLayoutId));
+    const editorTabBarBottom =
+        resolveTabBarSettings(
+            resolveTabBarSettings(frontend.tabBar, editedLayout?.settings?.tabBar),
+            activeSectionForEditor?.settings?.tabBar,
+        ).position === 'bottom';
+
     // Docked-sidebar layout menu: mirror the frontend so the editor preview reserves
     // the same horizontal space the menu occupies in the frontend. Without this the
     // preview would be full-width while the frontend dashboard is (device − menu),
     // so designs wouldn't match. Rendered as a non-interactive preview (see below).
     const drawerSidebarPreview =
-        (frontend.layoutDrawerEnabled ?? false) &&
-        (frontend.layoutDrawerPlacement ?? 'floating') === 'sidebar' &&
-        layoutOptions.length > 1;
-    const drawerWidth = frontend.layoutDrawerWidth ?? 240;
+        (editorSettings.layoutDrawerEnabled ?? false) &&
+        (editorSettings.layoutDrawerPlacement ?? 'floating') === 'sidebar' &&
+        activeSectionForEditor &&
+        ((useDashboardStore
+            .getState()
+            .layouts.find((l) => l.id === activeLayoutId)
+            ?.sections.filter((s) => !s.hidden).length ?? 0) > 1 ||
+            (editorSettings.layoutDrawerShowSingle ?? false));
+    const drawerWidth = editorSettings.layoutDrawerWidth ?? 240;
 
     // Run custom JS inside the editor preview when `customJSInEditor` is enabled.
-    useCustomJs(activeLayoutId, true);
+    useCustomJs(activeLayoutId, activeSectionForEditor.id, true);
     // Apply custom CSS inside the editor preview when `customCSSInEditor` is enabled.
-    useCustomCss(activeLayoutId, true);
+    useCustomCss(activeLayoutId, activeSectionForEditor.id, true);
     const [showTabWizard, setShowTabWizard] = useState(false);
     const [showManual, setShowManual] = useState(false);
     const [showImport, setShowImport] = useState(false);
@@ -1956,8 +2087,12 @@ export function AdminEditor() {
                 </button>
             </div>
 
-            {/* Tab bar — isolated memoized component, does not cause AdminEditor to re-render on tab switch */}
-            <TabBar />
+            {/* Section switcher — pick/add the "Bereich" being edited */}
+            <SectionSwitcher />
+
+            {/* Tab bar — isolated memoized component, does not cause AdminEditor to re-render on tab switch.
+                Rendered above or below the preview to mirror the configured footer position. */}
+            {!editorTabBarBottom && <TabBar />}
 
             {/* Dashboard preview with edit mode */}
             <div className="flex-1 flex overflow-hidden" style={{ background: 'var(--app-bg)' }}>
@@ -1973,16 +2108,17 @@ export function AdminEditor() {
                         >
                             <LayoutDrawer
                                 activeLayoutId={activeLayoutId}
+                                activeSectionId={activeSectionForEditor?.id}
                                 variant="sidebar"
                                 width={drawerWidth}
-                                showTitle={frontend.layoutDrawerShowTitle ?? true}
-                                drawerTitle={frontend.layoutDrawerTitle ?? ''}
-                                entryStyle={frontend.layoutDrawerEntryStyle ?? 'iconAndName'}
-                                entryHeight={frontend.layoutDrawerEntryHeight ?? 48}
-                                indicatorStyle={frontend.layoutDrawerIndicatorStyle ?? 'filled'}
-                                fontSize={frontend.layoutDrawerFontSize ?? 14}
-                                iconSize={frontend.layoutDrawerIconSize ?? 16}
-                                items={frontend.layoutDrawerItems ?? []}
+                                showTitle={editorSettings.layoutDrawerShowTitle ?? true}
+                                drawerTitle={editorSettings.layoutDrawerTitle ?? ''}
+                                entryStyle={editorSettings.layoutDrawerEntryStyle ?? 'iconAndName'}
+                                entryHeight={editorSettings.layoutDrawerEntryHeight ?? 48}
+                                indicatorStyle={editorSettings.layoutDrawerIndicatorStyle ?? 'filled'}
+                                fontSize={editorSettings.layoutDrawerFontSize ?? 14}
+                                iconSize={editorSettings.layoutDrawerIconSize ?? 16}
+                                items={editorSettings.layoutDrawerItems ?? []}
                             />
                         </div>
                         <div
@@ -1996,7 +2132,7 @@ export function AdminEditor() {
                                 {t('editor.dockedMenuPreview.hint')}
                             </p>
                             <a
-                                href="#/admin/design?frame=menu"
+                                href={`#/admin/design?ctx=${activeLayoutId}&tab=menu`}
                                 className="inline-flex items-center gap-1 text-[11px] font-medium hover:opacity-80"
                                 style={{ color: 'var(--accent)' }}
                             >
@@ -2013,6 +2149,7 @@ export function AdminEditor() {
                 </div>
                 {showMobileOrder && <MobileOrderPanel layoutId={activeLayoutId} />}
             </div>
+            {editorTabBarBottom && <TabBar />}
 
             {showTabWizard && (
                 <TabWizard
@@ -2033,7 +2170,10 @@ export function AdminEditor() {
                         const state = useDashboardStore.getState();
                         const activeLayout =
                             state.layouts.find((l) => l.id === state.activeLayoutId) ?? state.layouts[0];
-                        if (tabId && tabId !== activeLayout?.activeTabId) state.setActiveTab(tabId);
+                        const activeSec =
+                            activeLayout?.sections.find((se) => se.id === activeLayout.activeSectionId) ??
+                            activeLayout?.sections[0];
+                        if (tabId && tabId !== activeSec?.activeTabId) state.setActiveTab(tabId);
                         addWidget(widget);
                     }}
                     onAddTab={addTabFromImportOuter}

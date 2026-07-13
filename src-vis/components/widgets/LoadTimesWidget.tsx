@@ -108,12 +108,20 @@ function buildWidgetLocationMap(
         }
     };
     for (const l of layouts) {
-        for (const tab of l.tabs) {
-            const loc: WidgetLoc = { layoutId: l.id, layoutName: l.name, tabId: tab.id, tabName: tab.name };
-            for (const w of tab.widgets) {
-                map.set(w.id, loc);
-                if (w.type === 'group' || w.type === 'panels')
-                    addChildren(w.options?.defId as string | undefined, loc, new Set());
+        const multiSection = l.sections.length > 1;
+        for (const sec of l.sections) {
+            for (const tab of sec.tabs) {
+                const loc: WidgetLoc = {
+                    layoutId: l.id,
+                    layoutName: l.name,
+                    tabId: tab.id,
+                    tabName: multiSection ? `${sec.name} / ${tab.name}` : tab.name,
+                };
+                for (const w of tab.widgets) {
+                    map.set(w.id, loc);
+                    if (w.type === 'group' || w.type === 'panels')
+                        addChildren(w.options?.defId as string | undefined, loc, new Set());
+                }
             }
         }
     }

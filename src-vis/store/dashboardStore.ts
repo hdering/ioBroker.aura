@@ -57,6 +57,8 @@ export interface TabBarSettings {
     iconSize?: number; // tab icon size in px, default 14
     tabsAlignment?: 'left' | 'center' | 'right'; // navigation tabs position
     hideMobileScrollbar?: boolean; // hide the mobile scroll indicator ("Laufleiste") under the tabs
+    showSingle?: boolean; // show the tab bar even when the section has only a single tab
+    position?: 'top' | 'bottom'; // render the bar above the dashboard (default) or as a footer
     items?: TabBarItem[];
 }
 
@@ -108,8 +110,44 @@ export interface LayoutSettings {
     guidelinesShowResolution?: boolean;
     // Tab bar appearance & items
     tabBar?: TabBarSettings;
-    // Layout drawer (menu): override the global on/off per layout (undefined = inherit)
+
+    // ── Layout-only overrides (global → layout; no section level) ────────────
+    // These frame settings belong to a whole layout, not an individual section,
+    // so useEffectiveSettings merges them from the layout level only.
+    // Layout drawer / left-hand menu
     layoutDrawerEnabled?: boolean;
+    layoutDrawerShowSingle?: boolean; // show the section menu even with a single section
+    layoutDrawerSize?: 'sm' | 'md' | 'lg';
+    layoutDrawerAutoHide?: boolean;
+    layoutDrawerPlacement?: 'floating' | 'tabbar' | 'sidebar';
+    layoutDrawerWidth?: number;
+    layoutDrawerTopOffset?: number;
+    layoutDrawerBottomOffset?: number;
+    layoutDrawerShowTitle?: boolean;
+    layoutDrawerTitle?: string;
+    layoutDrawerTitleMarginTop?: number;
+    layoutDrawerTitleMarginBottom?: number;
+    layoutDrawerEntryStyle?: 'iconAndName' | 'iconOnly' | 'nameOnly' | 'bulletAndName';
+    layoutDrawerEntryHeight?: number;
+    layoutDrawerIndicatorStyle?: 'text' | 'underline' | 'filled' | 'pills';
+    layoutDrawerFontSize?: number;
+    layoutDrawerIconSize?: number;
+    layoutDrawerItems?: LayoutMenuItem[];
+    // Header
+    showHeader?: boolean;
+    headerTitle?: string;
+    showConnectionBadge?: boolean;
+    showAdminLink?: boolean;
+    headerClockEnabled?: boolean;
+    headerClockDisplay?: 'time' | 'date' | 'datetime';
+    headerClockShowSeconds?: boolean;
+    headerClockDateLength?: 'short' | 'long';
+    headerClockCustomFormat?: string;
+    headerDatapoint?: string;
+    headerDatapointTemplate?: string;
+    // Navigation (idle-return)
+    idleReturnEnabled?: boolean;
+    idleReturnDelay?: number;
 }
 
 export interface Tab {
@@ -126,24 +164,56 @@ export interface Tab {
     badgeAggregate?: BadgeAggregate; // auto-count of widgets on this tab that show a badge
 }
 
-export interface DashboardLayout {
+/**
+ * A Section ("Bereich") is the middle navigation level between a layout and its
+ * tabs. Sections of the active layout are listed in the left-hand drawer menu.
+ * Field-compatible with the pre-v3 DashboardLayout so the migration is a rehang.
+ */
+export interface Section {
     id: string;
     name: string;
     slug: string;
     tabs: Tab[];
     activeTabId: string;
-    defaultTabId?: string; // tab shown when frontend opens without a tab slug
-    icon?: string; // icon name (Iconify ID or lucide PascalCase) for layout drawer
-    hidden?: boolean; // removed from the layout drawer, but still reachable via its direct slug URL
-    settings?: LayoutSettings; // per-layout overrides (undefined = use global)
+    defaultTabId?: string; // tab shown when the section opens without a tab slug
+    icon?: string; // icon name (Iconify ID or lucide PascalCase) for the section menu
+    hidden?: boolean; // removed from the section menu, but still reachable via its direct slug URL
+    settings?: LayoutSettings; // per-section content overrides (undefined = inherit)
+}
+
+/**
+ * A Layout is the top-level container, reachable by its own URL (`/view/<slug>`).
+ * It is NOT device-bound; each end device simply opens the layout URL it needs,
+ * so the section menus of different layouts never mix.
+ */
+export interface DashboardLayout {
+    id: string;
+    name: string;
+    slug: string;
+    sections: Section[];
+    activeSectionId: string;
+    defaultSectionId?: string; // section shown when the layout opens without a section slug
+    icon?: string; // reserved for a future layout switcher
+    hidden?: boolean; // reserved (layout-level hide)
+    settings?: LayoutSettings; // layout-level overrides; layoutDrawerEnabled lives here
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 const DEFAULT_TAB: Tab = { id: 'default', name: 'Dashboard', slug: 'dashboard', widgets: [] };
 
+function makeDefaultSection(): Section {
+    return { id: 'section-default', name: 'Standard', slug: 'default', tabs: [DEFAULT_TAB], activeTabId: 'default' };
+}
+
 function makeDefaultLayout(): DashboardLayout {
-    return { id: 'layout-default', name: 'Standard', slug: 'default', tabs: [DEFAULT_TAB], activeTabId: 'default' };
+    return {
+        id: 'layout-default',
+        name: 'Standard',
+        slug: 'default',
+        sections: [makeDefaultSection()],
+        activeSectionId: 'section-default',
+    };
 }
 
 /** Apply fn to the layout with the given id */
@@ -153,6 +223,33 @@ function patchLayout(
     fn: (l: DashboardLayout) => DashboardLayout,
 ): DashboardLayout[] {
     return layouts.map((l) => (l.id === layoutId ? fn(l) : l));
+}
+
+/** The currently-selected section of a layout (falls back to the first). */
+function activeSectionOf(l: DashboardLayout | undefined): Section | undefined {
+    if (!l) return undefined;
+    return l.sections.find((sec) => sec.id === l.activeSectionId) ?? l.sections[0];
+}
+
+/** Apply fn to the section with the given id inside the given layout. */
+function patchSection(
+    layouts: DashboardLayout[],
+    layoutId: string,
+    sectionId: string,
+    fn: (sec: Section) => Section,
+): DashboardLayout[] {
+    return patchLayout(layouts, layoutId, (l) => ({
+        ...l,
+        sections: l.sections.map((sec) => (sec.id === sectionId ? fn(sec) : sec)),
+    }));
+}
+
+/** Apply fn to the active section of the active layout (used by tab/widget CRUD). */
+function patchActiveSection(s: DashboardState, fn: (sec: Section) => Section): DashboardLayout[] {
+    const layout = s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0];
+    const sec = activeSectionOf(layout);
+    if (!layout || !sec) return s.layouts;
+    return patchSection(s.layouts, layout.id, sec.id, fn);
 }
 
 function ensureSlugs(tabs: Tab[]): Tab[] {
@@ -181,6 +278,14 @@ function uniqueLayoutSlug(base: string, layouts: DashboardLayout[]): string {
 
 function uniqueTabSlug(base: string, tabs: Tab[]): string {
     const seen = new Set(tabs.map((t) => t.slug));
+    let slug = base;
+    let i = 2;
+    while (seen.has(slug)) slug = `${base}-${i++}`;
+    return slug;
+}
+
+function uniqueSectionSlug(base: string, sections: Section[]): string {
+    const seen = new Set(sections.map((sec) => sec.slug));
     let slug = base;
     let i = 2;
     while (seen.has(slug)) slug = `${base}-${i++}`;
@@ -230,7 +335,24 @@ interface DashboardState {
     reorderLayouts: (fromIndex: number, toIndex: number) => void;
     setActiveLayout: (id: string) => void;
 
-    // ── Tab CRUD (on activeLayoutId) ─────────────────────────────────────────
+    // ── Section CRUD (on activeLayoutId) ─────────────────────────────────────
+    addSection: (name: string) => void;
+    addSectionFromImport: (sectionData: Omit<Section, 'id'>) => void;
+    duplicateSection: (id: string, newName: string) => void;
+    removeSection: (id: string) => void;
+    renameSection: (id: string, name: string) => void;
+    setSectionSlug: (id: string, slug: string) => void;
+    setSectionIcon: (id: string, icon: string | undefined) => void;
+    setSectionHidden: (id: string, hidden: boolean) => void;
+    reorderSections: (fromIndex: number, toIndex: number) => void;
+    setActiveSection: (id: string) => void;
+    setActiveLayoutAndSection: (layoutId: string, sectionId: string) => void;
+    setDefaultSection: (layoutId: string, sectionId: string) => void;
+    /** Update per-section content settings */
+    updateSectionSettings: (layoutId: string, sectionId: string, patch: Partial<LayoutSettings>) => void;
+    clearSectionSettings: (layoutId: string, sectionId: string, key: keyof LayoutSettings) => void;
+
+    // ── Tab CRUD (on active section of activeLayoutId) ───────────────────────
     addTab: (name: string) => void;
     addTabFromImport: (tabData: Omit<Tab, 'id'>) => void;
     removeTab: (id: string) => void;
@@ -254,9 +376,11 @@ interface DashboardState {
     ) => void;
     setTabSlug: (id: string, slug: string) => void;
     setActiveTab: (id: string) => void;
-    setActiveLayoutAndTab: (layoutId: string, tabId: string) => void;
+    /** Navigate to a layout/section/tab. sectionId is auto-resolved from tabId when omitted. */
+    setActiveLayoutAndTab: (layoutId: string, tabId: string, sectionId?: string) => void;
     reorderTabs: (fromIndex: number, toIndex: number) => void;
-    setDefaultTab: (layoutId: string, tabId: string) => void;
+    /** Default tab of a section within the active layout (opened when no tab slug is given). */
+    setDefaultTab: (sectionId: string, tabId: string) => void;
 
     // ── Widget CRUD ──────────────────────────────────────────────────────────
     addWidget: (widget: WidgetConfig) => void;
@@ -292,7 +416,10 @@ export const useDashboardStore = create<DashboardState>()(
             // ── Layout CRUD ────────────────────────────────────────────────────────
 
             addLayout: (name) => {
-                const id = `layout-${Date.now()}`;
+                const now = Date.now();
+                const id = `layout-${now}`;
+                const sectionId = `section-${now}`;
+                const tabId = `tab-${now}`;
                 set((s) => ({
                     layouts: [
                         ...s.layouts,
@@ -300,8 +427,16 @@ export const useDashboardStore = create<DashboardState>()(
                             id,
                             name,
                             slug: uniqueLayoutSlug(slugify(name), s.layouts),
-                            tabs: [{ ...DEFAULT_TAB, id: `tab-${Date.now()}`, slug: 'dashboard' }],
-                            activeTabId: `tab-${Date.now()}`,
+                            sections: [
+                                {
+                                    id: sectionId,
+                                    name: 'Standard',
+                                    slug: 'default',
+                                    tabs: [{ ...DEFAULT_TAB, id: tabId, slug: 'dashboard' }],
+                                    activeTabId: tabId,
+                                },
+                            ],
+                            activeSectionId: sectionId,
                         },
                     ],
                     activeLayoutId: id,
@@ -310,18 +445,34 @@ export const useDashboardStore = create<DashboardState>()(
 
             addLayoutFromImport: (layoutData) => {
                 const id = `layout-${Date.now()}`;
-                set((s) => ({
-                    layouts: [
-                        ...s.layouts,
-                        {
-                            ...layoutData,
-                            id,
-                            slug: uniqueLayoutSlug(slugify(layoutData.slug || layoutData.name), s.layouts),
-                            tabs: ensureSlugs(layoutData.tabs),
-                        },
-                    ],
-                    activeLayoutId: id,
-                }));
+                set((s) => {
+                    // Accept both new (sections[]) and legacy (tabs[]) exported layouts.
+                    const legacy = layoutData as unknown as { tabs?: Tab[]; activeTabId?: string };
+                    const sections: Section[] = Array.isArray(layoutData.sections)
+                        ? layoutData.sections.map((sec) => ({ ...sec, tabs: ensureSlugs(sec.tabs ?? []) }))
+                        : [
+                              {
+                                  id: `section-${Date.now()}`,
+                                  name: layoutData.name,
+                                  slug: 'default',
+                                  tabs: ensureSlugs(legacy.tabs ?? []),
+                                  activeTabId: legacy.activeTabId ?? legacy.tabs?.[0]?.id ?? 'default',
+                              },
+                          ];
+                    return {
+                        layouts: [
+                            ...s.layouts,
+                            {
+                                ...layoutData,
+                                id,
+                                slug: uniqueLayoutSlug(slugify(layoutData.slug || layoutData.name), s.layouts),
+                                sections,
+                                activeSectionId: sections[0]?.id ?? '',
+                            },
+                        ],
+                        activeLayoutId: id,
+                    };
+                });
             },
 
             duplicateLayout: (id, newName) => {
@@ -333,9 +484,12 @@ export const useDashboardStore = create<DashboardState>()(
                     dup.id = newId;
                     dup.name = newName;
                     dup.slug = uniqueLayoutSlug(slugify(newName), s.layouts);
-                    dup.tabs = dup.tabs.map((tab) => ({
-                        ...tab,
-                        widgets: tab.widgets.map(cloneWidgetDef),
+                    dup.sections = dup.sections.map((sec) => ({
+                        ...sec,
+                        tabs: sec.tabs.map((tab) => ({
+                            ...tab,
+                            widgets: tab.widgets.map(cloneWidgetDef),
+                        })),
                     }));
                     return { layouts: [...s.layouts, dup], activeLayoutId: newId };
                 });
@@ -375,14 +529,159 @@ export const useDashboardStore = create<DashboardState>()(
                 flushKey('aura-dashboard');
             },
 
+            // ── Section CRUD (on activeLayoutId) ─────────────────────────────────────
+
+            addSection: (name) => {
+                const now = Date.now();
+                const sectionId = `section-${now}`;
+                const tabId = `tab-${now}`;
+                set((s) => ({
+                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({
+                        ...l,
+                        sections: [
+                            ...l.sections,
+                            {
+                                id: sectionId,
+                                name,
+                                slug: uniqueSectionSlug(slugify(name), l.sections),
+                                tabs: [{ ...DEFAULT_TAB, id: tabId, slug: 'dashboard' }],
+                                activeTabId: tabId,
+                            },
+                        ],
+                        activeSectionId: sectionId,
+                    })),
+                }));
+            },
+
+            addSectionFromImport: (sectionData) => {
+                const id = `section-${Date.now()}`;
+                set((s) => ({
+                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({
+                        ...l,
+                        sections: [
+                            ...l.sections,
+                            {
+                                ...sectionData,
+                                id,
+                                slug: uniqueSectionSlug(slugify(sectionData.slug || sectionData.name), l.sections),
+                                tabs: ensureSlugs(sectionData.tabs),
+                            },
+                        ],
+                        activeSectionId: id,
+                    })),
+                }));
+            },
+
+            duplicateSection: (id, newName) => {
+                const newId = `section-${Date.now()}`;
+                set((s) => {
+                    const layout = s.layouts.find((l) => l.id === s.activeLayoutId);
+                    const src = layout?.sections.find((sec) => sec.id === id);
+                    if (!layout || !src) return {};
+                    const dup: Section = JSON.parse(JSON.stringify(src));
+                    dup.id = newId;
+                    dup.name = newName;
+                    dup.slug = uniqueSectionSlug(slugify(newName), layout.sections);
+                    dup.tabs = dup.tabs.map((tab) => ({ ...tab, widgets: tab.widgets.map(cloneWidgetDef) }));
+                    return {
+                        layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({
+                            ...l,
+                            sections: [...l.sections, dup],
+                            activeSectionId: newId,
+                        })),
+                    };
+                });
+            },
+
+            removeSection: (id) =>
+                set((s) => ({
+                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => {
+                        if (l.sections.length <= 1) return l;
+                        const sections = l.sections.filter((sec) => sec.id !== id);
+                        const activeSectionId = l.activeSectionId === id ? sections[0].id : l.activeSectionId;
+                        return { ...l, sections, activeSectionId };
+                    }),
+                })),
+
+            renameSection: (id, name) =>
+                set((s) => ({ layouts: patchSection(s.layouts, s.activeLayoutId, id, (sec) => ({ ...sec, name })) })),
+
+            setSectionSlug: (id, slug) =>
+                set((s) => ({ layouts: patchSection(s.layouts, s.activeLayoutId, id, (sec) => ({ ...sec, slug })) })),
+
+            setSectionIcon: (id, icon) =>
+                set((s) => ({ layouts: patchSection(s.layouts, s.activeLayoutId, id, (sec) => ({ ...sec, icon })) })),
+
+            setSectionHidden: (id, hidden) =>
+                set((s) => ({
+                    layouts: patchSection(s.layouts, s.activeLayoutId, id, (sec) => ({ ...sec, hidden })),
+                })),
+
+            reorderSections: (fromIndex, toIndex) =>
+                set((s) => ({
+                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => {
+                        if (fromIndex === toIndex) return l;
+                        if (fromIndex < 0 || fromIndex >= l.sections.length) return l;
+                        if (toIndex < 0 || toIndex >= l.sections.length) return l;
+                        const sections = [...l.sections];
+                        const [moved] = sections.splice(fromIndex, 1);
+                        sections.splice(toIndex, 0, moved);
+                        return { ...l, sections };
+                    }),
+                })),
+
+            setActiveSection: (id) => {
+                // Pure navigation state — must not mark the store dirty (see persistManager).
+                withSuppressedDirty(() =>
+                    set((s) => ({
+                        layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({ ...l, activeSectionId: id })),
+                    })),
+                );
+                flushKey('aura-dashboard');
+            },
+
+            setActiveLayoutAndSection: (layoutId, sectionId) => {
+                // Pure navigation state — must not mark the store dirty (see persistManager).
+                withSuppressedDirty(() =>
+                    set((s) => ({
+                        activeLayoutId: layoutId,
+                        layouts: patchLayout(s.layouts, layoutId, (l) => ({ ...l, activeSectionId: sectionId })),
+                    })),
+                );
+                flushKey('aura-dashboard');
+            },
+
+            setDefaultSection: (layoutId, sectionId) =>
+                set((s) => ({
+                    layouts: patchLayout(s.layouts, layoutId, (l) => ({ ...l, defaultSectionId: sectionId })),
+                })),
+
+            updateSectionSettings: (layoutId, sectionId, patch) =>
+                set((s) => ({
+                    layouts: patchSection(s.layouts, layoutId, sectionId, (sec) => ({
+                        ...sec,
+                        settings: { ...sec.settings, ...patch },
+                    })),
+                })),
+
+            clearSectionSettings: (layoutId, sectionId, key) =>
+                set((s) => ({
+                    layouts: patchSection(s.layouts, layoutId, sectionId, (sec) => {
+                        if (!sec.settings) return sec;
+                        const next = { ...sec.settings };
+                        delete next[key];
+                        return { ...sec, settings: Object.keys(next).length > 0 ? next : undefined };
+                    }),
+                })),
+
             // ── Tab CRUD ───────────────────────────────────────────────────────────
 
             addTab: (name) => {
                 const id = `tab-${Date.now()}`;
                 set((s) => ({
-                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => {
-                        const slug = uniqueTabSlug(slugify(name), l.tabs);
-                        return { ...l, tabs: [...l.tabs, { id, name, slug, widgets: [] }], activeTabId: id };
+                    layouts: patchActiveSection(s, (sec) => {
+                        const slug = uniqueTabSlug(slugify(name), sec.tabs);
+                        return { ...sec, tabs: [...sec.tabs, { id, name, slug, widgets: [] }], activeTabId: id };
                     }),
                 }));
             },
@@ -390,43 +689,43 @@ export const useDashboardStore = create<DashboardState>()(
             addTabFromImport: (tabData) => {
                 const id = `tab-${Date.now()}`;
                 set((s) => ({
-                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => {
-                        const slug = uniqueTabSlug(tabData.slug || slugify(tabData.name), l.tabs);
-                        return { ...l, tabs: [...l.tabs, { ...tabData, id, slug }], activeTabId: id };
+                    layouts: patchActiveSection(s, (sec) => {
+                        const slug = uniqueTabSlug(tabData.slug || slugify(tabData.name), sec.tabs);
+                        return { ...sec, tabs: [...sec.tabs, { ...tabData, id, slug }], activeTabId: id };
                     }),
                 }));
             },
 
             removeTab: (id) =>
                 set((s) => ({
-                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => {
-                        const tabs = l.tabs.filter((t) => t.id !== id);
+                    layouts: patchActiveSection(s, (sec) => {
+                        const tabs = sec.tabs.filter((t) => t.id !== id);
                         if (tabs.length === 0) tabs.push({ ...DEFAULT_TAB, id: `tab-${Date.now()}` });
-                        return { ...l, tabs, activeTabId: l.activeTabId === id ? tabs[0].id : l.activeTabId };
+                        return { ...sec, tabs, activeTabId: sec.activeTabId === id ? tabs[0].id : sec.activeTabId };
                     }),
                 })),
 
             renameTab: (id, name) =>
                 set((s) => ({
-                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({
-                        ...l,
-                        tabs: l.tabs.map((t) => (t.id === id ? { ...t, name } : t)),
+                    layouts: patchActiveSection(s, (sec) => ({
+                        ...sec,
+                        tabs: sec.tabs.map((t) => (t.id === id ? { ...t, name } : t)),
                     })),
                 })),
 
             updateTab: (id, patch) =>
                 set((s) => ({
-                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({
-                        ...l,
-                        tabs: l.tabs.map((t) => (t.id === id ? { ...t, ...patch } : t)),
+                    layouts: patchActiveSection(s, (sec) => ({
+                        ...sec,
+                        tabs: sec.tabs.map((t) => (t.id === id ? { ...t, ...patch } : t)),
                     })),
                 })),
 
             setTabSlug: (id, slug) =>
                 set((s) => ({
-                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({
-                        ...l,
-                        tabs: l.tabs.map((t) => (t.id === id ? { ...t, slug } : t)),
+                    layouts: patchActiveSection(s, (sec) => ({
+                        ...sec,
+                        tabs: sec.tabs.map((t) => (t.id === id ? { ...t, slug } : t)),
                     })),
                 })),
 
@@ -436,75 +735,97 @@ export const useDashboardStore = create<DashboardState>()(
                 withSuppressedDirty(() =>
                     set((s) => {
                         const layout = s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0];
-                        if (layout?.activeTabId === id) return s;
+                        const sec = activeSectionOf(layout);
+                        if (!sec || sec.activeTabId === id) return s;
                         changed = true;
                         return {
-                            layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({ ...l, activeTabId: id })),
+                            layouts: patchActiveSection(s, (x) => ({ ...x, activeTabId: id })),
                         };
                     }),
                 );
                 if (changed) flushKey('aura-dashboard');
             },
 
-            setActiveLayoutAndTab: (layoutId, tabId) => {
+            setActiveLayoutAndTab: (layoutId, tabId, sectionId) => {
                 // Pure navigation state — must not mark the store dirty (see persistManager).
                 withSuppressedDirty(() =>
-                    set((s) => ({
-                        activeLayoutId: layoutId,
-                        layouts: patchLayout(s.layouts, layoutId, (l) => ({ ...l, activeTabId: tabId })),
-                    })),
+                    set((s) => {
+                        const layout = s.layouts.find((l) => l.id === layoutId) ?? s.layouts[0];
+                        if (!layout) return s;
+                        // Resolve which section holds the tab when not explicitly given.
+                        const secId =
+                            sectionId ??
+                            layout.sections.find((sec) => sec.tabs.some((t) => t.id === tabId))?.id ??
+                            layout.activeSectionId ??
+                            layout.sections[0]?.id;
+                        return {
+                            activeLayoutId: layout.id,
+                            layouts: patchLayout(s.layouts, layout.id, (l) => ({
+                                ...l,
+                                activeSectionId: secId,
+                                sections: l.sections.map((sec) =>
+                                    sec.id === secId ? { ...sec, activeTabId: tabId } : sec,
+                                ),
+                            })),
+                        };
+                    }),
                 );
                 flushKey('aura-dashboard');
             },
 
             reorderTabs: (fromIndex, toIndex) =>
                 set((s) => ({
-                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => {
-                        const tabs = [...l.tabs];
+                    layouts: patchActiveSection(s, (sec) => {
+                        const tabs = [...sec.tabs];
                         const [moved] = tabs.splice(fromIndex, 1);
                         tabs.splice(toIndex, 0, moved);
-                        return { ...l, tabs };
+                        return { ...sec, tabs };
                     }),
                 })),
 
-            setDefaultTab: (layoutId, tabId) =>
-                set((s) => ({ layouts: patchLayout(s.layouts, layoutId, (l) => ({ ...l, defaultTabId: tabId })) })),
+            setDefaultTab: (sectionId, tabId) =>
+                set((s) => ({
+                    layouts: patchSection(s.layouts, s.activeLayoutId, sectionId, (sec) => ({
+                        ...sec,
+                        defaultTabId: tabId,
+                    })),
+                })),
 
             // ── Widget CRUD ────────────────────────────────────────────────────────
 
             addWidget: (widget) =>
                 set((s) => ({
-                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({
-                        ...l,
-                        tabs: l.tabs.map((t) =>
-                            t.id === l.activeTabId ? { ...t, widgets: [...t.widgets, widget] } : t,
+                    layouts: patchActiveSection(s, (sec) => ({
+                        ...sec,
+                        tabs: sec.tabs.map((t) =>
+                            t.id === sec.activeTabId ? { ...t, widgets: [...t.widgets, widget] } : t,
                         ),
                     })),
                 })),
 
             addWidgetToTab: (tabId, widget) =>
                 set((s) => ({
-                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({
-                        ...l,
-                        tabs: l.tabs.map((t) => (t.id === tabId ? { ...t, widgets: [...t.widgets, widget] } : t)),
+                    layouts: patchActiveSection(s, (sec) => ({
+                        ...sec,
+                        tabs: sec.tabs.map((t) => (t.id === tabId ? { ...t, widgets: [...t.widgets, widget] } : t)),
                     })),
                 })),
 
             removeWidget: (id) =>
                 set((s) => ({
-                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({
-                        ...l,
-                        tabs: l.tabs.map((t) =>
-                            t.id === l.activeTabId ? { ...t, widgets: t.widgets.filter((w) => w.id !== id) } : t,
+                    layouts: patchActiveSection(s, (sec) => ({
+                        ...sec,
+                        tabs: sec.tabs.map((t) =>
+                            t.id === sec.activeTabId ? { ...t, widgets: t.widgets.filter((w) => w.id !== id) } : t,
                         ),
                     })),
                 })),
 
             removeWidgetInTab: (tabId, widgetId) =>
                 set((s) => ({
-                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({
-                        ...l,
-                        tabs: l.tabs.map((t) =>
+                    layouts: patchActiveSection(s, (sec) => ({
+                        ...sec,
+                        tabs: sec.tabs.map((t) =>
                             t.id === tabId ? { ...t, widgets: t.widgets.filter((w) => w.id !== widgetId) } : t,
                         ),
                     })),
@@ -514,7 +835,10 @@ export const useDashboardStore = create<DashboardState>()(
                 set((s) => ({
                     layouts: patchLayout(s.layouts, layoutId, (l) => ({
                         ...l,
-                        tabs: l.tabs.map((t) => (t.id === tabId ? { ...t, widgets: [...t.widgets, widget] } : t)),
+                        sections: l.sections.map((sec) => ({
+                            ...sec,
+                            tabs: sec.tabs.map((t) => (t.id === tabId ? { ...t, widgets: [...t.widgets, widget] } : t)),
+                        })),
                     })),
                 })),
 
@@ -522,18 +846,21 @@ export const useDashboardStore = create<DashboardState>()(
                 set((s) => ({
                     layouts: patchLayout(s.layouts, layoutId, (l) => ({
                         ...l,
-                        tabs: l.tabs.map((t) =>
-                            t.id === tabId ? { ...t, widgets: t.widgets.filter((w) => w.id !== widgetId) } : t,
-                        ),
+                        sections: l.sections.map((sec) => ({
+                            ...sec,
+                            tabs: sec.tabs.map((t) =>
+                                t.id === tabId ? { ...t, widgets: t.widgets.filter((w) => w.id !== widgetId) } : t,
+                            ),
+                        })),
                     })),
                 })),
 
             updateWidget: (id, config) =>
                 set((s) => ({
-                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({
-                        ...l,
-                        tabs: l.tabs.map((t) =>
-                            t.id === l.activeTabId
+                    layouts: patchActiveSection(s, (sec) => ({
+                        ...sec,
+                        tabs: sec.tabs.map((t) =>
+                            t.id === sec.activeTabId
                                 ? { ...t, widgets: t.widgets.map((w) => (w.id === id ? { ...w, ...config } : w)) }
                                 : t,
                         ),
@@ -542,9 +869,9 @@ export const useDashboardStore = create<DashboardState>()(
 
             updateWidgetInTab: (tabId, widgetId, config) =>
                 set((s) => ({
-                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({
-                        ...l,
-                        tabs: l.tabs.map((t) =>
+                    layouts: patchActiveSection(s, (sec) => ({
+                        ...sec,
+                        tabs: sec.tabs.map((t) =>
                             t.id === tabId
                                 ? { ...t, widgets: t.widgets.map((w) => (w.id === widgetId ? { ...w, ...config } : w)) }
                                 : t,
@@ -554,9 +881,9 @@ export const useDashboardStore = create<DashboardState>()(
 
             updateLayouts: (widgets) =>
                 set((s) => ({
-                    layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({
-                        ...l,
-                        tabs: l.tabs.map((t) => (t.id === l.activeTabId ? { ...t, widgets } : t)),
+                    layouts: patchActiveSection(s, (sec) => ({
+                        ...sec,
+                        tabs: sec.tabs.map((t) => (t.id === sec.activeTabId ? { ...t, widgets } : t)),
                     })),
                 })),
 
@@ -564,15 +891,18 @@ export const useDashboardStore = create<DashboardState>()(
                 set((s) => ({
                     layouts: s.layouts.map((l) => ({
                         ...l,
-                        tabs: l.tabs.map((tab) => ({
-                            ...tab,
-                            widgets: tab.widgets.map((w) => ({
-                                ...w,
-                                gridPos: {
-                                    ...w.gridPos,
-                                    x: Math.max(0, Math.round(w.gridPos.x * factor)),
-                                    w: Math.max(1, Math.round(w.gridPos.w * factor)),
-                                },
+                        sections: l.sections.map((sec) => ({
+                            ...sec,
+                            tabs: sec.tabs.map((tab) => ({
+                                ...tab,
+                                widgets: tab.widgets.map((w) => ({
+                                    ...w,
+                                    gridPos: {
+                                        ...w.gridPos,
+                                        x: Math.max(0, Math.round(w.gridPos.x * factor)),
+                                        w: Math.max(1, Math.round(w.gridPos.w * factor)),
+                                    },
+                                })),
                             })),
                         })),
                     })),
@@ -621,21 +951,83 @@ export const useDashboardStore = create<DashboardState>()(
                     delete p.activeTabId;
                 }
 
-                // Ensure tabs within all layouts have slugs
-                if (Array.isArray(p.layouts)) {
-                    p.layouts = (p.layouts as DashboardLayout[]).map((l) => ({
-                        ...l,
-                        tabs: ensureSlugs(l.tabs ?? []),
+                // ── Migrate v2 → v3: layouts[] (with tabs) → 1 layout with sections[] ─
+                // Every existing layout becomes a Section ("Bereich") under a single
+                // default layout, so the left menu keeps showing exactly the same
+                // entries. A layout is field-compatible with a Section → simple rehang.
+                if (
+                    Array.isArray(p.layouts) &&
+                    (p.layouts as Array<Record<string, unknown>>).some(
+                        (l) => Array.isArray(l?.tabs) && !Array.isArray(l?.sections),
+                    )
+                ) {
+                    const oldLayouts = p.layouts as Array<Record<string, unknown>>;
+                    const sections: Section[] = oldLayouts.map((l) => ({
+                        id: l.id as string,
+                        name: l.name as string,
+                        slug: l.slug as string,
+                        tabs: ensureSlugs((l.tabs as Tab[]) ?? []),
+                        activeTabId: (l.activeTabId as string) ?? (l.tabs as Tab[])?.[0]?.id ?? 'default',
+                        defaultTabId: l.defaultTabId as string | undefined,
+                        icon: l.icon as string | undefined,
+                        hidden: l.hidden as boolean | undefined,
+                        settings: l.settings as LayoutSettings | undefined,
                     }));
+                    p.layouts = [
+                        {
+                            id: 'layout-default',
+                            name: 'Standard',
+                            slug: 'default',
+                            sections,
+                            activeSectionId:
+                                (p.activeLayoutId as string | undefined) ?? sections[0]?.id ?? 'section-default',
+                        },
+                    ];
+                    p.activeLayoutId = 'layout-default';
+                }
+
+                // Ensure sections/tabs have slugs, unique ids and a valid activeSectionId.
+                // The v2→v3 rehang reused 'layout-default' for both the wrapping layout
+                // AND its first section, so a section id could collide with a layout id.
+                // Reassign any clashing section id (and fix the layout's active/default
+                // pointers) so scope resolution can tell a layout from a section.
+                if (Array.isArray(p.layouts)) {
+                    const layoutIds = new Set((p.layouts as DashboardLayout[]).map((l) => l.id));
+                    const usedSectionIds = new Set<string>();
+                    p.layouts = (p.layouts as DashboardLayout[]).map((l) => {
+                        let activeSectionId = l.activeSectionId;
+                        let defaultSectionId = l.defaultSectionId;
+                        const sections = (l.sections ?? []).map((sec, i) => {
+                            let id = sec.id;
+                            if (layoutIds.has(id) || usedSectionIds.has(id)) {
+                                let fresh = `section-${l.id}-${i}`;
+                                while (layoutIds.has(fresh) || usedSectionIds.has(fresh)) fresh = `${fresh}x`;
+                                if (activeSectionId === sec.id) activeSectionId = fresh;
+                                if (defaultSectionId === sec.id) defaultSectionId = fresh;
+                                id = fresh;
+                            }
+                            usedSectionIds.add(id);
+                            return { ...sec, id, tabs: ensureSlugs(sec.tabs ?? []) };
+                        });
+                        return {
+                            ...l,
+                            sections,
+                            activeSectionId: activeSectionId ?? sections[0]?.id ?? '',
+                            defaultSectionId,
+                        };
+                    });
                 }
 
                 // Migrate GROUP widgets: move options.children → groupDefsStore (defId ref)
                 if (Array.isArray(p.layouts)) {
                     p.layouts = (p.layouts as DashboardLayout[]).map((l) => ({
                         ...l,
-                        tabs: l.tabs.map((tab) => ({
-                            ...tab,
-                            widgets: tab.widgets.map(migrateGroupWidget),
+                        sections: l.sections.map((sec) => ({
+                            ...sec,
+                            tabs: sec.tabs.map((tab) => ({
+                                ...tab,
+                                widgets: tab.widgets.map(migrateGroupWidget),
+                            })),
                         })),
                     }));
                 }
@@ -653,7 +1045,47 @@ export function useActiveLayout(): DashboardLayout {
     return useDashboardStore((s) => s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0]);
 }
 
+/** Returns the active section of the active layout (admin editor). */
+export function useActiveSection(): Section {
+    return useDashboardStore((s) => {
+        const l = s.layouts.find((x) => x.id === s.activeLayoutId) ?? s.layouts[0];
+        return activeSectionOf(l) ?? l.sections[0];
+    });
+}
+
 /** Returns a specific layout by slug (for the frontend readonly view) */
 export function useLayoutBySlug(slug: string | undefined): DashboardLayout | undefined {
     return useDashboardStore((s) => (slug ? s.layouts.find((l) => l.slug === slug) : s.layouts[0]));
+}
+
+export interface ResolvedView {
+    layout: DashboardLayout;
+    section: Section;
+}
+
+/**
+ * Resolve a layout + section from URL slugs.
+ *
+ * Priority: a first segment that matches a real layout slug wins. Otherwise
+ * (legacy `/view/<oldLayoutSlug>` links, where old layouts are now sections of
+ * the migrated default layout) fall back to the first layout and treat the given
+ * slug as the section slug.
+ */
+export function resolveView(
+    layouts: DashboardLayout[],
+    layoutSlug: string | undefined,
+    sectionSlug: string | undefined,
+): ResolvedView | undefined {
+    if (layouts.length === 0) return undefined;
+    let layout = layoutSlug ? layouts.find((l) => l.slug === layoutSlug) : undefined;
+    let secSlug = sectionSlug;
+    if (!layout) {
+        layout = layouts[0];
+        if (layoutSlug && !sectionSlug) secSlug = layoutSlug;
+    }
+    const section =
+        (secSlug ? layout.sections.find((sec) => sec.slug === secSlug) : undefined) ??
+        layout.sections.find((sec) => sec.id === layout!.defaultSectionId) ??
+        layout.sections[0];
+    return { layout, section };
 }

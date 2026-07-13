@@ -1277,7 +1277,9 @@ class Aura extends utils.Adapter {
     }
 
     // Build the common.states map for the navigate selector from the persisted
-    // dashboard config. Key = "<viewSlug>/<tabSlug>", value = "View / Tab".
+    // dashboard config. Hierarchy: layout → section ("Bereich") → tab.
+    //   multi-section layout → key "<layoutSlug>/<sectionSlug>/<tabSlug>"
+    //   single-section layout → key "<layoutSlug>/<tabSlug>" (shorter form)
     // Disabled tabs are skipped (they are hidden in the frontend anyway).
     _buildNavigateStates(dashboardRaw) {
         const states = {};
@@ -1286,14 +1288,25 @@ class Aura extends utils.Adapter {
             const layouts = parsed && parsed.state && parsed.state.layouts;
             if (!Array.isArray(layouts)) return states;
             for (const layout of layouts) {
-                const viewSlug = layout && layout.slug;
-                if (!viewSlug || !Array.isArray(layout.tabs)) continue;
-                const viewName = layout.name || viewSlug;
-                for (const tab of layout.tabs) {
-                    if (!tab || tab.disabled) continue;
-                    const tabSlug = tab.slug || tab.id;
-                    if (!tabSlug) continue;
-                    states[`${viewSlug}/${tabSlug}`] = `${viewName} / ${tab.name || tabSlug}`;
+                const layoutSlug = layout && layout.slug;
+                if (!layoutSlug || !Array.isArray(layout.sections)) continue;
+                const layoutName = layout.name || layoutSlug;
+                const multi = layout.sections.length > 1;
+                for (const section of layout.sections) {
+                    if (!section || !Array.isArray(section.tabs)) continue;
+                    const sectionSlug = section.slug || section.id;
+                    const sectionName = section.name || sectionSlug;
+                    for (const tab of section.tabs) {
+                        if (!tab || tab.disabled) continue;
+                        const tabSlug = tab.slug || tab.id;
+                        if (!tabSlug) continue;
+                        if (multi) {
+                            states[`${layoutSlug}/${sectionSlug}/${tabSlug}`] =
+                                `${layoutName} / ${sectionName} / ${tab.name || tabSlug}`;
+                        } else {
+                            states[`${layoutSlug}/${tabSlug}`] = `${layoutName} / ${tab.name || tabSlug}`;
+                        }
+                    }
                 }
             }
         } catch {

@@ -39,7 +39,7 @@ import { baseDpId } from '../../utils/dpRef';
 import { JsonPathButton } from '../config/JsonPathButton';
 import { ColorPicker } from '../common/ColorPicker';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
-import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
+import { useDashboardStore, useActiveSection } from '../../store/dashboardStore';
 import { useStoreWithEqualityFn } from 'zustand/traditional';
 import { cloneGroupDef, useGroupDefsStore } from '../../store/groupDefsStore';
 import { useConfigStore } from '../../store/configStore';
@@ -4107,7 +4107,7 @@ function CarouselEditPanel({
     const [addingItem, setAddingItem] = useState(false);
     const [newItemLabel, setNewItemLabel] = useState('');
     const [itemIconPickerIdx, setItemIconPickerIdx] = useState<number | null>(null);
-    const allWidgets = layouts.flatMap((l) => l.tabs.flatMap((t) => t.widgets));
+    const allWidgets = layouts.flatMap((l) => l.sections.flatMap((s) => s.tabs.flatMap((t) => t.widgets)));
 
     const confirmAddItem = () => {
         if (!newItemLabel.trim()) return;
@@ -4562,11 +4562,12 @@ function CarouselEditPanel({
                                                 setItemAction(item.id, { kind: 'popup-view', viewId: '' });
                                             } else {
                                                 const firstLayout = layouts[0];
-                                                const firstTab = firstLayout?.tabs[0];
+                                                const firstSec = firstLayout?.sections[0];
                                                 setItemAction(item.id, {
                                                     kind: 'link-tab',
                                                     layoutId: firstLayout?.id ?? '',
-                                                    tabId: firstTab?.id ?? '',
+                                                    sectionId: firstSec?.id,
+                                                    tabId: firstSec?.tabs[0]?.id ?? '',
                                                 });
                                             }
                                         }}
@@ -4796,7 +4797,12 @@ function CarouselEditPanel({
                                 {item.clickAction?.kind === 'link-tab' &&
                                     (() => {
                                         const cur = item.clickAction;
-                                        const tabsForLayout = layouts.find((l) => l.id === cur.layoutId)?.tabs ?? [];
+                                        const layObj = layouts.find((l) => l.id === cur.layoutId);
+                                        // Flatten tabs across sections; remember each tab's section.
+                                        const tabsForLayout = (layObj?.sections ?? []).flatMap((sec) =>
+                                            sec.tabs.map((t) => ({ tab: t, sectionId: sec.id, sectionName: sec.name })),
+                                        );
+                                        const multiSection = (layObj?.sections.length ?? 0) > 1;
                                         return (
                                             <div className="grid grid-cols-2 gap-1.5">
                                                 <div>
@@ -4810,10 +4816,12 @@ function CarouselEditPanel({
                                                         value={cur.layoutId}
                                                         onChange={(e) => {
                                                             const lay = layouts.find((l) => l.id === e.target.value);
+                                                            const firstSec = lay?.sections[0];
                                                             setItemAction(item.id, {
                                                                 kind: 'link-tab',
                                                                 layoutId: e.target.value,
-                                                                tabId: lay?.tabs[0]?.id ?? '',
+                                                                sectionId: firstSec?.id,
+                                                                tabId: firstSec?.tabs[0]?.id ?? '',
                                                             });
                                                         }}
                                                         className={selCls}
@@ -4835,19 +4843,25 @@ function CarouselEditPanel({
                                                     </label>
                                                     <select
                                                         value={cur.tabId}
-                                                        onChange={(e) =>
+                                                        onChange={(e) => {
+                                                            const sel = tabsForLayout.find(
+                                                                (x) => x.tab.id === e.target.value,
+                                                            );
                                                             setItemAction(item.id, {
                                                                 kind: 'link-tab',
                                                                 layoutId: cur.layoutId,
+                                                                sectionId: sel?.sectionId,
                                                                 tabId: e.target.value,
-                                                            })
-                                                        }
+                                                            });
+                                                        }}
                                                         className={selCls}
                                                         style={sInputStyle}
                                                     >
-                                                        {tabsForLayout.map((t) => (
-                                                            <option key={t.id} value={t.id}>
-                                                                {t.name}
+                                                        {tabsForLayout.map(({ tab, sectionName }) => (
+                                                            <option key={tab.id} value={tab.id}>
+                                                                {multiSection
+                                                                    ? `${sectionName} · ${tab.name}`
+                                                                    : tab.name}
                                                             </option>
                                                         ))}
                                                     </select>
@@ -5003,17 +5017,26 @@ export function WidgetFrame({
     const [showExportDialog, setShowExportDialog] = useState(false);
     const { addWidgetToLayoutTab, removeWidgetFromLayoutTab } = useDashboardStore();
     const activeLayoutId = useDashboardStore((s) => s.activeLayoutId);
-    const { activeTabId, tabs: activeTabs } = useActiveLayout();
-    // Stable across widget-only mutations: only changes when tabs/layouts are added, removed, or renamed.
+    const { activeTabId, tabs: activeTabs } = useActiveSection();
+    // Stable across widget-only mutations: only changes when tabs/sections/layouts are added, removed, or renamed.
     const moveTargets = useStoreWithEqualityFn(
         useDashboardStore,
         (s) => {
             const aid = s.activeLayoutId;
-            const atid = s.layouts.find((l) => l.id === aid)?.activeTabId;
+            const al = s.layouts.find((l) => l.id === aid);
+            const asid = al?.activeSectionId;
+            const atid = al?.sections.find((sec) => sec.id === asid)?.activeTabId;
             return s.layouts.flatMap((l) =>
-                l.tabs
-                    .filter((t) => !(l.id === aid && t.id === atid))
-                    .map((t) => ({ layoutId: l.id, layoutName: l.name, tabId: t.id, tabName: t.name })),
+                l.sections.flatMap((sec) =>
+                    sec.tabs
+                        .filter((t) => !(l.id === aid && sec.id === asid && t.id === atid))
+                        .map((t) => ({
+                            layoutId: l.id,
+                            layoutName: l.sections.length > 1 ? `${l.name} · ${sec.name}` : l.name,
+                            tabId: t.id,
+                            tabName: t.name,
+                        })),
+                ),
             );
         },
         (a, b) =>
@@ -5448,13 +5471,18 @@ export function WidgetFrame({
                 const tab = useDashboardStore
                     .getState()
                     .layouts.find((l) => l.id === clickAction.layoutId)
-                    ?.tabs.find((t) => t.id === clickAction.tabId);
+                    ?.sections.flatMap((s) => s.tabs)
+                    .find((t) => t.id === clickAction.tabId);
                 if (tab?.disabled) return;
-                useNavigationStore.getState().navigateTo(clickAction.layoutId, clickAction.tabId);
+                useNavigationStore
+                    .getState()
+                    .navigateTo(clickAction.layoutId, clickAction.tabId, undefined, clickAction.sectionId);
                 return;
             }
             case 'link-widget':
-                useNavigationStore.getState().navigateTo(clickAction.layoutId, clickAction.tabId, clickAction.widgetId);
+                useNavigationStore
+                    .getState()
+                    .navigateTo(clickAction.layoutId, clickAction.tabId, clickAction.widgetId, clickAction.sectionId);
                 return;
             default:
                 setPopupOpen(true);
@@ -16747,7 +16775,9 @@ export function WidgetFrame({
                     widget={config}
                     action={clickAction}
                     onClose={() => setPopupOpen(false)}
-                    allWidgets={useDashboardStore.getState().layouts.flatMap((l) => l.tabs.flatMap((t) => t.widgets))}
+                    allWidgets={useDashboardStore
+                        .getState()
+                        .layouts.flatMap((l) => l.sections.flatMap((s) => s.tabs.flatMap((t) => t.widgets)))}
                 />
             )}
         </div>

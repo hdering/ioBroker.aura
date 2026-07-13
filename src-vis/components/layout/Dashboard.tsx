@@ -30,6 +30,8 @@ interface DashboardProps {
     viewActiveTabId?: string;
     /** Layout ID for per-layout settings resolution. If omitted, uses activeLayout.id (admin editor). */
     layoutId?: string;
+    /** Active section id — the dashboard renders the tabs of this section. */
+    sectionId?: string;
 }
 
 export function Dashboard({
@@ -39,14 +41,27 @@ export function Dashboard({
     viewTabs,
     viewActiveTabId,
     layoutId,
+    sectionId,
 }: DashboardProps) {
     const t = useT();
     const activeLayout = useActiveLayout();
     const { updateWidget, updateLayouts, removeWidget, addWidgetToLayoutTab } = useDashboardStore();
 
-    // Use per-layout effective settings (falls back to global when no override)
+    // Resolve the section whose tabs this dashboard renders. The frontend passes an
+    // explicit layoutId + sectionId (its layout may differ from the admin editor's
+    // active layout); the admin editor falls back to the active layout's section.
+    const section = useDashboardStore((s) => {
+        const l = (layoutId ? s.layouts.find((x) => x.id === layoutId) : undefined) ?? activeLayout;
+        return (
+            (sectionId ? l.sections.find((sec) => sec.id === sectionId) : undefined) ??
+            l.sections.find((sec) => sec.id === l.activeSectionId) ??
+            l.sections[0]
+        );
+    });
+
+    // Use effective settings cascade global → layout → section.
     const effectiveLayoutId = layoutId ?? activeLayout.id;
-    const settings = useEffectiveSettings(effectiveLayoutId);
+    const settings = useEffectiveSettings(effectiveLayoutId, section?.id);
 
     const cellSize = settings.gridRowHeight ?? 20;
     const widgetPadding = settings.widgetPadding ?? 16;
@@ -67,11 +82,16 @@ export function Dashboard({
     // so the guideline (which marks the target *device* width) must subtract the menu
     // width: usable dashboard = deviceWidth − menu. A floating / tab-bar menu overlays
     // content without insetting the dashboard, so nothing is subtracted there.
-    const totalLayouts = useDashboardStore((s) => s.layouts.length);
+    // The section menu (docked sidebar) only insets the dashboard when the active
+    // layout has more than one visible section.
+    const layoutForMenu = useDashboardStore((s) =>
+        layoutId ? (s.layouts.find((x) => x.id === layoutId) ?? activeLayout) : activeLayout,
+    );
+    const visibleSectionCount = layoutForMenu.sections.filter((sec) => !sec.hidden).length;
     const dockedSidebar =
         (settings.layoutDrawerEnabled ?? false) &&
         (settings.layoutDrawerPlacement ?? 'floating') === 'sidebar' &&
-        totalLayouts > 1;
+        (visibleSectionCount > 1 || (settings.layoutDrawerShowSingle ?? false));
     const guidelinesMenuInset = dockedSidebar ? (settings.layoutDrawerWidth ?? 240) : 0;
 
     const showGuidelines = guidelinesEnabled && (editMode || guidelinesShowInFrontend);
@@ -89,9 +109,9 @@ export function Dashboard({
         </>
     );
 
-    // In frontend view, use provided override; otherwise use active editor layout
-    const tabs = viewTabs ?? activeLayout.tabs;
-    const activeTabId = viewActiveTabId ?? activeLayout.activeTabId;
+    // In frontend view, use provided override; otherwise use the active section
+    const tabs = viewTabs ?? section.tabs;
+    const activeTabId = viewActiveTabId ?? section.activeTabId;
 
     // Track which tabs have ever been activated. Only those get their widgets
     // mounted — pre-mounting all tabs would defeat lazy widget chunks (echarts,

@@ -141,7 +141,9 @@ export function gcGroupDefs(): void {
 
     const referenced = new Set<string>();
     for (const l of layouts) {
-        for (const tab of l.tabs) collectDefIds(tab.widgets, defs, referenced);
+        for (const sec of l.sections) {
+            for (const tab of sec.tabs) collectDefIds(tab.widgets, defs, referenced);
+        }
     }
     for (const v of views) collectDefIds(v.widgets, defs, referenced);
 

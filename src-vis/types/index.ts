@@ -339,9 +339,9 @@ export type ClickAction =
     | { kind: 'popup-json'; json?: string; dp?: string }
     | { kind: 'popup-html'; html?: string; dp?: string }
     | { kind: 'popup-widget'; widgetId?: string }
-    | { kind: 'link-tab'; layoutId: string; tabId: string }
+    | { kind: 'link-tab'; layoutId: string; tabId: string; sectionId?: string }
     | { kind: 'link-external'; url: string; newTab?: boolean }
-    | { kind: 'link-widget'; layoutId: string; tabId: string; widgetId: string }
+    | { kind: 'link-widget'; layoutId: string; tabId: string; widgetId: string; sectionId?: string }
     | { kind: 'popup-view'; viewId: string; dp?: string };
 
 // options.clickAction?: ClickAction

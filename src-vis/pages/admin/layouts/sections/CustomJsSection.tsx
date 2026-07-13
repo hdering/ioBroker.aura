@@ -1,6 +1,5 @@
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { LayoutContextSwitcher } from '../shared/LayoutContextSwitcher';
-import { useDashboardStore } from '../../../../store/dashboardStore';
 import { useT } from '../../../../i18n';
 
 interface CustomJsSectionProps {
@@ -10,17 +9,14 @@ interface CustomJsSectionProps {
 
 export function CustomJsSection({ contextId, onContextChange }: CustomJsSectionProps) {
     const t = useT();
-    const { ls, updateFrontend, updateLayoutSettings } = useLayoutSetting(contextId);
-    const clearLayoutSettings = useDashboardStore((s) => s.clearLayoutSettings);
-    const { frontend } = useLayoutSetting(contextId);
+    const { ls, frontend, setPatch, clear } = useLayoutSetting(contextId);
 
     const jsEnabled = ls?.customJSEnabled ?? frontend.customJSEnabled ?? false;
     const jsInEditor = ls?.customJSInEditor ?? frontend.customJSInEditor ?? false;
     const jsValue = ls?.customJS ?? frontend.customJS ?? '';
 
     function setJs(patch: Partial<{ customJS: string; customJSEnabled: boolean; customJSInEditor: boolean }>) {
-        if (!contextId) updateFrontend(patch as never);
-        else updateLayoutSettings(contextId, patch);
+        setPatch(patch);
     }
 
     return (
@@ -66,13 +62,13 @@ export function CustomJsSection({ contextId, onContextChange }: CustomJsSectionP
                                 color: 'var(--accent)',
                             }}
                         >
-                            Layout-JS aktiv
+                            Bereich-JS aktiv
                         </span>
                         <button
                             onClick={() => {
-                                clearLayoutSettings(contextId, 'customJS');
-                                clearLayoutSettings(contextId, 'customJSEnabled');
-                                clearLayoutSettings(contextId, 'customJSInEditor');
+                                clear('customJS');
+                                clear('customJSEnabled');
+                                clear('customJSInEditor');
                             }}
                             className="text-[10px] hover:opacity-70"
                             style={{ color: 'var(--text-secondary)' }}

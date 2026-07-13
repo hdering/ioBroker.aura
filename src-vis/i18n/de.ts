@@ -92,7 +92,11 @@ export const de = {
     'settings.frontend.title': 'Frontend',
     'settings.behavior.title': 'Verhalten',
     'settings.frontend.layoutDrawer': 'Layout-Menü (Hamburger)',
-    'settings.frontend.layoutDrawerHint': 'Wird nur angezeigt, wenn mindestens 2 Layouts definiert sind.',
+    'settings.frontend.layoutDrawerHint':
+        'Wird angezeigt, wenn das Layout mehr als einen Bereich hat (oder immer, wenn unten aktiviert).',
+    'settings.frontend.layoutDrawerShowSingle': 'Menü schon ab einem Bereich anzeigen',
+    'settings.frontend.layoutDrawerShowSingleHint':
+        'Bereichs-Menü auch anzeigen, wenn das Layout nur einen Bereich hat.',
     'settings.frontend.layoutDrawerSize': 'Größe des Hamburger-Buttons',
     'settings.frontend.layoutDrawerAutoHide': 'Auto-Ausblenden',
     'settings.frontend.layoutDrawerAutoHideHint':
@@ -105,6 +109,7 @@ export const de = {
         'Schwebend/Tab-Leiste zeigen einen Hamburger mit Overlay (nur bei ausgeblendetem Header). Feste Seitenleiste ist ein dauerhaft sichtbares Menü links.',
     'settings.frontend.layoutDrawerWidth': 'Breite der Seitenleiste',
     'settings.frontend.layoutDrawerTopOffset': 'Abstand nach oben',
+    'settings.frontend.layoutDrawerBottomOffset': 'Abstand nach unten',
     'settings.frontend.layoutDrawerShowTitle': 'Titel des Menüs anzeigen',
     'settings.frontend.layoutDrawerHamburger': 'Hamburger-Button',
     'settings.frontend.layoutDrawerEntryHeight': 'Höhe der Einträge',
@@ -128,7 +133,7 @@ export const de = {
     'settings.frontend.idleReturn': 'Automatisch zum Standard-Tab zurückkehren',
     'settings.frontend.idleReturnDelay': 'Verzögerung',
     'settings.frontend.idleReturnHint':
-        'Wechselt nach der angegebenen Inaktivitätszeit zum ersten Tab (oder dem im Layout definierten Standard-Tab).',
+        'Wechselt nach der angegebenen Inaktivitätszeit zum Standard-Bereich des Layouts und dessen Standard-Tab.',
     'settings.frontend.optimisticUpdates': 'Sofortige Rückmeldung beim Schalten',
     'settings.frontend.optimisticUpdatesHint':
         'Zeigt geschriebene Werte direkt an, ohne auf die Bestätigung von ioBroker zu warten. Behebt hängende Anzeigen bei Datenpunkten ohne Rückmeldung (z. B. reine 0_userdata-Variablen).',
@@ -173,6 +178,7 @@ export const de = {
     'settings.tabBar.posRight': 'Rechts',
     'settings.tabBar.datapointId': 'Datenpunkt-ID',
     'settings.tabBar.datapointTemplate': 'Template (optional)',
+    'settings.tabBar.datapointTemplateHint': '{dp} = Wert. HTML wird unterstützt.',
     'settings.tabBar.staticText': 'Text',
     'settings.tabBar.clockDisplay': 'Anzeige',
     'settings.tabBar.clockSeconds': 'Sekunden',
@@ -183,6 +189,10 @@ export const de = {
     'settings.tabBar.alignCenter': 'Mitte',
     'settings.tabBar.alignRight': 'Rechts',
     'settings.tabBar.hideMobileScrollbar': 'Laufleiste ausblenden (mobil)',
+    'settings.tabBar.showSingle': 'Leiste schon ab einem Tab anzeigen',
+    'settings.tabBar.position': 'Position',
+    'settings.tabBar.positionTop': 'Oben',
+    'settings.tabBar.positionBottom': 'Unten (Footer)',
     'settings.tabBar.clearAll': '↩ Alles zurücksetzen',
 
     'settings.grid.title': 'Grid & Mobil',
@@ -260,6 +270,12 @@ export const de = {
     'settings.autobackup.change.layout-removed.n': '{count} Layouts entfernt',
     'settings.autobackup.change.layout-renamed': 'Layout „{label}“ umbenannt',
     'settings.autobackup.change.layout-renamed.n': '{count} Layouts umbenannt',
+    'settings.autobackup.change.section-added': 'Bereich „{label}“ hinzugefügt',
+    'settings.autobackup.change.section-added.n': '{count} Bereiche hinzugefügt',
+    'settings.autobackup.change.section-removed': 'Bereich „{label}“ entfernt',
+    'settings.autobackup.change.section-removed.n': '{count} Bereiche entfernt',
+    'settings.autobackup.change.section-renamed': 'Bereich „{label}“ umbenannt',
+    'settings.autobackup.change.section-renamed.n': '{count} Bereiche umbenannt',
 
     'settings.expert.title': 'Experten',
     'settings.expert.locked': 'Zugang mit Admin-PIN',
@@ -352,15 +368,39 @@ export const de = {
     'layouts.designHint': 'Theme, Typografie, Header, Menü und Tab-Leiste werden unter Frontend-Design eingestellt.',
     'layouts.designHintLink': 'Zum Frontend-Design →',
 
+    // ── Bereiche — die Menü-Ebene im linken Menü eines Layouts ──
+    'sections.title': 'Bereiche',
+    'sections.subtitle': 'Ein Bereich ist ein Eintrag im linken Menü eines Layouts und enthält eigene Tabs.',
+    'sections.manage': 'Bereiche verwalten',
+    'sections.newSection': 'Neuer Bereich',
+    'sections.placeholder': 'Bereichs-Name, z.B. Übersicht',
+    'sections.one': 'Bereich',
+    'sections.count': '{count} Bereiche',
+    'sections.countOne': '1 Bereich',
+    'sections.delete': 'Bereich löschen',
+    'sections.export': 'Bereich exportieren',
+    'sections.import': 'Bereich importieren',
+    'sections.importInvalidFile': 'Ungültige Bereichs-Datei',
+    'sections.hideFromMenu': 'Aus Menü ausblenden',
+    'sections.hideFromMenuHint': 'Bereich aus dem linken Menü entfernen. Bleibt per direkter URL erreichbar.',
+    'sections.hideMenuHere': 'Menü hier verbergen',
+    'sections.hideMenuHereHint':
+        'Bereichs-Menü ausblenden, wenn dieser Bereich geöffnet ist – z.B. für ein festgelegtes Tablet.',
+    'sections.defaultSection': 'Layout-Standard',
+    'sections.setDefaultSection':
+        'Diesen Bereich als Standard des Layouts festlegen – das Layout öffnet hier und die Idle-Rückkehr führt hierher.',
+    'sections.isDefault': 'Standard',
+    'sections.makeDefault': 'Als Standard',
+
     'design.title': 'Frontend-Design',
     'design.subtitle': 'Theme, Typografie, Grid und Tab-Leiste — global oder pro Layout.',
     'design.frameGroup': 'Globaler Rahmen',
     'design.header.hint':
-        'Kopfleiste des Frontends: Titel, Uhr, Status-Badge und ein optionaler Datenpunkt. Gilt global für alle Layouts.',
+        'Kopfleiste des Frontends: Titel, Uhr, Status-Badge und ein optionaler Datenpunkt. Global oder pro Layout konfigurierbar.',
     'design.menu.hint':
-        'Navigations-Menü zum Wechseln zwischen Layouts (Hamburger-Button oder angedockte Sidebar). Gilt global für alle Layouts.',
+        'Linkes Navigations-Menü zum Wechseln zwischen den Bereichen eines Layouts (Hamburger-Button oder angedockte Sidebar). Global oder pro Layout konfigurierbar.',
     'design.nav.hint':
-        'Nach einer Zeit ohne Aktivität automatisch zum Standard-Tab zurückkehren. Gilt global für alle Layouts.',
+        'Nach einer Zeit ohne Aktivität automatisch zum Layout-Standard zurückkehren. Global oder pro Layout konfigurierbar.',
 
     'layouts.subtab.theme': 'Theme & CSS-Vars',
     'layouts.subtab.typo': 'Typografie & Spacing',
@@ -382,6 +422,8 @@ export const de = {
     'layouts.scope.globalHint': 'Voreinstellungen für alle Layouts',
     'layouts.scope.layoutHint': 'Überschreibt globale Werte',
     'layouts.scope.resetToGlobal': 'Auf Global zurücksetzen',
+    'layouts.scope.reset': 'Zurücksetzen',
+    'layouts.scope.resetHint': 'Overrides dieses Bereichs entfernen und wieder erben.',
 
     'layouts.context.label': 'Kontext',
     'layouts.context.global': 'Global',

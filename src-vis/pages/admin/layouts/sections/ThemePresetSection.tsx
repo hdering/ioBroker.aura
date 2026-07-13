@@ -1,5 +1,5 @@
 import { useThemeStore } from '../../../../store/themeStore';
-import { useDashboardStore } from '../../../../store/dashboardStore';
+import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { THEMES } from '../../../../themes';
 import { useT } from '../../../../i18n';
 
@@ -10,11 +10,8 @@ interface ThemePresetSectionProps {
 export function ThemePresetSection({ contextId }: ThemePresetSectionProps) {
     const t = useT();
     const { themeId, applyThemePreset } = useThemeStore();
-    const layouts = useDashboardStore((s) => s.layouts);
-    const updateLayoutSettings = useDashboardStore((s) => s.updateLayoutSettings);
-    const clearLayoutSettings = useDashboardStore((s) => s.clearLayoutSettings);
+    const { ls, setPatch, clear } = useLayoutSetting(contextId);
 
-    const ls = contextId ? layouts.find((l) => l.id === contextId)?.settings : undefined;
     const effectiveThemeId = ls?.themeId ?? themeId;
 
     return (
@@ -37,7 +34,7 @@ export function ThemePresetSection({ contextId }: ThemePresetSectionProps) {
                         onClick={() => {
                             if (!contextId) {
                                 applyThemePreset(theme.id);
-                            } else updateLayoutSettings(contextId, { themeId: theme.id, customVars: undefined });
+                            } else setPatch({ themeId: theme.id, customVars: undefined });
                         }}
                         className="rounded-xl p-3 text-left transition-opacity hover:opacity-80 space-y-2.5"
                         style={{
@@ -82,7 +79,7 @@ export function ThemePresetSection({ contextId }: ThemePresetSectionProps) {
             </div>
             {contextId && ls?.themeId && (
                 <button
-                    onClick={() => clearLayoutSettings(contextId, 'themeId')}
+                    onClick={() => clear('themeId')}
                     className="mt-3 text-xs hover:opacity-70"
                     style={{ color: 'var(--text-secondary)' }}
                 >

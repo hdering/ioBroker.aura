@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, X, LayoutDashboard } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { useDashboardStore } from '../../store/dashboardStore';
-import type { DashboardLayout, LayoutMenuItem } from '../../store/dashboardStore';
+import type { Section, LayoutMenuItem } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
 import { subscribeDpValue } from '../../hooks/useIoBroker';
 import { applyCustomFormat, fmtTime, fmtDate } from '../../utils/clockUtils';
@@ -14,6 +14,8 @@ export type LayoutDrawerSize = 'sm' | 'md' | 'lg';
 interface LayoutDrawerProps {
     /** Currently active layout id (from URL or default). */
     activeLayoutId?: string;
+    /** Currently active section id — the menu lists the sections of the active layout. */
+    activeSectionId?: string;
     /** When true the trigger renders as a fixed floating button (used when header is hidden). */
     floating?: boolean;
     /** Hamburger size — controls icon and button dimensions. */
@@ -40,6 +42,8 @@ interface LayoutDrawerProps {
     width?: number;
     /** Space in px between the layout list and the element directly above it (title / top items / top edge). */
     topOffset?: number;
+    /** Space in px below the layout list (before the bottom items / bottom edge). */
+    bottomOffset?: number;
     /** Extra space in px above the menu title row. */
     titleMarginTop?: number;
     /** Extra space in px below the menu title row. */
@@ -175,6 +179,7 @@ const SIZE_MAP: Record<
 
 export function LayoutDrawer({
     activeLayoutId,
+    activeSectionId,
     floating = false,
     size = 'md',
     autoHide = false,
@@ -188,6 +193,7 @@ export function LayoutDrawer({
     variant = 'overlay',
     width = 240,
     topOffset = 0,
+    bottomOffset = 0,
     titleMarginTop = 0,
     titleMarginBottom = 0,
     entryHeight = 48,
@@ -254,17 +260,17 @@ export function LayoutDrawer({
 
     const sz = SIZE_MAP[size];
 
-    // Resolve active layout: prop > first layout (matches App.tsx default)
+    // Resolve active layout: prop > first layout (matches App.tsx default). The menu
+    // lists the sections ("Bereiche") of this layout.
     const activeLayout = layouts.find((l) => l.id === activeLayoutId) ?? layouts[0];
+    const sections = activeLayout?.sections ?? [];
+    const activeSection = sections.find((sec) => sec.id === activeSectionId) ?? sections[0];
 
-    const goToLayout = (layout: DashboardLayout) => {
+    const goToSection = (section: Section) => {
         setOpen(false);
-        const isFirst = layouts[0]?.id === layout.id;
-        if (isFirst) {
-            navigate('/');
-        } else {
-            navigate(`/view/${layout.slug}`);
-        }
+        if (!activeLayout) return;
+        // The menu only shows with >1 section, so always encode the section segment.
+        navigate(`/view/${activeLayout.slug}/s/${section.slug}`);
     };
 
     const showIcon = entryStyle === 'iconAndName' || entryStyle === 'iconOnly';
@@ -272,18 +278,21 @@ export function LayoutDrawer({
     const showBullet = entryStyle === 'bulletAndName';
     const iconBox = iconSize + 16;
 
-    // Shared layout list — reused by the overlay drawer and the docked sidebar.
+    // Shared section list — reused by the overlay drawer and the docked sidebar.
     // Container gets a little horizontal padding so the selected chip reads as inset.
-    const visibleLayouts = layouts.filter((l) => !l.hidden);
+    const visibleSections = sections.filter((sec) => !sec.hidden);
     const list = (
-        <div className="flex-1 overflow-y-auto py-2 px-2" style={{ marginTop: topOffset || undefined }}>
-            {visibleLayouts.map((layout) => {
-                const isActive = layout.id === activeLayout?.id;
+        <div
+            className="flex-1 overflow-y-auto py-2 px-2"
+            style={{ marginTop: topOffset || undefined, marginBottom: bottomOffset || undefined }}
+        >
+            {visibleSections.map((section) => {
+                const isActive = section.id === activeSection?.id;
                 return (
                     <button
-                        key={layout.id}
-                        onClick={() => goToLayout(layout)}
-                        title={entryStyle === 'iconOnly' ? layout.name : undefined}
+                        key={section.id}
+                        onClick={() => goToSection(section)}
+                        title={entryStyle === 'iconOnly' ? section.name : undefined}
                         className={`w-full flex items-center gap-3 px-3 py-1.5 transition-colors hover:opacity-90 text-left ${entryStyle === 'iconOnly' ? 'justify-center' : ''}`}
                         style={{
                             minHeight: entryHeight,
@@ -314,8 +323,8 @@ export function LayoutDrawer({
                                     color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
                                 }}
                             >
-                                {layout.icon ? (
-                                    <Icon icon={layout.icon} width={iconSize} height={iconSize} />
+                                {section.icon ? (
+                                    <Icon icon={section.icon} width={iconSize} height={iconSize} />
                                 ) : (
                                     <LayoutDashboard size={iconSize} />
                                 )}
@@ -326,7 +335,7 @@ export function LayoutDrawer({
                                 className={`truncate ${isActive ? 'font-semibold' : 'font-medium'}`}
                                 style={{ fontSize }}
                             >
-                                {layout.name}
+                                {section.name}
                             </span>
                         )}
                     </button>

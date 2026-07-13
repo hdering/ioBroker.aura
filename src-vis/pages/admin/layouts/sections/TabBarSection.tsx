@@ -299,15 +299,24 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
     const layouts = useDashboardStore((s) => s.layouts);
     const updateLayoutSettings = useDashboardStore((s) => s.updateLayoutSettings);
     const clearLayoutSettings = useDashboardStore((s) => s.clearLayoutSettings);
+    const updateSectionSettings = useDashboardStore((s) => s.updateSectionSettings);
+    const clearSectionSettings = useDashboardStore((s) => s.clearSectionSettings);
     // Older persisted configs predate the global tabBar key → fall back to {}.
     const globalTb = useConfigStore((s) => s.frontend.tabBar) ?? {};
     const updateFrontend = useConfigStore((s) => s.updateFrontend);
 
     const isGlobal = contextId === null;
-    const layout = contextId ? layouts.find((l) => l.id === contextId) : null;
+    // contextId is either a layout id (per-layout override) or a section id.
+    const asLayout = contextId ? layouts.find((l) => l.id === contextId) : undefined;
+    const asSection =
+        !asLayout && contextId
+            ? layouts
+                  .flatMap((l) => l.sections.map((sec) => ({ layoutId: l.id, section: sec })))
+                  .find(({ section }) => section.id === contextId)
+            : undefined;
 
-    // Layout selected but no longer exists → nothing to edit.
-    if (!isGlobal && !layout) {
+    // Selected scope no longer exists → nothing to edit.
+    if (!isGlobal && !asLayout && !asSection) {
         return (
             <div
                 className="rounded-xl p-6 text-center"
@@ -320,19 +329,21 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
         );
     }
 
-    const layoutTb = layout?.settings?.tabBar;
-    // Effective settings shown in the editor: global as base, layout override on top.
-    const tbs: TabBarSettings = isGlobal ? globalTb : resolveTabBarSettings(globalTb, layoutTb);
-    // True when the given field is overridden by the layout (only meaningful in layout scope).
-    const ov = (key: keyof TabBarSettings) => !isGlobal && layoutTb?.[key] !== undefined;
+    // Own override at this scope + the inherited base it sits on top of
+    // (section inherits global → layout; layout inherits global).
+    const ownTb = asLayout ? asLayout.settings?.tabBar : asSection?.section.settings?.tabBar;
+    const parentLayoutTb = asSection ? layouts.find((l) => l.id === asSection.layoutId)?.settings?.tabBar : undefined;
+    const inheritedTb: TabBarSettings = asSection ? resolveTabBarSettings(globalTb, parentLayoutTb) : globalTb;
+    const tbs: TabBarSettings = isGlobal ? globalTb : resolveTabBarSettings(inheritedTb, ownTb);
+    // True when the given field is overridden at this scope.
+    const ov = (key: keyof TabBarSettings) => !isGlobal && ownTb?.[key] !== undefined;
     const ovTitle = t('layouts.scope.layoutHint');
 
     const update = (patch: Partial<TabBarSettings>) => {
-        if (isGlobal) {
-            updateFrontend({ tabBar: { ...globalTb, ...patch } });
-        } else if (layout) {
-            updateLayoutSettings(layout.id, { tabBar: { ...(layoutTb ?? {}), ...patch } });
-        }
+        if (isGlobal) updateFrontend({ tabBar: { ...globalTb, ...patch } });
+        else if (asLayout) updateLayoutSettings(asLayout.id, { tabBar: { ...(ownTb ?? {}), ...patch } });
+        else if (asSection)
+            updateSectionSettings(asSection.layoutId, asSection.section.id, { tabBar: { ...(ownTb ?? {}), ...patch } });
     };
     const updateItem = (id: string, patch: Partial<TabBarItem>) => {
         update({ items: (tbs.items ?? []).map((it) => (it.id === id ? { ...it, ...patch } : it)) });
@@ -351,9 +362,10 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
     };
     const clearAll = () => {
         if (isGlobal) updateFrontend({ tabBar: {} });
-        else if (layout) clearLayoutSettings(layout.id, 'tabBar');
+        else if (asLayout) clearLayoutSettings(asLayout.id, 'tabBar');
+        else if (asSection) clearSectionSettings(asSection.layoutId, asSection.section.id, 'tabBar');
     };
-    const hasOverride = isGlobal ? Object.keys(globalTb).length > 0 : !!layoutTb && Object.keys(layoutTb).length > 0;
+    const hasOverride = isGlobal ? Object.keys(globalTb).length > 0 : !!ownTb && Object.keys(ownTb).length > 0;
 
     const styleOptions: Array<{ key: TabBarSettings['indicatorStyle']; label: string }> = [
         { key: 'text', label: t('settings.tabBar.styleText') },
@@ -632,6 +644,36 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
 
                     <div>
                         <p className="text-sm mb-2 flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                            {t('settings.tabBar.position')}
+                            <OverrideDot show={ov('position')} title={ovTitle} />
+                        </p>
+                        <div className="flex gap-1.5">
+                            {(['top', 'bottom'] as const).map((key) => {
+                                const active = (tbs.position ?? 'top') === key;
+                                return (
+                                    <button
+                                        key={key}
+                                        onClick={() => update({ position: key })}
+                                        className="flex-1 py-1.5 rounded-lg text-xs font-medium hover:opacity-80"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {t(
+                                            key === 'top'
+                                                ? 'settings.tabBar.positionTop'
+                                                : 'settings.tabBar.positionBottom',
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div>
+                        <p className="text-sm mb-2 flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.tabBar.tabsAlignment')}
                             <OverrideDot show={ov('tabsAlignment')} title={ovTitle} />
                         </p>
@@ -669,6 +711,23 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                             <span
                                 className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
                                 style={{ left: tbs.hideMobileScrollbar ? '18px' : '2px' }}
+                            />
+                        </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                        <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                            {t('settings.tabBar.showSingle')}
+                            <OverrideDot show={ov('showSingle')} title={ovTitle} />
+                        </p>
+                        <button
+                            onClick={() => update({ showSingle: !tbs.showSingle })}
+                            className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                            style={{ background: tbs.showSingle ? 'var(--accent)' : 'var(--app-border)' }}
+                        >
+                            <span
+                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                style={{ left: tbs.showSingle ? '18px' : '2px' }}
                             />
                         </button>
                     </div>

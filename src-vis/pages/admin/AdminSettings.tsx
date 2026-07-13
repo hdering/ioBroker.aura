@@ -139,7 +139,7 @@ function applyBackupPayload(payload: Record<string, unknown>): boolean {
 
 function BackupCard() {
     const t = useT();
-    const tabs = useActiveLayout().tabs;
+    const tabs = useActiveLayout().sections.flatMap((s) => s.tabs);
     const { backupCount, setBackupCount } = useAdminPrefsStore();
     const [backups, setBackups] = useState<BackupEntry[]>([]);
     const [loading, setLoading] = useState(true);

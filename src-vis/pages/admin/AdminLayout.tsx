@@ -68,7 +68,9 @@ function useSaveState() {
         try {
             saveAll();
             saveToIoBroker();
-            const widgets = useDashboardStore.getState().layouts.flatMap((l) => l.tabs.flatMap((t) => t.widgets));
+            const widgets = useDashboardStore
+                .getState()
+                .layouts.flatMap((l) => l.sections.flatMap((s) => s.tabs.flatMap((t) => t.widgets)));
             renameAllTimers(widgets);
         } catch {
             setSaveError('Speichern fehlgeschlagen: localStorage-Speicher voll');
@@ -97,12 +99,18 @@ function useFrontendUrl(): string {
     return useDashboardStore((s) => {
         const layout = s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0];
         const isFirst = s.layouts[0]?.id === layout.id;
-        const activeTab = layout.tabs.find((t) => t.id === layout.activeTabId) ?? layout.tabs[0];
-        const tabSlug = activeTab?.slug ?? activeTab?.id ?? '';
-        if (isFirst) {
-            return tabSlug && layout.tabs.length > 1 ? `#/tab/${tabSlug}` : '#/';
-        }
-        return tabSlug && layout.tabs.length > 1 ? `#/view/${layout.slug}/tab/${tabSlug}` : `#/view/${layout.slug}`;
+        // Mirror the frontend's default-open resolution: default section, then that
+        // section's default tab — so the link reflects the configured defaults, not
+        // whichever section/tab happens to be active in the editor.
+        const section = layout.sections.find((x) => x.id === layout.defaultSectionId) ?? layout.sections[0];
+        const defaultTab = section.tabs.find((t) => t.id === section.defaultTabId) ?? section.tabs[0];
+        const tabSlug = defaultTab?.slug ?? defaultTab?.id ?? '';
+        const multiSection = layout.sections.length > 1;
+        const manyTabs = section.tabs.length > 1;
+        // Base path to the layout/section.
+        const base = multiSection ? `#/view/${layout.slug}/s/${section.slug}` : isFirst ? '#' : `#/view/${layout.slug}`;
+        if (tabSlug && manyTabs) return base === '#' ? `#/tab/${tabSlug}` : `${base}/tab/${tabSlug}`;
+        return base === '#' ? '#/' : base;
     });
 }
 

@@ -1,9 +1,32 @@
 import { useState } from 'react';
-import { Plus, X } from 'lucide-react';
-import { useConfigStore } from '../../../../store/configStore';
-import type { LayoutMenuItem } from '../../../../store/dashboardStore';
+import { Plus, X, Search } from 'lucide-react';
+import type { LayoutMenuItem, LayoutSettings } from '../../../../store/dashboardStore';
 import { useT } from '../../../../i18n';
 import { ToggleRow, SubGroup } from '../shared/SettingControls';
+import { useLayoutSetting } from '../shared/useLayoutSetting';
+import { DatapointPicker } from '../../../../components/config/DatapointPicker';
+
+// layoutDrawer* keys reset together by the per-scope "reset" button.
+const DRAWER_KEYS: (keyof LayoutSettings)[] = [
+    'layoutDrawerEnabled',
+    'layoutDrawerShowSingle',
+    'layoutDrawerSize',
+    'layoutDrawerAutoHide',
+    'layoutDrawerPlacement',
+    'layoutDrawerWidth',
+    'layoutDrawerTopOffset',
+    'layoutDrawerBottomOffset',
+    'layoutDrawerShowTitle',
+    'layoutDrawerTitle',
+    'layoutDrawerTitleMarginTop',
+    'layoutDrawerTitleMarginBottom',
+    'layoutDrawerEntryStyle',
+    'layoutDrawerEntryHeight',
+    'layoutDrawerIndicatorStyle',
+    'layoutDrawerFontSize',
+    'layoutDrawerIconSize',
+    'layoutDrawerItems',
+];
 
 // ── LayoutMenuItemRow ─────────────────────────────────────────────────────────
 // Editor row for one extra menu element (clock / datapoint / text). Mirrors the
@@ -21,6 +44,7 @@ function LayoutMenuItemRow({
     t: ReturnType<typeof useT>;
 }) {
     const [expanded, setExpanded] = useState(false);
+    const [pickerOpen, setPickerOpen] = useState(false);
     const posLabels: Record<'top' | 'bottom', string> = {
         top: t('settings.frontend.layoutDrawerItemPosTop'),
         bottom: t('settings.frontend.layoutDrawerItemPosBottom'),
@@ -204,27 +228,54 @@ function LayoutMenuItemRow({
                                 <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
                                     {t('settings.tabBar.datapointId')}
                                 </p>
-                                <input
-                                    type="text"
-                                    value={item.datapointId ?? ''}
-                                    onChange={(e) => onUpdate({ datapointId: e.target.value || undefined })}
-                                    placeholder="hm-rpc.0.ABC.1.TEMPERATURE"
-                                    className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none font-mono"
-                                    style={iSty}
-                                />
+                                <div className="flex items-center gap-1.5">
+                                    <input
+                                        type="text"
+                                        value={item.datapointId ?? ''}
+                                        onChange={(e) => onUpdate({ datapointId: e.target.value || undefined })}
+                                        placeholder="hm-rpc.0.ABC.1.TEMPERATURE"
+                                        className="flex-1 min-w-0 text-xs rounded-lg px-2 py-1.5 focus:outline-none font-mono"
+                                        style={iSty}
+                                    />
+                                    <button
+                                        onClick={() => setPickerOpen(true)}
+                                        title={t('dp.picker.title')}
+                                        className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:opacity-80"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            color: 'var(--text-secondary)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                    >
+                                        <Search size={13} />
+                                    </button>
+                                </div>
+                                {pickerOpen && (
+                                    <DatapointPicker
+                                        currentValue={item.datapointId ?? ''}
+                                        onSelect={(id) => onUpdate({ datapointId: id || undefined })}
+                                        onClose={() => setPickerOpen(false)}
+                                    />
+                                )}
                             </div>
                             <div>
                                 <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
                                     {t('settings.tabBar.datapointTemplate')}
                                 </p>
-                                <input
-                                    type="text"
+                                <textarea
+                                    rows={2}
                                     value={item.datapointTemplate ?? ''}
                                     onChange={(e) => onUpdate({ datapointTemplate: e.target.value || undefined })}
-                                    placeholder="{dp} °C"
-                                    className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none font-mono"
+                                    placeholder="<b>{dp}</b> °C"
+                                    className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none font-mono resize-y"
                                     style={iSty}
                                 />
+                                <p
+                                    className="text-[10px] mt-1"
+                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                >
+                                    {t('settings.tabBar.datapointTemplateHint')}
+                                </p>
                             </div>
                         </>
                     )}
@@ -252,9 +303,35 @@ function LayoutMenuItemRow({
 // Global layout menu (hamburger) configuration. Extracted from the former
 // FrontendSection into its own prominent Design sub-tab: the enable toggle sits at
 // the top and all options render directly below it (no nested SubGroup).
-export function LayoutMenuSection() {
+export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
     const t = useT();
-    const { frontend, updateFrontend } = useConfigStore();
+    const { eff, setPatch, clear, level } = useLayoutSetting(contextId);
+
+    // Effective view + patch-writer so the existing markup keeps working while
+    // reads/writes route to the active scope (global or per layout).
+    const frontend = {
+        layoutDrawerEnabled: eff('layoutDrawerEnabled')[0],
+        layoutDrawerShowSingle: eff('layoutDrawerShowSingle')[0],
+        layoutDrawerSize: eff('layoutDrawerSize')[0],
+        layoutDrawerAutoHide: eff('layoutDrawerAutoHide')[0],
+        layoutDrawerPlacement: eff('layoutDrawerPlacement')[0],
+        layoutDrawerWidth: eff('layoutDrawerWidth')[0],
+        layoutDrawerTopOffset: eff('layoutDrawerTopOffset')[0],
+        layoutDrawerBottomOffset: eff('layoutDrawerBottomOffset')[0],
+        layoutDrawerShowTitle: eff('layoutDrawerShowTitle')[0],
+        layoutDrawerTitle: eff('layoutDrawerTitle')[0],
+        layoutDrawerTitleMarginTop: eff('layoutDrawerTitleMarginTop')[0],
+        layoutDrawerTitleMarginBottom: eff('layoutDrawerTitleMarginBottom')[0],
+        layoutDrawerEntryStyle: eff('layoutDrawerEntryStyle')[0],
+        layoutDrawerEntryHeight: eff('layoutDrawerEntryHeight')[0],
+        layoutDrawerIndicatorStyle: eff('layoutDrawerIndicatorStyle')[0],
+        layoutDrawerFontSize: eff('layoutDrawerFontSize')[0],
+        layoutDrawerIconSize: eff('layoutDrawerIconSize')[0],
+        layoutDrawerItems: eff('layoutDrawerItems')[0],
+        showHeader: eff('showHeader')[0],
+    };
+    const updateFrontend = (patch: Partial<LayoutSettings>) => setPatch(patch);
+    const overridden = level !== 'global' && DRAWER_KEYS.some((k) => eff(k as 'layoutDrawerEnabled')[1]);
 
     const items = frontend.layoutDrawerItems ?? [];
     const updateItem = (id: string, patch: Partial<LayoutMenuItem>) => {
@@ -278,9 +355,21 @@ export function LayoutMenuSection() {
             className="rounded-xl p-6 space-y-3"
             style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
         >
-            <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-                {t('layouts.subtab.menu')}
-            </h2>
+            <div className="flex items-center justify-between gap-2">
+                <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {t('layouts.subtab.menu')}
+                </h2>
+                {overridden && (
+                    <button
+                        onClick={() => DRAWER_KEYS.forEach((k) => clear(k))}
+                        className="text-[10px] px-2 py-0.5 rounded-full hover:opacity-80"
+                        style={{ color: 'var(--accent)', border: '1px solid var(--accent)' }}
+                        title={t('layouts.scope.resetHint')}
+                    >
+                        {t('layouts.scope.reset')}
+                    </button>
+                )}
+            </div>
             <p className="text-xs -mt-1" style={{ color: 'var(--text-secondary)' }}>
                 {t('design.menu.hint')}
             </p>
@@ -293,6 +382,12 @@ export function LayoutMenuSection() {
             />
             {frontend.layoutDrawerEnabled && (
                 <div className="space-y-3 pt-1">
+                    <ToggleRow
+                        label={t('settings.frontend.layoutDrawerShowSingle')}
+                        hint={t('settings.frontend.layoutDrawerShowSingleHint')}
+                        value={frontend.layoutDrawerShowSingle ?? false}
+                        onChange={(v) => updateFrontend({ layoutDrawerShowSingle: v })}
+                    />
                     <ToggleRow
                         label={t('settings.frontend.layoutDrawerShowTitle')}
                         value={frontend.layoutDrawerShowTitle ?? true}
@@ -519,6 +614,32 @@ export function LayoutMenuSection() {
                                             onChange={(e) => {
                                                 const v = Math.min(400, Math.max(0, parseInt(e.target.value) || 0));
                                                 updateFrontend({ layoutDrawerTopOffset: v });
+                                            }}
+                                            className="w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-primary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        />
+                                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                            px
+                                        </span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('settings.frontend.layoutDrawerBottomOffset')}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            max={400}
+                                            value={frontend.layoutDrawerBottomOffset ?? 0}
+                                            onChange={(e) => {
+                                                const v = Math.min(400, Math.max(0, parseInt(e.target.value) || 0));
+                                                updateFrontend({ layoutDrawerBottomOffset: v });
                                             }}
                                             className="w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
                                             style={{

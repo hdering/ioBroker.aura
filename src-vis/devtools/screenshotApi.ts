@@ -47,6 +47,7 @@ export interface ShowWidgetsOptions {
 }
 
 const DEMO_LAYOUT_ID = 'screenshot-demo';
+const DEMO_SECTION_ID = 'screenshot-section';
 const DEMO_TAB_ID = 'screenshot-tab';
 
 // Fabricate a smooth, deterministic history series centred on the datapoint's
@@ -98,18 +99,26 @@ function installScreenshotApi(): void {
                 id: DEMO_LAYOUT_ID,
                 name: 'Screenshot',
                 slug: 'screenshot',
-                activeTabId: DEMO_TAB_ID,
+                activeSectionId: DEMO_SECTION_ID,
                 settings: {
                     gridRowHeight: opts.gridRowHeight ?? 20,
                     gridSnapX: opts.gridSnapX ?? opts.gridRowHeight ?? 20,
                     gridGap: opts.gridGap ?? 10,
                 },
-                tabs: [
+                sections: [
                     {
-                        id: DEMO_TAB_ID,
-                        name: opts.tabName ?? 'Demo',
-                        slug: 'demo',
-                        widgets,
+                        id: DEMO_SECTION_ID,
+                        name: 'Screenshot',
+                        slug: 'screenshot',
+                        activeTabId: DEMO_TAB_ID,
+                        tabs: [
+                            {
+                                id: DEMO_TAB_ID,
+                                name: opts.tabName ?? 'Demo',
+                                slug: 'demo',
+                                widgets,
+                            },
+                        ],
                     },
                 ],
             };

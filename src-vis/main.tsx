@@ -76,6 +76,8 @@ const router = createHashRouter([
     { path: '/tab/:tabSlug', element: <App /> },
     { path: '/view/:layoutSlug', element: <App /> },
     { path: '/view/:layoutSlug/tab/:tabSlug', element: <App /> },
+    { path: '/view/:layoutSlug/s/:sectionSlug', element: <App /> },
+    { path: '/view/:layoutSlug/s/:sectionSlug/tab/:tabSlug', element: <App /> },
     { path: '/admin/login', element: lazyRoute(AdminLogin) },
     {
         path: '/admin',
@@ -87,7 +89,7 @@ const router = createHashRouter([
             { path: 'widgets', element: lazyRoute(AdminWidgets) },
             { path: 'layouts', element: lazyRoute(AdminLayouts) },
             { path: 'design', element: lazyRoute(AdminDesign) },
-            { path: 'frontend', element: <Navigate to="/admin/design?frame=header" replace /> },
+            { path: 'frontend', element: <Navigate to="/admin/design?tab=header" replace /> },
             { path: 'css-js', element: lazyRoute(AdminCssJs) },
             { path: 'popups', element: lazyRoute(AdminPopups) },
             { path: 'popups/:viewId', element: lazyRoute(PopupViewEditor) },

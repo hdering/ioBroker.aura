@@ -1,5 +1,5 @@
 import { useThemeStore } from '../../../../store/themeStore';
-import { useDashboardStore } from '../../../../store/dashboardStore';
+import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { getTheme, ELEMENT_VAR_FALLBACKS, type ThemeVars, type AllVars } from '../../../../themes';
 import { useT } from '../../../../i18n';
 import { ColorPicker } from '../../../../components/common/ColorPicker';
@@ -130,10 +130,8 @@ interface ThemeVarsSectionProps {
 export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
     const t = useT();
     const { themeId, customVars, setCustomVar, resetCustom } = useThemeStore();
-    const layouts = useDashboardStore((s) => s.layouts);
-    const updateLayoutSettings = useDashboardStore((s) => s.updateLayoutSettings);
+    const { ls, setPatch } = useLayoutSetting(contextId);
 
-    const ls = contextId ? layouts.find((l) => l.id === contextId)?.settings : undefined;
     const effectiveThemeId = ls?.themeId ?? themeId;
     const effectiveVars = ls?.customVars ?? customVars;
     const activeTheme = getTheme(effectiveThemeId);
@@ -146,7 +144,7 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
         if (!contextId) setCustomVar(key, value);
         else {
             const next = { ...effectiveVars, [key]: value };
-            updateLayoutSettings(contextId, { customVars: next });
+            setPatch({ customVars: next });
         }
     }
 
@@ -159,7 +157,7 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
         } else {
             const next = { ...effectiveVars };
             delete next[key];
-            updateLayoutSettings(contextId, { customVars: Object.keys(next).length ? next : undefined });
+            setPatch({ customVars: Object.keys(next).length ? next : undefined });
         }
     }
 
@@ -168,7 +166,7 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
             resetCustom();
             return;
         }
-        updateLayoutSettings(contextId, { customVars: undefined });
+        setPatch({ customVars: undefined });
     }
 
     return (

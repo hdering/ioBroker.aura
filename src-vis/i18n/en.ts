@@ -94,7 +94,10 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.title': 'Frontend',
     'settings.behavior.title': 'Behavior',
     'settings.frontend.layoutDrawer': 'Layout Menu (Hamburger)',
-    'settings.frontend.layoutDrawerHint': 'Only shown when at least 2 layouts are defined.',
+    'settings.frontend.layoutDrawerHint':
+        'Shown when the layout has more than one section (or always, if enabled below).',
+    'settings.frontend.layoutDrawerShowSingle': 'Show menu with a single section',
+    'settings.frontend.layoutDrawerShowSingleHint': 'Show the section menu even when the layout has only one section.',
     'settings.frontend.layoutDrawerSize': 'Hamburger button size',
     'settings.frontend.layoutDrawerAutoHide': 'Auto-hide',
     'settings.frontend.layoutDrawerAutoHideHint':
@@ -107,6 +110,7 @@ export const en: Record<TranslationKey, string> = {
         'Floating/tab bar show a hamburger with an overlay (header hidden only). Docked sidebar is a permanently visible left menu.',
     'settings.frontend.layoutDrawerWidth': 'Sidebar width',
     'settings.frontend.layoutDrawerTopOffset': 'Top offset',
+    'settings.frontend.layoutDrawerBottomOffset': 'Bottom offset',
     'settings.frontend.layoutDrawerShowTitle': 'Show menu title',
     'settings.frontend.layoutDrawerHamburger': 'Hamburger button',
     'settings.frontend.layoutDrawerEntryHeight': 'Entry height',
@@ -130,7 +134,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.idleReturn': 'Auto-return to default tab',
     'settings.frontend.idleReturnDelay': 'Delay',
     'settings.frontend.idleReturnHint':
-        'Switches to the first tab (or the layout default tab) after the specified idle time.',
+        "Switches to the layout's default section and its default tab after the specified idle time.",
     'settings.frontend.optimisticUpdates': 'Instant feedback on control',
     'settings.frontend.optimisticUpdatesHint':
         'Reflect written values immediately without waiting for ioBroker to confirm. Fixes stale UI for datapoints that never echo a write back (e.g. plain 0_userdata variables).',
@@ -175,6 +179,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.tabBar.posRight': 'Right',
     'settings.tabBar.datapointId': 'Datapoint ID',
     'settings.tabBar.datapointTemplate': 'Template (optional)',
+    'settings.tabBar.datapointTemplateHint': '{dp} = value. HTML is supported.',
     'settings.tabBar.staticText': 'Text',
     'settings.tabBar.clockDisplay': 'Display',
     'settings.tabBar.clockSeconds': 'Seconds',
@@ -185,6 +190,10 @@ export const en: Record<TranslationKey, string> = {
     'settings.tabBar.alignCenter': 'Center',
     'settings.tabBar.alignRight': 'Right',
     'settings.tabBar.hideMobileScrollbar': 'Hide scroll bar (mobile)',
+    'settings.tabBar.showSingle': 'Show bar with a single tab',
+    'settings.tabBar.position': 'Position',
+    'settings.tabBar.positionTop': 'Top',
+    'settings.tabBar.positionBottom': 'Bottom (footer)',
     'settings.tabBar.clearAll': '↩ Reset all',
 
     'settings.grid.title': 'Grid & Mobile',
@@ -262,6 +271,12 @@ export const en: Record<TranslationKey, string> = {
     'settings.autobackup.change.layout-removed.n': '{count} layouts removed',
     'settings.autobackup.change.layout-renamed': 'Layout “{label}” renamed',
     'settings.autobackup.change.layout-renamed.n': '{count} layouts renamed',
+    'settings.autobackup.change.section-added': 'Section “{label}” added',
+    'settings.autobackup.change.section-added.n': '{count} sections added',
+    'settings.autobackup.change.section-removed': 'Section “{label}” removed',
+    'settings.autobackup.change.section-removed.n': '{count} sections removed',
+    'settings.autobackup.change.section-renamed': 'Section “{label}” renamed',
+    'settings.autobackup.change.section-renamed.n': '{count} sections renamed',
 
     'settings.expert.title': 'Expert',
     'settings.expert.locked': 'Access with Admin PIN',
@@ -353,15 +368,38 @@ export const en: Record<TranslationKey, string> = {
     'layouts.designHint': 'Theme, typography, header, menu and tab bar are configured under Frontend Design.',
     'layouts.designHintLink': 'Open Frontend Design →',
 
+    // ── Sections ("Bereiche") — the left-hand menu level inside a layout ──
+    'sections.title': 'Sections',
+    'sections.subtitle': 'A section is an entry in the left-hand menu of a layout and holds its own tabs.',
+    'sections.manage': 'Manage sections',
+    'sections.newSection': 'New section',
+    'sections.placeholder': 'Section name, e.g. Overview',
+    'sections.one': 'Section',
+    'sections.count': '{count} sections',
+    'sections.countOne': '1 section',
+    'sections.delete': 'Delete section',
+    'sections.export': 'Export section',
+    'sections.import': 'Import section',
+    'sections.importInvalidFile': 'Invalid section file',
+    'sections.hideFromMenu': 'Hide from menu',
+    'sections.hideFromMenuHint': 'Remove this section from the left-hand menu. Still reachable via its direct URL.',
+    'sections.hideMenuHere': 'Hide menu here',
+    'sections.hideMenuHereHint': 'Hide the section menu while this section is open – e.g. for a fixed tablet.',
+    'sections.defaultSection': 'Layout default',
+    'sections.setDefaultSection':
+        "Make this the layout's default section – it opens here and idle-return comes back to it.",
+    'sections.isDefault': 'Default',
+    'sections.makeDefault': 'Set default',
+
     'design.title': 'Frontend Design',
     'design.subtitle': 'Theme, typography, grid and tab bar — global or per layout.',
     'design.frameGroup': 'Global frame',
     'design.header.hint':
-        'Frontend header bar: title, clock, status badge and an optional datapoint. Applies globally to all layouts.',
+        'Frontend header bar: title, clock, status badge and an optional datapoint. Configurable globally or per layout.',
     'design.menu.hint':
-        'Navigation menu for switching between layouts (hamburger button or docked sidebar). Applies globally to all layouts.',
+        'Left-hand navigation menu for switching between the sections of a layout (hamburger button or docked sidebar). Configurable globally or per layout.',
     'design.nav.hint':
-        'Automatically return to the default tab after a period of inactivity. Applies globally to all layouts.',
+        'Automatically return to the layout default after a period of inactivity. Configurable globally or per layout.',
 
     'layouts.subtab.theme': 'Theme & CSS Vars',
     'layouts.subtab.typo': 'Typography & Spacing',
@@ -383,6 +421,8 @@ export const en: Record<TranslationKey, string> = {
     'layouts.scope.globalHint': 'Defaults for all layouts',
     'layouts.scope.layoutHint': 'Overrides global values',
     'layouts.scope.resetToGlobal': 'Reset to global',
+    'layouts.scope.reset': 'Reset',
+    'layouts.scope.resetHint': 'Clear this scope’s overrides and inherit again.',
 
     'layouts.context.label': 'Context',
     'layouts.context.global': 'Global',

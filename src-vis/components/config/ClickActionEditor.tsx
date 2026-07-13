@@ -192,8 +192,13 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
                 break;
             case 'link-tab': {
                 const firstLayout = layouts[0];
-                const firstTab = firstLayout?.tabs[0];
-                setAction({ kind: 'link-tab', layoutId: firstLayout?.id ?? '', tabId: firstTab?.id ?? '' });
+                const firstSec = firstLayout?.sections[0];
+                setAction({
+                    kind: 'link-tab',
+                    layoutId: firstLayout?.id ?? '',
+                    sectionId: firstSec?.id,
+                    tabId: firstSec?.tabs[0]?.id ?? '',
+                });
                 break;
             }
             case 'link-external':
@@ -201,11 +206,13 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
                 break;
             case 'link-widget': {
                 const firstLayout = layouts[0];
-                const firstTab = firstLayout?.tabs[0];
+                const firstSec = firstLayout?.sections[0];
+                const firstTab = firstSec?.tabs[0];
                 const firstWidget = firstTab?.widgets[0];
                 setAction({
                     kind: 'link-widget',
                     layoutId: firstLayout?.id ?? '',
+                    sectionId: firstSec?.id,
                     tabId: firstTab?.id ?? '',
                     widgetId: firstWidget?.id ?? '',
                 });
@@ -245,11 +252,16 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
     // Layout/Tab/Widget selectors for link modes
     const selLayout = action.kind === 'link-tab' || action.kind === 'link-widget' ? action.layoutId : '';
     const selTab = action.kind === 'link-tab' || action.kind === 'link-widget' ? action.tabId : '';
-    const tabsForLayout = layouts.find((l) => l.id === selLayout)?.tabs ?? [];
-    const widgetsForTab = tabsForLayout.find((t) => t.id === selTab)?.widgets ?? [];
+    const selLayoutObj = layouts.find((l) => l.id === selLayout);
+    const multiSection = (selLayoutObj?.sections.length ?? 0) > 1;
+    // Flatten tabs across sections, remembering each tab's section for the label + sectionId.
+    const tabsForLayout = (selLayoutObj?.sections ?? []).flatMap((sec) =>
+        sec.tabs.map((t) => ({ tab: t, sectionId: sec.id, sectionName: sec.name })),
+    );
+    const widgetsForTab = tabsForLayout.find((x) => x.tab.id === selTab)?.tab.widgets ?? [];
 
     // All widgets across all layouts (for popup-widget)
-    const allWidgets = layouts.flatMap((l) => l.tabs.flatMap((t) => t.widgets));
+    const allWidgets = layouts.flatMap((l) => l.sections.flatMap((s) => s.tabs.flatMap((t) => t.widgets)));
 
     return (
         <div className="space-y-4">
@@ -743,10 +755,12 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
                             value={action.layoutId}
                             onChange={(e) => {
                                 const lay = layouts.find((l) => l.id === e.target.value);
+                                const firstSec = lay?.sections[0];
                                 setAction({
                                     kind: 'link-tab',
                                     layoutId: e.target.value,
-                                    tabId: lay?.tabs[0]?.id ?? '',
+                                    sectionId: firstSec?.id,
+                                    tabId: firstSec?.tabs[0]?.id ?? '',
                                 });
                             }}
                             className={inputCls}
@@ -765,13 +779,16 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
                         </label>
                         <select
                             value={action.tabId}
-                            onChange={(e) => setAction({ ...action, tabId: e.target.value })}
+                            onChange={(e) => {
+                                const sel = tabsForLayout.find((x) => x.tab.id === e.target.value);
+                                setAction({ ...action, tabId: e.target.value, sectionId: sel?.sectionId });
+                            }}
                             className={inputCls}
                             style={inputStyle}
                         >
-                            {tabsForLayout.map((t) => (
-                                <option key={t.id} value={t.id}>
-                                    {t.name}
+                            {tabsForLayout.map(({ tab, sectionName }) => (
+                                <option key={tab.id} value={tab.id}>
+                                    {multiSection ? `${sectionName} · ${tab.name}` : tab.name}
                                 </option>
                             ))}
                         </select>
@@ -824,10 +841,12 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
                             value={action.layoutId}
                             onChange={(e) => {
                                 const lay = layouts.find((l) => l.id === e.target.value);
-                                const tab = lay?.tabs[0];
+                                const firstSec = lay?.sections[0];
+                                const tab = firstSec?.tabs[0];
                                 setAction({
                                     kind: 'link-widget',
                                     layoutId: e.target.value,
+                                    sectionId: firstSec?.id,
                                     tabId: tab?.id ?? '',
                                     widgetId: tab?.widgets[0]?.id ?? '',
                                 });
@@ -849,15 +868,20 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
                         <select
                             value={action.tabId}
                             onChange={(e) => {
-                                const tab = tabsForLayout.find((t) => t.id === e.target.value);
-                                setAction({ ...action, tabId: e.target.value, widgetId: tab?.widgets[0]?.id ?? '' });
+                                const sel = tabsForLayout.find((x) => x.tab.id === e.target.value);
+                                setAction({
+                                    ...action,
+                                    tabId: e.target.value,
+                                    sectionId: sel?.sectionId,
+                                    widgetId: sel?.tab.widgets[0]?.id ?? '',
+                                });
                             }}
                             className={inputCls}
                             style={inputStyle}
                         >
-                            {tabsForLayout.map((t) => (
-                                <option key={t.id} value={t.id}>
-                                    {t.name}
+                            {tabsForLayout.map(({ tab, sectionName }) => (
+                                <option key={tab.id} value={tab.id}>
+                                    {multiSection ? `${sectionName} · ${tab.name}` : tab.name}
                                 </option>
                             ))}
                         </select>

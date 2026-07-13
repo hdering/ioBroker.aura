@@ -317,9 +317,10 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
             const tab = useDashboardStore
                 .getState()
                 .layouts.find((l) => l.id === a.layoutId)
-                ?.tabs.find((t) => t.id === a.tabId);
+                ?.sections.flatMap((s) => s.tabs)
+                .find((t) => t.id === a.tabId);
             if (tab?.disabled) return;
-            useNavigationStore.getState().navigateTo(a.layoutId, a.tabId);
+            useNavigationStore.getState().navigateTo(a.layoutId, a.tabId, undefined, a.sectionId);
             return;
         }
         setPopupAction(a);
@@ -598,7 +599,9 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
                     widget={config}
                     action={popupAction}
                     onClose={() => setPopupAction(null)}
-                    allWidgets={useDashboardStore.getState().layouts.flatMap((l) => l.tabs.flatMap((t) => t.widgets))}
+                    allWidgets={useDashboardStore
+                        .getState()
+                        .layouts.flatMap((l) => l.sections.flatMap((s) => s.tabs.flatMap((t) => t.widgets)))}
                 />
             )}
         </div>

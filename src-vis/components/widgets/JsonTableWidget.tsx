@@ -219,7 +219,9 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
             // gridGap/gridRowHeight and produce a wrong (too small) gridPos.h.
             const { layouts } = useDashboardStore.getState();
             const { frontend } = useConfigStore.getState();
-            const layout = layouts.find((l) => l.tabs.some((t) => (t.widgets ?? []).some((w) => w.id === latest.id)));
+            const layout = layouts.find((l) =>
+                l.sections.some((sec) => sec.tabs.some((t) => (t.widgets ?? []).some((w) => w.id === latest.id))),
+            );
             const cellSize = layout?.settings?.gridRowHeight ?? frontend.gridRowHeight ?? 20;
             const margin = layout?.settings?.gridGap ?? frontend.gridGap ?? 10;
             // The outer .aura-widget wrapper adds vertical padding (widgetPadding)

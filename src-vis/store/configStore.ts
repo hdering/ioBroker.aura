@@ -42,6 +42,7 @@ export interface FrontendSettings {
     guidelinesShowResolution: boolean;
     // Layout drawer (hamburger) — global toggle
     layoutDrawerEnabled: boolean;
+    layoutDrawerShowSingle: boolean;
     layoutDrawerSize: 'sm' | 'md' | 'lg';
     /** Floating button auto-hides; reveals near top edge (mouse) or top-touch (touch). */
     layoutDrawerAutoHide: boolean;
@@ -54,6 +55,8 @@ export interface FrontendSettings {
     layoutDrawerWidth: number;
     /** Top offset in px of the docked sidebar menu content (placement='sidebar'). */
     layoutDrawerTopOffset: number;
+    /** Bottom offset in px of the docked sidebar menu content (placement='sidebar'). */
+    layoutDrawerBottomOffset: number;
     /** Show the menu title/header row. */
     layoutDrawerShowTitle: boolean;
     /** Drawer header title; empty falls back to the localized default ("Layouts"). */
@@ -161,11 +164,13 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     guidelinesShowInFrontend: true,
     guidelinesShowResolution: true,
     layoutDrawerEnabled: false,
+    layoutDrawerShowSingle: false,
     layoutDrawerSize: 'md',
     layoutDrawerAutoHide: false,
     layoutDrawerPlacement: 'floating',
     layoutDrawerWidth: 240,
     layoutDrawerTopOffset: 0,
+    layoutDrawerBottomOffset: 0,
     layoutDrawerShowTitle: true,
     layoutDrawerTitle: '',
     layoutDrawerTitleMarginTop: 0,

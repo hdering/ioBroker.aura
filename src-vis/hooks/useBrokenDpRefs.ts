@@ -97,17 +97,21 @@ function collectAllRefs(): BrokenRef[] {
     };
 
     for (const l of layouts) {
-        for (const tab of l.tabs) {
-            for (const w of tab.widgets) {
-                const route = `/admin/editor?layout=${encodeURIComponent(l.id)}&tab=${encodeURIComponent(tab.id)}&focus=${encodeURIComponent(w.id)}`;
-                if (isGroupHost(w)) {
-                    mapDefTree(w.options!.defId as string, {
-                        parent: w,
-                        route,
-                        locationPrefix: `${l.name} / ${tab.name}`,
-                    });
+        const multiSection = l.sections.length > 1;
+        for (const sec of l.sections) {
+            const locationPrefix = multiSection ? `${l.name} / ${sec.name} / ` : `${l.name} / `;
+            for (const tab of sec.tabs) {
+                for (const w of tab.widgets) {
+                    const route = `/admin/editor?layout=${encodeURIComponent(l.id)}&tab=${encodeURIComponent(tab.id)}&focus=${encodeURIComponent(w.id)}`;
+                    if (isGroupHost(w)) {
+                        mapDefTree(w.options!.defId as string, {
+                            parent: w,
+                            route,
+                            locationPrefix: `${locationPrefix}${tab.name}`,
+                        });
+                    }
+                    out.push(...collectRefs(w, `${locationPrefix}${tab.name}`, route));
                 }
-                out.push(...collectRefs(w, `${l.name} / ${tab.name}`, route));
             }
         }
     }

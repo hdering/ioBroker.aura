@@ -90,8 +90,8 @@ function pruneScripts(keep: Set<string>) {
  * @param inEditor  When true, the caller is the admin editor — execution is
  *                  gated additionally on `customJSInEditor`.
  */
-export function useCustomJs(layoutId: string | undefined, inEditor: boolean) {
-    const effective = useEffectiveSettings(layoutId);
+export function useCustomJs(layoutId: string | undefined, sectionId: string | undefined, inEditor: boolean) {
+    const effective = useEffectiveSettings(layoutId, sectionId);
     const frontend = useConfigStore((s) => s.frontend);
 
     useEffect(() => {

@@ -19,7 +19,7 @@ import { useVersionGuard } from './hooks/useVersionGuard';
 import { useConnectionStore } from './store/connectionStore';
 import { useGlobalSettingsStore } from './store/globalSettingsStore';
 import { useConfigStore } from './store/configStore';
-import { useDashboardStore, useLayoutBySlug } from './store/dashboardStore';
+import { useDashboardStore, resolveView, resolveTabBarSettings } from './store/dashboardStore';
 import { useNavigationStore } from './store/navigationStore';
 import { useThemeStore } from './store/themeStore';
 import { getTheme } from './themes';
@@ -262,11 +262,15 @@ function collectOptionDps(obj: unknown, ids: Set<string>): void {
 }
 
 export default function App() {
-    const { tabSlug, layoutSlug } = useParams<{ tabSlug?: string; layoutSlug?: string }>();
+    const { tabSlug, layoutSlug, sectionSlug } = useParams<{
+        tabSlug?: string;
+        layoutSlug?: string;
+        sectionSlug?: string;
+    }>();
     const navigate = useNavigate();
     const { frontend } = useConfigStore();
     const { setTheme } = useThemeStore();
-    const clearLayoutSettings = useDashboardStore((s) => s.clearLayoutSettings);
+    const clearSectionSettings = useDashboardStore((s) => s.clearSectionSettings);
     const { connected, subscribe } = useIoBroker();
     const { clientId, clientName } = useConnectionStore();
 
@@ -304,15 +308,30 @@ export default function App() {
         }
     }, [connected]);
 
-    // Determine which layout to display based on URL slug
-    const layout = useLayoutBySlug(layoutSlug);
-    const tabs = useMemo<Tab[]>(() => layout?.tabs ?? [], [layout?.tabs]);
+    // Determine which layout + section to display based on the URL slugs.
+    // resolveView also handles legacy `/view/<oldLayoutSlug>` links (old layouts
+    // are now sections of the migrated default layout).
+    const allLayouts = useDashboardStore((s) => s.layouts);
+    const view = useMemo(() => resolveView(allLayouts, layoutSlug, sectionSlug), [allLayouts, layoutSlug, sectionSlug]);
+    const layout = view?.layout;
+    const section = view?.section;
+    const tabs = useMemo<Tab[]>(() => section?.tabs ?? [], [section?.tabs]);
 
-    // Effective settings for the active layout (per-layout overrides + global fallback)
-    const effectiveThemeId = useEffectiveThemeId(layout?.id);
-    const effectiveCustomVars = useEffectiveCustomVars(layout?.id);
-    const effectiveSettings = useEffectiveSettings(layout?.id);
+    // Effective settings cascade: global → layout → section (per-section overrides).
+    const effectiveThemeId = useEffectiveThemeId(layout?.id, section?.id);
+    const effectiveCustomVars = useEffectiveCustomVars(layout?.id, section?.id);
+    const effectiveSettings = useEffectiveSettings(layout?.id, section?.id);
     const currentTheme = getTheme(effectiveThemeId);
+
+    // URL base for the current layout+section context. The section segment is only
+    // added when the layout has more than one section (single-section layouts keep
+    // the shorter `/view/<layout>` form).
+    const viewBase = useMemo(() => {
+        if (!layout) return '';
+        const parts = [`/view/${layout.slug}`];
+        if (section && layout.sections.length > 1) parts.push(`s/${section.slug}`);
+        return parts.join('/');
+    }, [layout, section]);
 
     // Track viewport width so a docked sidebar layout menu can collapse into an
     // overlay hamburger on mobile — matching the same breakpoint the Dashboard
@@ -354,11 +373,11 @@ export default function App() {
     // ── Local active tab state (frontend only — doesn't affect admin editor)
     // URL slug takes priority; fall back to defaultTabId or first tab
     const [activeTabId, setActiveTabId] = useState<string>(() => {
-        if (tabSlug && layout?.tabs) {
-            const tab = layout.tabs.find((t) => (t.slug ?? t.id) === tabSlug);
+        if (tabSlug && section?.tabs) {
+            const tab = section.tabs.find((t) => (t.slug ?? t.id) === tabSlug);
             if (tab) return tab.id;
         }
-        return layout?.defaultTabId ?? layout?.activeTabId ?? tabs[0]?.id ?? '';
+        return section?.defaultTabId ?? section?.activeTabId ?? tabs[0]?.id ?? '';
     });
 
     // Prefetch active tab on connect, then background-prefetch remaining tabs.
@@ -381,18 +400,18 @@ export default function App() {
     // stale "default" tab and Dashboard renders nothing in a fresh session.
     // Always respect URL slug first so F5 stays on the correct tab.
     useEffect(() => {
-        if (!layout?.tabs?.length) return;
+        if (!section?.tabs?.length) return;
         if (tabSlug) {
-            const tab = layout.tabs.find((t) => (t.slug ?? t.id) === tabSlug);
+            const tab = section.tabs.find((t) => (t.slug ?? t.id) === tabSlug);
             if (tab) {
                 if (tab.id !== activeTabId) setActiveTabId(tab.id);
                 return;
             }
         }
-        if (layout.tabs.some((t) => t.id === activeTabId)) return;
-        setActiveTabId(layout.defaultTabId ?? layout.tabs[0].id);
+        if (section.tabs.some((t) => t.id === activeTabId)) return;
+        setActiveTabId(section.defaultTabId ?? section.tabs[0].id);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [layout?.id, layout?.tabs, tabSlug]);
+    }, [layout?.id, section?.id, section?.tabs, tabSlug]);
 
     // If active tab is disabled, jump to the first visible (non-disabled, non-hidden) tab.
     // Hidden tabs are intentionally not bounced: they stay reachable via their direct slug URL.
@@ -423,10 +442,13 @@ export default function App() {
         setOptimisticEcho(frontend.optimisticUpdates !== false);
     }, [frontend.optimisticUpdates]);
 
-    // Idle-return: switch to default tab after configured inactivity period
-    const idleReturnEnabled = frontend.idleReturnEnabled;
-    const idleReturnDelay = frontend.idleReturnDelay ?? 30;
-    // Jump back to the default tab via the URL (not setActiveTabId directly).
+    // Idle-return: switch to the layout default after configured inactivity period
+    const idleReturnEnabled = effectiveSettings.idleReturnEnabled;
+    const idleReturnDelay = effectiveSettings.idleReturnDelay ?? 30;
+    // Jump back to the layout default via the URL (not setActiveTabId directly).
+    // The default is layout-scoped: the layout's default section and, within it,
+    // that section's default tab — regardless of which section/tab the viewer
+    // drifted onto (a kiosk left on a secondary section must still come home).
     // Driving the route slug keeps it in sync with activeTabId exactly like a
     // manual tab click does. Setting activeTabId alone left the slug pointing at
     // the previously-viewed tab, so re-clicking that tab was a no-op navigation
@@ -435,11 +457,18 @@ export default function App() {
     // sees the latest layout/route without re-subscribing the listeners.
     const idleReturnNavRef = useRef<() => void>(() => {});
     idleReturnNavRef.current = () => {
-        const defaultId = layout?.defaultTabId ?? tabs[0]?.id ?? '';
-        if (!defaultId || defaultId === activeTabId) return;
-        const defaultTab = tabs.find((t) => t.id === defaultId);
-        const slug = defaultTab?.slug ?? defaultId;
-        navigate(layoutSlug ? `/view/${layoutSlug}/tab/${slug}` : `/tab/${slug}`);
+        if (!layout) return;
+        const targetSection = layout.sections.find((sec) => sec.id === layout.defaultSectionId) ?? layout.sections[0];
+        if (!targetSection) return;
+        const defaultTabId = targetSection.defaultTabId ?? targetSection.tabs[0]?.id ?? '';
+        if (!defaultTabId) return;
+        // Already exactly on the default section + default tab → nothing to do.
+        if (targetSection.id === section?.id && defaultTabId === activeTabId) return;
+        const defaultTab = targetSection.tabs.find((t) => t.id === defaultTabId);
+        const tabSlugPart = defaultTab?.slug ?? defaultTabId;
+        const base =
+            layout.sections.length > 1 ? `/view/${layout.slug}/s/${targetSection.slug}` : `/view/${layout.slug}`;
+        navigate(`${base}/tab/${tabSlugPart}`);
     };
     useEffect(() => {
         if (!idleReturnEnabled) return;
@@ -466,19 +495,32 @@ export default function App() {
         if (!pendingNav) return;
         const nav = consumeNav();
         if (!nav) return;
-        const targetLayout = useDashboardStore.getState().layouts.find((l) => l.id === nav.layoutId);
-        if (!targetLayout) return;
-        const targetTab = targetLayout.tabs.find((t) => t.id === nav.tabId);
+        // A navigation intent may reference the layout directly, or (legacy click
+        // actions / migrated links) reference what is now a section by its old
+        // layoutId. Resolve the target layout + section + tab across the tree.
+        const allL = useDashboardStore.getState().layouts;
+        let targetLayout = allL.find((l) => l.id === nav.layoutId);
+        let targetSection = targetLayout?.sections.find((sec) => sec.id === nav.sectionId);
+        // Find the section (and its layout) that actually holds the target tab.
+        if (!targetSection) {
+            for (const l of allL) {
+                const sec = l.sections.find((s) => s.tabs.some((t) => t.id === nav.tabId));
+                if (sec) {
+                    targetLayout = l;
+                    targetSection = sec;
+                    break;
+                }
+            }
+        }
+        if (!targetLayout || !targetSection) return;
+        const targetTab = targetSection.tabs.find((t) => t.id === nav.tabId);
         if (!targetTab) return;
         const tabSl = targetTab.slug ?? targetTab.id;
-        const laySl = targetLayout.slug;
-        if (laySl !== layoutSlug) {
-            navigate(`/view/${laySl}/tab/${tabSl}`);
-        } else if (layoutSlug) {
-            navigate(`/view/${layoutSlug}/tab/${tabSl}`);
-        } else {
-            navigate(`/tab/${tabSl}`);
-        }
+        const base =
+            targetLayout.sections.length > 1
+                ? `/view/${targetLayout.slug}/s/${targetSection.slug}`
+                : `/view/${targetLayout.slug}`;
+        navigate(`${base}/tab/${tabSl}`);
         // Sprung: Widget — pulse-highlight the target widget once the tab is shown.
         // WidgetFrame reads FocusedWidgetContext and applies the highlight while it
         // matches its config.id; setting it after the route switch also scrolls it
@@ -503,11 +545,11 @@ export default function App() {
         return () => window.removeEventListener('storage', handler);
     }, []);
 
-    // Apply effective custom CSS (per-layout overrides global when set)
-    useCustomCss(layout?.id, false);
+    // Apply effective custom CSS (per-section/layout overrides global when set)
+    useCustomCss(layout?.id, section?.id, false);
 
     // Custom JS — runs always in frontend; installs window.aura helper API.
-    useCustomJs(layout?.id, false);
+    useCustomJs(layout?.id, section?.id, false);
 
     // Apply per-layout theme overrides on top of global ThemeProvider vars.
     // Written as a scoped <style> rule ([data-aura-app="frontend"] { ... }) so that
@@ -515,7 +557,7 @@ export default function App() {
     // ThemeProvider's effect on document.documentElement (parent effects run after child effects).
     const layoutThemeRef = useRef<HTMLStyleElement | null>(null);
     useEffect(() => {
-        const ls = layout?.settings;
+        const ls = section?.settings;
         if (!ls?.themeId && !ls?.customVars && !ls?.fontScale) {
             if (layoutThemeRef.current) layoutThemeRef.current.textContent = '';
             return;
@@ -532,7 +574,7 @@ export default function App() {
             .join('\n');
         const fontScaleDecl = ls?.fontScale !== undefined ? `\n  --font-scale: ${ls.fontScale};` : '';
         layoutThemeRef.current.textContent = `[data-aura-app="frontend"] {\n${declarations}${fontScaleDecl}\n}`;
-    }, [layout?.id, layout?.settings, currentTheme, effectiveCustomVars]);
+    }, [layout?.id, section?.id, section?.settings, currentTheme, effectiveCustomVars]);
 
     // ── Load config from ioBroker on first connect ────────────────────────────
     // Frontend is read-only — clear the pending Map after loading remote config.
@@ -606,7 +648,7 @@ export default function App() {
             const v = themeModeOverride.value;
             if (!v) return;
             if (useThemeStore.getState().themeId !== v) setTheme(v);
-            if (layout?.settings?.themeId) clearLayoutSettings(layout.id, 'themeId');
+            if (layout && section?.settings?.themeId) clearSectionSettings(layout.id, section.id, 'themeId');
         };
         const unsubDP = subscribeStateDirect(`${NS}.config.themeMode.frontend`, (state) => {
             if (state?.val == null) return;
@@ -628,7 +670,7 @@ export default function App() {
             unsubDP();
             unsubStore();
         };
-    }, [setTheme, layout?.id, layout?.settings?.themeId, clearLayoutSettings]);
+    }, [setTheme, layout?.id, section?.id, section?.settings?.themeId, clearSectionSettings]);
 
     // Activate tab when URL slug changes
     useEffect(() => {
@@ -648,9 +690,17 @@ export default function App() {
                 // Absolute in-app route, e.g. "/view/haus/tab/buero" or "/tab/buero"
                 navigate(val);
             } else if (val.includes('/')) {
-                // "<viewSlug>/<tabSlug>" from the navigate.target selector
-                const [viewSlug, tabSl] = val.split('/');
-                navigate(tabSl ? `/view/${viewSlug}/tab/${tabSl}` : `/view/${viewSlug}`);
+                // navigate.target selector value. New form: "<layout>/<section>/<tab>";
+                // legacy form: "<layout>/<tab>" (still supported — resolveView treats a
+                // non-matching first segment as a section of the default layout).
+                const parts = val.split('/').filter(Boolean);
+                if (parts.length >= 3) {
+                    navigate(`/view/${parts[0]}/s/${parts[1]}/tab/${parts[2]}`);
+                } else if (parts.length === 2) {
+                    navigate(`/view/${parts[0]}/tab/${parts[1]}`);
+                } else {
+                    navigate(`/view/${parts[0]}`);
+                }
             } else {
                 const tab = tabs.find((t) => (t.slug ?? t.id) === val);
                 if (tab) setActiveTabId(tab.id);
@@ -742,9 +792,9 @@ export default function App() {
         });
     }, [subscribe, clientId, layout?.id, handleNavigate]);
 
-    const layoutUrlBase = layoutSlug ? `/view/${layoutSlug}` : '';
+    const layoutUrlBase = viewBase;
 
-    const showBadge = frontend.showHeader && frontend.showConnectionBadge;
+    const showBadge = effectiveSettings.showHeader && effectiveSettings.showConnectionBadge;
     const showClientIdBadge = useGlobalSettingsStore((s) => s.showClientIdBadge);
 
     const activeTabSlug = useMemo(() => {
@@ -752,33 +802,85 @@ export default function App() {
         return t?.slug ?? null;
     }, [tabs, activeTabId]);
 
-    const totalLayouts = useDashboardStore((s) => s.layouts.filter((l) => !l.hidden).length);
-    const drawerEnabled = (effectiveSettings.layoutDrawerEnabled ?? false) && totalLayouts > 1;
-    const drawerSize = frontend.layoutDrawerSize ?? 'md';
-    const drawerAutoHide = frontend.layoutDrawerAutoHide ?? false;
-    const drawerPlacement = frontend.layoutDrawerPlacement ?? 'floating';
+    // The section menu (formerly the layout drawer) lists the sections of the
+    // active layout and only appears when that layout has more than one visible
+    // section — mirroring the old "menu shows only with >1 entry" behaviour.
+    const visibleSectionCount = (layout?.sections ?? []).filter((sec) => !sec.hidden).length;
+    const drawerEnabled =
+        (effectiveSettings.layoutDrawerEnabled ?? false) &&
+        (visibleSectionCount > 1 || (effectiveSettings.layoutDrawerShowSingle ?? false));
+    const drawerSize = effectiveSettings.layoutDrawerSize ?? 'md';
+    const drawerAutoHide = effectiveSettings.layoutDrawerAutoHide ?? false;
+    const drawerPlacement = effectiveSettings.layoutDrawerPlacement ?? 'floating';
     // Docked sidebar: always-visible left menu, works with or without header — overrides overlay placements.
     // On mobile it would eat too much horizontal space, so it collapses into the tab bar as an
     // overlay hamburger and re-docks on wider viewports.
     const drawerSidebar = drawerEnabled && drawerPlacement === 'sidebar' && !isMobileViewport;
     const drawerSidebarCollapsed = drawerEnabled && drawerPlacement === 'sidebar' && isMobileViewport;
-    const drawerWidth = frontend.layoutDrawerWidth ?? 240;
+    const drawerWidth = effectiveSettings.layoutDrawerWidth ?? 240;
     // Tab-bar hamburger: either the explicit tabbar placement, or a docked sidebar that
     // collapsed on mobile — the collapsed sidebar always lands here, even with a header shown.
     const drawerInTabBar =
-        (drawerEnabled && !drawerSidebar && !frontend.showHeader && drawerPlacement === 'tabbar' && !drawerAutoHide) ||
+        (drawerEnabled &&
+            !drawerSidebar &&
+            !effectiveSettings.showHeader &&
+            drawerPlacement === 'tabbar' &&
+            !drawerAutoHide) ||
         drawerSidebarCollapsed;
-    const drawerFloating = drawerEnabled && !drawerSidebar && !frontend.showHeader && !drawerInTabBar;
-    const drawerShowTitle = frontend.layoutDrawerShowTitle ?? true;
-    const drawerTitle = frontend.layoutDrawerTitle ?? '';
-    const drawerTitleMarginTop = frontend.layoutDrawerTitleMarginTop ?? 0;
-    const drawerTitleMarginBottom = frontend.layoutDrawerTitleMarginBottom ?? 0;
-    const drawerEntryStyle = frontend.layoutDrawerEntryStyle ?? 'iconAndName';
-    const drawerEntryHeight = frontend.layoutDrawerEntryHeight ?? 48;
-    const drawerIndicatorStyle = frontend.layoutDrawerIndicatorStyle ?? 'filled';
-    const drawerFontSize = frontend.layoutDrawerFontSize ?? 14;
-    const drawerIconSize = frontend.layoutDrawerIconSize ?? 16;
-    const drawerItems = frontend.layoutDrawerItems ?? [];
+    const drawerFloating = drawerEnabled && !drawerSidebar && !effectiveSettings.showHeader && !drawerInTabBar;
+    const drawerShowTitle = effectiveSettings.layoutDrawerShowTitle ?? true;
+    const drawerTitle = effectiveSettings.layoutDrawerTitle ?? '';
+    const drawerTitleMarginTop = effectiveSettings.layoutDrawerTitleMarginTop ?? 0;
+    const drawerTitleMarginBottom = effectiveSettings.layoutDrawerTitleMarginBottom ?? 0;
+    const drawerEntryStyle = effectiveSettings.layoutDrawerEntryStyle ?? 'iconAndName';
+    const drawerEntryHeight = effectiveSettings.layoutDrawerEntryHeight ?? 48;
+    const drawerIndicatorStyle = effectiveSettings.layoutDrawerIndicatorStyle ?? 'filled';
+    const drawerFontSize = effectiveSettings.layoutDrawerFontSize ?? 14;
+    const drawerIconSize = effectiveSettings.layoutDrawerIconSize ?? 16;
+    const drawerItems = effectiveSettings.layoutDrawerItems ?? [];
+
+    // Tab bar can be placed above the dashboard (default) or as a footer below it.
+    // Resolve the same global → layout → section cascade the bar itself uses.
+    const tabBarAtBottom =
+        resolveTabBarSettings(
+            resolveTabBarSettings(frontend.tabBar, layout?.settings?.tabBar),
+            section?.settings?.tabBar,
+        ).position === 'bottom';
+
+    const tabBarNode = (
+        <TabBar
+            readonly
+            layoutId={layout?.id}
+            sectionId={section?.id}
+            viewTabs={tabs}
+            viewActiveTabId={activeTabId}
+            onViewTabClick={(tab) => {
+                const slug = tab.slug ?? tab.id;
+                navigate(viewBase ? `${viewBase}/tab/${slug}` : `/tab/${slug}`);
+            }}
+            layoutUrlBase={layoutUrlBase}
+            headerSlot={
+                drawerInTabBar ? (
+                    <LayoutDrawer
+                        activeLayoutId={layout?.id}
+                        activeSectionId={section?.id}
+                        size={drawerSize}
+                        iconOnly
+                        showTitle={drawerShowTitle}
+                        drawerTitle={drawerTitle}
+                        titleMarginTop={drawerTitleMarginTop}
+                        titleMarginBottom={drawerTitleMarginBottom}
+                        entryStyle={drawerEntryStyle}
+                        entryHeight={drawerEntryHeight}
+                        indicatorStyle={drawerIndicatorStyle}
+                        fontSize={drawerFontSize}
+                        iconSize={drawerIconSize}
+                        items={drawerItems}
+                    />
+                ) : undefined
+            }
+        />
+    );
 
     return (
         <div
@@ -791,6 +893,7 @@ export default function App() {
             {drawerFloating && (
                 <LayoutDrawer
                     activeLayoutId={layout?.id}
+                    activeSectionId={section?.id}
                     floating
                     size={drawerSize}
                     autoHide={drawerAutoHide}
@@ -810,9 +913,11 @@ export default function App() {
                 {drawerSidebar && (
                     <LayoutDrawer
                         activeLayoutId={layout?.id}
+                        activeSectionId={section?.id}
                         variant="sidebar"
                         width={drawerWidth}
-                        topOffset={frontend.layoutDrawerTopOffset ?? 0}
+                        topOffset={effectiveSettings.layoutDrawerTopOffset ?? 0}
+                        bottomOffset={effectiveSettings.layoutDrawerBottomOffset ?? 0}
                         showTitle={drawerShowTitle}
                         drawerTitle={drawerTitle}
                         titleMarginTop={drawerTitleMarginTop}
@@ -826,7 +931,7 @@ export default function App() {
                     />
                 )}
                 <div className={drawerSidebar ? 'flex-1 min-w-0 flex flex-col' : 'contents'}>
-                    {frontend.showHeader && (
+                    {effectiveSettings.showHeader && (
                         <header
                             className="aura-header flex items-center justify-between px-4 sm:px-6 py-4 shrink-0"
                             style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)' }}
@@ -835,6 +940,7 @@ export default function App() {
                                 {drawerEnabled && !drawerSidebar && !drawerSidebarCollapsed && (
                                     <LayoutDrawer
                                         activeLayoutId={layout?.id}
+                                        activeSectionId={section?.id}
                                         size={drawerSize}
                                         showTitle={drawerShowTitle}
                                         drawerTitle={drawerTitle}
@@ -849,19 +955,19 @@ export default function App() {
                                     />
                                 )}
                                 <h1 className="aura-titel text-xl font-bold tracking-tight truncate">
-                                    {frontend.headerTitle || 'Aura'}
+                                    {effectiveSettings.headerTitle || 'Aura'}
                                 </h1>
                             </div>
                             <div className="flex items-center gap-3">
-                                {frontend.headerDatapoint && (
+                                {effectiveSettings.headerDatapoint && (
                                     <HeaderDatapoint
-                                        id={frontend.headerDatapoint}
-                                        template={frontend.headerDatapointTemplate || undefined}
+                                        id={effectiveSettings.headerDatapoint}
+                                        template={effectiveSettings.headerDatapointTemplate || undefined}
                                     />
                                 )}
-                                {frontend.headerClockEnabled && <HeaderClock f={frontend} />}
+                                {effectiveSettings.headerClockEnabled && <HeaderClock f={effectiveSettings} />}
                                 {showBadge && <ConnectionBadge />}
-                                {frontend.showAdminLink && (
+                                {effectiveSettings.showAdminLink && (
                                     <a
                                         href="#/admin"
                                         className="w-8 h-8 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
@@ -880,7 +986,8 @@ export default function App() {
                                         const nextId = currentTheme.dark ? 'light' : 'dark';
                                         themeModeOverride.value = nextId; // seed before setTheme so snap-back doesn't revert
                                         setTheme(nextId);
-                                        if (layout?.settings?.themeId) clearLayoutSettings(layout.id, 'themeId');
+                                        if (layout && section?.settings?.themeId)
+                                            clearSectionSettings(layout.id, section.id, 'themeId');
                                         setStateDirect(`${NS}.config.themeMode.frontend`, nextId);
                                     }}
                                     className="w-8 h-8 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
@@ -896,45 +1003,19 @@ export default function App() {
                             </div>
                         </header>
                     )}
-                    <TabBar
-                        readonly
-                        layoutId={layout?.id}
-                        viewTabs={tabs}
-                        viewActiveTabId={activeTabId}
-                        onViewTabClick={(tab) => {
-                            const slug = tab.slug ?? tab.id;
-                            if (layoutSlug) {
-                                navigate(`/view/${layoutSlug}/tab/${slug}`);
-                            } else {
-                                navigate(`/tab/${slug}`);
-                            }
-                        }}
-                        layoutUrlBase={layoutUrlBase}
-                        headerSlot={
-                            drawerInTabBar ? (
-                                <LayoutDrawer
-                                    activeLayoutId={layout?.id}
-                                    size={drawerSize}
-                                    iconOnly
-                                    showTitle={drawerShowTitle}
-                                    drawerTitle={drawerTitle}
-                                    titleMarginTop={drawerTitleMarginTop}
-                                    titleMarginBottom={drawerTitleMarginBottom}
-                                    entryStyle={drawerEntryStyle}
-                                    entryHeight={drawerEntryHeight}
-                                    indicatorStyle={drawerIndicatorStyle}
-                                    fontSize={drawerFontSize}
-                                    iconSize={drawerIconSize}
-                                    items={drawerItems}
-                                />
-                            ) : undefined
-                        }
-                    />
+                    {!tabBarAtBottom && tabBarNode}
                     <div className="flex-1 min-h-0 flex flex-col">
                         <FocusedWidgetContext.Provider value={focusWidgetId}>
-                            <Dashboard readonly viewTabs={tabs} viewActiveTabId={activeTabId} layoutId={layout?.id} />
+                            <Dashboard
+                                readonly
+                                viewTabs={tabs}
+                                viewActiveTabId={activeTabId}
+                                layoutId={layout?.id}
+                                sectionId={section?.id}
+                            />
                         </FocusedWidgetContext.Provider>
                     </div>
+                    {tabBarAtBottom && tabBarNode}
                 </div>
             </div>
         </div>
