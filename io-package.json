@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.31.0",
+    "version": "0.31.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.31.1": {
+        "en": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
+        "de": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
+        "ru": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
+        "pt": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
+        "nl": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
+        "fr": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
+        "it": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
+        "es": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
+        "pl": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
+        "uk": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
+        "zh-cn": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states"
+      },
       "0.31.0": {
         "en": "🌟 New feature: Value & JSON-table widgets - `aura-file:` paths now resolve inside HTML `<img src>`, so images/icons from the ioBroker file system can be embedded the same way everywhere\n🌟 New feature: JSON-table widget - new per-column width (px), text alignment and line-wrap options, plus an optional max-rows limit and click-to-sort column headers",
         "de": "🌟 New feature: Value & JSON-table widgets - `aura-file:` paths now resolve inside HTML `<img src>`, so images/icons from the ioBroker file system can be embedded the same way everywhere\n🌟 New feature: JSON-table widget - new per-column width (px), text alignment and line-wrap options, plus an optional max-rows limit and click-to-sort column headers",
@@ -184,19 +197,6 @@
         "pl": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint",
         "uk": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint",
         "zh-cn": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint"
-      },
-      "0.25.2": {
-        "en": "🌟 New feature: Timer - event value has On/Off quick-select buttons (free text still allowed)\n🌟 New feature: Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off\n🌟 New feature: Advanced - widget border color and width are now configurable per widget",
-        "de": "🌟 New feature: Timer - event value has On/Off quick-select buttons (free text still allowed)\n🌟 New feature: Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off\n🌟 New feature: Advanced - widget border color and width are now configurable per widget",
-        "ru": "🌟 New feature: Timer - event value has On/Off quick-select buttons (free text still allowed)\n🌟 New feature: Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off\n🌟 New feature: Advanced - widget border color and width are now configurable per widget",
-        "pt": "🌟 New feature: Timer - event value has On/Off quick-select buttons (free text still allowed)\n🌟 New feature: Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off\n🌟 New feature: Advanced - widget border color and width are now configurable per widget",
-        "nl": "🌟 New feature: Timer - event value has On/Off quick-select buttons (free text still allowed)\n🌟 New feature: Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off\n🌟 New feature: Advanced - widget border color and width are now configurable per widget",
-        "fr": "🌟 New feature: Timer - event value has On/Off quick-select buttons (free text still allowed)\n🌟 New feature: Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off\n🌟 New feature: Advanced - widget border color and width are now configurable per widget",
-        "it": "🌟 New feature: Timer - event value has On/Off quick-select buttons (free text still allowed)\n🌟 New feature: Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off\n🌟 New feature: Advanced - widget border color and width are now configurable per widget",
-        "es": "🌟 New feature: Timer - event value has On/Off quick-select buttons (free text still allowed)\n🌟 New feature: Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off\n🌟 New feature: Advanced - widget border color and width are now configurable per widget",
-        "pl": "🌟 New feature: Timer - event value has On/Off quick-select buttons (free text still allowed)\n🌟 New feature: Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off\n🌟 New feature: Advanced - widget border color and width are now configurable per widget",
-        "uk": "🌟 New feature: Timer - event value has On/Off quick-select buttons (free text still allowed)\n🌟 New feature: Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off\n🌟 New feature: Advanced - widget border color and width are now configurable per widget",
-        "zh-cn": "🌟 New feature: Timer - event value has On/Off quick-select buttons (free text still allowed)\n🌟 New feature: Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off\n🌟 New feature: Advanced - widget border color and width are now configurable per widget"
       }
     }
   },
