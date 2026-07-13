@@ -12,6 +12,7 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { applyValueTransform } from '../../utils/valueTransform';
 import { baseDpId } from '../../utils/dpRef';
+import { evaluateClause } from '../../utils/conditionEval';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { HelpCircle, ChevronDown, Send } from 'lucide-react';
 import { parseValue, formatDate, toDateInputValue, toTimeInputValue, type DateOutputFormat } from './DatePickerWidget';
@@ -778,7 +779,22 @@ function StateIconCellView({
     rows: number;
 }) {
     const { state, value } = useDatapoint(cell.dpId ?? '');
-    const truthy = value === true || value === 1 || value === 'true' || value === '1';
+    // 'boolean' mode (default): historical truthy coercion. 'condition' mode: shared
+    // operator engine so numeric datapoints (e.g. a dimmer 0=off / >0=on) drive the
+    // icon. See issue #467.
+    const truthy =
+        cell.stateMode === 'condition'
+            ? evaluateClause(
+                  {
+                      datapoint: cell.dpId ?? '',
+                      operator: cell.stateOperator ?? '>',
+                      value: cell.stateValue ?? '0',
+                      valueType: 'static',
+                  },
+                  value,
+                  new Map(),
+              )
+            : value === true || value === 1 || value === 'true' || value === '1';
     const iconName = truthy ? cell.trueIcon || cell.iconName : cell.falseIcon || cell.iconName;
     const color = truthy
         ? cell.trueColor || cell.color || 'var(--accent)'

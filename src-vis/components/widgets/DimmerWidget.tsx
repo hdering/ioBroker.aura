@@ -7,6 +7,8 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
+import { evaluateClause } from '../../utils/conditionEval';
+import type { ConditionOperator } from '../../types';
 
 function parseVal(raw: string | undefined, fallback: boolean): boolean | number | string {
     if (raw === undefined || raw === '') return fallback;
@@ -93,13 +95,26 @@ export function DimmerWidget({ config }: WidgetProps) {
     const offValue = o.offValue as string | undefined;
     const trueWrite = parseVal(onValue, true);
     const falseWrite = parseVal(offValue, false);
+    // Pure dimmer (no separate switch DP): 'boolean' mode keeps level>0; 'condition'
+    // mode lets the on/off icon switch at a configurable threshold (issue #467).
     const isOn = switchDp
         ? onValue !== undefined && onValue !== ''
             ? String(switchValue) === String(trueWrite)
             : typeof switchValue === 'boolean'
               ? switchValue
               : switchValue === 1 || switchValue === '1' || switchValue === 'true'
-        : displayLevel > 0;
+        : o.stateMode === 'condition'
+          ? evaluateClause(
+                {
+                    datapoint: config.datapoint,
+                    operator: (o.stateOperator as ConditionOperator) ?? '>',
+                    value: String(o.stateValue ?? '0'),
+                    valueType: 'static',
+                },
+                displayLevel,
+                new Map(),
+            )
+          : displayLevel > 0;
     const handleToggle = () => {
         if (switchDp) {
             setState(switchDp, isOn ? falseWrite : trueWrite);

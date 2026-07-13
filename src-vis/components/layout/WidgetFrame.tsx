@@ -7955,7 +7955,9 @@ export function WidgetFrame({
                                               : config.type === 'binarysensor'
                                                 ? 'Sensorwert Datenpunkt (boolean, true = aktiv)'
                                                 : config.type === 'stateimage'
-                                                  ? 'Zustand Datenpunkt (boolean, true = erstes Bild)'
+                                                  ? config.options?.stateMode === 'condition'
+                                                      ? 'Zustand Datenpunkt (Bedingung entscheidet über das Bild)'
+                                                      : 'Zustand Datenpunkt (boolean, true = erstes Bild)'
                                                   : config.type === 'shutter'
                                                     ? 'Positions-Datenpunkt (0–100 %)'
                                                     : config.type === 'dimmer'
@@ -12470,6 +12472,83 @@ export function WidgetFrame({
                                                 </p>
                                             )}
                                         </div>
+                                        {!(o.switchDp as string) &&
+                                            (() => {
+                                                // Pure dimmer: how the on/off icon reads the level (issue #467).
+                                                const dStateMode =
+                                                    (o.stateMode as 'boolean' | 'condition') ?? 'boolean';
+                                                return (
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] font-medium mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Icon-Auswertung
+                                                        </label>
+                                                        <div className="flex gap-1">
+                                                            {(
+                                                                [
+                                                                    ['boolean', 'An bei > 0'],
+                                                                    ['condition', 'Bedingung'],
+                                                                ] as const
+                                                            ).map(([mode, lbl]) => (
+                                                                <button
+                                                                    key={mode}
+                                                                    onClick={() => setO({ stateMode: mode })}
+                                                                    className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                                                                    style={{
+                                                                        background:
+                                                                            dStateMode === mode
+                                                                                ? 'var(--accent)'
+                                                                                : 'var(--app-bg)',
+                                                                        color:
+                                                                            dStateMode === mode
+                                                                                ? '#fff'
+                                                                                : 'var(--text-secondary)',
+                                                                        border: `1px solid ${dStateMode === mode ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                    }}
+                                                                >
+                                                                    {lbl}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                        {dStateMode === 'condition' && (
+                                                            <div className="flex gap-1 items-center mt-1.5">
+                                                                <span
+                                                                    className="text-[11px] shrink-0"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    An wenn
+                                                                </span>
+                                                                <select
+                                                                    value={(o.stateOperator as string) ?? '>'}
+                                                                    onChange={(e) =>
+                                                                        setO({ stateOperator: e.target.value })
+                                                                    }
+                                                                    className={`${dInputCls} shrink-0`}
+                                                                    style={dInputStyle}
+                                                                >
+                                                                    {['==', '!=', '>', '>=', '<', '<='].map((op) => (
+                                                                        <option key={op} value={op}>
+                                                                            {op}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                                <input
+                                                                    type="text"
+                                                                    value={(o.stateValue as string) ?? ''}
+                                                                    onChange={(e) =>
+                                                                        setO({ stateValue: e.target.value })
+                                                                    }
+                                                                    placeholder="0"
+                                                                    className={`flex-1 ${dInputCls} min-w-0`}
+                                                                    style={dInputStyle}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
                                         {!!(o.switchDp as string) && (
                                             <div>
                                                 <label
@@ -13886,12 +13965,85 @@ export function WidgetFrame({
 
                                 const siIconOn = o.showIcon !== false;
                                 const siDisplayIconSize = draftIconSize ?? ((o.iconSize as number) || 20);
+                                const siStateMode = (o.stateMode as 'boolean' | 'condition') ?? 'boolean';
+                                const siOperator = (o.stateOperator as string) ?? '>';
+                                const trueSectionLabel =
+                                    siStateMode === 'condition' ? 'Aktiv (Bedingung erfüllt)' : 'Wahr (true)';
+                                const falseSectionLabel =
+                                    siStateMode === 'condition'
+                                        ? 'Inaktiv (Bedingung nicht erfüllt)'
+                                        : 'Falsch (false)';
 
                                 return (
                                     <>
-                                        {renderStateSection('true', 'Wahr (true)')}
+                                        {/* Active-state detection mode (issue #467) */}
+                                        <div className="space-y-2">
+                                            <p
+                                                className="text-[11px] font-semibold"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Auswertung
+                                            </p>
+                                            <div className="flex gap-1">
+                                                {(
+                                                    [
+                                                        ['boolean', 'Boolean'],
+                                                        ['condition', 'Bedingung'],
+                                                    ] as const
+                                                ).map(([mode, lbl]) => (
+                                                    <button
+                                                        key={mode}
+                                                        onClick={() => setO({ stateMode: mode })}
+                                                        className="flex-1 text-[10px] py-1 rounded-lg transition-colors"
+                                                        style={{
+                                                            background:
+                                                                siStateMode === mode
+                                                                    ? 'var(--accent)'
+                                                                    : 'var(--app-bg)',
+                                                            color:
+                                                                siStateMode === mode ? '#fff' : 'var(--text-secondary)',
+                                                            border: `1px solid ${siStateMode === mode ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                        }}
+                                                    >
+                                                        {lbl}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            {siStateMode === 'condition' && (
+                                                <div className="flex gap-1 items-center">
+                                                    <span
+                                                        className="text-[11px] shrink-0"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Wert
+                                                    </span>
+                                                    <select
+                                                        value={siOperator}
+                                                        onChange={(e) => setO({ stateOperator: e.target.value })}
+                                                        className="text-xs rounded-lg px-2 py-1.5 focus:outline-none shrink-0"
+                                                        style={siInputStyle}
+                                                    >
+                                                        {['==', '!=', '>', '>=', '<', '<='].map((op) => (
+                                                            <option key={op} value={op}>
+                                                                {op}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <input
+                                                        type="text"
+                                                        value={(o.stateValue as string) ?? ''}
+                                                        onChange={(e) => setO({ stateValue: e.target.value })}
+                                                        placeholder="0"
+                                                        className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                                        style={siInputStyle}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
                                         <div className="h-px" style={{ background: 'var(--app-border)' }} />
-                                        {renderStateSection('false', 'Falsch (false)')}
+                                        {renderStateSection('true', trueSectionLabel)}
+                                        <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                        {renderStateSection('false', falseSectionLabel)}
                                         <div className="h-px" style={{ background: 'var(--app-border)' }} />
                                         <div className="flex items-center justify-between">
                                             <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
@@ -15842,7 +15994,11 @@ export function WidgetFrame({
             {pickerTarget && (
                 <DatapointPicker
                     allowedTypes={
-                        pickerTarget === 'datapoint' && config.type === 'stateimage' ? ['boolean'] : undefined
+                        pickerTarget === 'datapoint' &&
+                        config.type === 'stateimage' &&
+                        config.options?.stateMode !== 'condition'
+                            ? ['boolean']
+                            : undefined
                     }
                     currentValue={
                         pickerTarget === 'datapoint' || pickerTarget === 'universal-dp'

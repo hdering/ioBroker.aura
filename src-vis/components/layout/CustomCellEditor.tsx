@@ -1506,15 +1506,85 @@ export function CustomCellEditor({
                             </span>
                         </button>
                     );
+                    const stateMode = cell.stateMode ?? 'boolean';
                     return (
                         <>
+                            {/* Active-state detection: boolean vs numeric condition (issue #467) */}
+                            <div>
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                    Auswertung
+                                </label>
+                                <div className="flex gap-1">
+                                    {(
+                                        [
+                                            ['boolean', 'Boolean'],
+                                            ['condition', 'Bedingung'],
+                                        ] as const
+                                    ).map(([mode, lbl]) => (
+                                        <button
+                                            key={mode}
+                                            onClick={() => onChange({ stateMode: mode })}
+                                            className="flex-1 text-[10px] py-1 rounded-lg transition-colors"
+                                            style={{
+                                                background: stateMode === mode ? 'var(--accent)' : 'var(--app-bg)',
+                                                color: stateMode === mode ? '#fff' : 'var(--text-secondary)',
+                                                border: `1px solid ${stateMode === mode ? 'var(--accent)' : 'var(--app-border)'}`,
+                                            }}
+                                        >
+                                            {lbl}
+                                        </button>
+                                    ))}
+                                </div>
+                                {stateMode === 'condition' && (
+                                    <div className="flex gap-1 items-center mt-1.5">
+                                        <span
+                                            className="text-[11px] shrink-0"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            Wert
+                                        </span>
+                                        <select
+                                            value={cell.stateOperator ?? '>'}
+                                            onChange={(e) =>
+                                                onChange({
+                                                    stateOperator: e.target.value as CustomCell['stateOperator'],
+                                                })
+                                            }
+                                            className="text-xs rounded-lg px-2 py-1.5 focus:outline-none shrink-0"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-primary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        >
+                                            {['==', '!=', '>', '>=', '<', '<='].map((op) => (
+                                                <option key={op} value={op}>
+                                                    {op}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <input
+                                            type="text"
+                                            value={cell.stateValue ?? ''}
+                                            onChange={(e) => onChange({ stateValue: e.target.value })}
+                                            placeholder="0"
+                                            className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-primary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                             <div className="flex gap-2">
                                 <div className="flex-1 min-w-0">
                                     <label
                                         className="text-[11px] mb-1 block"
                                         style={{ color: 'var(--text-secondary)' }}
                                     >
-                                        Icon (an / true)
+                                        Icon ({stateMode === 'condition' ? 'aktiv' : 'an / true'})
                                     </label>
                                     {pickBtn('trueIcon', TruePrev, cell.trueIcon, trueCol)}
                                 </div>
@@ -1523,7 +1593,7 @@ export function CustomCellEditor({
                                         className="text-[11px] mb-1 block"
                                         style={{ color: 'var(--text-secondary)' }}
                                     >
-                                        Icon (aus / false)
+                                        Icon ({stateMode === 'condition' ? 'inaktiv' : 'aus / false'})
                                     </label>
                                     {pickBtn('falseIcon', FalsePrev, cell.falseIcon, falseCol)}
                                 </div>

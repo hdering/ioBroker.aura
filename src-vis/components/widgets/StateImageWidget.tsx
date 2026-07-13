@@ -1,6 +1,7 @@
 import { CircleDot } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
-import type { WidgetProps } from '../../types';
+import { evaluateClause } from '../../utils/conditionEval';
+import type { WidgetProps, ConditionOperator } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveAssetUrl } from '../../utils/assetUrl';
 import { contentPositionClass } from '../../utils/widgetUtils';
@@ -40,7 +41,24 @@ function StateDisplay({ cfg, size, className }: { cfg: StateCfg; size: number; c
 export function StateImageWidget({ config }: WidgetProps) {
     const opts = config.options ?? {};
     const { value } = useDatapoint(config.datapoint);
-    const isActive = Boolean(value);
+    // Active-state detection: 'boolean' mode (default) keeps the historical
+    // Boolean(value) coercion; 'condition' mode reuses the shared operator engine
+    // (==, !=, >, >=, <, <=) so numeric datapoints (e.g. a dimmer 0=off / >0=on)
+    // and thresholds can drive the icon. See issue #467.
+    const stateMode = (opts.stateMode as 'boolean' | 'condition') ?? 'boolean';
+    const isActive =
+        stateMode === 'condition'
+            ? evaluateClause(
+                  {
+                      datapoint: config.datapoint,
+                      operator: (opts.stateOperator as ConditionOperator) ?? '>',
+                      value: String(opts.stateValue ?? '0'),
+                      valueType: 'static',
+                  },
+                  value,
+                  new Map(),
+              )
+            : Boolean(value);
     const layout = config.layout ?? 'default';
 
     const showTitle = opts.showTitle !== false;
