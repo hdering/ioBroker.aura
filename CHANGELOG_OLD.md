@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.23.0 (2026-07-10)
+- 🌟 **New feature:** Admin - appearance settings reorganized into a new "Frontend Design" menu (theme, typography, grid, guidelines and tab bar, global or per layout) with a "Global frame" group for header, layout menu and navigation (auto-return to default tab); the layout menu gained a "docked sidebar" placement (permanent left menu with configurable width, entry height and optional title), the old "Frontend" menu was dissolved, and optimistic updates moved to "Settings"
+
 ## 0.22.5 (2026-07-09)
 - Advanced chart - optional day navigation (prev day / today / next day) to browse single calendar days
 - Advanced chart - per-series history aggregation option (average/minmax/max/min/total); minmax keeps true extremes for sparsely logged counters

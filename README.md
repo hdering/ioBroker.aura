@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.31.2 (2026-07-14)
+- Dynamic list - "states" display now shows the configured state label/icon/color instead of the raw value
+
+
 ### 0.31.1 (2026-07-13)
 - 🌟 **New feature:** Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values
 - 🌟 **New feature:** Static and dynamic lists - new "States" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states
@@ -220,10 +224,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens
 
 
-### 0.23.0 (2026-07-10)
-- 🌟 **New feature:** Admin - appearance settings reorganized into a new "Frontend Design" menu (theme, typography, grid, guidelines and tab bar, global or per layout) with a "Global frame" group for header, layout menu and navigation (auto-return to default tab); the layout menu gained a "docked sidebar" placement (permanent left menu with configurable width, entry height and optional title), the old "Frontend" menu was dissolved, and optimistic updates moved to "Settings"
-
-
 ## License
 
 MIT License
@@ -235,6 +235,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

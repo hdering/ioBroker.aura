@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.31.1",
+    "version": "0.31.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.31.2": {
+        "en": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
+        "de": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
+        "ru": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
+        "pt": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
+        "nl": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
+        "fr": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
+        "it": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
+        "es": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
+        "pl": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
+        "uk": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
+        "zh-cn": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value"
+      },
       "0.31.1": {
         "en": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
         "de": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
@@ -184,19 +197,6 @@
         "pl": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
         "uk": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
         "zh-cn": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile"
-      },
-      "0.25.3": {
-        "en": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint",
-        "de": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint",
-        "ru": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint",
-        "pt": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint",
-        "nl": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint",
-        "fr": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint",
-        "it": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint",
-        "es": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint",
-        "pl": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint",
-        "uk": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint",
-        "zh-cn": "Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint"
       }
     }
   },
