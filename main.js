@@ -1435,6 +1435,48 @@ class Aura extends utils.Adapter {
             native: {},
         });
 
+        // ── Active navigation mirror (read-only) ─────────────────────────────
+        // Reflects the layout / section (Bereich) / tab the frontend currently
+        // displays. Written by the frontend on every navigation. This is
+        // per-instance, not per-client: with several tablets open, the last one
+        // to navigate wins. For per-device state use the clients.* channel.
+        await this.setObjectNotExistsAsync('info.activeLayout', {
+            type: 'state',
+            common: {
+                name: 'Currently displayed layout',
+                type: 'string',
+                role: 'text',
+                read: true,
+                write: false,
+                def: '',
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('info.activeSection', {
+            type: 'state',
+            common: {
+                name: 'Currently displayed section (Bereich)',
+                type: 'string',
+                role: 'text',
+                read: true,
+                write: false,
+                def: '',
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('info.activeTab', {
+            type: 'state',
+            common: {
+                name: 'Currently displayed tab',
+                type: 'string',
+                role: 'text',
+                read: true,
+                write: false,
+                def: '',
+            },
+            native: {},
+        });
+
         // ── Theme mode DPs ───────────────────────────────────────────────────
         // Independent control: frontend (tablets/users) and admin (editor) each
         // have their own DP so scheduling one doesn't affect the other.

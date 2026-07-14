@@ -16,6 +16,7 @@ import {
 import { useCustomJs } from './hooks/useCustomJs';
 import { useCustomCss } from './hooks/useCustomCss';
 import { useConfigSync } from './hooks/useConfigSync';
+import { useActiveSelectionSync } from './hooks/useActiveSelectionSync';
 import { useVersionGuard } from './hooks/useVersionGuard';
 import { useConnectionStore } from './store/connectionStore';
 import { useGlobalSettingsStore } from './store/globalSettingsStore';
@@ -380,6 +381,11 @@ export default function App() {
         }
         return section?.defaultTabId ?? section?.activeTabId ?? tabs[0]?.id ?? '';
     });
+
+    // Mirror the currently displayed layout / section / tab into read-only DPs
+    // (aura.<n>.info.active{Layout,Section,Tab}) so scripts can react to it.
+    const activeTab = useMemo(() => tabs.find((t) => t.id === activeTabId), [tabs, activeTabId]);
+    useActiveSelectionSync(connected, layout, section, activeTab);
 
     // Prefetch active tab on connect, then background-prefetch remaining tabs.
     // Dashboard is always visible immediately — no blocking on prefetch completion.

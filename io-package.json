@@ -245,6 +245,45 @@
       "native": {}
     },
     {
+      "_id": "info.activeLayout",
+      "type": "state",
+      "common": {
+        "name": "Currently displayed layout",
+        "type": "string",
+        "role": "text",
+        "read": true,
+        "write": false,
+        "def": ""
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.activeSection",
+      "type": "state",
+      "common": {
+        "name": "Currently displayed section (Bereich)",
+        "type": "string",
+        "role": "text",
+        "read": true,
+        "write": false,
+        "def": ""
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.activeTab",
+      "type": "state",
+      "common": {
+        "name": "Currently displayed tab",
+        "type": "string",
+        "role": "text",
+        "read": true,
+        "write": false,
+        "def": ""
+      },
+      "native": {}
+    },
+    {
       "_id": "config",
       "type": "channel",
       "common": {
