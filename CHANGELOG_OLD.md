@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.23.2 (2026-07-10)
+- Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)
+- Distribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage
+- Distribution chart - small pie/donut slices can optionally show their percentage on a leader line outside the ring instead of hiding it
+
 ## 0.23.1 (2026-07-10)
 - Layout menu - docked sidebar now collapses into the tab bar on mobile and re-docks on wider screens
 
