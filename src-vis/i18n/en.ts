@@ -106,8 +106,10 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.layoutDrawerPlacementFloating': 'Floating',
     'settings.frontend.layoutDrawerPlacementTabbar': 'In tab bar',
     'settings.frontend.layoutDrawerPlacementSidebar': 'Docked sidebar',
+    'settings.frontend.layoutDrawerPlacementTop': 'Bar at top',
+    'settings.frontend.layoutDrawerPlacementBottom': 'Bar at bottom',
     'settings.frontend.layoutDrawerPlacementHint':
-        'Floating/tab bar show a hamburger with an overlay (header hidden only). Docked sidebar is a permanently visible left menu.',
+        'Floating/tab bar show a hamburger with an overlay (header hidden only). Docked sidebar is a permanently visible left menu. Bar at top/bottom is a horizontal section bar like the tab bar — at the top it sits above the tab bar.',
     'settings.frontend.layoutDrawerWidth': 'Sidebar width',
     'settings.frontend.layoutDrawerTopOffset': 'Top offset',
     'settings.frontend.layoutDrawerBottomOffset': 'Bottom offset',

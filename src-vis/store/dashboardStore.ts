@@ -119,7 +119,7 @@ export interface LayoutSettings {
     layoutDrawerShowSingle?: boolean; // show the section menu even with a single section
     layoutDrawerSize?: 'sm' | 'md' | 'lg';
     layoutDrawerAutoHide?: boolean;
-    layoutDrawerPlacement?: 'floating' | 'tabbar' | 'sidebar';
+    layoutDrawerPlacement?: 'floating' | 'tabbar' | 'sidebar' | 'top' | 'bottom';
     layoutDrawerWidth?: number;
     layoutDrawerTopOffset?: number;
     layoutDrawerBottomOffset?: number;

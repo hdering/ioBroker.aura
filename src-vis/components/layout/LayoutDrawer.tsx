@@ -40,8 +40,10 @@ interface LayoutDrawerProps {
     fontSize?: number;
     /** Entry icon size in px. */
     iconSize?: number;
-    /** 'overlay' = hamburger trigger + slide-in drawer; 'sidebar' = permanently docked left menu. */
-    variant?: 'overlay' | 'sidebar';
+    /** 'overlay' = hamburger trigger + slide-in drawer; 'sidebar' = permanently docked left menu; 'bar' = permanently docked horizontal section bar. */
+    variant?: 'overlay' | 'sidebar' | 'bar';
+    /** For variant='bar': whether the bar sits above ('top') or below ('bottom') the dashboard — decides which edge carries the divider. */
+    barPosition?: 'top' | 'bottom';
     /** Width in px of the docked sidebar (variant='sidebar'). */
     width?: number;
     /** Space in px between the layout list and the element directly above it (title / top items / top edge). */
@@ -91,11 +93,49 @@ function entryActiveStyle(
     }
 }
 
+// Horizontal-bar variant of entryActiveStyle — mirrors the TabBar. "underline"
+// maps to a bottom accent bar (the natural equivalent for a horizontal row).
+function barEntryActiveStyle(
+    isActive: boolean,
+    style: NonNullable<LayoutDrawerProps['indicatorStyle']>,
+): React.CSSProperties {
+    if (!isActive) return { color: 'var(--text-secondary)', borderBottom: '2px solid transparent' };
+    switch (style) {
+        case 'text':
+            return { color: 'var(--accent)', borderBottom: '2px solid transparent' };
+        case 'underline':
+            return { color: 'var(--accent)', borderBottom: '2px solid var(--accent)' };
+        case 'pills':
+            return {
+                background: 'var(--accent)',
+                color: '#fff',
+                borderRadius: '9999px',
+                borderBottom: '2px solid transparent',
+            };
+        case 'filled':
+        default:
+            return {
+                background: 'color-mix(in srgb, var(--text-primary) 7%, transparent)',
+                color: 'var(--text-primary)',
+                borderRadius: '0.75rem',
+                borderBottom: '2px solid transparent',
+            };
+    }
+}
+
 // ── Layout-menu extra items (clock / datapoint / text) ────────────────────────
 // Same content shapes as the tab-bar items, but rendered block-style (stacked)
 // above or below the layout list.
 
-function LayoutMenuClock({ item, t }: { item: LayoutMenuItem; t: ReturnType<typeof useT> }) {
+function LayoutMenuClock({
+    item,
+    t,
+    compact = false,
+}: {
+    item: LayoutMenuItem;
+    t: ReturnType<typeof useT>;
+    compact?: boolean;
+}) {
     const [now, setNow] = useState(() => new Date());
     useEffect(() => {
         const id = setInterval(() => setNow(new Date()), 1000);
@@ -104,7 +144,10 @@ function LayoutMenuClock({ item, t }: { item: LayoutMenuItem; t: ReturnType<type
 
     if (item.clockCustomFormat) {
         return (
-            <div className="text-2xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>
+            <div
+                className={`${compact ? 'text-sm' : 'text-2xl'} font-bold tabular-nums`}
+                style={{ color: 'var(--text-primary)' }}
+            >
                 {applyCustomFormat(now, item.clockCustomFormat, t)}
             </div>
         );
@@ -115,11 +158,14 @@ function LayoutMenuClock({ item, t }: { item: LayoutMenuItem; t: ReturnType<type
 
     if (item.clockDisplay === 'datetime') {
         return (
-            <div>
-                <div className="text-3xl font-bold tabular-nums leading-none" style={{ color: 'var(--text-primary)' }}>
+            <div className={compact ? 'flex flex-col items-end leading-tight' : undefined}>
+                <div
+                    className={`${compact ? 'text-sm' : 'text-3xl'} font-bold tabular-nums leading-none`}
+                    style={{ color: 'var(--text-primary)' }}
+                >
                     {timeStr}
                 </div>
-                <div className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                <div className={compact ? 'text-xs' : 'text-sm mt-1'} style={{ color: 'var(--text-secondary)' }}>
                     {dateStr}
                 </div>
             </div>
@@ -128,7 +174,10 @@ function LayoutMenuClock({ item, t }: { item: LayoutMenuItem; t: ReturnType<type
 
     const text = item.clockDisplay === 'date' ? dateStr : timeStr;
     return (
-        <div className="text-2xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>
+        <div
+            className={`${compact ? 'text-sm' : 'text-2xl'} font-bold tabular-nums`}
+            style={{ color: 'var(--text-primary)' }}
+        >
             {text}
         </div>
     );
@@ -193,8 +242,16 @@ function SectionBadges({ section }: { section: Section }) {
     );
 }
 
-function LayoutMenuItemView({ item, t }: { item: LayoutMenuItem; t: ReturnType<typeof useT> }) {
-    if (item.type === 'clock') return <LayoutMenuClock item={item} t={t} />;
+function LayoutMenuItemView({
+    item,
+    t,
+    compact = false,
+}: {
+    item: LayoutMenuItem;
+    t: ReturnType<typeof useT>;
+    compact?: boolean;
+}) {
+    if (item.type === 'clock') return <LayoutMenuClock item={item} t={t} compact={compact} />;
     if (item.type === 'datapoint') return <LayoutMenuDatapoint item={item} />;
     return (
         <div className="text-sm" style={{ color: 'var(--text-primary)' }}>
@@ -227,6 +284,7 @@ export function LayoutDrawer({
     fontSize = 14,
     iconSize = 16,
     variant = 'overlay',
+    barPosition = 'top',
     width = 240,
     topOffset = 0,
     bottomOffset = 0,
@@ -402,6 +460,91 @@ export function LayoutDrawer({
             </div>
         );
     };
+
+    // Docked horizontal bar: always visible section row above / below the dashboard,
+    // mirroring the tab bar. No overlay/trigger, no portal. Extra items render inline
+    // at the leading (top-position) / trailing (bottom-position) edge.
+    if (variant === 'bar') {
+        const leadItems = items.filter((i) => i.position === 'top');
+        const trailItems = items.filter((i) => i.position === 'bottom');
+        const renderBarItems = (group: LayoutMenuItem[]) =>
+            group.map((it) => (
+                <div key={it.id} className="shrink-0 flex items-center">
+                    <LayoutMenuItemView item={it} t={t} compact />
+                </div>
+            ));
+        return (
+            <nav
+                className="aura-section-bar aura-scroll shrink-0 flex items-center overflow-x-auto"
+                style={{
+                    background: 'var(--nav-bg, var(--app-surface))',
+                    [barPosition === 'bottom' ? 'borderTop' : 'borderBottom']: '1px solid var(--app-border)',
+                    // Own stacking context above the dashboard grid (z-index:10) so section
+                    // badges overflowing the bar aren't hidden by opaque widgets below it.
+                    position: 'relative',
+                    zIndex: 20,
+                    minHeight: entryHeight,
+                }}
+                aria-label={drawerTitle?.trim() || t('layoutDrawer.title')}
+            >
+                {leadItems.length > 0 && (
+                    <div className="flex items-center gap-3 px-3 shrink-0">{renderBarItems(leadItems)}</div>
+                )}
+                <div className="flex items-center gap-1 px-2">
+                    {visibleSections.map((section) => {
+                        const isActive = section.id === activeSection?.id;
+                        return (
+                            <button
+                                key={section.id}
+                                onClick={() => goToSection(section)}
+                                title={entryStyle === 'iconOnly' ? section.name : undefined}
+                                className={`relative flex items-center gap-2 whitespace-nowrap transition-colors hover:opacity-90 ${
+                                    entryStyle === 'iconOnly' ? 'justify-center px-2.5' : 'px-3'
+                                } ${indicatorStyle === 'underline' ? 'py-2.5' : 'py-1.5'}`}
+                                style={barEntryActiveStyle(isActive, indicatorStyle)}
+                            >
+                                {showBullet && (
+                                    <span
+                                        className="shrink-0 rounded-full"
+                                        style={{
+                                            width: 7,
+                                            height: 7,
+                                            background: isActive
+                                                ? indicatorStyle === 'pills'
+                                                    ? 'currentColor'
+                                                    : 'var(--accent)'
+                                                : 'var(--text-secondary)',
+                                        }}
+                                    />
+                                )}
+                                {showIcon && (
+                                    <span className="shrink-0 inline-flex items-center justify-center">
+                                        {section.icon ? (
+                                            <Icon icon={section.icon} width={iconSize} height={iconSize} />
+                                        ) : (
+                                            <LayoutDashboard size={iconSize} />
+                                        )}
+                                    </span>
+                                )}
+                                {showName && (
+                                    <span
+                                        className={`truncate ${isActive ? 'font-semibold' : 'font-medium'}`}
+                                        style={{ fontSize }}
+                                    >
+                                        {section.name}
+                                    </span>
+                                )}
+                                <SectionBadges section={section} />
+                            </button>
+                        );
+                    })}
+                </div>
+                {trailItems.length > 0 && (
+                    <div className="flex items-center gap-3 px-3 shrink-0 ml-auto">{renderBarItems(trailItems)}</div>
+                )}
+            </nav>
+        );
+    }
 
     // Docked sidebar: always visible, no overlay/trigger, no portal.
     if (variant === 'sidebar') {

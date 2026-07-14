@@ -49,8 +49,9 @@ export interface FrontendSettings {
     /**
      * floating/tabbar: hamburger trigger opening an overlay (only when header is hidden).
      * sidebar: permanently docked left menu (no overlay), always visible — works with or without header.
+     * top/bottom: permanently docked horizontal section bar (like the tab bar) above / below the dashboard.
      */
-    layoutDrawerPlacement: 'floating' | 'tabbar' | 'sidebar';
+    layoutDrawerPlacement: 'floating' | 'tabbar' | 'sidebar' | 'top' | 'bottom';
     /** Width in px of the docked sidebar (placement='sidebar'). */
     layoutDrawerWidth: number;
     /** Top offset in px of the docked sidebar menu content (placement='sidebar'). */

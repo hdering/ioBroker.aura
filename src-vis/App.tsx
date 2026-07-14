@@ -825,6 +825,11 @@ export default function App() {
     const drawerSidebar = drawerEnabled && drawerPlacement === 'sidebar' && !isMobileViewport;
     const drawerSidebarCollapsed = drawerEnabled && drawerPlacement === 'sidebar' && isMobileViewport;
     const drawerWidth = effectiveSettings.layoutDrawerWidth ?? 240;
+    // Docked horizontal section bar (like the tab bar), above or below the dashboard.
+    // Works with or without the header — the bar is self-contained (no hamburger).
+    const drawerBarTop = drawerEnabled && drawerPlacement === 'top';
+    const drawerBarBottom = drawerEnabled && drawerPlacement === 'bottom';
+    const drawerBar = drawerBarTop || drawerBarBottom;
     // Tab-bar hamburger: either the explicit tabbar placement, or a docked sidebar that
     // collapsed on mobile — the collapsed sidebar always lands here, even with a header shown.
     const drawerInTabBar =
@@ -834,7 +839,8 @@ export default function App() {
             drawerPlacement === 'tabbar' &&
             !drawerAutoHide) ||
         drawerSidebarCollapsed;
-    const drawerFloating = drawerEnabled && !drawerSidebar && !effectiveSettings.showHeader && !drawerInTabBar;
+    const drawerFloating =
+        drawerEnabled && !drawerSidebar && !drawerBar && !effectiveSettings.showHeader && !drawerInTabBar;
     const drawerShowTitle = effectiveSettings.layoutDrawerShowTitle ?? true;
     const drawerTitle = effectiveSettings.layoutDrawerTitle ?? '';
     const drawerTitleMarginTop = effectiveSettings.layoutDrawerTitleMarginTop ?? 0;
@@ -888,6 +894,24 @@ export default function App() {
             }
         />
     );
+
+    // Docked horizontal section bar — rendered above the tab bar (placement 'top')
+    // or below it (placement 'bottom'), so the section menu is the outermost strip.
+    const sectionMenuBar = drawerBar ? (
+        <LayoutDrawer
+            activeLayoutId={layout?.id}
+            activeSectionId={section?.id}
+            variant="bar"
+            barPosition={drawerBarBottom ? 'bottom' : 'top'}
+            drawerTitle={drawerTitle}
+            entryStyle={drawerEntryStyle}
+            entryHeight={drawerEntryHeight}
+            indicatorStyle={drawerIndicatorStyle}
+            fontSize={drawerFontSize}
+            iconSize={drawerIconSize}
+            items={drawerItems}
+        />
+    ) : null;
 
     return (
         <div
@@ -944,7 +968,7 @@ export default function App() {
                             style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)' }}
                         >
                             <div className="flex items-center gap-3 min-w-0">
-                                {drawerEnabled && !drawerSidebar && !drawerSidebarCollapsed && (
+                                {drawerEnabled && !drawerSidebar && !drawerSidebarCollapsed && !drawerBar && (
                                     <LayoutDrawer
                                         activeLayoutId={layout?.id}
                                         activeSectionId={section?.id}
@@ -1010,6 +1034,7 @@ export default function App() {
                             </div>
                         </header>
                     )}
+                    {drawerBarTop && sectionMenuBar}
                     {!tabBarAtBottom && tabBarNode}
                     <div className="flex-1 min-h-0 flex flex-col">
                         <FocusedWidgetContext.Provider value={focusWidgetId}>
@@ -1023,6 +1048,7 @@ export default function App() {
                         </FocusedWidgetContext.Provider>
                     </div>
                     {tabBarAtBottom && tabBarNode}
+                    {drawerBarBottom && sectionMenuBar}
                 </div>
             </div>
         </div>

@@ -2085,6 +2085,38 @@ export function AdminEditor() {
             (editorSettings.layoutDrawerShowSingle ?? false));
     const drawerWidth = editorSettings.layoutDrawerWidth ?? 240;
 
+    // Docked horizontal section bar preview: mirror the frontend so the editor shows
+    // the section strip where it will render (above / below the tab strip). Non-interactive
+    // — section switching in the editor goes through the SectionSwitcher, not this bar.
+    const editorMenuVisible =
+        (editorSettings.layoutDrawerEnabled ?? false) &&
+        !!activeSectionForEditor &&
+        ((useDashboardStore
+            .getState()
+            .layouts.find((l) => l.id === activeLayoutId)
+            ?.sections.filter((s) => !s.hidden).length ?? 0) > 1 ||
+            (editorSettings.layoutDrawerShowSingle ?? false));
+    const editorDrawerPlacement = editorSettings.layoutDrawerPlacement ?? 'floating';
+    const drawerBarPreviewTop = editorMenuVisible && editorDrawerPlacement === 'top';
+    const drawerBarPreviewBottom = editorMenuVisible && editorDrawerPlacement === 'bottom';
+    const sectionBarPreview = (pos: 'top' | 'bottom') => (
+        <div style={{ pointerEvents: 'none' }} aria-hidden>
+            <LayoutDrawer
+                activeLayoutId={activeLayoutId}
+                activeSectionId={activeSectionForEditor?.id}
+                variant="bar"
+                barPosition={pos}
+                drawerTitle={editorSettings.layoutDrawerTitle ?? ''}
+                entryStyle={editorSettings.layoutDrawerEntryStyle ?? 'iconAndName'}
+                entryHeight={editorSettings.layoutDrawerEntryHeight ?? 48}
+                indicatorStyle={editorSettings.layoutDrawerIndicatorStyle ?? 'filled'}
+                fontSize={editorSettings.layoutDrawerFontSize ?? 14}
+                iconSize={editorSettings.layoutDrawerIconSize ?? 16}
+                items={editorSettings.layoutDrawerItems ?? []}
+            />
+        </div>
+    );
+
     // Run custom JS inside the editor preview when `customJSInEditor` is enabled.
     useCustomJs(activeLayoutId, activeSectionForEditor.id, true);
     // Apply custom CSS inside the editor preview when `customCSSInEditor` is enabled.
@@ -2213,6 +2245,7 @@ export function AdminEditor() {
 
             {/* Tab bar — isolated memoized component, does not cause AdminEditor to re-render on tab switch.
                 Rendered above or below the preview to mirror the configured footer position. */}
+            {drawerBarPreviewTop && sectionBarPreview('top')}
             {!editorTabBarBottom && <TabBar />}
 
             {/* Dashboard preview with edit mode */}
@@ -2271,6 +2304,7 @@ export function AdminEditor() {
                 {showMobileOrder && <MobileOrderPanel layoutId={activeLayoutId} />}
             </div>
             {editorTabBarBottom && <TabBar />}
+            {drawerBarPreviewBottom && sectionBarPreview('bottom')}
 
             {showTabWizard && (
                 <TabWizard

@@ -105,8 +105,10 @@ export const de = {
     'settings.frontend.layoutDrawerPlacementFloating': 'Schwebend',
     'settings.frontend.layoutDrawerPlacementTabbar': 'In Tab-Leiste',
     'settings.frontend.layoutDrawerPlacementSidebar': 'Feste Seitenleiste',
+    'settings.frontend.layoutDrawerPlacementTop': 'Leiste oben',
+    'settings.frontend.layoutDrawerPlacementBottom': 'Leiste unten',
     'settings.frontend.layoutDrawerPlacementHint':
-        'Schwebend/Tab-Leiste zeigen einen Hamburger mit Overlay (nur bei ausgeblendetem Header). Feste Seitenleiste ist ein dauerhaft sichtbares Menü links.',
+        'Schwebend/Tab-Leiste zeigen einen Hamburger mit Overlay (nur bei ausgeblendetem Header). Feste Seitenleiste ist ein dauerhaft sichtbares Menü links. Leiste oben/unten ist eine waagerechte Bereichsleiste wie die Tab-Leiste – oben liegt sie über der Tab-Leiste.',
     'settings.frontend.layoutDrawerWidth': 'Breite der Seitenleiste',
     'settings.frontend.layoutDrawerTopOffset': 'Abstand nach oben',
     'settings.frontend.layoutDrawerBottomOffset': 'Abstand nach unten',
