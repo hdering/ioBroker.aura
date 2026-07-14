@@ -210,6 +210,28 @@ export function Dashboard({
     // RGL gets the locked width in editMode, actual containerWidth otherwise
     const rglWidth = editMode && editWidth > 0 ? editWidth : containerWidth;
 
+    // ── touch devices: never drag/resize-persist the desktop grid ──────────────
+    // On a coarse (touch-primary) pointer, tapping a widget to edit it easily
+    // registers as an RGL drag; RGL then vertically compacts the WHOLE tab and
+    // onDragStop persists new positions for *every* widget — silently wrecking a
+    // layout arranged on desktop. The desktop grid can only be arranged sensibly
+    // with a mouse anyway, so we disable drag/resize (and the writeback) whenever
+    // the primary pointer is coarse. Config edits and mobile ordering still work.
+    const [coarsePointer, setCoarsePointer] = useState(
+        () =>
+            typeof window !== 'undefined' &&
+            typeof window.matchMedia === 'function' &&
+            window.matchMedia('(pointer: coarse)').matches,
+    );
+    useEffect(() => {
+        if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+        const mq = window.matchMedia('(pointer: coarse)');
+        const onChange = () => setCoarsePointer(mq.matches);
+        mq.addEventListener?.('change', onChange);
+        return () => mq.removeEventListener?.('change', onChange);
+    }, []);
+    const gridEditable = editMode && !coarsePointer;
+
     // ── compute cols based on horizontal snap width ────────────────────────
     // col_width = (rglWidth - (cols+1)*MARGIN) / cols ≈ snapX
     // → cols ≈ (rglWidth - MARGIN) / (snapX + MARGIN)
@@ -616,14 +638,14 @@ export function Dashboard({
                                                 cols={effectiveCols}
                                                 rowHeight={cellSize}
                                                 width={effectiveRglWidth}
-                                                isDraggable={isActive && editMode}
-                                                isResizable={isActive && editMode}
+                                                isDraggable={isActive && gridEditable}
+                                                isResizable={isActive && gridEditable}
                                                 draggableCancel=".nodrag"
                                                 onLayoutChange={(nl) => {
                                                     if (isActive) onLayoutChange?.(buildTabUpdated(nl));
                                                 }}
                                                 onDragStop={(nl) => {
-                                                    if (!isActive || readonly) return;
+                                                    if (!isActive || readonly || coarsePointer) return;
                                                     // Skip if nothing moved (click without drag fires onDragStop too)
                                                     const moved = nl.some(({ i, x, y, w: nw, h: nh }) => {
                                                         const widget = tabGridWidgets.find((tw) => tw.id === i);
@@ -638,7 +660,8 @@ export function Dashboard({
                                                     if (moved) updateLayouts(buildTabUpdated(nl));
                                                 }}
                                                 onResizeStop={(nl) => {
-                                                    if (isActive && !readonly) updateLayouts(buildTabUpdated(nl));
+                                                    if (isActive && !readonly && !coarsePointer)
+                                                        updateLayouts(buildTabUpdated(nl));
                                                 }}
                                                 margin={[MARGIN, MARGIN]}
                                                 containerPadding={[0, 0]}

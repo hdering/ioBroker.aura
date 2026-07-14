@@ -2045,6 +2045,21 @@ export function AdminEditor() {
     // per-layout overrides (e.g. a layout that enables the menu while global is off).
     const editorSettings = useEffectiveSettings(activeLayoutId, activeSectionForEditor?.id);
 
+    // Mirror the frontend's mobile behavior: a docked sidebar menu collapses on narrow
+    // viewports (App.tsx). Without this the editor keeps rendering the full-width menu
+    // preview on a phone, eating most of the already-narrow editing area.
+    const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 0));
+    useEffect(() => {
+        const onResize = () => setViewportWidth(window.innerWidth);
+        window.addEventListener('resize', onResize);
+        window.addEventListener('orientationchange', onResize);
+        return () => {
+            window.removeEventListener('resize', onResize);
+            window.removeEventListener('orientationchange', onResize);
+        };
+    }, []);
+    const isMobileViewport = viewportWidth > 0 && viewportWidth < (editorSettings.mobileBreakpoint ?? 600);
+
     // Tab-bar position (top / footer) for the edited scope — mirror the frontend so
     // the editor tab strip sits where the bar will render.
     const editedLayout = useDashboardStore((s) => s.layouts.find((l) => l.id === activeLayoutId));
@@ -2061,6 +2076,7 @@ export function AdminEditor() {
     const drawerSidebarPreview =
         (editorSettings.layoutDrawerEnabled ?? false) &&
         (editorSettings.layoutDrawerPlacement ?? 'floating') === 'sidebar' &&
+        !isMobileViewport &&
         activeSectionForEditor &&
         ((useDashboardStore
             .getState()
