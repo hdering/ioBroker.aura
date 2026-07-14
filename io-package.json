@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.31.2",
+    "version": "0.31.3",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.31.3": {
+        "en": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
+        "de": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
+        "ru": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
+        "pt": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
+        "nl": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
+        "fr": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
+        "it": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
+        "es": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
+        "pl": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
+        "uk": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
+        "zh-cn": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections"
+      },
       "0.31.2": {
         "en": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
         "de": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
@@ -184,19 +197,6 @@
         "pl": "Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)\nJSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content",
         "uk": "Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)\nJSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content",
         "zh-cn": "Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)\nJSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content"
-      },
-      "0.25.4": {
-        "en": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
-        "de": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
-        "ru": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
-        "pt": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
-        "nl": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
-        "fr": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
-        "it": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
-        "es": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
-        "pl": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
-        "uk": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile",
-        "zh-cn": "Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile"
       }
     }
   },
