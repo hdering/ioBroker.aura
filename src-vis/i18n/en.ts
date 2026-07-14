@@ -93,7 +93,7 @@ export const en: Record<TranslationKey, string> = {
 
     'settings.frontend.title': 'Frontend',
     'settings.behavior.title': 'Behavior',
-    'settings.frontend.layoutDrawer': 'Layout Menu (Hamburger)',
+    'settings.frontend.layoutDrawer': 'Section Menu (Hamburger)',
     'settings.frontend.layoutDrawerHint':
         'Shown when the layout has more than one section (or always, if enabled below).',
     'settings.frontend.layoutDrawerShowSingle': 'Show menu with a single section',
@@ -413,12 +413,12 @@ export const en: Record<TranslationKey, string> = {
     'layouts.subtab.tabbar': 'Tab bar',
     'layouts.subtab.tabbarHiddenHint': 'Tab bar is configured per layout. Pick a layout in the context picker above.',
     'layouts.subtab.header': 'Header',
-    'layouts.subtab.menu': 'Layout menu',
+    'layouts.subtab.menu': 'Section menu',
     'layouts.subtab.nav': 'Navigation',
 
     'layouts.scope.title': 'Scope',
     'layouts.scope.global': 'Global',
-    'layouts.scope.globalHint': 'Defaults for all layouts',
+    'layouts.scope.globalHint': 'Defaults for all sections',
     'layouts.scope.layoutHint': 'Overrides global values',
     'layouts.scope.resetToGlobal': 'Reset to global',
     'layouts.scope.reset': 'Reset',
@@ -426,12 +426,12 @@ export const en: Record<TranslationKey, string> = {
 
     'layouts.context.label': 'Context',
     'layouts.context.global': 'Global',
-    'layouts.context.hintGlobal': 'Defaults for all layouts. Layouts can override individual values.',
+    'layouts.context.hintGlobal': 'Defaults for all sections. Sections can override individual values.',
     'layouts.context.hintLayout': 'Values override the global default. ↩ Global resets a value.',
 
     // ── Layout drawer (Hamburger) ─────────────────────────────────────────────────
-    'layoutDrawer.title': 'Layouts',
-    'layoutDrawer.open': 'Open layout menu',
+    'layoutDrawer.title': 'Sections',
+    'layoutDrawer.open': 'Open section menu',
 
     // ── Endpoints ─────────────────────────────────────────────────────────────────
     'endpoints.title': 'Endpoints & Groups',
@@ -621,7 +621,7 @@ export const en: Record<TranslationKey, string> = {
 
     // ── Editor ────────────────────────────────────────────────────────────────────
     'editor.dockedMenuPreview.hint':
-        'The layout menu is docked as a sidebar and takes up this space in the frontend. It is shown here so the design area matches.',
+        'The section menu is docked as a sidebar and takes up this space in the frontend. It is shown here so the design area matches.',
     'editor.dockedMenuPreview.link': 'Change menu setting',
     'editor.manual.title': 'Add Widget Manually',
     'editor.manual.template': 'Quick Select',

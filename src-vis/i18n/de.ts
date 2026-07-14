@@ -91,7 +91,7 @@ export const de = {
 
     'settings.frontend.title': 'Frontend',
     'settings.behavior.title': 'Verhalten',
-    'settings.frontend.layoutDrawer': 'Layout-Menü (Hamburger)',
+    'settings.frontend.layoutDrawer': 'Bereichs-Menü (Hamburger)',
     'settings.frontend.layoutDrawerHint':
         'Wird angezeigt, wenn das Layout mehr als einen Bereich hat (oder immer, wenn unten aktiviert).',
     'settings.frontend.layoutDrawerShowSingle': 'Menü schon ab einem Bereich anzeigen',
@@ -122,7 +122,7 @@ export const de = {
     'settings.frontend.layoutDrawerEntryStyleIconOnly': 'Nur Icon',
     'settings.frontend.layoutDrawerEntryStyleNameOnly': 'Nur Name',
     'settings.frontend.layoutDrawerEntryStyleBulletAndName': 'Aufzählungspunkt + Name',
-    'settings.frontend.layoutDrawerIndicatorStyle': 'Stil des ausgewählten Layouts',
+    'settings.frontend.layoutDrawerIndicatorStyle': 'Stil des ausgewählten Bereichs',
     'settings.frontend.layoutDrawerFontSize': 'Schriftgröße',
     'settings.frontend.layoutDrawerIconSize': 'Icon-Größe',
     'settings.frontend.layoutDrawerItems': 'Elemente',
@@ -414,12 +414,12 @@ export const de = {
     'layouts.subtab.tabbar': 'Tab-Leiste',
     'layouts.subtab.tabbarHiddenHint': 'Tab-Leiste wird pro Layout konfiguriert. Wähle ein Layout im Picker oben.',
     'layouts.subtab.header': 'Header',
-    'layouts.subtab.menu': 'Layout-Menü',
+    'layouts.subtab.menu': 'Bereichs-Menü',
     'layouts.subtab.nav': 'Navigation',
 
     'layouts.scope.title': 'Geltungsbereich',
     'layouts.scope.global': 'Global',
-    'layouts.scope.globalHint': 'Voreinstellungen für alle Layouts',
+    'layouts.scope.globalHint': 'Voreinstellungen für alle Bereiche',
     'layouts.scope.layoutHint': 'Überschreibt globale Werte',
     'layouts.scope.resetToGlobal': 'Auf Global zurücksetzen',
     'layouts.scope.reset': 'Zurücksetzen',
@@ -427,12 +427,12 @@ export const de = {
 
     'layouts.context.label': 'Kontext',
     'layouts.context.global': 'Global',
-    'layouts.context.hintGlobal': 'Voreinstellungen für alle Layouts. Layouts können einzelne Werte überschreiben.',
+    'layouts.context.hintGlobal': 'Voreinstellungen für alle Bereiche. Bereiche können einzelne Werte überschreiben.',
     'layouts.context.hintLayout': 'Werte überschreiben den globalen Standard. ↩ Global setzt einen Wert zurück.',
 
     // ── Layout drawer (Hamburger) ─────────────────────────────────────────────────
-    'layoutDrawer.title': 'Layouts',
-    'layoutDrawer.open': 'Layout-Menü öffnen',
+    'layoutDrawer.title': 'Bereiche',
+    'layoutDrawer.open': 'Bereichs-Menü öffnen',
 
     // ── Endpoints ─────────────────────────────────────────────────────────────────
     'endpoints.title': 'Endpunkte & Gruppen',
@@ -622,7 +622,7 @@ export const de = {
 
     // ── Editor ────────────────────────────────────────────────────────────────────
     'editor.dockedMenuPreview.hint':
-        'Das Layout-Menü ist als feste Seitenleiste angedockt und belegt diesen Bereich im Frontend. Es wird hier angezeigt, damit die Designfläche übereinstimmt.',
+        'Das Bereichs-Menü ist als feste Seitenleiste angedockt und belegt diesen Bereich im Frontend. Es wird hier angezeigt, damit die Designfläche übereinstimmt.',
     'editor.dockedMenuPreview.link': 'Menü-Einstellung ändern',
     'editor.manual.title': 'Widget manuell hinzufügen',
     'editor.manual.template': 'Schnellauswahl',
