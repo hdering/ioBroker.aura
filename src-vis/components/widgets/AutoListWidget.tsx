@@ -31,6 +31,7 @@ import {
     StepperControl,
     PresetButtons,
     MomentaryButton,
+    StateDisplay,
     NON_TOGGLE_DISPLAY_TYPES,
     type EntryControlConfig,
 } from './entryControls';
@@ -433,6 +434,7 @@ function EntryValue({
     if (dt === 'buttons')
         return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
+    if (dt === 'states') return <StateDisplay entry={entry} val={val} />;
 
     // Role-based display for sensors (window, door, motion, smoke, …)
     if (isBoolLike && !hasLabels) {
@@ -583,6 +585,7 @@ function CardEntryValue({
     if (dt === 'buttons')
         return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
+    if (dt === 'states') return <StateDisplay entry={entry} val={val} />;
 
     // Role-based display for sensors
     if (isBoolLike && !hasLabels) {
@@ -1399,30 +1402,43 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     const isBool = typeof val === 'boolean';
                                     const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
                                     const on = val === true || val === 1;
+                                    // Multi-state mapping (window handle etc.): match the value to a
+                                    // configured state so the badge shows its label + color + icon.
+                                    const stateMatch =
+                                        entry.displayType === 'states'
+                                            ? (entry.states ?? []).find((s) => String(s.value) === String(val))
+                                            : undefined;
                                     const roleDisplay =
-                                        isBoolLike && !hasLabels ? getRoleDisplay(entry.role, val) : null;
-                                    const valueStr = roleDisplay
-                                        ? roleDisplay.label
-                                        : isBoolLike && hasLabels
-                                          ? on
-                                              ? trueLabel || 'AN'
-                                              : falseLabel || 'AUS'
-                                          : val != null
-                                            ? `${String(val)}${entry.unit ? `\u202f${entry.unit}` : ''}`
-                                            : '–';
+                                        !stateMatch && isBoolLike && !hasLabels
+                                            ? getRoleDisplay(entry.role, val)
+                                            : null;
+                                    const valueStr = stateMatch
+                                        ? (stateMatch.label ?? String(stateMatch.value))
+                                        : roleDisplay
+                                          ? roleDisplay.label
+                                          : isBoolLike && hasLabels
+                                            ? on
+                                                ? trueLabel || 'AN'
+                                                : falseLabel || 'AUS'
+                                            : val != null
+                                              ? `${String(val)}${entry.unit ? `\u202f${entry.unit}` : ''}`
+                                              : '–';
                                     const entryActiveColor = entry.activeColor || globalActiveColor;
                                     const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
                                     const eOn = isActive(val);
                                     const stateBg = eOn
                                         ? entry.activeBg || globalActiveBg
                                         : entry.inactiveBg || globalInactiveBg;
-                                    const pillColor = roleDisplay
-                                        ? roleDisplay.color
-                                        : isBoolLike && on
-                                          ? entryActiveColor
-                                          : hasLabels
-                                            ? entryInactiveColor
-                                            : null;
+                                    const pillColor = stateMatch
+                                        ? (stateMatch.color ?? null)
+                                        : roleDisplay
+                                          ? roleDisplay.color
+                                          : isBoolLike && on
+                                            ? entryActiveColor
+                                            : hasLabels
+                                              ? entryInactiveColor
+                                              : null;
+                                    const BadgeIcon = stateMatch?.icon ? getWidgetIcon(stateMatch.icon, null!) : null;
                                     const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
                                     const lcText =
                                         lcTs > 0
@@ -1450,9 +1466,13 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                         : 'var(--app-bg)'),
                                                 color: pillColor ?? 'var(--text-secondary)',
                                                 border: `1px solid ${stateBg ? 'transparent' : pillColor ? `color-mix(in srgb, ${pillColor} 34%, transparent)` : 'var(--widget-border)'}`,
-                                                cursor: isBoolLike && writable && !roleDisplay ? 'pointer' : 'default',
+                                                cursor:
+                                                    isBoolLike && writable && !roleDisplay && !lockValue
+                                                        ? 'pointer'
+                                                        : 'default',
                                             }}
                                         >
+                                            {BadgeIcon && <BadgeIcon size={13} className="shrink-0 opacity-70" />}
                                             <span className="opacity-70 truncate" style={{ maxWidth: 80 }}>
                                                 {label}
                                             </span>
@@ -1460,7 +1480,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 className="font-semibold tabular-nums"
                                                 style={{
                                                     color:
-                                                        isBoolLike || roleDisplay ? 'inherit' : 'var(--text-primary)',
+                                                        isBoolLike || roleDisplay || stateMatch
+                                                            ? 'inherit'
+                                                            : 'var(--text-primary)',
                                                 }}
                                             >
                                                 {valueStr}
