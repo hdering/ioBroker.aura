@@ -94,7 +94,13 @@ function resolveImageSrc(v: unknown, adminBaseUrl: string, columnPrefix?: string
     if (columnPrefix && columnPrefix.trim()) {
         const prefix = columnPrefix.trim().replace(/\/+$/, '');
         const path = v.startsWith('/') ? v : `/${v}`;
-        return proxifyIfMixed(prefix + path);
+        const combined = prefix + path;
+        // An `aura-file:` prefix must still be routed to the /fs/read endpoint —
+        // proxifyIfMixed only handles http(s), so it would leave the raw
+        // `aura-file:…` string in the <img src> and the browser can't load it
+        // (issue #469).
+        if (combined.startsWith('aura-file:')) return resolveAssetUrl(combined);
+        return proxifyIfMixed(combined);
     }
     // ioBroker admin asset path: /<adapter>.admin/...
     if (/^\/[^/]+\.admin\//.test(v) && adminBaseUrl) {
