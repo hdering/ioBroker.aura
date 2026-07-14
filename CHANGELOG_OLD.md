@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.23.3 (2026-07-10)
+- Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted
+- Editor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend
+
 ## 0.23.2 (2026-07-10)
 - Distribution chart - pie and donut now render for datapoints without a history adapter (falls back to the current value)
 - Distribution chart - optionally show each datapoint's icon inside the bar segments and pie/donut slices, next to the percentage

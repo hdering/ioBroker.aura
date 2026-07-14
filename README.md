@@ -115,6 +115,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.32.0 (2026-07-14)
+- 🌟 **New feature:** Editor - docked section menu now collapses on mobile viewports so it no longer eats the editing area
+- 🌟 **New feature:** Editor - editing on a touch device no longer accidentally repositions all widgets (grid drag/resize is disabled on touch-primary devices)
+- 🌟 **New feature:** Section menu - can now be docked as a horizontal bar above or below the dashboard (like the tab bar), with the same height, entry style, font/icon size, alignment and hide-scroll-bar-on-mobile options; placed at the top it sits above the tab bar
+
+
 ### 0.31.4 (2026-07-14)
 - 🌟 **New feature:** General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view
 
@@ -217,11 +223,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - iframe & eCharts widgets - fixed white background in dark mode
 
 
-### 0.23.3 (2026-07-10)
-- Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted
-- Editor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend
-
-
 ## License
 
 MIT License
@@ -233,6 +234,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
