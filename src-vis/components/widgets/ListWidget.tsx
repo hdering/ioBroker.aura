@@ -31,6 +31,8 @@ import {
     PresetButtons,
     MomentaryButton,
     StateDisplay,
+    ContactDisplay,
+    resolveContactDisplay,
     NON_TOGGLE_DISPLAY_TYPES,
     type EntryControlConfig,
 } from './entryControls';
@@ -258,6 +260,7 @@ function EntryValue({
         return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
     if (displayType === 'momentary') return <MomentaryButton entry={entry} setState={setState} icon={entry.icon} />;
     if (displayType === 'states') return <StateDisplay entry={entry} val={val} />;
+    if (displayType === 'contact') return <ContactDisplay entry={entry} val={val} />;
 
     // Forced "Nur Wert" — skip role/switch/slider, render text only
     if (displayType === 'value') {
@@ -1048,21 +1051,26 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                 displayType === 'states'
                                     ? (entry.states ?? []).find((s) => String(s.value) === String(val))
                                     : undefined;
+                            // Window/door contact mapping (HmIP/Boolean/… → closed/tilted/open).
+                            const contactMatch =
+                                displayType === 'contact' ? resolveContactDisplay(entry, val) : undefined;
                             const useRoleDisplay = !forceSwitch && !forceValue && isBoolLike && !hasLabels;
                             const roleDisplay = useRoleDisplay ? getRoleDisplay(entry.role, val) : null;
                             const truthy = on || (typeof val === 'number' && val > 0);
                             const switchActive = forceSwitch ? truthy : isBoolLike && on;
-                            const valueStr = stateMatch
-                                ? (stateMatch.label ?? String(stateMatch.value))
-                                : roleDisplay
-                                  ? roleDisplay.label
-                                  : forceSwitch || (isBoolLike && hasLabels)
-                                    ? switchActive
-                                        ? trueLabel || 'AN'
-                                        : falseLabel || 'AUS'
-                                    : val != null
-                                      ? `${String(val)}${entry.unit ? `\u202f${entry.unit}` : ''}`
-                                      : '–';
+                            const valueStr = contactMatch
+                                ? contactMatch.label
+                                : stateMatch
+                                  ? (stateMatch.label ?? String(stateMatch.value))
+                                  : roleDisplay
+                                    ? roleDisplay.label
+                                    : forceSwitch || (isBoolLike && hasLabels)
+                                      ? switchActive
+                                          ? trueLabel || 'AN'
+                                          : falseLabel || 'AUS'
+                                      : val != null
+                                        ? `${String(val)}${entry.unit ? `\u202f${entry.unit}` : ''}`
+                                        : '–';
                             const threshColor =
                                 !switchActive && !roleDisplay
                                     ? getThresholdColor(val, entry.colorThresholds ?? globalThresholds)
@@ -1073,20 +1081,23 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             const stateBg = eOn
                                 ? entry.activeBg || globalActiveBg
                                 : entry.inactiveBg || globalInactiveBg;
-                            const pillColor = stateMatch
-                                ? (stateMatch.color ?? null)
-                                : (threshColor ??
-                                  (roleDisplay
-                                      ? roleDisplay.color
-                                      : switchActive
-                                        ? entryActiveColor
-                                        : hasLabels
-                                          ? entryInactiveColor
-                                          : null));
-                            const EntryIcon =
-                                (stateMatch?.icon ?? entry.icon)
-                                    ? getWidgetIcon(stateMatch?.icon ?? entry.icon, null!)
-                                    : null;
+                            const pillColor = contactMatch
+                                ? contactMatch.color
+                                : stateMatch
+                                  ? (stateMatch.color ?? null)
+                                  : (threshColor ??
+                                    (roleDisplay
+                                        ? roleDisplay.color
+                                        : switchActive
+                                          ? entryActiveColor
+                                          : hasLabels
+                                            ? entryInactiveColor
+                                            : null));
+                            const EntryIcon = contactMatch
+                                ? getWidgetIcon(contactMatch.icon, null!)
+                                : (stateMatch?.icon ?? entry.icon)
+                                  ? getWidgetIcon(stateMatch?.icon ?? entry.icon, null!)
+                                  : null;
                             const clickable = writable && !roleDisplay && !forceValue && (forceSwitch || isBoolLike);
 
                             const entryIconSize = entry.iconSize ?? 11;

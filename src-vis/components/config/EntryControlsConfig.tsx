@@ -13,6 +13,13 @@ import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { getObjectDirect } from '../../hooks/useIoBroker';
 import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
 import type { EntryControlConfig, EntryDisplayType, EntryPreset, EntryStateMap } from '../widgets/entryControls';
+import {
+    type ContactState,
+    WC_PRESETS,
+    WC_PRESET_LABELS,
+    WC_FALLBACK,
+    WC_FALLBACK_ICON_NAME,
+} from '../../utils/windowContact';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -109,7 +116,8 @@ const TYPE_OPTIONS: { value: EntryDisplayType; label: string }[] = [
     { value: 'stepper', label: '+/−' },
     { value: 'buttons', label: 'Tasten' },
     { value: 'momentary', label: 'Taster' },
-    { value: 'states', label: 'Zustände' },
+    { value: 'states', label: 'Wertzuordnung' },
+    { value: 'contact', label: 'Fenster-/Türkontakt' },
 ];
 
 const iSty = {
@@ -149,10 +157,17 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
     const sMode = entry.shutterMode ?? 'commands';
     const [pickFor, setPickFor] = useState<null | 'shutterUpDp' | 'shutterStopDp' | 'shutterDownDp'>(null);
     const [statePickFor, setStatePickFor] = useState<number | null>(null);
+    const [contactIconPickFor, setContactIconPickFor] = useState<ContactState | null>(null);
     const [autoMsg, setAutoMsg] = useState<string | null>(null);
     const [stateMsg, setStateMsg] = useState<string | null>(null);
     const presets = entry.presets ?? [];
     const stateMaps = entry.states ?? [];
+    const contactPreset = entry.contactPreset ?? 'hmip';
+
+    const setContactAppearance = (st: ContactState, patch: { label?: string; color?: string; icon?: string }) => {
+        const prev = entry.contactAppearance ?? {};
+        onUpdate({ contactAppearance: { ...prev, [st]: { ...prev[st], ...patch } } });
+    };
 
     const setPreset = (i: number, patch: Partial<EntryPreset>) => {
         const next = presets.map((p, j) => (j === i ? { ...p, ...patch } : p));
@@ -578,7 +593,7 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
                         </p>
                     )}
                     <div className="flex items-center justify-between">
-                        <Label>Zustände (Wert → Anzeige)</Label>
+                        <Label>Wertzuordnung (Wert → Anzeige)</Label>
                         <button
                             onClick={() =>
                                 onUpdate({ states: [...stateMaps, { value: '', label: '', color: undefined }] })
@@ -647,6 +662,109 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
                 </div>
             )}
 
+            {/* ── Fenster-/Türkontakt (Preset-Wertemapping + Aussehen je Zustand) ── */}
+            {dt === 'contact' && (
+                <div className="space-y-1">
+                    <div>
+                        <Label>Wertemapping</Label>
+                        <select
+                            value={contactPreset}
+                            onChange={(e) => {
+                                const next = e.target.value;
+                                if (next !== 'custom') {
+                                    onUpdate({
+                                        contactPreset: next,
+                                        contactValuesClosed: undefined,
+                                        contactValuesTilted: undefined,
+                                        contactValuesOpen: undefined,
+                                    });
+                                } else {
+                                    const cur = WC_PRESETS[contactPreset] ?? WC_PRESETS.hmip;
+                                    onUpdate({
+                                        contactPreset: 'custom',
+                                        contactValuesClosed: cur.closed,
+                                        contactValuesTilted: cur.tilted,
+                                        contactValuesOpen: cur.open,
+                                    });
+                                }
+                            }}
+                            className={iCls}
+                            style={iSty}
+                        >
+                            {Object.entries(WC_PRESET_LABELS).map(([k, lbl]) => (
+                                <option key={k} value={k}>
+                                    {lbl}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    {contactPreset === 'custom' &&
+                        (['closed', 'tilted', 'open'] as const).map((st) => {
+                            const cur =
+                                st === 'closed'
+                                    ? entry.contactValuesClosed
+                                    : st === 'tilted'
+                                      ? entry.contactValuesTilted
+                                      : entry.contactValuesOpen;
+                            return (
+                                <div key={st}>
+                                    <Label>Werte {WC_FALLBACK[st].label} (kommagetrennt)</Label>
+                                    <input
+                                        className={`${iCls} font-mono`}
+                                        style={iSty}
+                                        placeholder={WC_PRESETS.hmip[st] || '–'}
+                                        value={cur ?? WC_PRESETS.hmip[st]}
+                                        onChange={(e) => {
+                                            const v = e.target.value;
+                                            onUpdate(
+                                                st === 'closed'
+                                                    ? { contactValuesClosed: v }
+                                                    : st === 'tilted'
+                                                      ? { contactValuesTilted: v }
+                                                      : { contactValuesOpen: v },
+                                            );
+                                        }}
+                                    />
+                                </div>
+                            );
+                        })}
+                    <Label>Aussehen je Zustand</Label>
+                    {(['closed', 'tilted', 'open'] as const).map((st) => {
+                        const ov = entry.contactAppearance?.[st];
+                        const fb = WC_FALLBACK[st];
+                        return (
+                            <div key={st} className="flex items-center gap-1">
+                                <button
+                                    onClick={() => setContactIconPickFor(st)}
+                                    title={ov?.icon || fb.label}
+                                    className="shrink-0 flex items-center justify-center rounded hover:opacity-80"
+                                    style={{ ...iSty, width: 26, height: 26 }}
+                                >
+                                    <Icon
+                                        icon={toIconifyId(ov?.icon || WC_FALLBACK_ICON_NAME[st])}
+                                        width={14}
+                                        height={14}
+                                    />
+                                </button>
+                                <input
+                                    className={iCls}
+                                    style={iSty}
+                                    placeholder={fb.label}
+                                    value={ov?.label ?? ''}
+                                    onChange={(e) => setContactAppearance(st, { label: e.target.value || undefined })}
+                                />
+                                <ColorPicker
+                                    value={ov?.color?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? fb.color}
+                                    onChange={(v) => setContactAppearance(st, { color: v })}
+                                    className="w-7 h-6 rounded cursor-pointer shrink-0"
+                                    style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
             {pickFor && (
                 <DatapointPicker
                     currentValue={(entry[pickFor] as string) || ''}
@@ -665,6 +783,18 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
                         setStatePickFor(null);
                     }}
                     onClose={() => setStatePickFor(null)}
+                />
+            )}
+            {contactIconPickFor !== null && (
+                <IconPickerModal
+                    current={
+                        entry.contactAppearance?.[contactIconPickFor]?.icon ?? WC_FALLBACK_ICON_NAME[contactIconPickFor]
+                    }
+                    onSelect={(name) => {
+                        setContactAppearance(contactIconPickFor, { icon: name || undefined });
+                        setContactIconPickFor(null);
+                    }}
+                    onClose={() => setContactIconPickFor(null)}
                 />
             )}
         </div>

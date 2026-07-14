@@ -16,6 +16,13 @@ import type { ioBrokerState } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
 import { ConfirmOverlay } from './ConfirmOverlay';
+import {
+    type ContactState,
+    WC_PRESETS,
+    WC_FALLBACK,
+    WC_FALLBACK_ICON_NAME,
+    resolveContactState,
+} from '../../utils/windowContact';
 
 export type EntryDisplayType =
     | 'auto'
@@ -26,7 +33,8 @@ export type EntryDisplayType =
     | 'stepper'
     | 'buttons'
     | 'momentary'
-    | 'states';
+    | 'states'
+    | 'contact';
 
 /** Control types that are not a simple on/off and must be excluded from the
  *  group master switch. */
@@ -36,6 +44,7 @@ export const NON_TOGGLE_DISPLAY_TYPES: ReadonlySet<string> = new Set([
     'buttons',
     'momentary',
     'states',
+    'contact',
 ]);
 
 export interface EntryPreset {
@@ -86,6 +95,20 @@ export interface EntryControlConfig {
     // ── states (multi-state read display) ──────────────────────────────────────
     /** Value→label/icon/color mappings for the "states" display. */
     states?: EntryStateMap[];
+    // ── contact (window/door contact read display) ─────────────────────────────
+    /** Value-mapping preset key (see WC_PRESETS); default 'hmip'. 'custom' uses
+     *  the contactValues* fields below. */
+    contactPreset?: string;
+    /** Custom comma-separated values per state (only used when contactPreset === 'custom'). */
+    contactValuesClosed?: string;
+    contactValuesTilted?: string;
+    contactValuesOpen?: string;
+    /** Per-state appearance overrides; fall back to WC_FALLBACK when unset. */
+    contactAppearance?: {
+        closed?: { label?: string; color?: string; icon?: string };
+        tilted?: { label?: string; color?: string; icon?: string };
+        open?: { label?: string; color?: string; icon?: string };
+    };
     // ── momentary (push / pulse) ───────────────────────────────────────────────
     /** Value written on press. Default true. */
     pulseValue?: string | number | boolean;
@@ -302,6 +325,48 @@ export function StateDisplay({
         match?.label ??
         (match ? String(match.value) : val != null ? `${String(val)}${entry.unit ? ` ${entry.unit}` : ''}` : '–');
     const Icon = match?.icon ? getWidgetIcon(match.icon, null) : null;
+    return (
+        <span
+            className="shrink-0 flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
+            style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color }}
+        >
+            {Icon && <Icon size={14} />}
+            {label}
+        </span>
+    );
+}
+
+// ── Window/door contact read display ────────────────────────────────────────
+// Read-only pill for window/door contacts. Reuses the standalone WindowContact
+// widget's value-mapping presets (HmIP / Boolean / … → closed/tilted/open) via
+// resolveContactState, then applies per-state label/color/icon overrides on top
+// of the shared WC_FALLBACK defaults.
+
+/** Resolve an entry's raw value into the display label/color/icon-name for the
+ *  "contact" display type. Icon is always a name string so both the pill and the
+ *  minimal-layout inline path can resolve it through getWidgetIcon. */
+export function resolveContactDisplay(
+    entry: EntryControlConfig,
+    val: ioBrokerState['val'],
+): { label: string; color: string; icon: string } {
+    const preset = entry.contactPreset ?? 'hmip';
+    const state: ContactState = resolveContactState(val, preset, {
+        closed: entry.contactValuesClosed ?? WC_PRESETS.hmip.closed,
+        tilted: entry.contactValuesTilted ?? WC_PRESETS.hmip.tilted,
+        open: entry.contactValuesOpen ?? WC_PRESETS.hmip.open,
+    });
+    const ov = entry.contactAppearance?.[state];
+    const fb = WC_FALLBACK[state];
+    return {
+        label: ov?.label || fb.label,
+        color: ov?.color || fb.color,
+        icon: ov?.icon || WC_FALLBACK_ICON_NAME[state],
+    };
+}
+
+export function ContactDisplay({ entry, val }: { entry: EntryControlConfig; val: ioBrokerState['val'] }) {
+    const { label, color, icon } = resolveContactDisplay(entry, val);
+    const Icon = icon ? getWidgetIcon(icon, null) : null;
     return (
         <span
             className="shrink-0 flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"

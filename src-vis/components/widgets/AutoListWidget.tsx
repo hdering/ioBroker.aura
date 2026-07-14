@@ -32,6 +32,8 @@ import {
     PresetButtons,
     MomentaryButton,
     StateDisplay,
+    ContactDisplay,
+    resolveContactDisplay,
     NON_TOGGLE_DISPLAY_TYPES,
     type EntryControlConfig,
 } from './entryControls';
@@ -435,6 +437,7 @@ function EntryValue({
         return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
     if (dt === 'states') return <StateDisplay entry={entry} val={val} />;
+    if (dt === 'contact') return <ContactDisplay entry={entry} val={val} />;
 
     // Role-based display for sensors (window, door, motion, smoke, …)
     if (isBoolLike && !hasLabels) {
@@ -586,6 +589,7 @@ function CardEntryValue({
         return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
     if (dt === 'states') return <StateDisplay entry={entry} val={val} />;
+    if (dt === 'contact') return <ContactDisplay entry={entry} val={val} />;
 
     // Role-based display for sensors
     if (isBoolLike && !hasLabels) {
@@ -1408,37 +1412,48 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                         entry.displayType === 'states'
                                             ? (entry.states ?? []).find((s) => String(s.value) === String(val))
                                             : undefined;
+                                    // Window/door contact mapping (HmIP/Boolean/… → closed/tilted/open).
+                                    const contactMatch =
+                                        entry.displayType === 'contact' ? resolveContactDisplay(entry, val) : undefined;
                                     const roleDisplay =
-                                        !stateMatch && isBoolLike && !hasLabels
+                                        !stateMatch && !contactMatch && isBoolLike && !hasLabels
                                             ? getRoleDisplay(entry.role, val)
                                             : null;
-                                    const valueStr = stateMatch
-                                        ? (stateMatch.label ?? String(stateMatch.value))
-                                        : roleDisplay
-                                          ? roleDisplay.label
-                                          : isBoolLike && hasLabels
-                                            ? on
-                                                ? trueLabel || 'AN'
-                                                : falseLabel || 'AUS'
-                                            : val != null
-                                              ? `${String(val)}${entry.unit ? `\u202f${entry.unit}` : ''}`
-                                              : '–';
+                                    const valueStr = contactMatch
+                                        ? contactMatch.label
+                                        : stateMatch
+                                          ? (stateMatch.label ?? String(stateMatch.value))
+                                          : roleDisplay
+                                            ? roleDisplay.label
+                                            : isBoolLike && hasLabels
+                                              ? on
+                                                  ? trueLabel || 'AN'
+                                                  : falseLabel || 'AUS'
+                                              : val != null
+                                                ? `${String(val)}${entry.unit ? `\u202f${entry.unit}` : ''}`
+                                                : '–';
                                     const entryActiveColor = entry.activeColor || globalActiveColor;
                                     const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
                                     const eOn = isActive(val);
                                     const stateBg = eOn
                                         ? entry.activeBg || globalActiveBg
                                         : entry.inactiveBg || globalInactiveBg;
-                                    const pillColor = stateMatch
-                                        ? (stateMatch.color ?? null)
-                                        : roleDisplay
-                                          ? roleDisplay.color
-                                          : isBoolLike && on
-                                            ? entryActiveColor
-                                            : hasLabels
-                                              ? entryInactiveColor
-                                              : null;
-                                    const BadgeIcon = stateMatch?.icon ? getWidgetIcon(stateMatch.icon, null!) : null;
+                                    const pillColor = contactMatch
+                                        ? contactMatch.color
+                                        : stateMatch
+                                          ? (stateMatch.color ?? null)
+                                          : roleDisplay
+                                            ? roleDisplay.color
+                                            : isBoolLike && on
+                                              ? entryActiveColor
+                                              : hasLabels
+                                                ? entryInactiveColor
+                                                : null;
+                                    const BadgeIcon = contactMatch
+                                        ? getWidgetIcon(contactMatch.icon, null!)
+                                        : stateMatch?.icon
+                                          ? getWidgetIcon(stateMatch.icon, null!)
+                                          : null;
                                     const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
                                     const lcText =
                                         lcTs > 0
@@ -1480,7 +1495,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 className="font-semibold tabular-nums"
                                                 style={{
                                                     color:
-                                                        isBoolLike || roleDisplay || stateMatch
+                                                        isBoolLike || roleDisplay || stateMatch || contactMatch
                                                             ? 'inherit'
                                                             : 'var(--text-primary)',
                                                 }}
