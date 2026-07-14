@@ -2106,6 +2106,8 @@ export function AdminEditor() {
                 activeSectionId={activeSectionForEditor?.id}
                 variant="bar"
                 barPosition={pos}
+                barAlignment={editorSettings.layoutDrawerBarAlignment ?? 'left'}
+                hideMobileScrollbar={editorSettings.layoutDrawerHideMobileScrollbar ?? false}
                 drawerTitle={editorSettings.layoutDrawerTitle ?? ''}
                 entryStyle={editorSettings.layoutDrawerEntryStyle ?? 'iconAndName'}
                 entryHeight={editorSettings.layoutDrawerEntryHeight ?? 48}

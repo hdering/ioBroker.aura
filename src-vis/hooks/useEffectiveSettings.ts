@@ -49,6 +49,8 @@ const LAYOUT_ONLY_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = [
     'layoutDrawerIndicatorStyle',
     'layoutDrawerFontSize',
     'layoutDrawerIconSize',
+    'layoutDrawerBarAlignment',
+    'layoutDrawerHideMobileScrollbar',
     'layoutDrawerItems',
     // Header
     'showHeader',

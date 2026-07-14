@@ -76,6 +76,10 @@ export interface FrontendSettings {
     layoutDrawerFontSize: number;
     /** Entry icon size in px. */
     layoutDrawerIconSize: number;
+    /** Horizontal-bar placement (top/bottom): alignment of the section entries in the bar. */
+    layoutDrawerBarAlignment: 'left' | 'center' | 'right';
+    /** Horizontal-bar placement (top/bottom): hide the custom scroll indicator on mobile. */
+    layoutDrawerHideMobileScrollbar: boolean;
     /** Extra elements (clock/datapoint/text) rendered above/below the layout list. */
     layoutDrawerItems: LayoutMenuItem[];
     // Idle return — auto-switch back to default tab after inactivity
@@ -181,6 +185,8 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     layoutDrawerIndicatorStyle: 'filled',
     layoutDrawerFontSize: 14,
     layoutDrawerIconSize: 16,
+    layoutDrawerBarAlignment: 'left',
+    layoutDrawerHideMobileScrollbar: false,
     layoutDrawerItems: [],
     idleReturnEnabled: false,
     idleReturnDelay: 30,

@@ -25,6 +25,8 @@ const DRAWER_KEYS: (keyof LayoutSettings)[] = [
     'layoutDrawerIndicatorStyle',
     'layoutDrawerFontSize',
     'layoutDrawerIconSize',
+    'layoutDrawerBarAlignment',
+    'layoutDrawerHideMobileScrollbar',
     'layoutDrawerItems',
 ];
 
@@ -327,6 +329,8 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
         layoutDrawerIndicatorStyle: eff('layoutDrawerIndicatorStyle')[0],
         layoutDrawerFontSize: eff('layoutDrawerFontSize')[0],
         layoutDrawerIconSize: eff('layoutDrawerIconSize')[0],
+        layoutDrawerBarAlignment: eff('layoutDrawerBarAlignment')[0],
+        layoutDrawerHideMobileScrollbar: eff('layoutDrawerHideMobileScrollbar')[0],
         layoutDrawerItems: eff('layoutDrawerItems')[0],
         showHeader: eff('showHeader')[0],
     };
@@ -677,6 +681,47 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                 )}
                             </SubGroup>
                         )}
+                    {/* Bar-only options (placement top / bottom): the section bar mirrors the
+                        tab bar, so it exposes the same alignment + hide-mobile-scrollbar controls. */}
+                    {((frontend.layoutDrawerPlacement ?? 'floating') === 'top' ||
+                        (frontend.layoutDrawerPlacement ?? 'floating') === 'bottom') && (
+                        <SubGroup>
+                            <div>
+                                <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('settings.tabBar.tabsAlignment')}
+                                </p>
+                                <div className="flex gap-1.5">
+                                    {(['left', 'center', 'right'] as const).map((v) => {
+                                        const labels = {
+                                            left: t('settings.tabBar.alignLeft'),
+                                            center: t('settings.tabBar.alignCenter'),
+                                            right: t('settings.tabBar.alignRight'),
+                                        };
+                                        const active = (frontend.layoutDrawerBarAlignment ?? 'left') === v;
+                                        return (
+                                            <button
+                                                key={v}
+                                                onClick={() => updateFrontend({ layoutDrawerBarAlignment: v })}
+                                                className="px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
+                                                style={{
+                                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                    color: active ? '#fff' : 'var(--text-secondary)',
+                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                }}
+                                            >
+                                                {labels[v]}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            <ToggleRow
+                                label={t('settings.tabBar.hideMobileScrollbar')}
+                                value={frontend.layoutDrawerHideMobileScrollbar ?? false}
+                                onChange={(v) => updateFrontend({ layoutDrawerHideMobileScrollbar: v })}
+                            />
+                        </SubGroup>
+                    )}
                     <div>
                         <p className="text-sm mb-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.frontend.layoutDrawerEntryStyle')}

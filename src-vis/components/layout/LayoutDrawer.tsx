@@ -6,6 +6,8 @@ import { Menu, X, LayoutDashboard } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { useDashboardStore } from '../../store/dashboardStore';
 import type { Section, LayoutMenuItem } from '../../store/dashboardStore';
+import { useConfigStore } from '../../store/configStore';
+import { ScrollRow } from './ScrollRow';
 import { useT } from '../../i18n';
 import { subscribeDpValue } from '../../hooks/useIoBroker';
 import { applyCustomFormat, fmtTime, fmtDate } from '../../utils/clockUtils';
@@ -44,6 +46,10 @@ interface LayoutDrawerProps {
     variant?: 'overlay' | 'sidebar' | 'bar';
     /** For variant='bar': whether the bar sits above ('top') or below ('bottom') the dashboard — decides which edge carries the divider. */
     barPosition?: 'top' | 'bottom';
+    /** For variant='bar': horizontal alignment of the section entries (mirrors the tab bar). */
+    barAlignment?: 'left' | 'center' | 'right';
+    /** For variant='bar': hide the custom scroll indicator on mobile. */
+    hideMobileScrollbar?: boolean;
     /** Width in px of the docked sidebar (variant='sidebar'). */
     width?: number;
     /** Space in px between the layout list and the element directly above it (title / top items / top edge). */
@@ -285,6 +291,8 @@ export function LayoutDrawer({
     iconSize = 16,
     variant = 'overlay',
     barPosition = 'top',
+    barAlignment = 'left',
+    hideMobileScrollbar = false,
     width = 240,
     topOffset = 0,
     bottomOffset = 0,
@@ -299,6 +307,18 @@ export function LayoutDrawer({
     const [open, setOpen] = useState(false);
     // Only floating trigger participates in auto-hide; inline header trigger is always visible.
     const [proximityVisible, setProximityVisible] = useState(!autoHide || !floating);
+
+    // Mobile detection for the horizontal-bar variant — mirrors the tab bar so the
+    // section bar forces left alignment + custom scroll indicator on small screens.
+    const mobileBreakpoint = useConfigStore((s) => s.frontend.mobileBreakpoint ?? 600);
+    const [isBarMobile, setIsBarMobile] = useState(() =>
+        typeof window !== 'undefined' ? window.innerWidth < mobileBreakpoint : false,
+    );
+    useEffect(() => {
+        const check = () => setIsBarMobile(window.innerWidth < mobileBreakpoint);
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
+    }, [mobileBreakpoint]);
 
     // Auto-hide: show button when pointer is near the top edge of the viewport.
     // Touch: tap anywhere in the top 80px region also reveals it (for ~3s).
@@ -462,86 +482,143 @@ export function LayoutDrawer({
     };
 
     // Docked horizontal bar: always visible section row above / below the dashboard,
-    // mirroring the tab bar. No overlay/trigger, no portal. Extra items render inline
-    // at the leading (top-position) / trailing (bottom-position) edge.
+    // mirroring the tab bar (scroll behaviour, alignment, hide-mobile-scrollbar). No
+    // overlay/trigger, no portal. Extra items render inline at the leading (top-position)
+    // / trailing (bottom-position) edge; sections sit in the aligned zone.
     if (variant === 'bar') {
         const leadItems = items.filter((i) => i.position === 'top');
         const trailItems = items.filter((i) => i.position === 'bottom');
+        // Mobile forces left alignment so entries + extras never collide in a grid zone.
+        const alignment = isBarMobile ? 'left' : barAlignment;
+        const hasExtras = leadItems.length > 0 || trailItems.length > 0;
+        const needsGrid = hasExtras || alignment !== 'left';
+
+        const divider = <div className="w-px self-stretch mx-1 shrink-0" style={{ background: 'var(--app-border)' }} />;
         const renderBarItems = (group: LayoutMenuItem[]) =>
             group.map((it) => (
                 <div key={it.id} className="shrink-0 flex items-center">
                     <LayoutMenuItemView item={it} t={t} compact />
                 </div>
             ));
+        const sectionButtons = visibleSections.map((section) => {
+            const isActive = section.id === activeSection?.id;
+            return (
+                <button
+                    key={section.id}
+                    onClick={() => goToSection(section)}
+                    title={entryStyle === 'iconOnly' ? section.name : undefined}
+                    className={`relative flex items-center gap-2 whitespace-nowrap transition-colors hover:opacity-90 ${
+                        entryStyle === 'iconOnly' ? 'justify-center px-2.5' : 'px-3'
+                    } ${indicatorStyle === 'underline' ? 'py-2.5' : 'py-1.5'}`}
+                    style={barEntryActiveStyle(isActive, indicatorStyle)}
+                >
+                    {showBullet && (
+                        <span
+                            className="shrink-0 rounded-full"
+                            style={{
+                                width: 7,
+                                height: 7,
+                                background: isActive
+                                    ? indicatorStyle === 'pills'
+                                        ? 'currentColor'
+                                        : 'var(--accent)'
+                                    : 'var(--text-secondary)',
+                            }}
+                        />
+                    )}
+                    {showIcon && (
+                        <span className="shrink-0 inline-flex items-center justify-center">
+                            {section.icon ? (
+                                <Icon icon={section.icon} width={iconSize} height={iconSize} />
+                            ) : (
+                                <LayoutDashboard size={iconSize} />
+                            )}
+                        </span>
+                    )}
+                    {showName && (
+                        <span className={`truncate ${isActive ? 'font-semibold' : 'font-medium'}`} style={{ fontSize }}>
+                            {section.name}
+                        </span>
+                    )}
+                    <SectionBadges section={section} />
+                </button>
+            );
+        });
+
+        const containerStyle: React.CSSProperties = {
+            background: 'var(--nav-bg, var(--app-surface))',
+            [barPosition === 'bottom' ? 'borderTop' : 'borderBottom']: '1px solid var(--app-border)',
+            // Own stacking context above the dashboard grid (z-index:10) so section
+            // badges overflowing the bar aren't hidden by opaque widgets below it.
+            position: 'relative',
+            zIndex: 20,
+            minHeight: entryHeight,
+        };
+        const ariaLabel = drawerTitle?.trim() || t('layoutDrawer.title');
+
+        if (needsGrid) {
+            return (
+                <nav
+                    className="aura-section-bar shrink-0"
+                    style={{
+                        ...containerStyle,
+                        display: 'grid',
+                        gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)',
+                        alignItems: 'stretch',
+                    }}
+                    aria-label={ariaLabel}
+                >
+                    {/* Zone 1: leading items + sections when alignment=left */}
+                    <ScrollRow
+                        isMobile={isBarMobile}
+                        hideIndicator={hideMobileScrollbar}
+                        outerClassName="min-w-0"
+                        scrollClassName="flex items-center w-full"
+                    >
+                        <div className="flex items-center gap-1 px-2">
+                            {renderBarItems(leadItems)}
+                            {alignment === 'left' && leadItems.length > 0 && divider}
+                            {alignment === 'left' && sectionButtons}
+                        </div>
+                    </ScrollRow>
+
+                    {/* Zone 2: sections when alignment=center */}
+                    <ScrollRow
+                        isMobile={isBarMobile}
+                        hideIndicator={hideMobileScrollbar}
+                        scrollClassName="flex items-center justify-center w-full"
+                    >
+                        <div className="flex items-center gap-1 px-2">{alignment === 'center' && sectionButtons}</div>
+                    </ScrollRow>
+
+                    {/* Zone 3: sections when alignment=right + trailing items */}
+                    <ScrollRow
+                        isMobile={isBarMobile}
+                        hideIndicator={hideMobileScrollbar}
+                        outerClassName="min-w-0"
+                        scrollClassName="flex items-center justify-end w-full"
+                    >
+                        <div className="flex items-center gap-1 px-2">
+                            {alignment === 'right' && sectionButtons}
+                            {alignment === 'right' && trailItems.length > 0 && divider}
+                            {renderBarItems(trailItems)}
+                        </div>
+                    </ScrollRow>
+                </nav>
+            );
+        }
+
+        // Simple layout: alignment=left, no extra items.
         return (
-            <nav
-                className="aura-section-bar aura-scroll shrink-0 flex items-center overflow-x-auto"
-                style={{
-                    background: 'var(--nav-bg, var(--app-surface))',
-                    [barPosition === 'bottom' ? 'borderTop' : 'borderBottom']: '1px solid var(--app-border)',
-                    // Own stacking context above the dashboard grid (z-index:10) so section
-                    // badges overflowing the bar aren't hidden by opaque widgets below it.
-                    position: 'relative',
-                    zIndex: 20,
-                    minHeight: entryHeight,
-                }}
-                aria-label={drawerTitle?.trim() || t('layoutDrawer.title')}
-            >
-                {leadItems.length > 0 && (
-                    <div className="flex items-center gap-3 px-3 shrink-0">{renderBarItems(leadItems)}</div>
-                )}
-                <div className="flex items-center gap-1 px-2">
-                    {visibleSections.map((section) => {
-                        const isActive = section.id === activeSection?.id;
-                        return (
-                            <button
-                                key={section.id}
-                                onClick={() => goToSection(section)}
-                                title={entryStyle === 'iconOnly' ? section.name : undefined}
-                                className={`relative flex items-center gap-2 whitespace-nowrap transition-colors hover:opacity-90 ${
-                                    entryStyle === 'iconOnly' ? 'justify-center px-2.5' : 'px-3'
-                                } ${indicatorStyle === 'underline' ? 'py-2.5' : 'py-1.5'}`}
-                                style={barEntryActiveStyle(isActive, indicatorStyle)}
-                            >
-                                {showBullet && (
-                                    <span
-                                        className="shrink-0 rounded-full"
-                                        style={{
-                                            width: 7,
-                                            height: 7,
-                                            background: isActive
-                                                ? indicatorStyle === 'pills'
-                                                    ? 'currentColor'
-                                                    : 'var(--accent)'
-                                                : 'var(--text-secondary)',
-                                        }}
-                                    />
-                                )}
-                                {showIcon && (
-                                    <span className="shrink-0 inline-flex items-center justify-center">
-                                        {section.icon ? (
-                                            <Icon icon={section.icon} width={iconSize} height={iconSize} />
-                                        ) : (
-                                            <LayoutDashboard size={iconSize} />
-                                        )}
-                                    </span>
-                                )}
-                                {showName && (
-                                    <span
-                                        className={`truncate ${isActive ? 'font-semibold' : 'font-medium'}`}
-                                        style={{ fontSize }}
-                                    >
-                                        {section.name}
-                                    </span>
-                                )}
-                                <SectionBadges section={section} />
-                            </button>
-                        );
-                    })}
-                </div>
-                {trailItems.length > 0 && (
-                    <div className="flex items-center gap-3 px-3 shrink-0 ml-auto">{renderBarItems(trailItems)}</div>
-                )}
+            <nav className="aura-section-bar shrink-0 flex" style={containerStyle} aria-label={ariaLabel}>
+                <ScrollRow
+                    isMobile={isBarMobile}
+                    hideIndicator={hideMobileScrollbar}
+                    outerClassName="flex-1 min-w-0"
+                    scrollClassName="flex items-center w-full"
+                >
+                    <div className="flex items-center gap-1 px-2">{sectionButtons}</div>
+                </ScrollRow>
             </nav>
         );
     }

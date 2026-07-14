@@ -903,6 +903,8 @@ export default function App() {
             activeSectionId={section?.id}
             variant="bar"
             barPosition={drawerBarBottom ? 'bottom' : 'top'}
+            barAlignment={effectiveSettings.layoutDrawerBarAlignment ?? 'left'}
+            hideMobileScrollbar={effectiveSettings.layoutDrawerHideMobileScrollbar ?? false}
             drawerTitle={drawerTitle}
             entryStyle={drawerEntryStyle}
             entryHeight={drawerEntryHeight}

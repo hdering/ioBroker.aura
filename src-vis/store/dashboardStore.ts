@@ -132,6 +132,10 @@ export interface LayoutSettings {
     layoutDrawerIndicatorStyle?: 'text' | 'underline' | 'filled' | 'pills';
     layoutDrawerFontSize?: number;
     layoutDrawerIconSize?: number;
+    // Horizontal-bar placement only (top/bottom): where the section entries sit and
+    // whether the mobile scroll indicator is hidden — mirrors the tab bar.
+    layoutDrawerBarAlignment?: 'left' | 'center' | 'right';
+    layoutDrawerHideMobileScrollbar?: boolean;
     layoutDrawerItems?: LayoutMenuItem[];
     // Header
     showHeader?: boolean;
