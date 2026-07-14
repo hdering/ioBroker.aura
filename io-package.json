@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.32.0",
+    "version": "0.33.0",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.33.0": {
+        "en": "🌟 New feature: Static & Dynamic List - the \"states\" entry display was renamed to a more generic \"value mapping\"\n🌟 New feature: Static & Dynamic List - new \"window/door contact\" entry display reusing the contact widget's value presets (HmIP / boolean / numeric / string / custom) to map values to open / tilted / closed, with editable label, color and icon per state",
+        "de": "🌟 New feature: Static & Dynamic List - the \"states\" entry display was renamed to a more generic \"value mapping\"\n🌟 New feature: Static & Dynamic List - new \"window/door contact\" entry display reusing the contact widget's value presets (HmIP / boolean / numeric / string / custom) to map values to open / tilted / closed, with editable label, color and icon per state",
+        "ru": "🌟 New feature: Static & Dynamic List - the \"states\" entry display was renamed to a more generic \"value mapping\"\n🌟 New feature: Static & Dynamic List - new \"window/door contact\" entry display reusing the contact widget's value presets (HmIP / boolean / numeric / string / custom) to map values to open / tilted / closed, with editable label, color and icon per state",
+        "pt": "🌟 New feature: Static & Dynamic List - the \"states\" entry display was renamed to a more generic \"value mapping\"\n🌟 New feature: Static & Dynamic List - new \"window/door contact\" entry display reusing the contact widget's value presets (HmIP / boolean / numeric / string / custom) to map values to open / tilted / closed, with editable label, color and icon per state",
+        "nl": "🌟 New feature: Static & Dynamic List - the \"states\" entry display was renamed to a more generic \"value mapping\"\n🌟 New feature: Static & Dynamic List - new \"window/door contact\" entry display reusing the contact widget's value presets (HmIP / boolean / numeric / string / custom) to map values to open / tilted / closed, with editable label, color and icon per state",
+        "fr": "🌟 New feature: Static & Dynamic List - the \"states\" entry display was renamed to a more generic \"value mapping\"\n🌟 New feature: Static & Dynamic List - new \"window/door contact\" entry display reusing the contact widget's value presets (HmIP / boolean / numeric / string / custom) to map values to open / tilted / closed, with editable label, color and icon per state",
+        "it": "🌟 New feature: Static & Dynamic List - the \"states\" entry display was renamed to a more generic \"value mapping\"\n🌟 New feature: Static & Dynamic List - new \"window/door contact\" entry display reusing the contact widget's value presets (HmIP / boolean / numeric / string / custom) to map values to open / tilted / closed, with editable label, color and icon per state",
+        "es": "🌟 New feature: Static & Dynamic List - the \"states\" entry display was renamed to a more generic \"value mapping\"\n🌟 New feature: Static & Dynamic List - new \"window/door contact\" entry display reusing the contact widget's value presets (HmIP / boolean / numeric / string / custom) to map values to open / tilted / closed, with editable label, color and icon per state",
+        "pl": "🌟 New feature: Static & Dynamic List - the \"states\" entry display was renamed to a more generic \"value mapping\"\n🌟 New feature: Static & Dynamic List - new \"window/door contact\" entry display reusing the contact widget's value presets (HmIP / boolean / numeric / string / custom) to map values to open / tilted / closed, with editable label, color and icon per state",
+        "uk": "🌟 New feature: Static & Dynamic List - the \"states\" entry display was renamed to a more generic \"value mapping\"\n🌟 New feature: Static & Dynamic List - new \"window/door contact\" entry display reusing the contact widget's value presets (HmIP / boolean / numeric / string / custom) to map values to open / tilted / closed, with editable label, color and icon per state",
+        "zh-cn": "🌟 New feature: Static & Dynamic List - the \"states\" entry display was renamed to a more generic \"value mapping\"\n🌟 New feature: Static & Dynamic List - new \"window/door contact\" entry display reusing the contact widget's value presets (HmIP / boolean / numeric / string / custom) to map values to open / tilted / closed, with editable label, color and icon per state"
+      },
       "0.32.0": {
         "en": "🌟 New feature: Editor - docked section menu now collapses on mobile viewports so it no longer eats the editing area\n🌟 New feature: Editor - editing on a touch device no longer accidentally repositions all widgets (grid drag/resize is disabled on touch-primary devices)\n🌟 New feature: Section menu - can now be docked as a horizontal bar above or below the dashboard (like the tab bar), with the same height, entry style, font/icon size, alignment and hide-scroll-bar-on-mobile options; placed at the top it sits above the tab bar",
         "de": "🌟 New feature: Editor - docked section menu now collapses on mobile viewports so it no longer eats the editing area\n🌟 New feature: Editor - editing on a touch device no longer accidentally repositions all widgets (grid drag/resize is disabled on touch-primary devices)\n🌟 New feature: Section menu - can now be docked as a horizontal bar above or below the dashboard (like the tab bar), with the same height, entry style, font/icon size, alignment and hide-scroll-bar-on-mobile options; placed at the top it sits above the tab bar",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Value & JSON-table widgets - `aura-file:` paths now resolve inside HTML `<img src>`, so images/icons from the ioBroker file system can be embedded the same way everywhere\n🌟 New feature: JSON-table widget - new per-column width (px), text alignment and line-wrap options, plus an optional max-rows limit and click-to-sort column headers",
         "uk": "🌟 New feature: Value & JSON-table widgets - `aura-file:` paths now resolve inside HTML `<img src>`, so images/icons from the ioBroker file system can be embedded the same way everywhere\n🌟 New feature: JSON-table widget - new per-column width (px), text alignment and line-wrap options, plus an optional max-rows limit and click-to-sort column headers",
         "zh-cn": "🌟 New feature: Value & JSON-table widgets - `aura-file:` paths now resolve inside HTML `<img src>`, so images/icons from the ioBroker file system can be embedded the same way everywhere\n🌟 New feature: JSON-table widget - new per-column width (px), text alignment and line-wrap options, plus an optional max-rows limit and click-to-sort column headers"
-      },
-      "0.30.1": {
-        "en": "🌟 New feature: Section menu - entries can now show markers (badges) and an optional aggregate count of how many widgets across the section's tabs currently have a badge",
-        "de": "🌟 New feature: Section menu - entries can now show markers (badges) and an optional aggregate count of how many widgets across the section's tabs currently have a badge",
-        "ru": "🌟 New feature: Section menu - entries can now show markers (badges) and an optional aggregate count of how many widgets across the section's tabs currently have a badge",
-        "pt": "🌟 New feature: Section menu - entries can now show markers (badges) and an optional aggregate count of how many widgets across the section's tabs currently have a badge",
-        "nl": "🌟 New feature: Section menu - entries can now show markers (badges) and an optional aggregate count of how many widgets across the section's tabs currently have a badge",
-        "fr": "🌟 New feature: Section menu - entries can now show markers (badges) and an optional aggregate count of how many widgets across the section's tabs currently have a badge",
-        "it": "🌟 New feature: Section menu - entries can now show markers (badges) and an optional aggregate count of how many widgets across the section's tabs currently have a badge",
-        "es": "🌟 New feature: Section menu - entries can now show markers (badges) and an optional aggregate count of how many widgets across the section's tabs currently have a badge",
-        "pl": "🌟 New feature: Section menu - entries can now show markers (badges) and an optional aggregate count of how many widgets across the section's tabs currently have a badge",
-        "uk": "🌟 New feature: Section menu - entries can now show markers (badges) and an optional aggregate count of how many widgets across the section's tabs currently have a badge",
-        "zh-cn": "🌟 New feature: Section menu - entries can now show markers (badges) and an optional aggregate count of how many widgets across the section's tabs currently have a badge"
       }
     }
   },

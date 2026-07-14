@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.33.0 (2026-07-14)
+- 🌟 **New feature:** Static & Dynamic List - the "states" entry display was renamed to a more generic "value mapping"
+- 🌟 **New feature:** Static & Dynamic List - new "window/door contact" entry display reusing the contact widget's value presets (HmIP / boolean / numeric / string / custom) to map values to open / tilted / closed, with editable label, color and icon per state
+
+
 ### 0.32.0 (2026-07-14)
 - 🌟 **New feature:** Editor - docked section menu now collapses on mobile viewports so it no longer eats the editing area
 - 🌟 **New feature:** Editor - editing on a touch device no longer accidentally repositions all widgets (grid drag/resize is disabled on touch-primary devices)
@@ -217,12 +222,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Widgets - enabling transparency mode no longer shifts the widget content outward (padding and border box are preserved)
 
 
-### 0.23.4 (2026-07-10)
-- Input widget - field width is now adjustable (setting added after Placeholder)
-- Tab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)
-- iframe & eCharts widgets - fixed white background in dark mode
-
-
 ## License
 
 MIT License
@@ -234,6 +233,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

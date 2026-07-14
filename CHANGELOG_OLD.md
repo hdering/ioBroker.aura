@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.23.4 (2026-07-10)
+- Input widget - field width is now adjustable (setting added after Placeholder)
+- Tab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)
+- iframe & eCharts widgets - fixed white background in dark mode
+
 ## 0.23.3 (2026-07-10)
 - Guidelines - vertical target-width line now marks the device edge correctly with a docked sidebar menu (subtracts the menu width); a floating menu is not subtracted
 - Editor - the docked sidebar layout menu now shows greyed-out in the layout editor preview (with a hint and a link to its setting), so the design area matches the frontend
