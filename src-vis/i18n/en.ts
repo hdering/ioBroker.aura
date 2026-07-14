@@ -359,11 +359,6 @@ export const en: Record<TranslationKey, string> = {
     'layouts.dragToReorder': 'Drag to reorder',
     'layouts.defaultTab': 'Default tab',
     'layouts.setDefaultTab': 'Set as default tab (opened when no tab is specified in URL)',
-    'layouts.hideFromMenu': 'Hide from menu',
-    'layouts.hideFromMenuHint':
-        'Remove this layout from the layout menu. Still reachable via its direct URL (#/view/…).',
-    'layouts.hideMenuHere': 'Hide menu here',
-    'layouts.hideMenuHereHint': 'Hide the layout menu while this layout is open – e.g. for a fixed tablet.',
     'layouts.designSettings': 'Open Frontend Design',
     'layouts.designHint': 'Theme, typography, header, menu and tab bar are configured under Frontend Design.',
     'layouts.designHintLink': 'Open Frontend Design →',
