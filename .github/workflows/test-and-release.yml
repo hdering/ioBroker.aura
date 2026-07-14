@@ -54,7 +54,7 @@ jobs:
       # (manual re-run or a re-pushed tag) for an already-published version
       # fails the whole job with E403. Detect that case and skip the publish.
       - name: Setup node (npm check)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
