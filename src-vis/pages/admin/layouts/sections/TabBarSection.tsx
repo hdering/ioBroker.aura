@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Plus, X, Search } from 'lucide-react';
 import {
     useDashboardStore,
     resolveTabBarSettings,
@@ -9,6 +9,7 @@ import {
 import { useConfigStore } from '../../../../store/configStore';
 import { useT } from '../../../../i18n';
 import { ColorPicker } from '../../../../components/common/ColorPicker';
+import { DatapointPicker } from '../../../../components/config/DatapointPicker';
 
 // ── OverrideDot ───────────────────────────────────────────────────────────────
 // Small marker shown next to a field that overrides the global value (layout scope).
@@ -21,6 +22,43 @@ function OverrideDot({ show, title }: { show: boolean; title: string }) {
             title={title}
             className="inline-block w-1.5 h-1.5 rounded-full shrink-0"
             style={{ background: 'var(--accent)' }}
+        />
+    );
+}
+
+// ── AutoGrowTextarea ─────────────────────────────────────────────────────────
+// A single-line-looking textarea that grows in height as more lines are typed,
+// so multi-line (HTML) templates stay fully visible while editing.
+
+function AutoGrowTextarea({
+    value,
+    onChange,
+    placeholder,
+    className,
+    style,
+}: {
+    value: string;
+    onChange: (v: string) => void;
+    placeholder?: string;
+    className?: string;
+    style?: React.CSSProperties;
+}) {
+    const ref = useRef<HTMLTextAreaElement>(null);
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = `${el.scrollHeight}px`;
+    }, [value]);
+    return (
+        <textarea
+            ref={ref}
+            rows={1}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            className={className}
+            style={{ ...style, resize: 'none', overflow: 'hidden' }}
         />
     );
 }
@@ -94,6 +132,7 @@ function TabBarItemRow({
     t: ReturnType<typeof useT>;
 }) {
     const [expanded, setExpanded] = useState(false);
+    const [pickerOpen, setPickerOpen] = useState(false);
     const posLabels: Record<string, string> = {
         left: t('settings.tabBar.posLeft'),
         center: t('settings.tabBar.posCenter'),
@@ -243,27 +282,53 @@ function TabBarItemRow({
                                 <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
                                     {t('settings.tabBar.datapointId')}
                                 </p>
-                                <input
-                                    type="text"
-                                    value={item.datapointId ?? ''}
-                                    onChange={(e) => onUpdate({ datapointId: e.target.value || undefined })}
-                                    placeholder="hm-rpc.0.ABC.1.TEMPERATURE"
-                                    className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none font-mono"
-                                    style={iSty}
-                                />
+                                <div className="flex items-center gap-1.5">
+                                    <input
+                                        type="text"
+                                        value={item.datapointId ?? ''}
+                                        onChange={(e) => onUpdate({ datapointId: e.target.value || undefined })}
+                                        placeholder="hm-rpc.0.ABC.1.TEMPERATURE"
+                                        className="flex-1 min-w-0 text-xs rounded-lg px-2 py-1.5 focus:outline-none font-mono"
+                                        style={iSty}
+                                    />
+                                    <button
+                                        onClick={() => setPickerOpen(true)}
+                                        title={t('dp.picker.title')}
+                                        className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:opacity-80"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            color: 'var(--text-secondary)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                    >
+                                        <Search size={13} />
+                                    </button>
+                                </div>
+                                {pickerOpen && (
+                                    <DatapointPicker
+                                        currentValue={item.datapointId ?? ''}
+                                        onSelect={(id) => onUpdate({ datapointId: id || undefined })}
+                                        onClose={() => setPickerOpen(false)}
+                                    />
+                                )}
                             </div>
                             <div>
                                 <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
                                     {t('settings.tabBar.datapointTemplate')}
                                 </p>
-                                <input
-                                    type="text"
+                                <AutoGrowTextarea
                                     value={item.datapointTemplate ?? ''}
-                                    onChange={(e) => onUpdate({ datapointTemplate: e.target.value || undefined })}
+                                    onChange={(v) => onUpdate({ datapointTemplate: v || undefined })}
                                     placeholder="{dp} °C"
                                     className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none font-mono"
                                     style={iSty}
                                 />
+                                <p
+                                    className="text-[10px] mt-1"
+                                    style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
+                                >
+                                    {t('settings.tabBar.datapointTemplateHint')}
+                                </p>
                             </div>
                         </>
                     )}

@@ -63,9 +63,15 @@ export interface TabBarSettings {
 }
 
 /**
- * Merge a global tab-bar config with an optional per-layout override.
- * Every defined field in the layout override wins; undefined fields inherit
- * the global value. `items` is overridden as a whole array (not merged).
+ * Merge a global tab-bar config with an optional per-layout/-section override.
+ * Every defined appearance field in the override wins; undefined fields inherit
+ * the global value.
+ *
+ * `items` are ADDITIVE, not a whole-array override: inherited (global → layout)
+ * items are authoritative and always kept; the override may only ADD further
+ * items. Duplicate ids are collapsed keeping the first (inherited) occurrence, so
+ * a stale per-scope snapshot of an inherited item can neither shadow it nor freeze
+ * it at an outdated value — global item edits always propagate to every scope.
  */
 export function resolveTabBarSettings(
     global: TabBarSettings | undefined,
@@ -74,8 +80,22 @@ export function resolveTabBarSettings(
     const merged: TabBarSettings = { ...(global ?? {}) };
     const ov = layout ?? {};
     (Object.keys(ov) as (keyof TabBarSettings)[]).forEach((k) => {
+        if (k === 'items') return; // items are merged below, not overridden
         if (ov[k] !== undefined) (merged as Record<string, unknown>)[k] = ov[k];
     });
+    const baseItems = global?.items ?? [];
+    const ownItems = ov.items ?? [];
+    if (baseItems.length || ownItems.length) {
+        const seen = new Set<string>();
+        const items: TabBarItem[] = [];
+        for (const it of [...baseItems, ...ownItems]) {
+            if (it && !seen.has(it.id)) {
+                seen.add(it.id);
+                items.push(it);
+            }
+        }
+        merged.items = items;
+    }
     return merged;
 }
 
