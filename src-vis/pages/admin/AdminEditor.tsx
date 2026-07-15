@@ -27,7 +27,7 @@ import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { Icon } from '@iconify/react';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { IconPickerModal } from '../../components/config/IconPickerModal';
-import { useDashboardStore, useActiveSection, resolveTabBarSettings } from '../../store/dashboardStore';
+import { useDashboardStore, useActiveSection } from '../../store/dashboardStore';
 import { ConditionEditor } from '../../components/config/ConditionEditor';
 import { BadgeEditor } from '../../components/config/BadgeEditor';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
@@ -2060,15 +2060,6 @@ export function AdminEditor() {
     }, []);
     const isMobileViewport = viewportWidth > 0 && viewportWidth < (editorSettings.mobileBreakpoint ?? 600);
 
-    // Tab-bar position (top / footer) for the edited scope — mirror the frontend so
-    // the editor tab strip sits where the bar will render.
-    const editedLayout = useDashboardStore((s) => s.layouts.find((l) => l.id === activeLayoutId));
-    const editorTabBarBottom =
-        resolveTabBarSettings(
-            resolveTabBarSettings(frontend.tabBar, editedLayout?.settings?.tabBar),
-            activeSectionForEditor?.settings?.tabBar,
-        ).position === 'bottom';
-
     // Docked-sidebar layout menu: mirror the frontend so the editor preview reserves
     // the same horizontal space the menu occupies in the frontend. Without this the
     // preview would be full-width while the frontend dashboard is (device − menu),
@@ -2085,39 +2076,9 @@ export function AdminEditor() {
             (editorSettings.layoutDrawerShowSingle ?? false));
     const drawerWidth = editorSettings.layoutDrawerWidth ?? 240;
 
-    // Docked horizontal section bar preview: mirror the frontend so the editor shows
-    // the section strip where it will render (above / below the tab strip). Non-interactive
-    // — section switching in the editor goes through the SectionSwitcher, not this bar.
-    const editorMenuVisible =
-        (editorSettings.layoutDrawerEnabled ?? false) &&
-        !!activeSectionForEditor &&
-        ((useDashboardStore
-            .getState()
-            .layouts.find((l) => l.id === activeLayoutId)
-            ?.sections.filter((s) => !s.hidden).length ?? 0) > 1 ||
-            (editorSettings.layoutDrawerShowSingle ?? false));
-    const editorDrawerPlacement = editorSettings.layoutDrawerPlacement ?? 'floating';
-    const drawerBarPreviewTop = editorMenuVisible && editorDrawerPlacement === 'top';
-    const drawerBarPreviewBottom = editorMenuVisible && editorDrawerPlacement === 'bottom';
-    const sectionBarPreview = (pos: 'top' | 'bottom') => (
-        <div style={{ pointerEvents: 'none' }} aria-hidden>
-            <LayoutDrawer
-                activeLayoutId={activeLayoutId}
-                activeSectionId={activeSectionForEditor?.id}
-                variant="bar"
-                barPosition={pos}
-                barAlignment={editorSettings.layoutDrawerBarAlignment ?? 'left'}
-                hideMobileScrollbar={editorSettings.layoutDrawerHideMobileScrollbar ?? false}
-                drawerTitle={editorSettings.layoutDrawerTitle ?? ''}
-                entryStyle={editorSettings.layoutDrawerEntryStyle ?? 'iconAndName'}
-                entryHeight={editorSettings.layoutDrawerEntryHeight ?? 48}
-                indicatorStyle={editorSettings.layoutDrawerIndicatorStyle ?? 'filled'}
-                fontSize={editorSettings.layoutDrawerFontSize ?? 14}
-                iconSize={editorSettings.layoutDrawerIconSize ?? 16}
-                items={editorSettings.layoutDrawerItems ?? []}
-            />
-        </div>
-    );
+    // Horizontal section bar (top/bottom placement) is intentionally NOT previewed in the
+    // editor — only the docked "sidebar" placement is mirrored (see drawerSidebarPreview),
+    // because it reserves horizontal design space. Top/bottom bars are a frontend-only strip.
 
     // Run custom JS inside the editor preview when `customJSInEditor` is enabled.
     useCustomJs(activeLayoutId, activeSectionForEditor.id, true);
@@ -2246,9 +2207,9 @@ export function AdminEditor() {
             <SectionSwitcher />
 
             {/* Tab bar — isolated memoized component, does not cause AdminEditor to re-render on tab switch.
-                Rendered above or below the preview to mirror the configured footer position. */}
-            {drawerBarPreviewTop && sectionBarPreview('top')}
-            {!editorTabBarBottom && <TabBar />}
+                Always rendered at the top in the editor: the footer ('bottom') position is a
+                frontend-only concern, so the design surface keeps the tab strip on top. */}
+            <TabBar />
 
             {/* Dashboard preview with edit mode */}
             <div className="flex-1 flex overflow-hidden" style={{ background: 'var(--app-bg)' }}>
@@ -2305,8 +2266,6 @@ export function AdminEditor() {
                 </div>
                 {showMobileOrder && <MobileOrderPanel layoutId={activeLayoutId} />}
             </div>
-            {editorTabBarBottom && <TabBar />}
-            {drawerBarPreviewBottom && sectionBarPreview('bottom')}
 
             {showTabWizard && (
                 <TabWizard
