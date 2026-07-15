@@ -7,3 +7,4 @@
 
 - Editor - tab bar now always stays on top in the editor; the footer (bottom) position applies to the frontend only
 - Editor - the section menu is only previewed in the editor when set to "fixed sidebar"; top/bottom bar placement no longer moves the editor preview
+- Tab bar - global clock/datapoint/text items now also show on sections that have only a single tab

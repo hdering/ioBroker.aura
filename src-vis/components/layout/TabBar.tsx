@@ -352,7 +352,10 @@ export function TabBar({
         setSettingsTabId((prev) => (prev === tabId ? null : tabId));
     };
 
-    if (tabs.length <= 1 && readonly && !headerSlot && !tbSettings?.showSingle) return null;
+    // Hide the bar only when there is genuinely nothing to show: a single tab and
+    // no extra items. Tab-bar items (clock / datapoint / text) — global, layout or
+    // section scope — must render even when the section has just one tab.
+    if (tabs.length <= 1 && readonly && !headerSlot && !tbSettings?.showSingle && items.length === 0) return null;
 
     const settingsTab = tabs.find((t) => t.id === settingsTabId);
 
