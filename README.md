@@ -115,6 +115,14 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.33.1 (2026-07-15)
+- Editor - tab bar now always stays on top in the editor; the footer (bottom) position applies to the frontend only
+- Editor - the section menu is only previewed in the editor when set to "fixed sidebar"; top/bottom bar placement no longer moves the editor preview
+- Tab bar - global clock/datapoint/text items are now inherited by every layout and section (also on single-tab sections); per-scope items are added on top instead of hiding the global ones
+- Tab bar - the datapoint template field now grows with multiple lines and hints that HTML is supported
+- Tab bar - the datapoint item ID can now be chosen via the standard datapoint picker
+
+
 ### 0.33.0 (2026-07-14)
 - 🌟 **New feature:** Static & Dynamic List - the "states" entry display was renamed to a more generic "value mapping"
 - 🌟 **New feature:** Static & Dynamic List - new "window/door contact" entry display reusing the contact widget's value presets (HmIP / boolean / numeric / string / custom) to map values to open / tilted / closed, with editable label, color and icon per state
@@ -216,12 +224,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Value - add status datapoints (battery / reachability) with show-always or alert-only badges
 
 
-### 0.23.5 (2026-07-10)
-- Media player - relative cover paths (e.g. Sonos current_cover) now resolve automatically, no full-URL datapoint needed
-- Widgets - transparency mode with partial strength now keeps rounded corners in the frontend instead of showing square edges
-- Widgets - enabling transparency mode no longer shifts the widget content outward (padding and border box are preserved)
-
-
 ## License
 
 MIT License
@@ -233,6 +235,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

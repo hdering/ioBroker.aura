@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.23.5 (2026-07-10)
+- Media player - relative cover paths (e.g. Sonos current_cover) now resolve automatically, no full-URL datapoint needed
+- Widgets - transparency mode with partial strength now keeps rounded corners in the frontend instead of showing square edges
+- Widgets - enabling transparency mode no longer shifts the widget content outward (padding and border box are preserved)
+
 ## 0.23.4 (2026-07-10)
 - Input widget - field width is now adjustable (setting added after Placeholder)
 - Tab bar - the mobile scroll bar under the tabs can now be hidden (Frontend Design → scope → Tab bar)
