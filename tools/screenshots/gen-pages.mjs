@@ -52,6 +52,7 @@ const sidebar = GROUPS.map((grp) => ({
     collapsed: grp.id !== 'control',
     items: byGroup(grp.id).map((it) => ({ text: it.label, link: `/widgets/${it.slug}` })),
 })).filter((g) => g.items.length);
+sidebar.unshift({ text: 'Referenz (Primer)', link: '/widgets/referenz' });
 sidebar.unshift({ text: 'Übersicht', link: '/widgets/' });
 sidebar.push({ text: 'Konzepte', items: [{ text: 'Custom-Layout', link: '/widgets/custom-layout' }] });
 writeFileSync('docs/.vitepress/widgetsSidebar.json', JSON.stringify(sidebar, null, 2) + '\n');

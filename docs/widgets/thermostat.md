@@ -2,7 +2,7 @@
 
 Stellt die Soll-Temperatur per Plus/Minus-Tasten ein und zeigt optional die Ist-Temperatur an. Heiz-/Kühl-Status wird per Icon und Akzentfarbe dargestellt, im Default-Layout ergänzt durch einen Fortschrittsbalken.
 
-![](./assets/thermostat/runtime.png)
+![](./assets/thermostat/layout-default.png)
 
 ## Datenpunkt
 
@@ -14,16 +14,24 @@ Stellt die Soll-Temperatur per Plus/Minus-Tasten ein und zeigt optional die Ist-
 ## Layouts
 
 ### Default
-Titel/Icon mit Heiz-/Kühl-Symbol oben, große Soll-Temperatur mit Ist-Wert und Plus/Minus-Tasten, darunter ein Fortschrittsbalken — für mittlere Zellen.
+Anatomie: Titelzeile (Icon + Titel links, Heiz-/Kühl-Symbol rechts) · große Soll-Temperatur mit Ist-Wert darunter · Plus/Minus-Tasten rechts · Preset-Buttons unten. Für mittlere Zellen.
+
+![](./assets/thermostat/layout-default.png)
 
 ### Compact
-Eine Zeile mit Icon, Titel, Soll-/Ist-Temperatur und Plus/Minus-Tasten — für Listen mit vielen Thermostaten.
+Anatomie: eine Zeile — Icon · Titel · `Soll°C / Ist°C` · Minus/Plus. Für Listen mit vielen Thermostaten.
+
+![](./assets/thermostat/layout-compact.png)
 
 ### Minimal
-Icon, Soll-Temperatur, Ist-Temperatur und Plus/Minus-Tasten zentriert — für sehr kleine Zellen.
+Anatomie: zentriert gestapelt — Icon · Soll-Temperatur · Ist-Temperatur · Minus/Plus · Preset-Buttons. Für sehr kleine Zellen.
+
+![](./assets/thermostat/layout-minimal.png)
 
 ### Custom
-Icon, Soll-Wert, Ist-Wert, Status und Plus/Minus-Tasten frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
+Icon, Soll-Wert (`value`), Ist-Wert (`actual`), Status (`status`) und Tasten (`btn-plus`/`btn-minus`) frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
+
+![](./assets/thermostat/layout-custom.png)
 
 ## Einstellungen
 
@@ -52,6 +60,8 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `minTemp` | `10` | untere Grenze der Soll-Temperatur |
 | `maxTemp` | `30` | obere Grenze der Soll-Temperatur |
 | `step` | `0.5` | Schrittweite je Tastendruck |
+| `showPresets` | `true` | Preset-Buttons anzeigen |
+| `presets` | `[18,20,22,24]` | Soll-Temperatur-Presets (°C) |
 
 ### Schwellwerte
 
@@ -60,6 +70,8 @@ Färbt die angezeigte Temperatur abhängig vom Ist- (bzw. Soll-)Wert.
 | Option | Standard | |
 | --- | --- | --- |
 | `colorThresholds` | — | Liste aus `[Schwelle, Farbe]`, z. B. `[[18,"#00f"],[30,"#f00"]]` |
+
+![](./assets/thermostat/variant-schwellwerte.png)
 
 ### Status-Datenpunkte
 

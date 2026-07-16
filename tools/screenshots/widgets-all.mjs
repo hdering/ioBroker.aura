@@ -31,30 +31,71 @@ function widgetConfig(w) {
     };
 }
 
+// Build a widget config for one entry of w.shots. A shot inherits the widget's
+// runtime defaults and overrides layout/options/value/size. `mock` lets a shot
+// seed extra datapoints (e.g. a thermostat's actual-temperature DP).
+function shotConfig(w, s) {
+    const rt = w.runtime ?? {};
+    return {
+        id: ID,
+        type: w.type,
+        title: s.title ?? rt.title ?? w.label,
+        datapoint: rt.noDp ? '' : `demo.${w.type}`,
+        layout: s.layout ?? rt.layout ?? 'default',
+        options: { ...(rt.options ?? {}), ...(s.options ?? {}) },
+        gridPos: { x: 0, y: 0, w: s.w ?? rt.w ?? 12, h: s.h ?? rt.h ?? 6 },
+    };
+}
+
 // ── bootstrap ────────────────────────────────────────────────────────────────
 await page.goto(`${BASE}/?shot=1#/`, { waitUntil: 'networkidle' });
 await ready();
 await page.evaluate(() => localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 })));
 
 // ── Phase A: runtime element shots (public route) ────────────────────────────
+// Widgets with a `shots: []` list get one element-cropped PNG per shot
+// (layout-<name>.png / variant-<name>.png). Widgets with only `runtime` keep the
+// single runtime.png. Element crops are side-effect-free (screenshotMode blocks
+// all ioBroker writes).
 const withRuntime = WIDGETS.filter((w) => w.runtime !== null);
+
+async function renderShot(w, cfg, dp, val, mock, click, file) {
+    await page.evaluate(
+        ({ cfg, dp, val, mock }) => {
+            const seed = { ...(mock ?? {}) };
+            if (dp && val !== undefined && val !== null) seed[dp] = val;
+            if (Object.keys(seed).length) window.__auraShot.mock(seed);
+            window.__auraShot.showWidgets([cfg]);
+            if (Object.keys(seed).length) window.__auraShot.mock(seed);
+        },
+        { cfg, dp, val, mock },
+    );
+    await page.waitForTimeout(900);
+    if (click) {
+        await page.locator(`${SEL} ${click === true ? '.aura-widget-action' : click}`).first().click();
+        await page.waitForTimeout(400);
+    }
+    const el = page.locator(SEL).first();
+    await el.screenshot({ path: `${ASSETS}/${w.slug}/${file}.png` });
+}
+
 for (const w of withRuntime) {
     mkdirSync(`${ASSETS}/${w.slug}`, { recursive: true });
+    if (Array.isArray(w.shots) && w.shots.length) {
+        for (const s of w.shots) {
+            try {
+                const cfg = shotConfig(w, s);
+                await renderShot(w, cfg, cfg.datapoint, s.value ?? w.runtime.val, s.mock, s.click, s.file);
+                console.log('✓ shot   ', `${w.slug}/${s.file}`);
+            } catch (e) {
+                console.log('✗ shot   ', `${w.slug}/${s.file}`, '-', e.message.split('\n')[0]);
+            }
+        }
+        continue;
+    }
     try {
         const cfg = widgetConfig(w);
-        const dp = cfg.datapoint;
-        const val = w.runtime.val;
-        await page.evaluate(
-            ({ cfg, dp, val }) => {
-                if (dp) window.__auraShot.mock({ [dp]: val });
-                window.__auraShot.showWidgets([cfg]);
-                if (dp) window.__auraShot.mock({ [dp]: val });
-            },
-            { cfg, dp, val },
-        );
-        await page.waitForTimeout(900);
-        const el = page.locator(SEL).first();
-        await el.screenshot({ path: `${ASSETS}/${w.slug}/runtime.png` });
+        await renderShot(w, cfg, cfg.datapoint, w.runtime.val, undefined, false, 'runtime');
         console.log('✓ runtime', w.slug);
     } catch (e) {
         console.log('✗ runtime', w.slug, '-', e.message.split('\n')[0]);

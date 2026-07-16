@@ -4,6 +4,10 @@
     "link": "/widgets/"
   },
   {
+    "text": "Referenz (Primer)",
+    "link": "/widgets/referenz"
+  },
+  {
     "text": "Steuerung & Anzeige",
     "collapsed": false,
     "items": [
@@ -152,6 +156,10 @@
       {
         "text": "Kamera",
         "link": "/widgets/kamera"
+      },
+      {
+        "text": "Karte",
+        "link": "/widgets/karte"
       },
       {
         "text": "Karussell",

@@ -1,0 +1,1327 @@
+{
+  "version": 1,
+  "generatedFrom": "tools/screenshots/widgets-meta.mjs",
+  "generatedAt": "2026-07-16",
+  "note": "SSoT for Aura widgets. Options are seeded semi-automatically (see build-widget-catalog.mjs).",
+  "groups": [
+    {
+      "id": "control",
+      "label": "Steuerung & Anzeige"
+    },
+    {
+      "id": "special",
+      "label": "Spezial"
+    },
+    {
+      "id": "layout",
+      "label": "Layout"
+    }
+  ],
+  "crosscutting": [
+    {
+      "key": "clickAction",
+      "type": "ClickAction",
+      "default": "{ kind: \"none\" }",
+      "note": "Klick/Tap-Aktion (Popup, Link, DP schreiben …)"
+    },
+    {
+      "key": "conditions",
+      "type": "WidgetCondition[]",
+      "default": "[]",
+      "note": "Bedingte Farb-/Sichtbarkeits-Styles"
+    },
+    {
+      "key": "badges",
+      "type": "BadgeDef[]",
+      "default": "[]",
+      "note": "Overlay-Indikatoren an der Kartenecke"
+    },
+    {
+      "key": "batteryDp",
+      "type": "datapoint",
+      "default": "—",
+      "note": "Batterie-Badge"
+    },
+    {
+      "key": "unreachDp",
+      "type": "datapoint",
+      "default": "—",
+      "note": "Erreichbarkeits-Badge"
+    },
+    {
+      "key": "popupTitle",
+      "type": "string",
+      "default": "—",
+      "note": "Titel im geöffneten Popup"
+    },
+    {
+      "key": "popupShowHistory",
+      "type": "boolean",
+      "default": "false",
+      "note": "History-Icon im Popup"
+    }
+  ],
+  "widgets": [
+    {
+      "type": "shutter",
+      "slug": "rollladen",
+      "label": "Rollladen",
+      "group": "control",
+      "hint": "Rollladen-Position (0–100 %) steuern und anzeigen.",
+      "defaultGrid": {
+        "w": 9,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/rollladen/runtime.png",
+        "config": "assets/rollladen/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "dimmer",
+      "slug": "dimmer",
+      "label": "Dimmer",
+      "group": "control",
+      "hint": "Licht dimmen – Helligkeitsregler 0–100 % mit Ein/Aus-Taste.",
+      "defaultGrid": {
+        "w": 11,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/dimmer/runtime.png",
+        "config": "assets/dimmer/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "slider",
+      "slug": "schieberegler",
+      "label": "Schieberegler",
+      "group": "control",
+      "hint": "Beliebigen Zahlenwert per Schieberegler einstellen.",
+      "defaultGrid": {
+        "w": 11,
+        "h": 5
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/schieberegler/runtime.png",
+        "config": "assets/schieberegler/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "thermostat",
+      "slug": "thermostat",
+      "label": "Thermostat",
+      "group": "control",
+      "hint": "Soll-Temperatur einstellen und Ist-Temperatur anzeigen.",
+      "defaultGrid": {
+        "w": 11,
+        "h": 7
+      },
+      "layouts": [
+        "default",
+        "compact",
+        "minimal",
+        "custom"
+      ],
+      "options": [
+        {
+          "key": "actualDatapoint",
+          "type": "datapoint",
+          "default": "—",
+          "note": "Ist-Temperatur-DP"
+        },
+        {
+          "key": "showTitle",
+          "type": "boolean",
+          "default": "true"
+        },
+        {
+          "key": "showIcon",
+          "type": "boolean",
+          "default": "true"
+        },
+        {
+          "key": "showSetpoint",
+          "type": "boolean",
+          "default": "true"
+        },
+        {
+          "key": "showActualTemp",
+          "type": "boolean",
+          "default": "true"
+        },
+        {
+          "key": "showControls",
+          "type": "boolean",
+          "default": "true"
+        },
+        {
+          "key": "showPresets",
+          "type": "boolean",
+          "default": "true"
+        },
+        {
+          "key": "presets",
+          "type": "number[]",
+          "default": "[18,20,22,24]"
+        },
+        {
+          "key": "icon",
+          "type": "lucide-icon",
+          "default": "Thermometer"
+        },
+        {
+          "key": "iconSize",
+          "type": "number(px)",
+          "default": "20"
+        },
+        {
+          "key": "titleAlign",
+          "type": "enum",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "default": "left"
+        },
+        {
+          "key": "decimals",
+          "type": "number",
+          "default": "global"
+        },
+        {
+          "key": "minTemp",
+          "type": "number",
+          "default": "10"
+        },
+        {
+          "key": "maxTemp",
+          "type": "number",
+          "default": "30"
+        },
+        {
+          "key": "step",
+          "type": "number",
+          "default": "0.5"
+        },
+        {
+          "key": "colorThresholds",
+          "type": "[number,color][]",
+          "default": "—",
+          "note": "färbt die Ist-Temperatur"
+        }
+      ],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": {
+        "components": [
+          "icon",
+          "btn-plus",
+          "btn-minus",
+          "battery-icon",
+          "reach-icon",
+          "status-badges"
+        ],
+        "fields": [
+          "setpoint",
+          "actual",
+          "status",
+          "battery",
+          "reach"
+        ]
+      },
+      "screenshots": {
+        "hero": "assets/thermostat/layout-default.png",
+        "config": "assets/thermostat/config.png",
+        "shots": {
+          "layout-default": "assets/thermostat/layout-default.png",
+          "layout-compact": "assets/thermostat/layout-compact.png",
+          "layout-minimal": "assets/thermostat/layout-minimal.png",
+          "layout-custom": "assets/thermostat/layout-custom.png",
+          "variant-schwellwerte": "assets/thermostat/variant-schwellwerte.png"
+        }
+      }
+    },
+    {
+      "type": "value",
+      "slug": "wert-anzeige",
+      "label": "Wert-Anzeige",
+      "group": "control",
+      "hint": "Einen Datenpunktwert als Zahl/Text anzeigen (read-only).",
+      "defaultGrid": {
+        "w": 11,
+        "h": 5
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/wert-anzeige/runtime.png",
+        "config": "assets/wert-anzeige/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "gauge",
+      "slug": "gauge",
+      "label": "Gauge",
+      "group": "control",
+      "hint": "Zahlenwert als Tachonadel/Kreisbogen visualisieren.",
+      "defaultGrid": {
+        "w": 11,
+        "h": 8
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/gauge/runtime.png",
+        "config": "assets/gauge/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "fill",
+      "slug": "fuellstandsanzeige",
+      "label": "Füllstandsanzeige",
+      "group": "control",
+      "hint": "Füllstand (z. B. Wassertank, Heizöl) als Balken visualisieren.",
+      "defaultGrid": {
+        "w": 9,
+        "h": 9
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/fuellstandsanzeige/runtime.png",
+        "config": "assets/fuellstandsanzeige/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "knob",
+      "slug": "drehregler",
+      "label": "Drehregler",
+      "group": "control",
+      "hint": "Wert über Drehknopf einstellen – 3 Zeigertypen, Winkelbereich konfigurierbar.",
+      "defaultGrid": {
+        "w": 8,
+        "h": 8
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/drehregler/runtime.png",
+        "config": "assets/drehregler/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "windowcontact",
+      "slug": "fensterkontakt",
+      "label": "Fenster-/Türkontakt",
+      "group": "control",
+      "hint": "Fenster- oder Türkontakt-Status anzeigen (offen/geschlossen).",
+      "defaultGrid": {
+        "w": 11,
+        "h": 5
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/fensterkontakt/runtime.png",
+        "config": "assets/fensterkontakt/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "binarysensor",
+      "slug": "binaersensor",
+      "label": "Binärsensor",
+      "group": "control",
+      "hint": "Allgemeinen Binärsensor anzeigen (z. B. Bewegungsmelder, Alarm).",
+      "defaultGrid": {
+        "w": 11,
+        "h": 5
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/binaersensor/runtime.png",
+        "config": "assets/binaersensor/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "climate",
+      "slug": "raumklima",
+      "label": "Raumklima",
+      "group": "control",
+      "hint": "Temperatur, Luftfeuchtigkeit und optionalen Temperaturverlauf kombiniert anzeigen.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 7
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/raumklima/runtime.png",
+        "config": "assets/raumklima/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "datepicker",
+      "slug": "datumswaehler",
+      "label": "Datumswähler",
+      "group": "control",
+      "hint": "Datum/Uhrzeit auswählen und als Datenpunkt speichern.",
+      "defaultGrid": {
+        "w": 11,
+        "h": 5
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/datumswaehler/runtime.png",
+        "config": "assets/datumswaehler/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "input",
+      "slug": "eingabefeld",
+      "label": "Eingabefeld",
+      "group": "control",
+      "hint": "Text per Tastatur eingeben und in einen Datenpunkt schreiben.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 4
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/eingabefeld/runtime.png",
+        "config": "assets/eingabefeld/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "enum",
+      "slug": "auswahlfeld",
+      "label": "Auswahlfeld",
+      "group": "control",
+      "hint": "DP-Werte (0,1,2…) auf Text-Labels mappen; Dropdown schreibt den Wert zurück.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/auswahlfeld/runtime.png",
+        "config": "assets/auswahlfeld/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "chart",
+      "slug": "diagramm",
+      "label": "Diagramm (einfach)",
+      "group": "control",
+      "hint": "Verlauf eines einzelnen Datenpunkts als einfaches Diagramm.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/diagramm/runtime.png",
+        "config": "assets/diagramm/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "echart",
+      "slug": "diagramm-erweitert",
+      "label": "Diagramm (erweitert)",
+      "group": "control",
+      "hint": "Erweitertes Diagramm mit mehreren Datenpunkten und Optionen.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/diagramm-erweitert/runtime.png",
+        "config": "assets/diagramm-erweitert/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "echartsPreset",
+      "slug": "echarts",
+      "label": "eCharts",
+      "group": "control",
+      "hint": "Vorkonfiguriertes eCharts-Diagramm per JSON-Preset.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/echarts/runtime.png",
+        "config": "assets/echarts/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "light",
+      "slug": "rgb-licht",
+      "label": "RGB-Licht",
+      "group": "control",
+      "hint": "RGB / CCT / Dimmer in einem Widget – Helligkeit, Farbe, Lichtwärme, Effekte.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/rgb-licht/runtime.png",
+        "config": "assets/rgb-licht/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "mediaplayer",
+      "slug": "mediaplayer",
+      "label": "Mediaplayer",
+      "group": "control",
+      "hint": "Mediaplayer steuern (Sonos, Squeezeserver, Spotify …).",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/mediaplayer/runtime.png",
+        "config": "assets/mediaplayer/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "list",
+      "slug": "liste",
+      "label": "Statische Liste",
+      "group": "control",
+      "hint": "Manuell gepflegte Liste mit frei konfigurierbaren Datenpunkt-Links.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/liste/runtime.png",
+        "config": "assets/liste/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "autolist",
+      "slug": "dynamische-liste",
+      "label": "Dynamische Liste",
+      "group": "control",
+      "hint": "Datenpunkte automatisch aus einem ioBroker-Ordner auflisten.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/dynamische-liste/runtime.png",
+        "config": "assets/dynamische-liste/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "chips",
+      "slug": "chips",
+      "label": "Schnellzugriff-Chips",
+      "group": "control",
+      "hint": "Kompakte Schaltflächen-Leiste für Szenen und häufige Aktionen.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/chips/runtime.png",
+        "config": "assets/chips/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "httpRequest",
+      "slug": "http-aktion",
+      "label": "HTTP-Aktion",
+      "group": "control",
+      "hint": "HTTP GET/POST-Anfrage per Klick auslösen (z. B. Webhook).",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/http-aktion/runtime.png",
+        "config": "assets/http-aktion/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "universal",
+      "slug": "universal-widget",
+      "label": "Universal-Widget",
+      "group": "control",
+      "hint": "Freies Raster – Zellen einzeln mit Schaltern, Reglern, Werten und Bildern belegen.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/universal-widget/runtime.png",
+        "config": "assets/universal-widget/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "clock",
+      "slug": "uhrzeit",
+      "label": "Uhrzeit",
+      "group": "special",
+      "hint": "Aktuelle Uhrzeit und Datum anzeigen (kein Datenpunkt nötig).",
+      "defaultGrid": {
+        "w": 11,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/uhrzeit/runtime.png",
+        "config": "assets/uhrzeit/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "weather",
+      "slug": "wetter",
+      "label": "Wetter",
+      "group": "special",
+      "hint": "Wetterdaten vom ioBroker-Wetter-Adapter anzeigen.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/wetter/runtime.png",
+        "config": "assets/wetter/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "calendar",
+      "slug": "kalender",
+      "label": "Kalender",
+      "group": "special",
+      "hint": "Termine aus dem iCal-Adapter (nur per Tab-Wizard hinzufügbar).",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/kalender/runtime.png",
+        "config": "assets/kalender/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "evcc",
+      "slug": "evcc",
+      "label": "evcc",
+      "group": "special",
+      "hint": "evcc Wallbox-Ladesteuerung einbinden.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/evcc/runtime.png",
+        "config": "assets/evcc/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "camera",
+      "slug": "kamera",
+      "label": "Kamera",
+      "group": "special",
+      "hint": "Kamera-Livebild einbinden (go2rtc / MJPEG-Stream).",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/kamera/runtime.png",
+        "config": "assets/kamera/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "image",
+      "slug": "bild",
+      "label": "Bild",
+      "group": "special",
+      "hint": "Statisches Bild, lokale Datei oder URL anzeigen.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/bild/runtime.png",
+        "config": "assets/bild/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "trash",
+      "slug": "muellabfuhr",
+      "label": "Müllabfuhr",
+      "group": "special",
+      "hint": "Nächste Müllabfuhr-Termine vom Trash-Adapter anzeigen.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/muellabfuhr/runtime.png",
+        "config": "assets/muellabfuhr/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "trashSchedule",
+      "slug": "muellabfuhr-zeitplan",
+      "label": "Müllabfuhr-Zeitplan",
+      "group": "special",
+      "hint": "Detaillierter Müllabfuhr-Kalender (Datenpunkt vom Trash-Adapter).",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/muellabfuhr-zeitplan/runtime.png",
+        "config": "assets/muellabfuhr-zeitplan/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "jsontable",
+      "slug": "json-tabelle",
+      "label": "JSON-Tabelle",
+      "group": "special",
+      "hint": "JSON-Array-Datenpunkt als formatierte Tabelle anzeigen.",
+      "defaultGrid": {
+        "w": 13,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/json-tabelle/runtime.png",
+        "config": "assets/json-tabelle/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "iframe",
+      "slug": "iframe",
+      "label": "iFrame",
+      "group": "special",
+      "hint": "Externe Webseite oder lokale URL einbetten.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/iframe/runtime.png",
+        "config": "assets/iframe/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "html",
+      "slug": "html",
+      "label": "HTML",
+      "group": "special",
+      "hint": "Beliebigen HTML/CSS-Code frei einbetten.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/html/runtime.png",
+        "config": "assets/html/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "stateimage",
+      "slug": "zustandsbild",
+      "label": "Zustandsbild",
+      "group": "special",
+      "hint": "Je nach Zustand (true/false) ein anderes Bild anzeigen.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/zustandsbild/runtime.png",
+        "config": "assets/zustandsbild/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "adapterstatus",
+      "slug": "adapter-status",
+      "label": "Adapter-Status",
+      "group": "special",
+      "hint": "Liste aller ioBroker-Instanzen mit Status, Update-Hinweisen und Aktionen.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/adapter-status/runtime.png",
+        "config": "assets/adapter-status/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "scriptstatus",
+      "slug": "skript-status",
+      "label": "Skript-Status",
+      "group": "special",
+      "hint": "Liste aller JavaScript-Skripte mit Status, Filter und Start-/Stopp-Aktionen.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/skript-status/runtime.png",
+        "config": "assets/skript-status/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "adapterlogs",
+      "slug": "adapter-logs",
+      "label": "Adapter-Logs",
+      "group": "special",
+      "hint": "Live-Log-Stream aller Adapter — Filter nach Schweregrad, Adapter und Freitext.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/adapter-logs/runtime.png",
+        "config": "assets/adapter-logs/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "alarm",
+      "slug": "alarmanlage",
+      "label": "Alarmanlage",
+      "group": "special",
+      "hint": "ioBroker.alarm-Adapter steuern — Scharf/Inside/Nacht, Zonen, PIN, Tages-Log.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/alarmanlage/runtime.png",
+        "config": "assets/alarmanlage/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "map",
+      "slug": "karte",
+      "label": "Karte",
+      "group": "special",
+      "hint": "Positionen (Auto, Kind, …) aus Datenpunkten auf einer OpenStreetMap-Karte anzeigen – optional mit Entfernung.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/karte/runtime.png",
+        "config": "assets/karte/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "carousel",
+      "slug": "karussell",
+      "label": "Karussell",
+      "group": "special",
+      "hint": "Horizontal scrollbare Chip-Liste – pro Item Datenpunkt + eigene Klick-Aktion.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/karussell/runtime.png",
+        "config": "assets/karussell/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "header",
+      "slug": "abschnittstitel",
+      "label": "Abschnittstitel",
+      "group": "layout",
+      "hint": "Trennlinie mit Überschrift zur Gliederung des Dashboards.",
+      "defaultGrid": {
+        "w": 14,
+        "h": 2
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/abschnittstitel/runtime.png",
+        "config": "assets/abschnittstitel/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "button",
+      "slug": "button",
+      "label": "Button",
+      "group": "layout",
+      "hint": "Klick-Aktion auslösen (Datenpunkt schreiben, HTTP-Call, Szene …).",
+      "defaultGrid": {
+        "w": 6,
+        "h": 4
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [
+        "clickAction",
+        "conditions",
+        "badges",
+        "batteryDp",
+        "unreachDp",
+        "popupTitle",
+        "popupShowHistory"
+      ],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/button/runtime.png",
+        "config": "assets/button/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "group",
+      "slug": "gruppe",
+      "label": "Gruppe",
+      "group": "layout",
+      "hint": "Mehrere Widgets in einem gemeinsamen Rahmen gruppieren.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/gruppe/runtime.png",
+        "config": "assets/gruppe/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "panels",
+      "slug": "panels",
+      "label": "Panels",
+      "group": "layout",
+      "hint": "Mehrere Widgets als swipebare Slides – Wischen, Pagination-Dots und Pfeil-Buttons.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/panels/runtime.png",
+        "config": "assets/panels/config.png",
+        "shots": {}
+      }
+    }
+  ]
+}

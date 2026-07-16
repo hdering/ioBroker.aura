@@ -49,6 +49,7 @@
     "release": "release-script",
     "translate": "translate-adapter",
     "battery-lib:update": "node tools/battery-library/build-battery-library.mjs",
+    "docs:catalog": "node tools/docs/build-widget-catalog.mjs",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"

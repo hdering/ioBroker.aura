@@ -28,7 +28,39 @@ export const WIDGETS = [
       runtime: r(50, { unit: '%', min: 0, max: 100 }, { w: 11, h: 5 }) },
     { type: 'thermostat', slug: 'thermostat', label: 'Thermostat', group: 'control',
       hint: 'Soll-Temperatur einstellen und Ist-Temperatur anzeigen.',
-      runtime: r(21, {}, { w: 11, h: 7 }) },
+      layouts: ['default', 'compact', 'minimal', 'custom'],
+      // Pilot for per-layout/variant shots (see plan). Actual temp (19.5) sits
+      // below the 21 °C setpoint → heating state (flame + red accent) is visible.
+      runtime: r(21, { actualDatapoint: 'demo.thermostat.actual' }, { w: 11, h: 7,
+        mock: { 'demo.thermostat.actual': 19.5 } }),
+      shots: [
+        { file: 'layout-default', layout: 'default', w: 11, h: 7,
+          options: { actualDatapoint: 'demo.thermostat.actual' }, mock: { 'demo.thermostat.actual': 19.5 } },
+        { file: 'layout-compact', layout: 'compact', w: 18, h: 3,
+          options: { actualDatapoint: 'demo.thermostat.actual' }, mock: { 'demo.thermostat.actual': 19.5 } },
+        { file: 'layout-minimal', layout: 'minimal', w: 8, h: 9,
+          options: { actualDatapoint: 'demo.thermostat.actual' }, mock: { 'demo.thermostat.actual': 19.5 } },
+        { file: 'layout-custom', layout: 'custom', w: 15, h: 6,
+          options: {
+            actualDatapoint: 'demo.thermostat.actual',
+            customGrid: {
+              cols: 3, rows: 2, colSizes: ['auto', '1fr', 'auto'],
+              cells: [
+                { type: 'component', componentKey: 'icon', align: 'center', valign: 'middle' },
+                { type: 'title', align: 'left', valign: 'middle', bold: true },
+                { type: 'component', componentKey: 'btn-plus', align: 'center', valign: 'middle' },
+                { type: 'field', fieldKey: 'actual', align: 'left', valign: 'middle', color: 'var(--text-secondary)' },
+                { type: 'value', suffix: '°C', align: 'left', valign: 'middle', bold: true, fontSize: 22, color: 'var(--accent-red)' },
+                { type: 'component', componentKey: 'btn-minus', align: 'center', valign: 'middle' },
+              ],
+            },
+          },
+          mock: { 'demo.thermostat.actual': 19.5 } },
+        // Markante Config-Variante: Schwellwert-Färbung der Ist-Temperatur.
+        { file: 'variant-schwellwerte', layout: 'default', w: 11, h: 7,
+          options: { actualDatapoint: 'demo.thermostat.actual', colorThresholds: [[20, 'var(--accent)'], [30, 'var(--accent-red)']] },
+          mock: { 'demo.thermostat.actual': 19.5 } },
+      ] },
     { type: 'value', slug: 'wert-anzeige', label: 'Wert-Anzeige', group: 'control',
       hint: 'Einen Datenpunktwert als Zahl/Text anzeigen (read-only).',
       runtime: r(21.5, { unit: '°C' }, { w: 11, h: 5 }) },
