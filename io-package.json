@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.33.1",
+    "version": "0.33.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.33.2": {
+        "en": "Distribution chart - configurable frontend time-range selector (1h/6h/24h/7d/30d/custom) with an option to lock the range",
+        "de": "Distribution chart - configurable frontend time-range selector (1h/6h/24h/7d/30d/custom) with an option to lock the range",
+        "ru": "Distribution chart - configurable frontend time-range selector (1h/6h/24h/7d/30d/custom) with an option to lock the range",
+        "pt": "Distribution chart - configurable frontend time-range selector (1h/6h/24h/7d/30d/custom) with an option to lock the range",
+        "nl": "Distribution chart - configurable frontend time-range selector (1h/6h/24h/7d/30d/custom) with an option to lock the range",
+        "fr": "Distribution chart - configurable frontend time-range selector (1h/6h/24h/7d/30d/custom) with an option to lock the range",
+        "it": "Distribution chart - configurable frontend time-range selector (1h/6h/24h/7d/30d/custom) with an option to lock the range",
+        "es": "Distribution chart - configurable frontend time-range selector (1h/6h/24h/7d/30d/custom) with an option to lock the range",
+        "pl": "Distribution chart - configurable frontend time-range selector (1h/6h/24h/7d/30d/custom) with an option to lock the range",
+        "uk": "Distribution chart - configurable frontend time-range selector (1h/6h/24h/7d/30d/custom) with an option to lock the range",
+        "zh-cn": "Distribution chart - configurable frontend time-range selector (1h/6h/24h/7d/30d/custom) with an option to lock the range"
+      },
       "0.33.1": {
         "en": "Editor - tab bar now always stays on top in the editor; the footer (bottom) position applies to the frontend only\nEditor - the section menu is only previewed in the editor when set to \"fixed sidebar\"; top/bottom bar placement no longer moves the editor preview\nTab bar - global clock/datapoint/text items are now inherited by every layout and section (also on single-tab sections); per-scope items are added on top instead of hiding the global ones\nTab bar - the datapoint template field now grows with multiple lines and hints that HTML is supported\nTab bar - the datapoint item ID can now be chosen via the standard datapoint picker",
         "de": "Editor - tab bar now always stays on top in the editor; the footer (bottom) position applies to the frontend only\nEditor - the section menu is only previewed in the editor when set to \"fixed sidebar\"; top/bottom bar placement no longer moves the editor preview\nTab bar - global clock/datapoint/text items are now inherited by every layout and section (also on single-tab sections); per-scope items are added on top instead of hiding the global ones\nTab bar - the datapoint template field now grows with multiple lines and hints that HTML is supported\nTab bar - the datapoint item ID can now be chosen via the standard datapoint picker",
@@ -184,19 +197,6 @@
         "pl": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
         "uk": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
         "zh-cn": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value"
-      },
-      "0.31.1": {
-        "en": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
-        "de": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
-        "ru": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
-        "pt": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
-        "nl": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
-        "fr": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
-        "it": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
-        "es": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
-        "pl": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
-        "uk": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states",
-        "zh-cn": "🌟 New feature: Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values\n🌟 New feature: Static and dynamic lists - new \"States\" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states"
       }
     }
   },

@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.23.6 (2026-07-10)
+- Thermostat - quick-select preset buttons now shown directly on the widget (toggleable)
+- Thermostat - color thresholds now apply to the actual temperature instead of the setpoint
+- Value - add status datapoints (battery / reachability) with show-always or alert-only badges
+
 ## 0.23.5 (2026-07-10)
 - Media player - relative cover paths (e.g. Sonos current_cover) now resolve automatically, no full-URL datapoint needed
 - Widgets - transparency mode with partial strength now keeps rounded corners in the frontend instead of showing square edges
