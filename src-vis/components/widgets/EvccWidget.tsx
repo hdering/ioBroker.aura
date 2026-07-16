@@ -26,6 +26,26 @@ function fmtSoc(v: number): string {
     return `${Math.round(v)}%`;
 }
 
+// Newer evcc adapters (or the "resolve nested nodes" option) no longer expose
+// gridPower/batteryPower/batterySoc as flat number states — grid/battery arrive
+// only as JSON objects like {"power":-9.2,...}. Extract the numeric power from a
+// value that may be a plain number, a JSON object string, or a numeric string.
+function parsePower(raw: unknown): number | null {
+    if (raw == null) return null;
+    if (typeof raw === 'number') return Number.isFinite(raw) ? raw : null;
+    const str = String(raw).trim();
+    if (str.startsWith('{')) {
+        try {
+            const o = JSON.parse(str) as { power?: number };
+            return typeof o.power === 'number' ? o.power : null;
+        } catch {
+            return null;
+        }
+    }
+    const n = parseFloat(str);
+    return Number.isFinite(n) ? n : null;
+}
+
 // ── responsive container-size hook (ResizeObserver via callback ref) ──────────
 
 function useContainerSize() {
@@ -1090,6 +1110,11 @@ export function EvccWidget({ config }: WidgetProps) {
     const { value: extSoc } = useDatapoint(effectiveBattDp);
     const { value: extPower } = useDatapoint(batteryPowerDp);
 
+    // Grid power fallback: adapters with resolved nodes only publish the JSON
+    // object `status.grid` ({power,…}) instead of the flat `status.gridPower`.
+    const { value: gridRaw } = useDatapoint(prefix ? `${prefix}.status.grid` : '');
+    const gridPowerOverride = parsePower(gridRaw);
+
     const { site: rawSite, loadpoints } = useEvccData(prefix, loadpointCount);
 
     const batteryJson = (() => {
@@ -1105,6 +1130,7 @@ export function EvccWidget({ config }: WidgetProps) {
 
     const site: SiteState = {
         ...rawSite,
+        ...(gridPowerOverride != null ? { gridPower: gridPowerOverride } : {}),
         ...(batteryJson
             ? {
                   ...(batteryJson.soc != null ? { batterySoc: batteryJson.soc } : {}),
