@@ -7,7 +7,7 @@
  * `useEnergyBalanceValues`), matching the "Diagramm (erweitert)" data model. The two-sided
  * Produktion/Verbrauch reference layout is simply the N=2 case (legendSide left + right).
  */
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { PieChart as PieChartIcon } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { WidgetProps } from '../../types';
@@ -16,8 +16,14 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
+import { RANGE_LABELS } from '../../hooks/useChartHistory';
 import type { EChartTimeRange } from '../../hooks/useMultiSeriesData';
 import { useEnergyBalanceValues, type EnergyEntry } from '../../hooks/useEnergyBalanceValues';
+
+/** Presets offered by the frontend range selector (custom handled separately). */
+const PRESET_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
+/** Full ordered set of frontend-selectable ranges (used to normalise the config list). */
+const FRONTEND_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', 'custom'];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -46,6 +52,10 @@ export interface EnergyBalanceOptions {
     range?: EChartTimeRange;
     rangeCustomValue?: number;
     rangeCustomUnit?: 'h' | 'd';
+    /** Which presets the frontend range selector offers (default: all presets). */
+    visibleRanges?: EChartTimeRange[];
+    /** Hide the frontend range selector and pin the configured range. Default false. */
+    lockRange?: boolean;
     showTitle?: boolean;
     /** Per-bar title + total above each bar. Default true. */
     showBarTitles?: boolean;
@@ -135,7 +145,25 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const legendAlign = o.legendAlign;
     const unit = o.unit ?? 'kWh';
     const decimals = o.decimals ?? defaultDecimals ?? 2;
-    const range = o.range ?? '24h';
+
+    // ── Time range — configured window, frontend-switchable unless locked ──
+    const cfgRange = o.range ?? '24h';
+    const cfgCustomVal = o.rangeCustomValue ?? 24;
+    const cfgCustomUnit = o.rangeCustomUnit ?? 'h';
+    const lockRange = o.lockRange === true;
+    // Which presets the frontend selector offers (config-selectable; default: all presets).
+    const cfgVisibleRanges = o.visibleRanges;
+    const visibleRanges =
+        cfgVisibleRanges && cfgVisibleRanges.length > 0
+            ? FRONTEND_RANGES.filter((r) => cfgVisibleRanges.includes(r))
+            : PRESET_RANGES;
+
+    const [activeRange, setActiveRange] = useState<EChartTimeRange>(cfgRange);
+    // Reset the frontend selection whenever the admin config changes.
+    useEffect(() => {
+        setActiveRange(cfgRange);
+    }, [cfgRange]);
+    const range = lockRange ? cfgRange : activeRange;
     // Honor the shared "Darstellung" appearance controls (icon, hide icon, icon size, align).
     const showIcon = o.showIcon !== false;
     const iconSize = (o.iconSize as number) || 18;
@@ -154,8 +182,8 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
         range,
         connected,
         subscribe,
-        o.rangeCustomValue,
-        o.rangeCustomUnit,
+        cfgCustomVal,
+        cfgCustomUnit,
     );
 
     const getValue = (entryId: string): number | null =>
@@ -188,6 +216,31 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                 >
                     {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)' }} />}
                     {config.title && <span>{config.title}</span>}
+                </div>
+            )}
+
+            {!lockRange && visibleRanges.length > 0 && (
+                <div className="nodrag shrink-0 mb-1 flex gap-1 min-w-0 overflow-x-auto aura-no-scrollbar">
+                    {visibleRanges.map((r) => {
+                        const active = range === r;
+                        const label =
+                            r === 'custom'
+                                ? `${cfgCustomVal} ${cfgCustomUnit === 'd' ? 'Tage' : 'Std'}`
+                                : RANGE_LABELS[r];
+                        return (
+                            <button
+                                key={r}
+                                className="nodrag shrink-0 whitespace-nowrap px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+                                style={{
+                                    background: active ? 'var(--accent)' : 'var(--app-border)',
+                                    color: active ? '#fff' : 'var(--text-secondary)',
+                                }}
+                                onClick={() => setActiveRange(r)}
+                            >
+                                {label}
+                            </button>
+                        );
+                    })}
                 </div>
             )}
 

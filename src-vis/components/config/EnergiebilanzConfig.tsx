@@ -21,7 +21,10 @@ import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 
-const CHART_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', 'custom'];
+// Presets offered for the configured (default) time range.
+const DEFAULT_RANGES: EChartTimeRange[] = ['1h', '24h', '7d', '30d', 'custom'];
+// Presets the admin can expose in the frontend range selector.
+const FRONTEND_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', 'custom'];
 const AGGREGATES: { id: EnergyAggregate; label: string }[] = [
     { id: 'last', label: 'Letzter Wert' },
     { id: 'delta', label: 'Differenz (Ende − Start)' },
@@ -557,6 +560,16 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
     }, [detectKey]);
 
     const range = o.range ?? '24h';
+    const lockRange = o.lockRange === true;
+    const presetFrontendRanges = FRONTEND_RANGES.filter((r) => r !== 'custom');
+    const visibleRanges = o.visibleRanges && o.visibleRanges.length > 0 ? o.visibleRanges : presetFrontendRanges;
+    const toggleVisibleRange = (r: EChartTimeRange) => {
+        const next = visibleRanges.includes(r)
+            ? visibleRanges.filter((x) => x !== r)
+            : FRONTEND_RANGES.filter((x) => visibleRanges.includes(x) || x === r);
+        if (next.length === 0) return; // keep at least one range selectable
+        setO({ visibleRanges: next });
+    };
 
     return (
         <div className="aura-scroll flex flex-col gap-2 overflow-y-auto" style={{ maxHeight: '80vh' }}>
@@ -678,7 +691,7 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                     className={inputCls}
                     style={inputStyle}
                 >
-                    {CHART_RANGES.map((r) => (
+                    {DEFAULT_RANGES.map((r) => (
                         <option key={r} value={r}>
                             {RANGE_LABELS[r]}
                         </option>
@@ -705,6 +718,47 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                         </select>
                     </div>
                 )}
+
+                {/* Which ranges the frontend selector offers (hidden while locked) */}
+                {!lockRange && (
+                    <div className="mt-2">
+                        <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Sichtbare Zeitbereiche im Frontend
+                        </label>
+                        <div className="flex gap-1 flex-wrap">
+                            {FRONTEND_RANGES.map((r) => {
+                                const active = visibleRanges.includes(r);
+                                return (
+                                    <button
+                                        key={r}
+                                        onClick={() => toggleVisibleRange(r)}
+                                        className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                            minWidth: 36,
+                                        }}
+                                    >
+                                        {RANGE_LABELS[r]}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                    <input
+                        type="checkbox"
+                        checked={lockRange}
+                        onChange={(e) => setO({ lockRange: e.target.checked })}
+                        className="rounded"
+                    />
+                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        Zeitraum im Frontend sperren
+                    </span>
+                </label>
             </div>
 
             {/* toggles */}
