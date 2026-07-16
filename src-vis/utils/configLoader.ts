@@ -15,6 +15,7 @@ import {
     isScreenshotMode,
 } from '../store/persistManager';
 import { hydrateGroupDefs } from '../store/groupDefsStore';
+import { hydrateWidgetPresets } from '../store/widgetPresetsStore';
 import { useDashboardStore } from '../store/dashboardStore';
 import { useThemeStore } from '../store/themeStore';
 import { useGroupStore } from '../store/groupStore';
@@ -31,6 +32,11 @@ type StoreKey = SyncStoreKey | 'aura-global-settings';
 export function applyRaw(key: StoreKey, raw: string): void {
     if (key === 'aura-group-defs') {
         hydrateGroupDefs(raw);
+        clearDirtyFlag(key);
+        return;
+    }
+    if (key === 'aura-widget-presets') {
+        hydrateWidgetPresets(raw);
         clearDirtyFlag(key);
         return;
     }
@@ -95,7 +101,8 @@ export async function loadConfigFromIoBroker(
                 // leave the store empty, and the next save would then overwrite the
                 // real group children in ioBroker with {}. Always hydrate it from
                 // remote; applyRaw clears the stale flag.
-                if (!ignoreDirty && key !== 'aura-group-defs' && hasDirtyFlag(key)) continue; // preserve unsaved edits
+                if (!ignoreDirty && key !== 'aura-group-defs' && key !== 'aura-widget-presets' && hasDirtyFlag(key))
+                    continue; // preserve unsaved edits
                 const val = blob[key];
                 if (!val) continue;
                 const raw = typeof val === 'string' ? val : JSON.stringify(val);
@@ -119,12 +126,14 @@ export async function loadConfigFromIoBroker(
             // aura-group-defs is RAM-only: see note above. Skipping it on a dirty
             // flag empties the group-children store and lets the next save clobber
             // ioBroker with {}. Always hydrate it from remote.
-            if (!ignoreDirty && key !== 'aura-group-defs' && hasDirtyFlag(key)) continue; // preserve unsaved edits
+            if (!ignoreDirty && key !== 'aura-group-defs' && key !== 'aura-widget-presets' && hasDirtyFlag(key))
+                continue; // preserve unsaved edits
             const state = results[i];
             if (!state?.val) continue;
             const raw = String(state.val);
             if (!raw || raw.length < 3) continue;
-            const current = key === 'aura-group-defs' ? null : localStorage.getItem(key);
+            const current =
+                key === 'aura-group-defs' || key === 'aura-widget-presets' ? null : localStorage.getItem(key);
             if (current === raw) continue;
             applyRaw(key, raw);
             changed = true;

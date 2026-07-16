@@ -14,6 +14,22 @@ export interface WidgetConfig {
     mobileOrder?: number; // Sortierung in der mobilen Ansicht (einzelne Spalte)
 }
 
+/**
+ * A saved, reusable widget blueprint ("Widget-Designer" preset). Stores a full
+ * widget config plus any group/panels definitions it references, so the whole
+ * composite can be re-inserted elsewhere. Datapoints are kept as-is; on insert a
+ * mapping dialog lets the user re-point them (see utils/widgetPresetDps.ts).
+ */
+export interface WidgetPreset {
+    id: string; // preset-<ts>-<rand>
+    name: string; // user-provided name
+    icon?: string; // emoji shown on the catalog card
+    category?: string; // optional, reuses DP_TEMPLATE_CATEGORIES ids
+    widget: WidgetConfig; // the blueprint (id/gridPos are reassigned on insert)
+    groupDefs?: Record<string, WidgetConfig[]>; // for group/panels/universal composites
+    createdAt?: number;
+}
+
 export type WidgetType =
     | 'switch'
     | 'value'

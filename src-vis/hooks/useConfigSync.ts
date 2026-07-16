@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { getStateDirect, subscribeStateDirect } from './useIoBroker';
 import { useDashboardStore } from '../store/dashboardStore';
 import { hydrateGroupDefs } from '../store/groupDefsStore';
+import { hydrateWidgetPresets } from '../store/widgetPresetsStore';
 import {
     isPending,
     isSavingRecently,
@@ -21,6 +22,10 @@ function applyOneState(key: SyncStoreKey, raw: string): boolean {
 
     if (key === 'aura-group-defs') {
         hydrateGroupDefs(raw);
+        return true;
+    }
+    if (key === 'aura-widget-presets') {
+        hydrateWidgetPresets(raw);
         return true;
     }
 
@@ -110,7 +115,7 @@ export function useConfigSync(
     const poll = useCallback(() => {
         if (!configLoaded.current) return;
         const pollKeys = (Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[])
-            .filter((k) => k !== 'aura-group-defs')
+            .filter((k) => k !== 'aura-group-defs' && k !== 'aura-widget-presets')
             .filter((k) => ignoreDirty || !isPending(k));
         Promise.all(
             pollKeys.map((key) =>
@@ -124,7 +129,9 @@ export function useConfigSync(
                 }),
             ),
         ).then((results) => {
-            const appliedKeys = results.filter((k): k is Exclude<SyncStoreKey, 'aura-group-defs'> => k !== null);
+            const appliedKeys = results.filter(
+                (k): k is Exclude<SyncStoreKey, 'aura-group-defs' | 'aura-widget-presets'> => k !== null,
+            );
             if (appliedKeys.length > 0) {
                 // include global settings — see subscribe path above.
                 rehydrateAll(true);

@@ -47,6 +47,9 @@ const AdminEditor = lazyWithReload(() => import('./pages/admin/AdminEditor').the
 const AdminWidgets = lazyWithReload(() =>
     import('./pages/admin/AdminWidgets').then((m) => ({ default: m.AdminWidgets })),
 );
+const AdminWidgetDesigner = lazyWithReload(() =>
+    import('./pages/admin/AdminWidgetDesigner').then((m) => ({ default: m.AdminWidgetDesigner })),
+);
 const AdminLayouts = lazyWithReload(() =>
     import('./pages/admin/AdminLayouts').then((m) => ({ default: m.AdminLayouts })),
 );
@@ -86,6 +89,7 @@ const router = createHashRouter([
             { index: true, element: lazyRoute(AdminDashboard) },
             { path: 'editor', element: lazyRoute(AdminEditor) },
             { path: 'theme', element: <Navigate to="/admin/design?tab=theme" replace /> },
+            { path: 'widget-designer', element: lazyRoute(AdminWidgetDesigner) },
             { path: 'widgets', element: lazyRoute(AdminWidgets) },
             { path: 'layouts', element: lazyRoute(AdminLayouts) },
             { path: 'design', element: lazyRoute(AdminDesign) },

@@ -1622,6 +1622,7 @@ class Aura extends utils.Adapter {
             { id: 'config.global-settings', name: 'Global settings' },
             { id: 'config.group-defs', name: 'Group widget definitions' },
             { id: 'config.popup-config', name: 'Popup configuration' },
+            { id: 'config.widget-presets', name: 'Widget designer presets' },
         ];
         for (const s of configStates) {
             await this.setObjectNotExistsAsync(s.id, {

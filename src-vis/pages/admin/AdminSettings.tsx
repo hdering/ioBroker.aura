@@ -94,6 +94,7 @@ const BACKUP_SYNC_KEYS = [
     'aura-global-settings',
     'aura-group-defs',
     'aura-popup-config',
+    'aura-widget-presets',
 ] as const;
 
 interface BackupEntry {

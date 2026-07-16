@@ -23,12 +23,14 @@ import {
     MousePointerClick,
     FolderOpen,
     BadgeCheck,
+    Shapes,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { setDragBridge } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
 import { exportWidget } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../config/ExportAnonymizeDialog';
+import { SavePresetDialog } from '../config/SavePresetDialog';
 import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
 import { useFocusedWidgetId } from '../../contexts/FocusedWidgetContext';
 import { copyToClipboard } from '../../utils/clipboard';
@@ -5015,6 +5017,7 @@ export function WidgetFrame({
     const [showCopyMenu, setShowCopyMenu] = useState(false);
     const [showGroupTypePicker, setShowGroupTypePicker] = useState(false);
     const [showExportDialog, setShowExportDialog] = useState(false);
+    const [showSavePresetDialog, setShowSavePresetDialog] = useState(false);
     const { addWidgetToLayoutTab, removeWidgetFromLayoutTab } = useDashboardStore();
     const activeLayoutId = useDashboardStore((s) => s.activeLayoutId);
     const { activeTabId, tabs: activeTabs } = useActiveSection();
@@ -5984,6 +5987,19 @@ export function WidgetFrame({
                         >
                             <Download size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
                             {t('wf.menu.export')}
+                        </button>
+
+                        {/* Als Vorlage speichern (Widget-Designer) */}
+                        <button
+                            onClick={() => {
+                                setShowSavePresetDialog(true);
+                                openPanelFor(null);
+                            }}
+                            className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity"
+                            style={{ color: 'var(--text-primary)' }}
+                        >
+                            <Shapes size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                            {t('wf.menu.saveAsPreset')}
                         </button>
 
                         {/* Kopieren */}
@@ -16884,6 +16900,11 @@ export function WidgetFrame({
                     onExport={(anon) => exportWidget(config, anon)}
                     onClose={() => setShowExportDialog(false)}
                 />
+            )}
+
+            {/* Save as Widget-Designer preset */}
+            {showSavePresetDialog && (
+                <SavePresetDialog widget={config} onClose={() => setShowSavePresetDialog(false)} />
             )}
 
             {/* Conditions Modal */}

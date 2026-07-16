@@ -20,6 +20,7 @@ export const IOBROKER_STATE_MAP: Record<string, string> = {
     'aura-global-settings': `${NS}.config.global-settings`,
     'aura-group-defs': `${NS}.config.group-defs`,
     'aura-popup-config': `${NS}.config.popup-config`,
+    'aura-widget-presets': `${NS}.config.widget-presets`,
 };
 
 export type SyncStoreKey =
@@ -29,7 +30,8 @@ export type SyncStoreKey =
     | 'aura-config'
     | 'aura-global-settings'
     | 'aura-group-defs'
-    | 'aura-popup-config';
+    | 'aura-popup-config'
+    | 'aura-widget-presets';
 const SYNC_STORE_KEYS = Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[];
 
 // File-based backup storage. Each backup is its own JSON file under the

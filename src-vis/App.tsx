@@ -40,6 +40,7 @@ import type { FrontendSettings } from './store/configStore';
 
 import { discardPending } from './store/persistManager';
 import { markGroupDefsHydrated } from './store/groupDefsStore';
+import { markWidgetPresetsHydrated } from './store/widgetPresetsStore';
 import { usePopupConfigStore } from './store/popupConfigStore';
 import { NS } from './utils/namespace';
 import { baseDpId } from './utils/dpRef';
@@ -61,6 +62,10 @@ const STORE_REHYDRATORS: Record<string, () => void> = {
         if (v) applyRaw('aura-group-defs', v);
     },
     'aura-popup-config': () => usePopupConfigStore.persist.rehydrate(),
+    'aura-widget-presets': () => {
+        const v = localStorage.getItem('aura-widget-presets');
+        if (v) applyRaw('aura-widget-presets', v);
+    },
 };
 
 // ── HeaderClock ────────────────────────────────────────────────────────────
@@ -602,6 +607,7 @@ export default function App() {
         // 2 decimals) while another shows the configured 0.
         void loadConfigFromIoBroker(true, { ignoreDirty: true }).finally(() => {
             markGroupDefsHydrated(); // unblock group-defs saves even if remote was empty
+            markWidgetPresetsHydrated();
             discardPending();
         });
     }, [connected]);

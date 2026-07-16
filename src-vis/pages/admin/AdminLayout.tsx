@@ -23,6 +23,7 @@ import {
     Code2,
     AlertTriangle,
     Activity,
+    Shapes,
 } from 'lucide-react';
 import { useAuthStore, logout } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
@@ -42,6 +43,7 @@ import { useConfigStore } from '../../store/configStore';
 import { usePopupConfigStore } from '../../store/popupConfigStore';
 import { loadConfigFromIoBroker, applyRaw } from '../../utils/configLoader';
 import { markGroupDefsHydrated } from '../../store/groupDefsStore';
+import { markWidgetPresetsHydrated } from '../../store/widgetPresetsStore';
 import { useAdminPrefsStore } from '../../store/adminPrefsStore';
 import { useIoBroker, getObjectDirect, subscribeStateDirect, setStateDirect } from '../../hooks/useIoBroker';
 import { renameAllTimers } from '../../utils/publishTimerConfig';
@@ -186,6 +188,7 @@ export function AdminLayout() {
         loadConfigFromIoBroker(true).then((remoteHasData) => {
             adminConfigLoadedRef.current = true;
             markGroupDefsHydrated(); // unblock group-defs saves even if remote was empty
+            markWidgetPresetsHydrated();
             const localHasData = [
                 'aura-dashboard',
                 'aura-theme',
@@ -289,6 +292,7 @@ export function AdminLayout() {
         { to: '/admin/layouts', label: t('admin.nav.layouts'), icon: Layers2 },
         { to: '/admin/editor', label: t('admin.nav.editor'), icon: PenSquare },
         { to: '/admin/popups', label: t('admin.nav.popups'), icon: AppWindow },
+        { to: '/admin/widget-designer', label: t('admin.nav.widgetDesigner'), icon: Shapes },
         { to: '/admin/widgets', label: t('admin.nav.widgets'), icon: Layers },
         { to: '/admin/design', label: t('admin.nav.design'), icon: Palette },
         { to: '/admin/css-js', label: t('admin.nav.cssjs'), icon: Code2 },

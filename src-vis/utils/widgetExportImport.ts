@@ -1,7 +1,8 @@
-import type { WidgetConfig } from '../types';
+import type { WidgetConfig, WidgetPreset } from '../types';
 import type { Tab, Section, DashboardLayout } from '../store/dashboardStore';
 import type { PopupView } from '../store/popupConfigStore';
 import { useGroupDefsStore, newGroupDefId } from '../store/groupDefsStore';
+import { newPresetId } from '../store/widgetPresetsStore';
 import { anonymizePayload, anyAnonymize, type AnonymizeOptions } from './anonymizeExport';
 
 export type { AnonymizeOptions } from './anonymizeExport';
@@ -24,7 +25,7 @@ function downloadJson(payload: unknown, base: string, descriptive: string, anon?
     URL.revokeObjectURL(url);
 }
 
-function collectGroupDefs(
+export function collectGroupDefs(
     widgets: WidgetConfig[],
     allDefs: Record<string, WidgetConfig[]>,
     out: Record<string, WidgetConfig[]>,
@@ -381,4 +382,111 @@ export function importPopupView(raw: unknown): PopupView | null {
         ...(typeof obj.autoCloseSec === 'number' ? { autoCloseSec: obj.autoCloseSec } : {}),
     };
     return view;
+}
+
+// ── Widget-Designer presets ─────────────────────────────────────────────────────
+//
+// A preset is a reusable widget blueprint (WidgetConfig + referenced group defs).
+// Export writes a self-contained JSON file; import returns a store-ready preset
+// with a fresh id. Actual insertion into a dashboard happens via instantiatePreset
+// (fresh widget id + fresh group-def ids), followed by the DP mapping dialog.
+
+const PRESET_EXPORT_TYPE = 'aura-widget-preset' as const;
+
+export function exportWidgetPreset(preset: WidgetPreset, anon?: AnonymizeOptions): void {
+    const payload = { _type: PRESET_EXPORT_TYPE, _version: 1, preset };
+    downloadJson(payload, 'aura-preset', preset.name || preset.id, anon);
+}
+
+/** Parse a preset export file. Returns a store-ready WidgetPreset with a fresh id,
+ *  or null if the shape is not a valid preset export. */
+export function importWidgetPreset(raw: unknown): WidgetPreset | null {
+    if (!raw || typeof raw !== 'object') return null;
+    const obj = raw as Record<string, unknown>;
+    if (obj._type !== PRESET_EXPORT_TYPE || !obj.preset || typeof obj.preset !== 'object') return null;
+    const preset = obj.preset as WidgetPreset;
+    if (!preset.name || !preset.widget || typeof preset.widget !== 'object') return null;
+    return {
+        id: newPresetId(),
+        name: preset.name,
+        ...(preset.icon ? { icon: preset.icon } : {}),
+        ...(preset.category ? { category: preset.category } : {}),
+        widget: preset.widget,
+        ...(preset.groupDefs ? { groupDefs: preset.groupDefs } : {}),
+    };
+}
+
+/** Build a WidgetPreset from a live widget config, capturing any referenced group
+ *  defs. Mirrors exportWidget but targets the preset store instead of a file. */
+export function buildPresetFromWidget(
+    widget: WidgetConfig,
+    meta: { name: string; icon?: string; category?: string },
+): WidgetPreset {
+    const groupDefs: Record<string, WidgetConfig[]> = {};
+    if ((widget.type === 'group' || widget.type === 'panels') && widget.options?.defId) {
+        collectGroupDefs([widget], useGroupDefsStore.getState().defs, groupDefs);
+    }
+    return {
+        id: newPresetId(),
+        name: meta.name,
+        ...(meta.icon ? { icon: meta.icon } : {}),
+        ...(meta.category ? { category: meta.category } : {}),
+        widget: JSON.parse(JSON.stringify(widget)) as WidgetConfig,
+        ...(Object.keys(groupDefs).length > 0
+            ? { groupDefs: JSON.parse(JSON.stringify(groupDefs)) as Record<string, WidgetConfig[]> }
+            : {}),
+        createdAt: Date.now(),
+    };
+}
+
+export interface InstantiatedPreset {
+    /** Fresh widget with a new id + remapped group defId, NOT yet added to the store. */
+    widget: WidgetConfig;
+    /** Fresh group defs (new ids), NOT yet written to groupDefsStore. */
+    groupDefs: Record<string, WidgetConfig[]>;
+}
+
+/**
+ * Materialise a preset into a fresh, isolated widget + group-def graph. All widget
+ * ids and group-def ids are regenerated so the result never shares state with the
+ * stored preset or with other instances. Nothing is committed to any store yet —
+ * the caller runs the DP mapping dialog first, then commits via
+ * commitPresetGroupDefs + addWidget.
+ */
+export function instantiatePreset(preset: WidgetPreset): InstantiatedPreset {
+    const widget = JSON.parse(JSON.stringify(preset.widget)) as WidgetConfig;
+    widget.id = freshWidgetId();
+
+    const importedDefs = preset.groupDefs ?? {};
+    const idMap: Record<string, string> = {};
+    for (const oldId of Object.keys(importedDefs)) idMap[oldId] = newGroupDefId();
+
+    const remapChildren = (children: WidgetConfig[]): WidgetConfig[] =>
+        children.map((raw) => {
+            const child = JSON.parse(JSON.stringify(raw)) as WidgetConfig;
+            child.id = freshWidgetId();
+            if ((child.type === 'group' || child.type === 'panels') && child.options?.defId) {
+                const oldDefId = child.options.defId as string;
+                child.options = { ...child.options, defId: idMap[oldDefId] ?? oldDefId };
+            }
+            return child;
+        });
+
+    const groupDefs: Record<string, WidgetConfig[]> = {};
+    for (const [oldId, children] of Object.entries(importedDefs)) {
+        groupDefs[idMap[oldId]] = remapChildren(children);
+    }
+
+    if ((widget.type === 'group' || widget.type === 'panels') && widget.options?.defId) {
+        const oldDefId = widget.options.defId as string;
+        widget.options = { ...widget.options, defId: idMap[oldDefId] ?? oldDefId };
+    }
+
+    return { widget, groupDefs };
+}
+
+/** Write instantiated group defs into groupDefsStore (call right before addWidget). */
+export function commitPresetGroupDefs(groupDefs: Record<string, WidgetConfig[]>): void {
+    const { setDef } = useGroupDefsStore.getState();
+    for (const [id, children] of Object.entries(groupDefs)) setDef(id, children);
 }

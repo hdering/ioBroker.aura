@@ -22,6 +22,7 @@ import {
     Eye,
     EyeOff,
     ExternalLink,
+    Shapes,
 } from 'lucide-react';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { Icon } from '@iconify/react';
@@ -38,8 +39,10 @@ import { FocusedWidgetContext } from '../../contexts/FocusedWidgetContext';
 import { TabWizard } from '../../components/config/TabWizard';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
 import { ColorPicker } from '../../components/common/ColorPicker';
-import type { WidgetConfig, WidgetType, WidgetLayout } from '../../types';
+import type { WidgetConfig, WidgetType, WidgetLayout, WidgetPreset } from '../../types';
 import { WIDGET_REGISTRY, WIDGET_BY_TYPE, getEffectiveSize } from '../../widgetRegistry';
+import { useWidgetPresetsStore } from '../../store/widgetPresetsStore';
+import { PresetInsertDialog } from '../../components/config/PresetInsertDialog';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { useConfigStore } from '../../store/configStore';
 import { useCustomJs } from '../../hooks/useCustomJs';
@@ -107,6 +110,8 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
     const [calColor, setCalColor] = useState('#3b82f6');
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
     const [recentTemplates, setRecentTemplates] = useState<RecentTemplate[]>(() => getRecentTemplates());
+    const presets = useWidgetPresetsStore((s) => s.presets);
+    const [insertPreset, setInsertPreset] = useState<WidgetPreset | null>(null);
     const { groups } = useGroupStore();
 
     // Auto-detect type / template / title / unit when the datapoint ID changes
@@ -484,6 +489,40 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                         </div>
                     )}
 
+                    {/* My presets (Widget-Designer) */}
+                    {presets.length > 0 && (
+                        <div className="px-6 pt-3 pb-1">
+                            <p
+                                className="text-[10px] font-semibold uppercase tracking-wider mb-2"
+                                style={{ color: 'var(--text-secondary)', opacity: 0.5 }}
+                            >
+                                {t('preset.mine')}
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {presets.map((preset) => (
+                                    <button
+                                        key={preset.id}
+                                        type="button"
+                                        onClick={() => setInsertPreset(preset)}
+                                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium hover:opacity-80 transition-opacity"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            color: 'var(--text-secondary)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                    >
+                                        {preset.icon ? (
+                                            <span style={{ fontSize: 12, lineHeight: 1 }}>{preset.icon}</span>
+                                        ) : (
+                                            <Shapes size={11} />
+                                        )}
+                                        {preset.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Category filter tabs */}
                     <div className="px-6 pt-3 pb-1">
                         <div className="flex flex-wrap gap-1.5">
@@ -743,6 +782,18 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                             if (!unit.trim() && dpUnit) setUnit(dpUnit);
                         }}
                         onClose={() => setShowPicker(false)}
+                    />
+                )}
+
+                {insertPreset && (
+                    <PresetInsertDialog
+                        preset={insertPreset}
+                        onInsert={(widget) => {
+                            onAdd(widget);
+                            setInsertPreset(null);
+                            onClose();
+                        }}
+                        onCancel={() => setInsertPreset(null)}
                     />
                 )}
             </div>
