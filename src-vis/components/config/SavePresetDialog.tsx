@@ -6,6 +6,7 @@ import type { WidgetConfig } from '../../types';
 import { buildPresetFromWidget } from '../../utils/widgetExportImport';
 import { useWidgetPresetsStore } from '../../store/widgetPresetsStore';
 import { DP_TEMPLATE_CATEGORIES } from '../../utils/dpTemplates';
+import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
 
 /**
  * Small modal shown from a widget's edit menu. Captures the current widget config
@@ -13,6 +14,7 @@ import { DP_TEMPLATE_CATEGORIES } from '../../utils/dpTemplates';
  */
 export function SavePresetDialog({ widget, onClose }: { widget: WidgetConfig; onClose: () => void }) {
     const t = useT();
+    const themeVars = usePortalThemeVars();
     const addPreset = useWidgetPresetsStore((s) => s.addPreset);
     const [name, setName] = useState(widget.title?.trim() || '');
     const [icon, setIcon] = useState('');
@@ -35,7 +37,11 @@ export function SavePresetDialog({ widget, onClose }: { widget: WidgetConfig; on
     };
 
     return createPortal(
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[1000] p-4" onClick={onClose}>
+        <div
+            className="fixed inset-0 bg-black/60 flex items-center justify-center z-[1000] p-4"
+            style={themeVars}
+            onClick={onClose}
+        >
             <div
                 className="rounded-xl w-full max-w-md shadow-2xl p-6 space-y-4"
                 style={{

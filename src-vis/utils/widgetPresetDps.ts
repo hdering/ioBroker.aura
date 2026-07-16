@@ -73,8 +73,10 @@ function isDpOptionKey(key: string): boolean {
     return key === 'datapoint' || key.endsWith('Dp') || key.endsWith('Datapoint');
 }
 
-function widgetLabel(cfg: WidgetConfig): string {
-    return cfg.title?.trim() || WIDGET_BY_TYPE[cfg.type]?.label || cfg.type;
+/** Last segment of a datapoint id (e.g. `…Bad.TEMPERATURE` → `TEMPERATURE`). */
+function dpLeaf(dpId?: string): string {
+    if (typeof dpId !== 'string' || !dpId.trim()) return '';
+    return dpId.split('.').pop() ?? '';
 }
 
 function extractCells(options: Record<string, unknown> | undefined): CustomCell[] {
@@ -96,10 +98,25 @@ export function collectDpSlots(widget: WidgetConfig, groupDefs?: Record<string, 
     const slots: DpSlot[] = [];
     let seq = 0;
     const visitedDefs = new Set<string>();
+    const usedNames = new Map<string, number>();
+
+    // A descriptive, unique heading per building block so the user can tell which
+    // datapoint goes where. Prefer the widget's title; otherwise fall back to the
+    // widget-type label plus the original DP's leaf segment for context
+    // (e.g. "Wert · TEMPERATURE"). Duplicates get a numeric suffix.
+    function uniqueOwnerName(cfg: WidgetConfig): string {
+        const title = cfg.title?.trim();
+        const typeLabel = WIDGET_BY_TYPE[cfg.type]?.label || cfg.type;
+        const leaf = dpLeaf(cfg.datapoint);
+        const base = title || (leaf ? `${typeLabel} · ${leaf}` : typeLabel);
+        const n = usedNames.get(base) ?? 0;
+        usedNames.set(base, n + 1);
+        return n === 0 ? base : `${base} (${n + 1})`;
+    }
 
     function addConfig(cfg: WidgetConfig, ownerPath: string): void {
         const ownerKey = ownerPath;
-        const groupName = widgetLabel(cfg);
+        const groupName = uniqueOwnerName(cfg);
 
         // Main datapoint (anchor for auto-detection).
         if (typeof cfg.datapoint === 'string' && cfg.datapoint.trim()) {

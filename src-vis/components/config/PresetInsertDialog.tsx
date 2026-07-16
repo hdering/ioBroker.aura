@@ -7,6 +7,7 @@ import { instantiatePreset, commitPresetGroupDefs } from '../../utils/widgetExpo
 import { collectDpSlots, type DpSlot } from '../../utils/widgetPresetDps';
 import { autoDetectStatusDps } from '../../utils/dpTemplates';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
+import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { DatapointPicker } from './DatapointPicker';
 
 /**
@@ -26,6 +27,7 @@ export function PresetInsertDialog({
     onCancel: () => void;
 }) {
     const t = useT();
+    const themeVars = usePortalThemeVars();
 
     // Materialise once (fresh ids) — never recompute on re-render.
     const { widget, groupDefs, slots } = useMemo(() => {
@@ -93,7 +95,11 @@ export function PresetInsertDialog({
     }, [preset.id]);
 
     return createPortal(
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[1000] p-4" onClick={onCancel}>
+        <div
+            className="fixed inset-0 bg-black/60 flex items-center justify-center z-[1000] p-4"
+            style={themeVars}
+            onClick={onCancel}
+        >
             <div
                 className="rounded-xl w-full max-w-lg shadow-2xl flex flex-col"
                 style={{
@@ -130,9 +136,10 @@ export function PresetInsertDialog({
                             {grouped.map(([group, groupSlots]) => (
                                 <div key={group} className="space-y-2">
                                     <p
-                                        className="text-[10px] font-semibold uppercase tracking-wider"
-                                        style={{ color: 'var(--text-secondary)', opacity: 0.5 }}
+                                        className="text-xs font-semibold flex items-center gap-1.5"
+                                        style={{ color: 'var(--accent)' }}
                                     >
+                                        <Shapes size={12} />
                                         {group}
                                     </p>
                                     {groupSlots.map((slot) => (

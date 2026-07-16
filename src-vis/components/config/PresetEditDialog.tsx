@@ -9,6 +9,7 @@ import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { collectGroupDefs } from '../../utils/widgetExportImport';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
+import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { WidgetFrame } from '../layout/WidgetFrame';
 
 const DEFAULT_MARGIN = 10;
@@ -23,6 +24,7 @@ const clone = (w: WidgetConfig) => JSON.parse(JSON.stringify(w)) as WidgetConfig
  */
 export function PresetEditDialog({ preset, onClose }: { preset: WidgetPreset; onClose: () => void }) {
     const t = useT();
+    const themeVars = usePortalThemeVars();
     const updatePreset = useWidgetPresetsStore((s) => s.updatePreset);
     const settings = useEffectiveSettings();
     const cellSize = settings.gridRowHeight ?? 60;
@@ -88,7 +90,11 @@ export function PresetEditDialog({ preset, onClose }: { preset: WidgetPreset; on
 
     return createPortal(
         <ActiveLayoutContext.Provider value="">
-            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[1000] p-4" onClick={onClose}>
+            <div
+                className="fixed inset-0 bg-black/60 flex items-center justify-center z-[1000] p-4"
+                style={themeVars}
+                onClick={onClose}
+            >
                 <div
                     className="rounded-xl w-full max-w-4xl shadow-2xl flex flex-col"
                     style={{
