@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.33.2",
+    "version": "0.33.3",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.33.3": {
+        "en": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
+        "de": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
+        "ru": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
+        "pt": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
+        "nl": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
+        "fr": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
+        "it": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
+        "es": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
+        "pl": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
+        "uk": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
+        "zh-cn": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length"
+      },
       "0.33.2": {
         "en": "Distribution chart - configurable frontend time-range selector (1h/6h/24h/7d/30d/custom) with an option to lock the range",
         "de": "Distribution chart - configurable frontend time-range selector (1h/6h/24h/7d/30d/custom) with an option to lock the range",
@@ -184,19 +197,6 @@
         "pl": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
         "uk": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
         "zh-cn": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections"
-      },
-      "0.31.2": {
-        "en": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
-        "de": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
-        "ru": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
-        "pt": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
-        "nl": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
-        "fr": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
-        "it": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
-        "es": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
-        "pl": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
-        "uk": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value",
-        "zh-cn": "Dynamic list - \"states\" display now shows the configured state label/icon/color instead of the raw value"
       }
     }
   },

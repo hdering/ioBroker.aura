@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.24.0 (2026-07-10)
+- 🌟 **New feature:** Layout menu - new "bullet + name" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size
+- 🌟 **New feature:** Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list
+
 ## 0.23.6 (2026-07-10)
 - Thermostat - quick-select preset buttons now shown directly on the widget (toggleable)
 - Thermostat - color thresholds now apply to the actual temperature instead of the setpoint
