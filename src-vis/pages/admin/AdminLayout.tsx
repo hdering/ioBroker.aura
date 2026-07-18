@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useConfigSync } from '../../hooks/useConfigSync';
 import { version as appVersion } from '../../../package.json';
+import { FEATURES } from '../../featureFlags';
 import { PortalTargetContext, PortalThemeContext } from '../../contexts/PortalTargetContext';
 import { Navigate, Outlet, NavLink } from 'react-router-dom';
 import {
@@ -292,7 +293,9 @@ export function AdminLayout() {
         { to: '/admin/layouts', label: t('admin.nav.layouts'), icon: Layers2 },
         { to: '/admin/editor', label: t('admin.nav.editor'), icon: PenSquare },
         { to: '/admin/popups', label: t('admin.nav.popups'), icon: AppWindow },
-        { to: '/admin/widget-designer', label: t('admin.nav.widgetDesigner'), icon: Shapes },
+        ...(FEATURES.widgetDesigner
+            ? [{ to: '/admin/widget-designer', label: t('admin.nav.widgetDesigner'), icon: Shapes }]
+            : []),
         { to: '/admin/widgets', label: t('admin.nav.widgets'), icon: Layers },
         { to: '/admin/design', label: t('admin.nav.design'), icon: Palette },
         { to: '/admin/css-js', label: t('admin.nav.cssjs'), icon: Code2 },

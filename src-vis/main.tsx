@@ -9,6 +9,7 @@ import App from './App';
 import { ThemeProvider } from './ThemeProvider';
 import { lazyWithReload, installChunkErrorRecovery } from './utils/lazyWithReload';
 import { setScreenshotMode } from './store/persistManager';
+import { FEATURES } from './featureFlags';
 
 // Recharts' ResponsiveContainer logs a "width(-1) and height(-1) of chart should be
 // greater than 0" warning when a chart briefly renders inside a hidden tab (container
@@ -89,7 +90,7 @@ const router = createHashRouter([
             { index: true, element: lazyRoute(AdminDashboard) },
             { path: 'editor', element: lazyRoute(AdminEditor) },
             { path: 'theme', element: <Navigate to="/admin/design?tab=theme" replace /> },
-            { path: 'widget-designer', element: lazyRoute(AdminWidgetDesigner) },
+            ...(FEATURES.widgetDesigner ? [{ path: 'widget-designer', element: lazyRoute(AdminWidgetDesigner) }] : []),
             { path: 'widgets', element: lazyRoute(AdminWidgets) },
             { path: 'layouts', element: lazyRoute(AdminLayouts) },
             { path: 'design', element: lazyRoute(AdminDesign) },

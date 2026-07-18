@@ -43,6 +43,7 @@ import type { WidgetConfig, WidgetType, WidgetLayout, WidgetPreset } from '../..
 import { WIDGET_REGISTRY, WIDGET_BY_TYPE, getEffectiveSize } from '../../widgetRegistry';
 import { useWidgetPresetsStore } from '../../store/widgetPresetsStore';
 import { PresetInsertDialog } from '../../components/config/PresetInsertDialog';
+import { FEATURES } from '../../featureFlags';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { useConfigStore } from '../../store/configStore';
 import { useCustomJs } from '../../hooks/useCustomJs';
@@ -490,7 +491,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                     )}
 
                     {/* My presets (Widget-Designer) */}
-                    {presets.length > 0 && (
+                    {FEATURES.widgetDesigner && presets.length > 0 && (
                         <div className="px-6 pt-3 pb-1">
                             <p
                                 className="text-[10px] font-semibold uppercase tracking-wider mb-2"

@@ -31,6 +31,7 @@ import { verticalCompact } from '../../utils/gridCompact';
 import { exportWidget } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../config/ExportAnonymizeDialog';
 import { SavePresetDialog } from '../config/SavePresetDialog';
+import { FEATURES } from '../../featureFlags';
 import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
 import { useFocusedWidgetId } from '../../contexts/FocusedWidgetContext';
 import { copyToClipboard } from '../../utils/clipboard';
@@ -5990,17 +5991,19 @@ export function WidgetFrame({
                         </button>
 
                         {/* Als Vorlage speichern (Widget-Designer) */}
-                        <button
-                            onClick={() => {
-                                setShowSavePresetDialog(true);
-                                openPanelFor(null);
-                            }}
-                            className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity"
-                            style={{ color: 'var(--text-primary)' }}
-                        >
-                            <Shapes size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-                            {t('wf.menu.saveAsPreset')}
-                        </button>
+                        {FEATURES.widgetDesigner && (
+                            <button
+                                onClick={() => {
+                                    setShowSavePresetDialog(true);
+                                    openPanelFor(null);
+                                }}
+                                className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                <Shapes size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                                {t('wf.menu.saveAsPreset')}
+                            </button>
+                        )}
 
                         {/* Kopieren */}
                         {onDuplicate ? (
