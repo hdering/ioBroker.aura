@@ -250,6 +250,7 @@ export interface CustomCell {
     controlMode?: 'toggle' | 'icon' | 'button'; // 'switch' cell: visual control style (default 'toggle')
     buttonTextColor?: string; // 'switch' cell (button mode): label text color (default #fff)
     buttonSize?: number; // 'switch' cell (button mode): padding scale in px (default 8)
+    buttonWidth?: 'auto' | 'full' | 'uniform'; // 'switch' cell (button mode): 'auto' fits text, 'full' fills cell, 'uniform' matches widest sibling button (default 'auto')
     momentary?: boolean; // 'switch' cell: Taster-Modus — write trueValue on press, falseValue after delay
     momentaryDelay?: number; // 'switch' cell: ms before writing falseValue (default 500)
     confirmAction?: boolean; // 'switch' cell: require confirmation overlay before toggling

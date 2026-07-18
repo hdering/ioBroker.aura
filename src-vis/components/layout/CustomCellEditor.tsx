@@ -1068,6 +1068,28 @@ export function CustomCellEditor({
                                         />
                                     </div>
                                     <div>
+                                        <label
+                                            className="text-[11px] block mb-1"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            Button-Breite
+                                        </label>
+                                        <select
+                                            value={cell.buttonWidth ?? 'auto'}
+                                            onChange={(e) =>
+                                                onChange({
+                                                    buttonWidth: e.target.value as CustomCell['buttonWidth'],
+                                                })
+                                            }
+                                            className={inputCls}
+                                            style={inputSty}
+                                        >
+                                            <option value="auto">Automatisch (Textbreite)</option>
+                                            <option value="full">Volle Zellenbreite</option>
+                                            <option value="uniform">Einheitlich (längstes Label)</option>
+                                        </select>
+                                    </div>
+                                    <div>
                                         <div className="flex items-center justify-between mb-1">
                                             <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                                 Textgröße

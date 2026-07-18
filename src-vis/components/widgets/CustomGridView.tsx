@@ -386,7 +386,19 @@ function parseCellValue(raw: string | undefined, fallback: boolean | number | st
 }
 
 /** Boolean toggle bound to a DP. */
-function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
+function SwitchCellView({
+    cell,
+    index,
+    cols,
+    rows,
+    uniformCh = 0,
+}: {
+    cell: CustomCell;
+    index: number;
+    cols: number;
+    rows: number;
+    uniformCh?: number;
+}) {
     const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
     const btnRef = useRef<HTMLButtonElement | null>(null);
     const trueWrite = parseCellValue(cell.trueValue, true);
@@ -415,6 +427,12 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
     if (cell.controlMode === 'button') {
         const pad = cell.buttonSize ?? 8;
         const label = cell.text || (on ? 'AN' : 'AUS');
+        const widthStyle: React.CSSProperties =
+            cell.buttonWidth === 'full'
+                ? { width: '100%' }
+                : cell.buttonWidth === 'uniform' && uniformCh > 0
+                  ? { minWidth: `calc(${uniformCh}ch + ${pad * 4}px)` }
+                  : {};
         return (
             <div className={`aura-custom-cell-${index}`} style={wrap}>
                 <button
@@ -430,6 +448,8 @@ function SwitchCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
                         fontSize: cell.fontSize ? `${cell.fontSize}px` : undefined,
                         fontWeight: cell.bold ? 'bold' : undefined,
                         fontStyle: cell.italic ? 'italic' : undefined,
+                        textAlign: 'center',
+                        ...widthStyle,
                     }}
                     aria-label={cell.text || (on ? 'AN' : 'AUS')}
                 >
@@ -1443,6 +1463,14 @@ export function CustomGridView({
     // When custom row sizes are used, anchor content at top instead of CSS-grid's default
     // "stretch" which distributes free space across auto rows (causing huge gaps).
     const alignContent = rowSizes ? 'start' : undefined;
+    // 'uniform' button width: widest label (in chars) among button-mode switch cells
+    // that opted into 'uniform' — every such button gets this as min-width so they align.
+    const uniformButtonCh = Math.max(
+        0,
+        ...cells
+            .filter((c) => c.type === 'switch' && c.controlMode === 'button' && c.buttonWidth === 'uniform')
+            .map((c) => (c.text || 'AUS').length),
+    );
     return (
         <div
             className="aura-custom-grid"
@@ -1483,7 +1511,16 @@ export function CustomGridView({
                             />
                         );
                     case 'switch':
-                        return <SwitchCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+                        return (
+                            <SwitchCellView
+                                key={i}
+                                cell={cell}
+                                index={i}
+                                cols={cols}
+                                rows={rows}
+                                uniformCh={uniformButtonCh}
+                            />
+                        );
                     case 'slider':
                         return (
                             <SliderCellView
