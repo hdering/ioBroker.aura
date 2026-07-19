@@ -488,6 +488,10 @@ export function Dashboard({
                                         const groupChildren = defId ? (groupDefs[defId] ?? []) : [];
 
                                         let minH = 1;
+                                        // A header-less group is clamped to its exact fit in the editor too —
+                                        // otherwise a height stored while it still had a header keeps the box
+                                        // tall and leaves the gap below the last child.
+                                        let clampHeaderlessGroup = false;
                                         // Editor: force a group tall enough to show ALL children so they
                                         // stay editable — except when autoShrink is on, where we let the
                                         // box shrink and rely on the group's inner scrollbar instead.
@@ -503,6 +507,7 @@ export function Dashboard({
                                             const showIcon = w.options?.showIcon !== false;
                                             const hasHeader =
                                                 (showTitle && !!w.title) || showIcon || !!w.options?.groupSwitch;
+                                            clampHeaderlessGroup = !hasHeader;
                                             const titleBarH = hasHeader ? (w.title ? 37 : 36) : 0;
                                             // Header-less groups use py-0 and fit their children exactly, so they
                                             // add no vertical chrome — otherwise ceil() bumps a whole extra row.
@@ -511,7 +516,8 @@ export function Dashboard({
                                                 (titleBarH + innerH + chrome + MARGIN) / (cellSize + MARGIN),
                                             );
                                         }
-                                        let h = Math.max(w.gridPos.h ?? 2, minH);
+                                        // Header-less: clamp to the fit (minH); others keep the taller stored h.
+                                        let h = clampHeaderlessGroup ? minH : Math.max(w.gridPos.h ?? 2, minH);
 
                                         // Auto-shrink: collapse the group's outer height to its remaining
                                         // condition-visible children. The two views fit a different layout:
@@ -625,11 +631,20 @@ export function Dashboard({
                                             if (reflowHiddenIds.has(w.id)) return w;
                                             const pos = newLayout.find((l) => l.i === w.id);
                                             if (!pos) return w;
-                                            // Auto-shrink groups and content auto-height widgets render at a
-                                            // derived height that is NOT stored — keep the canonical gridPos.h so
-                                            // a transient value can't get persisted on an unrelated drag/resize.
+                                            // Auto-shrink groups, header-less groups (clamped to their exact
+                                            // fit), and content auto-height widgets render at a derived height
+                                            // that is NOT stored — keep the canonical gridPos.h so a transient
+                                            // value can't get persisted on an unrelated drag/resize.
+                                            const headerlessGroup =
+                                                w.type === 'group' &&
+                                                !(
+                                                    (w.options?.showTitle !== false && !!w.title) ||
+                                                    w.options?.showIcon !== false ||
+                                                    !!w.options?.groupSwitch
+                                                );
                                             const derivedH =
                                                 (w.type === 'group' && w.options?.autoShrink) ||
+                                                headerlessGroup ||
                                                 (w.type === 'statusoverview' && w.options?.autoHeight === true);
                                             const h = derivedH ? w.gridPos.h : pos.h;
                                             return { ...w, gridPos: { x: pos.x, y: pos.y, w: pos.w, h } };
