@@ -238,8 +238,11 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         // renders no bar in either mode, so it must not reserve header height —
         // otherwise the editor keeps an empty strip and the frontend a bottom gap.
         const titleBarH = hasHeaderContent ? (showTitle && config.title ? 37 : 36) : 0;
-        // 10 = p-1 top(4) + bottom(4) + widget border 1px each side(2)
-        return Math.ceil((titleBarH + innerH + 10 + gridGap) / (cellSize + gridGap));
+        // 10 = p-1 top(4) + bottom(4) + widget border 1px each side(2). A header-less
+        // group uses py-0 and fits its children exactly, so it adds no vertical chrome
+        // — otherwise the ceil() would bump it a whole row and leave a gap below.
+        const chrome = hasHeaderContent ? 10 : 0;
+        return Math.ceil((titleBarH + innerH + chrome + gridGap) / (cellSize + gridGap));
     };
 
     const fitHeightToChildren = (next: WidgetConfig[]) => {
@@ -512,7 +515,12 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
           intercept drags meant for the inner grid */}
             <div
                 ref={containerRef}
-                className="flex-1 overflow-auto min-h-0 p-1"
+                // Header-less: drop the vertical inset (py-0) and don't scroll in the
+                // live view. The group fits its children exactly (see the height math),
+                // so any py or overflow chrome would push the box a whole grid row taller
+                // and leave the asymmetric gap below the last widget. Horizontal inset
+                // (px-1) stays for a small side margin.
+                className={`flex-1 min-h-0 ${hasHeaderContent ? 'overflow-auto p-1' : `px-1 py-0 ${editMode ? 'overflow-auto' : 'overflow-hidden'}`}`}
                 style={isCollapsed ? { display: 'none' } : undefined}
                 onMouseDown={editMode ? (e) => e.stopPropagation() : undefined}
                 onPointerDown={editMode ? (e) => e.stopPropagation() : undefined}

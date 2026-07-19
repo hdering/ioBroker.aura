@@ -504,7 +504,12 @@ export function Dashboard({
                                             const hasHeader =
                                                 (showTitle && !!w.title) || showIcon || !!w.options?.groupSwitch;
                                             const titleBarH = hasHeader ? (w.title ? 37 : 36) : 0;
-                                            minH = Math.ceil((titleBarH + innerH + 10 + MARGIN) / (cellSize + MARGIN));
+                                            // Header-less groups use py-0 and fit their children exactly, so they
+                                            // add no vertical chrome — otherwise ceil() bumps a whole extra row.
+                                            const chrome = hasHeader ? 10 : 0;
+                                            minH = Math.ceil(
+                                                (titleBarH + innerH + chrome + MARGIN) / (cellSize + MARGIN),
+                                            );
                                         }
                                         let h = Math.max(w.gridPos.h ?? 2, minH);
 
@@ -564,9 +569,12 @@ export function Dashboard({
                                                     : 0;
                                                 const innerH =
                                                     maxBottom > 0 ? maxBottom * (cellSize + MARGIN) - MARGIN : 0;
+                                                // No vertical chrome: a header-less group uses py-0 and fits its
+                                                // children exactly, so the box hugs the content with equal top/
+                                                // bottom insets instead of rounding up a whole empty row.
                                                 const fitH = Math.max(
                                                     1,
-                                                    Math.ceil((innerH + 10 + MARGIN) / (cellSize + MARGIN)),
+                                                    Math.ceil((innerH + MARGIN) / (cellSize + MARGIN)),
                                                 );
                                                 h = Math.min(h, fitH);
                                                 minH = Math.min(minH, h);
