@@ -228,12 +228,13 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // ── Header-less uniform inset ───────────────────────────────────────────────
     // A header-less group hugs its children exactly (no reserved header row), so a
     // CSS inset would tip the box a whole grid row taller and reopen the gap. To
-    // get an equal margin on all four sides — matching the inter-widget gap for a
-    // harmonious look — the children are instead scaled to fit the box minus a
-    // uniform `innerPad` (via RGL containerPadding + a derived rowHeight), the same
-    // idea keepGrid uses on mobile.
+    // get an equal margin on all four sides, the children are instead scaled to fit
+    // the box minus a uniform `innerPad` (via RGL containerPadding + a derived
+    // rowHeight), the same idea keepGrid uses on mobile. innerPad matches the p-1
+    // (4px) inset the grid area uses when a header IS shown, so a group looks the
+    // same whether or not its header is visible.
     const headerless = !hasHeaderContent;
-    const innerPad = gridGap;
+    const innerPad = 4;
     const maxRow = gridChildren.length ? Math.max(...gridChildren.map((c) => c.gridPos.y + c.gridPos.h)) : 0;
     const fillRowHeight =
         headerless && !keepGrid && !isMobile && height > 0 && maxRow > 0
