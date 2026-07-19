@@ -26,6 +26,7 @@ import { useDashboardMobile } from '../../contexts/DashboardMobileContext';
 import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
 import { useGroupCollapseStore } from '../../store/groupCollapseStore';
 import { verticalCompact } from '../../utils/gridCompact';
+import { GROUP_GAP, groupRows } from '../../utils/groupLayout';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
 
@@ -91,6 +92,9 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const gridChildren = !editMode ? verticalCompact(children.filter((c) => !reflowHiddenIds.has(c.id))) : children;
     const transparent = !!config.options?.transparent;
     const showTitle = config.options?.showTitle !== false;
+    // autoShrink groups keep their own scroll-based height logic and the classic
+    // p-1 grid inset — the uniform-fill spacing below applies only to normal groups.
+    const autoShrink = !!config.options?.autoShrink;
 
     // ── Collapse ────────────────────────────────────────────────────────────────
     // A group with `defaultCollapsed` set is collapsible in the live dashboard:
@@ -225,21 +229,17 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         : !isMobile && width > 0
           ? Math.max(2, Math.floor((width - gridGap) / (cellSize + gridGap)))
           : 4;
-    // ── Header-less uniform inset ───────────────────────────────────────────────
-    // A header-less group hugs its children exactly (no reserved header row), so a
-    // CSS inset would tip the box a whole grid row taller and reopen the gap. To
-    // get an equal margin on all four sides, the children are instead scaled to fit
-    // the box minus a uniform `innerPad` (via RGL containerPadding + a derived
-    // rowHeight), the same idea keepGrid uses on mobile. innerPad matches the p-1
-    // (4px) inset the grid area uses when a header IS shown, so a group looks the
-    // same whether or not its header is visible.
-    const headerless = !hasHeaderContent;
-    const innerPad = 4;
+    // ── Uniform GROUP_GAP inset + fill ──────────────────────────────────────────
+    // Children sit on the outer grid pitch, so a fixed CSS inset would round the
+    // box up a whole row and leave a gap. Instead the children are scaled to fill
+    // the box (via a derived rowHeight) with GROUP_GAP applied as both the RGL
+    // margin and containerPadding — giving one equal spacing on all four sides AND
+    // between widgets, the same idea keepGrid uses on mobile. autoShrink / mobile
+    // groups keep their own logic.
+    const filled = !autoShrink && !keepGrid && !isMobile;
     const maxRow = gridChildren.length ? Math.max(...gridChildren.map((c) => c.gridPos.y + c.gridPos.h)) : 0;
     const fillRowHeight =
-        headerless && !keepGrid && !isMobile && height > 0 && maxRow > 0
-            ? Math.max(8, (height - 2 * innerPad - (maxRow - 1) * gridGap) / maxRow)
-            : null;
+        filled && height > 0 && maxRow > 0 ? Math.max(8, (height - (maxRow + 1) * GROUP_GAP) / maxRow) : null;
 
     // keepGrid uses square cells (rowHeight = colWidth) so width AND height scale
     // together, faithfully reproducing the desktop arrangement at phone size.
@@ -256,16 +256,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const computeH = (next: WidgetConfig[]) => {
         if (next.length === 0) return config.gridPos.h;
         const maxBottom = Math.max(...next.map((c) => c.gridPos.y + c.gridPos.h));
-        const innerH = maxBottom * (cellSize + gridGap) - gridGap;
-        // A header-less group (title + icon off, no master, not collapsible)
-        // renders no bar in either mode, so it must not reserve header height —
-        // otherwise the editor keeps an empty strip and the frontend a bottom gap.
-        const titleBarH = hasHeaderContent ? (showTitle && config.title ? 37 : 36) : 0;
-        // 10 = p-1 top(4) + bottom(4) + widget border 1px each side(2). A header-less
-        // group uses py-0 and fits its children exactly, so it adds no vertical chrome
-        // — otherwise the ceil() would bump it a whole row and leave a gap below.
-        const chrome = hasHeaderContent ? 10 : 0;
-        return Math.ceil((titleBarH + innerH + chrome + gridGap) / (cellSize + gridGap));
+        return groupRows(maxBottom, hasHeaderContent, showTitle && !!config.title, cellSize, gridGap);
     };
 
     const fitHeightToChildren = (next: WidgetConfig[]) => {
@@ -538,10 +529,12 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
           intercept drags meant for the inner grid */}
             <div
                 ref={containerRef}
-                // Header-less: no CSS padding — the equal margin on all four sides is
-                // applied via RGL containerPadding (innerPad) with the children scaled
-                // to fit, so the box still hugs its rows without an extra empty row.
-                className={`flex-1 min-h-0 ${hasHeaderContent ? 'overflow-auto p-1' : `p-0 ${editMode ? 'overflow-auto' : 'overflow-hidden'}`}`}
+                // `filled` groups: no CSS padding — the equal margin on all four sides
+                // comes from RGL containerPadding (GROUP_GAP) with the children scaled
+                // to fill, so the box hugs its rows without an extra empty row. Overflow
+                // hidden in the live view so the exact fill never shows a sub-px bar.
+                // autoShrink keeps the classic p-1 inset and its scroll behaviour.
+                className={`flex-1 min-h-0 ${filled ? `p-0 ${editMode ? 'overflow-auto' : 'overflow-hidden'}` : 'overflow-auto p-1'}`}
                 style={isCollapsed ? { display: 'none' } : undefined}
                 onMouseDown={editMode ? (e) => e.stopPropagation() : undefined}
                 onPointerDown={editMode ? (e) => e.stopPropagation() : undefined}
@@ -598,8 +591,8 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                 shrinkToFit(updated);
                             }
                         }}
-                        margin={[gridGap, gridGap]}
-                        containerPadding={headerless ? [innerPad, innerPad] : [0, 0]}
+                        margin={filled ? [GROUP_GAP, GROUP_GAP] : [gridGap, gridGap]}
+                        containerPadding={filled ? [GROUP_GAP, GROUP_GAP] : [0, 0]}
                     >
                         {gridChildren.map((child) => (
                             <div key={child.id}>

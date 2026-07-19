@@ -16,6 +16,7 @@ import type { Tab } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
 import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
+import { groupRows } from '../../utils/groupLayout';
 import { reportMetric } from '../../utils/perfMetrics';
 
 // Default gap — overridden by config at runtime
@@ -487,37 +488,37 @@ export function Dashboard({
                                         const defId = isGroup ? (w.options?.defId as string | undefined) : undefined;
                                         const groupChildren = defId ? (groupDefs[defId] ?? []) : [];
 
+                                        // A non-autoShrink group hugs its children (equal GROUP_GAP spacing on
+                                        // all sides, no trailing row) in both views — see groupRows / GroupWidget.
+                                        const groupCollapsedNow =
+                                            isGroup &&
+                                            !editMode &&
+                                            !!w.options?.defaultCollapsed &&
+                                            (groupCollapsed[w.id] ?? true);
+                                        const hugGroup = isGroup && !autoShrink && !groupCollapsedNow;
+
                                         let minH = 1;
-                                        // A header-less group is clamped to its exact fit in the editor too —
-                                        // otherwise a height stored while it still had a header keeps the box
-                                        // tall and leaves the gap below the last child.
-                                        let clampHeaderlessGroup = false;
-                                        // Editor: force a group tall enough to show ALL children so they
-                                        // stay editable — except when autoShrink is on, where we let the
-                                        // box shrink and rely on the group's inner scrollbar instead.
-                                        if (editMode && isGroup && !autoShrink && groupChildren.length > 0) {
+                                        // Editor: hug a group to its exact fit so a height stored under an
+                                        // earlier layout (e.g. with a header) can't leave a gap below the last
+                                        // child. autoShrink keeps its own scroll-based logic (below).
+                                        if (editMode && hugGroup && groupChildren.length > 0) {
                                             const maxBottom = Math.max(
                                                 ...groupChildren.map((c) => c.gridPos.y + c.gridPos.h),
                                             );
-                                            const innerH = maxBottom * (cellSize + MARGIN) - MARGIN;
-                                            // A header-less group (title + icon off, no master switch) shows
-                                            // no bar even in the editor — its controls float in on hover — so
-                                            // it must not reserve header height, letting children sit flush.
                                             const showTitle = w.options?.showTitle !== false;
                                             const showIcon = w.options?.showIcon !== false;
                                             const hasHeader =
                                                 (showTitle && !!w.title) || showIcon || !!w.options?.groupSwitch;
-                                            clampHeaderlessGroup = !hasHeader;
-                                            const titleBarH = hasHeader ? (w.title ? 37 : 36) : 0;
-                                            // Header-less groups use py-0 and fit their children exactly, so they
-                                            // add no vertical chrome — otherwise ceil() bumps a whole extra row.
-                                            const chrome = hasHeader ? 10 : 0;
-                                            minH = Math.ceil(
-                                                (titleBarH + innerH + chrome + MARGIN) / (cellSize + MARGIN),
+                                            minH = groupRows(
+                                                maxBottom,
+                                                hasHeader,
+                                                showTitle && !!w.title,
+                                                cellSize,
+                                                MARGIN,
                                             );
                                         }
-                                        // Header-less: clamp to the fit (minH); others keep the taller stored h.
-                                        let h = clampHeaderlessGroup ? minH : Math.max(w.gridPos.h ?? 2, minH);
+                                        // Hugged groups clamp to the fit; everything else keeps the stored h.
+                                        let h = editMode && hugGroup ? minH : Math.max(w.gridPos.h ?? 2, minH);
 
                                         // Auto-shrink: collapse the group's outer height to its remaining
                                         // condition-visible children. The two views fit a different layout:
@@ -553,36 +554,27 @@ export function Dashboard({
                                                 minH = Math.min(minH, h); // never let RGL clamp back up
                                             }
                                         }
-                                        // Frontend, header-less group: the stored height budgets an
-                                        // editor-only header row (drag handle + config buttons) that the
-                                        // live view never renders, leaving a trailing gap below the last
-                                        // child. Refit the outer box to the compacted content height.
-                                        if (!editMode && isGroup && !autoShrink && groupChildren.length > 0) {
-                                            const showTitle = w.options?.showTitle !== false;
-                                            const showIcon = w.options?.showIcon !== false;
-                                            const frontendHeaderShown =
-                                                (showTitle && !!w.title) ||
-                                                showIcon ||
-                                                !!w.options?.groupSwitch ||
-                                                !!w.options?.defaultCollapsed;
-                                            if (!frontendHeaderShown) {
-                                                const visible = groupChildren.filter(
-                                                    (c) => !conditionReflowIds.has(c.id),
+                                        // Frontend: hug a group to its compacted content so the box wraps its
+                                        // children with an equal margin on all sides — no trailing gap from a
+                                        // stored editor height or the outer-grid row rounding.
+                                        if (!editMode && hugGroup && groupChildren.length > 0) {
+                                            const visible = groupChildren.filter((c) => !conditionReflowIds.has(c.id));
+                                            const fitLayout = verticalCompact(visible);
+                                            const maxBottom = fitLayout.length
+                                                ? Math.max(...fitLayout.map((c) => c.gridPos.y + c.gridPos.h))
+                                                : 0;
+                                            if (maxBottom > 0) {
+                                                const showTitle = w.options?.showTitle !== false;
+                                                const showIcon = w.options?.showIcon !== false;
+                                                const hasHeader =
+                                                    (showTitle && !!w.title) || showIcon || !!w.options?.groupSwitch;
+                                                h = groupRows(
+                                                    maxBottom,
+                                                    hasHeader,
+                                                    showTitle && !!w.title,
+                                                    cellSize,
+                                                    MARGIN,
                                                 );
-                                                const fitLayout = verticalCompact(visible);
-                                                const maxBottom = fitLayout.length
-                                                    ? Math.max(...fitLayout.map((c) => c.gridPos.y + c.gridPos.h))
-                                                    : 0;
-                                                const innerH =
-                                                    maxBottom > 0 ? maxBottom * (cellSize + MARGIN) - MARGIN : 0;
-                                                // No vertical chrome: a header-less group uses py-0 and fits its
-                                                // children exactly, so the box hugs the content with equal top/
-                                                // bottom insets instead of rounding up a whole empty row.
-                                                const fitH = Math.max(
-                                                    1,
-                                                    Math.ceil((innerH + MARGIN) / (cellSize + MARGIN)),
-                                                );
-                                                h = Math.min(h, fitH);
                                                 minH = Math.min(minH, h);
                                             }
                                         }
@@ -631,20 +623,12 @@ export function Dashboard({
                                             if (reflowHiddenIds.has(w.id)) return w;
                                             const pos = newLayout.find((l) => l.i === w.id);
                                             if (!pos) return w;
-                                            // Auto-shrink groups, header-less groups (clamped to their exact
-                                            // fit), and content auto-height widgets render at a derived height
-                                            // that is NOT stored — keep the canonical gridPos.h so a transient
-                                            // value can't get persisted on an unrelated drag/resize.
-                                            const headerlessGroup =
-                                                w.type === 'group' &&
-                                                !(
-                                                    (w.options?.showTitle !== false && !!w.title) ||
-                                                    w.options?.showIcon !== false ||
-                                                    !!w.options?.groupSwitch
-                                                );
+                                            // Groups hug their children at a derived height, and content
+                                            // auto-height widgets size to their content — neither's rendered
+                                            // height is stored, so keep the canonical gridPos.h and never let a
+                                            // transient value get persisted on an unrelated drag/resize.
                                             const derivedH =
-                                                (w.type === 'group' && w.options?.autoShrink) ||
-                                                headerlessGroup ||
+                                                w.type === 'group' ||
                                                 (w.type === 'statusoverview' && w.options?.autoHeight === true);
                                             const h = derivedH ? w.gridPos.h : pos.h;
                                             return { ...w, gridPos: { x: pos.x, y: pos.y, w: pos.w, h } };

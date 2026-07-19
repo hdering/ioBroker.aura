@@ -28,6 +28,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { setDragBridge } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
+import { groupRows } from '../../utils/groupLayout';
 import { exportWidget } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../config/ExportAnonymizeDialog';
 import { SavePresetDialog } from '../config/SavePresetDialog';
@@ -5560,14 +5561,9 @@ export function WidgetFrame({
     const fitGroupHeight = () => {
         if (!groupDefId || groupChildren.length === 0) return;
         const maxBottom = Math.max(...groupChildren.map((c) => c.gridPos.y + c.gridPos.h));
-        const innerH = maxBottom * (groupCellSize + groupGridGap) - groupGridGap;
-        // In editMode the title bar is always rendered (min-height 36px); +1 for its border-bottom when titled.
-        // +10 = 8 (p-1 padding top+bottom) + 2 (widget border-width, 1px each side).
-        // A header-less group renders no bar and uses py-0, so it reserves neither
-        // header height nor vertical chrome — it fits its children exactly.
-        const titleBarH = isHeaderlessGroup ? 0 : config.title ? (isTransparent ? 36 : 37) : 36;
-        const chrome = isHeaderlessGroup ? 0 : 10;
-        const newH = Math.ceil((titleBarH + innerH + chrome + groupGridGap) / (groupCellSize + groupGridGap));
+        const hasHeader = !isHeaderlessGroup;
+        const titled = config.options?.showTitle !== false && !!config.title;
+        const newH = groupRows(maxBottom, hasHeader, titled, groupCellSize, groupGridGap);
         onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
     };
 
