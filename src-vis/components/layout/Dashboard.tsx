@@ -535,6 +535,34 @@ export function Dashboard({
                                                 minH = Math.min(minH, h); // never let RGL clamp back up
                                             }
                                         }
+                                        // Frontend, header-less group: the stored height budgets an
+                                        // editor-only header row (drag handle + config buttons) that the
+                                        // live view never renders, leaving a trailing gap below the last
+                                        // child. Refit the outer box to the compacted content height.
+                                        if (!editMode && isGroup && !autoShrink && groupChildren.length > 0) {
+                                            const showTitle = w.options?.showTitle !== false;
+                                            const frontendHeaderShown =
+                                                (showTitle && !!w.title) ||
+                                                !!w.options?.groupSwitch ||
+                                                !!w.options?.defaultCollapsed;
+                                            if (!frontendHeaderShown) {
+                                                const visible = groupChildren.filter(
+                                                    (c) => !conditionReflowIds.has(c.id),
+                                                );
+                                                const fitLayout = verticalCompact(visible);
+                                                const maxBottom = fitLayout.length
+                                                    ? Math.max(...fitLayout.map((c) => c.gridPos.y + c.gridPos.h))
+                                                    : 0;
+                                                const innerH =
+                                                    maxBottom > 0 ? maxBottom * (cellSize + MARGIN) - MARGIN : 0;
+                                                const fitH = Math.max(
+                                                    1,
+                                                    Math.ceil((innerH + 10 + MARGIN) / (cellSize + MARGIN)),
+                                                );
+                                                h = Math.min(h, fitH);
+                                                minH = Math.min(minH, h);
+                                            }
+                                        }
                                         // Collapsed group (frontend only): fold the outer box down to just
                                         // the header. Mirrors GroupWidget, which hides the body in the same
                                         // state. A user toggle lives in groupCollapsed; absent it, the config

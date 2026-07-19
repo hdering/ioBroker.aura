@@ -197,6 +197,13 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // control shows a placeholder when there are no controllable DPs yet).
     const showMaster = groupSwitchEnabled && (editMode || hasAction);
 
+    // Whether the header row carries any visible content. When it doesn't
+    // (title + icon off, no master switch, not collapsible) the bar exists only
+    // in the editor — as a drag handle for the outer grid and as clearance so
+    // the group's config buttons don't collide with the first child's — so it
+    // must not wear a divider that makes it look like a real header.
+    const hasHeaderContent = (showTitle && !!config.title) || showIcon || showMaster || collapsible;
+
     if (configLayout === 'custom') return <CustomGridView config={config} value="" />;
 
     // Mobile layout: 'stack' (default) drops children into a single column;
@@ -336,7 +343,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 style={{
                     color: 'var(--text-secondary)',
                     // When collapsed the body is gone, so drop the header's divider.
-                    borderBottom: transparent || isCollapsed ? 'none' : '1px solid var(--widget-border)',
+                    // Same when the bar is just an empty editor drag strip (no
+                    // header content) — a divider would read as a real header.
+                    borderBottom:
+                        transparent || isCollapsed || !hasHeaderContent ? 'none' : '1px solid var(--widget-border)',
                     minHeight: editMode && !(showTitle && config.title) ? '36px' : undefined,
                     cursor: collapsible ? 'pointer' : undefined,
                 }}
