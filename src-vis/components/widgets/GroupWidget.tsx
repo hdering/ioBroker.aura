@@ -234,7 +234,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         if (next.length === 0) return config.gridPos.h;
         const maxBottom = Math.max(...next.map((c) => c.gridPos.y + c.gridPos.h));
         const innerH = maxBottom * (cellSize + gridGap) - gridGap;
-        const titleBarH = showTitle && config.title ? 37 : editMode ? 36 : 0;
+        // A header-less group (title + icon off, no master, not collapsible)
+        // renders no bar in either mode, so it must not reserve header height —
+        // otherwise the editor keeps an empty strip and the frontend a bottom gap.
+        const titleBarH = hasHeaderContent ? (showTitle && config.title ? 37 : 36) : 0;
         // 10 = p-1 top(4) + bottom(4) + widget border 1px each side(2)
         return Math.ceil((titleBarH + innerH + 10 + gridGap) / (cellSize + gridGap));
     };
@@ -336,73 +339,69 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
     // ── Title bar (always shown in editMode as outer-grid drag handle) ─────────
     const titleAlign = (config.options?.titleAlign as string | undefined) ?? 'left';
-    const titleBar =
-        (showTitle && config.title) || editMode || showMaster || collapsible ? (
-            <div
-                className="shrink-0 flex items-center gap-1.5 px-3 py-2.5 min-w-0"
-                style={{
-                    color: 'var(--text-secondary)',
-                    // When collapsed the body is gone, so drop the header's divider.
-                    // Same when the bar is just an empty editor drag strip (no
-                    // header content) — a divider would read as a real header.
-                    borderBottom:
-                        transparent || isCollapsed || !hasHeaderContent ? 'none' : '1px solid var(--widget-border)',
-                    minHeight: editMode && !(showTitle && config.title) ? '36px' : undefined,
-                    cursor: collapsible ? 'pointer' : undefined,
-                }}
-                onClick={
-                    collapsible
-                        ? (e) => {
-                              // Don't let the toggle bubble to a widget-level click action
-                              // (e.g. "open view") on the group frame.
-                              e.stopPropagation();
-                              toggleCollapse(config.id);
-                          }
-                        : undefined
-                }
-            >
-                {collapsible && (
-                    <ChevronDown
-                        size={16}
-                        className="transition-transform shrink-0"
-                        style={{
-                            color: 'var(--text-secondary)',
-                            transform: isCollapsed ? 'rotate(-90deg)' : undefined,
-                        }}
+    const titleBar = hasHeaderContent ? (
+        <div
+            className="shrink-0 flex items-center gap-1.5 px-3 py-2.5 min-w-0"
+            style={{
+                color: 'var(--text-secondary)',
+                // When collapsed the body is gone, so drop the header's divider.
+                // Same when the bar is just an empty editor drag strip (no
+                // header content) — a divider would read as a real header.
+                borderBottom:
+                    transparent || isCollapsed || !hasHeaderContent ? 'none' : '1px solid var(--widget-border)',
+                minHeight: editMode && !(showTitle && config.title) ? '36px' : undefined,
+                cursor: collapsible ? 'pointer' : undefined,
+            }}
+            onClick={
+                collapsible
+                    ? (e) => {
+                          // Don't let the toggle bubble to a widget-level click action
+                          // (e.g. "open view") on the group frame.
+                          e.stopPropagation();
+                          toggleCollapse(config.id);
+                      }
+                    : undefined
+            }
+        >
+            {collapsible && (
+                <ChevronDown
+                    size={16}
+                    className="transition-transform shrink-0"
+                    style={{
+                        color: 'var(--text-secondary)',
+                        transform: isCollapsed ? 'rotate(-90deg)' : undefined,
+                    }}
+                />
+            )}
+            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showTitle && config.title && (
+                <span
+                    className="text-xs font-semibold truncate flex-1 min-w-0"
+                    style={{ textAlign: titleAlign as React.CSSProperties['textAlign'] }}
+                >
+                    {config.title}
+                </span>
+            )}
+            {showMaster && (
+                // Wrapper stops master-control clicks from bubbling to the header's
+                // collapse toggle when the group is collapsible.
+                <div className="ml-auto flex min-w-0" onClick={collapsible ? (e) => e.stopPropagation() : undefined}>
+                    <GroupActionControl
+                        type={groupActionType}
+                        cfg={gaCfg}
+                        setState={setState}
+                        switchTargets={groupSwitchTargets}
+                        dimmerIds={groupDimmerIds}
+                        shutterTargets={groupShutterTargets}
+                        pulseIds={groupPulseIds}
+                        editing={editMode}
+                        placeholderHint={t('group.masterPlaceholder')}
+                        placeholderLabel={t('group.masterPlaceholderShort')}
                     />
-                )}
-                {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
-                {showTitle && config.title && (
-                    <span
-                        className="text-xs font-semibold truncate flex-1 min-w-0"
-                        style={{ textAlign: titleAlign as React.CSSProperties['textAlign'] }}
-                    >
-                        {config.title}
-                    </span>
-                )}
-                {showMaster && (
-                    // Wrapper stops master-control clicks from bubbling to the header's
-                    // collapse toggle when the group is collapsible.
-                    <div
-                        className="ml-auto flex min-w-0"
-                        onClick={collapsible ? (e) => e.stopPropagation() : undefined}
-                    >
-                        <GroupActionControl
-                            type={groupActionType}
-                            cfg={gaCfg}
-                            setState={setState}
-                            switchTargets={groupSwitchTargets}
-                            dimmerIds={groupDimmerIds}
-                            shutterTargets={groupShutterTargets}
-                            pulseIds={groupPulseIds}
-                            editing={editMode}
-                            placeholderHint={t('group.masterPlaceholder')}
-                            placeholderLabel={t('group.masterPlaceholderShort')}
-                        />
-                    </div>
-                )}
-            </div>
-        ) : null;
+                </div>
+            )}
+        </div>
+    ) : null;
 
     const dragHandlers = editMode
         ? {

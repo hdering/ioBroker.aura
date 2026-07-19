@@ -5500,6 +5500,18 @@ export function WidgetFrame({
     const isGroup = config.type === 'group';
     const isButton = config.type === 'button';
     const isTransparent = !!config.options?.transparent;
+    // A group with title + icon off and no master switch renders no header bar.
+    // In the editor its config controls float in on hover (top-left toolbar) so
+    // children can sit flush to the top without a reserved strip. (collapsible is
+    // frontend-only, so it never applies to this editor-only chrome.)
+    const isHeaderlessGroup =
+        editMode &&
+        isGroup &&
+        !(
+            (config.options?.showTitle !== false && !!config.title) ||
+            config.options?.showIcon !== false ||
+            !!config.options?.groupSwitch
+        );
     // Card bg/border: group children > button widget > plain widget. Each element
     // var falls back to the base widget var so the default look is unchanged.
     const cardBg = inGroup
@@ -5551,7 +5563,8 @@ export function WidgetFrame({
         const innerH = maxBottom * (groupCellSize + groupGridGap) - groupGridGap;
         // In editMode the title bar is always rendered (min-height 36px); +1 for its border-bottom when titled.
         // +10 = 8 (p-1 padding top+bottom) + 2 (widget border-width, 1px each side).
-        const titleBarH = config.title ? (isTransparent ? 36 : 37) : 36;
+        // A header-less group renders no bar, so it reserves no header height.
+        const titleBarH = isHeaderlessGroup ? 0 : config.title ? (isTransparent ? 36 : 37) : 36;
         const newH = Math.ceil((titleBarH + innerH + 10 + groupGridGap) / (groupCellSize + groupGridGap));
         onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
     };
@@ -5662,20 +5675,44 @@ export function WidgetFrame({
             )}
 
             {editMode && (
+                // Header-less group: the chrome becomes a hover-reveal toolbar at
+                // top-left (see .aura-group-toolbar) with a dedicated grab grip, so
+                // children sit flush and the group's buttons never collide with the
+                // first child's (which live top-right). The grip carries no `nodrag`
+                // and no stopDrag so its mousedown reaches the outer grid and starts
+                // a move; every button keeps `nodrag` + stopDrag so it never drags.
                 <div
-                    className="aura-edit-chrome nodrag absolute top-1.5 right-1.5 z-10 flex items-center gap-1"
-                    onMouseDown={stopDrag}
-                    onPointerDown={stopDrag}
+                    className={
+                        isHeaderlessGroup
+                            ? 'aura-group-toolbar absolute top-1.5 left-1.5 z-10 flex items-center gap-1'
+                            : 'aura-edit-chrome nodrag absolute top-1.5 right-1.5 z-10 flex items-center gap-1'
+                    }
+                    {...(isHeaderlessGroup ? {} : { onMouseDown: stopDrag, onPointerDown: stopDrag })}
                 >
+                    {isHeaderlessGroup && (
+                        <div
+                            className="cursor-move w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+                            title={t('wf.menu.move')}
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            <GripVertical size={13} />
+                        </div>
+                    )}
                     <div
                         draggable
+                        onMouseDown={stopDrag}
+                        onPointerDown={stopDrag}
                         onDragStart={(e) => {
                             e.stopPropagation();
                             setDragBridge({ widget: config, remove: onRemove });
                             e.dataTransfer.effectAllowed = 'move';
                         }}
                         onDragEnd={() => setDragBridge(null)}
-                        className="cursor-grab w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+                        className="nodrag cursor-grab w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
                         title={t(onDuplicate ? 'wf.menu.dragOutOfGroup' : 'wf.menu.dragToGroup')}
                         style={{
                             background: 'var(--app-bg)',
@@ -5688,7 +5725,9 @@ export function WidgetFrame({
                     {isGroup && (
                         <button
                             onClick={fitGroupHeight}
-                            className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+                            onMouseDown={stopDrag}
+                            onPointerDown={stopDrag}
+                            className="nodrag w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
                             title={t('group.fitHeight')}
                             style={{
                                 background: 'var(--app-bg)',
@@ -5701,11 +5740,13 @@ export function WidgetFrame({
                     )}
                     <button
                         ref={menuBtnRef}
+                        onMouseDown={stopDrag}
+                        onPointerDown={stopDrag}
                         onClick={() => {
                             openPanelFor(openPanel === 'menu' ? null : 'menu');
                             setConfirmDelete(false);
                         }}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg transition-opacity hover:opacity-80 relative"
+                        className="nodrag w-7 h-7 flex items-center justify-center rounded-lg transition-opacity hover:opacity-80 relative"
                         style={{
                             background: openPanel ? 'var(--accent)' : 'var(--app-bg)',
                             color: openPanel ? '#fff' : 'var(--text-secondary)',

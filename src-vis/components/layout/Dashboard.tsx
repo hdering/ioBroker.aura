@@ -496,7 +496,14 @@ export function Dashboard({
                                                 ...groupChildren.map((c) => c.gridPos.y + c.gridPos.h),
                                             );
                                             const innerH = maxBottom * (cellSize + MARGIN) - MARGIN;
-                                            const titleBarH = w.title ? 37 : 36;
+                                            // A header-less group (title + icon off, no master switch) shows
+                                            // no bar even in the editor — its controls float in on hover — so
+                                            // it must not reserve header height, letting children sit flush.
+                                            const showTitle = w.options?.showTitle !== false;
+                                            const showIcon = w.options?.showIcon !== false;
+                                            const hasHeader =
+                                                (showTitle && !!w.title) || showIcon || !!w.options?.groupSwitch;
+                                            const titleBarH = hasHeader ? (w.title ? 37 : 36) : 0;
                                             minH = Math.ceil((titleBarH + innerH + 10 + MARGIN) / (cellSize + MARGIN));
                                         }
                                         let h = Math.max(w.gridPos.h ?? 2, minH);
@@ -541,8 +548,10 @@ export function Dashboard({
                                         // child. Refit the outer box to the compacted content height.
                                         if (!editMode && isGroup && !autoShrink && groupChildren.length > 0) {
                                             const showTitle = w.options?.showTitle !== false;
+                                            const showIcon = w.options?.showIcon !== false;
                                             const frontendHeaderShown =
                                                 (showTitle && !!w.title) ||
+                                                showIcon ||
                                                 !!w.options?.groupSwitch ||
                                                 !!w.options?.defaultCollapsed;
                                             if (!frontendHeaderShown) {
