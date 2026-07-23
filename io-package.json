@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.33.3",
+    "version": "0.33.4",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.33.4": {
+        "en": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
+        "de": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
+        "ru": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
+        "pt": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
+        "nl": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
+        "fr": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
+        "it": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
+        "es": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
+        "pl": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
+        "uk": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
+        "zh-cn": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor"
+      },
       "0.33.3": {
         "en": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
         "de": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view",
         "uk": "🌟 New feature: General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view",
         "zh-cn": "🌟 New feature: General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view"
-      },
-      "0.31.3": {
-        "en": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
-        "de": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
-        "ru": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
-        "pt": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
-        "nl": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
-        "fr": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
-        "it": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
-        "es": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
-        "pl": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
-        "uk": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections",
-        "zh-cn": "Frontend Design - the section switcher is now consistently called \"Section menu\" (was \"Layout menu\"), since it navigates a layout's sections"
       }
     }
   },

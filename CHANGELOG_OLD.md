@@ -1,5 +1,12 @@
 # Changelog (older entries)
 
+## 0.24.1 (2026-07-10)
+- refactor(layout-menu): show the menu-title input in a SubGroup like placement
+- refactor(layout-menu): group placement-dependent settings under the placement
+- feat(layout-menu): show settings conditionally per placement
+- refactor(layout-menu): put placement first as a prominent heading
+- refactor(layout-menu): group hamburger size + auto-hide in one bordered box
+
 ## 0.24.0 (2026-07-10)
 - 🌟 **New feature:** Layout menu - new "bullet + name" entry style, configurable selected style (colored/underline/filled/pill), font size and icon size
 - 🌟 **New feature:** Layout menu - add custom elements (clock, datapoint, text) positioned above or below the layout list
