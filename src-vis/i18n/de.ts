@@ -943,6 +943,11 @@ export const de = {
     'tabBar.remove': 'Entfernen',
     'tabBar.addTab': '+ Tab',
     'tabBar.exportTab': 'Tab exportieren',
+    'tabBar.moveTitle': 'In Bereich verschieben / kopieren',
+    'tabBar.moveTargetPlaceholder': 'Zielbereich wählen…',
+    'tabBar.moveCurrentSuffix': 'aktuell',
+    'tabBar.move': 'Verschieben',
+    'tabBar.copy': 'Kopieren',
     'tabBar.importTab': 'Tab importieren',
     'tabBar.importInvalidFile': 'Ungültige Tab-Datei',
 

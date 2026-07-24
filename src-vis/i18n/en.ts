@@ -941,6 +941,11 @@ export const en: Record<TranslationKey, string> = {
     'tabBar.remove': 'Remove',
     'tabBar.addTab': '+ Tab',
     'tabBar.exportTab': 'Export Tab',
+    'tabBar.moveTitle': 'Move / copy to section',
+    'tabBar.moveTargetPlaceholder': 'Choose target section…',
+    'tabBar.moveCurrentSuffix': 'current',
+    'tabBar.move': 'Move',
+    'tabBar.copy': 'Copy',
     'tabBar.importTab': 'Import Tab',
     'tabBar.importInvalidFile': 'Invalid tab file',
 

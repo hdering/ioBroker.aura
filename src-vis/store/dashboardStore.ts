@@ -409,6 +409,12 @@ interface DashboardState {
     reorderTabs: (fromIndex: number, toIndex: number) => void;
     /** Default tab of a section within the active layout (opened when no tab slug is given). */
     setDefaultTab: (sectionId: string, tabId: string) => void;
+    /**
+     * Move or copy a whole tab (with its widgets) from the active section into any
+     * other section — of the same or a different layout. Navigates to the target so
+     * the moved/copied tab becomes visible.
+     */
+    moveTabToSection: (tabId: string, targetLayoutId: string, targetSectionId: string, mode: 'move' | 'copy') => void;
 
     // ── Widget CRUD ──────────────────────────────────────────────────────────
     addWidget: (widget: WidgetConfig) => void;
@@ -823,6 +829,61 @@ export const useDashboardStore = create<DashboardState>()(
                         defaultTabId: tabId,
                     })),
                 })),
+
+            moveTabToSection: (tabId, targetLayoutId, targetSectionId, mode) =>
+                set((s) => {
+                    const srcLayout = s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0];
+                    const srcSec = activeSectionOf(srcLayout);
+                    if (!srcLayout || !srcSec) return {};
+                    const srcTab = srcSec.tabs.find((t) => t.id === tabId);
+                    if (!srcTab) return {};
+
+                    const sameSection = targetLayoutId === srcLayout.id && targetSectionId === srcSec.id;
+                    // Moving onto the tab's own section is a no-op; copying there duplicates it.
+                    if (mode === 'move' && sameSection) return {};
+
+                    const now = Date.now();
+                    let layouts = s.layouts;
+
+                    // 1) Move only: detach the tab from its source section (mirror removeTab's
+                    // empty-section guard and active-tab fixup).
+                    if (mode === 'move') {
+                        layouts = patchSection(layouts, srcLayout.id, srcSec.id, (sec) => {
+                            const tabs = sec.tabs.filter((t) => t.id !== tabId);
+                            if (tabs.length === 0) tabs.push({ ...DEFAULT_TAB, id: `tab-${now}` });
+                            return {
+                                ...sec,
+                                tabs,
+                                activeTabId: sec.activeTabId === tabId ? tabs[0].id : sec.activeTabId,
+                            };
+                        });
+                    }
+
+                    // 2) Insert into the target section with a fresh id on copy and a slug
+                    // made unique against the target's existing tabs.
+                    const insertId = mode === 'copy' ? `tab-${now}` : tabId;
+                    layouts = patchSection(layouts, targetLayoutId, targetSectionId, (sec) => {
+                        const base: Tab =
+                            mode === 'copy'
+                                ? {
+                                      ...(JSON.parse(JSON.stringify(srcTab)) as Tab),
+                                      widgets: srcTab.widgets.map(cloneWidgetDef),
+                                  }
+                                : { ...srcTab };
+                        const slug = uniqueTabSlug(base.slug || slugify(base.name), sec.tabs);
+                        const newTab: Tab = { ...base, id: insertId, slug };
+                        return { ...sec, tabs: [...sec.tabs, newTab], activeTabId: insertId };
+                    });
+
+                    // 3) Follow the tab to its target so the change is visible.
+                    return {
+                        activeLayoutId: targetLayoutId,
+                        layouts: patchLayout(layouts, targetLayoutId, (l) => ({
+                            ...l,
+                            activeSectionId: targetSectionId,
+                        })),
+                    };
+                }),
 
             // ── Widget CRUD ────────────────────────────────────────────────────────
 

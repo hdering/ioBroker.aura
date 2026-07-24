@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, memo } from 'react';
+import { useState, useMemo, useRef, useEffect, memo, Fragment } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { shallow } from 'zustand/shallow';
@@ -23,6 +23,8 @@ import {
     EyeOff,
     ExternalLink,
     Shapes,
+    FolderInput,
+    Copy,
 } from 'lucide-react';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { Icon } from '@iconify/react';
@@ -1425,18 +1427,52 @@ const TabBar = memo(function TabBar() {
         const sec = l.sections.find((x) => x.id === l.activeSectionId) ?? l.sections[0];
         return sec.activeTabId;
     });
-    const { addTab, setActiveTab, renameTab, removeTab, setTabSlug, updateTab, reorderTabs } = useStoreWithEqualityFn(
+    const { addTab, setActiveTab, renameTab, removeTab, setTabSlug, updateTab, reorderTabs, moveTabToSection } =
+        useStoreWithEqualityFn(
+            useDashboardStore,
+            (s) => ({
+                addTab: s.addTab,
+                setActiveTab: s.setActiveTab,
+                renameTab: s.renameTab,
+                removeTab: s.removeTab,
+                setTabSlug: s.setTabSlug,
+                updateTab: s.updateTab,
+                reorderTabs: s.reorderTabs,
+                moveTabToSection: s.moveTabToSection,
+            }),
+            shallow,
+        );
+
+    // Current layout/section of the edited tabs — used to flag the tab's own section
+    // in the move/copy target list and to build a fully-qualified label per section.
+    const currentLayoutId = useDashboardStore(
+        (s) => (s.layouts.find((x) => x.id === s.activeLayoutId) ?? s.layouts[0]).id,
+    );
+    const currentSectionId = useDashboardStore((s) => {
+        const l = s.layouts.find((x) => x.id === s.activeLayoutId) ?? s.layouts[0];
+        return (l.sections.find((x) => x.id === l.activeSectionId) ?? l.sections[0]).id;
+    });
+    const multiLayout = useDashboardStore((s) => s.layouts.length > 1);
+    const sectionTargets = useStoreWithEqualityFn(
         useDashboardStore,
-        (s) => ({
-            addTab: s.addTab,
-            setActiveTab: s.setActiveTab,
-            renameTab: s.renameTab,
-            removeTab: s.removeTab,
-            setTabSlug: s.setTabSlug,
-            updateTab: s.updateTab,
-            reorderTabs: s.reorderTabs,
-        }),
-        shallow,
+        (s) =>
+            s.layouts.flatMap((l) =>
+                l.sections.map((sec) => ({
+                    layoutId: l.id,
+                    layoutName: l.name,
+                    sectionId: sec.id,
+                    sectionName: sec.name,
+                })),
+            ),
+        (a, b) =>
+            a.length === b.length &&
+            a.every(
+                (x, i) =>
+                    x.layoutId === b[i].layoutId &&
+                    x.sectionId === b[i].sectionId &&
+                    x.layoutName === b[i].layoutName &&
+                    x.sectionName === b[i].sectionName,
+            ),
     );
 
     const [renamingId, setRenamingId] = useState<string | null>(null);
@@ -1448,6 +1484,8 @@ const TabBar = memo(function TabBar() {
     const [tabBadgesOpen, setTabBadgesOpen] = useState(false);
     const [iconPickerTabId, setIconPickerTabId] = useState<string | null>(null);
     const [showTabExport, setShowTabExport] = useState(false);
+    // Encodes the chosen move/copy target as `${layoutId}::${sectionId}` ('' = none).
+    const [moveTarget, setMoveTarget] = useState('');
     const settingsBtnRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
     const [tabDragIdx, setTabDragIdx] = useState<number | null>(null);
     const [tabDragOverIdx, setTabDragOverIdx] = useState<number | null>(null);
@@ -1476,12 +1514,34 @@ const TabBar = memo(function TabBar() {
             if (prev !== tabId) {
                 setConditionsOpen(false);
                 setTabBadgesOpen(false);
+                setMoveTarget('');
             }
             return prev === tabId ? null : tabId;
         });
     };
 
     const settingsTab = tabs.find((t) => t.id === settingsTabId);
+
+    const currentTargetKey = `${currentLayoutId}::${currentSectionId}`;
+    const runTabMove = (mode: 'move' | 'copy') => {
+        if (!settingsTabId || !moveTarget) return;
+        if (mode === 'move' && moveTarget === currentTargetKey) return;
+        const [layoutId, sectionId] = moveTarget.split('::');
+        moveTabToSection(settingsTabId, layoutId, sectionId, mode);
+        setSettingsTabId(null);
+    };
+    // Group the flat target list by layout so the dropdown can use <optgroup>.
+    const targetsByLayout = sectionTargets.reduce<
+        { layoutId: string; layoutName: string; sections: { sectionId: string; sectionName: string }[] }[]
+    >((acc, tgt) => {
+        let grp = acc.find((g) => g.layoutId === tgt.layoutId);
+        if (!grp) {
+            grp = { layoutId: tgt.layoutId, layoutName: tgt.layoutName, sections: [] };
+            acc.push(grp);
+        }
+        grp.sections.push({ sectionId: tgt.sectionId, sectionName: tgt.sectionName });
+        return acc;
+    }, []);
 
     // Re-clamp left against the panel's *current* width so expanding the conditions
     // (256 → 500px) on a far-right tab can't push the rules off the right edge.
@@ -1884,6 +1944,78 @@ const TabBar = memo(function TabBar() {
                                     <Download size={11} />
                                     {t('tabBar.exportTab')}
                                 </button>
+                            </div>
+
+                            {/* ── Move / copy tab to another section ──────────────────────── */}
+                            <div className="border-t pt-2 space-y-1.5" style={{ borderColor: 'var(--app-border)' }}>
+                                <div
+                                    className="flex items-center gap-1.5 text-[11px] font-medium"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    <FolderInput size={11} />
+                                    {t('tabBar.moveTitle')}
+                                </div>
+                                <select
+                                    value={moveTarget}
+                                    onChange={(e) => setMoveTarget(e.target.value)}
+                                    className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-primary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                >
+                                    <option value="">{t('tabBar.moveTargetPlaceholder')}</option>
+                                    {targetsByLayout.map((grp) => {
+                                        const opts = grp.sections.map((sec) => {
+                                            const key = `${grp.layoutId}::${sec.sectionId}`;
+                                            const label =
+                                                key === currentTargetKey
+                                                    ? `${sec.sectionName} (${t('tabBar.moveCurrentSuffix')})`
+                                                    : sec.sectionName;
+                                            return (
+                                                <option key={key} value={key}>
+                                                    {label}
+                                                </option>
+                                            );
+                                        });
+                                        return multiLayout ? (
+                                            <optgroup key={grp.layoutId} label={grp.layoutName}>
+                                                {opts}
+                                            </optgroup>
+                                        ) : (
+                                            <Fragment key={grp.layoutId}>{opts}</Fragment>
+                                        );
+                                    })}
+                                </select>
+                                <div className="flex items-center gap-1.5">
+                                    <button
+                                        onClick={() => runTabMove('move')}
+                                        disabled={!moveTarget || moveTarget === currentTargetKey}
+                                        className="flex items-center justify-center gap-1.5 flex-1 px-2.5 py-1.5 rounded-lg text-xs hover:opacity-80 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            border: '1px solid var(--app-border)',
+                                            color: 'var(--text-secondary)',
+                                        }}
+                                    >
+                                        <FolderInput size={11} />
+                                        {t('tabBar.move')}
+                                    </button>
+                                    <button
+                                        onClick={() => runTabMove('copy')}
+                                        disabled={!moveTarget}
+                                        className="flex items-center justify-center gap-1.5 flex-1 px-2.5 py-1.5 rounded-lg text-xs hover:opacity-80 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            border: '1px solid var(--app-border)',
+                                            color: 'var(--text-secondary)',
+                                        }}
+                                    >
+                                        <Copy size={11} />
+                                        {t('tabBar.copy')}
+                                    </button>
+                                </div>
                             </div>
 
                             {/* ── Conditions section (highlighted, like widget Darstellung) ── */}
