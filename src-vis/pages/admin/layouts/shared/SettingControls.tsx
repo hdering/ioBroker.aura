@@ -2,6 +2,8 @@
 // (Header, Layout menu, Behavior). Extracted from the former FrontendSection so the
 // pieces can live on different admin pages without duplicating the markup.
 
+import { useRef, useEffect } from 'react';
+
 export function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
     return (
         <button
@@ -67,5 +69,40 @@ export function Card({ title, children }: { title: string; children: React.React
             </p>
             {children}
         </div>
+    );
+}
+
+// A single-line-looking textarea that grows in height as more lines are typed,
+// so multi-line (HTML) templates stay fully visible while editing.
+export function AutoGrowTextarea({
+    value,
+    onChange,
+    placeholder,
+    className,
+    style,
+}: {
+    value: string;
+    onChange: (v: string) => void;
+    placeholder?: string;
+    className?: string;
+    style?: React.CSSProperties;
+}) {
+    const ref = useRef<HTMLTextAreaElement>(null);
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = `${el.scrollHeight}px`;
+    }, [value]);
+    return (
+        <textarea
+            ref={ref}
+            rows={1}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            className={className}
+            style={{ ...style, resize: 'none', overflow: 'hidden' }}
+        />
     );
 }
