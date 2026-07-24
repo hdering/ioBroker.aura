@@ -1506,8 +1506,10 @@ export const de = {
     'cw.layout.valign': 'Vertikale Position',
     'cw.layout.chipSize': 'Chip-Größe',
     'cw.layout.chipStyle': 'Chip-Stil',
+    'cw.layout.chipRadius': 'Eckenradius',
     'cw.layout.wrapCols': 'Spalten',
     'cw.layout.gap': 'Abstand (px)',
+    'cw.radius.full': 'Pille',
     'cw.style.filled': 'Gefüllt',
     'cw.style.outlined': 'Umrandet',
     'cw.style.ghost': 'Ghost',
@@ -1520,6 +1522,7 @@ export const de = {
     'cw.chips.label': 'Bezeichnung',
     'cw.chips.value': 'Schreib-Wert (leer = true)',
     'cw.chips.activeValue': 'Aktiv-Wert (optional)',
+    'cw.chips.bg': 'Hintergrundfarbe',
     'cw.confirm.enable': 'Bestätigung vor Aktion erfordern',
     'cw.confirm.text': 'Bestätigungs-Text (optional)',
 

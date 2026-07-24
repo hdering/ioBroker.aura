@@ -3577,7 +3577,15 @@ function MediaplayerEditPanel({
 
 // ── ChipsEditPanel ────────────────────────────────────────────────────────────
 
-type CwChip = { id: string; label: string; icon?: string; dp: string; value?: string; activeValue?: string };
+type CwChip = {
+    id: string;
+    label: string;
+    icon?: string;
+    dp: string;
+    value?: string;
+    activeValue?: string;
+    bg?: string;
+};
 
 function ChipsEditPanel({
     config,
@@ -3754,6 +3762,31 @@ function ChipsEditPanel({
                             <option value="filled">{tHook('cw.style.filled' as never)}</option>
                             <option value="ghost">{tHook('cw.style.ghost' as never)}</option>
                         </select>
+                    </div>
+                    <div>
+                        <label
+                            className="text-[11px] mb-1 block flex items-center justify-between"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            <span>{tHook('cw.layout.chipRadius' as never)}</span>
+                            <span style={{ color: 'var(--text-primary)' }}>
+                                {(() => {
+                                    const raw = o.chipRadius as number | undefined;
+                                    return raw === undefined || raw >= 40
+                                        ? tHook('cw.radius.full' as never)
+                                        : `${raw}px`;
+                                })()}
+                            </span>
+                        </label>
+                        <input
+                            type="range"
+                            min={0}
+                            max={40}
+                            step={1}
+                            value={(o.chipRadius as number | undefined) ?? 40}
+                            onChange={(e) => setO({ chipRadius: Number(e.target.value) })}
+                            className="w-full"
+                        />
                     </div>
                     {layout === 'grid' && (
                         <div>
@@ -3941,6 +3974,46 @@ function ChipsEditPanel({
                                     className={`w-full ${sInputCls}`}
                                     style={sInputStyle}
                                 />
+                            </div>
+                            <div>
+                                <label
+                                    className="text-[10px] mb-0.5 block"
+                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                >
+                                    {tHook('cw.chips.bg' as never)}
+                                </label>
+                                <div className="flex items-center gap-1">
+                                    <input
+                                        type="color"
+                                        value={chip.bg ?? '#3b82f6'}
+                                        onChange={(e) => updateChip(chip.id, { bg: e.target.value })}
+                                        className="w-8 h-8 rounded shrink-0 cursor-pointer bg-transparent p-0 border"
+                                        style={{ borderColor: 'var(--app-border)' }}
+                                        title={tHook('cw.chips.bg' as never)}
+                                    />
+                                    <input
+                                        type="text"
+                                        value={chip.bg ?? ''}
+                                        onChange={(e) => updateChip(chip.id, { bg: e.target.value || undefined })}
+                                        placeholder="z.B. #3b82f6 (leer = Stil-Standard)"
+                                        className={`flex-1 ${sInputCls} min-w-0`}
+                                        style={sInputStyle}
+                                    />
+                                    {chip.bg && (
+                                        <button
+                                            onClick={() => updateChip(chip.id, { bg: undefined })}
+                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-secondary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                            title={tHook('common.reset' as never)}
+                                        >
+                                            <Trash2 size={13} />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                             {(o.checkDp as string) && (
                                 <div>

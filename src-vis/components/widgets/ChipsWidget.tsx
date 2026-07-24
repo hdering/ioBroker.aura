@@ -13,7 +13,12 @@ export type ChipItem = {
     dp: string;
     value?: string | number | boolean;
     activeValue?: string | number | boolean;
+    bg?: string;
 };
+
+// Slider max for the chip radius option. At the maximum the chip is rendered as
+// a full pill (matching the historical `rounded-full` default when unset).
+const CHIP_RADIUS_MAX = 40;
 
 export function ChipsWidget({ config }: WidgetProps) {
     const o = config.options ?? {};
@@ -35,6 +40,9 @@ export function ChipsWidget({ config }: WidgetProps) {
     const chipStyle = (o.chipStyle as string) ?? 'outlined';
     const wrapCols = o.wrapCols as number | undefined;
     const gap = (o.gap as number) ?? 6;
+    const chipRadiusRaw = o.chipRadius as number | undefined;
+    const chipRadius =
+        chipRadiusRaw === undefined || chipRadiusRaw >= CHIP_RADIUS_MAX ? 9999 : Math.max(0, chipRadiusRaw);
     const showConfirm = o.showConfirm === true;
     const confirmText = (o.confirmText as string) ?? '';
 
@@ -94,8 +102,11 @@ export function ChipsWidget({ config }: WidgetProps) {
                   };
 
     const chipActive = 'var(--chip-active, var(--accent))';
-    const chipBg = (active: boolean) =>
-        chipStyle === 'filled'
+    const chipBg = (chip: ChipItem, active: boolean) => {
+        // A per-chip colour wins for the inactive/base state; the active
+        // highlight still takes over so the check-DP indication keeps working.
+        if (!active && chip.bg) return chip.bg;
+        return chipStyle === 'filled'
             ? active
                 ? chipActive
                 : 'var(--chip-bg, var(--app-bg))'
@@ -106,6 +117,7 @@ export function ChipsWidget({ config }: WidgetProps) {
               : active
                 ? `${chipActive}22`
                 : 'var(--chip-bg, var(--app-bg))';
+    };
 
     const chipColor = (active: boolean) =>
         active ? (chipStyle === 'filled' ? '#fff' : chipActive) : 'var(--text-primary)';
@@ -148,11 +160,12 @@ export function ChipsWidget({ config }: WidgetProps) {
                             <button
                                 key={chip.id}
                                 onClick={() => handleChip(chip)}
-                                className="flex items-center gap-1.5 rounded-full whitespace-nowrap hover:opacity-80 transition-opacity shrink-0"
+                                className="flex items-center gap-1.5 whitespace-nowrap hover:opacity-80 transition-opacity shrink-0"
                                 style={{
-                                    background: chipBg(active),
+                                    background: chipBg(chip, active),
                                     color: chipColor(active),
                                     border: chipBorder(active),
+                                    borderRadius: chipRadius,
                                     fontSize: fs,
                                     height: `${h}px`,
                                     paddingLeft: px,
