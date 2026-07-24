@@ -4,6 +4,3 @@
 #   <Widget type> - <what changed>          e.g.  Thermostat - target temperature now shown inline
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
-
-Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones
-Carousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name

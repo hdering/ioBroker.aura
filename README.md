@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.33.8 (2026-07-24)
+- Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones
+- Carousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name
+
+
 ### 0.33.7 (2026-07-24)
 - Settings - header HTML template field now grows across multiple lines
 
@@ -210,12 +215,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint
 
 
-### 0.25.2 (2026-07-11)
-- 🌟 **New feature:** Timer - event value has On/Off quick-select buttons (free text still allowed)
-- 🌟 **New feature:** Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off
-- 🌟 **New feature:** Advanced - widget border color and width are now configurable per widget
-
-
 ## License
 
 MIT License
@@ -227,6 +226,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

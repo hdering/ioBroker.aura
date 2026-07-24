@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.25.2 (2026-07-11)
+- 🌟 **New feature:** Timer - event value has On/Off quick-select buttons (free text still allowed)
+- 🌟 **New feature:** Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off
+- 🌟 **New feature:** Advanced - widget border color and width are now configurable per widget
+
 ## 0.25.1 (2026-07-11)
 - 🌟 **New feature:** Static & dynamic list - the sum line can now also show average, minimum and maximum, each with its own icon and text prefix
 - 🌟 **New feature:** Value display - the HTML template can now reference any other datapoint, e.g. {alias.0.Raeume.Draussen.Suedseite.ACTUAL}, in addition to {dp} for the widget's own value; new {color} (current threshold color, e.g. for an icon) and {unit} placeholders
