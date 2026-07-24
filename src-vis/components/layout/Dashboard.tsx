@@ -284,7 +284,7 @@ export function Dashboard({
                         )}
                         <div
                             ref={containerRefCallback}
-                            className="aura-scroll absolute inset-0 overflow-auto p-2"
+                            className="aura-scroll aura-scroll-touch absolute inset-0 overflow-auto p-2"
                             style={{ scrollbarGutter: 'stable both-edges' }}
                         >
                             {/* Reflow-hidden widgets from all tabs rendered off-screen */}
@@ -427,7 +427,7 @@ export function Dashboard({
                 )}
                 <div
                     ref={containerRefCallback}
-                    className="aura-scroll absolute inset-0 overflow-auto p-2 sm:p-4"
+                    className="aura-scroll aura-scroll-touch absolute inset-0 overflow-auto p-2 sm:p-4"
                     style={{
                         scrollbarGutter: 'stable both-edges',
                         ...(effectiveRglWidth > containerWidth ? { overflowX: 'auto' } : {}),
