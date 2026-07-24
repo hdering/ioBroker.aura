@@ -1,4 +1,5 @@
 import { useRef, useState, useCallback, Fragment } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import {
     Plus,
@@ -24,6 +25,7 @@ import { useDashboardStore, type DashboardLayout, type Section } from '../../../
 import { IconPickerModal } from '../../../../components/config/IconPickerModal';
 import { exportLayout, importLayout, exportSection, importSection } from '../../../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../../../../components/config/ExportAnonymizeDialog';
+import { usePortalTarget } from '../../../../contexts/PortalTargetContext';
 import { useT } from '../../../../i18n';
 
 const inputCls = 'text-sm rounded-xl px-3 py-2 focus:outline-none w-full';
@@ -59,6 +61,7 @@ function SectionRow({
     onDrop,
 }: SectionRowProps) {
     const t = useT();
+    const portalTarget = usePortalTarget();
     const {
         layouts,
         renameSection,
@@ -87,9 +90,14 @@ function SectionRow({
     const [iconPickerOpen, setIconPickerOpen] = useState(false);
     const [showExport, setShowExport] = useState(false);
     // Move/copy-tab popup: which tab to move and the chosen `${layoutId}::${sectionId}` target.
+    // Rendered through a portal with fixed positioning because the section row clips
+    // its overflow (rounded-xl overflow-hidden), which would otherwise cut it off.
     const [showMoveTabs, setShowMoveTabs] = useState(false);
+    const [movePos, setMovePos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
     const [moveTabId, setMoveTabId] = useState('');
     const [moveTarget, setMoveTarget] = useState('');
+    const moveBtnRef = useRef<HTMLButtonElement>(null);
+    const MOVE_PANEL_W = 264;
 
     const widgetCount = section.tabs.reduce((n, tab) => n + tab.widgets.length, 0);
     const menuHiddenHere = section.settings?.layoutDrawerEnabled === false;
@@ -100,9 +108,18 @@ function SectionRow({
     const moveCurrentKey = `${layoutId}::${section.id}`;
     const multiLayout = layouts.length > 1;
     const openMoveTabs = () => {
+        if (showMoveTabs) {
+            setShowMoveTabs(false);
+            return;
+        }
+        const rect = moveBtnRef.current?.getBoundingClientRect();
+        if (rect) {
+            const left = Math.max(8, Math.min(rect.right - MOVE_PANEL_W, window.innerWidth - MOVE_PANEL_W - 12));
+            setMovePos({ top: rect.bottom + 6, left });
+        }
         setMoveTabId(section.tabs[0]?.id ?? '');
         setMoveTarget('');
-        setShowMoveTabs((v) => !v);
+        setShowMoveTabs(true);
     };
     const runTabMove = (mode: 'move' | 'copy') => {
         if (!moveTabId || !moveTarget) return;
@@ -329,26 +346,47 @@ function SectionRow({
                     >
                         <Copy size={13} />
                     </button>
-                    <div className="relative">
-                        <button
-                            onClick={openMoveTabs}
-                            className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
-                            style={{
-                                background: showMoveTabs ? 'var(--accent)22' : 'var(--app-bg)',
-                                color: showMoveTabs ? 'var(--accent)' : 'var(--text-secondary)',
-                                border: `1px solid ${showMoveTabs ? 'var(--accent)' : 'var(--app-border)'}`,
-                            }}
-                            title={t('tabBar.moveTitle')}
-                        >
-                            <FolderInput size={13} />
-                        </button>
-                        {showMoveTabs && (
+                    <button
+                        ref={moveBtnRef}
+                        onClick={openMoveTabs}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+                        style={{
+                            background: showMoveTabs ? 'var(--accent)22' : 'var(--app-bg)',
+                            color: showMoveTabs ? 'var(--accent)' : 'var(--text-secondary)',
+                            border: `1px solid ${showMoveTabs ? 'var(--accent)' : 'var(--app-border)'}`,
+                        }}
+                        title={t('tabBar.moveTitle')}
+                    >
+                        <FolderInput size={13} />
+                    </button>
+                    <button
+                        onClick={() => setShowExport(true)}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                        title={t('sections.export')}
+                    >
+                        <Download size={13} />
+                    </button>
+                    {showExport && (
+                        <ExportAnonymizeDialog
+                            onExport={(anon) => exportSection(section, anon)}
+                            onClose={() => setShowExport(false)}
+                        />
+                    )}
+                    {showMoveTabs &&
+                        createPortal(
                             <>
-                                <div className="fixed inset-0 z-[90]" onClick={() => setShowMoveTabs(false)} />
+                                <div className="fixed inset-0 z-[998]" onClick={() => setShowMoveTabs(false)} />
                                 <div
-                                    className="absolute right-0 mt-1 z-[91] rounded-xl p-3 space-y-2 shadow-lg"
+                                    className="fixed z-[999] rounded-xl p-3 space-y-2 shadow-lg"
                                     style={{
-                                        width: 264,
+                                        top: movePos.top,
+                                        left: movePos.left,
+                                        width: MOVE_PANEL_W,
                                         background: 'var(--app-surface)',
                                         border: '1px solid var(--app-border)',
                                     }}
@@ -434,27 +472,9 @@ function SectionRow({
                                         </button>
                                     </div>
                                 </div>
-                            </>
+                            </>,
+                            portalTarget,
                         )}
-                    </div>
-                    <button
-                        onClick={() => setShowExport(true)}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
-                        style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--text-secondary)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                        title={t('sections.export')}
-                    >
-                        <Download size={13} />
-                    </button>
-                    {showExport && (
-                        <ExportAnonymizeDialog
-                            onExport={(anon) => exportSection(section, anon)}
-                            onClose={() => setShowExport(false)}
-                        />
-                    )}
                     {!isOnly &&
                         (confirmDelete ? (
                             <>
