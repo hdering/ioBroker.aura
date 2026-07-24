@@ -6,4 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 General - dashboard now shows a visible, draggable scrollbar on tablets and phones when the content overflows (native touch scrollbars stay hidden until you scroll)
 Quick-access chips - add an adjustable corner radius (square to pill), global background and text colours, plus per-chip background and text colour overrides
-Quick-access chips - alignment (centre/right) now also works in the grid (fixed columns) arrangement
+Quick-access chips - in the grid (fixed columns) arrangement all chips now share the widest chip's width, and the alignment setting positions the label inside each chip

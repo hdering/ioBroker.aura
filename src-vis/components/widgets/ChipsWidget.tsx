@@ -86,21 +86,21 @@ export function ChipsWidget({ config }: WidgetProps) {
 
     const alignFlex = align === 'end' ? 'flex-end' : align === 'center' ? 'center' : 'flex-start';
 
-    // Grid cells position their chip via justify-items, the grid equivalent of
-    // justify-content in the flex layouts. Default (start) keeps chips stretched
-    // to the full cell width (unchanged look); center/end size them to content
-    // so the alignment is actually visible.
-    const justifyItemsGrid = align === 'center' ? 'center' : align === 'end' ? 'end' : 'stretch';
-
     const valignJustify = valign === 'top' ? 'flex-start' : valign === 'bottom' ? 'flex-end' : 'center';
 
     const containerStyle: React.CSSProperties =
         layout === 'grid' && wrapCols
             ? {
                   display: 'grid',
+                  // Size the grid to its content so the equal `1fr` columns all
+                  // resolve to the widest chip's width (fixed columns = uniform,
+                  // widest-chip-based width). Alignment is applied to the label
+                  // inside each chip via justifyContent below.
+                  width: 'fit-content',
+                  maxWidth: '100%',
                   gridTemplateColumns: `repeat(${wrapCols}, 1fr)`,
                   gap: `${gap}px`,
-                  justifyItems: justifyItemsGrid,
+                  alignSelf: alignFlex,
               }
             : layout === 'column'
               ? { display: 'flex', flexDirection: 'column', gap: `${gap}px`, alignItems: alignFlex }
@@ -194,6 +194,9 @@ export function ChipsWidget({ config }: WidgetProps) {
                                     height: `${h}px`,
                                     paddingLeft: px,
                                     paddingRight: px,
+                                    // In the grid layout chips share the widest chip's width, so
+                                    // align the icon+label inside each (otherwise always left).
+                                    justifyContent: layout === 'grid' ? alignFlex : undefined,
                                 }}
                             >
                                 {ChipIcon && <ChipIcon size={iconSz} />}
