@@ -1505,6 +1505,8 @@ export const en: Record<TranslationKey, string> = {
     'cw.layout.chipRadius': 'Corner radius',
     'cw.layout.wrapCols': 'Columns',
     'cw.layout.gap': 'Gap (px)',
+    'cw.layout.bgColor': 'Background colour',
+    'cw.layout.textColor': 'Text colour',
     'cw.radius.full': 'Pill',
     'cw.style.filled': 'Filled',
     'cw.style.outlined': 'Outlined',
@@ -1519,6 +1521,7 @@ export const en: Record<TranslationKey, string> = {
     'cw.chips.value': 'Write value (empty = true)',
     'cw.chips.activeValue': 'Active value (optional)',
     'cw.chips.bg': 'Background colour',
+    'cw.chips.fg': 'Text colour',
     'cw.confirm.enable': 'Require confirmation before action',
     'cw.confirm.text': 'Confirmation text (optional)',
 

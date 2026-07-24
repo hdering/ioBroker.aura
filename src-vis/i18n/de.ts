@@ -1509,6 +1509,8 @@ export const de = {
     'cw.layout.chipRadius': 'Eckenradius',
     'cw.layout.wrapCols': 'Spalten',
     'cw.layout.gap': 'Abstand (px)',
+    'cw.layout.bgColor': 'Hintergrundfarbe',
+    'cw.layout.textColor': 'Schriftfarbe',
     'cw.radius.full': 'Pille',
     'cw.style.filled': 'Gefüllt',
     'cw.style.outlined': 'Umrandet',
@@ -1523,6 +1525,7 @@ export const de = {
     'cw.chips.value': 'Schreib-Wert (leer = true)',
     'cw.chips.activeValue': 'Aktiv-Wert (optional)',
     'cw.chips.bg': 'Hintergrundfarbe',
+    'cw.chips.fg': 'Schriftfarbe',
     'cw.confirm.enable': 'Bestätigung vor Aktion erfordern',
     'cw.confirm.text': 'Bestätigungs-Text (optional)',
 

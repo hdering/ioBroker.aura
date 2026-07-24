@@ -3585,7 +3585,70 @@ type CwChip = {
     value?: string;
     activeValue?: string;
     bg?: string;
+    fg?: string;
 };
+
+// Compact colour control: swatch + free-text field (accepts hex, CSS vars,
+// named colours) + reset button. Shared by the global layout colours and the
+// per-chip background/text colours.
+function CwColorField({
+    label,
+    value,
+    swatchFallback,
+    resetTitle,
+    onChange,
+}: {
+    label: string;
+    value?: string;
+    swatchFallback: string;
+    resetTitle: string;
+    onChange: (v: string | undefined) => void;
+}) {
+    const hex = value && /^#[0-9a-fA-F]{6}$/.test(value) ? value : swatchFallback;
+    return (
+        <div>
+            <label className="text-[11px] mb-1 block truncate" style={{ color: 'var(--text-secondary)' }}>
+                {label}
+            </label>
+            <div className="flex items-center gap-1">
+                <input
+                    type="color"
+                    value={hex}
+                    onChange={(e) => onChange(e.target.value)}
+                    className="w-8 h-8 rounded shrink-0 cursor-pointer bg-transparent p-0 border"
+                    style={{ borderColor: 'var(--app-border)' }}
+                    title={label}
+                />
+                <input
+                    type="text"
+                    value={value ?? ''}
+                    onChange={(e) => onChange(e.target.value || undefined)}
+                    placeholder="#…"
+                    className="flex-1 min-w-0 text-xs rounded-lg px-2 py-2 focus:outline-none font-mono"
+                    style={{
+                        background: 'var(--app-bg)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--app-border)',
+                    }}
+                />
+                {value && (
+                    <button
+                        onClick={() => onChange(undefined)}
+                        className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                        title={resetTitle}
+                    >
+                        <Trash2 size={12} />
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+}
 
 function ChipsEditPanel({
     config,
@@ -3804,6 +3867,26 @@ function ChipsEditPanel({
                             style={sInputStyle}
                         />
                     </div>
+
+                    {/* Row 4 (2 cols): globale Hintergrund- · Schriftfarbe */}
+                    <div className="col-span-3">
+                        <CwColorField
+                            label={tHook('cw.layout.bgColor' as never)}
+                            value={o.chipBgColor as string | undefined}
+                            swatchFallback="#1e293b"
+                            resetTitle={tHook('common.reset' as never)}
+                            onChange={(v) => setO({ chipBgColor: v })}
+                        />
+                    </div>
+                    <div className="col-span-3">
+                        <CwColorField
+                            label={tHook('cw.layout.textColor' as never)}
+                            value={o.chipTextColor as string | undefined}
+                            swatchFallback="#e2e8f0"
+                            resetTitle={tHook('common.reset' as never)}
+                            onChange={(v) => setO({ chipTextColor: v })}
+                        />
+                    </div>
                 </div>
             </details>
 
@@ -3961,45 +4044,21 @@ function ChipsEditPanel({
                                     style={sInputStyle}
                                 />
                             </div>
-                            <div>
-                                <label
-                                    className="text-[10px] mb-0.5 block"
-                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                >
-                                    {tHook('cw.chips.bg' as never)}
-                                </label>
-                                <div className="flex items-center gap-1">
-                                    <input
-                                        type="color"
-                                        value={chip.bg ?? '#3b82f6'}
-                                        onChange={(e) => updateChip(chip.id, { bg: e.target.value })}
-                                        className="w-8 h-8 rounded shrink-0 cursor-pointer bg-transparent p-0 border"
-                                        style={{ borderColor: 'var(--app-border)' }}
-                                        title={tHook('cw.chips.bg' as never)}
-                                    />
-                                    <input
-                                        type="text"
-                                        value={chip.bg ?? ''}
-                                        onChange={(e) => updateChip(chip.id, { bg: e.target.value || undefined })}
-                                        placeholder="z.B. #3b82f6 (leer = Stil-Standard)"
-                                        className={`flex-1 ${sInputCls} min-w-0`}
-                                        style={sInputStyle}
-                                    />
-                                    {chip.bg && (
-                                        <button
-                                            onClick={() => updateChip(chip.id, { bg: undefined })}
-                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                            style={{
-                                                background: 'var(--app-bg)',
-                                                color: 'var(--text-secondary)',
-                                                border: '1px solid var(--app-border)',
-                                            }}
-                                            title={tHook('common.reset' as never)}
-                                        >
-                                            <Trash2 size={13} />
-                                        </button>
-                                    )}
-                                </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <CwColorField
+                                    label={tHook('cw.chips.bg' as never)}
+                                    value={chip.bg}
+                                    swatchFallback="#3b82f6"
+                                    resetTitle={tHook('common.reset' as never)}
+                                    onChange={(v) => updateChip(chip.id, { bg: v })}
+                                />
+                                <CwColorField
+                                    label={tHook('cw.chips.fg' as never)}
+                                    value={chip.fg}
+                                    swatchFallback="#ffffff"
+                                    resetTitle={tHook('common.reset' as never)}
+                                    onChange={(v) => updateChip(chip.id, { fg: v })}
+                                />
                             </div>
                             {(o.checkDp as string) && (
                                 <div>

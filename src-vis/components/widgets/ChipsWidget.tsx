@@ -14,6 +14,7 @@ export type ChipItem = {
     value?: string | number | boolean;
     activeValue?: string | number | boolean;
     bg?: string;
+    fg?: string;
 };
 
 // Slider max for the chip radius option. At the maximum the chip is rendered as
@@ -43,6 +44,8 @@ export function ChipsWidget({ config }: WidgetProps) {
     const chipRadiusRaw = o.chipRadius as number | undefined;
     const chipRadius =
         chipRadiusRaw === undefined || chipRadiusRaw >= CHIP_RADIUS_MAX ? 9999 : Math.max(0, chipRadiusRaw);
+    const chipBgColor = o.chipBgColor as string | undefined;
+    const chipTextColor = o.chipTextColor as string | undefined;
     const showConfirm = o.showConfirm === true;
     const confirmText = (o.confirmText as string) ?? '';
 
@@ -103,9 +106,13 @@ export function ChipsWidget({ config }: WidgetProps) {
 
     const chipActive = 'var(--chip-active, var(--accent))';
     const chipBg = (chip: ChipItem, active: boolean) => {
-        // A per-chip colour wins for the inactive/base state; the active
-        // highlight still takes over so the check-DP indication keeps working.
-        if (!active && chip.bg) return chip.bg;
+        // Colour precedence for the inactive/base state: per-chip → global →
+        // theme default. The active highlight still takes over so the check-DP
+        // indication keeps working regardless of custom colours.
+        if (!active) {
+            if (chip.bg) return chip.bg;
+            if (chipBgColor) return chipBgColor;
+        }
         return chipStyle === 'filled'
             ? active
                 ? chipActive
@@ -119,8 +126,14 @@ export function ChipsWidget({ config }: WidgetProps) {
                 : 'var(--chip-bg, var(--app-bg))';
     };
 
-    const chipColor = (active: boolean) =>
-        active ? (chipStyle === 'filled' ? '#fff' : chipActive) : 'var(--text-primary)';
+    const chipColor = (chip: ChipItem, active: boolean) => {
+        // Same precedence as the background: per-chip → global → theme default.
+        if (!active) {
+            if (chip.fg) return chip.fg;
+            if (chipTextColor) return chipTextColor;
+        }
+        return active ? (chipStyle === 'filled' ? '#fff' : chipActive) : 'var(--text-primary)';
+    };
 
     const chipBorder = (active: boolean) =>
         chipStyle === 'ghost'
@@ -163,7 +176,7 @@ export function ChipsWidget({ config }: WidgetProps) {
                                 className="flex items-center gap-1.5 whitespace-nowrap hover:opacity-80 transition-opacity shrink-0"
                                 style={{
                                     background: chipBg(chip, active),
-                                    color: chipColor(active),
+                                    color: chipColor(chip, active),
                                     border: chipBorder(active),
                                     borderRadius: chipRadius,
                                     fontSize: fs,
