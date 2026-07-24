@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.25.1 (2026-07-11)
+- 🌟 **New feature:** Static & dynamic list - the sum line can now also show average, minimum and maximum, each with its own icon and text prefix
+- 🌟 **New feature:** Value display - the HTML template can now reference any other datapoint, e.g. {alias.0.Raeume.Draussen.Suedseite.ACTUAL}, in addition to {dp} for the widget's own value; new {color} (current threshold color, e.g. for an icon) and {unit} placeholders
+
 ## 0.25.0 (2026-07-11)
 - Fill widget - horizontal battery layout now fills the whole cell instead of shrinking and leaving empty margins in short/wide widgets
 - Fill widget - bar width/height now previews live while editing instead of only after leaving the field
