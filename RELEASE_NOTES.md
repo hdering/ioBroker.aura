@@ -5,4 +5,4 @@
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 
-Carousel - compact layout settings plus corner radius and global background/text colour options
+Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones

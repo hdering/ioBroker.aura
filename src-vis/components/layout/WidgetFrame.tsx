@@ -4901,6 +4901,52 @@ function CarouselEditPanel({
                                     </>
                                 )}
 
+                                {/* Per-element colours for non-DP items (popup / link).
+                                    These items never toggle, so they render in the base
+                                    (inactive) state — writing bgColorInactive/textColorInactive
+                                    lets each element override the global colour. */}
+                                {item.clickAction && item.clickAction.kind !== 'none' && (
+                                    <div>
+                                        <label
+                                            className="text-[10px] mb-0.5 block"
+                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                        >
+                                            {tHook('carousel.items.colors' as never)}
+                                        </label>
+                                        <div className="flex gap-1 items-center">
+                                            <ColorPicker
+                                                value={item.bgColorInactive ?? '#000000'}
+                                                onChange={(v) => updateItem(item.id, { bgColorInactive: v })}
+                                                title={tHook('carousel.items.bgColor' as never)}
+                                                className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
+                                                style={{ background: 'var(--app-bg)' }}
+                                            />
+                                            <ColorPicker
+                                                value={item.textColorInactive ?? '#ffffff'}
+                                                onChange={(v) => updateItem(item.id, { textColorInactive: v })}
+                                                title={tHook('carousel.items.textColor' as never)}
+                                                className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
+                                                style={{ background: 'var(--app-bg)' }}
+                                            />
+                                            {(item.bgColorInactive || item.textColorInactive) && (
+                                                <button
+                                                    onClick={() =>
+                                                        updateItem(item.id, {
+                                                            bgColorInactive: undefined,
+                                                            textColorInactive: undefined,
+                                                        })
+                                                    }
+                                                    className="text-[10px] px-1 shrink-0 hover:opacity-70"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                    title={tHook('carousel.items.resetColor' as never)}
+                                                >
+                                                    ↩
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* popup-widget: target widget selector */}
                                 {item.clickAction?.kind === 'popup-widget' &&
                                     (() => {
