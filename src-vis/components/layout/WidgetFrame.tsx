@@ -4804,7 +4804,7 @@ function CarouselEditPanel({
                                             >
                                                 {tHook('carousel.items.value' as never)}
                                             </label>
-                                            <div className="flex gap-1 items-center">
+                                            <div className="flex flex-wrap gap-x-2 gap-y-1 items-center">
                                                 <input
                                                     type="text"
                                                     value={item.value ?? ''}
@@ -4815,20 +4815,32 @@ function CarouselEditPanel({
                                                     className={`flex-1 ${sInputCls} min-w-0`}
                                                     style={sInputStyle}
                                                 />
-                                                <ColorPicker
-                                                    value={item.bgColor ?? '#000000'}
-                                                    onChange={(v) => updateItem(item.id, { bgColor: v })}
-                                                    title={tHook('carousel.items.bgColor' as never)}
-                                                    className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
-                                                    style={{ background: 'var(--app-bg)' }}
-                                                />
-                                                <ColorPicker
-                                                    value={item.textColor ?? '#ffffff'}
-                                                    onChange={(v) => updateItem(item.id, { textColor: v })}
-                                                    title={tHook('carousel.items.textColor' as never)}
-                                                    className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
-                                                    style={{ background: 'var(--app-bg)' }}
-                                                />
+                                                <label
+                                                    className="flex items-center gap-1 text-[10px] shrink-0"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    <ColorPicker
+                                                        value={item.bgColor ?? '#000000'}
+                                                        onChange={(v) => updateItem(item.id, { bgColor: v })}
+                                                        title={tHook('carousel.items.bgColor' as never)}
+                                                        className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
+                                                        style={{ background: 'var(--app-bg)' }}
+                                                    />
+                                                    <span>{tHook('carousel.items.bgColor' as never)}</span>
+                                                </label>
+                                                <label
+                                                    className="flex items-center gap-1 text-[10px] shrink-0"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    <ColorPicker
+                                                        value={item.textColor ?? '#ffffff'}
+                                                        onChange={(v) => updateItem(item.id, { textColor: v })}
+                                                        title={tHook('carousel.items.textColor' as never)}
+                                                        className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
+                                                        style={{ background: 'var(--app-bg)' }}
+                                                    />
+                                                    <span>{tHook('carousel.items.textColor' as never)}</span>
+                                                </label>
                                                 {(item.bgColor || item.textColor) && (
                                                     <button
                                                         onClick={() =>
@@ -4854,7 +4866,7 @@ function CarouselEditPanel({
                                             >
                                                 {tHook('carousel.items.inactiveValue' as never)}
                                             </label>
-                                            <div className="flex gap-1 items-center">
+                                            <div className="flex flex-wrap gap-x-2 gap-y-1 items-center">
                                                 <input
                                                     type="text"
                                                     value={item.inactiveValue ?? ''}
@@ -4867,20 +4879,32 @@ function CarouselEditPanel({
                                                     className={`flex-1 ${sInputCls} min-w-0`}
                                                     style={sInputStyle}
                                                 />
-                                                <ColorPicker
-                                                    value={item.bgColorInactive ?? '#000000'}
-                                                    onChange={(v) => updateItem(item.id, { bgColorInactive: v })}
-                                                    title={tHook('carousel.items.bgColor' as never)}
-                                                    className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
-                                                    style={{ background: 'var(--app-bg)' }}
-                                                />
-                                                <ColorPicker
-                                                    value={item.textColorInactive ?? '#ffffff'}
-                                                    onChange={(v) => updateItem(item.id, { textColorInactive: v })}
-                                                    title={tHook('carousel.items.textColor' as never)}
-                                                    className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
-                                                    style={{ background: 'var(--app-bg)' }}
-                                                />
+                                                <label
+                                                    className="flex items-center gap-1 text-[10px] shrink-0"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    <ColorPicker
+                                                        value={item.bgColorInactive ?? '#000000'}
+                                                        onChange={(v) => updateItem(item.id, { bgColorInactive: v })}
+                                                        title={tHook('carousel.items.bgColor' as never)}
+                                                        className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
+                                                        style={{ background: 'var(--app-bg)' }}
+                                                    />
+                                                    <span>{tHook('carousel.items.bgColor' as never)}</span>
+                                                </label>
+                                                <label
+                                                    className="flex items-center gap-1 text-[10px] shrink-0"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    <ColorPicker
+                                                        value={item.textColorInactive ?? '#ffffff'}
+                                                        onChange={(v) => updateItem(item.id, { textColorInactive: v })}
+                                                        title={tHook('carousel.items.textColor' as never)}
+                                                        className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
+                                                        style={{ background: 'var(--app-bg)' }}
+                                                    />
+                                                    <span>{tHook('carousel.items.textColor' as never)}</span>
+                                                </label>
                                                 {(item.bgColorInactive || item.textColorInactive) && (
                                                     <button
                                                         onClick={() =>
@@ -4913,21 +4937,33 @@ function CarouselEditPanel({
                                         >
                                             {tHook('carousel.items.colors' as never)}
                                         </label>
-                                        <div className="flex gap-1 items-center">
-                                            <ColorPicker
-                                                value={item.bgColorInactive ?? '#000000'}
-                                                onChange={(v) => updateItem(item.id, { bgColorInactive: v })}
-                                                title={tHook('carousel.items.bgColor' as never)}
-                                                className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
-                                                style={{ background: 'var(--app-bg)' }}
-                                            />
-                                            <ColorPicker
-                                                value={item.textColorInactive ?? '#ffffff'}
-                                                onChange={(v) => updateItem(item.id, { textColorInactive: v })}
-                                                title={tHook('carousel.items.textColor' as never)}
-                                                className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
-                                                style={{ background: 'var(--app-bg)' }}
-                                            />
+                                        <div className="flex flex-wrap gap-x-2 gap-y-1 items-center">
+                                            <label
+                                                className="flex items-center gap-1 text-[10px] shrink-0"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                <ColorPicker
+                                                    value={item.bgColorInactive ?? '#000000'}
+                                                    onChange={(v) => updateItem(item.id, { bgColorInactive: v })}
+                                                    title={tHook('carousel.items.bgColor' as never)}
+                                                    className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
+                                                    style={{ background: 'var(--app-bg)' }}
+                                                />
+                                                <span>{tHook('carousel.items.bgColor' as never)}</span>
+                                            </label>
+                                            <label
+                                                className="flex items-center gap-1 text-[10px] shrink-0"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                <ColorPicker
+                                                    value={item.textColorInactive ?? '#ffffff'}
+                                                    onChange={(v) => updateItem(item.id, { textColorInactive: v })}
+                                                    title={tHook('carousel.items.textColor' as never)}
+                                                    className="w-7 h-7 rounded cursor-pointer p-0 border-0 shrink-0"
+                                                    style={{ background: 'var(--app-bg)' }}
+                                                />
+                                                <span>{tHook('carousel.items.textColor' as never)}</span>
+                                            </label>
                                             {(item.bgColorInactive || item.textColorInactive) && (
                                                 <button
                                                     onClick={() =>
