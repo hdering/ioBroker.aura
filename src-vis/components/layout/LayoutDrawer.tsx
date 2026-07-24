@@ -488,8 +488,9 @@ export function LayoutDrawer({
     if (variant === 'bar') {
         const leadItems = items.filter((i) => i.position === 'top');
         const trailItems = items.filter((i) => i.position === 'bottom');
-        // Mobile forces left alignment so entries + extras never collide in a grid zone.
-        const alignment = isBarMobile ? 'left' : barAlignment;
+        // Honour the configured alignment on every viewport — the grid zones + ScrollRow
+        // handle narrow screens, so mobile no longer forces left (which ignored center/right).
+        const alignment = barAlignment;
         const hasExtras = leadItems.length > 0 || trailItems.length > 0;
         const needsGrid = hasExtras || alignment !== 'left';
 

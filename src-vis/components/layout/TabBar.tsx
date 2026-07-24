@@ -891,7 +891,10 @@ export function TabBar({
 
     // ── Render ───────────────────────────────────────────────────────────────────
 
-    const tabsAlignment = isMobile ? 'left' : (tbSettings?.tabsAlignment ?? 'left');
+    // Honour the configured alignment on every viewport. The 3-zone grid + ScrollRow
+    // handle narrow screens (horizontal scroll + mobile indicator), so there is no
+    // need to force left on mobile — doing so ignored a center/right setting there.
+    const tabsAlignment = tbSettings?.tabsAlignment ?? 'left';
     const hideMobileScrollbar = tbSettings?.hideMobileScrollbar ?? false;
     const needsGrid = hasExtras || tabsAlignment !== 'left';
 
