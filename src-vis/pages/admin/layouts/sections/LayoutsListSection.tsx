@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, Fragment } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
     Plus,
@@ -17,6 +17,7 @@ import {
     Download,
     Upload,
     Palette,
+    FolderInput,
 } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { useDashboardStore, type DashboardLayout, type Section } from '../../../../store/dashboardStore';
@@ -59,6 +60,7 @@ function SectionRow({
 }: SectionRowProps) {
     const t = useT();
     const {
+        layouts,
         renameSection,
         setSectionSlug,
         setSectionIcon,
@@ -71,6 +73,7 @@ function SectionRow({
         setDefaultSection,
         updateSectionSettings,
         clearSectionSettings,
+        moveTabToSection,
     } = useDashboardStore();
     const navigate = useNavigate();
 
@@ -83,12 +86,32 @@ function SectionRow({
     const [showDup, setShowDup] = useState(false);
     const [iconPickerOpen, setIconPickerOpen] = useState(false);
     const [showExport, setShowExport] = useState(false);
+    // Move/copy-tab popup: which tab to move and the chosen `${layoutId}::${sectionId}` target.
+    const [showMoveTabs, setShowMoveTabs] = useState(false);
+    const [moveTabId, setMoveTabId] = useState('');
+    const [moveTarget, setMoveTarget] = useState('');
 
     const widgetCount = section.tabs.reduce((n, tab) => n + tab.widgets.length, 0);
     const menuHiddenHere = section.settings?.layoutDrawerEnabled === false;
 
     // All section mutations operate on the active layout — make sure it is this one.
     const ensureActive = () => setActiveLayout(layoutId);
+
+    const moveCurrentKey = `${layoutId}::${section.id}`;
+    const multiLayout = layouts.length > 1;
+    const openMoveTabs = () => {
+        setMoveTabId(section.tabs[0]?.id ?? '');
+        setMoveTarget('');
+        setShowMoveTabs((v) => !v);
+    };
+    const runTabMove = (mode: 'move' | 'copy') => {
+        if (!moveTabId || !moveTarget) return;
+        if (mode === 'move' && moveTarget === moveCurrentKey) return;
+        const [targetLayoutId, targetSectionId] = moveTarget.split('::');
+        moveTabToSection(moveTabId, layoutId, section.id, targetLayoutId, targetSectionId, mode);
+        setShowMoveTabs(false);
+        setMoveTarget('');
+    };
 
     const commitName = () => {
         ensureActive();
@@ -306,6 +329,114 @@ function SectionRow({
                     >
                         <Copy size={13} />
                     </button>
+                    <div className="relative">
+                        <button
+                            onClick={openMoveTabs}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+                            style={{
+                                background: showMoveTabs ? 'var(--accent)22' : 'var(--app-bg)',
+                                color: showMoveTabs ? 'var(--accent)' : 'var(--text-secondary)',
+                                border: `1px solid ${showMoveTabs ? 'var(--accent)' : 'var(--app-border)'}`,
+                            }}
+                            title={t('tabBar.moveTitle')}
+                        >
+                            <FolderInput size={13} />
+                        </button>
+                        {showMoveTabs && (
+                            <>
+                                <div className="fixed inset-0 z-[90]" onClick={() => setShowMoveTabs(false)} />
+                                <div
+                                    className="absolute right-0 mt-1 z-[91] rounded-xl p-3 space-y-2 shadow-lg"
+                                    style={{
+                                        width: 264,
+                                        background: 'var(--app-surface)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                >
+                                    <div className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('tabBar.moveTitle')}
+                                    </div>
+                                    <select
+                                        value={moveTabId}
+                                        onChange={(e) => setMoveTabId(e.target.value)}
+                                        className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            color: 'var(--text-primary)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                    >
+                                        {section.tabs.map((tab) => (
+                                            <option key={tab.id} value={tab.id}>
+                                                {tab.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <select
+                                        value={moveTarget}
+                                        onChange={(e) => setMoveTarget(e.target.value)}
+                                        className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            color: 'var(--text-primary)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                    >
+                                        <option value="">{t('tabBar.moveTargetPlaceholder')}</option>
+                                        {layouts.map((l) => {
+                                            const opts = l.sections.map((sec) => {
+                                                const key = `${l.id}::${sec.id}`;
+                                                const label =
+                                                    key === moveCurrentKey
+                                                        ? `${sec.name} (${t('tabBar.moveCurrentSuffix')})`
+                                                        : sec.name;
+                                                return (
+                                                    <option key={key} value={key}>
+                                                        {label}
+                                                    </option>
+                                                );
+                                            });
+                                            return multiLayout ? (
+                                                <optgroup key={l.id} label={l.name}>
+                                                    {opts}
+                                                </optgroup>
+                                            ) : (
+                                                <Fragment key={l.id}>{opts}</Fragment>
+                                            );
+                                        })}
+                                    </select>
+                                    <div className="flex items-center gap-1.5">
+                                        <button
+                                            onClick={() => runTabMove('move')}
+                                            disabled={!moveTarget || moveTarget === moveCurrentKey}
+                                            className="flex items-center justify-center gap-1.5 flex-1 px-2.5 py-1.5 rounded-lg text-xs hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-secondary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        >
+                                            <FolderInput size={11} />
+                                            {t('tabBar.move')}
+                                        </button>
+                                        <button
+                                            onClick={() => runTabMove('copy')}
+                                            disabled={!moveTarget}
+                                            className="flex items-center justify-center gap-1.5 flex-1 px-2.5 py-1.5 rounded-lg text-xs hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-secondary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        >
+                                            <Copy size={11} />
+                                            {t('tabBar.copy')}
+                                        </button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
                     <button
                         onClick={() => setShowExport(true)}
                         className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"

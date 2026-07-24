@@ -410,11 +410,19 @@ interface DashboardState {
     /** Default tab of a section within the active layout (opened when no tab slug is given). */
     setDefaultTab: (sectionId: string, tabId: string) => void;
     /**
-     * Move or copy a whole tab (with its widgets) from the active section into any
-     * other section — of the same or a different layout. Navigates to the target so
-     * the moved/copied tab becomes visible.
+     * Move or copy a whole tab (with its widgets) from one section into any other
+     * section — of the same or a different layout. Source is given explicitly so it
+     * works from both the editor and the layouts admin list. Navigates to the target
+     * so the moved/copied tab becomes visible.
      */
-    moveTabToSection: (tabId: string, targetLayoutId: string, targetSectionId: string, mode: 'move' | 'copy') => void;
+    moveTabToSection: (
+        tabId: string,
+        srcLayoutId: string,
+        srcSectionId: string,
+        targetLayoutId: string,
+        targetSectionId: string,
+        mode: 'move' | 'copy',
+    ) => void;
 
     // ── Widget CRUD ──────────────────────────────────────────────────────────
     addWidget: (widget: WidgetConfig) => void;
@@ -830,10 +838,10 @@ export const useDashboardStore = create<DashboardState>()(
                     })),
                 })),
 
-            moveTabToSection: (tabId, targetLayoutId, targetSectionId, mode) =>
+            moveTabToSection: (tabId, srcLayoutId, srcSectionId, targetLayoutId, targetSectionId, mode) =>
                 set((s) => {
-                    const srcLayout = s.layouts.find((l) => l.id === s.activeLayoutId) ?? s.layouts[0];
-                    const srcSec = activeSectionOf(srcLayout);
+                    const srcLayout = s.layouts.find((l) => l.id === srcLayoutId);
+                    const srcSec = srcLayout?.sections.find((sec) => sec.id === srcSectionId);
                     if (!srcLayout || !srcSec) return {};
                     const srcTab = srcSec.tabs.find((t) => t.id === tabId);
                     if (!srcTab) return {};

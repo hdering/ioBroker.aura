@@ -1527,7 +1527,7 @@ const TabBar = memo(function TabBar() {
         if (!settingsTabId || !moveTarget) return;
         if (mode === 'move' && moveTarget === currentTargetKey) return;
         const [layoutId, sectionId] = moveTarget.split('::');
-        moveTabToSection(settingsTabId, layoutId, sectionId, mode);
+        moveTabToSection(settingsTabId, currentLayoutId, currentSectionId, layoutId, sectionId, mode);
         setSettingsTabId(null);
     };
     // Group the flat target list by layout so the dropdown can use <optgroup>.
