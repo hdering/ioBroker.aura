@@ -86,11 +86,22 @@ export function ChipsWidget({ config }: WidgetProps) {
 
     const alignFlex = align === 'end' ? 'flex-end' : align === 'center' ? 'center' : 'flex-start';
 
+    // Grid cells position their chip via justify-items, the grid equivalent of
+    // justify-content in the flex layouts. Default (start) keeps chips stretched
+    // to the full cell width (unchanged look); center/end size them to content
+    // so the alignment is actually visible.
+    const justifyItemsGrid = align === 'center' ? 'center' : align === 'end' ? 'end' : 'stretch';
+
     const valignJustify = valign === 'top' ? 'flex-start' : valign === 'bottom' ? 'flex-end' : 'center';
 
     const containerStyle: React.CSSProperties =
         layout === 'grid' && wrapCols
-            ? { display: 'grid', gridTemplateColumns: `repeat(${wrapCols}, 1fr)`, gap: `${gap}px` }
+            ? {
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${wrapCols}, 1fr)`,
+                  gap: `${gap}px`,
+                  justifyItems: justifyItemsGrid,
+              }
             : layout === 'column'
               ? { display: 'flex', flexDirection: 'column', gap: `${gap}px`, alignItems: alignFlex }
               : layout === 'wrap'
