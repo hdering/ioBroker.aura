@@ -365,7 +365,10 @@ export function TabBar({
     const tabIconSize = tbSettings?.iconSize ?? 14;
     const containerStyle: React.CSSProperties = {
         background: barBg,
-        borderBottom: '1px solid var(--app-border)',
+        // Divider faces the dashboard: below the bar when it sits at the top, above the
+        // bar when it is a footer — so a footer bar keeps its subtle separating line
+        // instead of losing it to the invisible screen edge.
+        [tbSettings?.position === 'bottom' ? 'borderTop' : 'borderBottom']: '1px solid var(--app-border)',
         fontSize: resolveTabBarFontSize(tbSettings?.fontSize),
         // Lift the bar into its own stacking context above the dashboard content.
         // Bottom-corner tab badges overflow downward past the bar (see .aura-badge-room);
