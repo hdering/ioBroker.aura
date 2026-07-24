@@ -72,7 +72,9 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
     const t = useT();
     const { setState } = useIoBroker();
     const [pendingItem, setPendingItem] = useState<{ item: CarouselItem; isActive: boolean } | null>(null);
-    const [popupAction, setPopupAction] = useState<ClickAction | null>(null);
+    // Track the triggering item's label alongside the action so the popup heading
+    // shows the element name rather than the shared carousel widget name.
+    const [popup, setPopup] = useState<{ action: ClickAction; title: string } | null>(null);
 
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, GalleryHorizontal);
     const iconSize = (o.iconSize as number) || 20;
@@ -336,7 +338,7 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
             useNavigationStore.getState().navigateTo(a.layoutId, a.tabId, undefined, a.sectionId);
             return;
         }
-        setPopupAction(a);
+        setPopup({ action: a, title: item.label });
     };
 
     const handleClick = (item: CarouselItem, isActive: boolean) => {
@@ -614,11 +616,12 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
                 />
             )}
 
-            {popupAction && (
+            {popup && (
                 <WidgetClickPopup
                     widget={config}
-                    action={popupAction}
-                    onClose={() => setPopupAction(null)}
+                    action={popup.action}
+                    titleOverride={popup.title}
+                    onClose={() => setPopup(null)}
                     allWidgets={useDashboardStore
                         .getState()
                         .layouts.flatMap((l) => l.sections.flatMap((s) => s.tabs.flatMap((t) => t.widgets)))}

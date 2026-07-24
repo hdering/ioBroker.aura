@@ -37,9 +37,14 @@ interface Props {
     action: ClickAction;
     onClose: () => void;
     allWidgets?: WidgetConfig[];
+    /** Overrides the popup heading — e.g. the carousel item's label so the popup
+     *  shows the element name instead of the (shared) carousel widget name. */
+    titleOverride?: string;
 }
 
-function getTitle(widget: WidgetConfig, action: ClickAction): string {
+function getTitle(widget: WidgetConfig, action: ClickAction, titleOverride?: string): string {
+    // The most-specific caller-supplied heading wins (per-element label).
+    if (titleOverride) return titleOverride;
     const custom = widget.options?.popupTitle as string | undefined;
     if (custom) return custom;
     if (widget.title) return widget.title;
@@ -71,7 +76,7 @@ function getTitle(widget: WidgetConfig, action: ClickAction): string {
     }
 }
 
-export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidgets = [] }: Props) {
+export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidgets = [], titleOverride }: Props) {
     const action = normalizeAction(rawAction);
     // Prefer the frontend container so the popup inherits per-layout scoped CSS vars.
     // Falls back to the portal target (admin context) or document.body.
@@ -113,7 +118,7 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
 
     const isIframe = action.kind === 'popup-iframe';
     const hideTitle = !!widget.options?.popupHideTitle;
-    const title = getTitle(widget, action);
+    const title = getTitle(widget, action, titleOverride);
     const customWidth = widget.options?.popupWidth as number | undefined;
     const customHeight = widget.options?.popupHeight as number | undefined;
 
