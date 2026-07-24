@@ -149,33 +149,21 @@ iframe {
     background: transparent;
 }
 
-/* ── Touch devices: persistent, visible scrollbar ───────────────────────────
-   Tablets/phones use overlay scrollbars that fade out after scrolling, so a
-   horizontally overflowing dashboard gives no hint it can be scrolled (a 5px
-   faint thumb is invisible on a hi-dpi touch screen). On coarse-pointer devices
-   force a wider, clearly visible, always-present scrollbar. Defining explicit
-   ::-webkit-scrollbar dimensions makes WebKit/Blink switch from overlay to a
-   non-fading legacy scrollbar. Scoped to the .aura-scroll-touch modifier so only
-   the dashboard scroll surface is affected, not every scroll container.
+/* ── Touch devices: hide the native scrollbar under .aura-scroll-touch ───────
+   Tablets/phones use overlay scrollbars that fade out, and Blink ignores
+   ::-webkit-scrollbar in overlay mode (incl. the DevTools device toolbar), so a
+   horizontally overflowing dashboard gives no hint it can be scrolled. The
+   TouchScrollbar component draws a persistent, draggable thumb instead — one
+   that shows everywhere. Hide the native bar here so iOS (which WOULD honour a
+   forced ::-webkit-scrollbar) doesn't render a second, redundant one.
    ─────────────────────────────────────────────────────────────────────────── */
 @media (pointer: coarse) {
     .aura-scroll.aura-scroll-touch {
-        scrollbar-width: auto;
+        scrollbar-width: none; /* Firefox */
     }
     .aura-scroll.aura-scroll-touch::-webkit-scrollbar {
-        width: 10px;
-        height: 10px;
-    }
-    .aura-scroll.aura-scroll-touch::-webkit-scrollbar-track {
-        background: color-mix(in srgb, var(--accent, #888) 10%, transparent);
-        border-radius: 99px;
-    }
-    .aura-scroll.aura-scroll-touch::-webkit-scrollbar-thumb {
-        background: color-mix(in srgb, var(--accent, #888) 55%, transparent);
-        border-radius: 99px;
-    }
-    .aura-scroll.aura-scroll-touch::-webkit-scrollbar-thumb:active {
-        background: color-mix(in srgb, var(--accent, #888) 75%, transparent);
+        width: 0;
+        height: 0;
     }
 }
 

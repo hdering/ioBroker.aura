@@ -7,6 +7,7 @@ import { useGroupCollapseStore } from '../../store/groupCollapseStore';
 import { useIframeStore, type IframeFullscreenData } from '../../store/iframeStore';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { WidgetFrame } from './WidgetFrame';
+import { TouchScrollbar } from './TouchScrollbar';
 import { useReflowHiddenIds, useConditionReflowIds } from '../../hooks/useConditionStyle';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
@@ -180,12 +181,16 @@ export function Dashboard({
     // and making the tab appear blank ({rglWidth > 0 && ...} renders nothing).
     const roRef = useRef<ResizeObserver | null>(null);
     const [containerWidth, setContainerWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 0));
+    // The live scroll element, exposed so TouchScrollbar can mirror its scroll
+    // position (native scrollbars are hidden / invisible on touch devices).
+    const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
 
     const containerRefCallback = useCallback((el: HTMLDivElement | null) => {
         if (roRef.current) {
             roRef.current.disconnect();
             roRef.current = null;
         }
+        setScrollEl(el);
         if (!el) return;
         setContainerWidth(el.clientWidth);
         const ro = new ResizeObserver(([entry]) => {
@@ -402,6 +407,9 @@ export function Dashboard({
                                     );
                                 })}
                         </div>
+                        {coarsePointer && (
+                            <TouchScrollbar target={scrollEl} revision={`${activeTabId}|${containerWidth}`} />
+                        )}
                         {showIframeOverlay && (
                             <IframeOverlay data={iframeFullscreen!} onClose={() => setIframeFullscreen(null)} />
                         )}
@@ -727,6 +735,12 @@ export function Dashboard({
                         </>
                     )}
                 </div>
+                {coarsePointer && (
+                    <TouchScrollbar
+                        target={scrollEl}
+                        revision={`${activeTabId}|${effectiveRglWidth}|${containerWidth}`}
+                    />
+                )}
                 {showIframeOverlay && (
                     <IframeOverlay data={iframeFullscreen!} onClose={() => setIframeFullscreen(null)} />
                 )}
