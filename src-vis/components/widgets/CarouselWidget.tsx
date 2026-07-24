@@ -53,6 +53,10 @@ export type CarouselItem = {
 // Below the threshold, the click still fires (tap-to-toggle still works).
 const DRAG_CLICK_THRESHOLD = 6;
 
+// Slider max for the chip radius option. At the maximum the chip is rendered as
+// a full pill (matching the historical `rounded-full` default when unset).
+const CHIP_RADIUS_MAX = 40;
+
 // Loose equality that also matches across types. The Aktiv-/Inaktiv-Wert
 // inputs are <input type="text"> → always strings, while DP values can be
 // boolean / number / string. Native `==` fails on e.g. `true == "true"`, so
@@ -80,6 +84,15 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
     const checkDp = (o.checkDp as string) ?? '';
     const chipSizeRaw = o.chipSize as string | number | undefined;
     const chipStyle = (o.chipStyle as string) ?? 'outlined';
+    // Corner radius: undefined / max = full pill (previous rounded-full default),
+    // otherwise a fixed px radius. Matches ChipsWidget.
+    const chipRadiusRaw = o.chipRadius as number | undefined;
+    const chipRadius =
+        chipRadiusRaw === undefined || chipRadiusRaw >= CHIP_RADIUS_MAX ? 9999 : Math.max(0, chipRadiusRaw);
+    // Global fallback colours for the inactive/base state (per-item overrides win,
+    // the active highlight still takes over). Mirrors ChipsWidget precedence.
+    const chipBgColor = o.chipBgColor as string | undefined;
+    const chipTextColor = o.chipTextColor as string | undefined;
     const gap = (o.gap as number) ?? 8;
     const align = (o.align as string) ?? 'start';
     const valign = (o.valign as string) ?? 'middle';
@@ -468,8 +481,11 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
     const justify = align === 'end' ? 'flex-end' : align === 'center' ? 'center' : 'flex-start';
     const valignJustify = valign === 'top' ? 'flex-start' : valign === 'bottom' ? 'flex-end' : 'center';
 
-    const defaultBg = (active: boolean) =>
-        chipStyle === 'filled'
+    const defaultBg = (active: boolean) => {
+        // Inactive/base state: global background colour wins over the theme default
+        // (per-item override is applied earlier, before this fallback is reached).
+        if (!active && chipBgColor) return chipBgColor;
+        return chipStyle === 'filled'
             ? active
                 ? 'var(--accent)'
                 : 'var(--app-bg)'
@@ -480,9 +496,12 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
               : active
                 ? 'var(--accent)22'
                 : 'var(--app-bg)';
+    };
 
-    const defaultColor = (active: boolean) =>
-        active ? (chipStyle === 'filled' ? '#fff' : 'var(--accent)') : 'var(--text-primary)';
+    const defaultColor = (active: boolean) => {
+        if (!active && chipTextColor) return chipTextColor;
+        return active ? (chipStyle === 'filled' ? '#fff' : 'var(--accent)') : 'var(--text-primary)';
+    };
 
     const chipBorder = (active: boolean, customBg: string | undefined) =>
         chipStyle === 'ghost'
@@ -572,6 +591,7 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
                                 snap={(snap && !autoRotate) || isSingle}
                                 fullWidth={isSingle}
                                 maxWidth={maxItemWidth}
+                                radius={chipRadius}
                                 labelAlign={labelAlign}
                                 defaultBg={defaultBg}
                                 defaultColor={defaultColor}
@@ -629,6 +649,8 @@ interface CarouselItemButtonProps {
     fullWidth: boolean;
     /** Max chip width in px; 0 = uncapped. Triggers marquee on overflowing labels. */
     maxWidth: number;
+    /** Corner radius in px; 9999 = full pill. */
+    radius: number;
     /** Horizontal alignment of the label / last-change text inside the chip. */
     labelAlign: 'left' | 'center' | 'right';
     defaultBg: (active: boolean) => string;
@@ -650,6 +672,7 @@ function CarouselItemButton({
     snap,
     fullWidth,
     maxWidth,
+    radius,
     labelAlign,
     defaultBg,
     defaultColor,
@@ -750,11 +773,12 @@ function CarouselItemButton({
             // cursor and each `:hover` flip pulses the chip in/out → reads as flicker
             // synchronised to the rotation. Instant opacity feedback is fine for
             // chip-style buttons.
-            className={`flex items-center gap-1.5 ${fullWidth ? 'rounded-xl justify-center' : 'rounded-full'} whitespace-nowrap hover:opacity-80 shrink-0`}
+            className={`flex items-center gap-1.5 ${fullWidth ? 'justify-center' : ''} whitespace-nowrap hover:opacity-80 shrink-0`}
             style={{
                 background: bg,
                 color,
                 border: chipBorder(active, customBg),
+                borderRadius: radius,
                 fontSize: fs,
                 height: item.showLastChange ? 'auto' : `${h}px`,
                 minHeight: `${h}px`,

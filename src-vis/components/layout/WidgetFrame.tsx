@@ -4270,9 +4270,10 @@ function CarouselEditPanel({
                         style={{ color: 'var(--text-secondary)' }}
                     />
                 </summary>
-                <div className="space-y-2">
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                <div className="grid grid-cols-6 items-end gap-x-2 gap-y-2">
+                    {/* Row 1: Modus · Ausrichtung · Vertikale Position */}
+                    <div className="col-span-2">
+                        <label className="text-[11px] mb-1 block truncate" style={{ color: 'var(--text-secondary)' }}>
                             {tHook('carousel.opt.mode' as never)}
                         </label>
                         <select
@@ -4285,8 +4286,8 @@ function CarouselEditPanel({
                             <option value="single">{tHook('carousel.opt.mode.single' as never)}</option>
                         </select>
                     </div>
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                    <div className="col-span-2">
+                        <label className="text-[11px] mb-1 block truncate" style={{ color: 'var(--text-secondary)' }}>
                             {tHook('cw.layout.align' as never)}
                         </label>
                         <select
@@ -4300,8 +4301,8 @@ function CarouselEditPanel({
                             <option value="end">Ende</option>
                         </select>
                     </div>
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                    <div className="col-span-2">
+                        <label className="text-[11px] mb-1 block truncate" style={{ color: 'var(--text-secondary)' }}>
                             {tHook('cw.layout.valign' as never)}
                         </label>
                         <select
@@ -4315,8 +4316,10 @@ function CarouselEditPanel({
                             <option value="bottom">Unten</option>
                         </select>
                     </div>
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+
+                    {/* Row 2: Textausrichtung · Chip-Stil */}
+                    <div className="col-span-3">
+                        <label className="text-[11px] mb-1 block truncate" style={{ color: 'var(--text-secondary)' }}>
                             {tHook('carousel.opt.labelAlign' as never)}
                         </label>
                         <select
@@ -4330,13 +4333,30 @@ function CarouselEditPanel({
                             <option value="right">Rechts</option>
                         </select>
                     </div>
-                    <div>
+                    <div className="col-span-3">
+                        <label className="text-[11px] mb-1 block truncate" style={{ color: 'var(--text-secondary)' }}>
+                            {tHook('cw.layout.chipStyle' as never)}
+                        </label>
+                        <select
+                            value={(o.chipStyle as string) ?? 'outlined'}
+                            onChange={(e) => setO({ chipStyle: e.target.value })}
+                            className={selCls}
+                            style={sInputStyle}
+                        >
+                            <option value="outlined">{tHook('cw.style.outlined' as never)}</option>
+                            <option value="filled">{tHook('cw.style.filled' as never)}</option>
+                            <option value="ghost">{tHook('cw.style.ghost' as never)}</option>
+                        </select>
+                    </div>
+
+                    {/* Row 3: Chip-Größe · Eckenradius */}
+                    <div className="col-span-3">
                         <label
-                            className="text-[11px] mb-1 block flex items-center justify-between"
+                            className="text-[11px] mb-1 flex items-center justify-between gap-1"
                             style={{ color: 'var(--text-secondary)' }}
                         >
-                            <span>{tHook('cw.layout.chipSize' as never)}</span>
-                            <span style={{ color: 'var(--text-primary)' }}>
+                            <span className="truncate">{tHook('cw.layout.chipSize' as never)}</span>
+                            <span className="shrink-0" style={{ color: 'var(--text-primary)' }}>
                                 {(() => {
                                     const raw = o.chipSize as string | number | undefined;
                                     const n =
@@ -4358,28 +4378,42 @@ function CarouselEditPanel({
                             className="w-full"
                         />
                     </div>
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            {tHook('cw.layout.chipStyle' as never)}
-                        </label>
-                        <select
-                            value={(o.chipStyle as string) ?? 'outlined'}
-                            onChange={(e) => setO({ chipStyle: e.target.value })}
-                            className={selCls}
-                            style={sInputStyle}
-                        >
-                            <option value="outlined">{tHook('cw.style.outlined' as never)}</option>
-                            <option value="filled">{tHook('cw.style.filled' as never)}</option>
-                            <option value="ghost">{tHook('cw.style.ghost' as never)}</option>
-                        </select>
-                    </div>
-                    <div>
+                    <div className="col-span-3">
                         <label
-                            className="text-[11px] mb-1 block flex items-center justify-between"
+                            className="text-[11px] mb-1 flex items-center justify-between gap-1"
                             style={{ color: 'var(--text-secondary)' }}
                         >
-                            <span>{tHook('carousel.opt.gap' as never)}</span>
-                            <span style={{ color: 'var(--text-primary)' }}>{(o.gap as number) ?? 8}px</span>
+                            <span className="truncate">{tHook('cw.layout.chipRadius' as never)}</span>
+                            <span className="shrink-0" style={{ color: 'var(--text-primary)' }}>
+                                {(() => {
+                                    const raw = o.chipRadius as number | undefined;
+                                    return raw === undefined || raw >= 40
+                                        ? tHook('cw.radius.full' as never)
+                                        : `${raw}px`;
+                                })()}
+                            </span>
+                        </label>
+                        <input
+                            type="range"
+                            min={0}
+                            max={40}
+                            step={1}
+                            value={(o.chipRadius as number | undefined) ?? 40}
+                            onChange={(e) => setO({ chipRadius: Number(e.target.value) })}
+                            className="w-full"
+                        />
+                    </div>
+
+                    {/* Row 4: Abstand · Max. Chip-Breite */}
+                    <div className="col-span-3">
+                        <label
+                            className="text-[11px] mb-1 flex items-center justify-between gap-1"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            <span className="truncate">{tHook('carousel.opt.gap' as never)}</span>
+                            <span className="shrink-0" style={{ color: 'var(--text-primary)' }}>
+                                {(o.gap as number) ?? 8}px
+                            </span>
                         </label>
                         <input
                             type="range"
@@ -4391,13 +4425,13 @@ function CarouselEditPanel({
                             className="w-full"
                         />
                     </div>
-                    <div>
+                    <div className="col-span-3">
                         <label
-                            className="text-[11px] mb-1 block flex items-center justify-between"
+                            className="text-[11px] mb-1 flex items-center justify-between gap-1"
                             style={{ color: 'var(--text-secondary)' }}
                         >
-                            <span>{tHook('carousel.opt.maxItemWidth' as never)}</span>
-                            <span style={{ color: 'var(--text-primary)' }}>
+                            <span className="truncate">{tHook('carousel.opt.maxItemWidth' as never)}</span>
+                            <span className="shrink-0" style={{ color: 'var(--text-primary)' }}>
                                 {(o.maxItemWidth as number | undefined)
                                     ? `${o.maxItemWidth}px`
                                     : tHook('common.auto' as never)}
@@ -4416,6 +4450,28 @@ function CarouselEditPanel({
                             className="w-full"
                         />
                     </div>
+
+                    {/* Row 5: globale Hintergrund- · Schriftfarbe */}
+                    <div className="col-span-3">
+                        <CwColorField
+                            label={tHook('cw.layout.bgColor' as never)}
+                            value={o.chipBgColor as string | undefined}
+                            swatchFallback="#1e293b"
+                            resetTitle={tHook('common.reset' as never)}
+                            onChange={(v) => setO({ chipBgColor: v })}
+                        />
+                    </div>
+                    <div className="col-span-3">
+                        <CwColorField
+                            label={tHook('cw.layout.textColor' as never)}
+                            value={o.chipTextColor as string | undefined}
+                            swatchFallback="#e2e8f0"
+                            resetTitle={tHook('common.reset' as never)}
+                            onChange={(v) => setO({ chipTextColor: v })}
+                        />
+                    </div>
+                </div>
+                <div className="space-y-2 mt-2">
                     <label className="flex items-center gap-2 cursor-pointer select-none">
                         <input
                             type="checkbox"
