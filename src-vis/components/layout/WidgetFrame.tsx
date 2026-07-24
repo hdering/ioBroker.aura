@@ -4763,6 +4763,76 @@ function CarouselEditPanel({
                                     </select>
                                 </div>
 
+                                {/* popup-widget: target widget selector */}
+                                {item.clickAction?.kind === 'popup-widget' &&
+                                    (() => {
+                                        const cur = item.clickAction;
+                                        return (
+                                            <div>
+                                                <label
+                                                    className="text-[10px] mb-0.5 block"
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                >
+                                                    Ziel-Widget (leer = dieses)
+                                                </label>
+                                                <select
+                                                    value={cur.widgetId ?? ''}
+                                                    onChange={(e) =>
+                                                        setItemAction(item.id, {
+                                                            kind: 'popup-widget',
+                                                            widgetId: e.target.value || undefined,
+                                                        })
+                                                    }
+                                                    className={selCls}
+                                                    style={sInputStyle}
+                                                >
+                                                    <option value="">— Dieses Widget —</option>
+                                                    {allWidgets
+                                                        .filter((w) => w.id !== config.id)
+                                                        .map((w) => (
+                                                            <option key={w.id} value={w.id}>
+                                                                {w.title || w.type} — {w.type}
+                                                            </option>
+                                                        ))}
+                                                </select>
+                                            </div>
+                                        );
+                                    })()}
+
+                                {/* popup-view: view selector */}
+                                {item.clickAction?.kind === 'popup-view' &&
+                                    (() => {
+                                        const cur = item.clickAction;
+                                        return (
+                                            <div>
+                                                <label
+                                                    className="text-[10px] mb-0.5 block"
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                >
+                                                    Popup-View
+                                                </label>
+                                                <select
+                                                    value={cur.viewId}
+                                                    onChange={(e) =>
+                                                        setItemAction(item.id, {
+                                                            kind: 'popup-view',
+                                                            viewId: e.target.value,
+                                                        })
+                                                    }
+                                                    className={selCls}
+                                                    style={sInputStyle}
+                                                >
+                                                    <option value="">— View wählen —</option>
+                                                    {popupViews.map((v) => (
+                                                        <option key={v.id} value={v.id}>
+                                                            {v.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        );
+                                    })()}
+
                                 {/* DP write – only when action is none (default DP-toggle behavior) */}
                                 {(!item.clickAction || item.clickAction.kind === 'none') && (
                                     <>
@@ -4903,76 +4973,6 @@ function CarouselEditPanel({
                                         </div>
                                     </div>
                                 )}
-
-                                {/* popup-widget: target widget selector */}
-                                {item.clickAction?.kind === 'popup-widget' &&
-                                    (() => {
-                                        const cur = item.clickAction;
-                                        return (
-                                            <div>
-                                                <label
-                                                    className="text-[10px] mb-0.5 block"
-                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                                >
-                                                    Ziel-Widget (leer = dieses)
-                                                </label>
-                                                <select
-                                                    value={cur.widgetId ?? ''}
-                                                    onChange={(e) =>
-                                                        setItemAction(item.id, {
-                                                            kind: 'popup-widget',
-                                                            widgetId: e.target.value || undefined,
-                                                        })
-                                                    }
-                                                    className={selCls}
-                                                    style={sInputStyle}
-                                                >
-                                                    <option value="">— Dieses Widget —</option>
-                                                    {allWidgets
-                                                        .filter((w) => w.id !== config.id)
-                                                        .map((w) => (
-                                                            <option key={w.id} value={w.id}>
-                                                                {w.title || w.type} — {w.type}
-                                                            </option>
-                                                        ))}
-                                                </select>
-                                            </div>
-                                        );
-                                    })()}
-
-                                {/* popup-view: view selector */}
-                                {item.clickAction?.kind === 'popup-view' &&
-                                    (() => {
-                                        const cur = item.clickAction;
-                                        return (
-                                            <div>
-                                                <label
-                                                    className="text-[10px] mb-0.5 block"
-                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                                >
-                                                    Popup-View
-                                                </label>
-                                                <select
-                                                    value={cur.viewId}
-                                                    onChange={(e) =>
-                                                        setItemAction(item.id, {
-                                                            kind: 'popup-view',
-                                                            viewId: e.target.value,
-                                                        })
-                                                    }
-                                                    className={selCls}
-                                                    style={sInputStyle}
-                                                >
-                                                    <option value="">— View wählen —</option>
-                                                    {popupViews.map((v) => (
-                                                        <option key={v.id} value={v.id}>
-                                                            {v.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        );
-                                    })()}
 
                                 {/* link-tab: layout + tab */}
                                 {item.clickAction?.kind === 'link-tab' &&
