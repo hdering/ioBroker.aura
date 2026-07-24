@@ -4,5 +4,3 @@
 #   <Widget type> - <what changed>          e.g.  Thermostat - target temperature now shown inline
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
-Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left
-Tab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer

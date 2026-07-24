@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.24.2 (2026-07-10)
+- Layouts can be hidden from the layout menu (still reachable via their direct URL)
+- Layout menu can be hidden per layout — e.g. lock a wall tablet to a single layout
+
 ## 0.24.1 (2026-07-10)
 - refactor(layout-menu): show the menu-title input in a SubGroup like placement
 - refactor(layout-menu): group placement-dependent settings under the placement

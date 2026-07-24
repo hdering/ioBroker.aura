@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.33.4",
+    "version": "0.33.5",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.33.5": {
+        "en": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
+        "de": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
+        "ru": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
+        "pt": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
+        "nl": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
+        "fr": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
+        "it": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
+        "es": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
+        "pl": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
+        "uk": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
+        "zh-cn": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer"
+      },
       "0.33.4": {
         "en": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
         "de": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Editor - docked section menu now collapses on mobile viewports so it no longer eats the editing area\n🌟 New feature: Editor - editing on a touch device no longer accidentally repositions all widgets (grid drag/resize is disabled on touch-primary devices)\n🌟 New feature: Section menu - can now be docked as a horizontal bar above or below the dashboard (like the tab bar), with the same height, entry style, font/icon size, alignment and hide-scroll-bar-on-mobile options; placed at the top it sits above the tab bar",
         "uk": "🌟 New feature: Editor - docked section menu now collapses on mobile viewports so it no longer eats the editing area\n🌟 New feature: Editor - editing on a touch device no longer accidentally repositions all widgets (grid drag/resize is disabled on touch-primary devices)\n🌟 New feature: Section menu - can now be docked as a horizontal bar above or below the dashboard (like the tab bar), with the same height, entry style, font/icon size, alignment and hide-scroll-bar-on-mobile options; placed at the top it sits above the tab bar",
         "zh-cn": "🌟 New feature: Editor - docked section menu now collapses on mobile viewports so it no longer eats the editing area\n🌟 New feature: Editor - editing on a touch device no longer accidentally repositions all widgets (grid drag/resize is disabled on touch-primary devices)\n🌟 New feature: Section menu - can now be docked as a horizontal bar above or below the dashboard (like the tab bar), with the same height, entry style, font/icon size, alignment and hide-scroll-bar-on-mobile options; placed at the top it sits above the tab bar"
-      },
-      "0.31.4": {
-        "en": "🌟 New feature: General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view",
-        "de": "🌟 New feature: General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view",
-        "ru": "🌟 New feature: General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view",
-        "pt": "🌟 New feature: General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view",
-        "nl": "🌟 New feature: General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view",
-        "fr": "🌟 New feature: General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view",
-        "it": "🌟 New feature: General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view",
-        "es": "🌟 New feature: General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view",
-        "pl": "🌟 New feature: General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view",
-        "uk": "🌟 New feature: General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view",
-        "zh-cn": "🌟 New feature: General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view"
       }
     }
   },
