@@ -908,7 +908,6 @@ export default function App() {
             activeLayoutId={layout?.id}
             activeSectionId={section?.id}
             variant="bar"
-            barPosition={drawerBarBottom ? 'bottom' : 'top'}
             barAlignment={effectiveSettings.layoutDrawerBarAlignment ?? 'left'}
             hideMobileScrollbar={effectiveSettings.layoutDrawerHideMobileScrollbar ?? false}
             drawerTitle={drawerTitle}

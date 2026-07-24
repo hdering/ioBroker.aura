@@ -44,8 +44,6 @@ interface LayoutDrawerProps {
     iconSize?: number;
     /** 'overlay' = hamburger trigger + slide-in drawer; 'sidebar' = permanently docked left menu; 'bar' = permanently docked horizontal section bar. */
     variant?: 'overlay' | 'sidebar' | 'bar';
-    /** For variant='bar': whether the bar sits above ('top') or below ('bottom') the dashboard — decides which edge carries the divider. */
-    barPosition?: 'top' | 'bottom';
     /** For variant='bar': horizontal alignment of the section entries (mirrors the tab bar). */
     barAlignment?: 'left' | 'center' | 'right';
     /** For variant='bar': hide the custom scroll indicator on mobile. */
@@ -290,7 +288,6 @@ export function LayoutDrawer({
     fontSize = 14,
     iconSize = 16,
     variant = 'overlay',
-    barPosition = 'top',
     barAlignment = 'left',
     hideMobileScrollbar = false,
     width = 240,
@@ -548,7 +545,10 @@ export function LayoutDrawer({
 
         const containerStyle: React.CSSProperties = {
             background: 'var(--nav-bg, var(--app-surface))',
-            [barPosition === 'bottom' ? 'borderTop' : 'borderBottom']: '1px solid var(--app-border)',
+            // Match the tab bar: a single bottom border. At top placement it separates
+            // the bar from the dashboard; at bottom placement it sits on the screen edge,
+            // so the footer section bar has no visible seam above it — just like the tab bar.
+            borderBottom: '1px solid var(--app-border)',
             // Own stacking context above the dashboard grid (z-index:10) so section
             // badges overflowing the bar aren't hidden by opaque widgets below it.
             position: 'relative',
