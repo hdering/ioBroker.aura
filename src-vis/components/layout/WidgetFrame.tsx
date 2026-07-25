@@ -6876,6 +6876,7 @@ export function WidgetFrame({
                             config.type !== 'alarm' &&
                             config.type !== 'map' &&
                             config.type !== 'mirror' &&
+                            config.type !== 'menu' &&
                             config.type !== 'energiebilanz' &&
                             (() => {
                                 const activeLayout = config.layout ?? 'default';
@@ -8421,6 +8422,7 @@ export function WidgetFrame({
                             config.type !== 'map' &&
                             config.type !== 'statusoverview' &&
                             config.type !== 'mirror' &&
+                            config.type !== 'menu' &&
                             config.type !== 'energiebilanz' && (
                                 <div>
                                     <label
