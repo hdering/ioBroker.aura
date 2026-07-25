@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.25.4 (2026-07-12)
+- Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile
+
 ## 0.25.3 (2026-07-12)
 - Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint
 

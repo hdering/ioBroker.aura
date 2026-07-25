@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.34.0",
+    "version": "0.35.0",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.35.0": {
+        "en": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
+        "de": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
+        "ru": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
+        "pt": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
+        "nl": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
+        "fr": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
+        "it": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
+        "es": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
+        "pl": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
+        "uk": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
+        "zh-cn": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)"
+      },
       "0.34.0": {
         "en": "🌟 New feature: Editor - a whole tab (with its widgets) can now be moved or copied into another section from the tab settings\n🌟 New feature: Layouts - a whole section (with its tabs and widgets) can now be moved or copied into another layout via a popup on each section",
         "de": "🌟 New feature: Editor - a whole tab (with its widgets) can now be moved or copied into another section from the tab settings\n🌟 New feature: Layouts - a whole section (with its tabs and widgets) can now be moved or copied into another layout via a popup on each section",
@@ -184,19 +197,6 @@
         "pl": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
         "uk": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
         "zh-cn": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor"
-      },
-      "0.33.3": {
-        "en": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
-        "de": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
-        "ru": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
-        "pt": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
-        "nl": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
-        "fr": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
-        "it": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
-        "es": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
-        "pl": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
-        "uk": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length",
-        "zh-cn": "🌟 New feature: EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state\n🌟 New feature: Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length"
       }
     }
   },
