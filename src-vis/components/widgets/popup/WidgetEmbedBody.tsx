@@ -3,6 +3,7 @@ import { AlertTriangle } from 'lucide-react';
 import type { WidgetConfig, ClickAction } from '../../../types';
 import { getWidgetMap } from '../widgetMap';
 import { useDashboardStore } from '../../../store/dashboardStore';
+import { useConfigStore } from '../../../store/configStore';
 
 interface Props {
     widget: WidgetConfig;
@@ -12,6 +13,9 @@ interface Props {
 
 export function WidgetEmbedBody({ widget, action, allWidgets }: Props) {
     const updateWidget = useDashboardStore((s) => s.updateWidget);
+    // Grid pitch — read here (before any early return) so the hook order stays stable.
+    const cellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);
+    const gridGap = useConfigStore((s) => s.frontend.gridGap ?? 10);
     const targetId = action.widgetId;
     const target: WidgetConfig = targetId ? (allWidgets.find((w) => w.id === targetId) ?? widget) : widget;
 
@@ -55,11 +59,24 @@ export function WidgetEmbedBody({ widget, action, allWidgets }: Props) {
     const popupWidth = widget.options?.popupWidth as number | undefined;
     const popupHeight = widget.options?.popupHeight as number | undefined;
 
+    // Without an explicit popup size, fall back to the target widget's own designed
+    // pixel size (grid columns/rows × dashboard pitch) instead of a flat 500px box.
+    // This keeps wide widgets — notably groups, whose column count is derived from
+    // the rendered width — from re-squeezing their children when no popupWidth is set.
+    // Small widgets still get the comfortable 500px minimum via max().
+    const EMBED_PAD = 32; // this box's 16px padding on both sides
+    const naturalW = target.gridPos.w * (cellSize + gridGap) - gridGap + EMBED_PAD;
+    const naturalH = target.gridPos.h * (cellSize + gridGap) - gridGap + EMBED_PAD;
+
     return (
         <div
             style={{
-                width: popupWidth ? `min(calc(100vw - 40px), ${popupWidth - 24}px)` : 'min(80vw, 500px)',
-                height: popupHeight ? `min(calc(85vh - 56px), ${popupHeight - 40}px)` : 'min(70vh, 500px)',
+                width: popupWidth
+                    ? `min(calc(100vw - 40px), ${popupWidth - 24}px)`
+                    : `min(90vw, ${Math.max(500, naturalW)}px)`,
+                height: popupHeight
+                    ? `min(calc(85vh - 56px), ${popupHeight - 40}px)`
+                    : `min(85vh, ${Math.max(500, naturalH)}px)`,
                 padding: 16,
                 background: 'var(--widget-bg)',
                 borderRadius: 'var(--widget-radius)',
