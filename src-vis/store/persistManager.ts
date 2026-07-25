@@ -1,6 +1,5 @@
 import type { StateStorage } from 'zustand/middleware';
 import {
-    setStateDirect,
     setStateDirectAsync,
     writeFileDirect,
     readFileDirect,
@@ -649,10 +648,42 @@ export async function loadBackupPayload(filename: string): Promise<Record<string
     }
 }
 
+// Write one config state and resolve true only once the ioBroker write is
+// ACK-confirmed (the socket setState callback fired). Resolves false if the ack
+// does not arrive within `timeoutMs` — e.g. the websocket bounced mid-write
+// (issue #496: a large backup writeFile can silently drop the socket). Callers
+// use the result to decide whether the key may be marked clean or must stay
+// dirty for a retry, so a lost write can never be silently reverted.
+async function writeStateConfirmed(id: string, raw: string, timeoutMs = 10000): Promise<boolean> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<false>((resolve) => {
+        timer = setTimeout(() => resolve(false), timeoutMs);
+    });
+    try {
+        // ack=true: these are owned config-storage blobs (current values), not
+        // pending commands, so they land acknowledged rather than as an unconfirmed
+        // client write that no adapter ever acks.
+        return await Promise.race([setStateDirectAsync(id, raw, true).then(() => true), timeout]);
+    } finally {
+        if (timer) clearTimeout(timer);
+    }
+}
+
 /**
  * Write store(s) to ioBroker. By default only writes keys that are dirty
  * (Fix 3 — avoids cross-browser overwrites from unrelated saves). Pass
  * `all: true` for the initial bootstrap that seeds an empty ioBroker.
+ *
+ * Writes are ACK-confirmed (issue #496): a key's dirty/pending state is cleared
+ * ONLY after ioBroker acknowledges its write. Until then the key stays pending,
+ * so a lost or reordered write (websocket bounce during the backup file-I/O
+ * burst) can't be silently reverted by a reconnect getState — it stays dirty and
+ * the next save/auto-save retries it. The auto-backup runs only after the writes
+ * are confirmed, so its heavy gzip+writeFile+prune I/O can't compete with (and
+ * drop) the config-state write frame on the shared socket.
+ *
+ * Returns true synchronously once the writes are dispatched; the local stores
+ * already hold the new value, so callers never await it.
  */
 export function saveToIoBroker({ backup = true, all = false }: { backup?: boolean; all?: boolean } = {}): boolean {
     // Screenshot harness active → never write to the real ioBroker instance.
@@ -675,6 +706,9 @@ export function saveToIoBroker({ backup = true, all = false }: { backup?: boolea
 
     const changedKeys: SyncStoreKey[] = [];
     const details: BackupChangeDetail[] = [];
+    // Per-key ack promises (aligned with changedKeys) — resolve true when the
+    // write is confirmed, false when it timed out / the socket dropped.
+    const acks: Array<Promise<boolean>> = [];
     targetKeys.forEach((key) => {
         const raw = getRaw(key);
         if (raw) {
@@ -689,20 +723,45 @@ export function saveToIoBroker({ backup = true, all = false }: { backup?: boolea
                 const cached = getStateFromCache(IOBROKER_STATE_MAP[key])?.val;
                 if (typeof cached === 'string') before = cached;
             }
-            // ack=true: these are owned config-storage blobs (current values), not
-            // pending commands, so they should land acknowledged rather than as an
-            // unconfirmed client write that no adapter ever acks.
-            setStateDirect(IOBROKER_STATE_MAP[key], raw, true);
+            // Arm the echo guard up-front so our own NEW echo is suppressed. The key
+            // stays pending (dirty flag + pending map) until the write is confirmed
+            // below, so the isPending() gate in useConfigSync blocks any inbound
+            // value until then.
             savedAtMap.set(key, { ts: now, value: raw });
-            clearDirtyFlag(key);
             changedKeys.push(key);
             details.push(...summarizeKeyChange(key, before, raw));
+            acks.push(
+                writeStateConfirmed(IOBROKER_STATE_MAP[key], raw).then((ok) => {
+                    if (ok) {
+                        // Confirmed landed → now safe to drop dirty/pending.
+                        clearDirtyFlag(key);
+                        pending.delete(key);
+                    } else {
+                        // Unconfirmed (socket bounce / timeout): keep the key dirty &
+                        // pending so the next save/auto-save retries it and a stale
+                        // server value can't win the isPending() gate (issue #496).
+                        console.warn(`[persistManager] save unconfirmed for ${key} — keeping dirty for retry`);
+                    }
+                    notify();
+                    return ok;
+                }),
+            );
+        } else {
+            pending.delete(key);
         }
-        pending.delete(key);
     });
     originals.clear();
     notify();
-    if (backup) void writeBackup(changedKeys, details);
+    // Run the backup only AFTER the config writes are confirmed, so the heavy
+    // gzip+writeFile+prune file-I/O burst can't compete with (and drop) the
+    // config-state write frame on the shared websocket (issue #496). Only back up
+    // the keys that actually landed.
+    if (backup) {
+        void Promise.all(acks).then((results) => {
+            const confirmed = changedKeys.filter((_, i) => results[i] !== false);
+            if (confirmed.length > 0) void writeBackup(confirmed, details);
+        });
+    }
     return true;
 }
 
