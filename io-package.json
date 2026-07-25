@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.36.0",
+    "version": "0.36.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.36.1": {
+        "en": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
+        "de": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
+        "ru": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
+        "pt": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
+        "nl": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
+        "fr": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
+        "it": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
+        "es": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
+        "pl": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
+        "uk": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
+        "zh-cn": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices"
+      },
       "0.36.0": {
         "en": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles",
         "de": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles",
@@ -184,19 +197,6 @@
         "pl": "Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones\nCarousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name",
         "uk": "Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones\nCarousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name",
         "zh-cn": "Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones\nCarousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name"
-      },
-      "0.33.7": {
-        "en": "Settings - header HTML template field now grows across multiple lines",
-        "de": "Settings - header HTML template field now grows across multiple lines",
-        "ru": "Settings - header HTML template field now grows across multiple lines",
-        "pt": "Settings - header HTML template field now grows across multiple lines",
-        "nl": "Settings - header HTML template field now grows across multiple lines",
-        "fr": "Settings - header HTML template field now grows across multiple lines",
-        "it": "Settings - header HTML template field now grows across multiple lines",
-        "es": "Settings - header HTML template field now grows across multiple lines",
-        "pl": "Settings - header HTML template field now grows across multiple lines",
-        "uk": "Settings - header HTML template field now grows across multiple lines",
-        "zh-cn": "Settings - header HTML template field now grows across multiple lines"
       }
     }
   },
