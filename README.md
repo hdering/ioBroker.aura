@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.35.2 (2026-07-25)
+- Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children
+
+
 ### 0.35.1 (2026-07-25)
 - General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit
 
@@ -207,14 +211,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Section menu - entries can now show markers (badges) and an optional aggregate count of how many widgets across the section's tabs currently have a badge
 
 
-### 0.30.0 (2026-07-13)
-- 🌟 **New feature:** Layouts - new "Sections" level: each layout can now hold several sections (the left-hand menu), each with its own tabs; export/import works per section, and a per-layout default section is used on open and for idle-return
-- 🌟 **New feature:** Design - settings now cascade global → layout → section: theme, typography, grid, guidelines and tab bar can be overridden per section, and header, layout menu and idle-return per layout
-- 🌟 **New feature:** Design - optional toggles to show the section menu and the tab bar even with a single entry (previously only shown from two)
-- 🌟 **New feature:** Tab bar - can now be positioned at the bottom (footer) instead of the top
-- 🌟 **New feature:** Layout menu - datapoint elements: pick the datapoint via the standard picker, and the template field supports HTML
-
-
 ## License
 
 MIT License
@@ -226,6 +222,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

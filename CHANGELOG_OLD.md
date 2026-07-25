@@ -1,5 +1,12 @@
 # Changelog (older entries)
 
+## 0.30.0 (2026-07-13)
+- 🌟 **New feature:** Layouts - new "Sections" level: each layout can now hold several sections (the left-hand menu), each with its own tabs; export/import works per section, and a per-layout default section is used on open and for idle-return
+- 🌟 **New feature:** Design - settings now cascade global → layout → section: theme, typography, grid, guidelines and tab bar can be overridden per section, and header, layout menu and idle-return per layout
+- 🌟 **New feature:** Design - optional toggles to show the section menu and the tab bar even with a single entry (previously only shown from two)
+- 🌟 **New feature:** Tab bar - can now be positioned at the bottom (footer) instead of the top
+- 🌟 **New feature:** Layout menu - datapoint elements: pick the datapoint via the standard picker, and the template field supports HTML
+
 ## 0.25.5 (2026-07-12)
 - Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)
 - JSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content

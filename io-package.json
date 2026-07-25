@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.35.1",
+    "version": "0.35.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.35.2": {
+        "en": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
+        "de": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
+        "ru": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
+        "pt": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
+        "nl": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
+        "fr": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
+        "it": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
+        "es": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
+        "pl": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
+        "uk": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
+        "zh-cn": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children"
+      },
       "0.35.1": {
         "en": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
         "de": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
@@ -184,19 +197,6 @@
         "pl": "General - dashboard now shows a visible, draggable scrollbar on tablets and phones when the content overflows (native touch scrollbars stay hidden until you scroll)\nQuick-access chips - add an adjustable corner radius (square to pill), global background and text colours, plus per-chip background and text colour overrides\nQuick-access chips - in the grid (fixed columns) arrangement all chips now share the widest chip's width, and the alignment setting positions the label inside each chip",
         "uk": "General - dashboard now shows a visible, draggable scrollbar on tablets and phones when the content overflows (native touch scrollbars stay hidden until you scroll)\nQuick-access chips - add an adjustable corner radius (square to pill), global background and text colours, plus per-chip background and text colour overrides\nQuick-access chips - in the grid (fixed columns) arrangement all chips now share the widest chip's width, and the alignment setting positions the label inside each chip",
         "zh-cn": "General - dashboard now shows a visible, draggable scrollbar on tablets and phones when the content overflows (native touch scrollbars stay hidden until you scroll)\nQuick-access chips - add an adjustable corner radius (square to pill), global background and text colours, plus per-chip background and text colour overrides\nQuick-access chips - in the grid (fixed columns) arrangement all chips now share the widest chip's width, and the alignment setting positions the label inside each chip"
-      },
-      "0.33.5": {
-        "en": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
-        "de": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
-        "ru": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
-        "pt": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
-        "nl": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
-        "fr": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
-        "it": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
-        "es": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
-        "pl": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
-        "uk": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
-        "zh-cn": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer"
       }
     }
   },
