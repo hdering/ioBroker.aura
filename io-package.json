@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.36.1",
+    "version": "0.36.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.36.2": {
+        "en": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
+        "de": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
+        "ru": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
+        "pt": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
+        "nl": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
+        "fr": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
+        "it": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
+        "es": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
+        "pl": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
+        "uk": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
+        "zh-cn": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4"
+      },
       "0.36.1": {
         "en": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
         "de": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Editor - a whole tab (with its widgets) can now be moved or copied into another section from the tab settings\n🌟 New feature: Layouts - a whole section (with its tabs and widgets) can now be moved or copied into another layout via a popup on each section",
         "uk": "🌟 New feature: Editor - a whole tab (with its widgets) can now be moved or copied into another section from the tab settings\n🌟 New feature: Layouts - a whole section (with its tabs and widgets) can now be moved or copied into another layout via a popup on each section",
         "zh-cn": "🌟 New feature: Editor - a whole tab (with its widgets) can now be moved or copied into another section from the tab settings\n🌟 New feature: Layouts - a whole section (with its tabs and widgets) can now be moved or copied into another layout via a popup on each section"
-      },
-      "0.33.8": {
-        "en": "Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones\nCarousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name",
-        "de": "Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones\nCarousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name",
-        "ru": "Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones\nCarousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name",
-        "pt": "Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones\nCarousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name",
-        "nl": "Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones\nCarousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name",
-        "fr": "Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones\nCarousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name",
-        "it": "Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones\nCarousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name",
-        "es": "Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones\nCarousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name",
-        "pl": "Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones\nCarousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name",
-        "uk": "Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones\nCarousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name",
-        "zh-cn": "Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones\nCarousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name"
       }
     }
   },

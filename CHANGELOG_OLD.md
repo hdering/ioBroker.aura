@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.31.2 (2026-07-14)
+- Dynamic list - "states" display now shows the configured state label/icon/color instead of the raw value
+
 ## 0.31.1 (2026-07-13)
 - 🌟 **New feature:** Status icon, state image and dimmer - active/on state can now be driven by a numeric condition (==, !=, >, >=, <, <=) instead of only boolean values
 - 🌟 **New feature:** Static and dynamic lists - new "States" display maps each value to its own label, icon and color for multi-state sensors (e.g. window handle: closed/tilted/open), auto-filled from the datapoint's common.states
