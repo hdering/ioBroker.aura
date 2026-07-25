@@ -3814,9 +3814,9 @@ function MenuEditPanel({
                             className={selCls}
                             style={sInputStyle}
                         >
-                            <option value="start">←</option>
-                            <option value="center">↔</option>
-                            <option value="end">→</option>
+                            <option value="start">{tHook('menu.align.left')}</option>
+                            <option value="center">{tHook('menu.align.center')}</option>
+                            <option value="end">{tHook('menu.align.right')}</option>
                         </select>
                     </div>
 
