@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.35.3",
+    "version": "0.36.0",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,18 +107,18 @@
       }
     ],
     "news": {
-      "0.35.3": {
-        "en": "Universal widget - string datapoints are no longer coerced to numbers when no value factor/offset is set, so values like \"0x004\" display as-is instead of being parsed as hex",
-        "de": "Universal widget - string datapoints are no longer coerced to numbers when no value factor/offset is set, so values like \"0x004\" display as-is instead of being parsed as hex",
-        "ru": "Universal widget - string datapoints are no longer coerced to numbers when no value factor/offset is set, so values like \"0x004\" display as-is instead of being parsed as hex",
-        "pt": "Universal widget - string datapoints are no longer coerced to numbers when no value factor/offset is set, so values like \"0x004\" display as-is instead of being parsed as hex",
-        "nl": "Universal widget - string datapoints are no longer coerced to numbers when no value factor/offset is set, so values like \"0x004\" display as-is instead of being parsed as hex",
-        "fr": "Universal widget - string datapoints are no longer coerced to numbers when no value factor/offset is set, so values like \"0x004\" display as-is instead of being parsed as hex",
-        "it": "Universal widget - string datapoints are no longer coerced to numbers when no value factor/offset is set, so values like \"0x004\" display as-is instead of being parsed as hex",
-        "es": "Universal widget - string datapoints are no longer coerced to numbers when no value factor/offset is set, so values like \"0x004\" display as-is instead of being parsed as hex",
-        "pl": "Universal widget - string datapoints are no longer coerced to numbers when no value factor/offset is set, so values like \"0x004\" display as-is instead of being parsed as hex",
-        "uk": "Universal widget - string datapoints are no longer coerced to numbers when no value factor/offset is set, so values like \"0x004\" display as-is instead of being parsed as hex",
-        "zh-cn": "Universal widget - string datapoints are no longer coerced to numbers when no value factor/offset is set, so values like \"0x004\" display as-is instead of being parsed as hex"
+      "0.36.0": {
+        "en": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles",
+        "de": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles",
+        "ru": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles",
+        "pt": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles",
+        "nl": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles",
+        "fr": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles",
+        "it": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles",
+        "es": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles",
+        "pl": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles",
+        "uk": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles",
+        "zh-cn": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles"
       },
       "0.35.2": {
         "en": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
