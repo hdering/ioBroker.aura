@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.35.0",
+    "version": "0.35.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.35.1": {
+        "en": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
+        "de": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
+        "ru": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
+        "pt": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
+        "nl": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
+        "fr": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
+        "it": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
+        "es": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
+        "pl": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
+        "uk": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
+        "zh-cn": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit"
+      },
       "0.35.0": {
         "en": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
         "de": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
@@ -184,19 +197,6 @@
         "pl": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
         "uk": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer",
         "zh-cn": "Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left\nTab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer"
-      },
-      "0.33.4": {
-        "en": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
-        "de": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
-        "ru": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
-        "pt": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
-        "nl": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
-        "fr": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
-        "it": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
-        "es": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
-        "pl": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
-        "uk": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor",
-        "zh-cn": "Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover\nGroup - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor"
       }
     }
   },

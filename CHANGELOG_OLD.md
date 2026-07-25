@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.25.5 (2026-07-12)
+- Custom layout - wrapped cell text now respects the configured alignment (e.g. centered titles stay centered across both lines)
+- JSON table / Value widget - http:// images now load on HTTPS pages (mobile); they are routed through the proxy instead of being blocked as mixed content
+
 ## 0.25.4 (2026-07-12)
 - Fill widget - horizontal battery layout keeps its aspect ratio and no longer stretches to full width on mobile
 
