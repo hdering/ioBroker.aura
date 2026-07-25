@@ -82,7 +82,8 @@ export type WidgetType =
     | 'map'
     | 'statusoverview'
     | 'energiebilanz'
-    | 'mirror';
+    | 'mirror'
+    | 'menu';
 
 export type WidgetLayout =
     | 'default'

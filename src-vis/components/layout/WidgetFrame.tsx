@@ -43,7 +43,7 @@ import { baseDpId } from '../../utils/dpRef';
 import { JsonPathButton } from '../config/JsonPathButton';
 import { ColorPicker } from '../common/ColorPicker';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
-import { useDashboardStore, useActiveSection } from '../../store/dashboardStore';
+import { useDashboardStore, useActiveSection, useActiveLayout } from '../../store/dashboardStore';
 import { useStoreWithEqualityFn } from 'zustand/traditional';
 import { cloneGroupDef, useGroupDefsStore } from '../../store/groupDefsStore';
 import { useConfigStore } from '../../store/configStore';
@@ -159,6 +159,9 @@ import { CustomCellEditor, CELL_LABELS } from './CustomCellEditor';
 import { MediaplayerWidget } from '../widgets/MediaplayerWidget';
 import { SliderWidget } from '../widgets/SliderWidget';
 import { ChipsWidget } from '../widgets/ChipsWidget';
+import { MenuWidget } from '../widgets/MenuWidget';
+import { MultiSelect } from '../config/MultiSelect';
+import { ToggleRow } from '../../pages/admin/layouts/shared/SettingControls';
 import { HttpRequestWidget } from '../widgets/HttpRequestWidget';
 import { ButtonWidget } from '../widgets/ButtonWidget';
 import { UniversalWidget } from '../widgets/UniversalWidget';
@@ -398,6 +401,7 @@ function getWidgetMap() {
         energiebilanz: EnergiebilanzWidget,
         loadtimes: LoadTimesWidget,
         mirror: MirrorWidget,
+        menu: MenuWidget,
     } as const;
 }
 
@@ -3650,6 +3654,217 @@ function CwColorField({
                 )}
             </div>
         </div>
+    );
+}
+
+function MenuEditPanel({
+    config,
+    onConfigChange,
+}: {
+    config: WidgetConfig;
+    onConfigChange: (c: WidgetConfig) => void;
+}) {
+    const o = config.options ?? {};
+    const setO = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
+    const tHook = useT();
+
+    const selCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
+    const sInputStyle = {
+        background: 'var(--app-bg)',
+        color: 'var(--text-primary)',
+        border: '1px solid var(--app-border)',
+    };
+
+    const menuMode = (o.menuMode as string) ?? 'section';
+    const variant = (o.variant as string) ?? 'hbar';
+    const indicatorStyle = (o.indicatorStyle as string) ?? 'underline';
+    const hiddenItems = (o.hiddenItems as string[] | undefined) ?? [];
+
+    // Editor context — list the sections of the active layout (section mode) or the
+    // tabs of the active section (tab mode) so the user can de-select entries.
+    const layout = useActiveLayout();
+    const section = useActiveSection();
+    const rawItems = (menuMode === 'section' ? (layout?.sections ?? []) : (section?.tabs ?? [])).filter(
+        (it) => !it.hidden,
+    );
+
+    // Build stable key ↔ display-label maps; disambiguate duplicate names so the
+    // MultiSelect (which is label-keyed) never collapses two distinct entries.
+    const allKeys: string[] = [];
+    const labelToKey = new Map<string, string>();
+    const keyToLabel = new Map<string, string>();
+    const seen = new Map<string, number>();
+    rawItems.forEach((it) => {
+        const key = it.slug ?? it.id;
+        let label = it.name || key;
+        const n = (seen.get(label) ?? 0) + 1;
+        seen.set(label, n);
+        if (n > 1) label = `${label} (${n})`;
+        allKeys.push(key);
+        labelToKey.set(label, key);
+        keyToLabel.set(key, label);
+    });
+    const optionLabels = allKeys.map((k) => keyToLabel.get(k) ?? k);
+    const selectedLabels = allKeys.filter((k) => !hiddenItems.includes(k)).map((k) => keyToLabel.get(k) ?? k);
+
+    const summaryCls = 'flex items-center justify-between cursor-pointer list-none select-none mb-1';
+    const summaryTextCls = 'text-[11px] font-medium';
+
+    return (
+        <>
+            <details className="group" open>
+                <summary className={summaryCls}>
+                    <span className={summaryTextCls} style={{ color: 'var(--text-secondary)' }}>
+                        {tHook('menu.mode.title')}
+                    </span>
+                    <ChevronDown
+                        size={12}
+                        className="transition-transform group-open:rotate-180"
+                        style={{ color: 'var(--text-secondary)' }}
+                    />
+                </summary>
+                <div className="space-y-3">
+                    {/* Menu type — section vs tab */}
+                    <div className="flex gap-1">
+                        {(['section', 'tab'] as const).map((val) => {
+                            const active = menuMode === val;
+                            return (
+                                <button
+                                    key={val}
+                                    type="button"
+                                    // Switching mode invalidates the de-selection keys, so reset them.
+                                    onClick={() => setO({ menuMode: val, hiddenItems: [] })}
+                                    className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                                    style={{
+                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                        color: active ? '#fff' : 'var(--text-secondary)',
+                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                    }}
+                                >
+                                    {tHook(val === 'section' ? 'menu.mode.section' : 'menu.mode.tab')}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Visible entries */}
+                    <MultiSelect
+                        label={tHook('menu.items')}
+                        options={optionLabels}
+                        selected={selectedLabels}
+                        placeholder={tHook('menu.items')}
+                        onChange={(selLabels) => {
+                            const selKeys = selLabels
+                                .map((l) => labelToKey.get(l))
+                                .filter((k): k is string => Boolean(k));
+                            setO({ hiddenItems: allKeys.filter((k) => !selKeys.includes(k)) });
+                        }}
+                    />
+                </div>
+            </details>
+
+            <details className="group mt-2" open>
+                <summary className={summaryCls}>
+                    <span className={summaryTextCls} style={{ color: 'var(--text-secondary)' }}>
+                        {tHook('menu.variant.title')}
+                    </span>
+                    <ChevronDown
+                        size={12}
+                        className="transition-transform group-open:rotate-180"
+                        style={{ color: 'var(--text-secondary)' }}
+                    />
+                </summary>
+                <div className="space-y-3">
+                    <select
+                        value={variant}
+                        onChange={(e) => setO({ variant: e.target.value })}
+                        className={selCls}
+                        style={sInputStyle}
+                    >
+                        <option value="hbar">{tHook('menu.variant.hbar')}</option>
+                        <option value="vlist">{tHook('menu.variant.vlist')}</option>
+                        <option value="grid">{tHook('menu.variant.grid')}</option>
+                        <option value="pills">{tHook('menu.variant.pills')}</option>
+                    </select>
+
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {tHook('menu.indicator.title')}
+                        </label>
+                        <select
+                            value={indicatorStyle}
+                            onChange={(e) => setO({ indicatorStyle: e.target.value })}
+                            className={selCls}
+                            style={sInputStyle}
+                        >
+                            <option value="text">text</option>
+                            <option value="underline">underline</option>
+                            <option value="filled">filled</option>
+                            <option value="pills">pills</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {tHook('menu.align')}
+                        </label>
+                        <select
+                            value={(o.align as string) ?? 'start'}
+                            onChange={(e) => setO({ align: e.target.value })}
+                            className={selCls}
+                            style={sInputStyle}
+                        >
+                            <option value="start">←</option>
+                            <option value="center">↔</option>
+                            <option value="end">→</option>
+                        </select>
+                    </div>
+
+                    {variant === 'grid' && (
+                        <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                {tHook('menu.gridCols')}
+                            </label>
+                            <input
+                                type="number"
+                                min={1}
+                                max={12}
+                                value={(o.gridCols as number) ?? 3}
+                                onChange={(e) => setO({ gridCols: Math.max(1, Number(e.target.value) || 1) })}
+                                className={selCls}
+                                style={sInputStyle}
+                            />
+                        </div>
+                    )}
+
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {tHook('menu.iconSize')}
+                        </label>
+                        <input
+                            type="number"
+                            min={8}
+                            max={64}
+                            value={(o.iconSize as number) ?? 18}
+                            onChange={(e) => setO({ iconSize: Math.max(8, Number(e.target.value) || 18) })}
+                            className={selCls}
+                            style={sInputStyle}
+                        />
+                    </div>
+
+                    <ToggleRow
+                        label={tHook('menu.showIcons')}
+                        value={o.showIcons !== false}
+                        onChange={(v) => setO({ showIcons: v })}
+                    />
+                    <ToggleRow
+                        label={tHook('menu.showLabels')}
+                        value={o.showLabels !== false}
+                        onChange={(v) => setO({ showLabels: v })}
+                    />
+                </div>
+            </details>
+        </>
     );
 }
 
@@ -13481,6 +13696,8 @@ export function WidgetFrame({
                                 onOpenCheckDpPicker={() => setPickerTarget('chips_checkDp')}
                             />
                         )}
+
+                        {config.type === 'menu' && <MenuEditPanel config={config} onConfigChange={onConfigChange} />}
 
                         {config.type === 'slider' && (
                             <SliderEditPanel

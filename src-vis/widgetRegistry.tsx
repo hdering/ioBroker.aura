@@ -57,6 +57,7 @@ import {
     PieChart,
     Activity,
     CopyPlus,
+    Menu,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -845,6 +846,20 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'layout',
         mock: { t: 'Spiegel', v: '⧉' },
         hint: 'Zeigt ein vorhandenes Widget live an einer zweiten Stelle an – kein Duplikat: Änderungen an der Quelle wirken sofort mit',
+    },
+    {
+        type: 'menu',
+        label: 'Menü',
+        shortLabel: 'Menü',
+        Icon: Menu,
+        iconName: 'Menu',
+        color: '#6366f1',
+        defaultW: 12,
+        defaultH: 2,
+        addMode: 'free',
+        widgetGroup: 'layout',
+        mock: { t: 'Menü', v: '☰' },
+        hint: 'Frei positionierbares Navigations-Menü – zeigt die Bereiche oder die Tabs zum direkten Umschalten',
     },
 ];
 
