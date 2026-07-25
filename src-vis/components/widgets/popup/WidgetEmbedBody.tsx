@@ -48,11 +48,18 @@ export function WidgetEmbedBody({ widget, action, allWidgets }: Props) {
         gridPos: { x: 0, y: 0, w: 6, h: 6 },
     };
 
+    // Honour the click-action's configured popup size so the embedded widget fills
+    // the popup instead of collapsing to the 500px default. The outer popup shell
+    // (WidgetClickPopup) already clamps its own box to popupWidth/Height; we subtract
+    // a little chrome (scrollbar gutter + header) so no extra scrollbar appears.
+    const popupWidth = widget.options?.popupWidth as number | undefined;
+    const popupHeight = widget.options?.popupHeight as number | undefined;
+
     return (
         <div
             style={{
-                width: 'min(80vw, 500px)',
-                height: 'min(70vh, 500px)',
+                width: popupWidth ? `min(calc(100vw - 40px), ${popupWidth - 24}px)` : 'min(80vw, 500px)',
+                height: popupHeight ? `min(calc(85vh - 56px), ${popupHeight - 40}px)` : 'min(70vh, 500px)',
                 padding: 16,
                 background: 'var(--widget-bg)',
                 borderRadius: 'var(--widget-radius)',
