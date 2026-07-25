@@ -56,6 +56,7 @@ import {
     MapPin,
     PieChart,
     Activity,
+    CopyPlus,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -830,6 +831,20 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'special',
         mock: { t: 'Panels', v: '' },
         hint: 'Mehrere Widgets als swipebare Slides – Wischen, Pagination-Dots und Pfeil-Buttons',
+    },
+    {
+        type: 'mirror',
+        label: 'Spiegel',
+        shortLabel: 'Spiegel',
+        Icon: CopyPlus,
+        iconName: 'CopyPlus',
+        color: '#64748b',
+        defaultW: 8,
+        defaultH: 4,
+        addMode: 'free',
+        widgetGroup: 'layout',
+        mock: { t: 'Spiegel', v: '⧉' },
+        hint: 'Zeigt ein vorhandenes Widget live an einer zweiten Stelle an – kein Duplikat: Änderungen an der Quelle wirken sofort mit',
     },
 ];
 

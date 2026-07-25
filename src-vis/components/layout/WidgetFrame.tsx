@@ -140,6 +140,8 @@ import { TrashWidget, TrashConfig } from '../widgets/TrashWidget';
 import { TrashScheduleWidget, TrashScheduleConfig } from '../widgets/TrashScheduleWidget';
 import { AutoListWidget } from '../widgets/AutoListWidget';
 import { StatusOverviewWidget } from '../widgets/StatusOverviewWidget';
+import { MirrorWidget } from '../widgets/MirrorWidget';
+import { MirrorConfig } from '../config/MirrorConfig';
 import { EnergiebilanzWidget } from '../widgets/EnergiebilanzWidget';
 import { ShutterWidget } from '../widgets/ShutterWidget';
 import { JsonTableWidget } from '../widgets/JsonTableWidget';
@@ -395,6 +397,7 @@ function getWidgetMap() {
         statusoverview: StatusOverviewWidget,
         energiebilanz: EnergiebilanzWidget,
         loadtimes: LoadTimesWidget,
+        mirror: MirrorWidget,
     } as const;
 }
 
@@ -8909,6 +8912,7 @@ export function WidgetFrame({
                             />
                         )}
                         {config.type === 'echart' && <EChartConfig config={config} onConfigChange={onConfigChange} />}
+                        {config.type === 'mirror' && <MirrorConfig config={config} onConfigChange={onConfigChange} />}
                         {config.type === 'energiebilanz' && (
                             <EnergiebilanzConfig config={config} onConfigChange={onConfigChange} />
                         )}

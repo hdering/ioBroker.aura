@@ -45,6 +45,7 @@ import { EnergiebilanzWidget } from './EnergiebilanzWidget';
 import { HttpRequestWidget } from './HttpRequestWidget';
 import { ButtonWidget } from './ButtonWidget';
 import { StatusOverviewWidget } from './StatusOverviewWidget';
+import { MirrorWidget } from './MirrorWidget';
 
 // Chart widgets are heavy (recharts ~380 KB, echarts ~1.1 MB) — lazy-loaded so
 // dashboards without charts skip the cost. Consumers must render these inside
@@ -113,6 +114,7 @@ export function getWidgetMap() {
         map: MapWidget,
         statusoverview: StatusOverviewWidget,
         loadtimes: LoadTimesWidget,
+        mirror: MirrorWidget,
     } as const;
 }
 
