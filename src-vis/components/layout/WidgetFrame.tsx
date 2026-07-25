@@ -5925,6 +5925,11 @@ export function WidgetFrame({
             config.options?.showIcon !== false ||
             !!config.options?.groupSwitch
         );
+    // The menu widget has no title/icon header and its whole body is `nodrag`, so
+    // there is no surface to grab for a grid move. Give it the same hover-reveal
+    // toolbar with a dedicated grab grip as a headerless group.
+    const isHeaderlessMenu = editMode && config.type === 'menu';
+    const isHeaderlessChrome = isHeaderlessGroup || isHeaderlessMenu;
     // Card bg/border: group children > button widget > plain widget. Each element
     // var falls back to the base widget var so the default look is unchanged.
     const cardBg = inGroup
@@ -6093,13 +6098,13 @@ export function WidgetFrame({
                 // a move; every button keeps `nodrag` + stopDrag so it never drags.
                 <div
                     className={
-                        isHeaderlessGroup
-                            ? 'aura-group-toolbar absolute top-1.5 left-1.5 z-10 flex items-center gap-1'
+                        isHeaderlessChrome
+                            ? `aura-group-toolbar absolute top-1.5 ${isHeaderlessMenu ? 'right-1.5' : 'left-1.5'} z-10 flex items-center gap-1`
                             : 'aura-edit-chrome nodrag absolute top-1.5 right-1.5 z-10 flex items-center gap-1'
                     }
-                    {...(isHeaderlessGroup ? {} : { onMouseDown: stopDrag, onPointerDown: stopDrag })}
+                    {...(isHeaderlessChrome ? {} : { onMouseDown: stopDrag, onPointerDown: stopDrag })}
                 >
-                    {isHeaderlessGroup && (
+                    {isHeaderlessChrome && (
                         <div
                             className="cursor-move w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
                             title={t('wf.menu.move')}
