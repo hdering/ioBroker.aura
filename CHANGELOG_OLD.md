@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.25.3 (2026-07-12)
+- Media player - relative cover paths (e.g. Sonos album art) now display without a helper datapoint
+
 ## 0.25.2 (2026-07-11)
 - 🌟 **New feature:** Timer - event value has On/Off quick-select buttons (free text still allowed)
 - 🌟 **New feature:** Timer - event list now shows an On/Off pill so you can see whether an event switches the target on or off
