@@ -1,5 +1,6 @@
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { SliderSetting } from '../shared/SliderSetting';
+import { ToggleRow } from '../shared/SettingControls';
 import { useDashboardStore } from '../../../../store/dashboardStore';
 import { useT } from '../../../../i18n';
 
@@ -17,6 +18,7 @@ export function GridSection({ contextId }: GridSectionProps) {
     const [rowH, rowHOv] = eff('gridRowHeight');
     const [snapX, snapXOv] = eff('gridSnapX');
     const [mob, mobOv] = eff('mobileBreakpoint');
+    const [hideScroll, hideScrollOv] = eff('hideGridScrollbar');
 
     const effectiveRowH = (rowH ?? 20) as number;
     const effectiveSnapX = (snapX ?? effectiveRowH) as number;
@@ -91,6 +93,26 @@ export function GridSection({ contextId }: GridSectionProps) {
                         { label: t('settings.grid.mobileOff'), value: 0 },
                     ]}
                 />
+            </div>
+            <div className="flex items-start gap-2">
+                <div className="flex-1">
+                    <ToggleRow
+                        label={t('settings.grid.hideScrollbar')}
+                        hint={t('settings.grid.hideScrollbarHint')}
+                        value={(hideScroll ?? false) as boolean}
+                        onChange={(v) => set('hideGridScrollbar', v)}
+                    />
+                </div>
+                {hideScrollOv && (
+                    <button
+                        onClick={() => clear('hideGridScrollbar')}
+                        className="mt-2 text-[10px] px-2 py-0.5 rounded-full hover:opacity-80 shrink-0"
+                        style={{ color: 'var(--accent)', border: '1px solid var(--accent)' }}
+                        title={t('layouts.scope.resetHint')}
+                    >
+                        {t('layouts.scope.reset')}
+                    </button>
+                )}
             </div>
         </div>
     );

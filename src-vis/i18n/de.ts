@@ -204,6 +204,8 @@ export const de = {
     'settings.grid.mobileBreak': 'Mobile-Breakpoint',
     'settings.grid.wizardMaxDp': 'Wizard Max-Datenpunkte',
     'settings.grid.mobileOff': 'Aus',
+    'settings.grid.hideScrollbar': 'Scrollbalken ausblenden',
+    'settings.grid.hideScrollbarHint': 'Blendet den ziehbaren Scrollbalken über dem Dashboard auf Touch-Geräten aus.',
 
     'settings.pin.title': 'Admin-PIN',
     'settings.pin.newPin': 'Neuer PIN (min. 4 Zeichen)',

@@ -122,6 +122,7 @@ export interface LayoutSettings {
     gridRowHeight?: number;
     gridSnapX?: number;
     mobileBreakpoint?: number;
+    hideGridScrollbar?: boolean;
     // Guidelines
     guidelinesEnabled?: boolean;
     guidelinesWidth?: number;

@@ -74,6 +74,7 @@ export function Dashboard({
     const groupDefs = useGroupDefsStore((s) => s.defs);
     const groupCollapsed = useGroupCollapseStore((s) => s.collapsed);
     const mobileBreakpoint = settings.mobileBreakpoint ?? 600;
+    const hideGridScrollbar = settings.hideGridScrollbar ?? false;
     const guidelinesEnabled = settings.guidelinesEnabled ?? false;
     const guidelinesWidth = settings.guidelinesWidth ?? 1280;
     const guidelinesHeight = settings.guidelinesHeight ?? 800;
@@ -407,7 +408,7 @@ export function Dashboard({
                                     );
                                 })}
                         </div>
-                        {coarsePointer && (
+                        {coarsePointer && !hideGridScrollbar && (
                             <TouchScrollbar target={scrollEl} revision={`${activeTabId}|${containerWidth}`} />
                         )}
                         {showIframeOverlay && (
@@ -735,7 +736,7 @@ export function Dashboard({
                         </>
                     )}
                 </div>
-                {coarsePointer && (
+                {coarsePointer && !hideGridScrollbar && (
                     <TouchScrollbar
                         target={scrollEl}
                         revision={`${activeTabId}|${effectiveRglWidth}|${containerWidth}`}

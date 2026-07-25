@@ -205,6 +205,8 @@ export const en: Record<TranslationKey, string> = {
     'settings.grid.mobileBreak': 'Mobile Breakpoint',
     'settings.grid.wizardMaxDp': 'Wizard Max Datapoints',
     'settings.grid.mobileOff': 'Off',
+    'settings.grid.hideScrollbar': 'Hide scroll bar',
+    'settings.grid.hideScrollbarHint': 'Hides the draggable scroll bar over the dashboard on touch devices.',
 
     'settings.pin.title': 'Admin PIN',
     'settings.pin.newPin': 'New PIN (min. 4 chars)',

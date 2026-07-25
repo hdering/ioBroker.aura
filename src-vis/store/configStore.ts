@@ -33,6 +33,8 @@ export interface FrontendSettings {
     fontScale: number;
     mobileBreakpoint: number;
     language: 'de' | 'en';
+    /** Hide the draggable touch scroll indicator over the dashboard grid (mobile/coarse pointers). */
+    hideGridScrollbar: boolean;
     // Guidelines overlay
     guidelinesEnabled: boolean;
     guidelinesWidth: number;
@@ -159,6 +161,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     fontScale: 1,
     mobileBreakpoint: 600,
     language: 'de',
+    hideGridScrollbar: false,
     // Fresh installs show the guidelines + resolution readout in the frontend so
     // users immediately see their device's viewport size (with a dismissible hint
     // explaining how to switch it off). Existing installs keep their persisted
