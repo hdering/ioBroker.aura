@@ -5553,14 +5553,31 @@ export function WidgetFrame({
     const currentLayout = config.layout ?? 'default';
     const overrides = config.options?.styleOverride as Record<string, string> | undefined;
 
-    // Last-change timestamp overlay
-    const showLastChange = !!config.options?.showLastChange;
-    const lastChangePos = (config.options?.lastChangePosition as string | undefined) ?? 'left';
+    // A mirror widget takes its frame-level appearance (title/icon/size are handled
+    // by the mirrored inner component; last-change is a frame overlay) from its
+    // source. Resolve that source so the last-change overlay below reflects it.
+    const mirrorLcSource = useDashboardStore((s) => {
+        if (config.type !== 'mirror') return undefined;
+        const tid = config.options?.targetWidgetId as string | undefined;
+        if (!tid) return undefined;
+        for (const l of s.layouts)
+            for (const sec of l.sections)
+                for (const tb of sec.tabs) {
+                    const found = tb.widgets.find((w) => w.id === tid);
+                    if (found) return found;
+                }
+        return undefined;
+    });
+
+    // Last-change timestamp overlay (sourced from the mirror's target when applicable)
+    const lcConfig = mirrorLcSource ?? config;
+    const showLastChange = !!lcConfig.options?.showLastChange;
+    const lastChangePos = (lcConfig.options?.lastChangePosition as string | undefined) ?? 'left';
     const [lastChangedTs, setLastChangedTs] = useState<number>(0);
     const [, forceRedraw] = useState(0);
 
     useEffect(() => {
-        const id = baseDpId((config.options?.lastChangeDatapoint as string | undefined) || config.datapoint);
+        const id = baseDpId((lcConfig.options?.lastChangeDatapoint as string | undefined) || lcConfig.datapoint);
         if (!id) return;
 
         getStateDirect(id).then((s) => {
@@ -5570,7 +5587,7 @@ export function WidgetFrame({
         return subscribeStateDirect(id, (s) => {
             if (s) setLastChangedTs(s.lc > 0 ? s.lc : s.ts);
         });
-    }, [config.datapoint, config.options?.lastChangeDatapoint]);
+    }, [lcConfig.datapoint, lcConfig.options?.lastChangeDatapoint]);
 
     // Periodically redraw the relative-time string
     useEffect(() => {
@@ -7232,7 +7249,7 @@ export function WidgetFrame({
                                     />
                                 </summary>
                                 <div className="mt-2.5 space-y-2.5">
-                                    {config.type !== 'mediaplayer' && (
+                                    {config.type !== 'mediaplayer' && config.type !== 'mirror' && (
                                         <div className="flex items-center justify-between gap-2">
                                             <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
                                                 Titel
@@ -7364,7 +7381,7 @@ export function WidgetFrame({
                                             </div>
                                         );
                                     })}
-                                    {config.type !== 'stateimage' && (
+                                    {config.type !== 'stateimage' && config.type !== 'mirror' && (
                                         <>
                                             <div className="h-px" style={{ background: 'var(--app-border)' }} />
                                             <div className="flex items-center justify-between">
@@ -7561,8 +7578,10 @@ export function WidgetFrame({
                                                 </div>
                                             );
                                         })()}
-                                    {/* "Last change" makes no sense for a map (no single value) — hide it. */}
-                                    {config.type !== 'map' && (
+                                    {/* "Last change" makes no sense for a map (no single value) — hide it.
+                                        The mirror inherits its source's last-change setting, so hide the
+                                        toggle here too (see the mirror-source resolution above). */}
+                                    {config.type !== 'map' && config.type !== 'mirror' && (
                                         <>
                                             <div className="h-px" style={{ background: 'var(--app-border)' }} />
                                             <div className="flex items-center justify-between">

@@ -29,7 +29,7 @@ function Notice({ icon, title, detail }: { icon: React.ReactNode; title: string;
  * persist option edits back to the *source* id so the mirror never clobbers the
  * source's real dashboard position.
  */
-export function MirrorWidget({ config, editMode }: WidgetProps) {
+export function MirrorWidget({ config, editMode, onLastChange }: WidgetProps) {
     const layouts = useDashboardStore((s) => s.layouts);
     const updateWidget = useDashboardStore((s) => s.updateWidget);
 
@@ -103,6 +103,9 @@ export function MirrorWidget({ config, editMode }: WidgetProps) {
                     // the whole config back would clobber the source's real position.
                     updateWidget(target.id, { options: next.options });
                 }}
+                // Let the mirror's frame overlay show the source's last-change
+                // for sources that self-report it (e.g. calendar).
+                onLastChange={onLastChange}
             />
         </Suspense>
     );
