@@ -391,58 +391,76 @@ function SectionRow({
                                         border: '1px solid var(--app-border)',
                                     }}
                                 >
-                                    <div className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+                                    <div className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>
                                         {t('tabBar.moveTitle')}
                                     </div>
-                                    <select
-                                        value={moveTabId}
-                                        onChange={(e) => setMoveTabId(e.target.value)}
-                                        className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            color: 'var(--text-primary)',
-                                            border: '1px solid var(--app-border)',
-                                        }}
-                                    >
-                                        {section.tabs.map((tab) => (
-                                            <option key={tab.id} value={tab.id}>
-                                                {tab.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <select
-                                        value={moveTarget}
-                                        onChange={(e) => setMoveTarget(e.target.value)}
-                                        className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            color: 'var(--text-primary)',
-                                            border: '1px solid var(--app-border)',
-                                        }}
-                                    >
-                                        <option value="">{t('tabBar.moveTargetPlaceholder')}</option>
-                                        {layouts.map((l) => {
-                                            const opts = l.sections.map((sec) => {
-                                                const key = `${l.id}::${sec.id}`;
-                                                const label =
-                                                    key === moveCurrentKey
+
+                                    <label className="block">
+                                        <span
+                                            className="text-[10px] uppercase tracking-wide"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            {t('tabBar.moveTabLabel')}
+                                        </span>
+                                        <select
+                                            value={moveTabId}
+                                            onChange={(e) => setMoveTabId(e.target.value)}
+                                            className="mt-0.5 w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-primary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        >
+                                            {section.tabs.map((tab) => (
+                                                <option key={tab.id} value={tab.id}>
+                                                    {tab.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+
+                                    <label className="block">
+                                        <span
+                                            className="text-[10px] uppercase tracking-wide"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            {t('tabBar.moveTargetLabel')}
+                                        </span>
+                                        <select
+                                            value={moveTarget}
+                                            onChange={(e) => setMoveTarget(e.target.value)}
+                                            className="mt-0.5 w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-primary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        >
+                                            <option value="">{t('tabBar.moveTargetPlaceholder')}</option>
+                                            {layouts.map((l) => {
+                                                const opts = l.sections.map((sec) => {
+                                                    const key = `${l.id}::${sec.id}`;
+                                                    const isCurrent = key === moveCurrentKey;
+                                                    const label = isCurrent
                                                         ? `${sec.name} (${t('tabBar.moveCurrentSuffix')})`
                                                         : sec.name;
-                                                return (
-                                                    <option key={key} value={key}>
-                                                        {label}
-                                                    </option>
+                                                    return (
+                                                        <option key={key} value={key}>
+                                                            {label}
+                                                        </option>
+                                                    );
+                                                });
+                                                return multiLayout ? (
+                                                    <optgroup key={l.id} label={l.name}>
+                                                        {opts}
+                                                    </optgroup>
+                                                ) : (
+                                                    <Fragment key={l.id}>{opts}</Fragment>
                                                 );
-                                            });
-                                            return multiLayout ? (
-                                                <optgroup key={l.id} label={l.name}>
-                                                    {opts}
-                                                </optgroup>
-                                            ) : (
-                                                <Fragment key={l.id}>{opts}</Fragment>
-                                            );
-                                        })}
-                                    </select>
+                                            })}
+                                        </select>
+                                    </label>
                                     <div className="flex items-center gap-1.5">
                                         <button
                                             onClick={() => runTabMove('move')}

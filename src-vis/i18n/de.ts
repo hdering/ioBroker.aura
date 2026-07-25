@@ -944,6 +944,8 @@ export const de = {
     'tabBar.addTab': '+ Tab',
     'tabBar.exportTab': 'Tab exportieren',
     'tabBar.moveTitle': 'In Bereich verschieben / kopieren',
+    'tabBar.moveTabLabel': 'Tab',
+    'tabBar.moveTargetLabel': 'Zielbereich',
     'tabBar.moveTargetPlaceholder': 'Zielbereich wählen…',
     'tabBar.moveCurrentSuffix': 'aktuell',
     'tabBar.move': 'Verschieben',
