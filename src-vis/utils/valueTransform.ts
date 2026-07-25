@@ -36,6 +36,12 @@ function num(v: unknown, fallback: number): number {
 
 /** Applies factor/offset to a numeric value; non-numeric values pass through unchanged. */
 export function applyValueTransform<T>(value: T, factor?: number, offset?: number): T | number {
+    // No transform configured → never touch the value. Coercing here would turn a
+    // genuine string DP (e.g. "0x004", which Number() parses as hex → 4) into a
+    // number and silently rewrite what the user sees (issue #494).
+    const hasFactor = typeof factor === 'number' && Number.isFinite(factor) && factor !== 1;
+    const hasOffset = typeof offset === 'number' && Number.isFinite(offset) && offset !== 0;
+    if (!hasFactor && !hasOffset) return value;
     // Some adapters (e.g. upnp) store number datapoints as strings — coerce those
     // so the transform still applies. Genuine text values pass through unchanged.
     let n: number | null = null;
