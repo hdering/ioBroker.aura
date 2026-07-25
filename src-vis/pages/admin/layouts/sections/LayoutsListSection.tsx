@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, Fragment } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -76,7 +76,7 @@ function SectionRow({
         setDefaultSection,
         updateSectionSettings,
         clearSectionSettings,
-        moveTabToSection,
+        moveSectionToLayout,
     } = useDashboardStore();
     const navigate = useNavigate();
 
@@ -89,12 +89,11 @@ function SectionRow({
     const [showDup, setShowDup] = useState(false);
     const [iconPickerOpen, setIconPickerOpen] = useState(false);
     const [showExport, setShowExport] = useState(false);
-    // Move/copy-tab popup: which tab to move and the chosen `${layoutId}::${sectionId}` target.
+    // Move/copy-section-to-layout popup: the chosen target layout id.
     // Rendered through a portal with fixed positioning because the section row clips
     // its overflow (rounded-xl overflow-hidden), which would otherwise cut it off.
-    const [showMoveTabs, setShowMoveTabs] = useState(false);
+    const [showMoveSection, setShowMoveSection] = useState(false);
     const [movePos, setMovePos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
-    const [moveTabId, setMoveTabId] = useState('');
     const [moveTarget, setMoveTarget] = useState('');
     const moveBtnRef = useRef<HTMLButtonElement>(null);
     const MOVE_PANEL_W = 264;
@@ -105,11 +104,11 @@ function SectionRow({
     // All section mutations operate on the active layout — make sure it is this one.
     const ensureActive = () => setActiveLayout(layoutId);
 
-    const moveCurrentKey = `${layoutId}::${section.id}`;
-    const multiLayout = layouts.length > 1;
-    const openMoveTabs = () => {
-        if (showMoveTabs) {
-            setShowMoveTabs(false);
+    // A section can be moved/copied only into a *different* layout.
+    const otherLayouts = layouts.filter((l) => l.id !== layoutId);
+    const openMoveSection = () => {
+        if (showMoveSection) {
+            setShowMoveSection(false);
             return;
         }
         const rect = moveBtnRef.current?.getBoundingClientRect();
@@ -117,16 +116,14 @@ function SectionRow({
             const left = Math.max(8, Math.min(rect.right - MOVE_PANEL_W, window.innerWidth - MOVE_PANEL_W - 12));
             setMovePos({ top: rect.bottom + 6, left });
         }
-        setMoveTabId(section.tabs[0]?.id ?? '');
         setMoveTarget('');
-        setShowMoveTabs(true);
+        setShowMoveSection(true);
     };
-    const runTabMove = (mode: 'move' | 'copy') => {
-        if (!moveTabId || !moveTarget) return;
-        if (mode === 'move' && moveTarget === moveCurrentKey) return;
-        const [targetLayoutId, targetSectionId] = moveTarget.split('::');
-        moveTabToSection(moveTabId, layoutId, section.id, targetLayoutId, targetSectionId, mode);
-        setShowMoveTabs(false);
+    const runSectionMove = (mode: 'move' | 'copy') => {
+        if (!moveTarget) return;
+        if (mode === 'move' && isOnly) return; // don't strand this layout with no section
+        moveSectionToLayout(section.id, layoutId, moveTarget, mode);
+        setShowMoveSection(false);
         setMoveTarget('');
     };
 
@@ -346,19 +343,21 @@ function SectionRow({
                     >
                         <Copy size={13} />
                     </button>
-                    <button
-                        ref={moveBtnRef}
-                        onClick={openMoveTabs}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
-                        style={{
-                            background: showMoveTabs ? 'var(--accent)22' : 'var(--app-bg)',
-                            color: showMoveTabs ? 'var(--accent)' : 'var(--text-secondary)',
-                            border: `1px solid ${showMoveTabs ? 'var(--accent)' : 'var(--app-border)'}`,
-                        }}
-                        title={t('tabBar.moveTitle')}
-                    >
-                        <FolderInput size={13} />
-                    </button>
+                    {otherLayouts.length > 0 && (
+                        <button
+                            ref={moveBtnRef}
+                            onClick={openMoveSection}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+                            style={{
+                                background: showMoveSection ? 'var(--accent)22' : 'var(--app-bg)',
+                                color: showMoveSection ? 'var(--accent)' : 'var(--text-secondary)',
+                                border: `1px solid ${showMoveSection ? 'var(--accent)' : 'var(--app-border)'}`,
+                            }}
+                            title={t('sections.moveTitle')}
+                        >
+                            <FolderInput size={13} />
+                        </button>
+                    )}
                     <button
                         onClick={() => setShowExport(true)}
                         className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
@@ -377,10 +376,10 @@ function SectionRow({
                             onClose={() => setShowExport(false)}
                         />
                     )}
-                    {showMoveTabs &&
+                    {showMoveSection &&
                         createPortal(
                             <>
-                                <div className="fixed inset-0 z-[998]" onClick={() => setShowMoveTabs(false)} />
+                                <div className="fixed inset-0 z-[998]" onClick={() => setShowMoveSection(false)} />
                                 <div
                                     className="fixed z-[999] rounded-xl p-3 space-y-2 shadow-lg"
                                     style={{
@@ -392,7 +391,7 @@ function SectionRow({
                                     }}
                                 >
                                     <div className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>
-                                        {t('tabBar.moveTitle')}
+                                        {t('sections.moveTitle')}
                                     </div>
 
                                     <label className="block">
@@ -400,32 +399,7 @@ function SectionRow({
                                             className="text-[10px] uppercase tracking-wide"
                                             style={{ color: 'var(--text-secondary)' }}
                                         >
-                                            {t('tabBar.moveTabLabel')}
-                                        </span>
-                                        <select
-                                            value={moveTabId}
-                                            onChange={(e) => setMoveTabId(e.target.value)}
-                                            className="mt-0.5 w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                                            style={{
-                                                background: 'var(--app-bg)',
-                                                color: 'var(--text-primary)',
-                                                border: '1px solid var(--app-border)',
-                                            }}
-                                        >
-                                            {section.tabs.map((tab) => (
-                                                <option key={tab.id} value={tab.id}>
-                                                    {tab.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </label>
-
-                                    <label className="block">
-                                        <span
-                                            className="text-[10px] uppercase tracking-wide"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            {t('tabBar.moveTargetLabel')}
+                                            {t('sections.moveTargetLabel')}
                                         </span>
                                         <select
                                             value={moveTarget}
@@ -437,34 +411,19 @@ function SectionRow({
                                                 border: '1px solid var(--app-border)',
                                             }}
                                         >
-                                            <option value="">{t('tabBar.moveTargetPlaceholder')}</option>
-                                            {layouts.map((l) => {
-                                                const opts = l.sections.map((sec) => {
-                                                    const key = `${l.id}::${sec.id}`;
-                                                    const isCurrent = key === moveCurrentKey;
-                                                    const label = isCurrent
-                                                        ? `${sec.name} (${t('tabBar.moveCurrentSuffix')})`
-                                                        : sec.name;
-                                                    return (
-                                                        <option key={key} value={key}>
-                                                            {label}
-                                                        </option>
-                                                    );
-                                                });
-                                                return multiLayout ? (
-                                                    <optgroup key={l.id} label={l.name}>
-                                                        {opts}
-                                                    </optgroup>
-                                                ) : (
-                                                    <Fragment key={l.id}>{opts}</Fragment>
-                                                );
-                                            })}
+                                            <option value="">{t('sections.moveTargetPlaceholder')}</option>
+                                            {otherLayouts.map((l) => (
+                                                <option key={l.id} value={l.id}>
+                                                    {l.name}
+                                                </option>
+                                            ))}
                                         </select>
                                     </label>
                                     <div className="flex items-center gap-1.5">
                                         <button
-                                            onClick={() => runTabMove('move')}
-                                            disabled={!moveTarget || moveTarget === moveCurrentKey}
+                                            onClick={() => runSectionMove('move')}
+                                            disabled={!moveTarget || isOnly}
+                                            title={isOnly ? t('sections.moveLastHint') : undefined}
                                             className="flex items-center justify-center gap-1.5 flex-1 px-2.5 py-1.5 rounded-lg text-xs hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
                                             style={{
                                                 background: 'var(--app-bg)',
@@ -473,10 +432,10 @@ function SectionRow({
                                             }}
                                         >
                                             <FolderInput size={11} />
-                                            {t('tabBar.move')}
+                                            {t('sections.move')}
                                         </button>
                                         <button
-                                            onClick={() => runTabMove('copy')}
+                                            onClick={() => runSectionMove('copy')}
                                             disabled={!moveTarget}
                                             className="flex items-center justify-center gap-1.5 flex-1 px-2.5 py-1.5 rounded-lg text-xs hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
                                             style={{
@@ -486,7 +445,7 @@ function SectionRow({
                                             }}
                                         >
                                             <Copy size={11} />
-                                            {t('tabBar.copy')}
+                                            {t('sections.copy')}
                                         </button>
                                     </div>
                                 </div>

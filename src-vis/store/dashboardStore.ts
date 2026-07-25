@@ -365,6 +365,18 @@ interface DashboardState {
     addSection: (name: string) => void;
     addSectionFromImport: (sectionData: Omit<Section, 'id'>) => void;
     duplicateSection: (id: string, newName: string) => void;
+    /**
+     * Move or copy a whole section (with its tabs and widgets) from one layout into
+     * a different layout. Move detaches it from the source (refused when it is the
+     * source layout's only section); copy leaves the source untouched. Navigates to
+     * the target layout so the moved/copied section becomes visible.
+     */
+    moveSectionToLayout: (
+        sectionId: string,
+        srcLayoutId: string,
+        targetLayoutId: string,
+        mode: 'move' | 'copy',
+    ) => void;
     removeSection: (id: string) => void;
     renameSection: (id: string, name: string) => void;
     setSectionSlug: (id: string, slug: string) => void;
@@ -634,6 +646,59 @@ export const useDashboardStore = create<DashboardState>()(
                     };
                 });
             },
+
+            moveSectionToLayout: (sectionId, srcLayoutId, targetLayoutId, mode) =>
+                set((s) => {
+                    if (srcLayoutId === targetLayoutId) return {};
+                    const srcLayout = s.layouts.find((l) => l.id === srcLayoutId);
+                    const targetLayout = s.layouts.find((l) => l.id === targetLayoutId);
+                    const srcSec = srcLayout?.sections.find((sec) => sec.id === sectionId);
+                    if (!srcLayout || !targetLayout || !srcSec) return {};
+                    // Never strand a layout with zero sections.
+                    if (mode === 'move' && srcLayout.sections.length <= 1) return {};
+
+                    const now = Date.now();
+                    const newId = mode === 'copy' ? `section-${now}` : sectionId;
+
+                    // Build the section for the target: deep-clone on copy (fresh group
+                    // defs via cloneWidgetDef), keep the original on move. Slug is made
+                    // unique against the target layout's existing sections.
+                    const base: Section =
+                        mode === 'copy'
+                            ? {
+                                  ...(JSON.parse(JSON.stringify(srcSec)) as Section),
+                                  tabs: srcSec.tabs.map((tab) => ({
+                                      ...tab,
+                                      widgets: tab.widgets.map(cloneWidgetDef),
+                                  })),
+                              }
+                            : { ...srcSec };
+                    const slug = uniqueSectionSlug(slugify(base.slug || base.name), targetLayout.sections);
+                    const newSec: Section = { ...base, id: newId, slug };
+
+                    let layouts = s.layouts;
+                    // 1) Move only: detach the section from its source layout and fix up
+                    // the source's active/default section references.
+                    if (mode === 'move') {
+                        layouts = patchLayout(layouts, srcLayoutId, (l) => {
+                            const sections = l.sections.filter((sec) => sec.id !== sectionId);
+                            return {
+                                ...l,
+                                sections,
+                                activeSectionId: l.activeSectionId === sectionId ? sections[0].id : l.activeSectionId,
+                                defaultSectionId: l.defaultSectionId === sectionId ? undefined : l.defaultSectionId,
+                            };
+                        });
+                    }
+                    // 2) Append to the target layout and make it the active section there.
+                    layouts = patchLayout(layouts, targetLayoutId, (l) => ({
+                        ...l,
+                        sections: [...l.sections, newSec],
+                        activeSectionId: newId,
+                    }));
+                    // 3) Follow the section to its target layout so the change is visible.
+                    return { activeLayoutId: targetLayoutId, layouts };
+                }),
 
             removeSection: (id) =>
                 set((s) => ({
