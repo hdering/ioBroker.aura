@@ -7,3 +7,4 @@
 Timer - new option to hide the astro symbol so only the resolved time is shown
 JSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)
 Group - transparent groups now stay transparent when opened via the "Popup: widget content" click action
+Group - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)

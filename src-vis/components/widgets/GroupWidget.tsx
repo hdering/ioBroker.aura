@@ -238,8 +238,17 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // groups keep their own logic.
     const filled = !autoShrink && !keepGrid && !isMobile;
     const maxRow = gridChildren.length ? Math.max(...gridChildren.map((c) => c.gridPos.y + c.gridPos.h)) : 0;
+    // Fill-scaling ties EVERY child to one derived rowHeight (box height / maxRow),
+    // so resizing one child changes maxRow → recomputes the shared rowHeight →
+    // visibly rescales the others (issue #500). That coupling is only wanted for the
+    // pixel-perfect hug in the live frontend; in the editor use the fixed cellSize
+    // pitch so resize/drag is 1:1 and each child is independent (uniform GROUP_GAP
+    // spacing is kept via margin/containerPadding below). shrinkToFit still hugs the
+    // outer box on every edit, so no visible slack remains.
     const fillRowHeight =
-        filled && height > 0 && maxRow > 0 ? Math.max(8, (height - (maxRow + 1) * GROUP_GAP) / maxRow) : null;
+        filled && !editMode && height > 0 && maxRow > 0
+            ? Math.max(8, (height - (maxRow + 1) * GROUP_GAP) / maxRow)
+            : null;
 
     // keepGrid uses square cells (rowHeight = colWidth) so width AND height scale
     // together, faithfully reproducing the desktop arrangement at phone size.
