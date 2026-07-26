@@ -650,6 +650,42 @@ function CalendarEditPanel({
                 />
             </div>
 
+            {/* ── Mehrtägige Termine ── */}
+            <div>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                    Mehrtägige Termine
+                </label>
+                <div className="flex gap-1">
+                    {(
+                        [
+                            ['off', 'Aus'],
+                            ['span', 'Spanne'],
+                            ['badge', 'Badge'],
+                            ['both', 'Beides'],
+                        ] as const
+                    ).map(([val, lbl]) => {
+                        const active = ((o.multiDayDisplay as string) ?? 'both') === val;
+                        return (
+                            <button
+                                key={val}
+                                onClick={() => setOpts({ multiDayDisplay: val })}
+                                className="flex-1 text-[11px] py-1 rounded transition-colors"
+                                style={{
+                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                    color: active ? '#fff' : 'var(--text-primary)',
+                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                }}
+                            >
+                                {lbl}
+                            </button>
+                        );
+                    })}
+                </div>
+                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                    Spanne = Start – Ende, Badge = „läuft" / „noch N T" bei laufenden Terminen.
+                </p>
+            </div>
+
             {/* separator */}
             <div className="h-px" style={{ background: 'var(--app-border)' }} />
 

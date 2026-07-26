@@ -254,16 +254,72 @@ function isTomorrow(d: Date) {
 
 type TFn = ReturnType<typeof useT>;
 
-function formatEventDate(event: CalEvent, t: TFn): string {
-    const d = event.start;
-    const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    if (isToday(d)) return event.allDay ? t('calendar.today') : t('calendar.todayAt', { time });
-    if (isTomorrow(d)) return event.allDay ? t('calendar.tomorrow') : t('calendar.tomorrowAt', { time });
+function sameDay(a: Date, b: Date): boolean {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+/**
+ * Inclusive last calendar day of an event, or null for single-day / no-end events.
+ * iCal DTEND is EXCLUSIVE for all-day events (a Mon–Wed event has DTEND=Thu),
+ * so we step back one day to get the actual last day the event covers.
+ */
+function eventEndDay(ev: CalEvent): Date | null {
+    if (!ev.end) return null;
+    const end = new Date(ev.end.getTime());
+    if (ev.allDay) end.setDate(end.getDate() - 1);
+    return end;
+}
+
+function isMultiDay(ev: CalEvent): boolean {
+    const endDay = eventEndDay(ev);
+    return !!endDay && endDay > ev.start && !sameDay(ev.start, endDay);
+}
+
+/** Absolute "weekday, day. month" label (no today/tomorrow substitution). */
+function formatDayLabel(d: Date, t: TFn): string {
     const day = d.getDate();
     const month = t(`cal.month.${d.getMonth()}` as Parameters<TFn>[0]);
     const weekday = t(`cal.day.${d.getDay()}` as Parameters<TFn>[0]);
-    if (event.allDay) return `${weekday}, ${day}. ${month}`;
-    return `${weekday}, ${day}. ${month}, ${time}`;
+    return `${weekday}, ${day}. ${month}`;
+}
+
+function formatEventDate(event: CalEvent, t: TFn, showSpan = false): string {
+    const d = event.start;
+    const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    let startLabel: string;
+    if (isToday(d)) startLabel = event.allDay ? t('calendar.today') : t('calendar.todayAt', { time });
+    else if (isTomorrow(d)) startLabel = event.allDay ? t('calendar.tomorrow') : t('calendar.tomorrowAt', { time });
+    else startLabel = event.allDay ? formatDayLabel(d, t) : `${formatDayLabel(d, t)}, ${time}`;
+
+    if (!showSpan || !isMultiDay(event)) return startLabel;
+
+    const endDay = eventEndDay(event);
+    if (!endDay) return startLabel;
+    const endLabel = event.allDay
+        ? formatDayLabel(endDay, t)
+        : `${formatDayLabel(endDay, t)}, ${pad(endDay.getHours())}:${pad(endDay.getMinutes())}`;
+    return `${startLabel} – ${endLabel}`;
+}
+
+/**
+ * For a multi-day event that is currently in progress, returns a short badge
+ * label: "läuft" on the last day, otherwise "noch N T" full days remaining.
+ * Returns null if the event isn't multi-day, hasn't started, or is already over.
+ */
+function runningBadge(ev: CalEvent, t: TFn): string | null {
+    if (!isMultiDay(ev)) return null;
+    const now = new Date();
+    if (ev.start > now) return null; // not started yet
+    const endDay = eventEndDay(ev);
+    if (!endDay) return null;
+    const endInclusive = ev.allDay
+        ? new Date(endDay.getFullYear(), endDay.getMonth(), endDay.getDate(), 23, 59, 59, 999)
+        : (ev.end ?? endDay);
+    if (endInclusive < now) return null; // already over
+    const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const last0 = new Date(endDay.getFullYear(), endDay.getMonth(), endDay.getDate());
+    const days = Math.round((last0.getTime() - today0.getTime()) / 86_400_000);
+    return days <= 0 ? t('calendar.running') : t('calendar.daysLeft', { days });
 }
 
 function isUpcoming(event: CalEvent, daysAhead: number): boolean {
@@ -311,6 +367,34 @@ function Spinner({ loading }: { loading: boolean }) {
                 flexShrink: 0,
             }}
         />
+    );
+}
+
+type MultiDayMode = 'off' | 'span' | 'badge' | 'both';
+
+function getMultiDayMode(options: Record<string, unknown>): MultiDayMode {
+    const m = options.multiDayDisplay;
+    return m === 'off' || m === 'span' || m === 'badge' || m === 'both' ? m : 'both';
+}
+
+/** Small pill shown for a currently-running multi-day event. */
+function RunningBadge({ ev, t, color, fontSize }: { ev: CalEventTagged; t: TFn; color: string; fontSize: string }) {
+    const label = runningBadge(ev, t);
+    if (!label) return null;
+    return (
+        <span
+            className="shrink-0 rounded whitespace-nowrap"
+            style={{
+                color,
+                background: `${color}22`,
+                fontSize,
+                padding: '0 4px',
+                lineHeight: 1.5,
+                fontWeight: 600,
+            }}
+        >
+            {label}
+        </span>
     );
 }
 
@@ -423,6 +507,9 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     const sources = getSources(options);
     const layout = config.layout ?? 'default';
     const calFontScale = (options.calFontScale as number) ?? 1;
+    const multiDayMode = getMultiDayMode(options);
+    const showSpan = multiDayMode === 'span' || multiDayMode === 'both';
+    const showBadge = multiDayMode === 'badge' || multiDayMode === 'both';
     const highlightEnabled = options.highlightEnabled !== false;
     const highlightPriority = options.highlightPriority !== false;
     const highlightColor = (options.highlightColor as string) || '#f59e0b';
@@ -513,7 +600,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
         const next = visibleEvents[0];
         const d = next?.start;
         const timeStr = d ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
-        const dateStr = next ? formatEventDate(next, t) : '';
+        const dateStr = next ? formatEventDate(next, t, showSpan) : '';
         const count = String(visibleEvents.length);
         return (
             <CustomGridView
@@ -525,6 +612,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                     time: timeStr,
                     calname: next?.sourceName ?? '',
                     location: next?.location ?? '',
+                    running: next && showBadge ? (runningBadge(next, t) ?? '') : '',
                     count,
                 }}
             />
@@ -605,9 +693,10 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                         {t('calendar.noEvents')}
                     </span>
                 )}
+                {showBadge && next && <RunningBadge ev={next} t={t} color={color} fontSize={fs(10)} />}
                 {showDate && next && (
                     <span className="shrink-0" style={{ color, fontSize: fs(12) }}>
-                        {formatEventDate(next, t)}
+                        {formatEventDate(next, t, showSpan)}
                     </span>
                 )}
                 <button onClick={fetchEvents} className="hover:opacity-70 shrink-0">
@@ -679,10 +768,22 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                     {next.summary}
                                 </p>
                             )}
-                            {showDate && (
-                                <p style={{ color: 'var(--text-secondary)', fontSize: fs(11), marginTop: 2 }}>
-                                    {formatEventDate(next, t)}
-                                </p>
+                            {(showDate || showBadge) && (
+                                <div className="flex items-center gap-1.5 flex-wrap" style={{ marginTop: 2 }}>
+                                    {showDate && (
+                                        <p style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>
+                                            {formatEventDate(next, t, showSpan)}
+                                        </p>
+                                    )}
+                                    {showBadge && (
+                                        <RunningBadge
+                                            ev={next}
+                                            t={t}
+                                            color={important ? highlightColor : next.sourceColor}
+                                            fontSize={fs(10)}
+                                        />
+                                    )}
+                                </div>
                             )}
                             {showLocation && next.location && (
                                 <div className="flex items-center gap-1" style={{ marginTop: 4 }}>
@@ -804,6 +905,14 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                             )}
                                             {ev.summary}
                                         </p>
+                                        {showBadge && (
+                                            <RunningBadge
+                                                ev={ev}
+                                                t={t}
+                                                color={important ? highlightColor : ev.sourceColor}
+                                                fontSize={fs(9)}
+                                            />
+                                        )}
                                         {showDate && (
                                             <p
                                                 className="shrink-0 tabular-nums"
@@ -813,7 +922,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                                     fontSize: fs(10),
                                                 }}
                                             >
-                                                {formatEventDate(ev, t)}
+                                                {formatEventDate(ev, t, showSpan)}
                                             </p>
                                         )}
                                     </div>
@@ -929,16 +1038,30 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                             )}
                                             {ev.summary}
                                         </p>
-                                        {showDate && (
-                                            <p
-                                                style={{
-                                                    color: meta.isToday ? ev.sourceColor : 'var(--text-secondary)',
-                                                    fontWeight: meta.isToday ? 500 : 400,
-                                                    fontSize: fs(10),
-                                                }}
-                                            >
-                                                {formatEventDate(ev, t)}
-                                            </p>
+                                        {(showDate || showBadge) && (
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                {showDate && (
+                                                    <p
+                                                        style={{
+                                                            color: meta.isToday
+                                                                ? ev.sourceColor
+                                                                : 'var(--text-secondary)',
+                                                            fontWeight: meta.isToday ? 500 : 400,
+                                                            fontSize: fs(10),
+                                                        }}
+                                                    >
+                                                        {formatEventDate(ev, t, showSpan)}
+                                                    </p>
+                                                )}
+                                                {showBadge && (
+                                                    <RunningBadge
+                                                        ev={ev}
+                                                        t={t}
+                                                        color={important ? highlightColor : ev.sourceColor}
+                                                        fontSize={fs(9)}
+                                                    />
+                                                )}
+                                            </div>
                                         )}
                                         {showLocation && ev.location && (
                                             <div className="flex items-center gap-0.5">

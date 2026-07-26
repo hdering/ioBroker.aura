@@ -1265,6 +1265,8 @@ export const de = {
     'calendar.todayAt': 'Heute, {time}',
     'calendar.tomorrowAt': 'Morgen, {time}',
     'calendar.more': '+{count} weitere',
+    'calendar.running': 'läuft',
+    'calendar.daysLeft': 'noch {days} T',
     'calendar.updated': 'Aktualisiert: {time}',
     'calendar.noDays': 'Keine Termine in den nächsten {days} Tagen',
 

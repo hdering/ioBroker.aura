@@ -1261,6 +1261,8 @@ export const en: Record<TranslationKey, string> = {
     'calendar.todayAt': 'Today, {time}',
     'calendar.tomorrowAt': 'Tomorrow, {time}',
     'calendar.more': '+{count} more',
+    'calendar.running': 'ongoing',
+    'calendar.daysLeft': '{days}d left',
     'calendar.updated': 'Updated: {time}',
     'calendar.noDays': 'No events in the next {days} days',
 
