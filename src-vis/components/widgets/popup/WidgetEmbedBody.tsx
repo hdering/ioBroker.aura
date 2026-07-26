@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import type { CSSProperties } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import type { WidgetConfig, ClickAction } from '../../../types';
 import { getWidgetMap } from '../widgetMap';
@@ -68,6 +69,25 @@ export function WidgetEmbedBody({ widget, action, allWidgets }: Props) {
     const naturalW = target.gridPos.w * (cellSize + gridGap) - gridGap + EMBED_PAD;
     const naturalH = target.gridPos.h * (cellSize + gridGap) - gridGap + EMBED_PAD;
 
+    // A widget that opts into transparency (e.g. a group used purely as a click-action
+    // container) must keep its transparent look inside the popup too. Without this the
+    // wrapper's opaque --widget-bg + border overrides it, unlike the dashboard/tab view
+    // (mirrors cardStyleFor in TabEmbedBody).
+    const isTransparent = !!target.options?.transparent;
+    const strength = isTransparent ? Math.max(0, Math.min(100, Number(target.options?.transparency ?? 100))) : 100;
+    const cardStyle: CSSProperties = isTransparent
+        ? {
+              background:
+                  strength >= 100
+                      ? 'transparent'
+                      : `color-mix(in srgb, var(--widget-bg) ${100 - strength}%, transparent)`,
+          }
+        : {
+              background: 'var(--widget-bg)',
+              borderRadius: 'var(--widget-radius)',
+              border: '1px solid var(--app-border)',
+          };
+
     return (
         <div
             style={{
@@ -78,10 +98,8 @@ export function WidgetEmbedBody({ widget, action, allWidgets }: Props) {
                     ? `min(calc(85vh - 56px), ${popupHeight - 40}px)`
                     : `min(85vh, ${Math.max(500, naturalH)}px)`,
                 padding: 16,
-                background: 'var(--widget-bg)',
-                borderRadius: 'var(--widget-radius)',
-                border: '1px solid var(--app-border)',
                 overflow: 'auto',
+                ...cardStyle,
             }}
         >
             <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
