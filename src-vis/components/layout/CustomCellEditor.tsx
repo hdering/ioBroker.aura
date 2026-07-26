@@ -247,6 +247,7 @@ const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: 'time', label: 'Uhrzeit' },
         { key: 'calname', label: 'Kalendername' },
         { key: 'location', label: 'Ort' },
+        { key: 'running', label: 'Laufzeit-Badge (mehrtägig)' },
         { key: 'count', label: 'Anzahl Termine' },
     ],
     clock: [

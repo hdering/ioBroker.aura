@@ -612,7 +612,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                     time: timeStr,
                     calname: next?.sourceName ?? '',
                     location: next?.location ?? '',
-                    running: next && showBadge ? (runningBadge(next, t) ?? '') : '',
+                    running: next ? (runningBadge(next, t) ?? '') : '',
                     count,
                 }}
             />
