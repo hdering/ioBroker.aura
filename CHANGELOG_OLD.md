@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.32.0 (2026-07-14)
+- 🌟 **New feature:** Editor - docked section menu now collapses on mobile viewports so it no longer eats the editing area
+- 🌟 **New feature:** Editor - editing on a touch device no longer accidentally repositions all widgets (grid drag/resize is disabled on touch-primary devices)
+- 🌟 **New feature:** Section menu - can now be docked as a horizontal bar above or below the dashboard (like the tab bar), with the same height, entry style, font/icon size, alignment and hide-scroll-bar-on-mobile options; placed at the top it sits above the tab bar
+
 ## 0.31.4 (2026-07-14)
 - 🌟 **New feature:** General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view
 

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.36.4",
+    "version": "0.36.5",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.36.5": {
+        "en": "Design - resetting per-layout header overrides now activates Save and persists after reload",
+        "de": "Design - resetting per-layout header overrides now activates Save and persists after reload",
+        "ru": "Design - resetting per-layout header overrides now activates Save and persists after reload",
+        "pt": "Design - resetting per-layout header overrides now activates Save and persists after reload",
+        "nl": "Design - resetting per-layout header overrides now activates Save and persists after reload",
+        "fr": "Design - resetting per-layout header overrides now activates Save and persists after reload",
+        "it": "Design - resetting per-layout header overrides now activates Save and persists after reload",
+        "es": "Design - resetting per-layout header overrides now activates Save and persists after reload",
+        "pl": "Design - resetting per-layout header overrides now activates Save and persists after reload",
+        "uk": "Design - resetting per-layout header overrides now activates Save and persists after reload",
+        "zh-cn": "Design - resetting per-layout header overrides now activates Save and persists after reload"
+      },
       "0.36.4": {
         "en": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)",
         "de": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)",
@@ -184,19 +197,6 @@
         "pl": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
         "uk": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
         "zh-cn": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children"
-      },
-      "0.35.1": {
-        "en": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
-        "de": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
-        "ru": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
-        "pt": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
-        "nl": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
-        "fr": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
-        "it": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
-        "es": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
-        "pl": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
-        "uk": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
-        "zh-cn": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit"
       }
     }
   },
