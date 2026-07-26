@@ -88,9 +88,11 @@ function astroTimeStr(t: Extract<TimerTrigger, { kind: 'astro' }>, lat: number |
 /**
  * Preview string for an event's trigger. For astro triggers, pass the resolved
  * wall-clock time (astroTimeStr) so the widget shows e.g. "06:45 ☀↑ +30m"
- * instead of the symbol alone.
+ * instead of the symbol alone. Set showSymbol=false to drop the ☀↑/☀↓ emoji
+ * once a time is shown (falls back to the symbol when no time is available, so
+ * the row is never blank).
  */
-export function formatTrigger(t: TimerTrigger, astroTime?: string): string {
+export function formatTrigger(t: TimerTrigger, astroTime?: string, showSymbol = true): string {
     switch (t.kind) {
         case 'time':
             return `${String(t.hour).padStart(2, '0')}:${String(t.minute).padStart(2, '0')}`;
@@ -107,8 +109,11 @@ export function formatTrigger(t: TimerTrigger, astroTime?: string): string {
                           : '☀';
             const sign = t.offsetMin >= 0 ? '+' : '−';
             const mag = Math.abs(t.offsetMin);
-            const off = mag === 0 ? symbol : `${symbol} ${sign}${mag}m`;
-            return astroTime ? `${astroTime} ${off}` : off;
+            const offsetTxt = mag === 0 ? '' : `${sign}${mag}m`;
+            // Keep the symbol whenever there's no resolved time to show in its
+            // place, so hiding it never leaves the row blank.
+            const head = showSymbol || !astroTime ? symbol : '';
+            return [astroTime, head, offsetTxt].filter(Boolean).join(' ');
         }
         case 'once': {
             try {
@@ -253,6 +258,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const showMaster = o.showMasterSwitch !== false;
     const showEvents = o.showEvents !== false;
     const showAdd = o.showAddButton !== false;
+    const showAstroSymbol = o.showAstroSymbol !== false;
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const iconSize = (o.iconSize as number) || 20;
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, Timer);
@@ -271,7 +277,11 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // time next to the symbol instead of the icon alone.
     const sys = useSystemConfig();
     const triggerLabel = (t: TimerTrigger): string =>
-        formatTrigger(t, t.kind === 'astro' ? astroTimeStr(t, sys.latitude, sys.longitude) : undefined);
+        formatTrigger(
+            t,
+            t.kind === 'astro' ? astroTimeStr(t, sys.latitude, sys.longitude) : undefined,
+            showAstroSymbol,
+        );
 
     // Assign a stable, instance-unique stateBaseId on first mount. Copies / group
     // clones get a fresh path because copyConfig + cloneChildren strip stateBaseId,

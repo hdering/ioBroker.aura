@@ -46,6 +46,7 @@ export function TimerConfig({ config, onConfigChange }: Props) {
     const showMaster = o.showMasterSwitch !== false;
     const showEvents = o.showEvents !== false;
     const showAdd = o.showAddButton !== false;
+    const showAstroSymbol = o.showAstroSymbol !== false;
     const addIcon = (o.addIcon as string | undefined) ?? '';
     const addIconSize = (o.addIconSize as number | undefined) ?? 16;
 
@@ -105,6 +106,7 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                             { key: 'showMasterSwitch', label: 'Master-Schalter', val: showMaster },
                             { key: 'showEvents', label: 'Ereignis-Liste', val: showEvents },
                             { key: 'showAddButton', label: '+ Ereignis-Button', val: showAdd },
+                            { key: 'showAstroSymbol', label: 'Astro-Symbol (☀↑/☀↓)', val: showAstroSymbol },
                         ] as const
                     ).map(({ key, label, val }) => (
                         <div key={key} className="flex items-center justify-between">
