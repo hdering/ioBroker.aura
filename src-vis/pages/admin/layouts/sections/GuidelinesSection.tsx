@@ -98,7 +98,9 @@ export function GuidelinesSection({ contextId }: GuidelinesSectionProps) {
                         Hilfslinien
                     </h2>
                     <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                        Rote gestrichelte Linien zur Orientierung bei der Layout-Planung für ein Zielgerät.
+                        Rote gestrichelte Linien zur Orientierung bei der Layout-Planung. Die Höhe meint die nutzbare
+                        Inhaltsfläche (ohne Header/Tab-Leiste) – so liegen die Linien im Editor und im Frontend an
+                        derselben Stelle.
                     </p>
                 </div>
 

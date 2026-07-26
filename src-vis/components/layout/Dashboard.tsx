@@ -752,51 +752,28 @@ export function Dashboard({
 
 // ── Guidelines overlay ────────────────────────────────────────────────────
 // Renders a vertical line at x=guidelinesWidth and a horizontal line at
-// y=guidelinesHeight, positioned absolutely inside the scroll container.
-// Both lines mark the target *device* edges (width/height = the whole device).
+// y=guidelinesHeight, positioned absolutely inside the grid's scroll container.
 //
-// Vertical line (width): the dashboard's left edge already sits to the right of
-// a docked sidebar menu, so to land the line on the device's right edge we
-// subtract the docked menu width — usable dashboard = deviceWidth − menu.
-// `menuInset` is the docked sidebar width (0 for a floating / tab-bar menu,
-// which overlays content instead of insetting the dashboard).
+// Both lines are placed in the grid's own content coordinates (top-left of the
+// scroll container) using only known layout values — no viewport/DOM offset.
+// That keeps the editor and the frontend pixel-identical (issue #489): the old
+// horizontal line subtracted the container's viewport top, which in the editor
+// picked up the editor toolbar instead of the device chrome, so the line drifted.
 //
-// Horizontal line (height): offset by the container's viewport top so it
-// indicates the device's screen edge (target height covers the whole app
-// including header + tab bar).
+// Vertical line (width): right edge of the target width. A docked sidebar menu
+// insets the dashboard, so subtract its width to land on the device's right edge
+// (usable dashboard = width − menu). `menuInset` is the docked sidebar width
+// (0 for a floating / tab-bar menu, which overlays content instead of insetting).
+//
+// Horizontal line (height): the target *usable content height* — the grid area a
+// widget can occupy — measured straight down from the grid's top (header / tab bar
+// live outside the grid and are not part of this box).
 function GuidelinesOverlay({ width, height, menuInset }: { width: number; height: number; menuInset: number }) {
-    const markerRef = useRef<HTMLDivElement | null>(null);
-    const [offset, setOffset] = useState({ top: 0, left: 0 });
-
-    useEffect(() => {
-        const marker = markerRef.current;
-        const parent = marker?.parentElement;
-        if (!parent) return;
-        const measure = () => {
-            const r = parent.getBoundingClientRect();
-            setOffset({ top: Math.round(r.top), left: Math.round(r.left) });
-        };
-        measure();
-        const ro = new ResizeObserver(measure);
-        ro.observe(parent);
-        ro.observe(document.documentElement);
-        window.addEventListener('resize', measure);
-        return () => {
-            ro.disconnect();
-            window.removeEventListener('resize', measure);
-        };
-    }, []);
-
     const lineLeft = width - menuInset;
-    const lineTop = height - offset.top;
+    const lineTop = height;
 
     return (
         <>
-            <div
-                ref={markerRef}
-                aria-hidden
-                style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0, pointerEvents: 'none' }}
-            />
             {/* Vertical line: right edge of the target width */}
             <div
                 aria-hidden
