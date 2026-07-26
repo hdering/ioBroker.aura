@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.36.3",
+    "version": "0.36.4",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.36.4": {
+        "en": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)",
+        "de": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)",
+        "ru": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)",
+        "pt": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)",
+        "nl": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)",
+        "fr": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)",
+        "it": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)",
+        "es": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)",
+        "pl": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)",
+        "uk": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)",
+        "zh-cn": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)"
+      },
       "0.36.3": {
         "en": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)",
         "de": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)",
@@ -184,19 +197,6 @@
         "pl": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
         "uk": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit",
         "zh-cn": "General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit"
-      },
-      "0.35.0": {
-        "en": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
-        "de": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
-        "ru": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
-        "pt": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
-        "nl": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
-        "fr": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
-        "it": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
-        "es": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
-        "pl": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
-        "uk": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)",
-        "zh-cn": "🌟 New feature: Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)"
       }
     }
   },

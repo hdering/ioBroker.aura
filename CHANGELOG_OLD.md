@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.31.4 (2026-07-14)
+- 🌟 **New feature:** General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view
+
 ## 0.31.3 (2026-07-14)
 - Frontend Design - the section switcher is now consistently called "Section menu" (was "Layout menu"), since it navigates a layout's sections
 
