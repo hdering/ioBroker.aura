@@ -5,3 +5,4 @@
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 Timer - new option to hide the astro symbol so only the resolved time is shown
+JSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)

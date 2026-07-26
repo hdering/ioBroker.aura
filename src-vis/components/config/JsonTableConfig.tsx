@@ -527,6 +527,43 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                     </span>
                                 </label>
                             </div>
+                            {/* Row 3.6: prefix / suffix (text decoration, not for image columns) */}
+                            {!col.image && (
+                                <div className="flex items-center gap-2">
+                                    <div className="flex-1">
+                                        <label
+                                            className="text-[10px] block mb-1"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            Präfix
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={col.prefix ?? ''}
+                                            onChange={(e) => updateCol(idx, { prefix: e.target.value || undefined })}
+                                            placeholder="z.B. €"
+                                            className={jCls}
+                                            style={jSty}
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <label
+                                            className="text-[10px] block mb-1"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            Suffix
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={col.suffix ?? ''}
+                                            onChange={(e) => updateCol(idx, { suffix: e.target.value || undefined })}
+                                            placeholder="z.B. °C"
+                                            className={jCls}
+                                            style={jSty}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                             {/* Row 4: image size (only if image enabled) */}
                             {col.image && (
                                 <>

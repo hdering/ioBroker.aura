@@ -21,6 +21,10 @@ export interface JsonColumnDef {
     imagePathPrefix?: string;
     /** Render Iconify tokens (e.g. "mdi:window-open-variant") inline as SVG icons. */
     iconify?: boolean;
+    /** Text prepended to every non-empty cell value in this column (e.g. "€"). Not applied to image cells. */
+    prefix?: string;
+    /** Text appended to every non-empty cell value in this column (e.g. " °C"). Not applied to image cells. */
+    suffix?: string;
     /** Fixed column width in px. Unset → auto. */
     width?: number;
     /** Allow the cell text to wrap onto multiple lines (default: single line, ellipsis). */
@@ -547,6 +551,13 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                             col.imageSize && col.imageSize > 0 ? col.imageSize : Math.round(fs * 2.4);
                                         const wrap = col.wrap ?? false;
                                         const hasWidth = !!(col.width && col.width > 0);
+                                        // Prefix/suffix decorate real values only — the "–" placeholder
+                                        // for empty cells stays bare. Not applied to image cells.
+                                        const hasValue = raw !== null && raw !== undefined && raw !== '';
+                                        const decorated =
+                                            hasValue && (col.prefix || col.suffix)
+                                                ? `${col.prefix ?? ''}${cellText(raw)}${col.suffix ?? ''}`
+                                                : cellText(raw);
                                         return (
                                             <td
                                                 key={col.key}
@@ -588,13 +599,13 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                                 ) : isHtml ? (
                                                     <span
                                                         dangerouslySetInnerHTML={{
-                                                            __html: resolveHtmlAssets(cellText(raw)),
+                                                            __html: resolveHtmlAssets(decorated),
                                                         }}
                                                     />
                                                 ) : useIconify ? (
-                                                    renderTextWithIcons(cellText(raw), fs)
+                                                    renderTextWithIcons(decorated, fs)
                                                 ) : (
-                                                    cellText(raw)
+                                                    decorated
                                                 )}
                                             </td>
                                         );
