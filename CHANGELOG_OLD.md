@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.33.0 (2026-07-14)
+- 🌟 **New feature:** Static & Dynamic List - the "states" entry display was renamed to a more generic "value mapping"
+- 🌟 **New feature:** Static & Dynamic List - new "window/door contact" entry display reusing the contact widget's value presets (HmIP / boolean / numeric / string / custom) to map values to open / tilted / closed, with editable label, color and icon per state
+
 ## 0.32.0 (2026-07-14)
 - 🌟 **New feature:** Editor - docked section menu now collapses on mobile viewports so it no longer eats the editing area
 - 🌟 **New feature:** Editor - editing on a touch device no longer accidentally repositions all widgets (grid drag/resize is disabled on touch-primary devices)

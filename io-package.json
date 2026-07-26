@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.36.5",
+    "version": "0.36.6",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.36.6": {
+        "en": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
+        "de": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
+        "ru": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
+        "pt": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
+        "nl": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
+        "fr": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
+        "it": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
+        "es": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
+        "pl": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
+        "uk": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
+        "zh-cn": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)"
+      },
       "0.36.5": {
         "en": "Design - resetting per-layout header overrides now activates Save and persists after reload",
         "de": "Design - resetting per-layout header overrides now activates Save and persists after reload",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles",
         "uk": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles",
         "zh-cn": "🌟 New feature: Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles"
-      },
-      "0.35.2": {
-        "en": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
-        "de": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
-        "ru": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
-        "pt": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
-        "nl": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
-        "fr": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
-        "it": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
-        "es": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
-        "pl": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
-        "uk": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children",
-        "zh-cn": "Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children"
       }
     }
   },
