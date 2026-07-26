@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactGridLayout from 'react-grid-layout/legacy';
 import { X, Monitor } from 'lucide-react';
-import { useDashboardStore, useActiveLayout } from '../../store/dashboardStore';
+import { useDashboardStore, useActiveLayout, resolveTabBarSettings } from '../../store/dashboardStore';
+import { useConfigStore } from '../../store/configStore';
+import { guidelinesTopInset } from '../../utils/guidelinesInset';
 import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { useGroupCollapseStore } from '../../store/groupCollapseStore';
 import { useIframeStore, type IframeFullscreenData } from '../../store/iframeStore';
@@ -96,6 +98,30 @@ export function Dashboard({
         (settings.layoutDrawerPlacement ?? 'floating') === 'sidebar' &&
         (visibleSectionCount > 1 || (settings.layoutDrawerShowSingle ?? false));
     const guidelinesMenuInset = dockedSidebar ? (settings.layoutDrawerWidth ?? 240) : 0;
+
+    // Vertical chrome above the grid (header + top section bar + top tab bar).
+    // The horizontal guideline marks the device's bottom edge, which in grid
+    // content coordinates sits at guidelinesHeight − this inset. Computed from
+    // settings (mirroring App.tsx's frame logic) so it is identical in the
+    // frontend and the editor preview — see utils/guidelinesInset.ts (#489).
+    const globalTabBar = useConfigStore((s) => s.frontend.tabBar);
+    const drawerBarTop =
+        (settings.layoutDrawerEnabled ?? false) &&
+        (visibleSectionCount > 1 || (settings.layoutDrawerShowSingle ?? false)) &&
+        (settings.layoutDrawerPlacement ?? 'floating') === 'top';
+    const tabBarResolved = resolveTabBarSettings(
+        resolveTabBarSettings(globalTabBar, layoutForMenu.settings?.tabBar),
+        section?.settings?.tabBar,
+    );
+    const guidelineTabs = viewTabs ?? section?.tabs ?? [];
+    const tabBarVisible =
+        guidelineTabs.length > 1 || (tabBarResolved.showSingle ?? false) || (tabBarResolved.items?.length ?? 0) > 0;
+    const guidelinesTop = guidelinesTopInset({
+        showHeader: settings.showHeader ?? true,
+        tabBarVisible,
+        tabBarAtBottom: tabBarResolved.position === 'bottom',
+        sectionBarTop: drawerBarTop,
+    });
 
     const showGuidelines = guidelinesEnabled && (editMode || guidelinesShowInFrontend);
     // The resolution badge is independent of the guideline lines: it follows its
@@ -447,6 +473,7 @@ export function Dashboard({
                             width={guidelinesWidth}
                             height={guidelinesHeight}
                             menuInset={guidelinesMenuInset}
+                            topInset={guidelinesTop}
                         />
                     )}
                     {resolutionOverlay}
@@ -765,12 +792,23 @@ export function Dashboard({
 // (usable dashboard = width − menu). `menuInset` is the docked sidebar width
 // (0 for a floating / tab-bar menu, which overlays content instead of insetting).
 //
-// Horizontal line (height): the target *usable content height* — the grid area a
-// widget can occupy — measured straight down from the grid's top (header / tab bar
-// live outside the grid and are not part of this box).
-function GuidelinesOverlay({ width, height, menuInset }: { width: number; height: number; menuInset: number }) {
+// Horizontal line (height): the device's bottom screen edge. The grid starts
+// below the device chrome (header + top tab bar / section bar), so the device
+// bottom sits at height − topInset in grid content coordinates. `topInset` is
+// derived from settings (utils/guidelinesInset.ts), identical in both views.
+function GuidelinesOverlay({
+    width,
+    height,
+    menuInset,
+    topInset,
+}: {
+    width: number;
+    height: number;
+    menuInset: number;
+    topInset: number;
+}) {
     const lineLeft = width - menuInset;
-    const lineTop = height;
+    const lineTop = height - topInset;
 
     return (
         <>
