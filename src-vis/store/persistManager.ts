@@ -809,7 +809,13 @@ export const managedStorage: StateStorage = {
             // No-op write (e.g. Zustand re-persisting the same state after rehydrate).
             // While suppressing dirty (navigation write), don't disturb existing pending
             // state — there may be unsaved real edits that must remain pending.
-            if (suppressDirtyDepth === 0) {
+            // Also skip when the key already has a pending edit: a redundant same-value
+            // write in the same synchronous burst (e.g. HeaderSection's reset clearing
+            // many keys where only the first actually changed anything) must not wipe the
+            // genuine pending edit the first write just registered. Real "back to saved"
+            // reverts clear pending explicitly (revertAll / discardPending) before they
+            // rehydrate, so this guard never blocks them.
+            if (suppressDirtyDepth === 0 && !pending.has(name)) {
                 pending.delete(name);
                 originals.delete(name);
                 clearDirtyFlag(name);
