@@ -3,7 +3,7 @@ import ReactGridLayout from 'react-grid-layout/legacy';
 import { X, Monitor } from 'lucide-react';
 import { useDashboardStore, useActiveLayout, resolveTabBarSettings } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
-import { guidelinesTopInset } from '../../utils/guidelinesInset';
+import { guidelinesTopInset, insetKeyFor, readMeasuredInset, storeMeasuredInset } from '../../utils/guidelinesInset';
 import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { useGroupCollapseStore } from '../../store/groupCollapseStore';
 import { useIframeStore, type IframeFullscreenData } from '../../store/iframeStore';
@@ -116,12 +116,13 @@ export function Dashboard({
     const guidelineTabs = viewTabs ?? section?.tabs ?? [];
     const tabBarVisible =
         guidelineTabs.length > 1 || (tabBarResolved.showSingle ?? false) || (tabBarResolved.items?.length ?? 0) > 0;
-    const guidelinesTop = guidelinesTopInset({
+    const guidelinesFallbackInset = guidelinesTopInset({
         showHeader: settings.showHeader ?? true,
         tabBarVisible,
         tabBarAtBottom: tabBarResolved.position === 'bottom',
         sectionBarTop: drawerBarTop,
     });
+    const guidelinesInsetKey = insetKeyFor(effectiveLayoutId, section?.id);
 
     const showGuidelines = guidelinesEnabled && (editMode || guidelinesShowInFrontend);
     // The resolution badge is independent of the guideline lines: it follows its
@@ -473,7 +474,9 @@ export function Dashboard({
                             width={guidelinesWidth}
                             height={guidelinesHeight}
                             menuInset={guidelinesMenuInset}
-                            topInset={guidelinesTop}
+                            editMode={editMode}
+                            insetKey={guidelinesInsetKey}
+                            fallbackInset={guidelinesFallbackInset}
                         />
                     )}
                     {resolutionOverlay}
@@ -781,12 +784,6 @@ export function Dashboard({
 // Renders a vertical line at x=guidelinesWidth and a horizontal line at
 // y=guidelinesHeight, positioned absolutely inside the grid's scroll container.
 //
-// Both lines are placed in the grid's own content coordinates (top-left of the
-// scroll container) using only known layout values — no viewport/DOM offset.
-// That keeps the editor and the frontend pixel-identical (issue #489): the old
-// horizontal line subtracted the container's viewport top, which in the editor
-// picked up the editor toolbar instead of the device chrome, so the line drifted.
-//
 // Vertical line (width): right edge of the target width. A docked sidebar menu
 // insets the dashboard, so subtract its width to land on the device's right edge
 // (usable dashboard = width − menu). `menuInset` is the docked sidebar width
@@ -794,24 +791,76 @@ export function Dashboard({
 //
 // Horizontal line (height): the device's bottom screen edge. The grid starts
 // below the device chrome (header + top tab bar / section bar), so the device
-// bottom sits at height − topInset in grid content coordinates. `topInset` is
-// derived from settings (utils/guidelinesInset.ts), identical in both views.
+// bottom sits at height − topInset in grid content coordinates.
+//
+// topInset (issue #489): the frontend MEASURES the real chrome from the DOM
+// (the scroll container's viewport top) — exact for any styling. It publishes
+// that measurement per layout/section (utils/guidelinesInset.ts) so the editor
+// preview, which does NOT render the chrome (measuring its own toolbar would be
+// wrong), reads the frontend's value instead. Until the frontend of that layout
+// has been opened, the editor falls back to the settings-based estimate.
 function GuidelinesOverlay({
     width,
     height,
     menuInset,
-    topInset,
+    editMode,
+    insetKey,
+    fallbackInset,
 }: {
     width: number;
     height: number;
     menuInset: number;
-    topInset: number;
+    editMode: boolean;
+    insetKey: string;
+    fallbackInset: number;
 }) {
+    const markerRef = useRef<HTMLDivElement | null>(null);
+    const [measured, setMeasured] = useState<number | null>(() => (editMode ? readMeasuredInset(insetKey) : null));
+
+    useEffect(() => {
+        if (editMode) {
+            // Editor: the device chrome is not rendered here, so use the inset the
+            // frontend measured. Re-read on cross-tab storage updates.
+            setMeasured(readMeasuredInset(insetKey));
+            const onStorage = () => setMeasured(readMeasuredInset(insetKey));
+            window.addEventListener('storage', onStorage);
+            return () => window.removeEventListener('storage', onStorage);
+        }
+        // Frontend: measure the real chrome above the grid (scroll container's
+        // distance from the viewport top) and publish it for the editor.
+        const parent = markerRef.current?.parentElement;
+        if (!parent) return;
+        const measure = () => {
+            const top = Math.round(parent.getBoundingClientRect().top);
+            setMeasured(top);
+            storeMeasuredInset(insetKey, top);
+        };
+        measure();
+        const ro = new ResizeObserver(measure);
+        ro.observe(parent);
+        ro.observe(document.documentElement);
+        window.addEventListener('resize', measure);
+        return () => {
+            ro.disconnect();
+            window.removeEventListener('resize', measure);
+        };
+        // fallbackInset changes whenever the chrome config changes (header / tab
+        // bar / section bar). Re-running then re-measures even when the grid's
+        // size is unchanged and only its top position shifted (e.g. moving the
+        // section bar from top to bottom) — a move the ResizeObserver misses.
+    }, [editMode, insetKey, fallbackInset]);
+
+    const topInset = measured ?? fallbackInset;
     const lineLeft = width - menuInset;
     const lineTop = height - topInset;
 
     return (
         <>
+            <div
+                ref={markerRef}
+                aria-hidden
+                style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0, pointerEvents: 'none' }}
+            />
             {/* Vertical line: right edge of the target width */}
             <div
                 aria-hidden

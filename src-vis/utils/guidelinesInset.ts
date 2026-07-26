@@ -27,11 +27,56 @@ export interface GuidelinesChromeFlags {
 }
 
 /** Height (px) of the chrome above the grid — header + top section bar + top tab
- *  bar. Bottom-positioned bars sit below the grid and do not shift the top. */
+ *  bar. Bottom-positioned bars sit below the grid and do not shift the top.
+ *  Used only as a FALLBACK for the editor before the frontend has measured the
+ *  real chrome (see below). The frontend itself always measures the DOM, so its
+ *  guideline is exact for any styling. */
 export function guidelinesTopInset(f: GuidelinesChromeFlags): number {
     let c = 0;
     if (f.showHeader) c += GUIDELINES_CHROME.header;
     if (f.tabBarVisible && !f.tabBarAtBottom) c += GUIDELINES_CHROME.tabBar;
     if (f.sectionBarTop) c += GUIDELINES_CHROME.sectionBar;
     return c;
+}
+
+// ── Shared measured inset ───────────────────────────────────────────────────
+// The editor preview does not render the device chrome, so it cannot measure the
+// real top inset. The frontend CAN (it renders the real header + bars), so it
+// publishes its measured inset per layout/section to localStorage; the editor
+// reads it back. Same origin (the admin editor and the frontend are the same
+// SPA), so the value is shared across tabs. Falls back to the estimator above
+// until the frontend of that layout has been opened at least once.
+const INSET_LS_KEY = 'aura-guideline-inset';
+type InsetMap = Record<string, number>;
+
+function readInsetMap(): InsetMap {
+    try {
+        const raw = localStorage.getItem(INSET_LS_KEY);
+        return raw ? (JSON.parse(raw) as InsetMap) : {};
+    } catch {
+        return {};
+    }
+}
+
+export function insetKeyFor(layoutId: string | undefined, sectionId: string | undefined): string {
+    return `${layoutId ?? ''}::${sectionId ?? ''}`;
+}
+
+/** Persist the frontend-measured top inset for a layout/section. */
+export function storeMeasuredInset(key: string, inset: number): void {
+    try {
+        const map = readInsetMap();
+        if (map[key] === inset) return;
+        map[key] = inset;
+        localStorage.setItem(INSET_LS_KEY, JSON.stringify(map));
+    } catch {
+        // localStorage unavailable (private mode etc.) — the editor just falls
+        // back to the estimator; not worth surfacing.
+    }
+}
+
+/** Read the last frontend-measured top inset for a layout/section, or null. */
+export function readMeasuredInset(key: string): number | null {
+    const v = readInsetMap()[key];
+    return typeof v === 'number' ? v : null;
 }
