@@ -32,6 +32,7 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
             return ['default', 'battery'];
         case 'gauge':
         case 'climate':
+        case 'aircontrol':
         case 'echartsPreset':
         case 'chips':
         case 'group':

@@ -109,6 +109,9 @@ const ChartWidget = lazyWithReload(() => import('../widgets/ChartWidget').then((
 const ClimateWidget = lazyWithReload(() =>
     import('../widgets/ClimateWidget').then((m) => ({ default: m.ClimateWidget })),
 );
+const AirControlWidget = lazyWithReload(() =>
+    import('../widgets/AirControlWidget').then((m) => ({ default: m.AirControlWidget })),
+);
 const EChartWidget = lazyWithReload(() => import('../widgets/EChartWidget').then((m) => ({ default: m.EChartWidget })));
 const EChartsPresetWidget = lazyWithReload(() =>
     import('../widgets/EChartsPresetWidget').then((m) => ({ default: m.EChartsPresetWidget })),
@@ -142,6 +145,7 @@ import { AutoListWidget } from '../widgets/AutoListWidget';
 import { StatusOverviewWidget } from '../widgets/StatusOverviewWidget';
 import { MirrorWidget } from '../widgets/MirrorWidget';
 import { MirrorConfig } from '../config/MirrorConfig';
+import { AirControlConfig } from '../config/AirControlConfig';
 import { EnergiebilanzWidget } from '../widgets/EnergiebilanzWidget';
 import { ShutterWidget } from '../widgets/ShutterWidget';
 import { JsonTableWidget } from '../widgets/JsonTableWidget';
@@ -384,6 +388,7 @@ function getWidgetMap() {
         httpRequest: HttpRequestWidget,
         button: ButtonWidget,
         climate: ClimateWidget,
+        aircontrol: AirControlWidget,
         universal: UniversalWidget,
         enum: EnumWidget,
         light: LightWidget,
@@ -6913,6 +6918,7 @@ export function WidgetFrame({
                             config.type !== 'map' &&
                             config.type !== 'mirror' &&
                             config.type !== 'menu' &&
+                            config.type !== 'aircontrol' &&
                             config.type !== 'energiebilanz' &&
                             (() => {
                                 const activeLayout = config.layout ?? 'default';
@@ -8459,6 +8465,7 @@ export function WidgetFrame({
                             config.type !== 'statusoverview' &&
                             config.type !== 'mirror' &&
                             config.type !== 'menu' &&
+                            config.type !== 'aircontrol' &&
                             config.type !== 'energiebilanz' && (
                                 <div>
                                     <label
@@ -9192,6 +9199,9 @@ export function WidgetFrame({
                         )}
                         {config.type === 'echart' && <EChartConfig config={config} onConfigChange={onConfigChange} />}
                         {config.type === 'mirror' && <MirrorConfig config={config} onConfigChange={onConfigChange} />}
+                        {config.type === 'aircontrol' && (
+                            <AirControlConfig config={config} onConfigChange={onConfigChange} />
+                        )}
                         {config.type === 'energiebilanz' && (
                             <EnergiebilanzConfig config={config} onConfigChange={onConfigChange} />
                         )}

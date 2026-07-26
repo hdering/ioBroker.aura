@@ -52,6 +52,9 @@ import { MirrorWidget } from './MirrorWidget';
 // a <Suspense> boundary.
 const ChartWidget = lazyWithReload(() => import('./ChartWidget').then((m) => ({ default: m.ChartWidget })));
 const ClimateWidget = lazyWithReload(() => import('./ClimateWidget').then((m) => ({ default: m.ClimateWidget })));
+const AirControlWidget = lazyWithReload(() =>
+    import('./AirControlWidget').then((m) => ({ default: m.AirControlWidget })),
+);
 const EChartWidget = lazyWithReload(() => import('./EChartWidget').then((m) => ({ default: m.EChartWidget })));
 const EChartsPresetWidget = lazyWithReload(() =>
     import('./EChartsPresetWidget').then((m) => ({ default: m.EChartsPresetWidget })),
@@ -95,6 +98,7 @@ export function getWidgetMap() {
         mediaplayer: MediaplayerWidget,
         slider: SliderWidget,
         climate: ClimateWidget,
+        aircontrol: AirControlWidget,
         universal: UniversalWidget,
         enum: EnumWidget,
         light: LightWidget,

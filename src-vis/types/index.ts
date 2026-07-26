@@ -66,6 +66,7 @@ export type WidgetType =
     | 'httpRequest'
     | 'button'
     | 'climate'
+    | 'aircontrol'
     | 'universal'
     | 'enum'
     | 'light'
