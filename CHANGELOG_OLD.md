@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.31.3 (2026-07-14)
+- Frontend Design - the section switcher is now consistently called "Section menu" (was "Layout menu"), since it navigates a layout's sections
+
 ## 0.31.2 (2026-07-14)
 - Dynamic list - "states" display now shows the configured state label/icon/color instead of the raw value
 

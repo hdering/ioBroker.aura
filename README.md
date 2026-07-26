@@ -115,6 +115,13 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.36.3 (2026-07-26)
+- Timer - new option to hide the astro symbol so only the resolved time is shown
+- JSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)
+- Group - transparent groups now stay transparent when opened via the "Popup: widget content" click action
+- Group - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)
+
+
 ### 0.36.2 (2026-07-25)
 - Timer - astro events now show the resolved sunrise/sunset time next to the symbol
 - Timer - all events are now shown in a scrollable list instead of being cut off at 4
@@ -206,10 +213,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** General - new read-only states info.activeLayout / info.activeSection / info.activeTab mirror the currently displayed view
 
 
-### 0.31.3 (2026-07-14)
-- Frontend Design - the section switcher is now consistently called "Section menu" (was "Layout menu"), since it navigates a layout's sections
-
-
 ## License
 
 MIT License
@@ -221,6 +224,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
