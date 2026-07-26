@@ -682,7 +682,7 @@ function CalendarEditPanel({
                     })}
                 </div>
                 <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    Spanne = Start – Ende, Badge = „läuft" / „noch N T" bei laufenden Terminen.
+                    Spanne = Start – Ende, Badge = „läuft“ / „noch N T“ bei laufenden Terminen.
                 </p>
             </div>
 
