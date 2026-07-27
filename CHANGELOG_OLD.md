@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.33.3 (2026-07-18)
+- 🌟 **New feature:** EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state
+- 🌟 **New feature:** Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length
+
 ## 0.33.2 (2026-07-16)
 - Distribution chart - configurable frontend time-range selector (1h/6h/24h/7d/30d/custom) with an option to lock the range
 

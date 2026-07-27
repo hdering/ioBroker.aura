@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.37.2 (2026-07-27)
+- Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges
+
+
 ### 0.37.1 (2026-07-27)
 - Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)
 
@@ -201,11 +205,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Group - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor
 
 
-### 0.33.3 (2026-07-18)
-- 🌟 **New feature:** EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state
-- 🌟 **New feature:** Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length
-
-
 ## License
 
 MIT License
@@ -217,6 +216,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.37.1",
+    "version": "0.37.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.37.2": {
+        "en": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
+        "de": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
+        "ru": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
+        "pt": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
+        "nl": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
+        "fr": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
+        "it": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
+        "es": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
+        "pl": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
+        "uk": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
+        "zh-cn": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges"
+      },
       "0.37.1": {
         "en": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)",
         "de": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)",
@@ -184,19 +197,6 @@
         "pl": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)",
         "uk": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)",
         "zh-cn": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)"
-      },
-      "0.36.2": {
-        "en": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
-        "de": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
-        "ru": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
-        "pt": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
-        "nl": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
-        "fr": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
-        "it": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
-        "es": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
-        "pl": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
-        "uk": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
-        "zh-cn": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4"
       }
     }
   },
