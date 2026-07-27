@@ -6053,13 +6053,20 @@ export function WidgetFrame({
     const activeLayoutIdCtx = useActiveLayoutId();
     const effectiveSettings = useEffectiveSettings(activeLayoutIdCtx);
     const widgetPadding = effectiveSettings.widgetPadding ?? 16;
+    // A mirror renders its source inside the frame, so its outer padding must
+    // follow the SOURCE's type — not 'mirror'. Otherwise a mirrored group (which
+    // needs to be edge-to-edge) gets the default widget padding, shrinking the
+    // group box so GroupWidget rescales the children smaller and clips their
+    // right-edge badges (issue #502). For a mirror of a normal widget this keeps
+    // the same padding the source has, so the mirror matches it.
+    const framingType = config.type === 'mirror' && mirrorLcSource ? mirrorLcSource.type : config.type;
     const isNoPad =
         isHeader ||
-        isGroup ||
-        config.type === 'panels' ||
-        config.type === 'iframe' ||
-        config.type === 'map' ||
-        config.type === 'echartsPreset';
+        framingType === 'group' ||
+        framingType === 'panels' ||
+        framingType === 'iframe' ||
+        framingType === 'map' ||
+        framingType === 'echartsPreset';
 
     return (
         <div
