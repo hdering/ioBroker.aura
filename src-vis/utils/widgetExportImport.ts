@@ -3,9 +3,115 @@ import type { Tab, Section, DashboardLayout } from '../store/dashboardStore';
 import type { PopupView } from '../store/popupConfigStore';
 import { useGroupDefsStore, newGroupDefId } from '../store/groupDefsStore';
 import { newPresetId } from '../store/widgetPresetsStore';
+import { useConfigStore } from '../store/configStore';
 import { anonymizePayload, anyAnonymize, type AnonymizeOptions } from './anonymizeExport';
 
 export type { AnonymizeOptions } from './anonymizeExport';
+
+// ── Cross-dashboard grid scaling ───────────────────────────────────────────────
+//
+// Widget gridPos values are in grid UNITS; their pixel size depends on the
+// dashboard's grid geometry (row height, horizontal snap, gap), which is a
+// per-dashboard setting. A tab authored on a dashboard with a large row height
+// (so one-row children comfortably hold a fixed 48px icon) looks tiny and
+// squeezed when imported onto a dashboard with a small row height. To keep the
+// visual size, exports now record the SOURCE geometry and imports rescale every
+// gridPos (widgets AND group-def children) to the TARGET geometry.
+
+export interface GridGeometry {
+    rowHeight: number;
+    snapX: number;
+    gap: number;
+}
+
+interface GridPos {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+}
+
+/** The importing/exporting instance's current (global) grid geometry. */
+function currentGrid(): GridGeometry {
+    const f = useConfigStore.getState().frontend;
+    return {
+        rowHeight: f.gridRowHeight ?? 20,
+        snapX: f.gridSnapX ?? f.gridRowHeight ?? 20,
+        gap: f.gridGap ?? 10,
+    };
+}
+
+const near1 = (f: number) => f > 0.98 && f < 1.02;
+
+/** Scale one gridPos by independent x/y factors, scaling the EDGES (not width and
+ *  x separately) so adjacent widgets stay adjacent after rounding. */
+function scaleGridPos<T extends GridPos>(gp: T, fx: number, fy: number): T {
+    const x = Math.max(0, Math.round(gp.x * fx));
+    const right = Math.round((gp.x + gp.w) * fx);
+    const y = Math.max(0, Math.round(gp.y * fy));
+    const bottom = Math.round((gp.y + gp.h) * fy);
+    return { ...gp, x, y, w: Math.max(1, right - x), h: Math.max(1, bottom - y) };
+}
+
+/**
+ * Factors that map SOURCE grid units to TARGET grid units so the pixel size is
+ * preserved. When the source geometry is known, use the exact pitch ratio. When
+ * it isn't (legacy exports with no recorded geometry), fall back to an auto-fit:
+ * fixed-size content (a child's `iconSize`) reveals the row height the tab was
+ * designed for — if that would overflow the target row, scale everything up
+ * uniformly so icons/labels stay legible instead of overlapping.
+ */
+function gridScaleFactors(
+    source: GridGeometry | undefined,
+    target: GridGeometry,
+    widgets: WidgetConfig[],
+): { fx: number; fy: number } {
+    if (source) {
+        return {
+            fx: (source.snapX + source.gap) / (target.snapX + target.gap),
+            fy: (source.rowHeight + source.gap) / (target.rowHeight + target.gap),
+        };
+    }
+    // Auto-fit: largest icon-pixels-per-row across all widgets/children.
+    let maxIconPerRow = 0;
+    for (const w of widgets) {
+        const icon = w.options?.iconSize;
+        const h = w.gridPos?.h ?? 0;
+        if (typeof icon === 'number' && h > 0) maxIconPerRow = Math.max(maxIconPerRow, icon / h);
+    }
+    // A one-row child needs ~1.3× its icon height to also fit a label. If that
+    // exceeds the target row height the content would overflow → scale uniformly.
+    const needPx = maxIconPerRow * 1.3;
+    const f = needPx > target.rowHeight ? needPx / target.rowHeight : 1;
+    return { fx: f, fy: f };
+}
+
+/** Read the source geometry an export may carry (undefined for legacy files). */
+function readSourceGrid(obj: Record<string, unknown>): GridGeometry | undefined {
+    const g = obj.grid as Partial<GridGeometry> | undefined;
+    if (!g || typeof g.rowHeight !== 'number' || typeof g.snapX !== 'number' || typeof g.gap !== 'number') {
+        return undefined;
+    }
+    return { rowHeight: g.rowHeight, snapX: g.snapX, gap: g.gap };
+}
+
+/** Rescale a widget list in place-safe fashion (returns new configs). */
+function rescaleWidgets(widgets: WidgetConfig[], fx: number, fy: number): WidgetConfig[] {
+    if (near1(fx) && near1(fy)) return widgets;
+    return widgets.map((w) => ({ ...w, gridPos: scaleGridPos(w.gridPos, fx, fy) }));
+}
+
+/** Rescale every group-def child list. */
+function rescaleGroupDefs(
+    defs: Record<string, WidgetConfig[]>,
+    fx: number,
+    fy: number,
+): Record<string, WidgetConfig[]> {
+    if (near1(fx) && near1(fy)) return defs;
+    const out: Record<string, WidgetConfig[]> = {};
+    for (const [id, children] of Object.entries(defs)) out[id] = rescaleWidgets(children, fx, fy);
+    return out;
+}
 
 // Serialises a payload (optionally anonymised) and triggers a browser download.
 // When any anonymisation is active, `-anon` is appended to the filename; when
@@ -103,6 +209,7 @@ export function exportTab(tab: Tab, anon?: AnonymizeOptions) {
     const payload = {
         _type: 'aura-tab' as const,
         _version: 1,
+        grid: currentGrid(),
         tab,
         ...(Object.keys(groupDefs).length > 0 ? { groupDefs } : {}),
     };
@@ -125,8 +232,16 @@ export function importTab(raw: unknown): Omit<Tab, 'id'> | null {
 
     const importedDefs = (obj.groupDefs ?? {}) as Record<string, WidgetConfig[]>;
 
+    // Rescale SOURCE grid units → TARGET so the imported tab keeps its pixel size.
+    const { fx, fy } = gridScaleFactors(readSourceGrid(obj), currentGrid(), [
+        ...tab.widgets,
+        ...Object.values(importedDefs).flat(),
+    ]);
+    const scaledWidgets = rescaleWidgets(tab.widgets, fx, fy);
+    const scaledDefs = rescaleGroupDefs(importedDefs, fx, fy);
+
     const defIdMap: Record<string, string> = {};
-    for (const oldId of Object.keys(importedDefs)) {
+    for (const oldId of Object.keys(scaledDefs)) {
         defIdMap[oldId] = newGroupDefId();
     }
 
@@ -142,7 +257,7 @@ export function importTab(raw: unknown): Omit<Tab, 'id'> | null {
     }
 
     const { setDef } = useGroupDefsStore.getState();
-    for (const [oldId, children] of Object.entries(importedDefs)) {
+    for (const [oldId, children] of Object.entries(scaledDefs)) {
         setDef(defIdMap[oldId], remapWidgets(children as WidgetConfig[]));
     }
 
@@ -150,7 +265,7 @@ export function importTab(raw: unknown): Omit<Tab, 'id'> | null {
     return {
         name,
         slug: slug ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        widgets: remapWidgets(tab.widgets),
+        widgets: remapWidgets(scaledWidgets),
         ...(icon ? { icon } : {}),
         ...(hideLabel !== undefined ? { hideLabel } : {}),
         ...(disabled !== undefined ? { disabled } : {}),
@@ -163,16 +278,22 @@ export function importTab(raw: unknown): Omit<Tab, 'id'> | null {
 // ── groupDef remap helper (shared by section/layout import) ─────────────────────
 
 /** Register imported groupDefs under fresh ids and return a widget-remapper that
- *  assigns fresh widget ids and rewrites group/panels defId references. */
+ *  rescales gridPos to the target grid, assigns fresh widget ids and rewrites
+ *  group/panels defId references. `fx`/`fy` are the source→target grid factors. */
 function makeGroupDefRemapper(
     importedDefs: Record<string, WidgetConfig[]>,
+    fx: number,
+    fy: number,
 ): (widgets: WidgetConfig[]) => WidgetConfig[] {
+    const scaledDefs = rescaleGroupDefs(importedDefs, fx, fy);
     const defIdMap: Record<string, string> = {};
-    for (const oldId of Object.keys(importedDefs)) {
+    for (const oldId of Object.keys(scaledDefs)) {
         defIdMap[oldId] = newGroupDefId();
     }
-    function remapWidgets(widgets: WidgetConfig[]): WidgetConfig[] {
-        return widgets.map((w) => {
+    // Assign fresh widget ids and rewrite group/panels defId references. Gridpos
+    // scaling is done separately so this never double-scales already-scaled defs.
+    const idRemap = (widgets: WidgetConfig[]): WidgetConfig[] =>
+        widgets.map((w) => {
             const newId = freshWidgetId();
             if ((w.type === 'group' || w.type === 'panels') && w.options?.defId) {
                 const newDefId = defIdMap[w.options.defId as string] ?? (w.options.defId as string);
@@ -180,12 +301,12 @@ function makeGroupDefRemapper(
             }
             return { ...w, id: newId };
         });
-    }
     const { setDef } = useGroupDefsStore.getState();
-    for (const [oldId, children] of Object.entries(importedDefs)) {
-        setDef(defIdMap[oldId], remapWidgets(children as WidgetConfig[]));
+    for (const [oldId, children] of Object.entries(scaledDefs)) {
+        setDef(defIdMap[oldId], idRemap(children));
     }
-    return remapWidgets;
+    // Callers pass raw (unscaled) tab widgets → scale then id-remap.
+    return (widgets: WidgetConfig[]) => idRemap(rescaleWidgets(widgets, fx, fy));
 }
 
 // ── Section export / import ─────────────────────────────────────────────────────
@@ -207,6 +328,7 @@ export function exportSection(section: Section, anon?: AnonymizeOptions) {
     const payload = {
         _type: 'aura-section' as const,
         _version: 1,
+        grid: currentGrid(),
         section,
         ...(Object.keys(groupDefs).length > 0 ? { groupDefs } : {}),
     };
@@ -222,7 +344,12 @@ export function importSection(raw: unknown): Omit<Section, 'id'> | null {
         | null;
     if (!src || !src.name || !Array.isArray(src.tabs)) return null;
 
-    const remapWidgets = makeGroupDefRemapper((obj.groupDefs ?? {}) as Record<string, WidgetConfig[]>);
+    const importedDefs = (obj.groupDefs ?? {}) as Record<string, WidgetConfig[]>;
+    const { fx, fy } = gridScaleFactors(readSourceGrid(obj), currentGrid(), [
+        ...src.tabs.flatMap((tb) => tb.widgets ?? []),
+        ...Object.values(importedDefs).flat(),
+    ]);
+    const remapWidgets = makeGroupDefRemapper(importedDefs, fx, fy);
 
     const tsBase = Date.now();
     const tabs: Tab[] = src.tabs.map((tab, i) => ({
@@ -263,6 +390,7 @@ export function exportLayout(layout: DashboardLayout, anon?: AnonymizeOptions) {
     const payload = {
         _type: 'aura-layout' as const,
         _version: 2,
+        grid: currentGrid(),
         layout,
         ...(Object.keys(groupDefs).length > 0 ? { groupDefs } : {}),
     };
@@ -284,7 +412,15 @@ export function importLayout(raw: unknown): Omit<DashboardLayout, 'id'> | null {
     const layout = obj.layout as DashboardLayout & { tabs?: Tab[]; activeTabId?: string };
     if (!layout.name) return null;
 
-    const remapWidgets = makeGroupDefRemapper((obj.groupDefs ?? {}) as Record<string, WidgetConfig[]>);
+    const importedDefs = (obj.groupDefs ?? {}) as Record<string, WidgetConfig[]>;
+    const allSrcWidgets: WidgetConfig[] = Array.isArray(layout.sections)
+        ? layout.sections.flatMap((sec) => sec.tabs.flatMap((tb) => tb.widgets ?? []))
+        : (layout.tabs ?? []).flatMap((tb) => tb.widgets ?? []);
+    const { fx, fy } = gridScaleFactors(readSourceGrid(obj), currentGrid(), [
+        ...allSrcWidgets,
+        ...Object.values(importedDefs).flat(),
+    ]);
+    const remapWidgets = makeGroupDefRemapper(importedDefs, fx, fy);
     const tsBase = Date.now();
 
     // Legacy layout (tabs[]) → wrap into a single section.
