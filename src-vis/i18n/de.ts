@@ -684,6 +684,8 @@ export const de = {
     'wf.menu.edit': 'Bearbeiten',
     'wf.menu.conditions': 'Bedingungen',
     'wf.menu.badges': 'Marker',
+    'wf.mirrorBadge': 'Spiegel',
+    'wf.mirrorBadgeOf': 'Spiegel: {title}',
     'wf.menu.export': 'Exportieren',
     'wf.menu.saveAsPreset': 'Als Vorlage speichern',
     'preset.save.title': 'Als Widget-Vorlage speichern',

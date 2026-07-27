@@ -683,6 +683,8 @@ export const en: Record<TranslationKey, string> = {
     'wf.menu.edit': 'Edit',
     'wf.menu.conditions': 'Conditions',
     'wf.menu.badges': 'Badges',
+    'wf.mirrorBadge': 'Mirror',
+    'wf.mirrorBadgeOf': 'Mirror: {title}',
     'wf.menu.export': 'Export',
     'wf.menu.saveAsPreset': 'Save as preset',
     'preset.save.title': 'Save as widget preset',

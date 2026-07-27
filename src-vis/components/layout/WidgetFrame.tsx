@@ -24,6 +24,7 @@ import {
     FolderOpen,
     BadgeCheck,
     Shapes,
+    CopyPlus,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { setDragBridge } from '../../utils/dragBridge';
@@ -6234,6 +6235,33 @@ export function WidgetFrame({
                     style={{ color: 'var(--text-secondary)' }}
                 >
                     {currentLayout}
+                </div>
+            )}
+
+            {/* Editor-only marker so a mirror is recognisable at a glance and shows
+                which widget it reflects. Hidden in the frontend (a mirror should be
+                indistinguishable from the source there). */}
+            {editMode && config.type === 'mirror' && (
+                <div
+                    className="nodrag absolute top-1.5 left-1.5 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium pointer-events-none max-w-[85%]"
+                    style={{
+                        background: 'color-mix(in srgb, var(--accent) 18%, var(--app-bg))',
+                        color: 'var(--accent)',
+                        border: '1px solid color-mix(in srgb, var(--accent) 45%, transparent)',
+                        opacity: 0.6,
+                    }}
+                    title={
+                        mirrorLcSource
+                            ? t('wf.mirrorBadgeOf', { title: mirrorLcSource.title || mirrorLcSource.type })
+                            : t('wf.mirrorBadge')
+                    }
+                >
+                    <CopyPlus size={11} className="shrink-0" />
+                    <span className="truncate">
+                        {mirrorLcSource
+                            ? t('wf.mirrorBadgeOf', { title: mirrorLcSource.title || mirrorLcSource.type })
+                            : t('wf.mirrorBadge')}
+                    </span>
                 </div>
             )}
 
